@@ -14,10 +14,12 @@ import imp
 import locale
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import warnings
 
 from .helper import pytest
 
@@ -32,8 +34,12 @@ def pytest_addoption(parser):
                      help="fail if any test leaves files open")
 
     parser.addoption("--doctest-plus", action="store_true",
-                     help="enable running doctests with additional features not "
-                     "found in the normal doctest plugin")
+                     help="enable running doctests with additional "
+                     "features not found in the normal doctest "
+                     "plugin")
+
+    parser.addoption("--doctest-rst", action="store_true",
+                     help="enable running doctests in .rst documentation")
 
     parser.addini("doctest_plus", "enable running doctests with additional "
                   "features not found in the normal doctest plugin")
@@ -42,12 +48,71 @@ def pytest_addoption(parser):
                   "like the norecursedirs option but applies only to doctest "
                   "collection", type="args", default=())
 
+    parser.addini("doctest_rst",
+                  "Run the doctests in the rst documentation",
+                  default=False)
+
+
+class OutputCheckerFix(doctest.OutputChecker):
+    """
+    A special doctest OutputChecker that normalizes a number of things common
+    to astropy doctests.
+
+    - Removes u'' prefixes on string literals
+    - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
+      'S9'.  Numpy 1.7 no longer includes it in display.
+    """
+
+    _literal_re = re.compile(
+        r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
+    _remove_native_byteorder = re.compile(
+        r"([\'\"])\|(S[0-9]+)([\'\"])", re.UNICODE)
+
+    _original_output_checker = doctest.OutputChecker
+
+    def do_fixes(self, want, got):
+        want = re.sub(self._literal_re, r'\1\2', want)
+
+        got = re.sub(self._literal_re, r'\1\2', got)
+        got = re.sub(self._remove_native_byteorder, r'\1\2\3', got)
+        return want, got
+
+    def check_output(self, want, got, flags):
+        if flags & FIX:
+            want, got = self.do_fixes(want, got)
+        # Can't use super here because doctest.OutputChecker is not a
+        # new-style class.
+        return self._original_output_checker.check_output(
+            self, want, got, flags)
+
+    def output_difference(self, want, got, flags):
+        if flags & FIX:
+            want, got = self.do_fixes(want, got)
+        # Can't use super here because doctest.OutputChecker is not a
+        # new-style class.
+        return self._original_output_checker.output_difference(
+            self, want, got, flags)
+
+
+# We monkey-patch in our replacement doctest OutputChecker.  Not
+# great, but there isn't really an API to replace the checker when
+# using doctest.testfile, unfortunately.
+FIX = doctest.register_optionflag('FIX')
+doctest.OutputChecker = OutputCheckerFix
+
 
 def pytest_configure(config):
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
         return
+
+    # These are the default doctest options we use for everything.
+    # There shouldn't be any need to manually put them in doctests
+    # themselves.
+    opts = (doctest.ELLIPSIS |
+            doctest.NORMALIZE_WHITESPACE |
+            FIX)
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
@@ -64,7 +129,6 @@ def pytest_configure(config):
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
             runner = doctest.DebugRunner(verbose=False, optionflags=opts)
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
@@ -75,13 +139,87 @@ def pytest_configure(config):
         def runtest(self):
             return
 
-    config.pluginmanager.register(DoctestPlus(DocTestModulePlus),
-                                  'doctestplus')
+    class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
+        def runtest(self):
+            # satisfy `FixtureRequest` constructor...
+            self.funcargs = {}
+            self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
+            fixture_request = doctest_plugin.FixtureRequest(self)
+            failed, tot = doctest.testfile(
+                str(self.fspath), module_relative=False,
+                optionflags=opts, parser=DocTestParserPlus(),
+                extraglobs=dict(getfixture=fixture_request.getfuncargvalue),
+                raise_on_error=True, verbose=False, encoding='utf-8')
+
+    class DocTestParserPlus(doctest.DocTestParser):
+        """
+        An extension to the builtin DocTestParser that handles the
+        special directives for skipping tests.
+
+        The directives are:
+
+           - ``.. doctest-skip::``: Skip the next doctest chunk.
+
+           - ``.. doctest-requires:: module1, module2``: Skip the next
+             doctest chunk if the given modules/packages are not
+             installed.
+
+           - ``.. doctest-skip-all``: Skip all subsequent doctests.
+        """
+
+        def parse(self, s, name=None):
+            result = doctest.DocTestParser.parse(self, s, name=name)
+
+            # result is a sequence of alternating text chunks and
+            # doctest.Example objects.  We need to look in the text
+            # chunks for the special directives that help us determine
+            # whether the following examples should be skipped.
+
+            required = []
+            skip_next = False
+            skip_all = False
+
+            for entry in result:
+                if isinstance(entry, six.string_types) and entry:
+                    required = []
+                    skip_next = False
+                    lines = entry.strip().splitlines()
+
+                    if '.. doctest-skip-all' in (x.strip() for x in lines):
+                        skip_all = True
+                        continue
+
+                    if not len(lines):
+                        continue
+
+                    last_line = lines[-1]
+                    match = re.match(
+                        r'\.\.\s+doctest-skip\s*::', last_line)
+                    if match:
+                        skip_next = True
+                        continue
+
+                    match = re.match(
+                        r'\.\.\s+doctest-requires\s*::\s+(.*)',
+                        last_line)
+                    if match:
+                        required = re.split(r'\s*,?\s*', match.group(1))
+                elif isinstance(entry, doctest.Example):
+                    if (skip_all or skip_next or
+                        not DocTestFinderPlus.check_required_modules(required)):
+                        entry.options[doctest.SKIP] = True
+
+            return result
+
+    config.pluginmanager.register(
+        DoctestPlus(DocTestModulePlus, DocTestTextfilePlus,
+                    config.getini('doctest_rst') or config.option.doctest_rst),
+        'doctestplus')
 
 
 class DoctestPlus(object):
-
-    def __init__(self, doctest_module_item_cls):
+    def __init__(self, doctest_module_item_cls, doctest_textfile_item_cls,
+                 run_rst_doctests):
         """
         doctest_module_item_cls should be a class inheriting
         `pytest.doctest.DoctestItem` and `pytest.File`.  This class handles
@@ -90,8 +228,14 @@ class DoctestPlus(object):
         available at import time, depending on whether or not the doctest
         plugin for py.test is available.
         """
-
         self._doctest_module_item_cls = doctest_module_item_cls
+        self._doctest_textfile_item_cls = doctest_textfile_item_cls
+        self._run_rst_doctests = run_rst_doctests
+
+        if run_rst_doctests and six.PY3:
+            warnings.warn(
+                "Running doctests in .rst files is not yet supported on Python 3")
+            self._run_rst_doctests = False
 
     def pytest_ignore_collect(self, path, config):
         """Skip paths that match any of the doctest_norecursedirs patterns."""
@@ -131,11 +275,23 @@ class DoctestPlus(object):
             __doctest_requires__ = {('func1', 'func2'): ['scipy']}
 
         """
-
-        config = parent.config
         if path.ext == '.py':
+            if path.basename == 'conf.py':
+                return None
+
             # Don't override the built-in doctest plugin
             return self._doctest_module_item_cls(path, parent)
+        elif self._run_rst_doctests and path.ext == '.rst':
+            # Ignore generated .rst files
+            parts = str(path).split(os.path.sep)
+            if (path.basename.startswith('_') or
+                any(x.startswith('_') for x in parts) or
+                any(x == 'api' for x in parts)):
+                return None
+
+            # TODO: Get better names on these items when they are
+            # displayed in py.test output
+            return self._doctest_textfile_item_cls(path, parent)
 
 
 class DocTestFinderPlus(doctest.DocTestFinder):
@@ -145,6 +301,20 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 
     # Caches the results of import attempts
     _import_cache = {}
+
+    @classmethod
+    def check_required_modules(cls, mods):
+        for mod in mods:
+            if mod in cls._import_cache:
+                return cls._import_cache[mod]
+            try:
+                imp.find_module(mod)
+            except ImportError:
+                cls._import_cache[mod] = False
+                return False
+            else:
+                cls._import_cache[mod] = True
+        return True
 
     def find(self, obj, name=None, module=None, globs=None,
              extraglobs=None):
@@ -176,16 +346,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                         if not fnmatch.fnmatch(test.name,
                                                '.'.join((name, pat))):
                             continue
-                        for mod in mods:
-                            if mod in self._import_cache:
-                                return self._import_cache[mod]
-                            try:
-                                imp.find_module(mod)
-                            except ImportError:
-                                self._import_cache[mod] = False
-                                return False
-                            else:
-                                self._import_cache[mod] = True
+                        if not self.check_required_modules(mods):
+                            return False
                 return True
 
             tests = list(filter(test_filter, tests))
@@ -289,7 +451,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 def pytest_report_header(config):
     from .. import __version__
 
-    stdoutencoding = sys.stdout.encoding or 'ascii'
+    stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     s += "Running tests in {0}.\n\n".format(" ".join(config.args))

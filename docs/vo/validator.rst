@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 Using `astropy.vo.validator`
 ============================
 
@@ -335,12 +337,12 @@ Print the details of catalog titled ``'USNO-A2 Catalogue 1'``:
 
 >>> r.print_cat('USNO-A2 Catalogue 1')
 {
-    "capabilityClass": "ConeSearch", 
-    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
-    "capabilityValidationLevel": "", 
-    "contentLevel": "#University#Research#Amateur#", 
+    "capabilityClass": "ConeSearch",
+    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
+    "capabilityValidationLevel": "",
+    "contentLevel": "#University#Research#Amateur#",
     # ...
-    "version": "", 
+    "version": "",
     "waveband": "#Optical#"
 }
 Found in good

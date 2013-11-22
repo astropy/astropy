@@ -49,7 +49,7 @@ The `astropy.modeling` package defines a number of models that live inside
     >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     >>> print(g)
-    Model: Gaussian1DModel
+    Model: Gaussian1D
     n_inputs:   1
     Degree: N/A
     Parameter sets: 1

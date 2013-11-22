@@ -281,7 +281,9 @@ Mode ``'integrate'`` integrates the function over the pixel using
 ``scipy.integrate.quad`` and ``scipy.integrate.dblquad``. This mode is very
 slow and only recommended when highest accuracy is required.
 
->>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')  # doctest: +REQUIRES_SCIPY
+.. doctest-requires:: scipy
+
+    >>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')
 
 Especially in the range where the kernel width is in order of only a few pixels
 it can be advantageous to use the mode ``oversample`` or ``integrate`` to

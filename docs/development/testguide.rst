@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. _testing-guidelines:
 
 ==================
@@ -516,11 +518,12 @@ preferred.
 Writing doctests
 ================
 
-A doctest in Python is a special kind of test that is embedded in a function,
-class, or module's docstring and is formatted to look like a Python interactive
-session--that is, they show lines of Python code entered at a ``>>>`` prompt
-followed by the output that would be expected (if any) when running that code
-in an interactive session.
+A doctest in Python is a special kind of test that is embedded in a
+function, class, or module's docstring, or in the narrative Sphinx
+documentation, and is formatted to look like a Python interactive
+session--that is, they show lines of Python code entered at a ``>>>``
+prompt followed by the output that would be expected (if any) when
+running that code in an interactive session.
 
 The idea is to write usage examples in docstrings that users can enter
 verbatim and check their output against the expected output to confirm that
@@ -531,10 +534,17 @@ doctests and execute them as part of a project's automated test suite.  This
 way we can automatically ensure that all doctest-like examples in our
 docstrings are correct.
 
-The Astropy test suite automatically detects and runs any doctests in the
-Astropy source code, or in affiliated packages using the Astropy test running
-framework. For example doctests and detailed documentation on how to write
-them, see the full :mod:`doctest` documentation.
+The Astropy test suite automatically detects and runs any doctests in
+the Astropy source code or documentation, or in affiliated packages
+using the Astropy test running framework. For example doctests and
+detailed documentation on how to write them, see the full
+:mod:`doctest` documentation.
+
+.. note::
+
+   Since the narrative Sphinx documentation is not installed alongside
+   the astropy source code, it can only be tested by running ``python
+   setup.py test``, not by ``import astropy; astropy.test()``.
 
 Skipping doctests
 -----------------
@@ -574,7 +584,24 @@ skip a doctest:
    Module docstrings may contain doctests as well.  To skip the module-level
    doctests include the string ``'.'`` in ``__doctest_skip__``.
 
-3. ``__doctest_requires__`` is a way to list dependencies for specific
+3. In the Sphinx documentation, a doctest section can be skipped by
+   making it part of a ``doctest-skip`` directive::
+
+       .. doctest-skip::
+
+           >>> # This is a doctest that will appear in the documentation,
+           >>> # but will not be executed by the testing framework.
+           >>> 1 / 0  # Divide by zero, ouch!
+
+   It is also possible to skip all doctests below a certain line using
+   a ``doctest-skip-all`` comment.  Note the lack of ``::`` at the end
+   of the line here::
+
+       .. doctest-skip-all
+
+       All doctests below here are skipped...
+
+4. ``__doctest_requires__`` is a way to list dependencies for specific
    doctests.  It should be a dictionary mapping wildcard patterns (in the same
    format as ``__doctest_skip__``) to a list of one or more modules that should
    be *importable* in order for the tests to run.  For example, if some tests
@@ -587,6 +614,15 @@ skip a doctest:
    Having this module-level variable will require ``scipy`` to be importable
    in order to run the doctests for functions ``func1`` and ``func2`` in that
    module.
+
+   In the Sphinx documentation, a doctest requirement can be notated with the
+   ``doctest-requires`` directive::
+
+       .. doctest-requires:: scipy
+
+           >>> import scipy
+           >>> scipy.hamming(...)
+
 
 Skipping output
 ---------------

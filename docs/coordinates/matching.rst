@@ -1,4 +1,4 @@
-.. doctest_skip
+.. doctest-skip-all
 
 Matching Catalogs/Finding Nearest Coordinates
 ---------------------------------------------
@@ -28,7 +28,7 @@ the coordinates have distances ::
 Now `idx` are indices into `catalog` that are the closest objects to each of
 the coordinates in `c`, `d2d` are the on-sky distances between them, and
 `d3d` are the 3-dimensional distances.  Because coordinate objects support
-indexing, `idx` enables easy access to the matched set of coordinates in 
+indexing, `idx` enables easy access to the matched set of coordinates in
 the catalog::
 
     >>> matches = catalog[idx]

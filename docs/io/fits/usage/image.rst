@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. currentmodule:: astropy.io.fits
 
 Image Data

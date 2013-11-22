@@ -86,7 +86,7 @@ But when passing we pass the proper conversion function,
   <Quantity 1.97392...e+39 J>
   >>> import numpy as np
   >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
-  <Quantity (0.7071067811865476+0.7071067811865475j) >
+  <Quantity (0.707106781186...+0.707106781186...j) >
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
@@ -219,12 +219,12 @@ Note that the equivalency can be used with any other compatible units::
 
   >>> from astropy.units import imperial
   >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)
-  8.345404463333525
+  8.3454044633335...
 
 And it also works in the other direction::
 
   >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)
-  0.9586114172355458
+  0.9586114172355...
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -301,6 +301,8 @@ one can :ref:`enable other units <enabling-other-units>`.
 For instance, to enable radian to be treated as a dimensionless unit,
 simply do::
 
+.. doctest-skip::
+
   >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
   <astropy.units.core._UnitContext object at ...>
@@ -315,6 +317,8 @@ lists, they should indeed be combined by adding them together).
 The disadvantage of the above approach is that you may forget to turn
 the default off (done by giving an empty argument). To automate this,
 a context manager is provided::
+
+.. doctest-skip::
 
   >>> import astropy.units as u
   >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):

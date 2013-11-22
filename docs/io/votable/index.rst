@@ -1,4 +1,4 @@
-.. doctest_skip
+.. doctest-skip-all
 
 .. include:: references.txt
 
