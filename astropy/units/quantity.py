@@ -103,37 +103,35 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        # do np.ndarray for maximum speed (skip the isiterable test, etc.)
-        if isinstance(value, np.ndarray):
-            # optimize speed for Quantity with no dtype given, copy=False
-            if isinstance(value, Quantity):
-                if unit is not None and unit is not value.unit:
-                    value = value.to(unit)
-                    # the above already makes a copy (with float dtype)
-                    copy = False
+        # optimize speed for Quantity with no dtype given, copy=False
+        if isinstance(value, Quantity):
+            if unit is not None and unit is not value.unit:
+                value = value.to(unit)
+                # the above already makes a copy (with float dtype)
+                copy = False
 
-                if dtype is None:
-                    if not copy:
-                        return value
+            if dtype is None:
+                if not copy:
+                    return value
 
-                    if not np.can_cast(np.float32, value.dtype):
-                        dtype = np.float
+                if not np.can_cast(np.float32, value.dtype):
+                    dtype = np.float
 
-                return np.array(value, dtype=dtype, copy=copy, subok=True)
+            return np.array(value, dtype=dtype, copy=copy, subok=True)
 
-        elif (isiterable(value) and
-              all(isinstance(v, Quantity) for v in value) and
-              len(value) > 0):
-            if unit is None:
-                unit = value[0].unit
-            value = [q.to(unit).value for q in value]
-            copy = False  # copy already made
-        elif isinstance(value, (UnitBase, six.string_types)):
-            return cls(cls.from_unit(value), unit)
+        # avoid slowing down np.ndarray with the isiterable test, etc.
+        if not isinstance(value, np.ndarray):
+            if isinstance(value, (UnitBase, six.string_types)):
+                return cls(cls.from_unit(value), unit)
 
-        else:
-            if unit is None:
-                unit = dimensionless_unscaled
+            if(isiterable(value) and len(value) > 0 and
+               all(isinstance(v, Quantity) for v in value)):
+                if unit is None:
+                    unit = value[0].unit
+                value = [q.to(unit).value for q in value]
+
+        if unit is None:
+            unit = dimensionless_unscaled
 
         value = np.array(value, dtype=dtype, copy=copy)
 
