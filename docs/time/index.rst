@@ -6,15 +6,20 @@
 Time and Dates (`astropy.time`)
 ****************************************************
 
+.. |Quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+.. |Longitude| replace:: :class:`~astropy.coordinates.angles.Longitude`
+.. |Latitude| replace:: :class:`~astropy.coordinates.angles.Latitude`
+
 Introduction
 ============
 
 The `astropy.time` package provides functionality for manipulating times and
-dates.  Specific emphasis is placed on supporting time scales (e.g. UTC, TAI, UT1) and
-time representations (e.g. JD, MJD, ISO 8601) that are used in astronomy.
+dates.  Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
+UT1, TDB) and time representations (e.g. JD, MJD, ISO 8601) that are used in
+astronomy and required to calculate, e.g., sidereal times and barycentric
+corrections.
 It uses Cython to wrap the C language `ERFA`_ time and calendar
-routines.  All time scale conversions are done by Cython vectorized versions
-of the `ERFA`_ routines and are fast and memory efficient.
+routines, using a fast and memory efficient vectorization scheme.
 
 All time manipulations and arithmetic operations are done internally using two
 64-bit floats to represent time.  Floating point algorithms from [#]_ are used so
@@ -34,7 +39,6 @@ object by supplying one or more input time values as well as the `time format`_ 
 In general any output values have the same shape (scalar or array) as the input.
 
   >>> from astropy.time import Time
-
   >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
   >>> t = Time(times, format='iso', scale='utc')
   >>> t
@@ -67,6 +71,20 @@ TT.  This uses the same attribute mechanism as above but now returns a new
 Note that both the ISO and JD representations of ``t2`` are different than for
 ``t`` because they are expressed relative to the TT time scale.
 
+Two further examples to give a taste of what is possible.  For details, read on!
+
+  >>> dt = t[1] - t[0]
+  >>> dt
+  <TimeDelta object: scale='tai' format='jd' value=4018.00002171925>
+  >>> t[0] + dt * np.linspace(0.,1.,12)
+  <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2000-01-01 06:32:43.930'
+   '2000-12-31 13:05:27.737' '2001-12-31 19:38:11.544'
+   '2003-01-01 02:10:55.351' '2004-01-01 08:43:39.158'
+   '2004-12-31 15:16:22.965' '2005-12-31 21:49:06.772'
+   '2007-01-01 04:21:49.579' '2008-01-01 10:54:33.386'
+   '2008-12-31 17:27:17.193' '2010-01-01 00:00:00.000']>
+  >>> t.sidereal_time('apparent', 'greenwich')
+  <Longitude [ 6.68050179, 6.70281947] hourangle>
 
 Using `astropy.time`
 =====================
@@ -381,14 +399,21 @@ matching subformat is used.
   >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date*').iso
   '2000-01-01 02:03:04.000'
 
-lat and lon
-^^^^^^^^^^^^
+lon and lat
+^^^^^^^^^^^
 
-These optional parameters specify the observer latitude and longitude in
-decimal degrees.  They default to 0.0 and are used for time scales that are
-sensitive to observer position.  Currently the only time scale for which this
-applies is TDB, which relies on the ERFA routine ``eraDtdb`` to determine the
-time offset between TDB and TT.
+These optional parameters specify the observer East longitude and latitude
+using any form that can initialize a |Longitude| or |Latitude| in degrees.
+They are used for time scales that are sensitive to observer (currently,
+only TDB, which relies on the ERFA routine ``eraDtdb`` to determine the time
+offset between TDB and TT), as well as for sidereal time if no explicit
+longitude is given.
+
+  >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc', lon='120d')
+  >>> t.sidereal_time('apparent', 'greenwich')
+  <Longitude 12.00000000000... hourangle>
+  >>> t.sidereal_time('apparent')
+  <Longitude 20.00000000000... hourangle>
 
 Getting the Current Time
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -407,11 +432,12 @@ The two should be very close to each other.
 Using Time objects
 -------------------
 
-There are three basic operations available with |Time| objects:
+There are four basic operations available with |Time| objects:
 
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
+- Get the `sidereal time`_ corresponding to a particular time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
 
 Get representation
@@ -465,8 +491,8 @@ Examples::
   >>> t.tai
   <Time object: scale='tai' format='iso' value=2010-01-01 00:00:34.000>
 
-In this process the ``format`` and other object attributes like ``lat``,
-``lon``, and ``precision`` are also propagated to the new object.
+In this process the ``format`` and other object attributes like ``lon``,
+``lat``, and ``precision`` are also propagated to the new object.
 
 
 As noted in the `Time object basics` section, a |Time| object is immutable and
@@ -511,12 +537,12 @@ predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
   >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
   >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
 
-In the case of the TDB to TT offset, most users need only provide the ``lat``
-and ``lon`` values when creating the |Time| object.  If the
+In the case of the TDB to TT offset, most users need only provide the ``lon``
+and ``lat`` values when creating the |Time| object.  If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set then
 the ERFA C-library routine ``eraDtdb`` will be used to compute the TDB to TT
-offset.  Note that ``lat`` and ``lon`` are initialized to 0.0 by default, so
-those defaults will be used if they are not provided.
+offset.  Note that if ``lon`` and ``lat`` are not explicitly initialized,
+values of 0.0 degrees for both will be used.
 
 The following code replicates an example in the `SOFA Time Scale and Calendar
 Tools <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ document.  It
@@ -527,7 +553,7 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   >>> lat = 19.48125
   >>> lon = -155.933222
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-  ...          lat=lat, lon=lon, precision=6)
+  ...          lon=lon, lat=lat, precision=6)
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
   >>> t.ut1.iso
@@ -542,6 +568,28 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   '2006-01-15 21:25:42.683799'
   >>> t.tcb.iso
   '2006-01-15 21:25:56.893378'
+
+Sidereal Time
+-------------
+
+Apparent or mean sidereal time can be calculated using
+:meth:`~astropy.time.core.Time.sidereal_time`.  The method returns a |Longitude|
+with units of hourangle, which by default is for the longitude with which the
+|Time| object is initialized.  Like the scale transformations, ERFA C-library
+routines are used under the hood, which support calculations following
+different IAU resolutions.  Sample usage::
+
+  >>> t = Time('2006-01-15 21:24:37.5', scale='utc', lon='120d')
+  >>> t.sidereal_time('mean')
+  <Longitude 13.089521870640... hourangle>
+  >>> t.sidereal_time('apparent')
+  <Longitude 13.089503675087... hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')
+  <Longitude 5.089503675087... hourangle>
+  >>> t.sidereal_time('apparent', '-90d')
+  <Longitude 23.08950367508... hourangle>
+  >>> t.sidereal_time('apparent', '-90d', 'IAU1994')
+  <Longitude 23.08950365423... hourangle>
 
 Time Deltas
 -----------
@@ -605,10 +653,10 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
 Interaction with Time-like Quantities
 -------------------------------------
 
-Where possible, `Quantity` objects with units of time are treated as TimeDelta
+Where possible, |Quantity| objects with units of time are treated as TimeDelta
 (though necessarily with lower precision). They can also be used as input in
 constructing |Time| and |TimeDelta| objects, and |TimeDelta| objects
-can be converted to `Quantity` objects of arbitrary units of time.
+can be converted to |Quantity| objects of arbitrary units of time.
 Usage is most easily illustrated by examples::
 
   >>> import astropy.units as u
