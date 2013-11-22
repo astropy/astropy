@@ -170,7 +170,7 @@ class Angle(u.Quantity):
     def __quantity_view__(self, obj, unit):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            result = obj.view(Angle)
+            result = obj.view(self.__class__)
             return result
         return super(Angle, self).__quantity_view__(
             obj, unit)
@@ -546,7 +546,14 @@ class Latitude(Angle):
         return self
 
     def _validate_angles(self):
-        if np.any(self < -90.0 * u.deg) or np.any(self > 90.0 * u.deg):
+        # Convert the lower and upper bounds to the "native" unit of
+        # this angle.  This limits multiplication to two values,
+        # rather than the N values in `self.value`.  Also, the
+        # comparison is performed on raw arrays, rather than Quantity
+        # objects, for speed.
+        lower = u.degree.to(self.unit, -90.0)
+        upper = u.degree.to(self.unit, 90.0)
+        if np.any(self.value < lower) or np.any(self.value > upper):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {0}'.format(self.degree))
 
@@ -614,9 +621,15 @@ class Longitude(Angle):
         Wrap the internal values in the Longitude object.  Using the `Angle`
         wrap_at() method causes recursion.
         """
-        d360 = 360.0 * u.deg
-        wrapped = np.mod(self - self.wrap_angle, d360) - (d360 - self.wrap_angle)
-        super(Longitude, self).__setitem__((), wrapped)
+        # Convert the wrap angle and 360 degrees to the native unit of
+        # this Angle, then do all the math on raw Numpy arrays rather
+        # than Quantity objects for speed.
+        a360 = u.degree.to(self.unit, 360.0)
+        wrap_angle = self.wrap_angle.to(self.unit).value
+        self_angle = self.value
+        wrapped = np.mod(self_angle - wrap_angle, a360) - (a360 - wrap_angle)
+        value = u.Quantity(wrapped, self.unit)
+        super(Longitude, self).__setitem__((), value)
 
     @property
     def wrap_angle(self):
@@ -632,7 +645,9 @@ class Longitude(Angle):
         if unit is not None and unit.is_equivalent(u.radian):
             # by default, wrap_angle and equivalencies remain the same
             # TODO: generalize to some _things_to_copy once #1422, #1373 merged
-            return obj.view(Longitude)
+            new_view = obj.view(Longitude)
+            new_view._wrap_angle = self.wrap_angle
+            return new_view
         return super(Angle, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):

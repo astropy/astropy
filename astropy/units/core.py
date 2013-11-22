@@ -8,16 +8,14 @@ Core units classes and functions
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..extern.six.moves import zip
 
-import copy
 import inspect
 import numbers
 import sys
 import textwrap
 import warnings
-
 import numpy as np
-from numpy import ma
 
 from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyWarning
@@ -558,12 +556,6 @@ class UnitBase(object):
         """
         return [1.0]
 
-    def _dimensionless_constant(self):
-        if self.is_unity():
-            return 1.0
-        raise UnitsError(
-            "'{0}' is not dimensionless".format(self.to_string()))
-
     def to_string(self, format='generic'):
         """
         Output the unit in the given format as a string.
@@ -640,7 +632,7 @@ class UnitBase(object):
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
-            return CompositeUnit(1, [self, m], [1, -1])
+            return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -669,7 +661,7 @@ class UnitBase(object):
                 return self
             elif self.is_unity():
                 return m
-            return CompositeUnit(1, [self, m], [1, 1])
+            return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -698,28 +690,26 @@ class UnitBase(object):
         except (ValueError, UnitsError):
             return False
         try:
-            return np.allclose(self.to(other, 1), 1.0)
+            return is_effectively_unity(self._to(other))
         except UnitsError:
             return False
 
     def __ne__(self, other):
         return not (self == other)
 
-    def __lt__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) < 1.
-
-    def __gt__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) > 1.
-
     def __le__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) <= 1.
+        scale = self._to(Unit(other))
+        return scale <= 1. or is_effectively_unity(scale)
 
     def __ge__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) >= 1.
+        scale = self._to(Unit(other))
+        return scale >= 1. or is_effectively_unity(scale)
+
+    def __lt__(self, other):
+        return not (self >= other)
+
+    def __gt__(self, other):
+        return not (self <= other)
 
     def __neg__(self):
         return self * -1.
@@ -732,8 +722,7 @@ class UnitBase(object):
         ----------
         other : unit object or string or tuple
             The unit to convert to. If a tuple of units is specified, this
-            method returns true if the unit matches any of those in the tuple;
-            for this case, equivalencies are ignored.
+            method returns true if the unit matches any of those in the tuple.
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
@@ -746,14 +735,13 @@ class UnitBase(object):
         -------
         bool
         """
+        equivalencies = self._normalize_equivalencies(equivalencies)
 
         if isinstance(other, tuple):
-            return any(self.is_equivalent(u, equivalencies=None)
+            return any(self.is_equivalent(u, equivalencies=equivalencies)
                        for u in other)
         else:
             other = Unit(other, parse_strict='silent')
-
-        equivalencies = self._normalize_equivalencies(equivalencies)
 
         return self._is_equivalent(other, equivalencies)
 
@@ -777,13 +765,13 @@ class UnitBase(object):
                     # after canceling, is what's left convertable
                     # to dimensionless (according to the equivalency)?
                     try:
-                        (unit/other).decompose([a])
+                        (other/unit).decompose([a])
                         return True
                     except:
                         pass
                 else:
-                    if(unit._is_equivalent(a) and other._is_equivalent(b) or
-                       unit._is_equivalent(b) and other._is_equivalent(a)):
+                    if(a._is_equivalent(unit) and b._is_equivalent(other) or
+                       b._is_equivalent(unit) and a._is_equivalent(other)):
                         return True
 
         return False
@@ -795,7 +783,7 @@ class UnitBase(object):
         """
         def make_converter(scale1, func, scale2):
             def convert(v):
-                return func(_condition_arg(v) * scale1) * scale2
+                return func(_condition_arg(v) / scale1) * scale2
             return convert
 
         orig_unit = unit
@@ -807,20 +795,23 @@ class UnitBase(object):
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
                 try:
-                    ratio_in_funit = (unit/other).decompose([funit])
+                    ratio_in_funit = (other/unit).decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.)
-                except:
+                except UnitsError:
                     pass
             else:
-                if unit._is_equivalent(funit) and other._is_equivalent(tunit):
-                    scale1 = (unit / funit)._dimensionless_constant()
-                    scale2 = (tunit / other)._dimensionless_constant()
+                try:
+                    scale1 = funit._to(unit)
+                    scale2 = tunit._to(other)
                     return make_converter(scale1, a, scale2)
-                elif (other._is_equivalent(funit) and
-                      unit._is_equivalent(tunit)):
-                    scale1 = (unit / tunit)._dimensionless_constant()
-                    scale2 = (funit / other)._dimensionless_constant()
+                except UnitsError:
+                    pass
+                try:
+                    scale1 = tunit._to(unit)
+                    scale2 = funit._to(other)
                     return make_converter(scale1, b, scale2)
+                except UnitsError:
+                    pass
 
         def get_err_str(unit):
             unit_str = unit.to_string('unscaled')
@@ -868,19 +859,44 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        if self is other:
-            return lambda val: copy.copy(val)
-
         other = Unit(other)
 
-        equivalencies = self._normalize_equivalencies(equivalencies)
-
         try:
-            scale = (self / other)._dimensionless_constant()
+            scale = self._to(other)
         except UnitsError:
             return self._apply_equivalences(
-                self, other, equivalencies)
+                self, other, self._normalize_equivalencies(equivalencies))
         return lambda val: scale * _condition_arg(val)
+
+    def _to(self, other):
+        """
+        Returns the scale to the specified unit.
+
+        See `to`, except that a Unit object should be given (i.e., no
+        string), and that all defaults are used, i.e., no
+        equivalencies and value=1.
+        """
+        # There are many cases where we just want to ensure a Quantity is
+        # of a particular unit, without checking whether it's already in
+        # a particular unit.  If we're being asked to convert from a unit
+        # to itself, we can short-circuit all of this.
+        if self is other:
+            return 1.0
+
+        self_decomposed = self.decompose()
+        other_decomposed = other.decompose()
+
+        # Check quickly whether equivalent.  This is faster than
+        # `is_equivalent`, because it doesn't generate the entire
+        # physical type list of both units.  In other words it "fails
+        # fast".
+        if(self_decomposed.powers == other_decomposed.powers and
+           all(self_base is other_base for (self_base, other_base)
+               in zip(self_decomposed.bases, other_decomposed.bases))):
+            return self_decomposed.scale / other_decomposed.scale
+
+        raise UnitsError(
+            "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
     def to(self, other, value=1.0, equivalencies=[]):
         """
@@ -913,12 +929,6 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        if self is other:
-            # Return a copy of value -- this works with scalars and
-            # arrays
-            return copy.copy(value)
-
-        other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
@@ -951,9 +961,9 @@ class UnitBase(object):
     def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0,
                  cached_results=None):
         def make_key(unit):
-            parts = ([str(unit._scale)] +
-                     [x.name for x in unit._bases] +
-                     [str(x) for x in unit._powers])
+            parts = ([str(unit.scale)] +
+                     [x.name for x in unit.bases] +
+                     [str(x) for x in unit.powers])
             return tuple(parts)
 
         def is_final_result(unit):
@@ -992,7 +1002,7 @@ class UnitBase(object):
         partial_results = []
         # Store final results that reduce to a single unit or pair of
         # units
-        if len(unit._bases) == 0:
+        if len(unit.bases) == 0:
             final_results = [set([unit]), set()]
         else:
             final_results = [set(), set()]
@@ -1006,7 +1016,7 @@ class UnitBase(object):
                 # This allows us to factor out fractional powers
                 # without needing to do an exhaustive search.
                 if len(tunit_decomposed.bases) == 1:
-                    for base, power in zip(u._bases, u._powers):
+                    for base, power in zip(u.bases, u.powers):
                         if tunit_decomposed._is_equivalent(base):
                             tunit = tunit ** power
                             tunit_decomposed = tunit_decomposed ** power
@@ -1014,7 +1024,7 @@ class UnitBase(object):
 
                 composed = (u / tunit_decomposed).decompose()
                 factored = composed * tunit
-                len_bases = len(composed._bases)
+                len_bases = len(composed.bases)
                 if is_final_result(factored) and len_bases <= 1:
                     final_results[len_bases].add(factored)
                 else:
@@ -1149,7 +1159,7 @@ class UnitBase(object):
             results.sort(key=lambda x: np.abs(x.scale))
             results.sort(key=lambda x: np.sum(np.abs(x.powers)))
             results.sort(key=lambda x: np.sum(x.powers) < 0.0)
-            results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
+            results.sort(key=lambda x: not is_effectively_unity(x.scale))
 
             last_result = results[0]
             filtered = [last_result]
@@ -1570,15 +1580,22 @@ class IrreducibleUnit(NamedUnit):
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
-                # to avoid roundrip, ensure no default equivalencies get used
-                if self.is_equivalent(base, equivalencies=[]):
-                    return CompositeUnit(self.to(base), [base], [1])
+                try:
+                    scale = self._to(base)
+                except UnitsError:
+                    pass
+                else:
+                    if is_effectively_unity(scale):
+                        return base
+                    else:
+                        return CompositeUnit(scale, [base], [1],
+                                             _error_check=False)
 
             raise UnitsError(
                 "Unit {0} can not be decomposed into the requested "
                 "bases".format(self))
 
-        return CompositeUnit(1, [self], [1])
+        return self
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
@@ -1656,41 +1673,46 @@ class _UnitMetaClass(type):
     def __call__(self, s, represents=None, format=None, namespace=None,
                  doc=None, parse_strict='raise'):
 
+        # Short-circuit if we're already a unit
+        if isinstance(s, UnitBase):
+            return s
+
+        # turn possible Quantity input for s or represents into a Unit
         from .quantity import Quantity
 
         if isinstance(represents, Quantity):
-            if represents.value == 1:
+            if is_effectively_unity(represents.value):
                 represents = represents.unit
-            elif isinstance(represents.unit, CompositeUnit):
-                represents = CompositeUnit(represents.value,
+            else:
+                # cannot use _error_check=False: scale may be effectively unity
+                represents = CompositeUnit(represents.value *
+                                           represents.unit.scale,
                                            bases=represents.unit.bases,
                                            powers=represents.unit.powers)
-            else:
-                represents = CompositeUnit(represents.value,
-                                           bases=[represents.unit], powers=[1])
 
         if isinstance(s, Quantity):
-            if s.value == 1:
+            if is_effectively_unity(s.value):
                 s = s.unit
-            elif isinstance(s.unit, CompositeUnit):
-                s = CompositeUnit(s.value * s.unit.scale, bases=s.unit.bases,
-                                  powers=s.unit.powers)
             else:
-                s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
+                s = CompositeUnit(s.value * s.unit.scale,
+                                  bases=s.unit.bases,
+                                  powers=s.unit.powers)
 
+        # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
                 s, represents, format=format, namespace=namespace, doc=doc)
 
-        elif isinstance(s, UnitBase):
+        # or interpret a Quantity (now became unit), string or number?
+        if isinstance(s, UnitBase):
             return s
 
         elif isinstance(s, (bytes, six.text_type)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
-                return CompositeUnit(1.0, [], [])
+                return dimensionless_unscaled
 
             if format is None:
                 format = 'generic'
@@ -1870,15 +1892,23 @@ class CompositeUnit(UnitBase):
         of the base units.
     """
     def __init__(self, scale, bases, powers, decompose=False,
-                 decompose_bases=set()):
-        if scale == 1. or is_effectively_unity(scale):
-            scale = 1
+                 decompose_bases=set(), _error_check=True):
+        # There are many cases internal to astropy.units where we
+        # already know that all the bases are Unit objects, and the
+        # powers have been validated.  In those cases, we can skip the
+        # error checking for performance reasons.  When the private
+        # kwarg `_error_check` is False, the error checking is turned
+        # off.
+        if _error_check:
+            if is_effectively_unity(scale):
+                scale = 1.0
+            for base in bases:
+                if not isinstance(base, UnitBase):
+                    raise TypeError("bases must be sequence of UnitBase instances")
+            powers = [self._validate_power(p) for p in powers]
+
         self._scale = scale
-        for base in bases:
-            if not isinstance(base, UnitBase):
-                raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
-        powers = [self._validate_power(p) for p in powers]
         self._powers = powers
         self._decomposed_cache = None
         self._expand_and_gather(decompose=decompose, bases=decompose_bases)
@@ -1924,8 +1954,11 @@ class CompositeUnit(UnitBase):
         def add_unit(unit, power, scale):
             if unit not in bases:
                 for base in bases:
-                    if unit._is_equivalent(base):
-                        scale *= unit.to(base) ** power
+                    try:
+                        scale *= unit._to(base) ** power
+                    except:
+                        pass
+                    else:
                         unit = base
                         break
 
@@ -1956,7 +1989,7 @@ class CompositeUnit(UnitBase):
         self._powers = [x[1] for x in new_parts]
 
         if is_effectively_unity(scale):
-            scale = 1
+            scale = 1.0
 
         self._scale = scale
 
@@ -1986,24 +2019,9 @@ class CompositeUnit(UnitBase):
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
-    def _dimensionless_constant(self):
-        """
-        If this unit is dimensionless, return its scalar quantity.
-
-        Direct use of this method is not recommended. It is generally
-        better to use the `to` or `get_converter` methods
-        instead.
-        """
-        x = self.decompose()
-        c = x.scale
-        if len(x.bases):
-            raise UnitsError(
-                "'{0}' is not dimensionless".format(self.to_string()))
-        return c
-
     def is_unity(self):
         unit = self.decompose()
-        return len(unit.bases) == 0 and unit.scale == 1
+        return len(unit.bases) == 0 and unit.scale == 1.0
 
 
 si_prefixes = [
@@ -2083,7 +2101,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 names.append(prefix + alias)
 
         if len(names):
-            PrefixUnit(names, CompositeUnit(factor, [u], [1]),
+            PrefixUnit(names, CompositeUnit(factor, [u], [1], _error_check=False),
                        namespace=namespace, format=format)
 
 
@@ -2188,19 +2206,17 @@ def _condition_arg(value):
     """
     if isinstance(value, (float, six.integer_types, complex)):
         return value
-    else:
-        try:
-            avalue = np.array(value)
-            if not avalue.dtype.kind in ['i', 'f', 'c']:
-                raise ValueError(
-                    "Must be convertable to int, float or complex array")
-            if ma.isMaskedArray(value):
-                return value
-            return avalue
-        except ValueError:
-            raise ValueError(
-                "Value not scalar compatible or convertable into a int, "
-                "float, or complex array")
+
+    if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:
+        return value
+
+    try:
+        avalue = np.array(value)
+        assert avalue.dtype.kind in ['i', 'f', 'c']
+        return avalue
+    except (ValueError, AssertionError):
+        raise ValueError("Value not scalar compatible or convertible to "
+                         "an int, float, or complex array")
 
 
-dimensionless_unscaled = CompositeUnit(1, [], [])
+dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)

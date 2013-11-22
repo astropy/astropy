@@ -16,7 +16,8 @@ import numpy as np
 
 # AstroPy
 from ..extern import six
-from .core import Unit, dimensionless_unscaled, UnitBase, UnitsError
+from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
+                   get_current_unit_registry)
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
@@ -441,8 +442,12 @@ class Quantity(np.ndarray):
         """
         if equivalencies == []:
             equivalencies = self._equivalencies
-        new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
-        return self.__quantity_instance__(new_val, unit, copy=False)
+        unit = Unit(unit)
+        new_val = np.asarray(
+            self.unit.to(unit, self.value, equivalencies=equivalencies))
+        result = self.__quantity_view__(new_val, unit)
+        result._unit = unit
+        return result
 
     @property
     def value(self):
@@ -550,9 +555,9 @@ class Quantity(np.ndarray):
                     attr))
 
         def get_virtual_unit_attribute():
-            try:
-                to_unit = Unit(attr)
-            except ValueError:
+            registry = get_current_unit_registry().registry
+            to_unit = registry.get(attr, None)
+            if to_unit is None:
                 return None
 
             try:
