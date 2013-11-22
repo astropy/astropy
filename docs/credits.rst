@@ -78,6 +78,7 @@ Core Package Contributors
 Other Credits
 =============
 
+* Kyle Barbary for designing the Astropy logos and documentation themes.
 * Andrew Pontzen and the `pynbody <https://github.com/pynbody/pynbody>`_ team
   (For code that grew into :mod:`astropy.units`)
 * Everyone on `astropy-dev <http://groups.google.com/group/astropy-dev>`_
