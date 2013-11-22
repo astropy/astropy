@@ -38,10 +38,10 @@ def test_initialisation():
     assert ten_meter == u.CompositeUnit(10., [u.m], [1])
     assert u.Unit(ten_meter) is ten_meter
 
-    assert u.Unit(10.*ten_meter) == u.CompositeUnit(10., [ten_meter], [1])
+    assert u.Unit(10.*ten_meter) == u.CompositeUnit(100., [u.m], [1])
 
     foo = u.Unit('foo', (10. * ten_meter)**2, namespace=locals())
-    assert foo == u.CompositeUnit(100., [ten_meter], [2])
+    assert foo == u.CompositeUnit(10000., [u.m], [2])
 
     assert u.Unit('m') == u.m
     assert u.Unit('') == u.dimensionless_unscaled
