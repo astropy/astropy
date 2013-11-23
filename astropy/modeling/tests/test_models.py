@@ -273,14 +273,16 @@ class TestFittableModels(object):
         x_lim = models_1D[model_class]['x_lim']
         parameters = models_1D[model_class]['parameters']
         model = create_model(model_class, parameters)
+
         if isinstance(parameters, dict):
-            parameters.pop('degree')
-            parameters = parameters.values()
+            parameters = [parameters[name] for name in model.param_names]
+
         if "log_fit" in models_1D[model_class]:
             if models_1D[model_class]['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
         else:
             x = np.linspace(x_lim[0], x_lim[1], self.N)
+
         np.random.seed(0)
         # add 10% noise to the amplitude
         relative_noise_amplitude = 0.01
@@ -332,9 +334,9 @@ class TestFittableModels(object):
 
         parameters = models_2D[model_class]['parameters']
         model = create_model(model_class, parameters)
+
         if isinstance(parameters, dict):
-            parameters.pop('degree')
-            parameters = list(six.itervalues(parameters))
+            parameters = [parameters[name] for name in model.param_names]
 
         if "log_fit" in models_2D[model_class]:
             if models_2D[model_class]['log_fit']:

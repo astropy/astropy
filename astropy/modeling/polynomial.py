@@ -84,6 +84,7 @@ class PolynomialBase(FittableModel):
             super(PolynomialBase, self).__setattr__(attr, value)
 
 
+
 class PolynomialModel(PolynomialBase):
     """
     Base class for polynomial models.
