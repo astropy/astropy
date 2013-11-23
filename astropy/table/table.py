@@ -176,14 +176,24 @@ class BaseColumn(object):
         if obj is None:
             return
 
+        if getattr(self, '_content', None) is not None:
+            obj = self._content['__class__'].__array_finalize__(self, obj)
+
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'unit', 'format', 'description'):
+        for attr in ('name', 'unit', 'format', 'description', '_content'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
+
+    def __array_prepare__(self, obj, context=None):
+        if getattr(self, '_content', None) is not None:
+            return self._content['__class__'].__array_prepare__(
+                self, obj, context)
+
+        return obj
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -199,6 +209,10 @@ class BaseColumn(object):
         scalar array while np.mean() returns a scalar.  So the [()] is needed
         for this case.
         """
+        if getattr(self, '_content', None) is not None:
+            out_arr = self._content['__class__'].__array_wrap__(
+                self, out_arr, context)
+
         if self.shape == out_arr.shape:
             return np.ndarray.__array_wrap__(self, out_arr, context)
         else:
@@ -554,6 +568,8 @@ class Column(BaseColumn, np.ndarray):
        allowing for ``c = Column([1, 2], 'c')``.
     """
 
+    _content = None
+
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
@@ -570,11 +586,14 @@ class Column(BaseColumn, np.ndarray):
             warnings.warn("'units' has been renamed to the singular 'unit'.",
                           AstropyDeprecationWarning)
 
+        content = None
+
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
         elif isinstance(data, Column):
             self_data = np.asarray(data.data, dtype=dtype)
+            content = data._content
             if description is None:
                 description = data.description
             if unit is None:
@@ -599,13 +618,14 @@ class Column(BaseColumn, np.ndarray):
         else:
             self_data = np.asarray(data, dtype=dtype)
 
-        if hasattr(self_data, '__dict__'):
-            if meta is None:
-                meta = {}
-            meta['class'] = self_data.__class__
-            meta['optinfo'] = self_data.__dict__
-
         self = self_data.view(cls)
+        if content is None:
+            self._content = {'__class__': self_data.__class__}
+            if hasattr(self_data, '__dict__'):
+                self._content['__dict__'] = self_data.__dict__
+        else:
+            self._content = content
+
         self._name = name
         self.unit = unit
         self.format = format
@@ -616,16 +636,22 @@ class Column(BaseColumn, np.ndarray):
         return self
 
     def __getattr__(self, attr):
-        return getattr(self.content, attr)
+        if self._content is not None:
+            try:
+                return self._content['__dict__'][attr]
+            except KeyError:
+                return getattr(self.content, attr)
 
     @property
     def content(self):
-        content = self.data
-        if 'class' in self.meta:
-            content = content.view(self.meta['class'])
-            content.__dict__.update(self.meta['optinfo'])
-            if hasattr(content, 'restore'):
-                return content.restore()
+        if self._content is None:
+            return self.data
+
+        content = self.view(self._content['__class__'])
+        if hasattr(content, '__dict__'):
+            content.__dict__.update(self._content['__dict__'])
+        if hasattr(content, 'restore'):
+            return content.restore()
 
         return content
 
@@ -644,6 +670,7 @@ class Column(BaseColumn, np.ndarray):
 
         out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
+        out._content = self._content
         self._copy_groups(out)
 
         return out
