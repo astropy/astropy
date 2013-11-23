@@ -27,7 +27,7 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
                axis=None, copy=True):
-    """ Perform sigma-clipping on the provided data.
+    """Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
     over, each time rejecting points that are more than a specified number of
@@ -145,7 +145,6 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
             do = filtered_data - cenfunc(filtered_data)
             filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
         iters = i + 1
-        #TODO: ?print iters to the log if iters was None?
     else:
         for i in range(iters):
             do = filtered_data - cenfunc(filtered_data)
@@ -530,10 +529,10 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 
 def median_absolute_deviation(a, axis=None):
-    """Compute the median absolute deviation
+    """Compute the median absolute deviation.
 
-    Returns the median absolute deviation  of the array elements.  The MAD is
-    defined as :math `median( \|a - median (a)\| )`.
+    Returns the median absolute deviation (MAD) of the array elements.
+    The MAD is defined as :math `median( \|a - median (a)\| )`.
 
     Parameters
     ----------
@@ -564,7 +563,7 @@ def median_absolute_deviation(a, axis=None):
 
     See Also
     --------
-    median
+    numpy.median
 
     """
 
@@ -582,14 +581,13 @@ def median_absolute_deviation(a, axis=None):
 
 
 def biweight_location(a, c=6.0, M=None):
-    """
-    Compute the biweight location for an array
+    """Compute the biweight location for an array.
 
-    Returns the biweight location for the array elements.  The biweight
-    is a robust statistic for determining the central location of a
+    Returns the biweight location for the array elements.
+    The biweight is a robust statistic for determining the central location of a
     distribution.
 
-    The biweight location is given by the follow equation
+    The biweight location is given by the following equation
 
     .. math::
 
@@ -634,7 +632,7 @@ def biweight_location(a, c=6.0, M=None):
 
     See Also
     --------
-    median absolute deviation, biweight_midvariance
+    median_absolute_deviation, biweight_midvariance
 
     """
 
@@ -657,21 +655,20 @@ def biweight_location(a, c=6.0, M=None):
 
 
 def biweight_midvariance(a, c=9.0, M=None):
-    """
-    Compute the biweight midvariance for an array
+    """Compute the biweight midvariance for an array.
 
-    Returns the biweight midvariance for the array elements.  The biweight
-    midvariance is a robust statistic for determining the midvariance (ie. the
+    Returns the biweight midvariance for the array elements.
+    The biweight midvariance is a robust statistic for determining the midvariance (i.e. the
     standard deviation) of a distribution.
 
-    The biweight location is given by the follow equation
+    The biweight location is given by the following equation
 
     .. math::
 
       C_{bl}= n^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
       {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
 
-    where  u_i is given by::
+    where :math:`u_i` is given by
 
     .. math::
 
@@ -709,7 +706,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     See Also
     --------
-    median absolute deviation, biweight_location
+    median_absolute_deviation, biweight_location
 
     """
 
@@ -734,8 +731,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
-    """
-    Computes the signal to noise ratio for source being observed in the
+    """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
 
     Parameters
@@ -773,6 +769,7 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0
     signal = t*source_eps*gain
     noise = np.sqrt(t*(source_eps*gain + npix*(sky_eps*gain + dark_eps)) + npix*rd**2 )
     return signal / noise
+
 
 def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     """Performs bootstrap resampling on numpy arrays.
@@ -827,5 +824,3 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
             boot[i] = bootfunc(data[bootarr])
 
     return boot
-
-

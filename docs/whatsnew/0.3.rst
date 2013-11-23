@@ -345,7 +345,7 @@ underscores between words.  For instance::
     >>> t = ascii.read(data, format='fixed_width_two_line')  # NEW
 
 Unified File Read/Write Interface
-----------------------------------
+---------------------------------
 
 FITS format tables can now be read and written via the :ref:`table_io`. 
 All of the ASCII table formats are now supported as well.  When using
@@ -436,7 +436,7 @@ objects are now used wherever appropriate::
 Statistics
 ----------
 
-The :ref:`tools` sub-package includes a number of new common statistical
+The :ref:`stats` sub-package includes a number of new common statistical
 functions, for example related to binomial statistics and bootstrapping.
 
 WCS
