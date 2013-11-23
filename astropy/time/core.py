@@ -509,51 +509,7 @@ class Time(object):
         return tm
 
     def _get_array_repr(self):
-        from collections import OrderedDict
-        optinfo = {attr: getattr(self, attr) for attr in
-                   ('scale', 'format', 'precision', 'in_subfmt', 'out_subfmt')}
-        arrays = OrderedDict()
-        arrays['jd1'] = self._time.jd1
-        arrays['jd2'] = self._time.jd2
-        for attr in '_delta_ut1_utc', '_delta_tdb_tt', 'lat', 'lon':
-            if hasattr(self, attr):
-                self_attr = getattr(self, attr)
-                try:
-                    assert len(self_attr) == len(self)
-                    arrays[attr] = self_attr
-                except(AssertionError, TypeError):
-                    optinfo[attr] = self_attr
-
-        optinfo['arrays'] = list(arrays.keys())
-        array = np.hstack((np.expand_dims(array, -1)
-                           for array in arrays.values()))
-
-        # need a subclass with a restore method and able to hold a __dict__
-        class TimeArrayRepr(np.ndarray):
-            def restore(self):
-                return Time._from_array_repr(self)
-
-        array = array.view(TimeArrayRepr)
-        array.__dict__.update(optinfo)
-        return array
-
-    @classmethod
-    def _from_array_repr(cls, array):
-        tm = super(Time, cls).__new__(cls)
-        optinfo = array.__dict__
-        array = array.view(np.ndarray)
-        optinfo.update({key: np.atleast_1d(array[..., i])
-                        for i, key in enumerate(optinfo.pop('arrays'))})
-        tm._time = TimeJD(optinfo.pop('jd1'), optinfo.pop('jd2'),
-                          optinfo.pop('scale'), optinfo.pop('precision'),
-                          optinfo.pop('in_subfmt'), optinfo.pop('out_subfmt'),
-                          from_jd=True)
-        tm._format = optinfo.pop('format')
-        tm.isscalar = len(tm._time) == 1
-        # any remaining ones just get updated
-        tm.__dict__.update(optinfo)
-
-        return tm
+        return TimeArrayRepr(self)
 
     def __copy__(self):
         """
@@ -1844,3 +1800,51 @@ class OperandTypeError(TypeError):
         self.value = ("unsupported operand type(s) for -: "
                       "'{0}' and '{1}'".format(left.__class__.__name__,
                                                right.__class__.__name__))
+
+
+class TimeArrayRepr(np.ndarray):
+
+    def __new__(cls, tm):
+        from collections import OrderedDict
+        optinfo = {attr: getattr(tm, attr) for attr in
+                   ('__class__', 'scale', 'format', 'precision',
+                    'in_subfmt', 'out_subfmt')}
+        arrays = OrderedDict()
+        arrays['jd1'] = tm._time.jd1
+        arrays['jd2'] = tm._time.jd2
+        for attr in '_delta_ut1_utc', '_delta_tdb_tt', 'lat', 'lon':
+            if hasattr(tm, attr):
+                tm_attr = getattr(tm, attr)
+                try:
+                    assert len(tm_attr) == len(tm)
+                    arrays[attr] = tm_attr
+                except(AssertionError, TypeError):
+                    optinfo[attr] = tm_attr
+
+        optinfo['arrays'] = list(arrays.keys())
+        array = np.hstack((np.expand_dims(array, -1)
+                           for array in arrays.values()))
+
+        # need a subclass with a restore method and able to hold a __dict__
+
+        array = array.view(cls)
+        array.__dict__.update(optinfo)
+        return array
+
+    def restore(self):
+        optinfo = self.__dict__
+        cls = optinfo.pop('__class__')
+        tm = super(Time, cls).__new__(cls)
+        array = self.view(np.ndarray)
+        optinfo.update({key: np.atleast_1d(array[..., i])
+                        for i, key in enumerate(optinfo.pop('arrays'))})
+        tm._time = TimeJD(optinfo.pop('jd1'), optinfo.pop('jd2'),
+                          optinfo.pop('scale'), optinfo.pop('precision'),
+                          optinfo.pop('in_subfmt'), optinfo.pop('out_subfmt'),
+                          from_jd=True)
+        tm._format = optinfo.pop('format')
+        tm.isscalar = len(tm._time) == 1
+        # any remaining ones just get updated
+        tm.__dict__.update(optinfo)
+
+        return tm
