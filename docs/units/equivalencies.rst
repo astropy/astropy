@@ -165,12 +165,12 @@ conversions is :func:`~astropy.units.equivalencies.spectral_density`. This
 function takes as its arguments the |quantity| for the spectral
 location. For example::
 
-    >>> (1.0 * u.Jy).to(u.erg / u.cm**2 / u.s / u.Hz,
+    >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.Hz,
     ...                 equivalencies=u.spectral_density(3500 * u.AA))
-    <Quantity 1.0000000000000001e-23 erg / (cm2 Hz s)>
-    >>> (1.0 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
+    <Quantity 1.5e-23 erg / (cm2 Hz s)>
+    >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
     ...                 equivalencies=u.spectral_density(3500 * u.AA))
-    <Quantity 2.4472853714285712e-08 erg / (cm2 micron s)>
+    <Quantity 3.670928057142...e-08 erg / (cm2 micron s)>
 
 Brightness Temperature / Flux Density Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -55,7 +55,7 @@ both as a floating point number as a string::
     >>> a
     <Angle 1 rad>
     >>> a.radian
-    1
+    1.0
     >>> a.degree
     57.295779513082...
     >>> a.hour
@@ -138,10 +138,10 @@ angle values in-place.  For example::
     >>> from astropy.coordinates import Longitude
     >>> a = Longitude([-20, 150, 350, 360] * u.deg)
     >>> a.degree
-    array([340, 150, 350,   0])
+    array([ 340., 150., 350.,   0.])
     >>> a.wrap_angle = 180 * u.deg
     >>> a.degree
-    array([-20, 150, -10,   0])
+    array([ -20., 150., -10.,   0.])
 
 Latitude
 """"""""
