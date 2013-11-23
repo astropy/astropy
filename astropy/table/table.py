@@ -234,7 +234,8 @@ class BaseColumn(object):
             "description={4}>\n{5}".format(
             self.__class__.__name__,
             repr(self.name), repr(unit),
-            repr(self.format), repr(self.description), repr(self.data))
+            repr(self.format), repr(self.description),
+                repr(getattr(self, 'content', self.data)))
 
         return out
 
@@ -588,12 +589,21 @@ class Column(BaseColumn, np.ndarray):
             raise TypeError("Cannot convert a MaskedColumn to a Column")
         elif isinstance(data, Quantity):
             if unit is None:
-                self_data = np.asarray(data, dtype=dtype)
+                self_data = data
                 unit = data.unit
             else:
-                self_data = np.asarray(data.to(unit), dtype=dtype)
+                self_data = data.to(unit)
+        elif hasattr(data, '_get_array_repr'):
+            self_data = data._get_array_repr()
+
         else:
             self_data = np.asarray(data, dtype=dtype)
+
+        if hasattr(self_data, '__dict__'):
+            if meta is None:
+                meta = {}
+            meta['class'] = self_data.__class__
+            meta['optinfo'] = self_data.__dict__
 
         self = self_data.view(cls)
         self._name = name
@@ -604,6 +614,20 @@ class Column(BaseColumn, np.ndarray):
         self.meta = meta
 
         return self
+
+    def __getattr__(self, attr):
+        return getattr(self.content, attr)
+
+    @property
+    def content(self):
+        content = self.data
+        if 'class' in self.meta:
+            content = content.view(self.meta['class'])
+            content.__dict__.update(self.meta['optinfo'])
+            if hasattr(content, 'restore'):
+                return content.restore()
+
+        return content
 
     @property
     def data(self):
