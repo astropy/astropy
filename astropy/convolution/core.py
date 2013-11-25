@@ -27,6 +27,7 @@ from .utils import (discretize_model, add_kernel_arrays_1D,
 
 MAX_NORMALIZATION = 100
 
+__all__ = ['Kernel', 'Kernel1D', 'Kernel2D', 'kernel_arithmetics']
 
 class Kernel(object):
     """
