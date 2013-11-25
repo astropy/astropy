@@ -57,7 +57,7 @@ Unit conversion is done using the
 
     >>> x = 1.0 * u.parsec
     >>> x.to(u.km)
-    <Quantity 30856775814671.918 km>
+    <Quantity 30856775814671.9... km>
 
 It is also possible to work directly with units at a lower level, for
 example, to create custom units::

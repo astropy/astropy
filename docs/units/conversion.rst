@@ -39,8 +39,8 @@ and then applying it to the value, or values to be converted.
 
   >>> cms = u.cm / u.s
   >>> cms_to_kmph = cms.get_converter(u.km / u.hour)
-  >>> cms_to_kmph(100.)
-  3.6000000000000005
+  >>> cms_to_kmph(125.)
+  4.5
   >>> cms_to_kmph([1000, 2000])
   array([ 36.,  72.])
 
