@@ -46,7 +46,7 @@ def add_kernel_arrays_1D(array_1, array_2):
 
 def add_kernel_arrays_2D(array_1, array_2):
     """
-    Add two 1D kernel arrays of different size.
+    Add two 2D kernel arrays of different size.
 
     The arrays are added with the centers lying upon each other.
     """
