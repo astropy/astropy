@@ -126,15 +126,21 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
-    'sphinx.ext.viewcode',
     'sphinx.ext.inheritance_diagram',
     'astropy.sphinx.ext.numpydoc',
     'astropy.sphinx.ext.astropyautosummary',
     'astropy.sphinx.ext.automodsumm',
     'astropy.sphinx.ext.automodapi',
     'astropy.sphinx.ext.tocdepthfix',
-    'astropy.sphinx.ext.doctest'
+    'astropy.sphinx.ext.doctest',
+    'astropy.sphinx.ext.viewcode'  # Use patched version of viewcode
     ]
+
+# Above, we use a patched version of viewcode rather than 'sphinx.ext.viewcode'
+# This can be changed to the sphinx version once the following issue is fixed
+# in sphinx:
+# https://bitbucket.org/birkenfeld/sphinx/issue/623/
+# extension-viewcode-fails-with-function
 
 try:
     import matplotlib.sphinxext.plot_directive
