@@ -1,3 +1,5 @@
+import numpy as np
+
 from ...table import Table, Column
 from ...time import Time
 
@@ -31,6 +33,9 @@ def test_time_mixin_init():
 
 
 def test_time_mixin_slice():
+    """
+    Test slicing with mixin columns.
+    """
     t = Table([a, time_obj])
     t = t[:2]
     assert t.colnames == ['a', 'b']
@@ -40,3 +45,14 @@ def test_time_mixin_slice():
                            '--- -----------------------',
                            '  3 1970-01-01 00:00:01.000',
                            '  4 1970-01-01 00:00:02.000']
+
+
+def test_time_mixin_item_access():
+    """
+    Test slicing with mixin columns.
+    """
+    t = Table([a, time_obj])
+    assert t[1]['b'].iso == '1970-01-01 00:00:02.000'
+    assert np.all(t['b'].iso == ['1970-01-01 00:00:01.000',
+                                 '1970-01-01 00:00:02.000',
+                                 '1970-01-01 00:00:03.000'])
