@@ -37,7 +37,9 @@
    <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
    <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
    <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
-   <FIELD ID="short" datatype="short" name="short"/>
+   <FIELD ID="short" datatype="short" name="short">
+    <VALUES null="-32768"/>
+   </FIELD>
    <FIELD ID="int" datatype="int" name="int" utype="myint">
     <VALUES ID="int_nulls" null="123456789">
      <MIN inclusive="no" value="-1000"/>

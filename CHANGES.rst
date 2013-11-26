@@ -153,6 +153,14 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+The `write_null_values` kwarg to `VOTable.to_xml`, when set to `False`
+(the default) would produce non-standard VOTable files.  Therefore,
+this functionality has been replaced by a better understanding that
+knows which fields in a VOTable may be left empty (only `char`,
+`float` and `double` in VOTable 1.1 and 1.2, and all fields in VOTable
+1.3).  The kwarg is still accepted but it will be ignored, and a
+warning is emitted.
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``

@@ -176,7 +176,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     PyObject* array = NULL;
     PyObject* mask = NULL;
     PyObject* converters = NULL;
-    int write_null_values = 0;
+    PyObject* py_supports_empty_values = NULL;
     Py_ssize_t indent = 0;
     Py_ssize_t buf_size = (Py_ssize_t)1 << 8;
 
@@ -201,11 +201,12 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     PyObject* tmp = NULL;
     CHAR* str_tmp = NULL;
     Py_ssize_t str_len = 0;
+    int* supports_empty_values = NULL;
     PyObject* result = 0;
 
-    if (!PyArg_ParseTuple(args, "OOOOinn:write_tabledata",
+    if (!PyArg_ParseTuple(args, "OOOOOnn:write_tabledata",
                           &write_method, &array, &mask, &converters,
-                          &write_null_values, &indent, &buf_size)) {
+                          &py_supports_empty_values, &indent, &buf_size)) {
         goto exit;
     }
 
@@ -213,6 +214,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     if (!PySequence_Check(array)) goto exit;
     if (!PySequence_Check(mask)) goto exit;
     if (!PyList_Check(converters)) goto exit;
+    if (!PyList_Check(py_supports_empty_values)) goto exit;
     indent = CLAMP(indent, (Py_ssize_t)0, (Py_ssize_t)80);
     buf_size = CLAMP(buf_size, (Py_ssize_t)1 << 8, (Py_ssize_t)1 << 24);
 
@@ -222,8 +224,16 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
 
     if ((nrows = PySequence_Size(array)) == -1) goto exit;
     if ((ncols = PyList_Size(converters)) == -1) goto exit;
+    if (PyList_Size(py_supports_empty_values) != ncols) goto exit;
 
-    if ((buf = malloc((size_t)buf_size * sizeof(CHAR))) == NULL) goto exit;
+    supports_empty_values = PyMem_Malloc(sizeof(int) * ncols);
+    if (!supports_empty_values) goto exit;
+    for (i = 0; i < ncols; ++i) {
+        supports_empty_values[i] = PyObject_IsTrue(
+                PyList_GET_ITEM(py_supports_empty_values, i));
+    }
+
+    if ((buf = PyMem_Malloc((size_t)buf_size * sizeof(CHAR))) == NULL) goto exit;
 
     for (i = 0; i < nrows; ++i) {
         if ((array_row = PySequence_GetItem(array, i)) == NULL) goto exit;
@@ -238,25 +248,22 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
             if ((array_val = PySequence_GetItem(array_row, j)) == NULL) goto exit;
             if ((mask_val = PySequence_GetItem(mask_row, j)) == NULL) goto exit;
 
-            if (write_null_values) {
-                write_full = 1;
-            } else {
-                if (mask_val == Py_False) {
-                    write_full = 1;
-                } else if (mask_val == Py_True) {
-                    write_full = 0;
-                } else {
-                    if ((all_masked_obj =
-                         PyObject_CallFunctionObjArgs(numpy_all_method, mask_val, NULL))
-                        == NULL) goto exit;
-                    if ((all = PyObject_IsTrue(all_masked_obj)) == -1) {
-                        Py_DECREF(all_masked_obj);
-                        goto exit;
-                    }
+            write_full = 1;
+            if (mask_val == Py_True) {
+                write_full = 0;
+            } else if (mask_val == Py_False) {
+                // pass
+            } else if (supports_empty_values[j]) {
+                if ((all_masked_obj =
+                     PyObject_CallFunctionObjArgs(numpy_all_method, mask_val, NULL))
+                    == NULL) goto exit;
+                if ((all = PyObject_IsTrue(all_masked_obj)) == -1) {
                     Py_DECREF(all_masked_obj);
-
-                    write_full = !all;
+                    goto exit;
                 }
+                Py_DECREF(all_masked_obj);
+
+                write_full = !all;
             }
 
             if (write_full) {
@@ -320,7 +327,8 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     Py_XDECREF(array_val);
     Py_XDECREF(mask_val);
 
-    free(buf);
+    PyMem_Free(buf);
+    PyMem_Free(supports_empty_values);
 
     return result;
 }

@@ -38,7 +38,9 @@
    <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
    <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
    <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
-   <FIELD ID="short" datatype="short" name="short"/>
+   <FIELD ID="short" datatype="short" name="short">
+    <VALUES null="-32768"/>
+   </FIELD>
    <FIELD ID="int" datatype="int" name="int" utype="myint">
     <VALUES ID="int_nulls" null="123456789">
      <MIN inclusive="no" value="-1000"/>
@@ -129,7 +131,7 @@
       <TD>T</TD>
       <TD>T T T T</TD>
       <TD>0</TD>
-      <TD/>
+      <TD>-9 -9 -9 -9</TD>
       <TD>      1.33</TD>
       <TD>1.333</TD>
       <TD/>
@@ -144,7 +146,7 @@
       <TD>255</TD>
       <TD>32767</TD>
       <TD>2147483647</TD>
-      <TD/>
+      <TD>123456789</TD>
       <TD>0</TD>
       <TD>0</TD>
       <TD>42 32 12 32</TD>
@@ -158,7 +160,7 @@
       <TD>0 -1 -1 -1</TD>
       <TD>F</TD>
       <TD>T T F T</TD>
-      <TD/>
+      <TD>-9</TD>
       <TD>0 1 2 3</TD>
       <TD>         1</TD>
       <TD>1.000</TD>
@@ -217,8 +219,8 @@
       <TD/>
       <TD>0 0 0 0</TD>
       <TD>F</TD>
-      <TD/>
-      <TD/>
+      <TD>? ? ? ?</TD>
+      <TD>-9</TD>
       <TD>0 -9 1 -9</TD>
       <TD/>
       <TD/>
@@ -233,8 +235,8 @@
       <TD/>
       <TD>255</TD>
       <TD>32767</TD>
-      <TD/>
-      <TD/>
+      <TD>123456789</TD>
+      <TD>123456789</TD>
       <TD>-InF</TD>
       <TD/>
       <TD>31 -1</TD>
@@ -246,10 +248,10 @@
       <TD/>
       <TD/>
       <TD>0 0 0 0</TD>
-      <TD/>
-      <TD/>
-      <TD/>
-      <TD/>
+      <TD>?</TD>
+      <TD>? ? ? ?</TD>
+      <TD>-9</TD>
+      <TD>-9 -9 -9 -9</TD>
       <TD/>
       <TD/>
       <TD/>
@@ -289,7 +291,7 @@
        <TD>T</TD>
        <TD>T T T T</TD>
        <TD>0</TD>
-       <TD/>
+       <TD>-9 -9 -9 -9</TD>
        <TD>      1.33</TD>
        <TD>1.333</TD>
        <TD/>

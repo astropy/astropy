@@ -621,6 +621,16 @@ class TestThroughTableData(TestParse):
         self.array = self.table.array
         self.mask = self.table.array.mask
 
+    def test_bit_mask(self):
+        assert_array_equal(self.mask['bit'],
+                           [False, False, False, False, False])
+
+    def test_bitarray_mask(self):
+        assert not np.any(self.mask['bitarray'])
+
+    def test_bit_array2_mask(self):
+        assert not np.any(self.mask['bitarray2'])
+
     def test_schema(self):
         assert_validate_schema(
             join(TMP_DIR, "test_through_tabledata.xml"), '1.1')

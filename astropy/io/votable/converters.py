@@ -181,6 +181,12 @@ class Converter(object):
     def _write_length(length):
         return struct_pack(">I", int(length))
 
+    def supports_empty_values(self, config):
+        """
+        Returns True when the field can be completely empty.
+        """
+        return config.get('version_1_3_or_later')
+
     def parse(self, value, config={}, pos=None):
         """
         Convert the string *value* from the TABLEDATA_ format into an
@@ -325,6 +331,9 @@ class Char(Converter):
             self.parse = self._ascii_parse
         else:
             self.parse = self._str_parse
+
+    def supports_empty_values(self, config):
+        return True
 
     def _ascii_parse(self, value, config={}, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
@@ -688,6 +697,9 @@ class FloatingPoint(Numeric):
         else:
             self.parse = self._parse_permissive
 
+    def supports_empty_values(self, config):
+        return True
+
     def _parse_pedantic(self, value, config={}, pos=None):
         if value.strip() == '':
             return self.null, True
@@ -964,7 +976,8 @@ class Complex(FloatingPoint, Array):
         Array.__init__(self, field, config, pos)
 
     def parse(self, value, config={}, pos=None):
-        if value.strip() == '':
+        stripped = value.strip()
+        if stripped == '' or stripped.lower() == 'nan':
             return np.nan, True
         splitter = self._splitter
         parts = [float(x) for x in splitter(value, config, pos)]
@@ -1032,6 +1045,8 @@ class BitArray(NumericArray):
         return list(re.sub('\s|,', '', value))
 
     def output(self, value, mask):
+        if np.any(mask):
+            vo_warn(W39)
         value = np.asarray(value)
         mapping = {False: '0', True: '1'}
         return ''.join(mapping[x] for x in value.flat)
