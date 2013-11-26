@@ -209,7 +209,8 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     n_print2 = max_lines // 2
     n_rows = len(col)
 
-    format_func = _format_funcs.get(col.__print_format__, _auto_format_func)
+    col_print_format = getattr(col, '__print_format__', None)
+    format_func = _format_funcs.get(col_print_format, _auto_format_func)
     if len(col) > max_lines:
         i0 = n_print2
         i1 = n_rows - n_print2 - max_lines % 2
@@ -221,11 +222,11 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     for i in xrange(n_rows):
         if i < i0 or i > i1:
             if multidims:
-                col_str = (format_func(col.__print_format__, col[(i,) + multidim0]) +
+                col_str = (format_func(col_print_format, col[(i,) + multidim0]) +
                            ' .. ' +
-                           format_func(col.__print_format__, col[(i,) + multidim1]))
+                           format_func(col_print_format, col[(i,) + multidim1]))
             else:
-                col_str = format_func(col.__print_format__, col[i])
+                col_str = format_func(col_print_format, col[i])
             yield col_str
         elif i == i0:
             yield '...'

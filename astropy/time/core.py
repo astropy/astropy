@@ -831,7 +831,7 @@ class Time(object):
 
     @property
     def shape(self):
-        return () if self.is_scalar else (len(self),)
+        return () if self.isscalar else (len(self),)
 
     @property
     def data(self):
@@ -848,12 +848,12 @@ class Time(object):
 
     def __table_add_column__(self, table, index=None):
         from ..table import TableColumns, Column
-        print 'Here in table add column'
+        print('Here in table add column')
         if index is None:
             index = len(table.columns)
 
-        col_jd1 = Column(data=self._time.jd1, name='{0}__jd1'.format(self.name))
-        col_jd2 = Column(data=self._time.jd2, name='{0}__jd2'.format(self.name))
+        col_jd1 = Column(data=self._time.jd1, name=str('{0}__jd1'.format(self.name)))
+        col_jd2 = Column(data=self._time.jd2, name=str('{0}__jd2'.format(self.name)))
         table.add_columns([col_jd1, col_jd2])
 
         self._time.jd1 = table['{0}__jd1'.format(self.name)].data
