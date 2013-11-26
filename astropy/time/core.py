@@ -554,6 +554,8 @@ class Time(object):
 
         elif attr in self.FORMATS:
             tm = self.replicate(format=attr)
+            if hasattr(self.FORMATS[attr], 'epoch_scale'):
+                tm._set_scale(self.FORMATS[attr].epoch_scale)
             if self.isscalar:
                 out = tm._time.value[0]
                 # convert to native python for non-object dtypes
@@ -1151,16 +1153,10 @@ class TimeFromEpoch(TimeFormat):
 
     @property
     def value(self):
-        # Create a temporary Time object corresponding to the parent Time, then transform
-        # that to the epoch scale.  From there do the simple math to compute delta time
-        # from the epoch in Julian days, and then in the desired output units
-        # (e.g. seconds).
-        #
-        # A known limitation is that the transform from self.scale to self.epoch_scale
-        # cannot involve any metadata like lat or lon.
-        tm = getattr(Time(self.jd1, self.jd2, scale=self.scale, format='jd'), self.epoch_scale)
-        time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
-                           (tm.jd2 - self.epoch.jd2)) / self.unit
+        # when we get here, getattr will already have ensured our scale
+        # equals epoch scale, so we can just subtract the epoch and convert
+        time_from_epoch = ((self.jd1 - self.epoch.jd1) +
+                           (self.jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch
 
 
@@ -1221,14 +1217,12 @@ class TimePlotDate(TimeFromEpoch):
       >>> plt.draw()
     """
     # This corresponds to the zero reference time for matplotlib plot_date().
-    # Note that TAI and UTC are equivalent at the reference time, but
-    # specifying epoch_scale = 'utc' here generates WARNINGS when the
-    # class is first used.  Just use 'tai' instead.
+    # Note that TAI and UTC are equivalent at the reference time.
     name = 'plot_date'
     unit = 1.0
     epoch_val = 1721424.5  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
     epoch_val2 = None
-    epoch_scale = 'tai'
+    epoch_scale = 'utc'
     epoch_format = 'jd'
 
 
