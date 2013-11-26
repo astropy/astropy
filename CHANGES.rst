@@ -162,6 +162,9 @@ Bug Fixes
 - ``astropy.table``
 
 - ``astropy.time``
+  - Ensure attributes are not lost for `TimeFromEpoch` sub classes
+    [#1732, closes #1122]
+
 
 - ``astropy.units``
 
