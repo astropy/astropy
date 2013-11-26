@@ -177,7 +177,8 @@ class BaseColumn(object):
             return
 
         if getattr(self, '_content', None) is not None:
-            obj = self._content['__class__'].__array_finalize__(self, obj)
+            obj = self._content['__class__'].__array_finalize__(
+                self._data, obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
@@ -190,8 +191,10 @@ class BaseColumn(object):
 
     def __array_prepare__(self, obj, context=None):
         if getattr(self, '_content', None) is not None:
-            return self._content['__class__'].__array_prepare__(
-                self, obj, context)
+            # return self._content['__class__'].__array_prepare__(
+            #     self.content, obj, context)
+            print(repr(obj), context)
+            return self.content.__array_prepare__(obj, context)
 
         return obj
 
@@ -211,10 +214,10 @@ class BaseColumn(object):
         """
         if getattr(self, '_content', None) is not None:
             out_arr = self._content['__class__'].__array_wrap__(
-                self, out_arr, context)
+                self._data, out_arr, context)
 
         if self.shape == out_arr.shape:
-            return np.ndarray.__array_wrap__(self, out_arr, context)
+            return np.ndarray.__array_wrap__(self._data, out_arr, context)
         else:
             return out_arr.view(np.ndarray)[()]
 
@@ -240,7 +243,7 @@ class BaseColumn(object):
         This returns a 3-tuple (name, type, shape) that can always be
         used in a structured array dtype definition.
         """
-        return (self.name, self.dtype.str, self.shape[1:])
+        return (self.name, self.data.dtype.str, self.data.shape[1:])
 
     def __repr__(self):
         unit = None if self.unit is None else str(self.unit)
@@ -489,7 +492,7 @@ class BaseColumn(object):
             out._groups = groups.ColumnGroups(out, indices=self._groups._indices)
 
 
-class Column(BaseColumn, np.ndarray):
+class Column(BaseColumn):
     """Define a data column for use in a Table object.
 
     Parameters
@@ -571,10 +574,10 @@ class Column(BaseColumn, np.ndarray):
     _content = None
 
     @_check_column_new_args
-    def __new__(cls, data=None, name=None,
-                dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None,
-                dtypes=None, units=None):
+    def __init__(self, data=None, name=None,
+                 dtype=None, shape=(), length=0,
+                 description=None, unit=None, format=None, meta=None,
+                 dtypes=None, units=None):
 
         if dtypes is not None:
             dtype = dtypes
@@ -618,7 +621,7 @@ class Column(BaseColumn, np.ndarray):
         else:
             self_data = np.asarray(data, dtype=dtype)
 
-        self = self_data.view(cls)
+        self._data = self_data  # .view(cls)
         if content is None:
             self._content = {'__class__': self_data.__class__}
             if hasattr(self_data, '__dict__'):
@@ -633,7 +636,17 @@ class Column(BaseColumn, np.ndarray):
         self.parent_table = None
         self.meta = meta
 
-        return self
+        # return self
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, key):
+        data = self.content[key]
+        if getattr(data, 'ndim', 0.) == 0:
+            return data
+        else:
+            return self.copy(data=data)
 
     def __getattr__(self, attr):
         if self._content is not None:
@@ -645,7 +658,7 @@ class Column(BaseColumn, np.ndarray):
     @property
     def content(self):
         if self._content is None:
-            return self.data
+            return self._data
 
         content = self.view(self._content['__class__'])
         if hasattr(content, '__dict__'):
@@ -658,6 +671,9 @@ class Column(BaseColumn, np.ndarray):
     @property
     def data(self):
         return self.view(np.ndarray)
+
+    def view(self, *args, **kwargs):
+        return self._data.view(*args, **kwargs)
 
     def copy(self, order='C', data=None, copy_data=True):
         """Return a copy of the current Column instance.  If ``data`` is supplied
@@ -674,6 +690,26 @@ class Column(BaseColumn, np.ndarray):
         self._copy_groups(out)
 
         return out
+
+
+def op_overload(op):
+    def operate(self, *args, **kwargs):
+        self_content = self.content
+        result = op(self_content, *args, **kwargs)
+        if result is self_content:  # did in-place operation
+            return self
+        else:
+            return result
+
+    return operate
+
+
+ops = [key for key in operator.__dict__.keys() if '__' in key]
+for op in ops:
+    func = getattr(operator, op)
+    if(not hasattr(Column, op) and
+       isinstance(func, operator.__add__.__class__)):
+        setattr(Column, op, op_overload(func))
 
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
@@ -1652,9 +1688,6 @@ class Table(object):
         if isinstance(item, basestring) and item not in self.colnames:
             NewColumn = MaskedColumn if self.masked else Column
 
-            # Make sure value is an ndarray so we can get the dtype
-            if not isinstance(value, np.ndarray):
-                value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently has no rows
             # (len=0) of the value is already a Column then define new column directly
@@ -1664,12 +1697,17 @@ class Table(object):
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
                 new_column.name = item
-            elif len(self) == 0:
-                new_column = NewColumn(name=item, data=value)
             else:
-                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:])
-                new_column[:] = value
+                # Make sure value is an ndarray so we can get the dtype
+                if not isinstance(value, np.ndarray):
+                    value = np.asarray(value)
+
+                if len(self) == 0:
+                    new_column = NewColumn(name=item, data=value)
+                else:
+                    new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
+                                           shape=value.shape[1:])
+                    new_column[:] = value
 
                 if isinstance(value, Quantity):
                     new_column.unit = value.unit
