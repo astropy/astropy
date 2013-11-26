@@ -164,6 +164,7 @@ Bug Fixes
 - ``astropy.time``
 
 - ``astropy.units``
+  - ``Quantity`` initialisation rewritten for speed [#1775]
 
 - ``astropy.utils``
 
