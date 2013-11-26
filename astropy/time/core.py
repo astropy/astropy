@@ -513,6 +513,12 @@ class Time(object):
                                  from_jd=True)
         tm._format = format
 
+        tm.__print_format__ = self.__print_format__
+        tm.units = self.units
+        tm.description = self.description
+        tm.dependencies = self.dependencies
+        tm.name = self.name
+
         return tm
 
     def __copy__(self):
@@ -838,36 +844,24 @@ class Time(object):
         # ?? SHOULD this be self.vals?  Should data return an array always?
         return self.val
 
-    def __table_replicate__(self, table):
+    def __table_replicate_column__(self, table, name):
         """
-        Replicate the current column but using a new ``data`` ndarray.
+        Replicate the current column (e.g. all the attributes) but using the the ``data`` ndarray
+        to supply the internal values (e.g. jd1, jd2 for Time).  This is the mixin equivalent
+        of Column.copy(data=data, copy_data=False).
         """
-        jd1 = table._data['{0}__jd1'.format(self.name)]
-        jd2 = table._data['{0}__jd2'.format(self.name)]
+        jd1 = table._data['{0}__jd1'.format(name)]
+        jd2 = table._data['{0}__jd2'.format(name)]
         return self.replicate(jd1=jd1, jd2=jd2)
 
-    def __table_add_column__(self, table, index=None):
-        from ..table import TableColumns, Column
-        print('Here in table add column')
-        if index is None:
-            index = len(table.columns)
-
-        col_jd1 = Column(data=self._time.jd1, name=str('{0}__jd1'.format(self.name)))
-        col_jd2 = Column(data=self._time.jd2, name=str('{0}__jd2'.format(self.name)))
-        table.add_columns([col_jd1, col_jd2])
-
-        self._time.jd1 = table['{0}__jd1'.format(self.name)].data
-        self._time.jd2 = table['{0}__jd2'.format(self.name)].data
-
-        columns = TableColumns()
-
-        for i_column, column in enumerate(table.columns.values()):
-            if i_column == index:
-                columns[self.name] = self
-            columns[column.name] = column
-        if index is None or index == len(table.columns):
-            columns[self.name] = self
-        table.columns = columns
+    def __table_get_columns__(self, name, ColumnClass):
+        """
+        Get list of columns that represent the internal data for this object assuming the
+        mixin column name is ``name``.
+        """
+        col_jd1 = ColumnClass(data=self._time.jd1, name=str('{0}__jd1'.format(name)))
+        col_jd2 = ColumnClass(data=self._time.jd2, name=str('{0}__jd2'.format(name)))
+        return [col_jd1, col_jd2]
 
 
 class TimeDelta(Time):
