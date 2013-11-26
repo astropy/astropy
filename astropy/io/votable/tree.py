@@ -11,6 +11,7 @@ import codecs
 import io
 import re
 import sys
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -21,6 +22,7 @@ from .. import fits
 from ... import __version__ as astropy_version
 from ...utils.collections import HomogeneousList
 from ...utils.xml.writer import XMLWriter
+from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -2647,16 +2649,18 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         fields = self.fields
         array = self.array
 
-        write_null_values = kwargs.get('write_null_values', False)
         with w.tag('TABLEDATA'):
             w._flush()
             if (_has_c_tabledata_writer and
                 not kwargs.get('_debug_python_based_parser')):
+                supports_empty_values = [
+                    field.converter.supports_empty_values(kwargs)
+                    for field in fields]
                 fields = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
                 tablewriter.write_tabledata(
-                    w.write, array.data, array.mask, fields, write_null_values,
-                    indent, 1 << 8)
+                    w.write, array.data, array.mask, fields,
+                    supports_empty_values, indent, 1 << 8)
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
@@ -2664,17 +2668,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 tr_end = indent_spaces + "</TR>\n"
                 td = indent_spaces + " <TD>%s</TD>\n"
                 td_empty = indent_spaces + " <TD/>\n"
-                fields = [(i, field.converter.output)
+                fields = [(i, field.converter.output,
+                           field.converter.supports_empty_values(kwargs))
                           for i, field in enumerate(fields)]
                 for row in xrange(len(array)):
                     write(tr_start)
                     array_row = array.data[row]
                     mask_row = array.mask[row]
-                    for i, output in fields:
+                    for i, output, supports_empty_values in fields:
                         data = array_row[i]
                         masked = mask_row[i]
-                        if (not np.all(masked) or
-                            write_null_values):
+                        if supports_empty_values and np.all(masked):
+                            write(td_empty)
+                        else:
                             try:
                                 val = output(data, masked)
                             except Exception as e:
@@ -2685,8 +2691,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                 write(td % val)
                             else:
                                 write(td_empty)
-                        else:
-                            write(td_empty)
                     write(tr_end)
 
     def _write_binary(self, mode, w, **kwargs):
@@ -3266,16 +3270,22 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
            Where to write the file.
 
         write_null_values : bool, optional
-           When `True`, write the 'null' value (specified in the null
-           attribute of the VALUES element for each FIELD) for empty
-           values.  When False (default), simply write no value.
+           Deprecated and retained for backward compatibility.  When
+           `write_null_values` was `False`, invalid VOTable files
+           could be generated, so the option has just been removed
+           entirely.
 
         compressed : bool, optional
            When `True`, write to a gzip-compressed file.  (Default:
            `False`)
         """
+        if write_null_values != False:
+            warnings.warn(
+                "write_null_values has been deprecated and has no effect",
+                AstropyDeprecationWarning)
+
+
         kwargs = {
-            'write_null_values': write_null_values,
             'version': self.version,
             'version_1_1_or_later':
                 util.version_compare(self.version, '1.1') >= 0,
