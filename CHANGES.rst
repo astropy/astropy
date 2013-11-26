@@ -171,6 +171,10 @@ warning is emitted.
 
 - ``astropy.time``
 
+  - Fix a problem when converting to one of the formats `unix`,
+    `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
+    or `TCB` [#1732] 
+
 - ``astropy.units``
 
 - ``astropy.utils``

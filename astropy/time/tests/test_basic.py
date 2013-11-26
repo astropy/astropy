@@ -417,8 +417,8 @@ class TestSubFormat():
 
         # Value from:
         #   d = datetime.datetime(2000, 1, 1)
-        #   matplotlib.dates.date2num(d)
-        t = Time('2000-01-01 00:00:00', scale='tai')
+        #   matplotlib.pylab.dates.date2num(d)
+        t = Time('2000-01-01 00:00:00', scale='utc')
         assert np.allclose(t.plot_date, 730120.0, atol=1e-5, rtol=0)
 
         # Round trip through epoch time
@@ -545,3 +545,12 @@ def test_now():
 def test_dir():
     t = Time('2000:001', format='yday', scale='tai')
     assert 'utc' in dir(t)
+
+
+def test_TimeFormat_scale():
+    """guard against recurrence of #1122, where TimeFormat class looses uses
+    attributes (delta_ut1_utc here), preventing conversion to unix, cxc"""
+    t = Time('1900-01-01', scale='ut1')
+    t.delta_ut1_utc = 0.0
+    t.unix
+    assert t.unix == t.utc.unix
