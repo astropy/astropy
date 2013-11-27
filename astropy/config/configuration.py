@@ -229,9 +229,9 @@ class ConfigItem(object):
         if module is None:
             module = find_current_module(2)
             if module is None:
-                msg1 = 'Cannot automatically determine get_config module, '
-                msg2 = 'because it is not called from inside a valid module'
-                raise RuntimeError(msg1 + msg2)
+                raise RuntimeError(
+                    'Cannot automatically determine get_config module, '
+                    'because it is not called from inside a valid module')
             else:
                 module = module.__name__
 
