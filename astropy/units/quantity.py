@@ -286,8 +286,7 @@ class Quantity(np.ndarray):
                                     "to quantities with in-place replacement "
                                     "of an input by any but the last output."
                                     .format(function.__name__))
-                result = self.copy()
-                result._result = self
+                result._result = self.copy()
 
             # ensure we remember the scales we need
             result._scales = scales
@@ -316,7 +315,8 @@ class Quantity(np.ndarray):
                 # junk. To avoid that, we hid it in a new object in
                 # __array_prepare__ and retrieve it here.
                 if hasattr(obj, '_result'):
-                    obj = obj._result
+                    obj[()] = obj._result
+                    del obj._result
 
                 # take array view to which output can be written without
                 # getting back here
