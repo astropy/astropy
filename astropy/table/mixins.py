@@ -75,6 +75,10 @@ class FunctionColumn(object):
 
 
 class ViewColumnOrig(object):
+    """
+    Provide a read-only view of another column.  This is old and probably not working
+    at the moment.
+    """
     def __init__(self, col, table=None, name=None):
         from .table import BaseColumn
         if isinstance(col, BaseColumn):
