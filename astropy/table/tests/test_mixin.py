@@ -1,6 +1,7 @@
 import numpy as np
 
 from ...table import Table, Column
+from ..mixins import FunctionColumn
 from ...time import Time
 
 a = Column([3, 4, 5], name='a')
@@ -56,3 +57,18 @@ def test_time_mixin_item_access():
     assert np.all(t['b'].iso == ['1970-01-01 00:00:01.000',
                                  '1970-01-01 00:00:02.000',
                                  '1970-01-01 00:00:03.000'])
+
+
+def test_function_column_mixin():
+    """
+    Very simple FunctionColumn mixin which adds two columns.
+    """
+    def add(a, b):
+        return a + b
+
+    c = FunctionColumn(add, ('a', 'b'))
+    t = Table([[1, 2], [3, 4]], names=('a', 'b'))
+    t['c'] = c
+    assert t.colnames == ['a', 'b', 'c']
+    assert np.all(t['c'].data == [4, 6])  # 1 + 3, 2 + 4
+    assert t._data.dtype.names == ('a', 'b')  # Functional column not in ndarray

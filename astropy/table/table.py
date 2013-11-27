@@ -50,8 +50,7 @@ def _is_table_mixin(obj):
     rigorous.
     """
     required_attrs = ('__table_get_columns__', '__table_replicate_column__',
-                      'shape', 'data', '__len__', 'name', '__getitem__',
-                      )
+                      'shape', 'data', '__len__', 'name', '__getitem__')
     return all(hasattr(obj, attr) for attr in required_attrs)
 
 
@@ -1313,7 +1312,10 @@ class Table(object):
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column or mixin objects"""
 
-        lengths = set(len(col.data) for col in cols)
+        # Some mixin columns have no data at this point e.g. a FunctionColumn that
+        # computes a function of several columns.  They must return None for col.data.
+        lengths = set(len(col.data) for col in cols if col.data is not None)
+
         if len(lengths) != 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))

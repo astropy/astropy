@@ -3,44 +3,43 @@ from .pprint import _pformat_col
 
 class FunctionColumn(object):
     """
-    description : str or None
-        Full description of column
-    units : str or None
-        Physical units
-    format : str or None or function
-        Format string for outputting column values.  This can be an
-        "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string or a function that accepts a single
-        value and returns a string.
-    meta : dict-like or None
-        Meta-data associated with the column
+    Mixin column that computes a function ``func`` of columns specified by ``col_names``.
+
+    This is a very simple demonstration class which is effectively an ndarray wrapper
+    class with a lot of the useful interface API missing.  Maybe inherit from Column?
     """
-    def __init__(self, func, cols, name=None, description=None, units=None, format=None):
-        self._col_dependencies = [col.name for col in cols]
+    def __init__(self, func, col_names, name=None, description=None, units=None, format=None):
         self.func = func
-        self.cols = cols
+        self.col_names = col_names
         self.name = name
         self.__print_format__ = format
         self.description = description
         self.units = units
+        self.parent_table = None
 
     @property
     def shape(self):
-        return (len(self.parent_table),)  # FIX ME
+        return self.data.shape if self.data is not None else ()
 
     @property
     def data(self):
-        return self.func(*self.cols)
+        # self.data is None prior to binding to a parent table
+        if self.parent_table is None:
+            return None
+
+        # TODO: update _data if other cols have changed since _data was computed.
+        if not hasattr(self, '_data'):
+            cols = [self.parent_table[col_name] for col_name in self.col_names]
+            self._data = self.func(*cols)
+        return self._data
 
     def __len__(self):
-        return len(self.parent_table)
+        return len(self.data)
 
     def __getitem__(self, item):
         return self.data[item]
 
     def copy(self, data=None, copy_data=False):
-        print 'Calling copy on id={0}'.format(id(self))
-        # FIX ME
         self_copy = FunctionColumn(self.func, self.col_names, name=self.name,
                                    description=self.description, units=self.units)
         return self_copy
@@ -57,29 +56,22 @@ class FunctionColumn(object):
     def format(self, value):
         self.__print_format__ = value
 
-    def __table_replicate__(self, table):
+    def __table_replicate_column__(self, table, name):
         """
         Replicate the current column but using a new ``table`` (Table object).
         """
         new_col = self.copy()
+        new_col.name = name
         new_col.parent_table = table
         return new_col
 
-    def __table_add_column__(self, table, index):
-        from .table import TableColumns
-        print 'Here in table add column'
-
-        self.parent_table = table
-        columns = TableColumns()
-
-        for i_column, column in enumerate(table.columns.values()):
-            if i_column == index:
-                columns[self.name] = self
-            columns[column.name] = column
-        else:
-            columns[self.name] = self
-
-        table.columns = columns
+    def __table_get_columns__(self, name, ColumnClass):
+        """
+        Get list of columns that represent the internal data for this object assuming the
+        mixin column name is ``name``.
+        """
+        # No internal columns, it relies on already existent (independent) columns
+        return []
 
 
 class ViewColumnOrig(object):
