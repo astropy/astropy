@@ -585,3 +585,12 @@ class TestInplaceUfuncs(object):
         np.arctan2(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
         assert_allclose(s.value, np.arctan2(1., 2.))
         assert s.unit == u.radian
+
+    def test_ufunc_inplace_non_contiguous_data(self):
+        # ensure inplace works also for non-contiguous data (closes #1834)
+        s = np.arange(10.) * u.m
+        s_copy = s.copy()
+        s2 = s[::2]
+        s2 += 1. * u.cm
+        assert np.all(s[::2] > s_copy[::2])
+        assert np.all(s[1::2] == s_copy[1::2])

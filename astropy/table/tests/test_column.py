@@ -28,7 +28,7 @@ class TestColumn():
         assert isinstance(c, np.ndarray)
         c2 = c * 2
         assert isinstance(c2, Column)
-        assert isinstance(c2, np.ndarray)
+        assert isinstance(c2, table.BaseColumn)
 
     def test_numpy_ops(self, Column):
         """Show that basic numpy operations with Column behave sensibly"""
