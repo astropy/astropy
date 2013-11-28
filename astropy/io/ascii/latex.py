@@ -41,6 +41,7 @@ latexdicts = {'AA':  {'tabletype': 'table',
                               'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
                               'data_end': r'\hline\hline'},
               'template': {'tabletype': 'tabletype', 'caption': 'caption',
+                           'tablealign': 'tablealign',
                            'col_align': 'col_align', 'preamble': 'preamble',
                            'header_start': 'header_start',
                            'header_end': 'header_end', 'data_start': 'data_start',
@@ -89,17 +90,20 @@ class LatexHeader(core.BaseHeader):
             return None
 
     def write(self, lines):
-        if not 'col_align' in self.latex.keys():
+        if not 'col_align' in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
-
-        lines.append(r'\begin{' + self.latex['tabletype'] + r'}')
+        if 'tablealign' in self.latex:
+            align = '[' + self.latex['tablealign'] + ']'
+        else:
+            align = ''
+        lines.append(r'\begin{' + self.latex['tabletype'] + r'}' + align)
         add_dictval_to_list(self.latex, 'preamble', lines)
-        if 'caption' in self.latex.keys():
+        if 'caption' in self.latex:
             lines.append(r'\caption{' + self.latex['caption'] + '}')
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
-        if 'units' in self.latex.keys():
+        if 'units' in self.latex:
             lines.append(self.splitter.join([self.latex['units'].get(x.name, ' ')
                                              for x in self.cols]))
         add_dictval_to_list(self.latex, 'header_end', lines)
@@ -196,6 +200,10 @@ class Latex(core.BaseReader):
 
                 ascii.write(data, sys.stdout, Writer = ascii.Latex,
                             latexdict = {'tabletype': 'table*'})
+                            
+        * tablealign : positioning of table in text.
+            The default is not to specifiy a position preference in the text.
+            If, e.g. the alignment is ``ht``, then the LaTeX will be ``\\begin{table}[ht]``.
 
         * col_align : Alignment of columns
             If not present all columns will be centered.
@@ -308,15 +316,19 @@ class AASTexHeader(LatexHeader):
         return find_latex_line(lines, r'\tablehead')
 
     def write(self, lines):
-        if not 'col_align' in self.latex.keys():
+        if not 'col_align' in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
-
-        lines.append(r'\begin{' + self.latex['tabletype'] + r'}{' + self.latex['col_align'] + r'}')
+        if 'tablealign' in self.latex:
+            align = '[' + self.latex['tablealign'] + ']'
+        else:
+            align = ''
+        lines.append(r'\begin{' + self.latex['tabletype'] + r'}{' + self.latex['col_align'] + r'}'
+                       + align)
         add_dictval_to_list(self.latex, 'preamble', lines)
-        if 'caption' in self.latex.keys():
+        if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
-        if 'units' in self.latex.keys():
+        if 'units' in self.latex:
             tablehead += r'\\ ' + (self.splitter.join([self.latex[
                                    'units'].get(x.name, ' ') for x in self.cols]))
         lines.append(r'\tablehead{' + tablehead + '}')
