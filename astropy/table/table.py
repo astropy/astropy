@@ -186,9 +186,13 @@ class Row(object):
                 raise
 
     def __getitem__(self, item):
+        if isinstance(item, int):
+            item = self._table.colnames[item]
         return self._table[item][self._index]
 
     def __setitem__(self, item, val):
+        if isinstance(item, int):
+            item = self._table.colnames[item]
         self._table[item][self._index] = val
 
     def __eq__(self, other):
@@ -256,7 +260,11 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
-        return str(self._table[self._index:self._index + 1])
+        index = self._index
+        table = self._table
+        values = [str(table[colname][index]) for colname in table.colnames]
+        return "<Row {0} of table\n values=({1})\n dtype={2}>".format(
+            self.index, ', '.join(values), self.dtype)
 
 
 collections.Sequence.register(Row)
@@ -597,11 +605,15 @@ class Table(object):
         # cols (aka fields) since mixins like Time or Coordinates have two internal
         # arrays.  The operations below work by reference so they should be lightweight.
         data_cols = []
+        table_cols = []
         for col in cols:
             if _is_table_mixin(col):
                 data_cols.extend(col.__table_get_columns__(col.name, self.ColumnClass))
+                new_col = col
             else:
-                data_cols.append(self.ColumnClass(name=col.name, data=col))
+                new_col = self.ColumnClass(name=col.name, data=col)
+                data_cols.append(new_col)
+            table_cols.append(new_col)
 
         # Create and populate the internal data array
         names = [col.name for col in data_cols]
@@ -611,8 +623,8 @@ class Table(object):
         for col in data_cols:
             data[col.name] = col.data
 
-        col_names = [col.name for col in cols]
-        self._update_table_from_cols(self, data, cols, col_names)
+        col_names = [col.name for col in table_cols]
+        self._update_table_from_cols(self, data, table_cols, col_names)
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
