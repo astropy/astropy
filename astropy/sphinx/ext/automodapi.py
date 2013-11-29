@@ -36,6 +36,9 @@ It accepts the following options:
         Python's documentation, assuming the automodapi call is inside a
         top-level section (which usually uses '=').
 
+    * ``:no-heading:```
+        If specified do not create a top level heading for the section.
+
 This extension also adds a sphinx configuration option
 `automodapi_toctreedirnm`. It must be a string that specifies the name of
 the directory the automodsumm generated documentation ends up in. This
@@ -164,7 +167,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             #initialize default options
             toskip = []
-            inhdiag = maindocstr = True
+            inhdiag = maindocstr = top_head = True
             hds = '-^'
 
             #look for actual options
@@ -178,6 +181,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     maindocstr = False
                 elif opname == 'headings':
                     hds = args
+                elif opname == 'no-heading':
+                    top_head = False
                 else:
                     unknownops.append(opname)
 
@@ -203,12 +208,12 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 automodline = '.. automodule:: {modname}'.format(modname=modnm)
             else:
                 automodline = ''
-
-            newstrs.append(automod_templ_modheader.format(modname=modnm,
-                modhds=h1 * len(modnm),
-                pkgormod='Package' if ispkg else 'Module',
-                pkgormodhds=h1 * (8 if ispkg else 7),
-                automoduleline=automodline))
+            if top_head:
+                newstrs.append(automod_templ_modheader.format(modname=modnm,
+                    modhds=h1 * len(modnm),
+                    pkgormod='Package' if ispkg else 'Module',
+                    pkgormodhds=h1 * (8 if ispkg else 7),
+                    automoduleline=automodline))
 
             if hasfuncs:
                 newstrs.append(automod_templ_funcs.format(modname=modnm,
