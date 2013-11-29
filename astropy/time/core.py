@@ -121,6 +121,12 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 1000
 
+    # Attributes for mixin protocol
+    __print_format__ = None
+    unit = None
+    description = None
+    name = None
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 lat=0.0, lon=0.0, copy=False):
@@ -149,12 +155,6 @@ class Time(object):
                 self._set_scale(scale)
         else:
             self._init_from_vals(val, val2, format, scale, copy)
-
-        self.__print_format__ = None
-        self.units = None
-        self.description = None
-        self.dependencies = []
-        self.name = None
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -514,9 +514,8 @@ class Time(object):
         tm._format = format
 
         tm.__print_format__ = self.__print_format__
-        tm.units = self.units
+        tm.unit = self.unit
         tm.description = self.description
-        tm.dependencies = self.dependencies
         tm.name = self.name
 
         return tm
