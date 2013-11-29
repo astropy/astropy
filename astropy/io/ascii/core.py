@@ -1010,6 +1010,11 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
         reader.data.end_line = kwargs['data_end']
     if 'header_start' in kwargs:
         reader.header.start_line = kwargs['header_start']
+        if not ('data_start' in kwargs):
+            if (reader.data.start_line is None) or (reader.data.start_line==reader.header.start_line):
+                # Some Readers, e.g. FixedWidthTwoLine have other defaults for
+                # reader.data.start_line=
+                reader.data.start_line = reader.header.start_line + 1
     if 'converters' in kwargs:
         reader.outputter.converters = kwargs['converters']
     if 'data_Splitter' in kwargs:

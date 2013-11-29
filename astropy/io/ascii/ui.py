@@ -118,7 +118,7 @@ def read(table, guess=None, **kwargs):
     :param comment: regular expression defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param header_start: line index for the header line not counting comment lines
-    :param data_start: line index for the start of data not counting comment lines
+    :param data_start: line index for the start of data not counting comment lines (default=header_start+1)
     :param data_end: line index for the end of data (can be negative to count from end)
     :param converters: dict of converters
     :param data_Splitter: Splitter class to split data columns
