@@ -186,14 +186,20 @@ class Row(object):
                 raise
 
     def __getitem__(self, item):
-        if isinstance(item, int):
-            item = self._table.colnames[item]
-        return self._table[item][self._index]
+        if self._table._has_mixins:
+            if isinstance(item, int):
+                item = self._table.colnames[item]
+            return self._table[item][self._index]
+        else:
+            return self._data[item]
 
     def __setitem__(self, item, val):
-        if isinstance(item, int):
-            item = self._table.colnames[item]
-        self._table[item][self._index] = val
+        if self._table._has_mixins:
+            if isinstance(item, int):
+                item = self._table.colnames[item]
+            self._table[item][self._index] = val
+        else:
+            self._data[item] = val
 
     def __eq__(self, other):
         if self._table.masked:
@@ -260,11 +266,14 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
-        index = self._index
-        table = self._table
-        values = [str(table[colname][index]) for colname in table.colnames]
-        return "<Row {0} of table\n values=({1})\n dtype={2}>".format(
-            self.index, ', '.join(values), self.dtype)
+        if self._table._has_mixins:
+            index = self._index
+            table = self._table
+            values = tuple(table[colname][index] for colname in table.colnames)
+        else:
+            values = self._data
+        return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
+            self.index, values, self.dtype)
 
 
 collections.Sequence.register(Row)
@@ -667,6 +676,14 @@ class Table(object):
             newcol.parent_table = table
             columns[name] = newcol
         table.columns = columns
+
+    def _has_mixins(self):
+        """
+        Return True if any of the columns are mixins (not BaseColumn).
+        TO DO: cache the result, but this requires clearing the cache whenever
+        any columns are added / removed.
+        """
+        return not all(isinstance(col, BaseColumn) for col in self.columns.values())
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
