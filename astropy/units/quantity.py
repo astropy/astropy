@@ -355,10 +355,12 @@ class Quantity(np.ndarray):
                     out = function(inputs[0], inputs[1], obj_array)
 
                 if obj_array is None:
-                    if not isinstance(out, np.ndarray):  # array scalar; cannot view
-                        return self.__quantity_instance__(out, result_unit)
-                    else:
-                        obj = self.__quantity_view__(out, result_unit)
+                    # array scalars cannot be viewed as arrays and thus not as
+                    # Quantity either; turn them into zero-dimensional arrays
+                    if not isinstance(out, np.ndarray):
+                        out = out.__array__()
+
+                    obj = self.__quantity_view__(out, result_unit)
 
             if result_unit is None:  # return a plain array
                 obj = obj.view(np.ndarray)
@@ -509,9 +511,9 @@ class Quantity(np.ndarray):
         .. note::
             This is subtly different from `numpy.isscalar` in that
             `numpy.isscalar` returns False for a zero-dimensional array
-            (e.g. ``np.array(1)``), while this is True in that case.
+            (e.g. ``np.array(1)``), while this is True for quantities,
+            since quantities cannot represent true numpy scalars.
         """
-
         from ..utils.misc import isiterable
 
         return not isiterable(self.value)
@@ -698,11 +700,12 @@ class Quantity(np.ndarray):
             raise TypeError(
                 "'{cls}' object with a scalar value does not support "
                 "indexing".format(cls=self.__class__.__name__))
-        else:
-            out = self.value[key]
-            if not isinstance(out, np.ndarray):  # array scalar; cannot view
-                return self.__quantity_instance__(out, self.unit)
 
+        out = super(Quantity, self).__getitem__(key)
+        if isinstance(out, np.ndarray):
+            return out
+        else:  # got array scalar, need to remake into Quantity 0-dim array
+            out = out.__array__()
             out = self.__quantity_view__(out, self.unit)
             out._unit = self.unit
             return out

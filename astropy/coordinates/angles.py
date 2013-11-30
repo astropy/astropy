@@ -665,14 +665,10 @@ class Longitude(Angle):
             return Longitude(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
-    def __getitem__(self, key):
-        out = super(Longitude, self).__getitem__(key)
-        out._wrap_angle = self._wrap_angle
-        return out
-
-    # deprecated; TODO: move to quantity later (once #1422, #1373 merged)
-    def __getslice__(self, i, j):
-        return self.__getitem__(slice(i, j))
+    def __array_finalize__(self, obj):
+        super(Longitude, self).__array_finalize__(obj)
+        if isinstance(obj, Longitude):
+            self._wrap_angle = obj._wrap_angle
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
