@@ -101,6 +101,9 @@ FIX = doctest.register_optionflag('FIX')
 doctest.OutputChecker = OutputCheckerFix
 
 
+REMOTE = doctest.register_optionflag('REMOTE')
+
+
 def pytest_configure(config):
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
@@ -132,6 +135,11 @@ def pytest_configure(config):
             runner = doctest.DebugRunner(verbose=False, optionflags=opts)
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
+                    if not config.getvalue("remote_data"):
+                        for example in test.examples:
+                            if example.options.get(REMOTE):
+                                example.options[doctest.SKIP] = True
+
                     yield doctest_plugin.DoctestItem(
                         test.name, self, runner, test)
 
@@ -207,6 +215,10 @@ def pytest_configure(config):
                 elif isinstance(entry, doctest.Example):
                     if (skip_all or skip_next or
                         not DocTestFinderPlus.check_required_modules(required)):
+                        entry.options[doctest.SKIP] = True
+
+                    if (not config.getvalue('remote_data') and
+                        entry.options.get(REMOTE)):
                         entry.options[doctest.SKIP] = True
 
             return result
