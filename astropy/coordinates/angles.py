@@ -181,14 +181,6 @@ class Angle(u.Quantity):
             return self.__class__(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
-    def __array_wrap__(self, obj, context=None):
-        obj = super(Angle, self).__array_wrap__(obj, context=context)
-
-        if isinstance(obj, Angle):
-            return Angle(obj.value, obj.unit)
-
-        return obj
-
     def __add__(self, other):
         return super(Angle, self).__add__(other)
 
@@ -545,21 +537,36 @@ class Latitude(Angle):
         self._validate_angles()
         return self
 
-    def _validate_angles(self):
+    def _validate_angles(self, angles=None):
+        """Check that angles are between -90 and 90 degrees.
+        If not given, the check is done on the object iself"""
         # Convert the lower and upper bounds to the "native" unit of
         # this angle.  This limits multiplication to two values,
         # rather than the N values in `self.value`.  Also, the
         # comparison is performed on raw arrays, rather than Quantity
         # objects, for speed.
-        lower = u.degree.to(self.unit, -90.0)
-        upper = u.degree.to(self.unit, 90.0)
-        if np.any(self.value < lower) or np.any(self.value > upper):
+        if angles is None:
+            angles = self
+        lower = u.degree.to(angles.unit, -90.0)
+        upper = u.degree.to(angles.unit, 90.0)
+        if np.any(angles.value < lower) or np.any(angles.value > upper):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
-                             'got {0}'.format(self.degree))
+                             'got {0}'.format(angles.to(u.degree)))
+        return angles
 
     def __setitem__(self, item, value):
-        super(Latitude, self).__setitem__(item, value)
-        self._validate_angles()
+        # first check bounds
+        checked = self._validate_angles(value)
+        super(Latitude, self).__setitem__(item, checked)
+
+    # Any calculation should drop to Angle
+    def __array_wrap__(self, obj, context=None):
+        obj = super(Angle, self).__array_wrap__(obj, context=context)
+
+        if isinstance(obj, Angle):
+            return obj.view(Angle)
+
+        return obj
 
 
 class Longitude(Angle):
@@ -667,6 +674,15 @@ class Longitude(Angle):
     # deprecated; TODO: move to quantity later (once #1422, #1373 merged)
     def __getslice__(self, i, j):
         return self.__getitem__(slice(i, j))
+
+    # Any calculation should drop to Angle
+    def __array_wrap__(self, obj, context=None):
+        obj = super(Angle, self).__array_wrap__(obj, context=context)
+
+        if isinstance(obj, Angle):
+            return obj.view(Angle)
+
+        return obj
 
 #<----------------------------------Rotations--------------------------------->
 
