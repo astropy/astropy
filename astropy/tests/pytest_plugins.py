@@ -101,7 +101,7 @@ FIX = doctest.register_optionflag('FIX')
 doctest.OutputChecker = OutputCheckerFix
 
 
-REMOTE = doctest.register_optionflag('REMOTE')
+REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
 
 def pytest_configure(config):
@@ -137,7 +137,7 @@ def pytest_configure(config):
                 if test.examples:  # skip empty doctests
                     if not config.getvalue("remote_data"):
                         for example in test.examples:
-                            if example.options.get(REMOTE):
+                            if example.options.get(REMOTE_DATA):
                                 example.options[doctest.SKIP] = True
 
                     yield doctest_plugin.DoctestItem(
@@ -218,7 +218,7 @@ def pytest_configure(config):
                         entry.options[doctest.SKIP] = True
 
                     if (not config.getvalue('remote_data') and
-                        entry.options.get(REMOTE)):
+                        entry.options.get(REMOTE_DATA)):
                         entry.options[doctest.SKIP] = True
 
             return result

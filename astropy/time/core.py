@@ -633,9 +633,9 @@ class Time(object):
             >>> from astropy.utils.iers import IERS_A, IERS_A_URL
             >>> from astropy.utils.data import download_file
             >>> iers_a_file = download_file(IERS_A_URL,
-            ...                             cache=True)        # doctest: +REMOTE
-            >>> iers_a = IERS_A.open(iers_a_file)              # doctest: +REMOTE
-            >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)  # doctest: +REMOTE
+            ...                             cache=True)        # doctest: +REMOTE_DATA
+            >>> iers_a = IERS_A.open(iers_a_file)              # doctest: +REMOTE_DATA
+            >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)  # doctest: +REMOTE_DATA
 
         The delta_ut1_utc property will be used to calculate t.ut1;
         raises IndexError if any of the times is out of range.

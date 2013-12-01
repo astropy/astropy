@@ -121,14 +121,14 @@ special class method, `from_name()`, that accepts a string and queries
 `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
 coordinates for that object::
 
-    >>> c = ICRS.from_name("M42")  # doctest: +REMOTE
+    >>> c = ICRS.from_name("M42")  # doctest: +REMOTE_DATA
     >>> c.ra, c.dec  # doctest: +SKIP
     (<Longitude 83.82208... deg>, <Latitude -5.39111... deg>)
 
 This works for any subclass of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
-    >>> c = Galactic.from_name("M42")  # doctest: +REMOTE
+    >>> c = Galactic.from_name("M42")  # doctest: +REMOTE_DATA
     >>> c.l, c.b  # doctest: +SKIP
     (<Longitude 3.64797... rad>, <Latitude -0.33827... rad>)
 
