@@ -686,6 +686,13 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         BaseColumn.__array_finalize__(self, obj)
         ma.MaskedArray.__array_finalize__(self, obj)
 
+    # Surprisingly, MaskedArray is buggy and does not call __array_finalize__
+    # after __getitem__, but instead does call _update_from, so we override
+    # this instead to copy over the column metadata.
+    def _update_from(self, obj):
+        BaseColumn.__array_finalize__(self, obj)
+        ma.MaskedArray._update_from(self, obj)
+
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
         value of a string array in MaskedArray with Python 3.x.  See

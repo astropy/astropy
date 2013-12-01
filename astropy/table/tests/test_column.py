@@ -245,3 +245,25 @@ class TestMetaColumn(MetaBaseTest):
 class TestMetaMaskedColumn(MetaBaseTest):
     test_class = table.MaskedColumn
     args = ()
+
+
+def test_getitem_metadata_regression():
+    """
+    Regression test for #1471: MaskedArray does not call __array_finalize__ so
+    the meta-data was not getting copied over. By overloading _update_from we
+    are able to work around this bug.
+    """
+
+    c = table.Column(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    assert c[1:2].name == 'a'
+    assert c[1:2].description == 'b'
+    assert c[1:2].unit == 'm'
+    assert c[1:2].format == '%i'
+    assert c[1:2].meta['c'] == 8
+
+    c = table.MaskedColumn(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    assert c[1:2].name == 'a'
+    assert c[1:2].description == 'b'
+    assert c[1:2].unit == 'm'
+    assert c[1:2].format == '%i'
+    assert c[1:2].meta['c'] == 8
