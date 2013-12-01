@@ -113,10 +113,14 @@ versions with ``conda search astropy``.
 Installation fails on Mageia-2 or Mageia-3 distributions
 --------------------------------------------------------
 
-Command line ``python ./setup.py install`` fails with libm linking error  
-``unable to find 'pow' or 'sincos'`` ...
-Next packages for python2 and python 3 next packages should fix the bug.
-See: https://bugs.mageia.org/show_bug.cgi?id=10102
+Building may fail with warning messages such as::
 
-Immediate workaround is to edit the file : ``/usr/lib/python2.7/config/Makefile``
-and remove ``-Wl,--no-undefined`` from the LDFLAGS def.
+    unable to find 'pow' or 'sincos'
+
+at the linking phase. Upgrading the OS packages for Python should
+fix the issue, though an immediate workaround is to edit the file::
+
+    /usr/lib/python2.7/config/Makefile
+
+and search for the line that adds the option ``-Wl,--no-undefined`` to the
+``LDFLAGS`` variable and remove that option.
