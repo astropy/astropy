@@ -602,7 +602,9 @@ def fk4_to_fk4_no_e(fk4c):
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
-    # Apply E-terms of aberration
+    # Apply E-terms of aberration. Note that this depends on the equinox (not
+    # the observing time/epoch) of the coordinates. See issue #1496 for a
+    # discussion of this.
     eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
     r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
 
@@ -631,7 +633,9 @@ def fk4_no_e_to_fk4(fk4c):
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
-    # Apply E-terms of aberration
+    # Apply E-terms of aberration. Note that this depends on the equinox (not
+    # the observing time/epoch) of the coordinates. See issue #1496 for a
+    # discussion of this.
     eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
     r0 = r.copy()
     for _ in range(10):
