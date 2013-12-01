@@ -109,3 +109,18 @@ version. Anaconda users should update with ``conda update astropy``. There
 may be a brief delay between the release of Astropy on PyPI and its release
 via the `conda` package manager; users can check the availability of new
 versions with ``conda search astropy``.
+
+Installation fails on Mageia-2 or Mageia-3 distributions
+--------------------------------------------------------
+
+Building may fail with warning messages such as::
+
+    unable to find 'pow' or 'sincos'
+
+at the linking phase. Upgrading the OS packages for Python should
+fix the issue, though an immediate workaround is to edit the file::
+
+    /usr/lib/python2.7/config/Makefile
+
+and search for the line that adds the option ``-Wl,--no-undefined`` to the
+``LDFLAGS`` variable and remove that option.
