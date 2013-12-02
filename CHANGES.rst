@@ -173,7 +173,7 @@ warning is emitted.
 
   - Fix a problem when converting to one of the formats `unix`,
     `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
-    or `TCB` [#1732] 
+    or `TCB` [#1732]
 
 - ``astropy.units``
 
@@ -182,6 +182,9 @@ warning is emitted.
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
+    being ignored when none was present in the FITS file. [#1845]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
