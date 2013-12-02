@@ -143,7 +143,7 @@ object dimensionless by reducing the units. To do this, use the
 :meth:`~astropy.units.quantity.Quantity.decompose()` method:
 
     >>> (20. * u.cm / (1. * u.m)).decompose()
-    <Quantity 0.2... >
+    <Quantity 0.2...>
 
 This method is also useful for more complicated arithmetic:
 
@@ -171,14 +171,14 @@ including functions that only accept specific units such as angles::
 
     >>> q = 30. * u.deg
     >>> np.sin(q)
-    <Quantity 0.499... >
+    <Quantity 0.499...>
 
 or dimensionless quantities::
 
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
     >>> np.exp(-h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619 >
+    <Quantity 0.995212254619>
 
 (see `Dimensionless quantities`_ for more details).
 
@@ -192,7 +192,7 @@ quantities, the units are simplified so that the quantity is
 dimensionless and scale-free. For example::
 
     >>> 1. + 1. * u.m / u.km
-    <Quantity 1.00... >
+    <Quantity 1.00...>
 
 which is different from::
 
@@ -217,14 +217,14 @@ dimensionless quantities::
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
     >>> np.exp(- h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619 >
+    <Quantity 0.995212254619>
 
 The result is independent from the units the different quantities were specified in::
 
     >>> nu = 3.e9 * u.Hz
     >>> T = 30 * u.K
     >>> np.exp(- h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619 >
+    <Quantity 0.995212254619>
 
 Converting to plain Python scalars or Numpy arrays
 --------------------------------------------------
@@ -258,7 +258,7 @@ dimensionless value, then you can make use of the
     >>> q
     <Quantity 0.75 m / km>
     >>> q.decompose()
-    <Quantity 0.00075... >
+    <Quantity 0.00075...>
     >>> float(q.decompose())
     0.00075...
 
