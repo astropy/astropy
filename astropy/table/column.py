@@ -696,6 +696,15 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     # We also need to fix this for take(), which *also* does not call
     # __array_finalize__. Fun times.
     def take(self, indices, axis=None, out=None, mode='raise', **kwargs):
+        """
+        Return an array formed from the elements of `a` at the given indices.
+
+        Refer to `numpy.take` for full documentation.
+
+        See Also
+        --------
+        numpy.take : equivalent function
+        """
         out = ma.MaskedArray.take(self, indices, axis=None, out=None, mode='raise', **kwargs)
         if isinstance(out, MaskedColumn):  # don't do this for scalars
             BaseColumn.__array_finalize__(out, self)
