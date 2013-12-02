@@ -177,6 +177,8 @@ warning is emitted.
 
 - ``astropy.units``
 
+  - Fixed minor string formatting issue for dimensionless quantities. [#1772]
+
 - ``astropy.utils``
 
 - ``astropy.vo``

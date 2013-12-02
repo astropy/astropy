@@ -767,10 +767,15 @@ class Quantity(np.ndarray):
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
-        return "{0} {1:s}".format(self.value,
-                                  self.unit.to_string() if
-                                  self.unit is not None
-                                  else _UNIT_NOT_INITIALISED)
+        if self.unit is None:
+            unitstr = _UNIT_NOT_INITIALIZED
+        else:
+            unitstr = self.unit.to_string()
+
+        if unitstr:
+            unitstr = ' ' + unitstr
+
+        return '{0}{1:s}'.format(self.value, unitstr)
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
@@ -781,7 +786,10 @@ class Quantity(np.ndarray):
         else:
             unitstr = self.unit.to_string()
 
-        return prefixstr + arrstr + ' ' + unitstr + '>'
+        if unitstr:
+            unitstr = ' ' + unitstr
+
+        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, unitstr)
 
     def _repr_latex_(self):
         """

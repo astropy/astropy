@@ -398,7 +398,7 @@ def set_enabled_equivalencies(equivalencies):
         >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
         ...     phase = 0.5 * u.cycle
         ...     np.exp(1j*phase)                          # doctest: +ELLIPSIS
-        <Quantity (-1+...j) >
+        <Quantity (-1+...j)>
     """
     # get a context with a new registry, using all units of the current one
     context = _UnitContext(get_current_unit_registry().all_units)

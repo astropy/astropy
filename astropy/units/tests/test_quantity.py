@@ -516,6 +516,16 @@ class TestQuantityDisplay(object):
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
+    def test_dimensionless_quantity_repr(self):
+        q2 = u.Quantity(1, unit='m-1')
+        assert repr(self.scalarintq * q2) == "<Quantity 1>"
+        assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
+
+    def test_dimensionless_quantity_str(self):
+        q2 = u.Quantity(1, unit='m-1')
+        assert str(self.scalarintq * q2) == "1"
+        assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
+
     def test_scalar_quantity_str(self):
         assert str(self.scalarintq) == "1 m"
         assert str(self.scalarfloatq) == "1.3 m"
