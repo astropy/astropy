@@ -225,6 +225,12 @@ class WCS(WCSBase):
         header.  `FITSFixedWarning` Warnings will be emitted if any
         changes were made.
 
+    translate_units : str, optional
+        Specify which potentially unsafe translations of non-standard
+        unit strings to perform.  By default, performs none.  See
+        `WCS.fix` for more information about this parameter.  Only
+        effective when `fix` is `True`.
+
     Raises
     ------
     MemoryError
@@ -280,7 +286,7 @@ class WCS(WCSBase):
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=True, naxis=None, keysel=None, colsel=None,
-                 fix=True):
+                 fix=True, translate_units=''):
         close_fds = []
 
         if header is None:
@@ -383,7 +389,7 @@ naxis kwarg.
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
         if fix:
-            self.fix()
+            self.fix(translate_units=translate_units)
 
         for fd in close_fds:
             fd.close()
@@ -480,14 +486,47 @@ naxis kwarg.
         warnings.warn("Removed redundant SCAMP distortion parameters " +
             "because SIP parameters are also present", FITSFixedWarning)
 
-    def fix(self):
+    def fix(self, translate_units='', naxis=None):
         """
         Perform the fix operations from wcslib, and warn about any
         changes it has made.
+
+        Parameters
+        ----------
+        translate_units : str, optional
+            Specify which potentially unsafe translations of
+            non-standard unit strings to perform.  By default,
+            performs none.
+
+            Although ``"S"`` is commonly used to represent seconds,
+            its translation to ``"s"`` is potentially unsafe since the
+            standard recognizes ``"S"`` formally as Siemens, however
+            rarely that may be used.  The same applies to ``"H"`` for
+            hours (Henry), and ``"D"`` for days (Debye).
+
+            This string controls what to do in such cases, and is
+            case-insensitive.
+
+            - If the string contains ``"s"``, translate ``"S"`` to
+              ``"s"``.
+
+            - If the string contains ``"h"``, translate ``"H"`` to
+              ``"h"``.
+
+            - If the string contains ``"d"``, translate ``"D"`` to
+              ``"d"``.
+
+            Thus ``''`` doesn't do any unsafe translations, whereas
+            ``'shd'`` does all of them.
+
+        naxis : int array[naxis], optional
+            Image axis lengths.  If this array is set to zero or
+            ``None``, then `~astropy.wcs.Wcsprm.cylfix` will not be
+            invoked.
         """
         if self.wcs is not None:
             self._fix_scamp()
-            fixes = self.wcs.fix()
+            fixes = self.wcs.fix(translate_units, naxis)
             for key, val in six.iteritems(fixes):
                 if val != "No change":
                     warnings.warn(
@@ -1849,6 +1888,7 @@ def __WCS_unpickle__(cls, dct, fits_data):
 
 
 def find_all_wcs(header, relax=True, keysel=None, fix=True,
+                 translate_units='',
                  _do_set=True):
     """
     Find all the WCS transformations in the given header.
@@ -1895,6 +1935,12 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
         header.  `FITSFixedWarning` warnings will be emitted if any
         changes were made.
 
+    translate_units : str, optional
+        Specify which potentially unsafe translations of non-standard
+        unit strings to perform.  By default, performs none.  See
+        `WCS.fix` for more information about this parameter.  Only
+        effective when `fix` is `True`.
+
     Returns
     -------
     wcses : list of `WCS` objects
@@ -1924,7 +1970,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
         result.append(subresult)
 
         if fix:
-            subresult.fix()
+            subresult.fix(translate_units)
 
         if _do_set:
             subresult.wcs.set()

@@ -232,6 +232,8 @@ def test_fixes():
     for item in w:
         if 'unitfix' in str(item.message):
             assert 'Hz' in str(item.message)
+            assert 'M/S' in str(item.message)
+            assert 'm/s' in str(item.message)
 
 
 def test_outside_sky():
