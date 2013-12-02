@@ -705,7 +705,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         --------
         numpy.take : equivalent function
         """
-        out = ma.MaskedArray.take(self, indices, axis=None, out=None, mode='raise', **kwargs)
+        out = ma.MaskedArray.take(self, indices, axis=axis, out=out, mode=mode, **kwargs)
         if isinstance(out, MaskedColumn):  # don't do this for scalars
             BaseColumn.__array_finalize__(out, self)
         return out
