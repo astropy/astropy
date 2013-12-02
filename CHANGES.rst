@@ -786,23 +786,23 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
-   - Binary tables containing compressed images may, optionally, contain other
-     columns unrelated to the tile compression convention. Although this is an
-     uncommon use case, it is permitted by the standard.
+  - Binary tables containing compressed images may, optionally, contain other
+    columns unrelated to the tile compression convention. Although this is an
+    uncommon use case, it is permitted by the standard.
 
-   - Reworked some of the file I/O routines to allow simpler, more consistent
-     mapping between OS-level file modes ('rb', 'wb', 'ab', etc.) and the more
-     "PyFITS-specific" modes used by PyFITS like "readonly" and "update".  That
-     is, if reading a FITS file from an open file object, it doesn't matter as
-     much what "mode" it was opened in so long as it has the right capabilities
-     (read/write/etc.)  Also works around bugs in the Python io module in 2.6+
-     with regard to file modes.
+  - Reworked some of the file I/O routines to allow simpler, more consistent
+    mapping between OS-level file modes ('rb', 'wb', 'ab', etc.) and the more
+    "PyFITS-specific" modes used by PyFITS like "readonly" and "update".  That
+    is, if reading a FITS file from an open file object, it doesn't matter as
+    much what "mode" it was opened in so long as it has the right capabilities
+    (read/write/etc.)  Also works around bugs in the Python io module in 2.6+
+    with regard to file modes.
 
-   - Fixed a long-standing issue where writing binary tables did not correctly
-     write the TFORMn keywords for variable-length array columns (they omitted
-     the max array length parameter of the format).  This was thought fixed in
-     an earlier version, but it was only fixed for compressed image HDUs and
-     not for binary tables in general.
+  - Fixed a long-standing issue where writing binary tables did not correctly
+    write the TFORMn keywords for variable-length array columns (they omitted
+    the max array length parameter of the format).  This was thought fixed in
+    an earlier version, but it was only fixed for compressed image HDUs and
+    not for binary tables in general.
 
 - ``astropy.nddata``
 
