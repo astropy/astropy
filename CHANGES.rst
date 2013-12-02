@@ -43,7 +43,7 @@ Bug Fixes
 
   - Fix a problem when converting to one of the formats `unix`,
     `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
-    or `TCB` [#1732] 
+    or `TCB` [#1732]
 
 - ``astropy.units``
 
@@ -51,6 +51,11 @@ Bug Fixes
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
+  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
+    being ignored when none was present in the FITS file. [#1845]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The doctests in the ``.rst`` files in the ``docs`` folder are now
 tested along with the other unit tests.  This is in addition to the

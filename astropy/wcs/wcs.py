@@ -1714,8 +1714,9 @@ naxis kwarg.
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(
             self.wcs.crpix[0], self.wcs.crpix[1]))
-        print('CDELT    : {!r} {!r}'.format(
-            self.wcs.cdelt[0], self.wcs.cdelt[1]))
+        if not self.wcs.has_cd():
+            print('CDELT    : {!r} {!r}'.format(
+                self.wcs.cdelt[0], self.wcs.cdelt[1]))
         print('NAXIS    : {!r} {!r}'.format(
             self.naxis1, self.naxis2))
 
