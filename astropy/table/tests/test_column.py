@@ -254,6 +254,8 @@ def test_getitem_metadata_regression():
     are able to work around this bug.
     """
 
+    # Make sure that meta-data gets propagated with __getitem__
+
     c = table.Column(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     assert c[1:2].name == 'a'
     assert c[1:2].description == 'b'
@@ -267,3 +269,20 @@ def test_getitem_metadata_regression():
     assert c[1:2].unit == 'm'
     assert c[1:2].format == '%i'
     assert c[1:2].meta['c'] == 8
+
+    # As above, but with take()
+
+    c = table.Column(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    print(type(c.take([0,1])))
+    assert c.take([0,1]).name == 'a'
+    assert c.take([0,1]).description == 'b'
+    assert c.take([0,1]).unit == 'm'
+    assert c.take([0,1]).format == '%i'
+    assert c.take([0,1]).meta['c'] == 8
+
+    c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    assert c.take([0,1]).name == 'a'
+    assert c.take([0,1]).description == 'b'
+    assert c.take([0,1]).unit == 'm'
+    assert c.take([0,1]).format == '%i'
+    assert c.take([0,1]).meta['c'] == 8
