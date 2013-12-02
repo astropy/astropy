@@ -145,6 +145,10 @@ Bug Fixes
     ``CUNIT`` field that was changed.  (This requires that astropy
     was built with the locally distributed version of wcslib). [#1854]
 
+  - `astropy.wcs.WCS.to_header` will now raise a more meaningful
+    exception when the WCS information is inavlid or inconsistent in
+    some way. [#1854]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
