@@ -75,7 +75,9 @@ Two further examples to give a taste of what is possible.  For details, read on!
 
   >>> dt = t[1] - t[0]
   >>> dt
-  <TimeDelta object: scale='tai' format='jd' value=4018.00002171925>
+  <TimeDelta object: scale='tai' format='jd' value=4018.0000217...>
+
+  >>> import numpy as np
   >>> t[0] + dt * np.linspace(0.,1.,12)
   <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2000-01-01 06:32:43.930'
    '2000-12-31 13:05:27.737' '2001-12-31 19:38:11.544'
@@ -83,6 +85,7 @@ Two further examples to give a taste of what is possible.  For details, read on!
    '2004-12-31 15:16:22.965' '2005-12-31 21:49:06.772'
    '2007-01-01 04:21:49.579' '2008-01-01 10:54:33.386'
    '2008-12-31 17:27:17.193' '2010-01-01 00:00:00.000']>
+
   >>> t.sidereal_time('apparent', 'greenwich')
   <Longitude [ 6.68050179, 6.70281947] hourangle>
 

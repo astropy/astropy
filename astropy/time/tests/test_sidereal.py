@@ -45,12 +45,12 @@ class TestERFATestCases():
         result, precision, name = erfa_test_input
         if name[4] == 'm':
             kind = 'mean'
-            model_name = 'IAU{:2d}{:s}'.format(20 if name[7] == '0' else 19,
-                                               name[7:])
+            model_name = 'IAU{0:2d}{1:s}'.format(20 if name[7] == '0' else 19,
+                                                 name[7:])
         else:
             kind = 'apparent'
-            model_name = 'IAU{:2d}{:s}'.format(20 if name[6] == '0' else 19,
-                                               name[6:].upper())
+            model_name = 'IAU{0:2d}{1:s}'.format(20 if name[6] == '0' else 19,
+                                                 name[6:].upper())
 
         assert kind in SIDEREAL_TIME_MODELS.keys()
         assert model_name in SIDEREAL_TIME_MODELS[kind]
