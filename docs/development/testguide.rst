@@ -293,12 +293,13 @@ file.  This hash can be obtained prior to submitting a file to the astropy
 data server by using the `~astropy.utils.data.compute_hash` function on a
 local copy of the file.
 
-Tests that may retrieve remote data should be marked with the ``@remote_data``
-decorator. Tests marked with this decorator will be skipped by default by
-``astropy.test()`` to prevent test runs from taking too long. These tests can
-be run by ``astropy.test()`` by adding the ``remote_data=True`` flag.
-Turn on the remote data tests at the command line with
-``py.test --remote-data``.
+Tests that may retrieve remote data should be marked with the
+``@remote_data`` decorator, or, if a doctest, flagged with the
+``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default
+by ``astropy.test()`` to prevent test runs from taking too long. These
+tests can be run by ``astropy.test()`` by adding the
+``remote_data=True`` flag.  Turn on the remote data tests at the
+command line with ``py.test --remote-data``.
 
 Examples
 ^^^^^^^^
@@ -318,6 +319,12 @@ Examples
         #astropy data server.
         datafile = get_data_filename('hash/94935ac31d585f68041c08f87d1a19d4')
         # do the test
+
+    def doctest_example():
+        """
+        >>> datafile = get_data_filename('hash/94935')  # doctest: +REMOTE_DATA
+        """
+        pass
 
 The ``get_remote_test_data`` will place the files in a temporary directory
 indicated by the ``tempfile`` module, so that the test files will eventually
@@ -556,15 +563,17 @@ skip a doctest:
 
 1. Next to the example add a comment like: ``# doctest: +SKIP``.  For example::
 
-    >>> import os
-    >>> os.listdir('.')  # doctest: +SKIP
+     >>> import os
+     >>> os.listdir('.')  # doctest: +SKIP
 
-  In the above example we want to direct the user to run ``os.listdir('.')``
-  but we don't want that line to be executed as part of the doctest.
-  The downside to this approach is that the ``# doctest: +SKIP`` line will
-  appear in the documentation and may be distracting or confusing, but the
-  upside is that can prevent a single line of an example from being run as a
-  doctest.
+   In the above example we want to direct the user to run ``os.listdir('.')``
+   but we don't want that line to be executed as part of the doctest.
+
+   To skip tests that require fetching remote data, use the ``REMOTE_DATA``
+   flag instead.  This way they can be turned on using the
+   ``--remote-data`` flag when running the tests::
+
+     >>> datafile = get_data_filename('hash/94935')  # doctest: +REMOTE_DATA
 
 2. Astropy's test framework adds support for a special ``__doctest_skip__``
    variable that can be placed at the module level of any module to list
