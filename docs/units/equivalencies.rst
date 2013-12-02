@@ -86,7 +86,7 @@ But when passing we pass the proper conversion function,
   <Quantity 1.97392...e+39 J>
   >>> import numpy as np
   >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
-  <Quantity (0.707106781186...+0.707106781186...j) >
+  <Quantity (0.707106781186...+0.707106781186...j)>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
