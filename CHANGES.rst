@@ -47,6 +47,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Fixed minor string formatting issue for dimensionless quantities. [#1772]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
