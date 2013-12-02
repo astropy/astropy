@@ -270,19 +270,32 @@ def test_getitem_metadata_regression():
     assert c[1:2].format == '%i'
     assert c[1:2].meta['c'] == 8
 
-    # As above, but with take()
+    # As above, but with take() - check the method and the function
 
     c = table.Column(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
-    print(type(c.take([0,1])))
-    assert c.take([0,1]).name == 'a'
-    assert c.take([0,1]).description == 'b'
-    assert c.take([0,1]).unit == 'm'
-    assert c.take([0,1]).format == '%i'
-    assert c.take([0,1]).meta['c'] == 8
+    for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
+        assert subset.name == 'a'
+        assert subset.description == 'b'
+        assert subset.unit == 'm'
+        assert subset.format == '%i'
+        assert subset.meta['c'] == 8
+
+    # Metadata isn't copied for scalar values
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.Column)
 
     c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
-    assert c.take([0,1]).name == 'a'
-    assert c.take([0,1]).description == 'b'
-    assert c.take([0,1]).unit == 'm'
-    assert c.take([0,1]).format == '%i'
-    assert c.take([0,1]).meta['c'] == 8
+    for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
+        assert subset.name == 'a'
+        assert subset.description == 'b'
+        assert subset.unit == 'm'
+        assert subset.format == '%i'
+        assert subset.meta['c'] == 8
+
+    # Metadata isn't copied for scalar values
+    for subset in [c.take(0), np.take(c, 0)]:
+        assert subset == 1
+        assert subset.shape == ()
+        assert not isinstance(subset, table.MaskedColumn)
