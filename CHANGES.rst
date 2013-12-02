@@ -140,6 +140,11 @@ Bug Fixes
     (but this reporting requires a patched version of wcslib,
     distributed with astropy). [#1854]
 
+  - When a unit is "fixed" by `astropy.wcs.WCS.fix` or
+    `astropy.wcs.Wcsprm.unitfix`, it now correctly reports the
+    ``CUNIT`` field that was changed.  (This requires that astropy
+    was built with the locally distributed version of wcslib). [#1854]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
