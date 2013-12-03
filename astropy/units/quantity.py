@@ -357,6 +357,7 @@ class Quantity(np.ndarray):
                 if obj_array is None:
                     # array scalars cannot be viewed as arrays and thus not as
                     # Quantity either; turn them into zero-dimensional arrays
+                    # (These are turned back into scalar in `.value`)
                     if not isinstance(out, np.ndarray):
                         out = out.__array__()
 
