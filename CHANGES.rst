@@ -16,10 +16,9 @@ New Features
 
 - ``astropy.io.ascii``
 
-The ``astropy.io.ascii.Latex`` and ``astropy.io.ascii.AASTex`` readers accept a
-dictionary called ``latex_dict`` which specifies options for LaTeX output.
-The readers now understand a new keyword ``tablealign``.
-
+  - The ``astropy.io.ascii.Latex`` and ``astropy.io.ascii.AASTex`` readers accept a
+    dictionary called ``latex_dict`` which specifies options for LaTeX output.
+    The readers now understand a new keyword ``tablealign``.
 
 - ``astropy.io.fits``
 
