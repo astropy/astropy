@@ -306,14 +306,7 @@ class TableGroups(BaseGroups):
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
             if col.name in self.key_colnames:
-                # Should just be new_col = col.take(i0s), but there is a bug in
-                # MaskedColumn finalize:
-                # >>> c = MaskedColumn(data=[1,2], name='a', description='a')
-                # >>> print c[1:2].description
-                # None
-                new_col = col.__class__(data=col.take(i0s), name=col.name,
-                                        description=col.description,
-                                        unit=col.unit, format=col.format, meta=col.meta)
+                new_col = col.take(i0s)
             else:
                 try:
                     new_col = col.groups.aggregate(func)

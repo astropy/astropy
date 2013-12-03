@@ -11,6 +11,9 @@ from ...utils.exceptions import AstropyDeprecationWarning
 from ... import table
 from ... import units as u
 
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
+
+
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
     # Fixture to run all the Column tests for both an unmasked (ndarray)
@@ -245,3 +248,69 @@ class TestMetaColumn(MetaBaseTest):
 class TestMetaMaskedColumn(MetaBaseTest):
     test_class = table.MaskedColumn
     args = ()
+
+
+def test_getitem_metadata_regression():
+    """
+    Regression test for #1471: MaskedArray does not call __array_finalize__ so
+    the meta-data was not getting copied over. By overloading _update_from we
+    are able to work around this bug.
+    """
+
+    # Make sure that meta-data gets propagated with __getitem__
+
+    c = table.Column(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    assert c[1:2].name == 'a'
+    assert c[1:2].description == 'b'
+    assert c[1:2].unit == 'm'
+    assert c[1:2].format == '%i'
+    assert c[1:2].meta['c'] == 8
+
+    c = table.MaskedColumn(data=[1,2], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    assert c[1:2].name == 'a'
+    assert c[1:2].description == 'b'
+    assert c[1:2].unit == 'm'
+    assert c[1:2].format == '%i'
+    assert c[1:2].meta['c'] == 8
+
+    # As above, but with take() - check the method and the function
+
+    c = table.Column(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
+        assert subset.name == 'a'
+        assert subset.description == 'b'
+        assert subset.unit == 'm'
+        assert subset.format == '%i'
+        assert subset.meta['c'] == 8
+
+    # Metadata isn't copied for scalar values
+    if NUMPY_LT_1P8:
+        with pytest.raises(ValueError):
+            c.take(0)
+        with pytest.raises(ValueError):
+            np.take(c, 0)
+    else:
+        for subset in [c.take(0), np.take(c, 0)]:
+            assert subset == 1
+            assert subset.shape == ()
+            assert not isinstance(subset, table.Column)
+
+    c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
+    for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
+        assert subset.name == 'a'
+        assert subset.description == 'b'
+        assert subset.unit == 'm'
+        assert subset.format == '%i'
+        assert subset.meta['c'] == 8
+
+    # Metadata isn't copied for scalar values
+    if NUMPY_LT_1P8:
+        with pytest.raises(ValueError):
+            c.take(0)
+        with pytest.raises(ValueError):
+            np.take(c, 0)
+    else:
+        for subset in [c.take(0), np.take(c, 0)]:
+            assert subset == 1
+            assert subset.shape == ()
+            assert not isinstance(subset, table.MaskedColumn)

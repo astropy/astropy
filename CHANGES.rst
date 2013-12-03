@@ -39,6 +39,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
+    metadata. [#1471]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,
