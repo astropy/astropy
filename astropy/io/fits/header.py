@@ -4,7 +4,6 @@ from __future__ import division
 
 import collections
 import copy
-import inspect
 import itertools
 import re
 import sys
@@ -18,7 +17,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_closed,
 from ...extern import six
 from ...extern.six import string_types, itervalues, iteritems, next
 from ...extern.six.moves import zip, range, zip_longest
-from ...utils import deprecated, isiterable
+from ...utils import deprecated, isiterable, find_current_module
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
@@ -2300,8 +2299,9 @@ def _is_astropy_internal():
     those hacks internally.
     """
 
-    calling_mod = inspect.getmodule(sys._getframe(2))
-    return calling_mod and calling_mod.__name__.startswith('astropy.')
+    calling_mod = find_current_module(2)
+    return calling_mod and (calling_mod.__name__ == 'astropy' or
+                            calling_mod.__name__.startswith('astropy.'))
 
 
 def _block_size(sep):
