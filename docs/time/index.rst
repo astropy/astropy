@@ -71,7 +71,8 @@ TT.  This uses the same attribute mechanism as above but now returns a new
 Note that both the ISO and JD representations of ``t2`` are different than for
 ``t`` because they are expressed relative to the TT time scale.
 
-Two further examples to give a taste of what is possible.  For details, read on!
+Some further examples to give a taste of what is possible.  For details,
+read on!
 
   >>> dt = t[1] - t[0]
   >>> dt

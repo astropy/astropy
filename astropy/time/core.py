@@ -465,8 +465,8 @@ class Time(object):
             If None (default), the `lon` attribute of the Time object is used.
         model : str or None; optional
             Precession (and nutation) model to use.  The available ones are:
-               {0}: {1}
-               {2}: {3}
+            - {0}: {1}
+            - {2}: {3}
             If None (default), the last (most recent) one from the appropriate
             list above is used.
 
@@ -474,7 +474,7 @@ class Time(object):
         -------
         sidereal time : `~astropy.coordinates.Longitude`
             Sidereal time as a quantity with units of hourangle
-        """  # this is formatted below
+        """  # docstring is formatted below
 
         from ..coordinates import Longitude
 
