@@ -111,6 +111,41 @@ keywords in a FITS file::
           'length': have 'Hz', want 'm''.
         - 'unitfix' made the change 'Changed units: 'HZ      ' -> 'Hz''.
 
+Supported projections
+=====================
+
+As `astropy.wcs` is based on `wcslib`_, it supports the standard
+projections defined in the WCS papers.  These are:
+
+- ``AZP``: zenithal/azimuthal perspective
+- ``SZP``: slant zenithal perspective
+- ``TAN``: gnomonic
+- ``STG``: stereographic
+- ``SIN``: orthographic/synthesis
+- ``ARC``: zenithal/azimuthal equidistant
+- ``ZPN``: zenithal/azimuthal polynomial
+- ``ZEA``: zenithal/azimuthal equal area
+- ``AIR``: Airy's projection
+- ``CYP``: cylindrical perspective
+- ``CEA``: cylindrical equal area
+- ``CAR``: plate carrée
+- ``MER``: Mercator's projection
+- ``COP``: conic perspective
+- ``COE``: conic equal area
+- ``COD``: conic equidistant
+- ``COO``: conic orthomorphic
+- ``SFL``: Sanson-Flamsteed ("global sinusoid")
+- ``PAR``: parabolic
+- ``MOL``: Mollweide's projection
+- ``AIT``: Hammer-Aitoff
+- ``BON``: Bonne's projection
+- ``PCO``: polyconic
+- ``TSC``: tangential spherical cube
+- ``CSC``: COBE quadrilateralized spherical cube
+- ``QSC``: quadrilateralized spherical cube
+- ``HPX``: HEALPix
+- ``XPH``: HEALPix polar, aka "butterfly"
+
 Other information
 =================
 
