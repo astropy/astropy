@@ -43,7 +43,7 @@ Fitting examples
     >>> p2 = models.Polynomial1D(3, param_dim=2)
     >>> pfit = fitting.LinearLSQFitter()
     >>> new_model = pfit(p2, x, yy)
-    >>> print(new_model.param_sets)
+    >>> print(new_model.param_sets)  # doctest: +SKIP
     [[  1.00000000e+00   1.00000000e+00]
      [  2.00000000e+00   2.00000000e+00]
      [  3.88335494e-16   3.88335494e-16]
