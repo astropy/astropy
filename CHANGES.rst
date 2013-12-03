@@ -49,6 +49,7 @@ Bug Fixes
     or `TCB` [#1732]
 
 - ``astropy.units``
+  - ``Quantity`` initialisation rewritten for speed [#1775]
 
   - Fixed minor string formatting issue for dimensionless quantities. [#1772]
 

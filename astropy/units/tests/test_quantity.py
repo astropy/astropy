@@ -88,6 +88,34 @@ class TestQuantityCreation(object):
         assert q1.unit == q2.unit
         assert q1.dtype == q2.dtype
 
+    def test_copy(self):
+
+        # By default, a new quantity is constructed, but not if copy=False
+
+        a = np.arange(10.)
+
+        q0 = u.Quantity(a, unit=u.m / u.s)
+        assert q0.base is not a
+
+        q1 = u.Quantity(a, unit=u.m / u.s, copy=False)
+        assert q1.base is a
+
+        q2 = u.Quantity(q0)
+        assert q2 is not q0
+        assert q2.base is not q0.base
+
+        q2 = u.Quantity(q0, copy=False)
+        assert q2 is q0
+        assert q2.base is q0.base
+
+        q3 = u.Quantity(q0, q0.unit, copy=False)
+        assert q3 is q0
+        assert q3.base is q0.base
+
+        q4 = u.Quantity(q0, u.cm / u.s, copy=False)
+        assert q4 is not q0
+        assert q4.base is not q0.base
+
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
