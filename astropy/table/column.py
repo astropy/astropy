@@ -686,6 +686,30 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         BaseColumn.__array_finalize__(self, obj)
         ma.MaskedArray.__array_finalize__(self, obj)
 
+    # Surprisingly, MaskedArray is buggy and does not call __array_finalize__
+    # after __getitem__, but instead does call _update_from, so we override
+    # this instead to copy over the column metadata.
+    def _update_from(self, obj):
+        BaseColumn.__array_finalize__(self, obj)
+        ma.MaskedArray._update_from(self, obj)
+
+    # We also need to fix this for take(), which *also* does not call
+    # __array_finalize__. Fun times.
+    def take(self, indices, axis=None, out=None, mode='raise', **kwargs):
+        """
+        Return an array formed from the elements of `a` at the given indices.
+
+        Refer to `numpy.take` for full documentation.
+
+        See Also
+        --------
+        numpy.take : equivalent function
+        """
+        out = ma.MaskedArray.take(self, indices, axis=axis, out=out, mode=mode, **kwargs)
+        if isinstance(out, MaskedColumn):  # don't do this for scalars
+            BaseColumn.__array_finalize__(out, self)
+        return out
+
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
         value of a string array in MaskedArray with Python 3.x.  See
