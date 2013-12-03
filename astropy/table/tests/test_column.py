@@ -11,6 +11,9 @@ from ...utils.exceptions import AstropyDeprecationWarning
 from ... import table
 from ... import units as u
 
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
+
+
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
     # Fixture to run all the Column tests for both an unmasked (ndarray)
@@ -281,10 +284,16 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    for subset in [c.take(0), np.take(c, 0)]:
-        assert subset == 1
-        assert subset.shape == ()
-        assert not isinstance(subset, table.Column)
+    if NUMPY_LT_1P8:
+        with pytest.raises(ValueError):
+            c.take(0)
+        with pytest.raises(ValueError):
+            np.take(c, 0)
+    else:
+        for subset in [c.take(0), np.take(c, 0)]:
+            assert subset == 1
+            assert subset.shape == ()
+            assert not isinstance(subset, table.Column)
 
     c = table.MaskedColumn(data=[1,2,3], name='a', description='b', unit='m', format="%i", meta={'c': 8})
     for subset in [c.take([0, 1]), np.take(c, [0, 1])]:
@@ -295,7 +304,13 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    for subset in [c.take(0), np.take(c, 0)]:
-        assert subset == 1
-        assert subset.shape == ()
-        assert not isinstance(subset, table.MaskedColumn)
+    if NUMPY_LT_1P8:
+        with pytest.raises(ValueError):
+            c.take(0)
+        with pytest.raises(ValueError):
+            np.take(c, 0)
+    else:
+        for subset in [c.take(0), np.take(c, 0)]:
+            assert subset == 1
+            assert subset.shape == ()
+            assert not isinstance(subset, table.MaskedColumn)
