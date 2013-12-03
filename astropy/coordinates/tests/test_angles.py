@@ -160,15 +160,21 @@ def test_latitude():
         lat = Latitude('-91d')
 
     lat = Latitude(['90d', '89d'])
+    # check that one can get items
+    assert lat[0] == 90 * u.deg
+    assert lat[1] == 89 * u.deg
+    # and that comparison with angles works
+    assert np.all(lat == Angle(['90d', '89d']))
+    # check setitem works
+    lat[1] = 45. * u.deg
+    assert np.all(lat == Angle(['90d', '45d']))
+    # but not with values out of range
     with pytest.raises(ValueError):
         lat[0] = 90.001 * u.deg
     with pytest.raises(ValueError):
         lat[0] = -90.001 * u.deg
-
-    lat = Latitude(['90d', '89d'])
-    assert lat[0] == 90 * u.deg
-    assert lat[1] == 89 * u.deg
-    assert np.all(lat == Angle(['90d', '89d']))
+    # these should also not destroy input (#1851)
+    assert np.all(lat == Angle(['90d', '45d']))
 
     # conserve type on unit change (closes #1423)
     angle = lat.to('radian')
