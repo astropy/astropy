@@ -71,8 +71,8 @@ TT.  This uses the same attribute mechanism as above but now returns a new
 Note that both the ISO and JD representations of ``t2`` are different than for
 ``t`` because they are expressed relative to the TT time scale.
 
-Some further examples to give a taste of what is possible.  For details,
-read on!
+Finally, some further examples of what is possible.  For details, see
+the API documentation below.
 
   >>> dt = t[1] - t[0]
   >>> dt
@@ -419,6 +419,9 @@ longitude is given.
   >>> t.sidereal_time('apparent')
   <Longitude 20.00000000000... hourangle>
 
+.. note:: In future versions, we hope to use location or observatory objects
+          for passing on the coordinates.
+
 Getting the Current Time
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -441,7 +444,7 @@ There are four basic operations available with |Time| objects:
 - Get the representation of the time value(s) in a particular `time format`_.
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
-- Get the `sidereal time`_ corresponding to a particular time value(s).
+- Calculate the `sidereal time`_ corresponding to the time value(s).
 - Do time arithmetic involving |Time| and/or |TimeDelta| objects.
 
 Get representation
