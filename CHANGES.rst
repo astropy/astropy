@@ -229,7 +229,7 @@ Bug Fixes
 - ``astropy.table``
 
   - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
-    metadata. [#1471]
+    metadata. [#1471, #1872]
 
   - With Numpy prior to version 1.6.2, tables with Unicode columns now
     sort correctly. [#1867]
