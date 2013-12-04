@@ -108,13 +108,17 @@ class Quantity(np.ndarray):
                 value = value.to(unit)
                 copy = False  # copy already made
 
+            if dtype is None and not np.can_cast(np.float32, value.dtype):
+                dtype = np.float
+
             if copy or dtype is not None:
                 return np.array(value, dtype=dtype, copy=copy, subok=True)
             else:
                 return value
 
-        elif (not isinstance(value, np.ndarray) and isiterable(value) and
-              all(isinstance(v, Quantity) for v in value)):
+        # Maybe list/tuple of Quantity? short-circuit array for speed
+        if(not isinstance(value, np.ndarray) and isiterable(value) and
+           all(isinstance(v, Quantity) for v in value)):
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
