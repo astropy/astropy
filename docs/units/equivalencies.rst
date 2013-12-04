@@ -299,7 +299,7 @@ equivalencies that will by default be used, in a way similar to which
 one can :ref:`enable other units <enabling-other-units>`.
 
 For instance, to enable radian to be treated as a dimensionless unit,
-simply do::
+simply do:
 
 .. doctest-skip::
 
@@ -316,7 +316,7 @@ lists, they should indeed be combined by adding them together).
 
 The disadvantage of the above approach is that you may forget to turn
 the default off (done by giving an empty argument). To automate this,
-a context manager is provided::
+a context manager is provided:
 
 .. doctest-skip::
 
