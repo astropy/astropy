@@ -756,3 +756,82 @@ class SphericalCoordinatesBase(object):
             return coord_string.decode()
 
         return coord_string
+
+    # Table mixin protocol methods / attributes
+    #   This currently doesn't work
+    # >>> c1 = ICRS([1,2], [3,4], unit=('deg', 'deg'))
+    # >>> c1.name = 'c1'
+    # >>> t = Table([c1])
+    #   <SNIP>
+    # /data/baffin/tom/git/astropy/astropy/coordinates/coordsystems.py in __table_replicate_column__(self, table, name)
+    #     789         lat = table._data['{0}__lat'.format(name)]
+    #     790         replica = self[:]
+    # --> 791         replica._lonangle = Longitude(lon, unit=u.deg, copy=False)
+    #     792         replica._latangle = Latitude(lat, unit=u.deg, copy=False)
+    #     793         replica._distance = None
+    #
+    # /data/baffin/tom/git/astropy/astropy/coordinates/angles.pyc in __new__(cls, angle, unit, wrap_angle, **kwargs)
+    #     609     """
+    #     610     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+    # --> 611         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
+    #     612         self.wrap_angle = wrap_angle
+    #     613         return self
+    #
+    # /data/baffin/tom/git/astropy/astropy/coordinates/angles.pyc in __new__(cls, angle, unit, dtype, copy)
+    #     136
+    #     137         self = super(Angle, cls).__new__(
+    # --> 138             cls, angle, unit, dtype=dtype, copy=copy)
+    #     139
+    #     140         return self
+    #
+    # /data/baffin/tom/git/astropy/astropy/units/quantity.pyc in __new__(cls, value, unit, dtype, copy)
+    #     154
+    #     155         self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
+    # --> 156                                             buffer=_value.data)
+    #     157         if unit is None:
+    #     158             if isinstance(value, Quantity):
+    #
+    # AttributeError: cannot get single-segment buffer for discontiguous array
+
+    name = None
+
+    def copy(self):
+        from copy import deepcopy
+        return deepcopy(self)
+
+    def __len__(self):
+        return len(self._lonangle)
+
+    @property
+    def shape(self):
+        return () if self.isscalar else (len(self),)
+
+    @property
+    def data(self):
+        """
+        This is the single-column representation of the coordinate array.
+        """
+        return self.to_string()
+
+    def __table_replicate_column__(self, table, name):
+        """
+        Replicate the current column (e.g. all the attributes) but using the the ``data`` ndarray
+        to supply the internal values (e.g. jd1, jd2 for Time).  This is the mixin equivalent
+        of Column.copy(data=data, copy_data=False).
+        """
+        # Ignore distance for the moment
+        lon = table._data['{0}__lon'.format(name)]
+        lat = table._data['{0}__lat'.format(name)]
+        replica = self[:]
+        replica._lonangle = Longitude(lon, unit=u.deg, copy=False)
+        replica._latangle = Latitude(lat, unit=u.deg, copy=False)
+        replica._distance = None
+
+    def __table_get_columns__(self, name, ColumnClass):
+        """
+        Get list of columns that represent the internal data for this object assuming the
+        mixin column name is ``name``.
+        """
+        col_lon = ColumnClass(data=self._lonangle.deg, name=str('{0}__lon'.format(name)))
+        col_lat = ColumnClass(data=self._latangle.deg, name=str('{0}__lat'.format(name)))
+        return [col_lon, col_lat]

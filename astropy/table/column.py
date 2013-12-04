@@ -119,6 +119,16 @@ class BaseColumn(object):
         else:
             return out_arr.view(np.ndarray)[()]
 
+    # Define format as an alias for __print_format__ in order to satisfy the
+    # column protocol.
+    @property
+    def format(self):
+        return self.__print_format__
+
+    @format.setter
+    def format(self, val):
+        self.__print_format__ = val
+
     @property
     def name(self):
         return self._name

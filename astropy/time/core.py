@@ -121,6 +121,12 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 1000
 
+    # Attributes for mixin protocol
+    __print_format__ = None
+    unit = None
+    description = None
+    name = None
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 lat=0.0, lon=0.0, copy=False):
@@ -409,7 +415,7 @@ class Time(object):
         """Time values in current format as a numpy array"""
         return self.value
 
-    def copy(self, format=None):
+    def copy(self, format=None, data=None, copy_data=True):
         """
         Return a fully independent copy the Time object, optionally changing
         the format.
@@ -432,9 +438,9 @@ class Time(object):
         tm: Time object
             Copy of this object
         """
-        return self.replicate(format, copy=True)
+        return self.replicate(format, copy=copy_data)
 
-    def replicate(self, format=None, copy=False):
+    def replicate(self, format=None, copy=False, jd1=None, jd2=None):
         """
         Return a replica of the Time object, optionally changing the format.
 
@@ -473,6 +479,7 @@ class Time(object):
                           self._time.jd2.copy() if copy else self._time.jd2,
                           self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
+
         # Optional or non-arg attributes
         attrs = ('isscalar', '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
@@ -505,6 +512,11 @@ class Time(object):
                                  tm.in_subfmt, tm.out_subfmt,
                                  from_jd=True)
         tm._format = format
+
+        tm.__print_format__ = self.__print_format__
+        tm.unit = self.unit
+        tm.description = self.description
+        tm.name = self.name
 
         return tm
 
@@ -821,6 +833,34 @@ class Time(object):
 
     def __ge__(self, other):
         return self._tai_difference(other) >= 0.
+
+    @property
+    def shape(self):
+        return () if self.isscalar else (len(self),)
+
+    @property
+    def data(self):
+        # ?? SHOULD this be self.vals?  Should data return an array always?
+        return self.val
+
+    def __table_replicate_column__(self, table, name):
+        """
+        Replicate the current column (e.g. all the attributes) but using the the ``data`` ndarray
+        to supply the internal values (e.g. jd1, jd2 for Time).  This is the mixin equivalent
+        of Column.copy(data=data, copy_data=False).
+        """
+        jd1 = table._data['{0}__jd1'.format(name)]
+        jd2 = table._data['{0}__jd2'.format(name)]
+        return self.replicate(jd1=jd1, jd2=jd2)
+
+    def __table_get_columns__(self, name, ColumnClass):
+        """
+        Get list of columns that represent the internal data for this object assuming the
+        mixin column name is ``name``.
+        """
+        col_jd1 = ColumnClass(data=self._time.jd1, name=str('{0}__jd1'.format(name)))
+        col_jd2 = ColumnClass(data=self._time.jd2, name=str('{0}__jd2'.format(name)))
+        return [col_jd1, col_jd2]
 
 
 class TimeDelta(Time):

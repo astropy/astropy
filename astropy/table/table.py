@@ -35,12 +35,22 @@ __doctest_skip__ = ['Table.read', 'Table.write']
 if SKIP_STRING_SORT:
     __doctest_skip__.append('Table.sort')
 
-
 # Python 2 and 3 source compatibility
 try:
     unicode
 except NameError:
     unicode = basestring = str
+
+
+def _is_table_mixin(obj):
+    """
+    Determine if the object implements the Table Mixin protocol.
+    Currently this is a simple test but should be expanded to be more
+    rigorous.
+    """
+    required_attrs = ('__table_get_columns__', '__table_replicate_column__',
+                      'shape', 'data', '__len__', 'name', '__getitem__')
+    return all(hasattr(obj, attr) for attr in required_attrs)
 
 
 class TableColumns(OrderedDict):
@@ -109,6 +119,20 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
+def _column_compare(op):
+    """
+    Convenience function to return a function that properly does a
+    comparison between a column object and something else.
+    """
+    def compare(self, other):
+        # We have to define this to ensure that we always return boolean arrays
+        # (otherwise in some cases, Column objects are returned).
+        if isinstance(other, BaseColumn):
+            other = other.data
+        return op(self.data, other)
+    return compare
+
+
 class Row(object):
     """A class to represent one row of a Table object.
 
@@ -162,10 +186,20 @@ class Row(object):
                 raise
 
     def __getitem__(self, item):
-        return self.data[item]
+        if self._table._has_mixins:
+            if isinstance(item, int):
+                item = self._table.colnames[item]
+            return self._table[item][self._index]
+        else:
+            return self._data[item]
 
     def __setitem__(self, item, val):
-        self.data[item] = val
+        if self._table._has_mixins:
+            if isinstance(item, int):
+                item = self._table.colnames[item]
+            self._table[item][self._index] = val
+        else:
+            self._data[item] = val
 
     def __eq__(self, other):
         if self._table.masked:
@@ -232,8 +266,14 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
+        if self._table._has_mixins:
+            index = self._index
+            table = self._table
+            values = tuple(table[colname][index] for colname in table.colnames)
+        else:
+            values = self._data
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype)
+            self.index, values, self.dtype)
 
 
 collections.Sequence.register(Row)
@@ -463,6 +503,8 @@ class Table(object):
         def_names = _auto_names(n_cols)
 
         if data and all(isinstance(row, dict) for row in data):
+            # Init from list of rows where each row is a dict with keys corresponding
+            # to column names.
             names_from_data = set()
             for row in data:
                 names_from_data.update(row)
@@ -481,7 +523,10 @@ class Table(object):
             return
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
-            if isinstance(col, (Column, MaskedColumn)):
+            if _is_table_mixin(col):
+                col = col.copy()
+                col.name = name or col.name
+            elif isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
@@ -535,12 +580,16 @@ class Table(object):
         self.meta.update(deepcopy(table.meta))
         cols = table.columns.values()
 
-        # Set self.masked appropriately from cols
-        self._set_masked_from_cols(cols)
-
         if copy:
-            self._init_from_list(cols, names, dtype, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy=True)
         else:
+            # FIX ME: copy=False won't work for mixin columns because the following
+            # assumes one table column per numpy array (_data) column.  Right now just
+            # raise an exception.
+            if any(_is_table_mixin(col) for col in cols):
+                raise ValueError('Cannot use copy=False for a table with mixin columns')
+
+            self._set_masked_from_cols(cols)  # Set self.masked appropriately from cols
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
             dtype = [(name, col.dtype) for name, col in zip(names, cols)]
             data = table._data.view(dtype)
@@ -548,24 +597,43 @@ class Table(object):
             self._update_table_from_cols(self, data, cols, names)
 
     def _init_from_cols(self, cols):
-        """Initialize table from a list of Column objects"""
+        """Initialize table from a list of Column or mixin objects"""
 
-        lengths = set(len(col.data) for col in cols)
+        # Some mixin columns have no data at this point e.g. a FunctionColumn that
+        # computes a function of several columns.  They must return None for col.data.
+        lengths = set(len(col.data) for col in cols if col.data is not None)
+
         if len(lengths) != 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
 
         self._set_masked_from_cols(cols)
-        cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
-        names = [col.name for col in cols]
-        dtype = [col.descr for col in cols]
+        # Create the data columns that comprise the table._data ndarray/MaskedArray.
+        # There might not be a one-to-one correspondence between table cols and data
+        # cols (aka fields) since mixins like Time or Coordinates have two internal
+        # arrays.  The operations below work by reference so they should be lightweight.
+        data_cols = []
+        table_cols = []
+        for col in cols:
+            if _is_table_mixin(col):
+                data_cols.extend(col.__table_get_columns__(col.name, self.ColumnClass))
+                new_col = col
+            else:
+                new_col = self.ColumnClass(name=col.name, data=col)
+                data_cols.append(new_col)
+            table_cols.append(new_col)
+
+        # Create and populate the internal data array
+        names = [col.name for col in data_cols]
+        dtype = [col.descr for col in data_cols]
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(lengths.pop(), dtype=dtype)
-        for col in cols:
+        for col in data_cols:
             data[col.name] = col.data
 
-        self._update_table_from_cols(self, data, cols, names)
+        col_names = [col.name for col in table_cols]
+        self._update_table_from_cols(self, data, table_cols, col_names)
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
@@ -583,18 +651,39 @@ class Table(object):
 
     @staticmethod
     def _update_table_from_cols(table, data, cols, names):
-        """Update the existing ``table`` so that it represents the given
-        ``data`` (a structured ndarray) with ``cols`` and ``names``."""
+        """
+        Update the existing ``table`` so that it represents the given ``data`` (a
+        structured ndarray) with ``cols`` and ``names``.
+
+        When this is called, ``cols`` will be a list of fully-defined columns
+        (i.e. with attributes and meta).  These cols will have their own data
+        references that are different from the new ``data`` array.  This routine
+        essentially moves the data reference for all the ``cols`` to now point
+        at ``data[col.name]``.
+        """
 
         columns = TableColumns()
         table._data = data
 
         for name, col in zip(names, cols):
-            newcol = col.copy(data=data[name], copy_data=False)
+            if _is_table_mixin(col):
+                newcol = col.__table_replicate_column__(table, name)
+            else:
+                # Make column with copy of attributes / meta but reference to new values
+                # within the newly-supplied ``data`` ndarray.
+                newcol = col.copy(data=data[name], copy_data=False)
             newcol.name = name
             newcol.parent_table = table
             columns[name] = newcol
         table.columns = columns
+
+    def _has_mixins(self):
+        """
+        Return True if any of the columns are mixins (not BaseColumn).
+        TO DO: cache the result, but this requires clearing the cache whenever
+        any columns are added / removed.
+        """
+        return not all(isinstance(col, BaseColumn) for col in self.columns.values())
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
@@ -830,10 +919,11 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, basestring) and item not in self.colnames:
+            is_mixin = _is_table_mixin(value)
             NewColumn = MaskedColumn if self.masked else Column
 
             # Make sure value is an ndarray so we can get the dtype
-            if not isinstance(value, np.ndarray):
+            if not isinstance(value, np.ndarray) and not is_mixin:
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently has no rows
@@ -841,7 +931,7 @@ class Table(object):
             # from value.  In the latter case this allows for propagation of Column
             # metadata.  Otherwise define a new column with the right length and shape and
             # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
-            if isinstance(value, BaseColumn):
+            if isinstance(value, BaseColumn) or is_mixin:
                 new_column = value.copy(copy_data=False)
                 new_column.name = item
             elif len(self) == 0:
@@ -1048,6 +1138,9 @@ class Table(object):
 
         To add several columns use add_columns.
         """
+        # if _is_table_mixin(col):
+        #     col.__table_add_column__(self, index)
+        # else:
         if index is None:
             index = len(self.columns)
         self.add_columns([col], [index])
