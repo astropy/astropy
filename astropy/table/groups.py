@@ -1,6 +1,10 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
+from ..extern.six.moves import zip as izip
+
 import platform
 import warnings
-from itertools import izip
 
 import numpy as np
 
@@ -28,7 +32,7 @@ def table_group_by(table, keys):
     from .table import Table
 
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
-    if isinstance(keys, basestring):
+    if isinstance(keys, six.string_types):
         keys = (keys,)
 
     if isinstance(keys, (list, tuple)):
@@ -152,6 +156,7 @@ class BaseGroups(object):
             return self.parent[i0:i1]
         else:
             raise StopIteration
+    __next__ = next
 
     def __getitem__(self, item):
         parent = self.parent
@@ -301,7 +306,7 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        for col in parent_table.columns.values():
+        for col in six.itervalues(parent_table.columns):
             # For key columns just pick off first in each group since they are identical
             if col.name in self.key_colnames:
                 new_col = col.take(i0s)
@@ -309,7 +314,7 @@ class TableGroups(BaseGroups):
                 try:
                     new_col = col.groups.aggregate(func)
                 except TypeError as err:
-                    warnings.warn(str(err), AstropyUserWarning)
+                    warnings.warn(six.text_type(err), AstropyUserWarning)
                     continue
 
             out_cols.append(new_col)

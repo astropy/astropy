@@ -23,4 +23,6 @@ def get_package_data():
              os.path.join('data', '*.css'),
              ]
     return {'astropy.table': paths}
-    
+
+def requires_2to3():
+    return False

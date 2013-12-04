@@ -1,4 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
+from ..extern.six.moves import zip as izip
 
 import collections
 import sys
@@ -22,6 +26,7 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import (_pformat_table, _more_tabcol)
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
+from .np_utils import fix_column_name
 
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
@@ -32,13 +37,6 @@ _BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
 
 
 __doctest_skip__ = ['Table.read', 'Table.write']
-
-
-# Python 2 and 3 source compatibility
-try:
-    unicode
-except NameError:
-    unicode = basestring = str
 
 
 class TableColumns(OrderedDict):
@@ -73,20 +71,20 @@ class TableColumns(OrderedDict):
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
           tc[1:3] # <TableColumns names=('b', 'c')>
         """
-        if isinstance(item, basestring):
+        if isinstance(item, six.string_types):
             return OrderedDict.__getitem__(self, item)
         elif isinstance(item, int):
             return self.values()[item]
         elif isinstance(item, tuple):
             return TableColumns([self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns([self[x] for x in self.keys()[item]])
+            return TableColumns([self[x] for x in list(six.iterkeys(self))[item]])
         else:
             raise IndexError('Illegal key or index value for TableColumns '
                              'object')
 
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in self.keys())
+        names = ("'{0}'".format(x) for x in six.iterkeys(self))
         return "<TableColumns names=({0})>".format(",".join(names))
 
     def _rename_column(self, name, new_name):
@@ -95,9 +93,9 @@ class TableColumns(OrderedDict):
 
         mapper = {name: new_name}
         new_names = [mapper.get(name, name) for name in self]
-        cols = self.values()
+        cols = list(six.itervalues(self))
         self.clear()
-        self.update(zip(new_names, cols))
+        self.update(list(izip(new_names, cols)))
 
     # Define keys and values for Python 2 and 3 source compatibility
     def keys(self):
@@ -151,7 +149,7 @@ class Row(object):
             # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
             #
             # All we do here is re-raise with a more informative message
-            if (str(err).startswith('Setting void-array with object members')
+            if (six.text_type(err).startswith('Setting void-array with object members')
                     and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
                 raise ValueError('Cannot access table row with Object type columns, due to '
                                  'a bug in numpy {0}.  Please upgrade to numpy 1.8 or newer.'
@@ -314,8 +312,8 @@ class Table(object):
 
         elif isinstance(data, dict):
             init_func = self._init_from_dict
-            n_cols = len(data.keys())
-            default_names = data.keys()
+            default_names = list(six.iterkeys(data))
+            n_cols = len(default_names)
 
         elif isinstance(data, Table):
             init_func = self._init_from_table
@@ -342,6 +340,11 @@ class Table(object):
             names = default_names or [None] * n_cols
         if dtype is None:
             dtype = [None] * n_cols
+
+        # Numpy does not support Unicode column names on Python 2, or
+        # bytes column names on Python 3, so fix them up now.
+        names = [fix_column_name(name) for name in names]
+
         self._check_names_dtype(names, dtype, n_cols)
 
         # Finally do the real initialization
@@ -377,7 +380,7 @@ class Table(object):
             New table with masked values filled
         """
         if self.masked:
-            data = [col.filled(fill_value) for col in self.columns.values()]
+            data = [col.filled(fill_value) for col in six.itervalues(self.columns)]
         else:
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))
@@ -408,7 +411,7 @@ class Table(object):
         subtle operation, see comments.
         """
         cols = []
-        for col in self.columns.values():
+        for col in six.itervalues(self.columns):
             # First make a new column based on the name and the original column.  This
             # step is needed because the table manipulation may have changed the table
             # masking so that the original data columns no longer correspond to
@@ -531,7 +534,7 @@ class Table(object):
         data_names = table.colnames
         self.meta.clear()
         self.meta.update(deepcopy(table.meta))
-        cols = table.columns.values()
+        cols = list(six.itervalues(table.columns))
 
         # Set self.masked appropriately from cols
         self._set_masked_from_cols(cols)
@@ -571,7 +574,7 @@ class Table(object):
         table = self.__class__(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
-        cols = self.columns.values()
+        cols = list(six.itervalues(self.columns))
         names = [col.name for col in cols]
         data = self._data[slice_]
 
@@ -638,7 +641,7 @@ class Table(object):
             if i < n_header:
                 color_print(line, 'red')
             else:
-                print line
+                print(line)
 
     def show_in_browser(self,
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
@@ -801,7 +804,7 @@ class Table(object):
         return ''.join(lines)
 
     def __getitem__(self, item):
-        if isinstance(item, basestring):
+        if isinstance(item, six.string_types):
             return self.columns[item]
         elif isinstance(item, int):
             return Row(self, item)
@@ -827,7 +830,7 @@ class Table(object):
     def __setitem__(self, item, value):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
-        if isinstance(item, basestring) and item not in self.colnames:
+        if isinstance(item, six.string_types) and item not in self.colnames:
             NewColumn = MaskedColumn if self.masked else Column
 
             # Make sure value is an ndarray so we can get the dtype
@@ -863,7 +866,7 @@ class Table(object):
             self._data[item] = value
 
     def __delitem__(self, item):
-        if isinstance(item, basestring):
+        if isinstance(item, six.string_types):
             self.remove_column(item)
         elif isinstance(item, tuple):
             self.remove_columns(item)
@@ -978,7 +981,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1014,7 +1017,7 @@ class Table(object):
         Create a table with two columns 'a' and 'b'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print t
+            >>> print(t)
              a   b
             --- ---
               1 0.1
@@ -1025,7 +1028,7 @@ class Table(object):
 
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> t.add_column(col_c)
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1037,7 +1040,7 @@ class Table(object):
 
             >>> col_d = Column(name='d', data=['a', 'b', 'c'])
             >>> t.add_column(col_d, 1)
-            >>> print t
+            >>> print(t)
              a   d   b   c
             --- --- --- ---
               1   a 0.1   x
@@ -1069,7 +1072,7 @@ class Table(object):
         Create a table with two columns 'a' and 'b'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
-            >>> print t
+            >>> print(t)
              a   b
             --- ---
               1 0.1
@@ -1081,7 +1084,7 @@ class Table(object):
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> col_d = Column(name='d', data=['u', 'v', 'w'])
             >>> t.add_columns([col_c, col_d])
-            >>> print t
+            >>> print(t)
              a   b   c   d
             --- --- --- ---
               1 0.1   x   u
@@ -1095,7 +1098,7 @@ class Table(object):
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> col_d = Column(name='d', data=['u', 'v', 'w'])
             >>> t.add_columns([col_c, col_d], [0, 1])
-            >>> print t
+            >>> print(t)
              c   a   d   b
             --- --- --- ---
               x   1   u 0.1
@@ -1135,7 +1138,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1145,7 +1148,7 @@ class Table(object):
         Remove row 1 from the table::
 
             >>> t.remove_row(1)
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1154,7 +1157,7 @@ class Table(object):
         To remove several rows at the same time use remove_rows.
         """
         # check the index against the types that work with np.delete
-        if not isinstance(index, (int, long, np.integer)):
+        if not isinstance(index, (six.integer_types, np.integer)):
             raise TypeError("Row index must be an integer")
         self.remove_rows(index)
 
@@ -1173,7 +1176,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1183,7 +1186,7 @@ class Table(object):
         Remove rows 0 and 2 from the table::
 
             >>> t.remove_rows([0, 2])
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               2 0.2   y
@@ -1195,7 +1198,7 @@ class Table(object):
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
             >>> t.remove_rows(slice(10, 20, 1))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1237,7 +1240,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1247,7 +1250,7 @@ class Table(object):
         Remove column 'b' from the table::
 
             >>> t.remove_column('b')
-            >>> print t
+            >>> print(t)
              a   c
             --- ---
               1   x
@@ -1274,7 +1277,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...     names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1284,7 +1287,7 @@ class Table(object):
         Remove columns 'b' and 'c' from the table::
 
             >>> t.remove_columns(['b', 'c'])
-            >>> print t
+            >>> print(t)
              a
             ---
               1
@@ -1296,7 +1299,7 @@ class Table(object):
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...     names=('a', 'b', 'c'))
             >>> t.remove_columns('b')
-            >>> print t
+            >>> print(t)
              a   c
             --- ---
               1   x
@@ -1348,7 +1351,7 @@ class Table(object):
 
             >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
-            >>> print t
+            >>> print(t)
              a   b   c
             --- --- ---
               1 0.1   x
@@ -1359,7 +1362,7 @@ class Table(object):
         Keep only column 'a' of the table::
 
             >>> t.keep_columns('a')
-            >>> print t
+            >>> print(t)
              a
             ---
               1
@@ -1372,7 +1375,7 @@ class Table(object):
             >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
             >>> t.keep_columns(['a', 'c'])
-            >>> print t
+            >>> print(t)
              a   c
             --- ---
               1   x
@@ -1380,7 +1383,7 @@ class Table(object):
               3   z
         '''
 
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             names = [names]
 
         for name in names:
@@ -1516,7 +1519,7 @@ class Table(object):
                 test_data.mask[-1] = (True,) * len(test_data.dtype)
 
             # First we copy the values
-            for name, val in vals.items():
+            for name, val in six.iteritems(vals):
                 try:
                     test_data[name][-1] = val
                 except IndexError:
@@ -1586,7 +1589,7 @@ class Table(object):
         index_array : ndarray, int
             Array of indices that sorts the table by the specified key column(s).
         """
-        if isinstance(keys, basestring):
+        if isinstance(keys, six.string_types):
             keys = [keys]
         kwargs = {}
         if keys:

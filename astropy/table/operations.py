@@ -6,6 +6,9 @@ High-level table operations:
 - vstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
 
 from copy import deepcopy
 import warnings
@@ -33,7 +36,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
     """
     # Set column meta
     attrs = ('unit', 'format', 'description')
-    for out_col in out.columns.values():
+    for out_col in six.itervalues(out.columns):
         for idx_table, table in enumerate(tables):
             left_col = out_col
             right_name = col_name_map[out_col.name][idx_table]
@@ -60,8 +63,8 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                         merge_attr = left_attr
                     elif left_attr != right_attr:
                         if metadata_conflicts == 'warn':
-                            warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
-                                          '({2} != {3}).  Using {3} for merged output'
+                            warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
+                                          "({2} != {3}).  Using {3} for merged output"
                                           .format(out_col.name, attr, left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
@@ -187,17 +190,17 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
       >>> from astropy.table import vstack, Table
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
       >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
-      >>> print t1
+      >>> print(t1)
        a   b
       --- ---
         1   3
         2   4
-      >>> print t2
+      >>> print(t2)
        a   b
       --- ---
         5   7
         6   8
-      >>> print vstack([t1, t2])
+      >>> print(vstack([t1, t2]))
        a   b
       --- ---
         1   3
@@ -263,17 +266,17 @@ def hstack(tables, join_type='outer',
       >>> from astropy.table import Table, hstack
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
       >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
-      >>> print t1
+      >>> print(t1)
        a   b
       --- ---
         1   3
         2   4
-      >>> print t2
+      >>> print(t2)
        c   d
       --- ---
         5   7
         6   8
-      >>> print hstack([t1, t2])
+      >>> print(hstack([t1, t2]))
        a   b   c   d
       --- --- --- ---
         1   3   5   7
