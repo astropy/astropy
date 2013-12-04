@@ -301,9 +301,11 @@ def _get_module_from_frame(frm):
             # using the same means as inspect.getmodule
             if filename[-4:].lower() in ('.pyc', '.pyo'):
                 filename = filename[:-4] + '.py'
-            filename = os.path.realpath(os.path.abspath(filename))
-            if filename in inspect.modulesbyfile:
-                return sys.modules.get(inspect.modulesbyfile[filename])
+
+            absfilename = os.path.abspath(filename)
+            absfilename = os.path.normcase(os.path.realpath(absfilename))
+            if absfilename in inspect.modulesbyfile:
+                return sys.modules.get(inspect.modulesbyfile[absfilename])
 
     # Otherwise there are still some even trickier things that might be
     # possible to track down the module, but we'll leave those out unless we
