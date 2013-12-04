@@ -115,7 +115,10 @@ Supported projections
 =====================
 
 As `astropy.wcs` is based on `wcslib`_, it supports the standard
-projections defined in the WCS papers.  These are:
+projections defined in the WCS papers.  These projection codes are
+specified in the second part of the ``CUNITn`` keywords (accessible
+through `Wcsprm.cunit <astropy.wcs.Wcsprm.cunit>`), for example,
+``RA-TAN-SIP``.  The supported projection codes are::
 
 - ``AZP``: zenithal/azimuthal perspective
 - ``SZP``: slant zenithal perspective
