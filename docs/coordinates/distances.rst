@@ -10,13 +10,13 @@ valid.::
 
     >>> from astropy.coordinates import Distance, ICRS
     >>> from astropy import units as u
-    >>> d = Distance(770)
+    >>> d = Distance(770.)
     Traceback (most recent call last):
     ...
     UnitsError: No unit was provided for Distance
-    >>> d = Distance(770, u.kpc)
+    >>> d = Distance(770., u.kpc)
     >>> d
-    <Distance 770 kpc>
+    <Distance 770.0 kpc>
     >>> c = ICRS('00h42m44.3s +41d16m9s', distance=d)
     >>> c
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>

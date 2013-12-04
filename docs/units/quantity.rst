@@ -17,11 +17,12 @@ to represent 15 m/s:
     >>> 15 * u.m / u.s
     <Quantity 15.0 m / s>
 
-Note that |quantity| objects are converted to float by default.  As
-another example:
+.. note:: |quantity| objects are converted to float by default.  
 
-    >>> 1.14 / u.s
-    <Quantity 1.1... 1 / s>
+As another example:
+
+    >>> 1.25 / u.s
+    <Quantity 1.25 1 / s>
 
 You can also create instances using the |quantity| constructor directly, by
 specifying a value and unit:
@@ -50,11 +51,11 @@ Finally, the current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
 `~astropy.units.quantity.Quantity.value` attributes:
 
-    >>> q = 2.3 * u.m / u.s
+    >>> q = 2.5 * u.m / u.s
     >>> q.unit
     Unit("m / s")
     >>> q.value
-    2...
+    2.5
 
 Converting to different units
 -----------------------------
@@ -172,7 +173,7 @@ including functions that only accept specific units such as angles:
 
     >>> q = 30. * u.deg
     >>> np.sin(q)
-    <Quantity 0.4999999... >
+    <Quantity 0.4999999...>
 
 or dimensionless quantities:
 
@@ -180,7 +181,7 @@ or dimensionless quantities:
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
     >>> np.exp(-h * nu / (k_B * T))
-    <Quantity 0.99521225... >
+    <Quantity 0.99521225...>
 
 (see `Dimensionless quantities`_ for more details).
 
@@ -219,14 +220,14 @@ dimensionless quantities:
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
     >>> np.exp(- h * nu / (k_B * T))
-    <Quantity 0.99521225... >
+    <Quantity 0.99521225...>
 
 The result is independent from the units the different quantities were specified in:
 
     >>> nu = 3.e9 * u.Hz
     >>> T = 30 * u.K
     >>> np.exp(- h * nu / (k_B * T))
-    <Quantity 0.99521225... >
+    <Quantity 0.99521225...>
 
 Converting to plain Python scalars or Numpy arrays
 --------------------------------------------------

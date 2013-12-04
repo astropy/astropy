@@ -549,13 +549,17 @@ class TestQuantityDisplay(object):
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
     def test_dimensionless_quantity_repr(self):
-        q2 = u.Quantity(1, unit='m-1')
-        assert repr(self.scalarintq * q2) == "<Quantity 1>"
+        q2 = u.Quantity(1., unit='m-1')
+        q3 = u.Quantity(1, unit='m-1', dtype=int)
+        assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
+        assert repr(self.scalarintq * q3) == "<Quantity 1>"
         assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
 
     def test_dimensionless_quantity_str(self):
-        q2 = u.Quantity(1, unit='m-1')
-        assert str(self.scalarintq * q2) == "1"
+        q2 = u.Quantity(1., unit='m-1')
+        q3 = u.Quantity(1, unit='m-1', dtype=int)
+        assert str(self.scalarintq * q2) == "1.0"
+        assert str(self.scalarintq * q3) == "1"
         assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
 
     def test_scalar_quantity_str(self):
