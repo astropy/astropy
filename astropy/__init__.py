@@ -158,6 +158,7 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     from . import config
+    from .utils.data import get_pkg_data_filename
 
     def _rollback_import(message):
         log.error(message)
@@ -196,11 +197,10 @@ def _initialize_astropy():
             # Outright broken installation; don't be nice.
             raise
 
-    # add these here so we only need to cleanup the namespace at the end
-    config_dir = os.path.dirname(__file__)
+    config_file = get_pkg_data_filename(__package__ + '.cfg')
 
     try:
-        config.configuration.update_default_config(__package__, config_dir)
+        config.configuration.update_default_config(__package__, config_file)
     except config.configuration.ConfigurationDefaultMissingError as e:
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
