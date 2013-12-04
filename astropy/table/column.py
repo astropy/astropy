@@ -343,9 +343,16 @@ class BaseColumn(object):
             new_unit, self.data, equivalencies=equivalencies)
         self.unit = new_unit
 
-    def __str__(self):
+    def __unicode__(self):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
+    if six.PY3:
+        __str__ = __unicode__
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
 
     @property
     def groups(self):

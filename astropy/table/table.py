@@ -603,9 +603,16 @@ class Table(object):
             self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
         return s
 
-    def __str__(self):
+    def __unicode__(self):
         lines, n_header = _pformat_table(self)
         return '\n'.join(lines)
+    if six.PY3:
+        __str__ = __unicode__
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=False):
