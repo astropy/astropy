@@ -93,9 +93,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
          ),
     dict(
         kwargs=dict(Writer=asciitable.AASTex, caption='Mag values \\label{tab1}', latexdict={
-                    'units': {'MAG': '[mag]', 'XCENTER': '[pixel]'}, 'tabletype': 'deluxetable*'}),
+                    'units': {'MAG': '[mag]', 'XCENTER': '[pixel]'}, 'tabletype': 'deluxetable*',
+                    'tablealign':'htpb'}),
         out="""\
-\\begin{deluxetable*}{ccccccccccc}
+\\begin{deluxetable*}{ccccccccccc}[htpb]
 \\tablecaption{Mag values \\label{tab1}}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{ } & \\colhead{[mag]} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ }}
 \\startdata
@@ -107,9 +108,12 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     ),
     dict(
         kwargs=dict(Writer=asciitable.Latex, caption='Mag values \\label{tab1}', latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}', 'data_end': [
-                    '\\hline', '\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'}, 'tabletype': 'table*'}, col_align='|lcccccccccc|'),
+                    '\\hline', '\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
+                    'tabletype': 'table*',
+                    'tablealign': 'h'}, 
+                    col_align='|lcccccccccc|'),
         out="""\
-\\begin{table*}
+\\begin{table*}[h]
 \\begin{center}
 \\caption{Mag values \\label{tab1}}
 \\begin{tabular}{|lcccccccccc|}
@@ -126,7 +130,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     ),
     dict(kwargs=dict(Writer=asciitable.Latex, latexdict=asciitable.latexdicts['template']),
          out="""\
-\\begin{tabletype}
+\\begin{tabletype}[tablealign]
 preamble
 \\caption{caption}
 \\begin{tabular}{col_align}
