@@ -289,7 +289,7 @@ def _get_module_from_frame(frm):
         return mod
 
     # Check to see if we're importing from a zip file
-    if '__file__' in frm.f_globals and '__name__' in frm.f_globals:
+    if frm and '__file__' in frm.f_globals and '__name__' in frm.f_globals:
         # First ensure that __file__ is available in globals; this is cheap to
         # check to bail out immediately if this fails
         loader = pkgutil.get_loader(frm.f_globals['__name__'])
