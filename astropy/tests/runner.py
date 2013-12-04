@@ -306,7 +306,8 @@ class TestRunner(object):
         importer = pkgutil.get_importer(path)
         if isinstance(importer, zipimport.zipimporter):
             pkg_name = os.path.basename(path)
-            test_tempdir = tempfile.mkdtemp(prefix='{0}-test'.format(pkg_name))
+            prefix = '{0}-test-'.format(pkg_name)
+            test_tempdir = tempfile.mkdtemp(prefix=prefix)
             # If the tests result in a segfault or something like that,
             # this will leave junk in the temp dir, but not much we can do
             # about that
