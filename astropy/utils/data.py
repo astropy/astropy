@@ -894,6 +894,10 @@ def _find_pkg_data_path(data_name, package=None):
         with zipfile.ZipFile(loader.archive) as archive:
             # Before extracting anything ensure we have enough space in /tmp
             path = os.path.join(pkg_path, data_name)
+            # Ensure that the path is constructed with forward slashes as
+            # required by the zip format
+            if os.sep != '/':
+                path = '/'.join(path.split(os.sep))
             info = archive.getinfo(path)
             tempdir = gettempdir()
             try:
