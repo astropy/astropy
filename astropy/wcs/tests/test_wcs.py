@@ -232,6 +232,8 @@ def test_fixes():
     for item in w:
         if 'unitfix' in str(item.message):
             assert 'Hz' in str(item.message)
+            assert 'M/S' in str(item.message)
+            assert 'm/s' in str(item.message)
 
 
 def test_outside_sky():
@@ -478,3 +480,15 @@ def test_scamp_sip_distortion_parameters():
     w = wcs.WCS(header)
     # Just check that this doesn't raise an exception.
     w.all_pix2world(0, 0, 0)
+
+
+def test_fixes():
+    """
+    From github issue #1854
+    """
+    header = get_pkg_data_contents(
+        'data/nonstandard_units.hdr', encoding='binary')
+    w = wcs.WCS(header, fix=False)
+
+    with pytest.raises(wcs.InvalidTransformError):
+        w.to_header()
