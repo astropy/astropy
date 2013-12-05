@@ -711,7 +711,7 @@ PyWcsprm_cylfix(
     return NULL;
   }
 
-  if (naxis_obj != NULL) {
+  if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
         naxis_obj, 1, 1, PyArray_INT);
     if (naxis_array == NULL) {
@@ -814,7 +814,7 @@ PyWcsprm_fix(
     }
   }
 
-  if (naxis_obj != NULL) {
+  if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
         naxis_obj, 1, 1, PyArray_INT);
     if (naxis_array == NULL) {
@@ -1825,9 +1825,7 @@ PyWcsprm_to_header(
   wcsprm_c2python(&self->x);
 
   if (status != 0) {
-    PyErr_SetString(
-        PyExc_RuntimeError,
-        "Unknown error occurred.  Something is seriously wrong.");
+    wcs_to_python_exc(&(self->x));
     goto exit;
   }
 

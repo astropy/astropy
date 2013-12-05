@@ -633,8 +633,9 @@ Applies all of the corrections handled separately by
 Parameters
 ----------
 
-translate_units : str
-    Do potentially unsafe translations of non-standard unit strings.
+translate_units : str, optional
+    Specify which potentially unsafe translations of non-standard unit
+    strings to perform.  By default, performs all.
 
     Although ``"S"`` is commonly used to represent seconds, its
     translation to ``"s"`` is potentially unsafe since the standard
@@ -654,7 +655,7 @@ translate_units : str
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
 
-naxis : int array[naxis]
+naxis : int array[naxis], optional
     Image axis lengths.  If this array is set to zero or ``None``,
     then `~astropy.wcs.Wcsprm.cylfix` will not be invoked.
 

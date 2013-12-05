@@ -128,6 +128,31 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - `astropy.wcs.WCS`, `astropy.wcs.WCS.fix` and
+    `astropy.wcs.find_all_wcs` now have a `translate_units` keyword
+    argument that is passed down to `astropy.wcs.Wcsprm.fix`.  This
+    can be used to specify any unsafe translations of units from
+    rarely used ones to more commonly used ones.
+
+    Although ``"S"`` is commonly used to represent seconds,
+    its translation to ``"s"`` is potentially unsafe since the
+    standard recognizes ``"S"`` formally as Siemens, however
+    rarely that may be used.  The same applies to ``"H"`` for
+    hours (Henry), and ``"D"`` for days (Debye).
+
+    When these sorts of changes are performed, a warning is emitted
+    (but this reporting requires a patched version of wcslib,
+    distributed with astropy). [#1854]
+
+  - When a unit is "fixed" by `astropy.wcs.WCS.fix` or
+    `astropy.wcs.Wcsprm.unitfix`, it now correctly reports the
+    ``CUNIT`` field that was changed.  (This requires that astropy
+    was built with the locally distributed version of wcslib). [#1854]
+
+  - `astropy.wcs.WCS.to_header` will now raise a more meaningful
+    exception when the WCS information is inavlid or inconsistent in
+    some way. [#1854]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
