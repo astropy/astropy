@@ -16,8 +16,8 @@ New Features
 
 - ``astropy.io.ascii``
 
-  - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a dictionary called 
-    ``latex_dict`` to specify options for LaTeX output.  
+  - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a dictionary called
+    ``latex_dict`` to specify options for LaTeX output.
     It is now possible to specify the table alignment within the text via the ``tablealign`` keyword.
 
 - ``astropy.io.fits``
@@ -175,6 +175,9 @@ warning is emitted.
 
   - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
     metadata. [#1471]
+
+  - With Numpy prior to version 1.6.2, tables with Unicode columns now
+    sort correctly. [#1867]
 
 - ``astropy.time``
 

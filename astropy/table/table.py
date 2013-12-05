@@ -23,17 +23,15 @@ from . import groups
 from .pprint import (_pformat_table, _more_tabcol)
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
 
-# In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
-# sorting of structured arrays to silently fail under certain circumstances (for
-# example if the Table contains string columns) on MacOS X and Windows
-NUMPY_VERSION = version.LooseVersion(np.__version__)
-SKIP_STRING_SORT = (platform.system() in ('Darwin', 'Windows') and six.PY3 and
-                    NUMPY_VERSION < version.LooseVersion('1.6.2'))
+
+# Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
+# sorting of structured arrays containing Unicode columns to
+# silently fail.
+_NUMPY_VERSION = version.LooseVersion(np.__version__)
+_BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
+
 
 __doctest_skip__ = ['Table.read', 'Table.write']
-
-if SKIP_STRING_SORT:
-    __doctest_skip__.append('Table.sort')
 
 
 # Python 2 and 3 source compatibility
@@ -1596,7 +1594,13 @@ class Table(object):
         if kind:
             kwargs['kind'] = kind
 
-        return self._data.argsort(**kwargs)
+        data = self._data
+
+        if _BROKEN_UNICODE_TABLE_SORT and any(
+                data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
+            return np.lexsort([data[key] for key in keys[::-1]])
+        else:
+            return data.argsort(**kwargs)
 
     def sort(self, keys):
         '''
@@ -1633,7 +1637,17 @@ class Table(object):
         '''
         if type(keys) is not list:
             keys = [keys]
-        self._data.sort(order=keys)
+
+        data = self._data
+
+        if _BROKEN_UNICODE_TABLE_SORT and any(
+                data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
+            # Use an alternate sort implementation that uses argsort
+            ordering = self.argsort(keys=keys)
+            data[:] = data[ordering]
+        else:
+            data.sort(order=keys)
+
         self._rebuild_table_column_views()
 
     def reverse(self):
