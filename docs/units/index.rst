@@ -85,9 +85,9 @@ knows about::
     >>> (u.s ** -1).compose()  # doctest: +SKIP
     [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
 
-And it can convert between unit systems, such as SI or CGS::
+And it can convert between unit systems, such as SI or CGS:
 
-.. doctest-skip-all::
+.. doctest-skip::
 
     >>> (1.0 * u.Pa).cgs
     <Quantity 10.0 Ba>
