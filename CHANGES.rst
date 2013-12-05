@@ -231,6 +231,9 @@ Bug Fixes
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
     being ignored when none was present in the FITS file. [#1845]
 
+  - A new function, `astropy.wcs.get_include`, has been added to get
+    the location of the `astropy.wcs` C header files. [#1755]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -239,7 +242,7 @@ Other Changes and Additions
   testing of doctests in docstrings that was already being performed.
   See ``docs/development/testguide.rst`` for more information. [#1771]
 
-- Fix a problem where import fails on Python 3 if setup.py exists 
+- Fix a problem where import fails on Python 3 if setup.py exists
   in current directory. [#1877]
 
 0.3 (2013-11-20)
