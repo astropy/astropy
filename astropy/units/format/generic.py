@@ -7,11 +7,15 @@ Handles a "generic" string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...extern import six
+
+import difflib
 import os
 import re
 
 from . import utils
 from .base import Base
+from ...utils.misc import did_you_mean
 
 
 class Generic(Base):
@@ -327,10 +331,10 @@ class Generic(Base):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit".format(
-                    t.lexpos, t.value))
+                "At col {0}, {1}".format(
+                    t.lexpos, six.text_type(e)))
 
     @classmethod
     def _parse_unit(cls, s):
@@ -340,8 +344,10 @@ class Generic(Base):
             return registry['percent']
         elif s in registry:
             return registry[s]
+
         raise ValueError(
-            '{0} is not a valid unit'.format(s))
+            '{0} is not a valid unit. {1}'.format(
+                s, did_you_mean(s, registry)))
 
     def parse(self, s, debug=False):
         # This is a short circuit for the case where the string
@@ -352,12 +358,10 @@ class Generic(Base):
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
-                if str(e):
-                    raise ValueError("{0} in string {1!r}".format(
-                        str(e), s))
+                if six.text_type(e):
+                    raise ValueError(six.text_type(e))
                 else:
-                    raise ValueError(
-                        "Syntax error parsing unit string {0!r}".format(s))
+                    raise ValueError("Syntax error")
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

@@ -1727,8 +1727,12 @@ class _UnitMetaClass(type):
                 if parse_strict == 'silent':
                     pass
                 else:
-                    msg = ("'{0}' did not parse as unit format '{1}': {2}"
-                           .format(s, format, str(e)))
+                    if format != 'generic':
+                        format_clause = format + ' '
+                    else:
+                        format_clause = ''
+                    msg = ("'{0}' did not parse as {1}unit: {2}"
+                           .format(s, format_clause, six.text_type(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
                     elif parse_strict == 'warn':

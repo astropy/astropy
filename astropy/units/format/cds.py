@@ -12,11 +12,13 @@ import keyword
 import os
 import re
 
+from ...extern import six
 from ...extern.six.moves import zip
 
 from .base import Base
 from . import utils
 from ..utils import is_effectively_unity
+from ...utils.misc import did_you_mean
 
 
 # TODO: Support logarithmic units using bracketed syntax
@@ -250,17 +252,19 @@ class CDS(Base):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit".format(
-                    t.lexpos, t.value))
+                "At col {0}, {1}".format(
+                    t.lexpos, six.text_type(e)))
 
     @classmethod
     def _parse_unit(cls, unit):
         if unit not in cls._units:
             raise ValueError(
                 "Unit {0!r} not supported by the CDS SAC "
-                "standard.".format(unit))
+                "standard. {1}".format(
+                    unit, did_you_mean(
+                        unit, cls._units)))
 
         return cls._units[unit]
 
@@ -277,11 +281,9 @@ class CDS(Base):
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
                 if str(e):
-                    raise ValueError("{0} in unit {1!r}".format(
-                        str(e), s))
+                    raise ValueError(str(e))
                 else:
-                    raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                    raise ValueError("Syntax error")
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
