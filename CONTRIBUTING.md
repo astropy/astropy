@@ -8,8 +8,8 @@ When opening an issue to report a problem, please try and provide a minimal
 code example that reproduces the issue, and also include details of the
 operating system, and the Python, Numpy, and Astropy versions you are using.
 
-Pull requests
--------------
+Contributing code
+-----------------
 
 So you're interested in contributing code to Astropy? Excellent!
 
