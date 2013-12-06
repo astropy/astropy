@@ -126,9 +126,9 @@ class BaseColumn(object):
         if self.parent_table is not None:
             table = self.parent_table
             table.columns._rename_column(self.name, val)
-            table._data.dtype.names = list(six.iterkeys(table.columns))
+            table._data.dtype.names = list(table.columns)
             if table.masked:
-                table._data.mask.dtype.names = table._data.dtype.names
+                table._data.mask.dtype.names = list(table.columns)
 
         self._name = val
 

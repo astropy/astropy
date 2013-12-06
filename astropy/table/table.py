@@ -78,7 +78,7 @@ class TableColumns(OrderedDict):
         elif isinstance(item, tuple):
             return TableColumns([self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns([self[x] for x in list(six.iterkeys(self))[item]])
+            return TableColumns([self[x] for x in list(self)[item]])
         else:
             raise IndexError('Illegal key or index value for TableColumns '
                              'object')
@@ -312,7 +312,7 @@ class Table(object):
 
         elif isinstance(data, dict):
             init_func = self._init_from_dict
-            default_names = list(six.iterkeys(data))
+            default_names = list(data)
             n_cols = len(default_names)
 
         elif isinstance(data, Table):
