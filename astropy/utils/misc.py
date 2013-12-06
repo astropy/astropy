@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A "grab bag" of relatively small general-purpose utilities that don't have
@@ -18,6 +19,7 @@ import signal
 import sys
 import textwrap
 import traceback
+import unicodedata
 import warnings
 
 from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
@@ -832,6 +834,17 @@ class JsonCustomEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+def strip_accents(s):
+    """
+    Remove accents from a Unicode string.
+
+    This helps with matching "ångström" to "angstrom", for example.
+    """
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn')
+
+
 def did_you_mean(s, candidates, n=3, cutoff=0.8):
     """
     When a string isn't found in a set of candidates, we can be nice
@@ -869,6 +882,8 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
             matches = [s[:-1]]
 
     if not len(matches):
+        if isinstance(s, six.text_type):
+            s = strip_accents(s)
         matches = list(set(
             difflib.get_close_matches(
                 s, candidates, n=n, cutoff=cutoff) +

@@ -104,7 +104,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r'%|[a-zA-Z][a-zA-Z_]*'
+            r'%|((?!\d)\w)+'
             t.value = cls._get_unit(t)
             return t
 
@@ -117,10 +117,12 @@ class Generic(Base):
 
         try:
             from . import generic_lextab
-            lexer = lex.lex(optimize=True, lextab=generic_lextab)
+            lexer = lex.lex(optimize=True, lextab=generic_lextab,
+                            reflags=re.UNICODE)
         except ImportError:
             lexer = lex.lex(optimize=True, lextab='generic_lextab',
-                            outputdir=os.path.dirname(__file__))
+                            outputdir=os.path.dirname(__file__),
+                            reflags=re.UNICODE)
 
         def p_main(p):
             '''
@@ -350,6 +352,9 @@ class Generic(Base):
                 s, did_you_mean(s, registry)))
 
     def parse(self, s, debug=False):
+        if not isinstance(s, six.text_type):
+            s = s.decode('ascii')
+
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:

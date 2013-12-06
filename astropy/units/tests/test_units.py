@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
@@ -539,7 +540,8 @@ def test_suggestions():
             ('M', 'm'),
             ('metre', 'meter'),
             ('angstroms', 'angstrom'),
-            ('milimeter', 'millimeter')]:
+            ('milimeter', 'millimeter'),
+            ('ångström', 'Angstrom or angstrom')]:
         try:
             u.Unit(search)
         except ValueError as e:

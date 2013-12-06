@@ -108,7 +108,7 @@ class CDS(Base):
             return t
 
         def t_UNIT(t):
-            r'\%|[a-zA-Z][a-zA-Z_]*'
+            r'\%|°|\\h|((?!\d)\w)+'
             t.value = cls._get_unit(t)
             return t
 
@@ -121,10 +121,12 @@ class CDS(Base):
 
         try:
             from . import cds_lextab
-            lexer = lex.lex(optimize=True, lextab=cds_lextab)
+            lexer = lex.lex(optimize=True, lextab=cds_lextab,
+                            reflags=re.UNICODE)
         except ImportError:
             lexer = lex.lex(optimize=True, lextab='cds_lextab',
-                            outputdir=os.path.dirname(__file__))
+                            outputdir=os.path.dirname(__file__),
+                            reflags=re.UNICODE)
 
         def p_main(p):
             '''
@@ -272,6 +274,9 @@ class CDS(Base):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
 
+        if not isinstance(s, six.text_type):
+            s = s.decode('ascii')
+
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
@@ -280,8 +285,8 @@ class CDS(Base):
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
-                if str(e):
-                    raise ValueError(str(e))
+                if six.text_type(e):
+                    raise ValueError(six.text_type(e))
                 else:
                     raise ValueError("Syntax error")
 
