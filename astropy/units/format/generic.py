@@ -9,7 +9,6 @@ from __future__ import (absolute_import, division, print_function,
 
 from ...extern import six
 
-import difflib
 import os
 import re
 
