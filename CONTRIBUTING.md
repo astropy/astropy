@@ -6,17 +6,20 @@ Reporting Issues
 
 When opening an issue to report a problem, please try and provide a minimal
 code example that reproduces the issue, and also include details of the
-operating system, and the Python and Numpy versions you are using.
+operating system, and the Python, Numpy, and Astropy versions you are using.
 
 Pull requests
 -------------
 
 So you're interested in contributing code to Astropy? Excellent!
 
-If you are new to the Astropy git workflow, be sure to read over our
-[development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+Most contributions to Astropy are done via pull requests from GitHub users'
+forks of the [astropy repository](https://github.com/astropy/astropy). If you're new to this style of development,
+you'll want to read over our [development workflow](http://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
-Once you open a pull request, please make sure that you include the following:
+Once you open a pull request (which should be opened against the ``master``
+branch, not against any of the other branches), please make sure that you
+include the following:
 
 - **Code**: the code you are adding, which should follow as much as possible
   our [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html).
