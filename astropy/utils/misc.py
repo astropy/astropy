@@ -852,6 +852,12 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         In the range [0, 1]. Possibilities that don't score at least
         that similar to word are ignored.  See
         `difflib.get_close_matches`.
+
+    Returns
+    -------
+    message : str
+        Returns the string "Did you mean X, Y, or Z?", or the empty
+        string if no alternatives were found.
     """
     # The heuristic here is to first try "singularizing" the word.  If
     # that doesn't match anything use difflib to find close matches in
