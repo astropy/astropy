@@ -1596,7 +1596,7 @@ class Table(object):
 
         data = self._data
 
-        if _BROKEN_UNICODE_TABLE_SORT and any(
+        if _BROKEN_UNICODE_TABLE_SORT and keys is not None and any(
                 data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
             return np.lexsort([data[key] for key in keys[::-1]])
         else:
