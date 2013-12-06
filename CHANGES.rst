@@ -42,6 +42,9 @@ Bug Fixes
   - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
     metadata. [#1471]
 
+  - With Numpy prior to version 1.6.2, tables with Unicode columns now
+    sort correctly. [#1867]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,
