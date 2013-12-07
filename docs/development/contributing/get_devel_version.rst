@@ -170,10 +170,11 @@ There is one special branch, called *master*. Right now it is the one you are
 working on; you can tell because it has a marker next to it in your list of
 branches: ``* master``. 
 
-To make a long story short, you never want to work on master.
+To make a long story short, you never want to work on master. Always work on a branch.
 
-To avoid potential confusion down the road, make your own branch now; you can
-call it anything you like::
+To avoid potential confusion down the road, make your own branch now; this
+one you can call anything you like (when making contributions you should use
+a meaningful more name)::
 
     git branch my-own-astropy
 
@@ -308,5 +309,5 @@ but it should not have `dev` in it.
 
 .. include:: ../workflow/git_links.inc
 .. include:: ../workflow/this_project.inc
-.. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git
+.. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git#set-up-git
 .. _astropy issues page: http://github.com/astropy/astropy/issues
