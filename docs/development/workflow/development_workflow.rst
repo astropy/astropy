@@ -4,33 +4,51 @@
 Workflow for Developers
 =======================
 
+This document outlines the process for contributing code to the Astropy
+project.
+
 In this document, we refer to the Astropy ``master`` branch as the *trunk*.
 
 Pre-requisites
 --------------
 
 Before following the steps in this document you need a local copy of the
-astropy source on your computer. Instructions for doing that, including the
-basics you need for setting up git and GitHub, are at :ref:`get_devel`.
+astropy source. Instructions for doing that, including the basics you need
+for setting up git and GitHub, are at :ref:`get_devel`.
 
+New to `git`?
+-------------
 
-Workflow summary
-================
+If you have never used git or have limited experience with it, take a few
+minutes to look at these resources:
 
-This section gives a summary of the workflow to follow once you have
-successfully forked the repository. The details for each of these steps are
-given in the following sections.
+* `Interactive tutorial`_ that runs in a browser
+* `Git Basics`_, part of a much longer `git book`_.
 
-* Don't use your ``master`` branch for anything.  Consider deleting it.
+In practice, you need only a handful of `git` commands to make contributions
+to Astropy. 
 
-* When you are starting a new set of changes, fetch any changes from the
-  trunk, then start a new *feature branch* from that.
+Guidelines
+----------
 
-* Make a new branch for each separable set of changes |emdash| "one task, one
-  branch" (`ipython git workflow`_).
-
+* Don't use your ``master`` branch for anything.
+* Make a new branch, called a *feature branch*, for each separable set of
+  changes |emdash| "one task, one branch" (`ipython git workflow`_).
+* Start that new *feature branch* from the most current development version
+  of astropy (instructions are below).
 * Name your branch for the purpose of the changes, for example 
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
+* Make frequent commits, and always include a commit message. Each commit
+  should represent one logical set of changes |emdash| if you need to use
+  the word "and" in a commit message, your changes should be made as more
+  than one commit.
+* Ask on the `astropy-dev mailing list`_ if you get stuck.
+
+Workflow
+--------
+
+These, conceptually, are the steps you will follow in contributing to Astropy:
+
 
 * If you can possibly avoid it, don't merge the trunk or any other branches into
   your feature branch while you are working.
@@ -38,7 +56,7 @@ given in the following sections.
 * If you do find yourself merging from the trunk, consider
   :ref:`rebase-on-trunk`
 
-* Ask on the `astropy-dev mailing list`_ if you get stuck.
+
 
 * Once your code is nearing completion, run the test suite to ensure
   you have not accidentally caused regressions, and add new tests to ensure
@@ -682,3 +700,7 @@ site that does it, at least as of 2/6/2012). There are two options to do this:
           hub fetch <USER>
 
 .. include:: links.inc
+
+.. _Interactive tutorial: http://try.github.io/
+.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _git book: http://git-scm.com/book/
