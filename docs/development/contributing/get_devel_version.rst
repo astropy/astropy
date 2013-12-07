@@ -1,3 +1,5 @@
+.. _get_devel:
+
 ===========================
 Try the development version
 ===========================
@@ -5,7 +7,8 @@ Try the development version
 .. note::
     `git` is the name of a source code management system. It is used to keep 
     track of changes made to code and to manage contributions coming from
-    several different people.
+    several different people. If you want to read more about `git` right now
+    take a look at `Git Basics`_.
 
     If you have never used `git` before, allow one hour the first time you do
     this. You will not need to do this every time you want to contribute;
@@ -309,5 +312,6 @@ but it should not have `dev` in it.
 
 .. include:: ../workflow/git_links.inc
 .. include:: ../workflow/this_project.inc
+.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git#set-up-git
 .. _astropy issues page: http://github.com/astropy/astropy/issues
