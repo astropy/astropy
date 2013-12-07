@@ -11,7 +11,7 @@ from ....table import Table
 
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
-
+from ....tests.helper import pytest
 
 def test_guess_with_names_arg():
     """
@@ -498,7 +498,7 @@ def get_testfiles(name=None):
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header2.dat',
          'nrows': 2,
-         'opts': {'Reader': asciitable.CommentedHeader, 'header_start': -1}},
+         'opts': {'Reader': asciitable.CommentedHeader, 'header_start': -1, 'data_start': 0}},
         {'cols': ('col1', 'col2', 'col3', 'col4', 'col5'),
          'name': 't/continuation.dat',
          'nrows': 2,
@@ -677,3 +677,15 @@ def get_testfiles(name=None):
         return [x for x in testfiles if x['name'] == name][0]
     else:
         return testfiles
+
+def test_header_start_exception():
+    '''Check certain Readers throw an exception if ``header_start`` is set
+    
+    For certain Readers it does not make sense to set the ``header_start``, they
+    throw an exception if you try.
+    This was implemented in response to issue #885.
+    '''
+    for readerclass in [ascii.NoHeader, ascii.SExtractor, ascii.Ipac,
+                   ascii.BaseReader, ascii.FixedWidthNoHeader, ascii.Cds, ascii.Daophot]:
+        with pytest.raises(ValueError):
+            reader = ascii.core._get_reader(readerclass, header_start=5)

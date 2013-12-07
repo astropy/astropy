@@ -784,7 +784,7 @@ class BaseReader(object):
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
         self.data.header = self.header
         self.header.data = self.data
-
+         
         # Metadata, consisting of table-level meta and column-level meta.  The latter
         # could include information about column type, description, formatting, etc,
         # depending on the table meta format.
@@ -995,6 +995,14 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if Outputter is not None:
         reader.outputter = Outputter()
 
+    # issue #855 suggested to set data_start to header_start + default_header_length
+    # Thus, we need to retrieve this from the class definition before resetting these numbers.
+    try:
+        default_header_length = reader.data.start_line - reader.header.start_line
+    except TypeError:       # start line could be None or an instancemethod
+        default_header_length  = None        
+
+
     if 'delimiter' in kwargs:
         reader.header.splitter.delimiter = kwargs['delimiter']
         reader.data.splitter.delimiter = kwargs['delimiter']
@@ -1009,12 +1017,15 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'data_end' in kwargs:
         reader.data.end_line = kwargs['data_end']
     if 'header_start' in kwargs:
-        reader.header.start_line = kwargs['header_start']
-        if not ('data_start' in kwargs):
-            if (reader.data.start_line is None) or (reader.data.start_line==reader.header.start_line):
-                # Some Readers, e.g. FixedWidthTwoLine have other defaults for
-                # reader.data.start_line=
-                reader.data.start_line = reader.header.start_line + 1
+        if (reader.header.start_line is not None):
+            reader.header.start_line = kwargs['header_start']
+            # for FixedWidthTwoLine the data_start is calcualted reltive to the position line.
+            # However, position_line is given as absolut number and not relative to header_start.
+            # So, ignore this Reader here.
+            if ('data_start' not in kwargs) and (default_header_length is not None) and not hasattr(reader.header, 'position_line'):
+                reader.data.start_line = reader.header.start_line + default_header_length
+        else:
+            raise ValueError('header_start cannot be modified for this Reader')
     if 'converters' in kwargs:
         reader.outputter.converters = kwargs['converters']
     if 'data_Splitter' in kwargs:
