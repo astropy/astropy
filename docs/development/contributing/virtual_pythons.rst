@@ -84,7 +84,7 @@ which, if any, of the packages installed in your normal python environment do
 you want in your virtual environment? 
 
 Including them in your virtual environment doesn't take much extra space--they
-are linked into the virtual environment instead of being copied. Within in the
+are linked into the virtual environment instead of being copied. Within the
 virtual environment you can install new versions of packages like Numpy or
 Astropy that override the versions installed in your normal python environment. 
 

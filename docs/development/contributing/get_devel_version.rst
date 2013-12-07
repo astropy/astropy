@@ -136,7 +136,7 @@ date. In `git` the name for another location of the same repository is a
 version is, by tradition, called the *upstream* remote. 
 
 Change into the ``astropy`` directory you created in the previous step and
-let git know about about the upstream remote::
+let `git` know about about the upstream remote::
 
     cd astropy
     git remote add upstream git://github.com/astropy/astropy.git
@@ -208,7 +208,7 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`.
     straight to using a virtual python environment:
 
     + You use Python 3.
-    + You want to work on on C or Cython code in `Astropy`_. 
+    + You want to work on C or Cython code in `Astropy`_. 
 
 In the directory where your copy of `Astropy`_ is type::
 
