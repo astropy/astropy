@@ -1,41 +1,59 @@
 .. _install-git:
 
-===============
- Installing git
-===============
+==========================
+ Install and configure git
+==========================
 
-The instructions here are adapted from http://book.git-scm.com/2_installing_git.html
 
-Debian/Ubuntu
--------------
-
-::
-
-    sudo apt-get install git-core
-
-Fedora
-------
-
-::
-
-    sudo yum install git-core
-
-MacOS X
+Get git
 -------
 
-There are several ways to install git on Mac. The easiest is to simply download the OS X installer (git-osx-installer_). If you have MacPorts installed, you can also do::
+Installers and instructions for all platforms are available at
+http://git-scm.com/downloads
 
-    sudo port install git-core
+.. _essential_config:
 
-If you have Fink installed, you can do::
+Essential configuration
+-----------------------
 
-    sudo apt-get install git
+Though technically not required to install `git` and get it running, configure `git` so that you get credit for your contributions::
 
-In addition, you may want to use a GUI to manage your git repositories. A good example of a free Mac GUI is `GitX <http://gitx.frim.nl/>`_. Other (non-free) examples include `Tower <http://www.git-tower.com/>`_ and `SourceTree <http://www.sourcetreeapp.com/>`_. GitHub have also recently released `GitHub for Mac <http://mac.github.com/>`_.
+    git config --global user.name "Your Name"
+    git config --global user.email you@yourdomain.example.com
 
-Windows
--------
+.. note::
+    Use the same email address here that you used for setting up your GitHub 
+    account to save yourself a couple of steps later, when you connect your
+    git to GitHub.
 
-Download and install msysGit_
+Check it with::
 
-.. include:: links.inc
+    $ git config --list
+    user.name=Your Name
+    user.email=you@yourdomain.example.com
+    # ...likely followed by many other configuration values
+
+
+Get a git GUI (optional)
+------------------------
+
+There are several good, free graphical interfaces for git.
+Even if you are proficient with `git` at the command line a GUI can be useful.
+
+Mac and Windows:
+
++ `SourceTree`_
++ The github client for `Mac`_ or `Windows`_
+
+Linux, Mac and Windows:
+
++ `git-cola`_
+
+There is a more extensive list of `git GUIs`_, including non-free options, for
+all platforms.
+
+.. _git GUIs: http://git-scm.com/downloads/guis
+.. _SourceTree: http://www.sourcetreeapp.com/
+.. _Mac: http://mac.github.com/
+.. _Windows: http://windows.github.com/
+.. _git-cola: http://git-cola.github.io/
