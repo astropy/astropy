@@ -116,39 +116,20 @@ Contributing
 ************
 
 Pre-requisite: GitHub account
-----------------------------------------------------
+------------------------------
 
-All contributions to Astropy require a free `GitHub <http://github.com>`_ account; 
+All contributions to Astropy require a free `GitHub <http://github.com>`_
+account; 
 `get one now <http://github.com>`_ if you don't already have one.
 
-There are several ways to make useful contributions to Astropy, arranged
-below in order of difficulty. Advanced users who want to work on Astropy
-code can skip right to **someplace in existing docs--TBD**. People new to git or
-github might want to work through this list in order.
+Contribute these ways
+----------------------
 
-* **Report issues**
-   If you have come across something that you believe is a bug, please create a new
-   issue in the Astropy `issue tracker
-   <http://github.com/astropy/astropy/issues>`_, and we will look into it
-   promptly.
 
-   * Please try to include:
-      + an example that demonstrates the issue 
-      + information about your operating system (e.g. MacOSX version or Linux version)
-
-   If you are interested in becoming more involved in Astropy try the next step before 
-   submitting your issue...
-
-.. toctree::
-   :maxdepth: 1
-
-   development/contributing/get_devel_version
-
-* Edit or extend the documentation
-* Fix existing issues in astropy
-* Add (small) new feature/enhancement
-* Propose a major new feature or package
-* Develop an affiliated package
+* Report issues at the issue in the
+  `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_. 
+* :ref:`get_devel` (if you want to eventually contribute code, start here)
+* Write code, following the :ref:`development-workflow`
 * `Write a tutorial <https://github.com/astropy/astropy-tutorials>`_
 
 .. _developer-docs:
