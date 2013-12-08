@@ -182,6 +182,10 @@ def _initialize_astropy():
     import sys
     from warnings import warn
 
+    # If this __init__.py file is in ./astropy/ then import is within a source dir
+    is_astropy_source_dir = (os.path.abspath(os.path.dirname(__file__)) == 
+                             os.path.abspath('astropy'))
+
     def _rollback_import(message):
         log.error(message)
         # Now disable exception logging to avoid an annoying error in the
@@ -196,7 +200,7 @@ def _initialize_astropy():
                 del sys.modules[key]
         raise ImportError('astropy')
 
-    if sys.version_info[0] >= 3 and os.path.exists('setup.py'):
+    if sys.version_info[0] >= 3 and is_astropy_source_dir:
         _rollback_import(
             "You appear to be trying to import astropy from within a source "
             "checkout. This is currently not possible using Python 3 due to "
@@ -206,7 +210,7 @@ def _initialize_astropy():
     try:
         from .utils import _compiler
     except ImportError:
-        if os.path.exists('setup.py'):
+        if is_astropy_source_dir:
             _rollback_import(
                 'You appear to be trying to import astropy from within a '
                 'source checkout; please run `./setup.py develop` or '

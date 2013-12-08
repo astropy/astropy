@@ -232,6 +232,9 @@ tested along with the other unit tests.  This is in addition to the
 testing of doctests in docstrings that was already being performed.
 See ``docs/development/testguide.rst`` for more information.
 
+- Fix a problem where import fails on Python 3 if setup.py exists 
+  in current directory. [#1877]
+
 0.3 (2013-11-20)
 ----------------
 
