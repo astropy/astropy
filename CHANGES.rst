@@ -16,9 +16,10 @@ New Features
 
 - ``astropy.io.ascii``
 
-  - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a dictionary called
-    ``latex_dict`` to specify options for LaTeX output.
-    It is now possible to specify the table alignment within the text via the ``tablealign`` keyword.
+  - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a
+    dictionary called ``latex_dict`` to specify options for LaTeX output.  It is
+    now possible to specify the table alignment within the text via the
+    ``tablealign`` keyword. [#1838]
 
 - ``astropy.io.fits``
 
@@ -182,13 +183,13 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
-The `write_null_values` kwarg to `VOTable.to_xml`, when set to `False`
-(the default) would produce non-standard VOTable files.  Therefore,
-this functionality has been replaced by a better understanding that
-knows which fields in a VOTable may be left empty (only `char`,
-`float` and `double` in VOTable 1.1 and 1.2, and all fields in VOTable
-1.3).  The kwarg is still accepted but it will be ignored, and a
-warning is emitted.
+  - The `write_null_values` kwarg to `VOTable.to_xml`, when set to `False`
+    (the default) would produce non-standard VOTable files.  Therefore,
+    this functionality has been replaced by a better understanding that
+    knows which fields in a VOTable may be left empty (only `char`,
+    `float` and `double` in VOTable 1.1 and 1.2, and all fields in VOTable
+    1.3).  The kwarg is still accepted but it will be ignored, and a
+    warning is emitted. [#1809]
 
 - ``astropy.modeling``
 
@@ -227,10 +228,10 @@ warning is emitted.
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The doctests in the ``.rst`` files in the ``docs`` folder are now
-tested along with the other unit tests.  This is in addition to the
-testing of doctests in docstrings that was already being performed.
-See ``docs/development/testguide.rst`` for more information.
+- The doctests in the ``.rst`` files in the ``docs`` folder are now
+  tested along with the other unit tests.  This is in addition to the
+  testing of doctests in docstrings that was already being performed.
+  See ``docs/development/testguide.rst`` for more information. [#1771]
 
 0.3 (2013-11-20)
 ----------------
