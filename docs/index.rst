@@ -134,8 +134,9 @@ Contribute these ways
 
 .. _developer-docs:
 
+***********************
 Developer Documentation
------------------------
+***********************
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
@@ -145,7 +146,7 @@ as a whole, see :doc:`development/vision`.
 .. toctree::
    :maxdepth: 1
 
-   development/workflow/index
+   development/workflow/maintainer_workflow
    development/codeguide
    development/docguide
    development/testguide
