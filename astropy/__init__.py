@@ -183,8 +183,8 @@ def _initialize_astropy():
     from warnings import warn
 
     # If this __init__.py file is in ./astropy/ then import is within a source dir
-    is_astropy_source_dir = (os.path.abspath(os.path.dirname(__file__)) == 
-                             os.path.abspath('astropy'))
+    is_astropy_source_dir = (os.path.abspath(os.path.dirname(__file__)) ==
+                             os.path.abspath('astropy') and os.path.exists('setup.py'))
 
     def _rollback_import(message):
         log.error(message)
