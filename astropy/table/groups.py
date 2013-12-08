@@ -1,6 +1,6 @@
 import platform
 import warnings
-from itertools import izip, count
+from itertools import izip
 
 import numpy as np
 
@@ -300,8 +300,6 @@ class TableGroups(BaseGroups):
         i0s, i1s = self.indices[:-1], self.indices[1:]
         out_cols = []
         parent_table = self.parent_table
-
-        grouped_by_table_cols = getattr(self.keys, 'meta', {}).get('grouped_by_table_cols', False)
 
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
