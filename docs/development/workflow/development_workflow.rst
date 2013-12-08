@@ -14,6 +14,16 @@ Before following the steps in this document you need a local copy of the
 astropy source. Instructions for doing that, including the basics you need
 for setting up git and GitHub, are at :ref:`get_devel`.
 
+Recommended, but required
+=========================
+
+You cannot easily work on the development version of astropy in a python
+environment in which you also use the stable version. It can be done |emdash|
+but can only be done *succesfully* if you always remember whether the
+development version or stable version is the active one.
+
+:ref:`virtual_envs` offer a better solution and take only a few minutes to set up. It is well worth your time.
+
 New to `git`?
 =============
 
