@@ -33,6 +33,7 @@ Check it with::
     user.email=you@yourdomain.example.com
     # ...likely followed by many other configuration values
 
+.. _git_gui_options:
 
 Get a git GUI (optional)
 ------------------------

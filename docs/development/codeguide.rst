@@ -1,4 +1,5 @@
 .. doctest-skip-all
+.. _code-guide:
 
 =================
 Coding Guidelines
