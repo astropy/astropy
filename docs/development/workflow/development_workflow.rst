@@ -7,17 +7,18 @@ Workflow for Developers
 This document outlines the process for contributing code to the Astropy
 project.
 
-In this document, we refer to the Astropy ``master`` branch as the *trunk*.
-
 Pre-requisites
---------------
+==============
 
 Before following the steps in this document you need a local copy of the
 astropy source. Instructions for doing that, including the basics you need
 for setting up git and GitHub, are at :ref:`get_devel`.
 
 New to `git`?
--------------
+=============
+
+Some `git` resources
+--------------------
 
 If you have never used git or have limited experience with it, take a few
 minutes to look at these resources:
@@ -28,81 +29,118 @@ minutes to look at these resources:
 In practice, you need only a handful of `git` commands to make contributions
 to Astropy. 
 
-Guidelines
-----------
+Double check your setup
+-----------------------
+
+Before going further, make sure you have set up astropy as described in
+:ref:`get_devel`. 
+
+In a terminal window, change directory to the one containing your clone of Astropy. Then, run ``git remote``; the output should look something like this::
+
+    origin
+    upstream
+
+If that works, also run ``git fetch --all``. If it runs without errors then 
+your installation is working and you have a complete list of all branches in
+your clone, ``origin`` and ``upstream``
+
+About names in `git`
+--------------------
+
+`git` is designed to be a *distributed* version control system. Each clone of
+a repository is, itself, a repository. That can lead to some confusion,
+especially for the branch called ``master``. If you list all of the branches
+your clone of git knows about with ``git branch -a`` you will see there are
+*three* different branches called ``master``::
+
+    * master                # this is master in your local repo
+    remotes/origin/master   # master on your fork of Astropy on GitHub
+    remotes/upstream/master # the official development branch of Astropy
+
+ The naming scheme used by `git` will also be used here. A plain branch name,
+ like ``master`` means a branch in your local copy of Astropy. A branch on a remote, like ``origin`` , is labeled by that remote, ``origin/master``. 
+
+This duplication of names can get very confusing for maintainers when trying
+to merge code contributions into the official master branch,
+``upstream/master``. As a result, you should never do any work in your master
+branch, ``master``. Always work on a branch instead.
+
+Essential `git` commands
+------------------------
+
+A full `git` tutorial is beyond the scope of this document but this list describes the few ``git`` commands you are likely to encounter in contributing to Astropy:
+
+* ``git fetch`` gets the latest development version of Astropy, which you will
+  use as the basis for making your changes.
+* ``git branch`` makes a logically separate copy of Astropy to keep track of
+  your changes.
+* ``git add`` stages files you have changed or created for addition to `git`.
+* ``git commit`` adds your staged changes to the repository. 
+* ``git push`` copies the changes you committed to GitHub
+* ``git status`` to see a list of files that have been modified or created.
+
+.. note::
+   A good graphical interface to git makes some of these steps much easier. Some options are described in :ref:`git_gui_options`.
+
+Astropy Guidelines for `git`
+============================
 
 * Don't use your ``master`` branch for anything.
 * Make a new branch, called a *feature branch*, for each separable set of
-  changes |emdash| "one task, one branch" (`ipython git workflow`_).
+  changes: "one task, one branch" (`ipython git workflow`_).
 * Start that new *feature branch* from the most current development version
   of astropy (instructions are below).
 * Name your branch for the purpose of the changes, for example 
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
 * Make frequent commits, and always include a commit message. Each commit
-  should represent one logical set of changes |emdash| if you need to use
-  the word "and" in a commit message, your changes should be made as more
-  than one commit.
+  should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
 
 Workflow
---------
+========
 
 These, conceptually, are the steps you will follow in contributing to Astropy:
 
-
-* If you can possibly avoid it, don't merge the trunk or any other branches into
-  your feature branch while you are working.
-
-* If you do find yourself merging from the trunk, consider
-  :ref:`rebase-on-trunk`
-
-
-
-* Once your code is nearing completion, run the test suite to ensure
-  you have not accidentally caused regressions, and add new tests to ensure
-  your contribution behaves correctly (see :ref:`testing-guidelines`).
-
-* Issue a pull request on github!
-
-* As the code is converging to a final state, ensure your
-  documentation follows the guidelines (see :ref:`documentation-guidelines`).
-
-* Once your code is ready to be accepted, please add an entry to the changelog
-  (see :ref:`changelog-format`).  If you're unsure where to put this, please at
-  least suggest a brief (one or two sentence) description of your change so
-  that another Astropy developer can add it to the changelog.
+#. :ref:`fetch-latest`
+#. :ref:`make-feature-branch`; you will make your changes on this branch.
+#. Follow :ref:`edit-flow` to write/edit/document/test code - make
+   frequent, small commits.
+#. :ref:`add-changelog`
+#. :ref:`push-to-github`
+#. From GitHub, :ref:`pull-request` to let the Astropy maintainers know
+   you have contributions to review.
+#. Make additional edits, as needed, of your local branch of Astropy in
+   response to comments on the pull request.
+#. Push those changes to GitHub, which automatically updates the pull request.
 
 This way of working helps to keep work well organized, with readable history.
 This in turn makes it easier for project maintainers (that might be you) to
 see what you've done, and why you did it.
 
-See `linux git workflow`_ and `ipython git workflow`_ for some explanation.
+Some additional topics related to `git` are in :ref:`additional-git`.
 
-Deleting your master branch
-===========================
+.. _fetch-latest:
 
-It may sound strange, but deleting your own ``master`` branch can help reduce
-confusion about which branch you are on.  See `deleting master on github`_ for
-details.
+Fetch the latest Astropy
+========================
 
-.. _update-mirror-trunk:
-
-Updating the mirror of trunk
-============================
-
-From time to time you should fetch the upstream (trunk) changes from GitHub::
+From time to time you should fetch the development version (i.e. Astropy 
+``upstream/master``) changes from GitHub::
 
    git fetch upstream
 
 This will pull down any commits you don't have, and set the remote branches to
-point to the right commit. For example, 'trunk' is the branch referred to by
-(remote/branchname) ``upstream/master``, and if there have been commits since
+point to the latest commit. For example, 'trunk' is the branch referred to by
+``upstream/master``, and if there have been commits since
 you last checked, ``upstream/master`` will change after you do the fetch.
 
 .. _make-feature-branch:
 
-Making a new feature branch
-===========================
+Make a new feature branch
+=========================
+
+Make the new branch
+-------------------
 
 When you are ready to make some changes to the code, you should start a new
 branch. Branches that are for a collection of related edits are often called
@@ -112,117 +150,148 @@ Making a new branch for each set of related changes will make it easier for
 someone reviewing your branch to see what you are doing.
 
 Choose an informative name for the branch to remind yourself and the rest of
-us what the changes in the branch are for. For example ``add-ability-to-fly``,
-or ``buxfix-for-issue-42``.
+us what the changes in the branch are for. Branch names like ``add-ability-to-fly`` or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
 
-::
+Always make your branch from ``upstream/master`` so that you are basing your changes on the latest version of Astropy::
 
     # Update the mirror of trunk
     git fetch upstream
 
-    # Make new feature branch starting at current trunk
+    # Make new feature branch starting at upstream/master
     git branch my-new-feature upstream/master
     git checkout my-new-feature
 
-Generally, you will want to keep your feature branches on your public GitHub_
-fork. To do this, you `git push`_ this new branch up to your
-github repo. Generally (if you followed the instructions in these pages, and
-by default), git will have a link to your GitHub repo, called ``origin``. You
-push up to your own repo on GitHub with::
+Connect the branch to GitHub
+----------------------------
 
-   git push origin my-new-feature
+At this point you have made and checked out a new branch, but `git` does not
+know it should be connected to your fork on GitHub. You need that connection
+for your proposed changes to be managed by the Astropy maintainers on GitHub.
 
-In git >= 1.7 you can ensure that the link is correctly set by using the
-``--set-upstream`` option::
+To connect your local branch to GitHub, you `git push`_ this new branch up to
+your GitHub repo with the ``--set-upstream`` option::
 
    git push --set-upstream origin my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
-``my-new-feature`` branch in the GitHub repo.
+``origin/my-new-feature`` branch in your GitHub fork of Astropy.
+
+You will still need to ``git push`` your changes to GitHub periodically. The
+setup in this section will make that easier.
 
 .. _edit-flow:
 
 The editing workflow
 ====================
 
-Overview
---------
+Conceptually, you will:
 
-Make changes, test, and::
+#. Make changes to one or more files and/or add a new file.
+#. Check that your changes do not break existing code.
+#. Add documentation to your code and, as appropriate, to the Astropy
+  documentation.
+#. Ideally, also make sure your changes do not break the documentation.
+#. Add tests of the code you contribute.
+#. Commit your changes in `git`
+#. Repeat as necessary.
 
-   git add my_new_file
-   git commit -m 'NF - some message'
-   git push
 
 In more detail
 --------------
 
-#. Make some changes
+#. Make some changes to one or more files. You should follow the Astropy 
+   :ref:`code-guide`. Each logical set of changes should be treated as one
+   commit. For example, if you are fixing a known bug in Astropy and notice
+   a different bug while implementing your fix, implement the fix to that new
+   bug as a different set of changes. 
 
-#. Once you are a bit further along, test your changes do not lead to
-   regressions, and add new tests (see :ref:`testing-guidelines`). For example,
-   if you are working on ``time``:: 
+#. Test that your changes do not lead to *regressions*, i.e. that your
+   changes do not break existing code, by running the Astropy tests. You can
+   run all of the Astropy tests from ipython with:: 
+
+     import astropy
+     astropy.test()
+
+   If your change involves only a small part of Astropy, e.g. Time, you can
+   run just those tests::
 
      import astropy
      astropy.test('time')
 
-   If you have sphinx installed, you can also check that the documentation
-   builds and looks correct:: 
+#. Make sure your code includes appropriate docstrings, described at
+   :ref:`doc-rules`. If appropriate, as when you are adding a new feature,
+   you should update the appropriate documentation in the ``docs`` directory;
+   a detailed description is in :ref:`documentation-guidelines`.
+
+#. If you have sphinx installed, you can also check that
+   the documentation builds and looks correct by running, from the
+   ``astropy`` directory:: 
 
      python setup.py build_sphinx
 
    The last line should just state ``build succeeded``, and should not mention
    any warnings.  (For more details, see :ref:`documentation-guidelines`.)
 
-#. See which files have changed with ``git status`` (see `git status`_).
-   You'll see a listing like this one::
+#. Add tests of your new code, if appropriate. Some changes (e.g. to
+   documentation) do not need tests. Detailed instructions are at
+   :ref:`testing-guidelines`, but if you have no experience writing tests or
+   with the `py.test` testing framework submit your changes without adding
+   tests, but mention in the pull request that you have not written tests.
 
-     # On branch ny-new-feature
-     # Changed but not updated:
-     #   (use "git add <file>..." to update what will be committed)
-     #   (use "git checkout -- <file>..." to discard changes in working directory)
-     #
-     #    modified:   README
-     #
-     # Untracked files:
-     #   (use "git add <file>..." to include in what will be committed)
-     #
-     #    INSTALL
-     no changes added to commit (use "git add" and/or "git commit -a")
+#. Stage your changes using ``git add`` and commit them using ``git commit``.
+   An example of doing that, based on the fix for an actual Astropy issue, is
+   at :ref:`astropy-fix-example`.
 
-#. Check what the actual changes are with ``git diff`` (see `git diff`_).
+   .. note::
+        Make your `git` commit messages short and descriptive. If a commit
+        fixes an issue, include, on the second or later lin of the commit
+        message, the issue number in the commit message, like this: 
+        ``Closes #123``. Doing so will automatically close the issue when the
+        pull request is accepted.
 
-#. Add any new files to version control with ``git add new_file_name`` (see
-   `git add`_).
+#. Some modifications require more than one commit; if in doubt, break
+   your changes into a few, smaller, commits rather than one large commit
+   that does many things at once. Repeat the steps above as necessary!
 
-#. Add any modified files that you want to commit using
-   ``git add modified_file_name``  (see `git add`_).
+.. _add-changelog:
 
-#. Once you are ready to commit, check with ``git status`` which files are
-   about to be committed:: 
+Add a changelog entry
+=====================
 
-    # Changes to be committed:
-    #   (use "git reset HEAD <file>..." to unstage)
-    #
-    #    modified:   README
+Add an entry to the file ``CHANGES.rst`` briefly describing the change you
+made. Include the pull request number if the change fixes an issue. An
+example entry, which fixed 
+`issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
-   Then use ``git commit -m 'A commit message'``. The ``m`` flag just
-   signals that you're going to type a message on the command line. The `git
-   commit`_ manual page might also be useful.
+  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
+    being ignored when none was present in the FITS file. [#1845]
 
-#. Push the changes up to your forked repo on GitHub with ``git push`` (see
-   `git push`_).
+If the change is a new feature, rather than an existing issue, you will not be able to put in the issue number until *after* you make the pull request. 
 
-Asking for your changes to be reviewed or merged
-================================================
+.. _push-to-github:
 
-When you are ready to ask for someone to review your code and consider a merge:
+Copy your changes to GitHub
+===========================
 
-#. Go to the URL of your forked repo, e.g.,
-   ``http://github.com/your-user-name/astropy``.
+This step is easy because of the way you created the feature branch. Just::
 
-#. Use the 'Switch Branches' dropdown menu near the top left of the page to
-   select the branch with your changes:
+    git push
+
+.. _pull-request:
+
+Ask for your changes to be reviewed
+===================================
+
+A *pull request* on GitHub is a request to merge the changes you have made into another repository.
+
+When you are ready to ask for someone to review your code and consider merging
+it into Astropy:
+
+#. Go to the URL of your fork of Astropy, e.g.,
+   ``https://github.com/your-user-name/astropy``.
+
+#. Use the 'Switch Branches' dropdown menu to select the branch with your
+   changes:
 
    .. image:: branch_dropdown.png
 
