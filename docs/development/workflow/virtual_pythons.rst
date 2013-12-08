@@ -23,7 +23,7 @@ dictated by the python distribution you use:
   and manage your virtual environments.
 * If you use any other distribution you use `virtualenvwrapper`; you *can not*
   use `conda`. As the name suggests, `virtualenvwrapper` is a wrapper around
-  `virtualenv`.
+  `virtualenv`. 
 
 In both cases you will go through the same basic steps; the commands to
 accomplish each step are given for both `conda` and `virtualenvwrapper`:
@@ -36,7 +36,9 @@ accomplish each step are given for both `conda` and `virtualenvwrapper`:
 * :ref:`delete_env`
 
 .. note::
-    You **cannot** use `virtualenvwrapper` or `virtualenv` within anadoncda. 
+    + You **cannot** use `virtualenvwrapper` or `virtualenv` within anadoncda.
+    + `virtualenvwrapper` works with bash and bash-like shells; see 
+      :ref:`using-virtualenv` for alternatives.
 
 .. _setup_for_env:
 
@@ -44,12 +46,14 @@ accomplish each step are given for both `conda` and `virtualenvwrapper`:
 Set up for virtual environments
 -------------------------------
 
-* `virtualenvwrapper`: From the `documentation for virtualenvwrapper`_, you
-  need to::
+* `virtualenvwrapper`: 
+  + First, install `virtualenvwrapper`, which will also install `virtualenv`,
+    with ``pip install virtualenvwrapper``.
+  + From the `documentation for virtualenvwrapper`_, you also need to::
 
-    export WORKON_HOME=$HOME/.virtualenvs
-    export PROJECT_HOME=$HOME/
-    source /usr/local/bin/virtualenvwrapper.sh
+      export WORKON_HOME=$HOME/.virtualenvs
+      export PROJECT_HOME=$HOME/
+      source /usr/local/bin/virtualenvwrapper.sh
 
 * `conda`: No setup is necessary beyond installing the anaconda python
   distribution.
@@ -100,7 +104,9 @@ environment.
 * `virtualenvwrapper`: 
     + Make an environment called `ENV` with all of the packages in your normal
       python environment::
+
          ``mkvirtualenv --system-site-packages ENV``
+
     + Omit the option ``--system-site-packages`` to create an environment
       without the python packages installed in your normal python environment.
     + Environments created with `virtualenvwrapper` always include `pip` and
@@ -110,7 +116,9 @@ environment.
 * `conda`:
     + Make an environment called `ENV` with all of the packages in your main
       anaconda environment::
+
         ``conda create -n ENV anaconda``
+
     + More details, and examples that start with none of the packages from
       your normal python environment, are in the 
       `documentation for the conda command`_ and the 
@@ -136,9 +144,12 @@ The commands below allow you to switch between virtual environments in
 addition to activating new ones.
 
 * `virtualenvwrapper`: Activate the environment `ENV` with::
-    workon ENV
+
+      workon ENV
+
 * ` conda`: Activiate the environment `ENV` with::
-    source activate ENV
+
+      source activate ENV
 
 
 .. _deactivate_env:
