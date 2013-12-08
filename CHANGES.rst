@@ -231,7 +231,7 @@ Other Changes and Additions
 - The doctests in the ``.rst`` files in the ``docs`` folder are now
   tested along with the other unit tests.  This is in addition to the
   testing of doctests in docstrings that was already being performed.
-  See ``docs/development/testguide.rst`` for more information.
+  See ``docs/development/testguide.rst`` for more information. [#1771]
 
 0.3 (2013-11-20)
 ----------------
