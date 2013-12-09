@@ -177,6 +177,8 @@ warning is emitted.
 
 - ``astropy.units``
 
+  - Fix error for inplace operations on non-contiguous quantities [#1834].
+
 - ``astropy.utils``
 
 - ``astropy.vo``
