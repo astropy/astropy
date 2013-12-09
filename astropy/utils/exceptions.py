@@ -24,7 +24,7 @@ class AstropyUserWarning(UserWarning, AstropyWarning):
     """
 
 
-class AstropyDeprecationWarning(DeprecationWarning, AstropyWarning):
+class AstropyDeprecationWarning(AstropyWarning):
     """
     A warning class to indicate a deprecated feature.
     """
