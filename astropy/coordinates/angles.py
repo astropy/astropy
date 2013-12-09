@@ -552,12 +552,11 @@ class Latitude(Angle):
         if np.any(angles.value < lower) or np.any(angles.value > upper):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {0}'.format(angles.to(u.degree)))
-        return angles
 
     def __setitem__(self, item, value):
         # first check bounds
-        checked = self._validate_angles(value)
-        super(Latitude, self).__setitem__(item, checked)
+        self._validate_angles(value)
+        super(Latitude, self).__setitem__(item, value)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
