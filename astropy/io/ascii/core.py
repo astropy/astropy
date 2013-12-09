@@ -386,7 +386,7 @@ class BaseHeader(object):
                 raise InconsistentTableError('No data lines found so cannot autogenerate '
                                              'column names')
             n_data_cols = len(first_data_vals)
-            self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
+            self.names = [self.auto_format % i for i in range(1, n_data_cols + 1)]
 
         else:
             for i, line in enumerate(self.process_lines(lines)):
@@ -534,7 +534,8 @@ class BaseData(object):
                 else:
                     affect_cols = replacement[2:]
 
-                for i, key in ((i, x) for i, x in enumerate(self.header.colnames) if x in affect_cols):
+                for i, key in ((i, x) for i, x in enumerate(self.header.colnames)
+                               if x in affect_cols):
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
@@ -784,7 +785,7 @@ class BaseReader(object):
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
         self.data.header = self.header
         self.header.data = self.data
-         
+
         # Metadata, consisting of table-level meta and column-level meta.  The latter
         # could include information about column type, description, formatting, etc,
         # depending on the table meta format.
@@ -995,13 +996,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if Outputter is not None:
         reader.outputter = Outputter()
 
-    # issue #855 suggested to set data_start to header_start + default_header_length
+    # Issue #855 suggested to set data_start to header_start + default_header_length
     # Thus, we need to retrieve this from the class definition before resetting these numbers.
     try:
         default_header_length = reader.data.start_line - reader.header.start_line
-    except TypeError:       # start line could be None or an instancemethod
-        default_header_length  = None        
-
+    except TypeError:  # Start line could be None or an instancemethod
+        default_header_length = None
 
     if 'delimiter' in kwargs:
         reader.header.splitter.delimiter = kwargs['delimiter']
@@ -1019,8 +1019,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'header_start' in kwargs:
         if (reader.header.start_line is not None):
             reader.header.start_line = kwargs['header_start']
-            # for FixedWidthTwoLine the data_start is calcualted reltive to the position line.
-            # However, position_line is given as absolut number and not relative to header_start.
+            # For FixedWidthTwoLine the data_start is calculated relative to the position line.
+            # However, position_line is given as absolute number and not relative to header_start.
             # So, ignore this Reader here.
             if (('data_start' not in kwargs) and (default_header_length is not None)
                     and reader._format_name != 'fixed_width_two_line'):
