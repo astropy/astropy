@@ -1022,7 +1022,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             # for FixedWidthTwoLine the data_start is calcualted reltive to the position line.
             # However, position_line is given as absolut number and not relative to header_start.
             # So, ignore this Reader here.
-            if ('data_start' not in kwargs) and (default_header_length is not None) and not hasattr(reader.header, 'position_line'):
+            if (('data_start' not in kwargs) and (default_header_length is not None)
+                    and reader._format_name != 'fixed_width_two_line'):
                 reader.data.start_line = reader.header.start_line + default_header_length
         else:
             raise ValueError('header_start cannot be modified for this Reader')
