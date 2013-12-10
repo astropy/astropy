@@ -259,7 +259,7 @@ the `~astropy.table.groups.TableGroups.aggregate` method::
 It seems the magnitude values were successfully averaged, but what
 about the WARNING?  Since the ``obs_date`` column is a string-type
 array, the `numpy.mean` function failed and raised an exception.
-Any time this happens then ``~astropy.table.groups.TableGroups.aggregate`
+Any time this happens then ``~astropy.table.groups.TableGroups.aggregate``
 will issue a warning and then
 drop that column from the output result.  Note that the ``name``
 column is one of the ``keys`` used to determine the grouping so
@@ -598,7 +598,7 @@ Identical keys
 ~~~~~~~~~~~~~~
 
 The |Table| join operation works even if there are multiple rows with identical key
-values.  For example the following tables have multiple rows for the key column ``x``::
+values.  For example the following tables have multiple rows for the key column ``key``::
 
   >>> from astropy.table import Table, join
   >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
