@@ -52,9 +52,12 @@ Bug Fixes
     or `TCB` [#1732]
 
 - ``astropy.units``
+
   - ``Quantity`` initialisation rewritten for speed [#1775]
 
   - Fixed minor string formatting issue for dimensionless quantities. [#1772]
+
+  - Fix error for inplace operations on non-contiguous quantities [#1834].
 
 - ``astropy.utils``
 
