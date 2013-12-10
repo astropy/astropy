@@ -39,6 +39,9 @@ New Features
 
 - ``astropy.time``
 
+  - Mean and apparent sidereal time can now be calculated using the
+    `sidereal_time` method [#1418].
+
 - ``astropy.units``
 
 - ``astropy.utils``
