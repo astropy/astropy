@@ -284,7 +284,7 @@ def automodsumm_to_autosummary_lines(fn, app):
     #loop over all automodsumms in this document
     for i, (i1, i2, modnm, ops, rem) in enumerate(zip(indent1s, indent2s, mods,
                                                     opssecs, remainders)):
-        allindent = i1 + i2
+        allindent = i1 + ('' if i2 is None else i2)
 
         #filter out functions-only and classes-only options if present
         oplines = ops.split('\n')
