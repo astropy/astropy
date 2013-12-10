@@ -272,8 +272,18 @@ class Quantity(np.ndarray):
                                     "to quantities with in-place replacement "
                                     "of an input by any but the last output."
                                     .format(function.__name__))
-                result = self.copy()
-                result._result = self
+
+                # If self is already contiguous, we don't need to do
+                # an additional copy back into the original array, so
+                # we store it in `result._result`.  Otherwise, we
+                # store it in `result._contiguous`.  `__array_wrap__`
+                # knows how to handle putting either form back into
+                # the original array.
+                if self.flags['C_CONTIGUOUS']:
+                    result = self.copy()
+                    result._result = self
+                else:
+                    result._contiguous = self.copy()
 
             # ensure we remember the scales we need
             result._scales = scales
@@ -303,6 +313,9 @@ class Quantity(np.ndarray):
                 # __array_prepare__ and retrieve it here.
                 if hasattr(obj, '_result'):
                     obj = obj._result
+                elif hasattr(obj, '_contiguous'):
+                    obj[()] = obj._contiguous
+                    del obj._contiguous
 
                 # take array view to which output can be written without
                 # getting back here

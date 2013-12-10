@@ -222,6 +222,8 @@ Bug Fixes
 
   - Fixed minor string formatting issue for dimensionless quantities. [#1772]
 
+  - Fix error for inplace operations on non-contiguous quantities [#1834].
+
 - ``astropy.utils``
 
 - ``astropy.vo``
