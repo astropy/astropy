@@ -214,6 +214,10 @@ Bug Fixes
   - `astropy.table` can now print out tables with Unicode columns
     containing non-ascii characters. [#1864]
 
+  - Columns can now be named with Unicode strings, as long as they contain only
+    ascii characters.  This makes using `astropy.table` easier on Python 2 when
+    `from __future__ import unicode_literals` is used. [#1864]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,
@@ -242,7 +246,7 @@ Other Changes and Additions
   testing of doctests in docstrings that was already being performed.
   See ``docs/development/testguide.rst`` for more information. [#1771]
 
-- Fix a problem where import fails on Python 3 if setup.py exists 
+- Fix a problem where import fails on Python 3 if setup.py exists
   in current directory. [#1877]
 
 0.3 (2013-11-20)
