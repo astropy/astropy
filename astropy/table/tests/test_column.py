@@ -6,7 +6,7 @@ from distutils import version
 
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import pytest, catch_warnings, assert_follows_unicode_guidelines
 from ...utils.exceptions import AstropyDeprecationWarning
 from ... import table
 from ... import units as u
@@ -314,3 +314,10 @@ def test_getitem_metadata_regression():
             assert subset == 1
             assert subset.shape == ()
             assert not isinstance(subset, table.MaskedColumn)
+
+
+def test_unicode_guidelines():
+    arr = np.array([1, 2, 3])
+    c = table.Column(arr, name='a')
+
+    assert_follows_unicode_guidelines(c)

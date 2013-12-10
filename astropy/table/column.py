@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
 
 import abc
 import functools
@@ -18,14 +21,9 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import (_pformat_col, _pformat_col_iter, _more_tabcol)
+from .np_utils import fix_column_name
 
 from ..config import ConfigurationItem
-
-# Python 2 and 3 source compatibility
-try:
-    unicode
-except NameError:
-    unicode = basestring = str
 
 AUTO_COLNAME = ConfigurationItem(
     'auto_colname', 'col{0}',
@@ -46,7 +44,7 @@ def _check_column_new_args(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if len(args) > 1 and isinstance(args[1], basestring):
+        if len(args) > 1 and isinstance(args[1], six.string_types):
             cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
             raise ValueError(ERROR_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__,
                                                               first_arg=repr(args[1])))
@@ -72,10 +70,8 @@ def _column_compare(op):
     return compare
 
 
+@six.add_metaclass(abc.ABCMeta)
 class BaseColumn(object):
-
-    __metaclass__ = abc.ABCMeta
-
     meta = MetaData()
 
     # Define comparison operators
@@ -125,12 +121,14 @@ class BaseColumn(object):
 
     @name.setter
     def name(self, val):
+        val = fix_column_name(val)
+
         if self.parent_table is not None:
             table = self.parent_table
             table.columns._rename_column(self.name, val)
-            table._data.dtype.names = table.columns.keys()
+            table._data.dtype.names = list(table.columns)
             if table.masked:
-                table._data.mask.dtype.names = table.columns.keys()
+                table._data.mask.dtype.names = list(table.columns)
 
         self._name = val
 
@@ -144,7 +142,7 @@ class BaseColumn(object):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        unit = None if self.unit is None else str(self.unit)
+        unit = None if self.unit is None else six.text_type(self.unit)
         out = "<{0} name={1} unit={2} format={3} " \
             "description={4}>\n{5}".format(
             self.__class__.__name__,
@@ -247,7 +245,7 @@ class BaseColumn(object):
             if i < n_header:
                 color_print(line, 'red')
             else:
-                print line
+                print(line)
 
     def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
@@ -345,9 +343,16 @@ class BaseColumn(object):
             new_unit, self.data, equivalencies=equivalencies)
         self.unit = new_unit
 
-    def __str__(self):
+    def __unicode__(self):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
+    if six.PY3:
+        __str__ = __unicode__
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
 
     @property
     def groups(self):
@@ -511,7 +516,7 @@ class Column(BaseColumn, np.ndarray):
             self_data = np.asarray(data, dtype=dtype)
 
         self = self_data.view(cls)
-        self._name = name
+        self._name = fix_column_name(name)
         self.unit = unit
         self.format = format
         self.description = description
@@ -719,7 +724,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         3).  Here we change the string to a byte string so that in Python 3 the
         isinstance(val, basestring) part fails.
         """
-        if isinstance(val, basestring) and (self.dtype.char not in 'SV'):
+        if isinstance(val, six.string_types) and (self.dtype.char not in 'SV'):
             val = val.encode()
         return val
 

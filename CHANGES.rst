@@ -211,6 +211,13 @@ Bug Fixes
   - With Numpy prior to version 1.6.2, tables with Unicode columns now
     sort correctly. [#1867]
 
+  - `astropy.table` can now print out tables with Unicode columns
+    containing non-ascii characters. [#1864]
+
+  - Columns can now be named with Unicode strings, as long as they contain only
+    ascii characters.  This makes using `astropy.table` easier on Python 2 when
+    `from __future__ import unicode_literals` is used. [#1864]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,

@@ -1,14 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
+from ..extern.six.moves import zip as izip
+from ..extern.six.moves import xrange
+
 import os
 import sys
 import inspect
-from itertools import izip
 
 from .. import log
 from ..utils.console import Getch, color_print
 from ..config import ConfigurationItem
 
-_format_funcs = {None: lambda format_, val: str(val)}
+_format_funcs = {None: lambda format_, val: six.text_type(val)}
 
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
                               'the pretty-printer to use if it cannot determine the terminal size. '
@@ -63,14 +68,14 @@ def _get_pprint_size(max_lines=None, max_width=None):
     if max_lines is None:
         max_lines = lines
     elif max_lines < 0:
-        max_lines = sys.maxint
+        max_lines = sys.maxsize
     if max_lines < 6:
         max_lines = 6
 
     if max_width is None:
         max_width = width
     elif max_width < 0:
-        max_width = sys.maxint
+        max_width = sys.maxsize
     if max_width < 10:
         max_width = 10
 
@@ -90,7 +95,7 @@ def _auto_format_func(format_, val):
         format_func = lambda format_, val: format_(val.tolist())
         try:
             out = format_func(format_, val)
-            if not isinstance(out, basestring):
+            if not isinstance(out, six.string_types):
                 raise ValueError('Format function for value {0} returned {1} instead of string type'
                                  .format(val, type(val)))
         except Exception as err:
@@ -191,7 +196,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
         i_centers.append(n_header)
         if multidims:
             col_name = col.name + ' [{0}]'.format(
-                ','.join(str(n) for n in multidims))
+                ','.join(six.text_type(n) for n in multidims))
         else:
             col_name = col.name
         n_header += 1
@@ -199,7 +204,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     if show_unit:
         i_centers.append(n_header)
         n_header += 1
-        yield str(col.unit or '')
+        yield six.text_type(col.unit or '')
     if show_unit or show_name:
         i_dashes = n_header
         n_header += 1
@@ -274,7 +279,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     # use and to determine the width
     max_lines, max_width = _get_pprint_size(max_lines, max_width)
     cols = []
-    for col in table.columns.values():
+    for col in six.itervalues(table.columns):
         lines, n_header = _pformat_col(col, max_lines, show_name,
                                        show_unit)
         cols.append(lines)
@@ -386,20 +391,20 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
             for color, line in izip(colors, lines):
                 color_print(line, color)
         showlines = True
-        print
-        print "-- f, <space>, b, r, p, n, <, >, q h (help) --",
+        print()
+        print("-- f, <space>, b, r, p, n, <, >, q h (help) --", end=' ')
         # Get a valid key
         while True:
             try:
                 key = inkey().lower()
             except:
-                print "\n"
+                print("\n")
                 log.error('Console does not support getting a character'
                           ' as required by more().  Use pprint() instead.')
                 return
             if key in allowed_keys:
                 break
-        print key
+        print(key)
 
         if key.lower() == 'q':
             break
@@ -419,7 +424,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
             i0 += 1
         elif key == 'h':
             showlines = False
-            print """
+            print("""
 Browsing keys:
    f, <space> : forward one page
    b : back one page
@@ -429,9 +434,9 @@ Browsing keys:
    < : go to beginning
    > : go to end
    q : quit browsing
-   h : print this help""",
+   h : print this help""", end=' ')
         if i0 < 0:
             i0 = 0
         if i0 >= len(tabcol) - delta_lines:
             i0 = len(tabcol) - delta_lines
-        print "\n"
+        print("\n")
