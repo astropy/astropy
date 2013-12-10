@@ -60,10 +60,10 @@ Bug Fixes
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
+- ``astropy.wcs``
+
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
     being ignored when none was present in the FITS file. [#1845]
-
-- ``astropy.wcs``
 
   - `astropy.wcs.WCS`, `astropy.wcs.WCS.fix` and
     `astropy.wcs.find_all_wcs` now have a `translate_units` keyword
@@ -90,17 +90,20 @@ Bug Fixes
     exception when the WCS information is inavlid or inconsistent in
     some way. [#1854]
 
+  - A new function, `astropy.wcs.get_include`, has been added to get
+    the location of the `astropy.wcs` C header files. [#1755]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The doctests in the ``.rst`` files in the ``docs`` folder are now
-tested along with the other unit tests.  This is in addition to the
-testing of doctests in docstrings that was already being performed.
-See ``docs/development/testguide.rst`` for more information.
+- The doctests in the ``.rst`` files in the ``docs`` folder are now tested
+  along with the other unit tests.  This is in addition to the testing of
+  doctests in docstrings that was already being performed.  See
+  ``docs/development/testguide.rst`` for more information.
 
-
-- Fix a problem where import fails on Python 3 if setup.py exists 
+- Fix a problem where import fails on Python 3 if setup.py exists
   in current directory. [#1877]
+
 
 0.3 (2013-11-20)
 ----------------
