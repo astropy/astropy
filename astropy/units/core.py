@@ -490,7 +490,7 @@ class UnitBase(object):
         __str__ = __unicode__
 
     def __repr__(self):
-        return 'Unit("' + unit_format.Generic().to_string(self) + '")'
+        return 'Unit({0!r})'.format(unit_format.Generic().to_string(self))
 
     def _get_physical_type_id(self):
         """
