@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Creates a common namespace for all pre-defined models.
+A common namespace for all models included in Astropy.
+
+These models are actually implemented in distinct sub-modules, but the preferred
+usage is from this module, e.g., ``from astropy.models import Gaussian1D``
 """
 
 from .projections import *
