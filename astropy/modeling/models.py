@@ -19,7 +19,7 @@ Attach a docstring explaining constraints to all models which support them.
 Note: add new models to this list
 """
 
-CONSTRAINTS_DOC = """
+_CONSTRAINTS_DOC = """
     fixed: a dict
         a dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
@@ -47,7 +47,7 @@ CONSTRAINTS_DOC = """
 """
 
 
-MODELS_WITH_CONSTRAINTS = [
+_MODELS_WITH_CONSTRAINTS = [
     AiryDisk2D, Beta1D, Beta2D, Box1D, Box2D,
     Const1D, Const2D, Disk2D, Gaussian1D, Gaussian2D,
     Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
@@ -57,6 +57,6 @@ MODELS_WITH_CONSTRAINTS = [
 ]
 
 
-for item in MODELS_WITH_CONSTRAINTS:
-    item.__doc__ += CONSTRAINTS_DOC
+for item in _MODELS_WITH_CONSTRAINTS:
+    item.__doc__ += _CONSTRAINTS_DOC
 del item  # sanitize namespace
