@@ -317,7 +317,7 @@ class TestArrayConversion(object):
     """
 
     def test_item(self):
-        q1 = np.array([1, 2, 3]) * u.m / u.km
+        q1 = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
         assert q1.item(1) == 2 * q1.unit
         q1.itemset(1, 1)
         assert q1.item(1) == 1000 * u.m / u.km
@@ -343,19 +343,17 @@ class TestArrayConversion(object):
         assert q1.item(0) == 5 * u.m / u.km
 
     def test_slice(self):
-        q2 = np.array([[1, 2, 3], [4, 5, 6]]) * u.km / u.m
+        q2 = np.array([[1., 2., 3.], [4., 5., 6.]]) * u.km / u.m
         q1 = q2.copy()
-        q2[0, 0] = 10000
+        q2[0, 0] = 10000.
         assert q2.unit == q1.unit
-        assert q2[0, 0].value == 10
-        q2[0] = 9 * u.Mm / u.km
-        assert all(q2.flatten()[:3].value == np.array([9, 9, 9]))
-        q2[0, :-1] = 8000
-        assert all(q2.flatten()[:3].value == np.array([8, 8, 9]))
+        assert q2[0, 0].value == 10.
+        q2[0] = 9. * u.Mm / u.km
+        assert all(q2.flatten()[:3].value == np.array([9., 9., 9.]))
+        q2[0, :-1] = 8000.
+        assert all(q2.flatten()[:3].value == np.array([8., 8., 9.]))
         with pytest.raises(u.UnitsError):
             q2[1, 1] = 10 * u.s
-        with pytest.raises(TypeError):
-            q2[0, 1] = 1.5 * u.km / u.m
 
     def test_fill(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km

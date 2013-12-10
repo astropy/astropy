@@ -15,31 +15,33 @@ to represent 15 m/s:
 
     >>> import astropy.units as u
     >>> 15 * u.m / u.s
-    <Quantity 15 m / s>
+    <Quantity 15.0 m / s>
 
-or 1.14/s:
+.. note:: |quantity| objects are converted to float by default.  
 
-    >>> 1.14 / u.s
-    <Quantity 1.1... 1 / s>
+As another example:
+
+    >>> 1.25 / u.s
+    <Quantity 1.25 1 / s>
 
 You can also create instances using the |quantity| constructor directly, by
 specifying a value and unit:
 
     >>> u.Quantity(15, u.m / u.s)
-    <Quantity 15 m / s>
+    <Quantity 15.0 m / s>
 
 |quantity| objects can also be created automatically from Numpy arrays
 or Python sequences:
 
     >>> [1, 2, 3] * u.m
-    <Quantity [1,2,3] m>
+    <Quantity [ 1., 2., 3.] m>
     >>> import numpy as np
     >>> np.array([1, 2, 3]) * u.m
-    <Quantity [1,2,3] m>
+    <Quantity [ 1., 2., 3.] m>
 
 |quantity| objects can also be created from sequences of |quantity|
 objects, as long as all of their units are equivalent, and will
-automatically convert to Numpy arrays.
+automatically convert to Numpy arrays:
 
     >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
@@ -49,17 +51,17 @@ Finally, the current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
 `~astropy.units.quantity.Quantity.value` attributes:
 
-    >>> q = 2.3 * u.m / u.s
+    >>> q = 2.5 * u.m / u.s
     >>> q.unit
     Unit("m / s")
     >>> q.value
-    2...
+    2.5
 
 Converting to different units
 -----------------------------
 
 |quantity| objects can be converted to different units using the
-:meth:`~astropy.units.quantity.Quantity.to` method::
+:meth:`~astropy.units.quantity.Quantity.to` method:
 
     >>> q = 2.3 * u.m / u.s
     >>> q.to(u.km / u.h)
@@ -86,9 +88,9 @@ units are equivalent. When the units are equal, the resulting object has the
 same unit:
 
     >>> 11 * u.s + 30 * u.s
-    <Quantity 41 s>
+    <Quantity 41.0 s>
     >>> 30 * u.s - 11 * u.s
-    <Quantity 19 s>
+    <Quantity 19.0 s>
 
 If the units are equivalent, but not equal (e.g. kilometer and meter), the
 resulting object **has units of the object on the left**:
@@ -167,18 +169,19 @@ units:
     >>> np.std(q)
     <Quantity 1.118033... m / s>
 
-including functions that only accept specific units such as angles::
+including functions that only accept specific units such as angles:
 
     >>> q = 30. * u.deg
     >>> np.sin(q)
-    <Quantity 0.499...>
+    <Quantity 0.4999999...>
 
-or dimensionless quantities::
+or dimensionless quantities:
 
+    >>> from astropy.constants import h, k_B
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
-    >>> np.exp(-h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619>
+    >>> np.exp(-h * nu / (k_B * T))
+    <Quantity 0.99521225...>
 
 (see `Dimensionless quantities`_ for more details).
 
@@ -189,18 +192,18 @@ Dimensionless quantities have the characteristic that if they are
 added or subtracted from a Python scalar or unitless `~numpy.ndarray`,
 or if they are passed to a Numpy function that takes dimensionless
 quantities, the units are simplified so that the quantity is
-dimensionless and scale-free. For example::
+dimensionless and scale-free. For example:
 
     >>> 1. + 1. * u.m / u.km
     <Quantity 1.00...>
 
-which is different from::
+which is different from:
 
     >>> 1. + (1. * u.m / u.km).value
     2.0
 
 In the latter case, the result is ``2.0`` because the unit of ``(1. * u.m /
-u.km)`` is not scale-free by default::
+u.km)`` is not scale-free by default:
 
     >>> q = (1. * u.m / u.km)
     >>> q.unit
@@ -212,24 +215,24 @@ However, when combining with a non-quantity object, the unit is automatically
 decomposed to be scale-free, giving the expected result.
 
 This also occurs when passing dimensionless quantities to functions that take
-dimensionless quantities::
+dimensionless quantities:
 
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619>
+    >>> np.exp(- h * nu / (k_B * T))
+    <Quantity 0.99521225...>
 
-The result is independent from the units the different quantities were specified in::
+The result is independent from the units the different quantities were specified in:
 
     >>> nu = 3.e9 * u.Hz
     >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T))  # doctest: +SKIP
-    <Quantity 0.995212254619>
+    >>> np.exp(- h * nu / (k_B * T))
+    <Quantity 0.99521225...>
 
 Converting to plain Python scalars or Numpy arrays
 --------------------------------------------------
 
-Converting |quantity| objects does not work for non-dimensionless quantities::
+Converting |quantity| objects does not work for non-dimensionless quantities:
 
     >>> float(3. * u.m)
     Traceback (most recent call last):
@@ -237,12 +240,12 @@ Converting |quantity| objects does not work for non-dimensionless quantities::
     TypeError: Only dimensionless scalar quantities can be converted
     to Python scalars
 
-Instead, only dimensionless values can be converted to plain Python scalars::
+Instead, only dimensionless values can be converted to plain Python scalars:
 
     >>> float(3. * u.m / (4. * u.m))
     0.75
 
-Note that scaled dimensionless quantities such as ``m / km`` also do not work::
+Note that scaled dimensionless quantities such as ``m / km`` also do not work:
 
     >>> float(3. * u.m / (4. * u.km))
     Traceback (most recent call last):
@@ -263,13 +266,13 @@ dimensionless value, then you can make use of the
     0.00075...
 
 Similarly, `int` and `long` work, but only for dimensionless unscaled
-quantities::
+quantities:
 
     >>> int(6. * u.m / (2. * u.m))
     3
 
 Since |quantity| objects are actual Numpy arrays, we are not able to ensure
-that only dimensionless quantities are converted to Numpy arrays::
+that only dimensionless quantities are converted to Numpy arrays:
 
     >>> np.array([1, 2, 3] * u.m)
-    array([1, 2, 3])
+    array([ 1., 2., 3.])

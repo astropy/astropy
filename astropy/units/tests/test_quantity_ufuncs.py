@@ -306,7 +306,6 @@ class TestQuantityMathFuncs(object):
         assert np.all(q == np.array([-1., -2., -3.]))
         assert not isinstance(q, u.Quantity)
 
-
     def test_ldexp_scalar(self):
         assert np.ldexp(4. * u.m, 2) == 16. * u.m
 
@@ -315,12 +314,11 @@ class TestQuantityMathFuncs(object):
                       == np.array([8., 8., 6.]) * u.m)
 
     def test_ldexp_invalid(self):
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(TypeError):
             np.ldexp(3. * u.m, 4.)
-        # built-in TypeError, so can't check content of exception
-        with pytest.raises(TypeError) as exc:
-            np.ldexp(3., 4 * u.m)
-        assert "Cannot use ldexp" in exc.value.args[0]
+
+        with pytest.raises(TypeError):
+            np.ldexp(3., u.Quantity(4, u.m, dtype=int))
 
     @pytest.mark.parametrize('function', (np.exp, np.expm1, np.exp2,
                                           np.log, np.log2, np.log10, np.log1p))

@@ -71,15 +71,16 @@ class Quantity(np.ndarray):
 
     dtype : ~numpy.dtype, optional
         The dtype of the resulting Numpy array or scalar that will
-        hold the value.  If not provided, is is determined
-        automatically from the input value.
+        hold the value.  If not provided, it is determined from the input,
+        except that any input that cannot represent float (integer and bool)
+        is converted to float.
 
     copy : bool, optional
-        If `True` (default), then the value is copied.  Otherwise, a copy
-        will only be made if `__array__` returns a copy, if obj is a
-        nested sequence, or if a copy is needed to satisfy `dtype`.
-        (The `False` option is intended mostly for internal use, to speed
-        up initialization where it is known a copy has been made already.
+        If `True` (default), then the value is copied.  Otherwise, a copy will
+        only be made if `__array__` returns a copy, if value is a nested
+        sequence, or if a copy is needed to satisfy an explicitly given
+        `dtype`.  (The `False` option is intended mostly for internal use,
+        to speed up initialization where a copy is known to have been made.
         Use with care.)
 
     Raises
@@ -102,18 +103,25 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
+        # optimize speed for Quantity with no dtype given, copy=False
         if isinstance(value, Quantity):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
-                copy = False  # copy already made
+                # the above already makes a copy (with float dtype)
+                copy = False
 
-            if copy or dtype is not None:
-                return np.array(value, dtype=dtype, copy=copy, subok=True)
-            else:
-                return value
+            if dtype is None:
+                if not copy:
+                    return value
 
-        elif (not isinstance(value, np.ndarray) and isiterable(value) and
-              all(isinstance(v, Quantity) for v in value)):
+                if not np.can_cast(np.float32, value.dtype):
+                    dtype = np.float
+
+            return np.array(value, dtype=dtype, copy=copy, subok=True)
+
+        # Maybe list/tuple of Quantity? short-circuit array for speed
+        if(not isinstance(value, np.ndarray) and isiterable(value) and
+           all(isinstance(v, Quantity) for v in value)):
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
@@ -132,6 +140,10 @@ class Quantity(np.ndarray):
                             numbers.Number))):
             raise TypeError("The value must be a valid Python or "
                             "Numpy numeric type.")
+
+        # by default, cast any integer, boolean, etc., to float
+        if dtype is None and not np.can_cast(np.float32, value.dtype):
+            value = value.astype(np.float)
 
         value = value.view(cls)
         value._unit = unit

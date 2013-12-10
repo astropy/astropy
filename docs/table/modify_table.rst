@@ -62,10 +62,10 @@ Finally, columns can also be added from
 ``.unit`` attribute on the column:
 
   >>> from astropy import units as u
-  >>> t['d'] = [1, 2, 3, 4, 5] * u.m
+  >>> t['d'] = np.arange(1., 6.) * u.m
   >>> t['d']
   <Column name='d' unit='m' format=None description=None>
-  array([1, 2, 3, 4, 5])
+  array([ 1., 2., 3., 4., 5.])
 
 **Remove columns**
 ::

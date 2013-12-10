@@ -29,8 +29,8 @@ examples of valid ways to create an |Angle|::
     <Angle 1.041786111... deg>
     >>> Angle('1 2 0 hours')           # Sexagesimal hours
     <Angle 1.0333... hourangle>
-    >>> Angle(np.arange(1, 8), unit=u.deg)  # Numpy array from 0..7 in degrees
-    <Angle [1,2,3,4,5,6,7] deg>
+    >>> Angle(np.arange(1., 8.), unit=u.deg)  # Numpy array from 1..7 in degrees
+    <Angle [ 1., 2., 3., 4., 5., 6., 7.] deg>
     >>> Angle(u'1°2′3″')               # Unicode degree, arcmin and arcsec symbols
     <Angle 1.0341666... deg>
     >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.
@@ -53,7 +53,7 @@ both as a floating point number as a string::
 
     >>> a = Angle(1, u.radian)
     >>> a
-    <Angle 1 rad>
+    <Angle 1.0 rad>
     >>> a.radian
     1.0
     >>> a.degree

@@ -82,6 +82,9 @@ API Changes
 
 - ``astropy.units``
 
+  - ``Quantity`` now converts input to float by default, as this is
+    physically most sensible for nearly all units [#1776].
+
 - ``astropy.utils``
 
 - ``astropy.vo``

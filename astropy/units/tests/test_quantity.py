@@ -78,15 +78,19 @@ class TestQuantityCreation(object):
 
     def test_preserve_dtype(self):
 
-        # If unit is not sepcified, preserve dtype (at least to the extent
-        # that Numpy does when copying, i.e. int32 -> int64, not float64)
-
+        # If dtype is specified, use it, but if not, convert int, bool to float
         q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
-        q2 = u.Quantity(q1)
+        assert q1.dtype == int
 
-        assert q1.value == q2.value
-        assert q1.unit == q2.unit
-        assert q1.dtype == q2.dtype
+        q2 = u.Quantity(q1)
+        assert q2.dtype == float
+        assert q2.value == float(q1.value)
+        assert q2.unit == q1.unit
+
+        # but we should preserve float32
+        a3 = np.array([1.,2.], dtype=np.float32)
+        q3 = u.Quantity(a3, u.yr)
+        assert q3.dtype == a3.dtype
 
     def test_copy(self):
 
@@ -274,7 +278,7 @@ class TestQuantityOperations(object):
             self.q1 - u.Quantity(0.1, unit=u.Unit(""))
 
         # and test that scaling of integers works
-        q = np.array([1, 2, 3]) * u.m / u.km
+        q = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
         q2 = q + np.array([4, 5, 6])
         assert q2.unit == u.dimensionless_unscaled
         assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
@@ -384,7 +388,7 @@ class TestQuantityOperations(object):
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
-        q4 = u.Quantity(2, u.dimensionless_unscaled)
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
 
         assert float(q4) == 2.
         assert int(q4) == 2
@@ -540,18 +544,22 @@ class TestQuantityComparison(object):
 
 
 class TestQuantityDisplay(object):
-    scalarintq = u.Quantity(1, unit='m')
+    scalarintq = u.Quantity(1, unit='m', dtype=int)
     scalarfloatq = u.Quantity(1.3, unit='m')
     arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
     def test_dimensionless_quantity_repr(self):
-        q2 = u.Quantity(1, unit='m-1')
-        assert repr(self.scalarintq * q2) == "<Quantity 1>"
+        q2 = u.Quantity(1., unit='m-1')
+        q3 = u.Quantity(1, unit='m-1', dtype=int)
+        assert repr(self.scalarintq * q2) == "<Quantity 1.0>"
+        assert repr(self.scalarintq * q3) == "<Quantity 1>"
         assert repr(self.arrq * q2) == "<Quantity [ 1. , 2.3, 8.9]>"
 
     def test_dimensionless_quantity_str(self):
-        q2 = u.Quantity(1, unit='m-1')
-        assert str(self.scalarintq * q2) == "1"
+        q2 = u.Quantity(1., unit='m-1')
+        q3 = u.Quantity(1, unit='m-1', dtype=int)
+        assert str(self.scalarintq * q2) == "1.0"
+        assert str(self.scalarintq * q3) == "1"
         assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
 
     def test_scalar_quantity_str(self):
@@ -618,7 +626,7 @@ def test_arrays():
     with pytest.raises(TypeError):
         qsecnotarray[0]
 
-    qseclen0array = u.Quantity(np.array(10), u.second)
+    qseclen0array = u.Quantity(np.array(10), u.second, dtype=int)
     # 0d numpy array should act basically like a scalar
     assert qseclen0array.isscalar
     with pytest.raises(TypeError):
