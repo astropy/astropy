@@ -41,7 +41,7 @@ class TestMultiD():
                          [50, 60]])]
         t = table_type(arr)
         lines = t.pformat()
-        print lines
+        print(lines)
         assert lines == ['col0 [2] col1 [2] col2 [2]',
                          '-------- -------- --------',
                          '  1 .. 2   3 .. 4   5 .. 6',
@@ -60,7 +60,7 @@ class TestMultiD():
 
         t = table_type([arr])
         lines = t.pformat()
-        print lines
+        print(lines)
         assert lines == ['col0 [2,2]',
                          '----------',
                          '   1 .. 20',

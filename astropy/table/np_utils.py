@@ -8,8 +8,12 @@ vstack(): Vertically stack a list of numpy ndarrays.
 Some code and inspriration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
+from ..extern.six.moves import zip as izip
 
-from itertools import izip, chain
+from itertools import chain
 import collections
 
 import numpy as np
@@ -55,7 +59,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_list = []
 
     if table_names is None:
-        table_names = [str(ii + 1) for ii in range(len(arrays))]
+        table_names = [six.text_type(ii + 1) for ii in range(len(arrays))]
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]
@@ -79,7 +83,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
 
     # Check for duplicate output column names
     col_name_count = _counter(col_name_list)
-    repeated_names = [name for name, count in col_name_count.items() if count > 1]
+    repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
                               'Change uniq_col_name or table_names args to fix this.'
@@ -101,7 +105,7 @@ def get_descrs(arrays, col_name_map):
 
     out_descrs = []
 
-    for out_name, in_names in col_name_map.items():
+    for out_name, in_names in six.iteritems(col_name_map):
         # List of input arrays that contribute to this output column
         in_cols = [arr[name] for arr, name in izip(arrays, in_names) if name is not None]
 
@@ -114,7 +118,7 @@ def get_descrs(arrays, col_name_map):
             raise TableMergeError('Key columns {0!r} have different shape'.format(name))
         shape = uniq_shapes.pop()
 
-        out_descrs.append((out_name, dtype, shape))
+        out_descrs.append((fix_column_name(out_name), dtype, shape))
 
     return out_descrs
 
@@ -186,7 +190,7 @@ def join(left, right, keys=None, join_type='inner',
         keys = tuple(name for name in left.dtype.names if name in right.dtype.names)
         if len(keys) == 0:
             raise TableMergeError('No keys in common between left and right tables')
-    elif isinstance(keys, basestring):
+    elif isinstance(keys, six.string_types):
         keys = (keys,)
 
     # Check the key columns
@@ -246,7 +250,7 @@ def join(left, right, keys=None, join_type='inner',
     if len(right) == 0:
         right = right.__class__(1, dtype=right.dtype)
 
-    for out_name, left_right_names in col_name_map.items():
+    for out_name, left_right_names in six.iteritems(col_name_map):
         left_name, right_name = left_right_names
 
         if left_name and right_name:  # this is a key which comes from left and right
@@ -314,9 +318,9 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 
       >>> from astropy.table import np_utils
       >>> t1 = np.array([(1, 2),
-      ...                (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (3, 4)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
       >>> t2 = np.array([(5, 6),
-      ...                (7, 8)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (7, 8)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
       >>> np_utils.vstack([t1, t2])
       array([(1, 2),
              (3, 4),
@@ -344,7 +348,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
     if join_type == 'exact':
-        for names in col_name_map.values():
+        for names in six.itervalues(col_name_map):
             if any(x is None for x in names):
                 raise TableMergeError('Inconsistent columns in input arrays '
                                       "(use 'inner' or 'outer' join_type to "
@@ -353,7 +357,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 
     # For an inner join, keep only columns where all input arrays have that column
     if join_type == 'inner':
-        col_name_map = OrderedDict((name, in_names) for name, in_names in col_name_map.items()
+        col_name_map = OrderedDict((name, in_names) for name, in_names in six.iteritems(col_name_map)
                                    if all(x is not None for x in in_names))
         if len(col_name_map) == 0:
             raise TableMergeError('Input arrays have no columns in common')
@@ -362,7 +366,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
     masked = any(isinstance(arr, ma.MaskedArray) for arr in arrays)
-    for names in col_name_map.values():
+    for names in six.itervalues(col_name_map):
         if any(x is None for x in names):
             masked = True
             break
@@ -379,7 +383,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     else:
         out = np.empty(n_rows, dtype=out_descrs)
 
-    for out_name, in_names in col_name_map.items():
+    for out_name, in_names in six.iteritems(col_name_map):
         idx0 = 0
         for name, array in izip(in_names, arrays):
             idx1 = idx0 + len(array)
@@ -426,9 +430,9 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
 
       >>> from astropy.table import np_utils
       >>> t1 = np.array([(1, 2),
-      ...                (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (3, 4)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
       >>> t2 = np.array([(5, 6),
-      ...                (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
+      ...                (7, 8)], dtype=[(str('c'), 'i4'), (str('d'), 'i4')])
       >>> np_utils.hstack([t1, t2])
       array([(1, 2, 5, 6),
              (3, 4, 7, 8)],
@@ -485,7 +489,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     else:
         out = np.empty(n_rows, dtype=out_descrs)
 
-    for out_name, in_names in col_name_map.items():
+    for out_name, in_names in six.iteritems(col_name_map):
         for name, array, arr_len in izip(in_names, arrays, arr_lens):
             if name is not None:
                 out[out_name][:arr_len] = array[name]
@@ -508,7 +512,7 @@ def get_groups(table, keys):
     keys : str or list of str
         Name(s) of column(s) used to match rows of table.
     """
-    if isinstance(keys, basestring):
+    if isinstance(keys, six.string_types):
         keys = (keys,)
 
     # Check the key columns
@@ -541,3 +545,23 @@ def get_groups(table, keys):
     idxs = np.flatnonzero(diffs)
 
     return idxs, out_keys
+
+
+def fix_column_name(val):
+    """
+    Fixes column names so that they are compatible with Numpy on
+    Python 2.  Raises a ValueError exception if the column name
+    contains Unicode characters, which can not reasonably be used as a
+    column name.
+    """
+    if val is not None:
+        try:
+            val = str(val)
+        except UnicodeEncodeError:
+            if not six.PY3:
+                raise ValueError(
+                    "Column names must not contain Unicode characters "
+                    "on Python 2")
+            raise
+
+    return val

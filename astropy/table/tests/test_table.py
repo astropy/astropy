@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
@@ -9,7 +10,7 @@ from distutils import version
 import numpy as np
 
 from ...extern import six
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
 
@@ -1194,3 +1195,40 @@ from ...utils.tests.test_metadata import MetaBaseTest
 class TestMetaTable(MetaBaseTest):
     test_class = table.Table
     args = ()
+
+
+def test_unicode_content():
+    if six.PY2:
+        string_a = 'астрономическая питона'.decode('utf-8')
+        string_b = 'миллиарды световых лет'.decode('utf-8')
+    else:
+        string_a = 'астрономическая питона'
+        string_b = 'миллиарды световых лет'
+
+    a = table.Table(
+        [[string_a, 2],
+         [string_b, 3]],
+        names=('a', 'b'))
+
+    if six.PY2:
+        assert r'\u0430\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043f\u0438\u0442\u043e\u043d\u0430' in repr(a)
+    else:
+        assert string_a in repr(a)
+    assert string_a in six.text_type(a)
+    # This only works because the coding of this file is utf-8, which
+    # matches the default encoding of Table.__str__
+    assert string_a.encode('utf-8') in bytes(a)
+
+
+def test_unicode_policy():
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+    assert_follows_unicode_guidelines(t)
