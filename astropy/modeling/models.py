@@ -59,3 +59,4 @@ MODELS_WITH_CONSTRAINTS = [
 
 for item in MODELS_WITH_CONSTRAINTS:
     item.__doc__ += CONSTRAINTS_DOC
+del item  # sanitize namespace
