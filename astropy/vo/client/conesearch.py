@@ -415,9 +415,9 @@ def predict_search(url, *args, **kwargs):
     t_coeffs = cs_pred.do_fit()
     t_est = cs_pred.predict_time(sr)
 
-    if t_est < 0 or t_coeffs[0] < 0:  # pragma: no cover
+    if t_est < 0 or t_coeffs[1] < 0:  # pragma: no cover
         warnings.warn('Estimated runtime ({0} s) is non-physical with slope of '
-                      '{1}'.format(t_est, t_coeffs[0]), AstropyUserWarning)
+                      '{1}'.format(t_est, t_coeffs[1]), AstropyUserWarning)
     elif t_est > REMOTE_TIMEOUT():  # pragma: no cover
         warnings.warn('Estimated runtime is longer than timeout of '
                       '{0} s'.format(REMOTE_TIMEOUT()), AstropyUserWarning)
