@@ -299,11 +299,10 @@ class TransformGraph(object):
         ValueError
             If `coordcls` already has a name assigned.
         """
-        if coordcls in list(six.itervalues(self._clsaliases)):
-            idx = list(six.itervalues(self._clsaliases)).index(coordcls)
-            oldnm = list(six.iterkeys(self._clsaliases))[idx]
-            msg = 'Coordinate class {0} already has a name: {1}'
-            raise ValueError(msg.format(coordcls, oldnm))
+        for key, val in six.iteritems(self._clsaliases):
+            if val == coordcls:
+                msg = 'Coordinate class {0} already has a name: {1}'
+                raise ValueError(msg.format(coordcls, key))
         self._clsaliases[name] = coordcls
 
     def lookup_name(self, name):
