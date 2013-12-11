@@ -358,7 +358,7 @@ class NonLinearLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
     """
 
-    supported_constraints = ['fixed', 'tied', 'bounds']
+    supported_constraints = ['fixed', 'tied']
 
     def __init__(self):
 
