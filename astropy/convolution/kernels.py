@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
@@ -237,7 +238,7 @@ class Box2DKernel(Kernel2D):
         Width of the filter kernel.
     mode : str, optional
         One of the following discretization modes:
-            * 'center' 
+            * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp' (default)

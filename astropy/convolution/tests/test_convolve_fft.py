@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import itertools
 
@@ -114,7 +116,7 @@ class TestConvolve1D(object):
             # average = average_zeros; sum = sum_zeros
             answer_key += '_zeros'
 
-        print answer_key
+        print(answer_key)
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
     @pytest.mark.parametrize(option_names, options)
@@ -231,7 +233,7 @@ class TestConvolve1D(object):
         if not interpolate_nan:
             answer_key += '_noignan'
 
-        print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
+        print(boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key)
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
     def test_masked_array(self):
@@ -356,10 +358,10 @@ class TestConvolve2D(object):
             answer_key += '_withzeros'
 
         a = answer_dict[answer_key]
-        print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
-        print "z: ", z
-        print "answer: ", a
-        print "ratio: ", z / a
+        print(boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key)
+        print("z: ", z)
+        print("answer: ", a)
+        print("ratio: ", z / a)
         # for reasons unknown, the Windows FFT returns an answer for the [0,0]
         # component that is EXACTLY 10*np.spacing
         assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
@@ -459,10 +461,10 @@ class TestConvolve2D(object):
             answer_key += '_ignan'
 
         a = answer_dict[answer_key]
-        print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
-        print "z: ", z
-        print "answer: ", a
-        print "ratio: ", z / a
+        print(boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key)
+        print("z: ", z)
+        print("answer: ", a)
+        print("ratio: ", z / a)
         # for reasons unknown, the Windows FFT returns an answer for the [0,0]
         # component that is EXACTLY 10*np.spacing
         assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)

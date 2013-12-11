@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
@@ -97,7 +98,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
                 Discretize model by taking the average
                 on an oversampled grid.
             * ``'integrate'``
-                Discretize model by integrating the model 
+                Discretize model by integrating the model
                 over the bin using `scipy.integrate.quad`.
                 Very slow.
     factor : float or int
