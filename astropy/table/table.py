@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..extern.six.moves import range as xrange
 
 import collections
 import sys
@@ -16,7 +17,6 @@ import numpy as np
 from numpy import ma
 
 from .. import log
-from ..extern import six
 from ..io import registry as io_registry
 from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated
