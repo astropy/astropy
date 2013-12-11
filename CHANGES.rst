@@ -243,6 +243,12 @@ Bug Fixes
   - A new function, `astropy.wcs.get_include`, has been added to get
     the location of the `astropy.wcs` C header files. [#1755]
 
+- general bug fixes
+
+  - There are a number of improvements to make `astropy` work better
+    on big endian platforms, such as MIPS, PPC, s390x and
+    SPARC. [#1849]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
