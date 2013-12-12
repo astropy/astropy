@@ -10,6 +10,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...extern import six
+
 # STDLIB
 import time
 
@@ -18,12 +20,12 @@ import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor
-from ...extern import six
+from ...modeling.fitting import ModelsError
 from ...tests.helper import pytest
 
 
 def func_to_time(x):
-    """This is sleeps for y seconds for timing tests.
+    """This sleeps for y seconds for use with timing tests.
 
     .. math::
 
@@ -61,6 +63,12 @@ def test_timer():
     np.testing.assert_allclose(v, [0.1, 0.2, 0.5, 1.5, 1.0])
 
     # --- These should only run once baseline is established. ---
+
+    with pytest.raises(ModelsError):
+        a = p.do_fit(model='foo')
+
+    with pytest.raises(ModelsError):
+        a = p.do_fit(fitter='foo')
 
     a = p.do_fit()
 

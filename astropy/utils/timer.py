@@ -24,8 +24,6 @@ from .exceptions import AstropyUserWarning
 
 
 __all__ = ['timefunc', 'RunTimePredictor']
-
-
 __doctest_skip__ = ['timefunc']
 
 
@@ -220,7 +218,7 @@ class RunTimePredictor(object):
             self._cache_time(arg)
 
     # FUTURE: Implement N^x * O(log(N)) fancy fitting.
-    def do_fit(self, power=1, deg=1, min_datapoints=3):
+    def do_fit(self, model=None, fitter=None, power=1, min_datapoints=3):
         """Fit a function to the lists of arguments and
         their respective run time in the cache.
 
@@ -230,11 +228,17 @@ class RunTimePredictor(object):
 
         Parameters
         ----------
+        model : `astropy.modeling.core.Model`
+            Model as described in :ref:`astropy-modeling`.
+            If `None`, will use `~astropy.modeling.polynomial.Polynomial1D`
+            with ``degree=1``.
+
+        fitter : `astropy.modeling.fitting.Fitter`
+            Fitter as described in :ref:`astropy-modeling`.
+            If `None`, will use `~astropy.modeling.fitting.LinearLSQFitter`.
+
         power : int, optional
             Power of values to fit.
-
-        deg : int, optional
-            Degree of polynomial to fit.
 
         min_datapoints : int, optional
             Minimum number of data points required for fitting.
@@ -250,6 +254,9 @@ class RunTimePredictor(object):
         AssertionError
             Insufficient data points for fitting.
 
+        ModelsError
+            Invalid model or fitter.
+
         """
         # Reset related attributes
         self._power = power
@@ -260,10 +267,20 @@ class RunTimePredictor(object):
             'Requires {0} points but has {1}'.format(min_datapoints,
                                                      x_arr.size)
 
-        pmod = modeling.models.Polynomial1D(deg)
-        pfit = modeling.fitting.LinearLSQFitter()
-        self._fit_func = pfit(
-            pmod, x_arr**power, list(six.itervalues(self._cache_good)))
+        if model is None:
+            model = modeling.models.Polynomial1D(1)
+        elif not isinstance(model, modeling.core.Model):
+            raise modeling.fitting.ModelsError(
+                '{0} is not a model.'.format(model))
+
+        if fitter is None:
+            fitter = modeling.fitting.LinearLSQFitter()
+        elif not isinstance(fitter, modeling.fitting.Fitter):
+            raise modeling.fitting.ModelsError(
+                '{0} is not a fitter.'.format(fitter))
+
+        self._fit_func = fitter(
+            model, x_arr**power, list(six.itervalues(self._cache_good)))
 
         return self._fit_func.parameters
 
