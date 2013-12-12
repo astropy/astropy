@@ -11,7 +11,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 
 import inspect
-import sys
+import numbers
 import textwrap
 import warnings
 import numpy as np
@@ -490,7 +490,11 @@ class UnitBase(object):
         __str__ = __unicode__
 
     def __repr__(self):
-        return 'Unit({0!r})'.format(unit_format.Generic().to_string(self))
+        string = unit_format.Generic().to_string(self)
+        if six.PY2:
+            string = string.encode('unicode_escape')
+
+        return 'Unit("{0}")'.format(string)
 
     def _get_physical_type_id(self):
         """
@@ -655,7 +659,11 @@ class UnitBase(object):
         from .quantity import Quantity
         return m * Quantity(1, self)
 
+<<<<<<< HEAD
     if six.PY3:
+=======
+    if six.PY3:  # pragma: no cover
+>>>>>>> Another attempt to ensure __repr__ works on both python2 and 3, including for unicode units from CDS
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -1699,9 +1707,14 @@ class _UnitMetaClass(InheritDocstrings):
                 format = 'generic'
 
             f = unit_format.get_format(format)
+<<<<<<< HEAD
             if six.PY3:
                 if isinstance(s, bytes):
                     s = s.decode('ascii')
+=======
+            if six.PY3 and isinstance(s, bytes):
+                s = s.decode('ascii')
+>>>>>>> Another attempt to ensure __repr__ works on both python2 and 3, including for unicode units from CDS
 
             try:
                 return f.parse(s)
