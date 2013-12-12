@@ -82,6 +82,42 @@ class BaseColumn(object):
     __gt__ = _column_compare(operator.gt)
     __ge__ = _column_compare(operator.ge)
 
+    def __setstate__(self, state):
+        """
+        Restore the internal state of the Column/MaskedColumn for pickling purposes.  This
+        requires that the last element of ``state`` is a 5-tuple that has Column-specific
+        state values.
+        """
+        # Get the Column attributes and meta
+        name, unit, format, description, meta = state[-1]
+        state = state[:-1]
+
+        # Using super(type(self), self).__setstate__() gives an infinite recursion.
+        # Manually call the right super class to actually set up the array object.
+        super_class = ma.MaskedArray if isinstance(self, ma.MaskedArray) else np.ndarray
+        super_class.__setstate__(self, state)
+
+        # Set the Column attributes and meta
+        self._name = name
+        self.unit = unit
+        self.format = format
+        self.description = description
+        self.meta = meta
+
+    def __reduce__(self):
+        """
+        Return a 3-tuple for pickling a Column.  Use the super-class functionality but then
+        add in a 5-tuple of Column-specific values that get used in __setstate__.
+        """
+        super_class = ma.MaskedArray if isinstance(self, ma.MaskedArray) else np.ndarray
+        reconstruct_func, reconstruct_func_args, state = super_class.__reduce__(self)
+
+        # Define Column-specific attrs and meta that gets added to state.
+        column_state = (self.name, self.unit, self.format, self.description, self.meta)
+        state = state + (column_state,)
+
+        return reconstruct_func, reconstruct_func_args, state
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
