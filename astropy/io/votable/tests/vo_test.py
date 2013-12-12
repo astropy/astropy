@@ -26,8 +26,7 @@ from .. import tree
 from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
-from ....tests.helper import (
-    pytest, raises, catch_warnings, assert_follows_unicode_guidelines)
+from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.compat import gzip
 
 # Determine the kind of float formatting in this build of Python
@@ -67,7 +66,6 @@ def test_parse_single_table():
         pedantic=False)
     assert isinstance(table, tree.Table)
     assert len(table.array) == 5
-    assert_follows_unicode_guidelines(table)
 
 
 def test_parse_single_table2():
