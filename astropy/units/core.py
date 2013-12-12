@@ -9,6 +9,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip
+if six.PY2:
+    import cmath
 
 import inspect
 import numbers
@@ -1949,8 +1951,8 @@ class CompositeUnit(UnitBase):
                         # on python2, sqrt(negative number) does not
                         # automatically lead to a complex number, but this is
                         # needed for the corner case of mag=-0.4*dex
-                        import cmath
                         scale *= cmath.exp(power * cmath.log(unit._to(base)))
+                        unit = base
                         break
                     else:
                         unit = base
@@ -1976,7 +1978,6 @@ class CompositeUnit(UnitBase):
                     # on python2, sqrt(negative number) does not
                     # automatically lead to a complex number, but this is
                     # needed for the corner case of mag=-0.4*dex
-                    import cmath
                     scale *= cmath.exp(p * cmath.log(b._scale))
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     scale = add_unit(b_sub, p_sub * p, scale)
