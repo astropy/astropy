@@ -659,11 +659,7 @@ class UnitBase(object):
         from .quantity import Quantity
         return m * Quantity(1, self)
 
-<<<<<<< HEAD
-    if six.PY3:
-=======
     if six.PY3:  # pragma: no cover
->>>>>>> Another attempt to ensure __repr__ works on both python2 and 3, including for unicode units from CDS
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -1707,14 +1703,8 @@ class _UnitMetaClass(InheritDocstrings):
                 format = 'generic'
 
             f = unit_format.get_format(format)
-<<<<<<< HEAD
-            if six.PY3:
-                if isinstance(s, bytes):
-                    s = s.decode('ascii')
-=======
             if six.PY3 and isinstance(s, bytes):
                 s = s.decode('ascii')
->>>>>>> Another attempt to ensure __repr__ works on both python2 and 3, including for unicode units from CDS
 
             try:
                 return f.parse(s)
@@ -1900,14 +1890,9 @@ class CompositeUnit(UnitBase):
             scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
-<<<<<<< HEAD
-                    raise TypeError("bases must be sequence of UnitBase instances")
-            powers = [validate_power(p, support_tuples=True) for p in powers]
-=======
                     raise TypeError(
                         "bases must be sequence of UnitBase instances")
-            powers = [self._validate_power(p) for p in powers]
->>>>>>> Allow complex scale -- for (mag**0.5).decompose()
+            powers = [validate_power(p, support_tuples=True) for p in powers]
 
         self._scale = scale
         self._bases = bases
@@ -1958,8 +1943,15 @@ class CompositeUnit(UnitBase):
                 for base in bases:
                     try:
                         scale *= unit._to(base) ** power
-                    except:
+                    except UnitsError:
                         pass
+                    except ValueError:
+                        # on python2, sqrt(negative number) does not
+                        # automatically lead to a complex number, but this is
+                        # needed for the corner case of mag=-0.4*dex
+                        import cmath
+                        scale *= cmath.exp(power * cmath.log(unit._to(base)))
+                        break
                     else:
                         unit = base
                         break
@@ -1978,7 +1970,14 @@ class CompositeUnit(UnitBase):
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
-                scale *= b._scale ** p
+                try:
+                    scale *= b._scale ** p
+                except ValueError:
+                    # on python2, sqrt(negative number) does not
+                    # automatically lead to a complex number, but this is
+                    # needed for the corner case of mag=-0.4*dex
+                    import cmath
+                    scale *= cmath.exp(p * cmath.log(b._scale))
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     scale = add_unit(b_sub, p_sub * p, scale)
             else:
@@ -1988,17 +1987,9 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-<<<<<<< HEAD
-        self._powers = [validate_power(x[1], support_tuples=True) for x in new_parts]
-
-        if is_effectively_unity(scale):
-            scale = 1.0
-
-        self._scale = scale
-=======
-        self._powers = [x[1] for x in new_parts]
+        self._powers = [validate_power(x[1], support_tuples=True)
+                        for x in new_parts]
         self._scale = sanitize_scale(scale)
->>>>>>> Allow complex scale -- for (mag**0.5).decompose()
 
     def __copy__(self):
         """
