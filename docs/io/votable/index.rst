@@ -67,10 +67,11 @@ in the ``array`` member variable::
 
   data = table.array
 
-This data is a Numpy record array.  The columns get their names from
-both the ``ID`` and ``name`` attributes of the ``FIELD`` elements in
-the ``VOTABLE`` file.  For example, suppose we had a ``FIELD``
-specified as follows:
+This data is a Numpy record array.
+
+The columns get their names from both the ``ID`` and ``name``
+attributes of the ``FIELD`` elements in the ``VOTABLE`` file.  For
+example, suppose we had a ``FIELD`` specified as follows:
 
 .. code-block:: xml
 
@@ -80,6 +81,27 @@ specified as follows:
      representing the ICRS declination of the center of the image.
     </DESCRIPTION>
    </FIELD>
+
+.. note::
+
+    The mapping from VOTable ``name`` and ``ID`` attributes to Numpy
+    dtype ``names`` and ``titles`` is highly confusing.
+
+    In VOTable, ``ID`` is guaranteed to be unique, but is not
+    required. ``name`` is not guaranteed to be unique, but is
+    required.
+
+    In Numpy record dtypes, ``names`` are required to be unique and
+    are required.  ``titles`` are not required, and are not required
+    to be unique.
+
+    Therefore, VOTable's ``ID`` most closely maps to Numpy's
+    ``names``, and VOTable's ``name`` most closely maps to Numpy's
+    ``titles``.  However, in some cases where a VOTable ``ID`` is not
+    provided, a Numpy ``name`` will be generated based on the VOTable
+    ``name``.  Unfortunately, VOTable fields do not have an attribute
+    that is both unique and required, which would be the most
+    convenient mechanism to uniquely identify a column.
 
 This column of data can be extracted from the record array using::
 
