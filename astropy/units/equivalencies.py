@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-"""
-A set of standard astronomical equivalencies.
-"""
-
+"""A set of standard astronomical equivalencies."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+# THIRD-PARTY
+import numpy as np
+
+# LOCAL
 from ..constants import si as _si
 from . import si
 from . import cgs
 from . import astrophys
+
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
@@ -45,16 +46,30 @@ def spectral():
     Allows conversions between wavelength units, wave number units,
     frequency units, and energy units as they relate to light.
 
+    There are two types of wave number:
+
+        * spectroscopic - :math:`1 / \\lambda` (per meter)
+        * angular - :math:`2 \\pi / \\lambda` (radian per meter)
+
     """
     hc = _si.h.value * _si.c.value
-    inv_m = si.m ** -1
+    two_pi = 2.0 * np.pi
+    inv_m_spec = si.m ** -1
+    inv_m_ang = si.radian / si.m
+
     return [
         (si.m, si.Hz, lambda x: _si.c.value / x),
         (si.m, si.J, lambda x: hc / x),
-        (si.m, inv_m, lambda x: 1.0 / x),
         (si.Hz, si.J, lambda x: _si.h.value * x, lambda x: x / _si.h.value),
-        (si.Hz, inv_m, lambda x: x / _si.c.value, lambda x: _si.c.value * x),
-        (si.J, inv_m, lambda x: x / hc, lambda x: hc * x)
+        (si.m, inv_m_spec, lambda x: 1.0 / x),
+        (si.Hz, inv_m_spec, lambda x: x / _si.c.value,
+         lambda x: _si.c.value * x),
+        (si.J, inv_m_spec, lambda x: x / hc, lambda x: hc * x),
+        (inv_m_spec, inv_m_ang, lambda x: x * two_pi, lambda x: x / two_pi),
+        (si.m, inv_m_ang, lambda x: two_pi / x),
+        (si.Hz, inv_m_ang, lambda x: two_pi * x / _si.c.value,
+         lambda x: _si.c.value * x / two_pi),
+        (si.J, inv_m_ang, lambda x: x * two_pi / hc, lambda x: hc * x / two_pi)
     ]
 
 
