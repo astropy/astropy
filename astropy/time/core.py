@@ -687,7 +687,9 @@ class Time(object):
 
     @override__dir__
     def __dir__(self):
-        return set(list(self.SCALES) + list(six.iterkeys(self.FORMATS)))
+        result = set(self.SCALES)
+        result.update(self.FORMATS)
+        return result
 
     def _match_len(self, val):
         """
