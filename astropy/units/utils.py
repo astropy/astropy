@@ -124,6 +124,8 @@ def generate_unit_summary(namespace):
 
 
 def is_effectively_unity(value):
+    # value is *almost* always real, except, e.g., for u.mag**0.5, when
+    # it will be complex.  Use try/except to ensure normal case is fast
     try:
         return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
     except TypeError:  # value is complex
