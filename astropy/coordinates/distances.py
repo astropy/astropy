@@ -291,43 +291,51 @@ class CartesianPoints(u.Quantity):
                                             copy=copy)
 
     def __quantity_view__(self, obj, unit):
-        unit = _convert_to_and_validate_length_unit(unit, True)
-        return super(CartesianPoints, self).__quantity_view__(obj, unit)
+        try:
+            unit = _convert_to_and_validate_length_unit(unit, True)
+            return obj.view(self.__class__)
+        except u.UnitsError:
+            return super(CartesianPoints, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
-        unit = _convert_to_and_validate_length_unit(unit, True)
-        return super(CartesianPoints, self).__quantity_instance__(val, unit, **kwargs)
+        try:
+            unit = _convert_to_and_validate_length_unit(unit, True)
+            return self.__class__(val, unit=unit, **kwargs)
+        except u.UnitsError:
+            return super(CartesianPoints, self).__quantity_instance__(
+                val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
         #always convert to CartesianPoints because all operations that would
         #screw up the units are killed by _convert_to_and_validate_length_unit
         obj = super(CartesianPoints, self).__array_wrap__(obj, context=context)
 
-        #always prefer self's unit
-        obj = obj.to(self.unit)
-
-        return CartesianPoints(obj.value, unit=obj.unit, copy=False)
+        #always prefer self's unit, if possible
+        if obj.unit.is_equivalent(self.unit):
+            return obj.to(self.unit)
+        else:
+            return obj
 
     @property
     def x(self):
         """
         The second cartesian coordinate as a `~astropy.units.Quantity`.
         """
-        return self[0]
+        return self.view(u.Quantity)[0]
 
     @property
     def y(self):
         """
         The second cartesian coordinate as a `~astropy.units.Quantity`.
         """
-        return self[1]
+        return self.view(u.Quantity)[1]
 
     @property
     def z(self):
         """
         The third cartesian coordinate as a `~astropy.units.Quantity`.
         """
-        return self[2]
+        return self.view(u.Quantity)[2]
 
     def to_spherical(self):
         """

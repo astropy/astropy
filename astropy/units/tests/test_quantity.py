@@ -635,6 +635,32 @@ def test_arrays():
         qseclen0array[0]
     assert isinstance(qseclen0array.value, int)
 
+    # but with multiple dtypes, single elements are OK; need to use str()
+    # since numpy under python2 cannot handle unicode literals
+    a = np.array([(1.,2.,3.), (4.,5.,6.), (7.,8.,9.)],
+                 dtype=[(str('x'), np.float),
+                        (str('y'), np.float),
+                        (str('z'), np.float)])
+    qkpc = u.Quantity(a, u.kpc)
+    assert not qkpc.isscalar
+    qkpc0 = qkpc[0]
+    assert qkpc0.value == a[0].item()
+    assert qkpc0.unit == qkpc.unit
+    assert isinstance(qkpc0, u.Quantity)
+    assert not qkpc0.isscalar
+    qkpcx = qkpc['x']
+    assert np.all(qkpcx.value == a['x'])
+    assert qkpcx.unit == qkpc.unit
+    assert isinstance(qkpcx, u.Quantity)
+    assert not qkpcx.isscalar
+    qkpcx1 = qkpc['x'][1]
+    assert qkpcx1.unit == qkpc.unit
+    assert isinstance(qkpcx1, u.Quantity)
+    assert qkpcx1.isscalar
+    qkpc1x = qkpc[1]['x']
+    assert qkpc1x.isscalar
+    assert qkpc1x == qkpcx1
+
     # can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(list(xrange(10)), u.second)
     assert isinstance(qsec.value, np.ndarray)
