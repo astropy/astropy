@@ -49,6 +49,9 @@ New Features
 
 - ``astropy.utils``
 
+  - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
+    in its ``do_fit()`` method. [#1896]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
