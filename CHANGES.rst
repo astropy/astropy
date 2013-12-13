@@ -14,6 +14,9 @@ New Features
 
 - ``astropy.cosmology``
 
+  - `age` and `comoving_volume` convenience functions have been added to
+    `astropy.cosmology`. [#1902]
+
 - ``astropy.io.ascii``
 
   - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a
