@@ -4,6 +4,46 @@ Convenience functions for `astropy.cosmology`.
 """
 from .core import get_current as _get_current
 
+def age(z, cosmo=None):
+    """ Age of the universe in Gyr at redshift `z`.
+
+    Parameters
+    ----------
+    z : array_like
+      Input redshifts.
+
+    Returns
+    -------
+    t : astropy.units.Quantity
+      The age of the universe in Gyr at each input redshift.
+        """
+    if cosmo is None:
+        cosmo = _get_current()
+    return cosmo.age(z)
+
+
+def comoving_volume(z, cosmo=None):
+    """ Comoving volume in cubic Mpc at redshift `z`.
+
+    This is the volume of the universe encompassed by redshifts
+    less than `z`. For the case of omega_k = 0 it is a sphere of
+    radius `comoving_distance(z)` but it is less intuitive if
+    omega_k is not 0.
+
+    Parameters
+    ----------
+    z : array_like
+      Input redshifts.
+
+    Returns
+    -------
+    V : astropy.units.Quantity
+      Comoving volume in :math:`Mpc^3` at each input redshift.
+    """
+    if cosmo is None:
+        cosmo = _get_current()
+    return cosmo.comoving_volume(z)
+
 
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an

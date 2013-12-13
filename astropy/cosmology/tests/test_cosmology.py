@@ -446,6 +446,10 @@ def test_convenience():
     assert funcs.angular_diameter_distance(3).unit == u.Mpc
     assert np.allclose(funcs.luminosity_distance(3).value, 26012.402789543696)
     assert funcs.luminosity_distance(3).unit == u.Mpc
+    assert np.allclose(funcs.age(3).value, 2.20407604076062)
+    assert funcs.age(3).unit == u.Gyr
+    assert np.allclose(funcs.comoving_volume(3).value, 1151993546079.626)
+    assert funcs.comoving_volume(3).unit == u.Mpc**3
 
     # arrays
     assert np.allclose(funcs.arcsec_per_kpc_comoving([0.1, 0.5]).value,
