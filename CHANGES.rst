@@ -1,7 +1,10 @@
 0.3.1 (unreleased)
 ------------------
 
-- ``astropy.utils.timer``
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
