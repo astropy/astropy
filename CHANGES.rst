@@ -218,6 +218,8 @@ Bug Fixes
     ascii characters.  This makes using `astropy.table` easier on Python 2 when
     `from __future__ import unicode_literals` is used. [#1864]
 
+  - Allow pickling of ``Table``, ``Column``, and ``MaskedColumn`` objects. [#792]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,

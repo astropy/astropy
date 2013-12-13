@@ -354,6 +354,13 @@ class Table(object):
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
 
+    def __getstate__(self):
+        return (self.columns.values(), self.meta)
+
+    def __setstate__(self, state):
+        columns, meta = state
+        self.__init__(columns, meta=meta)
+
     @property
     def mask(self):
         return self._data.mask if self.masked else None
