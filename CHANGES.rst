@@ -241,6 +241,8 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
+  
 - ``astropy.vo``
 
 - ``astropy.wcs``
