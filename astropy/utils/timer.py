@@ -222,19 +222,21 @@ class RunTimePredictor(object):
         """Fit a function to the lists of arguments and
         their respective run time in the cache.
 
-        Fitting is done by using `~astropy.modeling.fitting.LinearLSQFitter`
-        on `~astropy.modeling.polynomial.Polynomial1D` using given
-        ``deg`` and :math:`x = \\textnormal{arg}^{\\textnormal{power}}`.
+        By default, this does a linear least-square fitting
+        to a straight line on run time w.r.t. argument values
+        raised to the given power, and returns the optimal
+        intercept and slope.
 
         Parameters
         ----------
         model : `astropy.modeling.core.Model`
-            Model as described in :ref:`astropy-modeling`.
+            Model for the expected trend of run time (Y-axis)
+            w.r.t. :math:`\\textnormal{arg}^{\\textnormal{power}}` (X-axis).
             If `None`, will use `~astropy.modeling.polynomial.Polynomial1D`
             with ``degree=1``.
 
         fitter : `astropy.modeling.fitting.Fitter`
-            Fitter as described in :ref:`astropy-modeling`.
+            Fitter for the given model to extract optimal coefficient values.
             If `None`, will use `~astropy.modeling.fitting.LinearLSQFitter`.
 
         power : int, optional
