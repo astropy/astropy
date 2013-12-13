@@ -256,6 +256,9 @@ Other Changes and Additions
 - Fix a problem where import fails on Python 3 if setup.py exists
   in current directory. [#1877]
 
+- `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
+  in its ``do_fit()`` method.
+
 0.3 (2013-11-20)
 ----------------
 
