@@ -27,7 +27,7 @@ import numpy as np
 # LOCAL
 from .. import conesearch, vos_catalog
 from .... import units as u
-from ....coordinates import Angle, ICRS
+from ....coordinates import ICRS
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
@@ -41,7 +41,7 @@ SCS_RA = 0
 SCS_DEC = 0
 SCS_SR = 0.1
 SCS_CENTER = ICRS(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
-SCS_RADIUS = Angle(SCS_SR, unit=u.degree)
+SCS_RADIUS = SCS_SR * u.degree
 
 
 @remote_data
@@ -171,15 +171,15 @@ class TestConeSearch(object):
         async_search_all = conesearch.AsyncSearchAll(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
-        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 2))
+        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 10))
 
         assert async_search_all.done()
         for tab in all_results.values():
             assert tab.array.size > 0
 
     @pytest.mark.parametrize(('center', 'radius'),
-                             [((SCS_RA, SCS_DEC), SCS_SR),
-                              (SCS_CENTER, SCS_RADIUS)])
+                             [((SCS_RA, SCS_DEC), 1.0),
+                              (SCS_CENTER, 1.0 * u.degree)])
     def test_prediction(self,  center, radius):
         """Prediction tests are not very accurate but will have to do."""
         t_1, tab_1 = conesearch.conesearch_timer(
@@ -188,7 +188,7 @@ class TestConeSearch(object):
         n_1 = tab_1.array.size
 
         t_2, n_2 = conesearch.predict_search(
-            self.url, (SCS_RA, SCS_DEC), SCS_SR,
+            self.url, center, radius,
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert n_2 > 0 and n_2 <= n_1 * 1.5
