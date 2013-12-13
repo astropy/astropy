@@ -3,7 +3,7 @@
 
 - ``utils.timer``
 
-  - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`.
+  - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
 
 0.3 (2013-11-20)
