@@ -252,7 +252,7 @@ class RunTimePredictor(object):
             'Requires {0} points but has {1}'.format(min_datapoints,
                                                      x_arr.size)
 
-        a = np.polyfit(x_arr**power, list(six.iterkeys(self._cache_good)), deg)
+        a = np.polyfit(x_arr**power, list(six.itervalues(self._cache_good)), deg)
         self._fit_func = np.poly1d(a)
 
         return a
