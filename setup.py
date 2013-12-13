@@ -8,6 +8,12 @@ import sys
 import setuptools_bootstrap
 from setuptools import setup
 
+# TODO: Any code related to getting astropy_helpers on sys.path will be moved
+# into an astropy_helpers bootstrap script that will also handle the details of
+# *where* to get astropy_helpers: Via submodule sync in source repository
+# clones, or via setuptools setup_requires
+sys.path.insert(1, 'astropy_helpers')
+
 #A dirty hack to get around some early import/configurations ambiguities
 if sys.version_info[0] >= 3:
     import builtins
@@ -18,10 +24,11 @@ builtins._ASTROPY_SETUP_ = True
 from distutils.dist import Distribution
 
 import astropy
-from astropy.setup_helpers import (register_commands, adjust_compiler,
-                                   get_package_info, get_debug_option,
-                                   is_distutils_display_option)
-from astropy.version_helpers import get_git_devstr, generate_version_py
+from astropy_helpers.setup_helpers import (
+    register_commands, adjust_compiler, get_package_info, get_debug_option,
+    is_distutils_display_option)
+from astropy_helpers.git_helpers import get_git_devstr
+from astropy_helpers.version_helpers import generate_version_py
 
 NAME = 'astropy'
 
@@ -46,7 +53,7 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 adjust_compiler(NAME)
 
 # Freeze build information in version.py
-generate_version_py(NAME, VERSION, RELEASE, get_debug_option())
+generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))

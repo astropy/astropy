@@ -3,7 +3,7 @@
 import os
 from distutils.extension import Extension
 
-from astropy import setup_helpers
+from astropy_helpers import setup_helpers
 
 TIMEROOT = os.path.relpath(os.path.dirname(__file__))
 
