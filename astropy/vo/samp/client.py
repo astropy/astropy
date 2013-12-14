@@ -316,21 +316,21 @@ class SAMPIntegratedClient(object):
 
     Parameters
     ----------
-    name: str (optional)
+    name: str, optional
         Client name (corresponding to `samp.name` metadata keyword).
     
-    description : str (optional)
+    description : str, optional
         Client description (corresponding to `samp.description.text` metadata keyword).
     
-    metadata : dict (optional)
+    metadata : dict, optional
         Client application metadata in the standard SAMP format. If present, `samp.name`
         keyword and `samp.description.text` keyword are overwritten by the parameters
         `name` and `description`.
     
-    addr : string (optional)
+    addr : string, optional
         Listening address (or IP).
     
-    port : int (optional)
+    port : int, optional
         Listening XML-RPC server socket port.
     
     https : bool
@@ -889,7 +889,7 @@ class SAMPIntegratedClient(object):
             Specify whether the client must be automatically declared as
             subscribed to the MType (see alse `declareSubscriptions`).
 
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also `declareSubscriptions`).
         """
@@ -920,7 +920,7 @@ class SAMPIntegratedClient(object):
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also L`declareSubscriptions`).
 
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also `declareSubscriptions`).
         """
@@ -996,7 +996,7 @@ class SAMPIntegratedClient(object):
 
         Parameters
         ----------
-        subscriptions: dict (optional)
+        subscriptions: dict, optional
             Dictionary containing the list of MTypes to subscribe to,
             with the same format of the `subscriptions` map passed to the
             `SAMPHubProxy.declareSubscriptions` operation.
@@ -1036,19 +1036,19 @@ class SAMPClient(object):
       hub : `SAMPHubProxy`
           An instance of `SAMPHubProxy` to be used for messaging with the SAMP Hub.
 
-      name : str (optional)
+      name : str, optional
           Client name (corresponding to `samp.name` metadata keyword).
 
-      description : str (optional)
+      description : str, optional
           Client description (corresponding to `samp.description.text` metadata keyword).
 
-      metadata : dict (optional)
+      metadata : dict, optional
           Client application metadata in the standard SAMP format.
 
       addr : str
           Listening address (or IP).
 
-      port : int (optional)
+      port : int, optional
           Listening XML-RPC server socket port
 
       https : bool
@@ -1375,7 +1375,7 @@ class SAMPClient(object):
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also `declareSubscriptions`).
 
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also `declareSubscriptions`).
         """
@@ -1407,7 +1407,7 @@ class SAMPClient(object):
             Specify whether the client must be automatically declared as
             subscribed to the MType (see alse `declareSubscriptions`).
 
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also `declareSubscriptions`).
         """
@@ -1445,7 +1445,7 @@ class SAMPClient(object):
             Specify whether the client must be automatically declared as
             subscribed to the MType (see also `declareSubscriptions`).
 
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containing additional metadata to declare associated
             with the MType subscribed to (see also `declareSubscriptions`).
         """
@@ -1544,7 +1544,7 @@ class SAMPClient(object):
 
         Parameters
         ----------
-        subscriptions : dict (optional)
+        subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to,
             with the same format of the C{subscriptions} map passed to the
             `SAMPHubProxy.declareSubscriptions` operation.
@@ -1639,7 +1639,7 @@ class SAMPClient(object):
 
         Parameters
         ----------
-        metadata : dict (optional)
+        metadata : dict, optional
             Dictionary containig the client application metadata
             as defined in the SAMP definition document. If omitted, then none metadata are
             declared.
