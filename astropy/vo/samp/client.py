@@ -35,7 +35,8 @@ __doctest_skip__ = ['SAMPIntegratedClient.*']
 
 
 class SAMPHubProxy(object):
-    """Proxy class to simplify the client interaction with a SAMP hub.
+    """
+    Proxy class to simplify the client interaction with a SAMP hub.
     """
 
     def __init__(self):
@@ -44,7 +45,8 @@ class SAMPHubProxy(object):
         self.lockfile = {}
 
     def isConnected(self):
-        """Testing method to verify the proxy connection with a running hub.
+        """
+        Testing method to verify the proxy connection with a running hub.
 
         Returns
         -------
@@ -55,7 +57,8 @@ class SAMPHubProxy(object):
 
     @staticmethod
     def getRunningHubs():
-        """Return a dictionary containing the lock-file contents of all the currently
+        """
+        Return a dictionary containing the lock-file contents of all the currently
         running hubs (single and/or multiple mode).
 
         The dictionary format is:
@@ -117,7 +120,8 @@ class SAMPHubProxy(object):
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=1, pool_size=20):
-        """Connect to the current SAMP Hub.
+        """
+        Connect to the current SAMP Hub.
 
         If a SAMP Hub is not running or refuses the connection, then a `SAMPHubError` is raised.
 
@@ -308,7 +312,8 @@ class SAMPHubProxy(object):
 
 
 class SAMPIntegratedClient(object):
-    """A Simple SAMP client.
+    """
+    A Simple SAMP client.
 
     This class is meant to simplify the client usage providing
     a proxy class that merges the `SAMPClient` and `SAMPHubProxy`
@@ -318,33 +323,33 @@ class SAMPIntegratedClient(object):
     ----------
     name: str, optional
         Client name (corresponding to `samp.name` metadata keyword).
-    
+
     description : str, optional
         Client description (corresponding to `samp.description.text` metadata keyword).
-    
+
     metadata : dict, optional
         Client application metadata in the standard SAMP format. If present, `samp.name`
         keyword and `samp.description.text` keyword are overwritten by the parameters
         `name` and `description`.
-    
+
     addr : string, optional
         Listening address (or IP).
-    
+
     port : int, optional
         Listening XML-RPC server socket port.
-    
+
     https : bool
         Set the callable client running on a Secure Sockets Layer connection (HTTPS).
         By default SSL is desabled.
-    
+
     key_file : str
         Set the file containing the private key for SSL connections. If the
         certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
-    
+
     cert_file : str
         Specify the file which contains a certificate to be used to identify the
         local side of the secure connection.
-    
+
     cert_reqs : int
         The parameter `cert_reqs` specifies whether a certificate is required
         from the Hub side of the connection, and whether it will be validated if provided. It
@@ -352,12 +357,12 @@ class SAMPIntegratedClient(object):
         (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
         If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
         point to a file of CA certificates.
-    
+
     ca_certs : str
         The `ca_certs` file contains a set of concatenated "Certification Authority"
         certificates, which are used to validate the certificate passed from the Hub end of the
         connection.
-    
+
     ssl_version : int
         The `ssl_version` option specifies which version of the SSL protocol to use.
         Typically, the server chooses a particular protocol version, and the client must adapt to the
@@ -365,7 +370,7 @@ class SAMPIntegratedClient(object):
         specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
         compatibility with other versions Hub side. Other SSL protocol versions are:
         `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
-    
+
     callable : bool
         Is the client callable?
     """
@@ -388,7 +393,8 @@ class SAMPIntegratedClient(object):
 
     # GENERAL
     def isConnected(self):
-        """Testing method to verify the client connection with a running Hub.
+        """
+        Testing method to verify the client connection with a running Hub.
 
         Returns
         -------
@@ -400,7 +406,8 @@ class SAMPIntegratedClient(object):
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=1, pool_size=20):
-        """Connect with the current or specified SAMP Hub, start and register the client.
+        """
+        Connect with the current or specified SAMP Hub, start and register the client.
 
         If a SAMP Hub is not running or refuses the connection, a `SAMPHubError` is raised.
 
@@ -454,8 +461,9 @@ class SAMPIntegratedClient(object):
         self.client.register()
 
     def disconnect(self):
-        """Unregister the client from the current SAMP Hub,
-        stop the client and disconnect from the Hub.
+        """
+        Unregister the client from the current SAMP Hub, stop the client and
+        disconnect from the Hub.
         """
         cliEx = None
         try:
@@ -472,27 +480,39 @@ class SAMPIntegratedClient(object):
 
     # HUB
     def ping(self):
-        """Proxy to `ping` SAMP Hub method (Standard Profile only)."""
+        """
+        Proxy to `ping` SAMP Hub method (Standard Profile only).
+        """
         return self.hub.ping()
 
     def declareMetadata(self, metadata):
-        """Proxy to `declareMetadata` SAMP Hub method."""
+        """
+        Proxy to `declareMetadata` SAMP Hub method.
+        """
         return self.client.declareMetadata(metadata)
 
     def getMetadata(self, client_id):
-        """Proxy to `getMetadata` SAMP Hub method."""
+        """
+        Proxy to `getMetadata` SAMP Hub method.
+        """
         return self.hub.getMetadata(self.client.getPrivateKey(), client_id)
 
     def getSubscriptions(self, client_id):
-        """Proxy to `getSubscriptions` SAMP Hub method."""
+        """
+        Proxy to `getSubscriptions` SAMP Hub method.
+        """
         return self.hub.getSubscriptions(self.client.getPrivateKey(), client_id)
 
     def getRegisteredClients(self):
-        """Proxy to `getRegisteredClients` SAMP Hub method."""
+        """
+        Proxy to `getRegisteredClients` SAMP Hub method.
+        """
         return self.hub.getRegisteredClients(self.client.getPrivateKey())
 
     def getSubscribedClients(self, mtype):
-        """Proxy to `getSubscribedClients` SAMP Hub method."""
+        """
+        Proxy to `getSubscribedClients` SAMP Hub method.
+        """
         return self.hub.getSubscribedClients(self.client.getPrivateKey(), mtype)
 
     def _format_easy_msg(self, mtype, params):
@@ -514,7 +534,8 @@ class SAMPIntegratedClient(object):
         return self.hub.notify(self.client.getPrivateKey(), recipient_id, message)
 
     def enotify(self, recipient_id, mtype, **params):
-        """Easy to use `notify`.
+        """
+        Easy to use `notify`.
 
         This is a proxy to `notify` method that allows to
         send the notification message in a simplified way.
@@ -546,11 +567,14 @@ class SAMPIntegratedClient(object):
         return self.notify(recipient_id, self._format_easy_msg(mtype, params))
 
     def notifyAll(self, message):
-        """Proxy to `notifyAll` SAMP Hub method."""
+        """
+        Proxy to `notifyAll` SAMP Hub method.
+        """
         return self.hub.notifyAll(self.client.getPrivateKey(), message)
 
     def enotifyAll(self, mtype, **params):
-        """Easy to use `notify`.
+        """
+        Easy to use `notify`.
 
         This is a proxy to `notifyAll` method that allows to
         send the notification message in a simplified way.
@@ -580,11 +604,13 @@ class SAMPIntegratedClient(object):
         return self.notifyAll(self._format_easy_msg(mtype, params))
 
     def call(self, recipient_id, msg_tag, message):
-        """Proxy to `call` SAMP Hub method."""
+        """
+        Proxy to `call` SAMP Hub method."""
         return self.hub.call(self.client.getPrivateKey(), recipient_id, msg_tag, message)
 
     def ecall(self, recipient_id, msg_tag, mtype, **params):
-        """Easy to use `call`.
+        """
+        Easy to use `call`.
 
         This is a proxy to `call` method that allows to
         send a call message in a simplified way.
@@ -624,7 +650,8 @@ class SAMPIntegratedClient(object):
         return self.hub.callAll(self.client.getPrivateKey(), msg_tag, message)
 
     def ecallAll(self, msg_tag, mtype, **params):
-        """Easy to use `callAll`.
+        """
+        Easy to use `callAll`.
 
         This is a proxy to `callAll` method that allows to
         send the call message in a simplified way.
@@ -656,14 +683,16 @@ class SAMPIntegratedClient(object):
         self.callAll(msg_tag, self._format_easy_msg(mtype, params))
 
     def callAndWait(self, recipient_id, message, timeout):
-        """Proxy to `callAndWait` SAMP Hub method.
+        """
+        Proxy to `callAndWait` SAMP Hub method.
 
         If timeout expires a `SAMPProxyError` instance is raised.
         """
         return self.hub.callAndWait(self.client.getPrivateKey(), recipient_id, message, timeout)
 
     def ecallAndWait(self, recipient_id, mtype, timeout, **params):
-        """Easy to use `callAndWait`.
+        """
+        Easy to use `callAndWait`.
 
         This is a proxy to `callAll` method that allows to
         send the call message in a simplified way.
@@ -710,7 +739,8 @@ class SAMPIntegratedClient(object):
         return msg
 
     def ereply(self, msg_id, status, result=None, error=None):
-        """Easy to use `reply`.
+        """
+        Easy to use `reply`.
 
         This is a proxy to `callAll` method that allows to
         send a reply message in a simplified way.
@@ -741,7 +771,8 @@ class SAMPIntegratedClient(object):
 
     # CLIENT
     def receiveNotification(self, private_key, sender_id, message):
-        """Standard callable client `receiveNotification` method.
+        """
+        Standard callable client `receiveNotification` method.
 
         This method is automatically handled when the `bindReceiveNotification`
         method is used to bind distinct operations to MTypes.
@@ -770,7 +801,8 @@ class SAMPIntegratedClient(object):
         return self.client.receiveNotification(private_key, sender_id, message)
 
     def receiveCall(self, private_key, sender_id, msg_id, message):
-        """Standard callable client C{receiveCall} method.
+        """
+        Standard callable client C{receiveCall} method.
 
         This method is automatically handled when the `bindReceiveCall` method
         is used to bind distinct operations to MTypes.
@@ -802,7 +834,8 @@ class SAMPIntegratedClient(object):
         return self.client.receiveCall(private_key, sender_id, msg_id, message)
 
     def receiveResponse(self, private_key, responder_id, msg_tag, response):
-        """Standard callable client `receiveResponse` method.
+        """
+        Standard callable client `receiveResponse` method.
 
         This method is automatically handled when the `bindReceiveResponse` method
         is used to bind distinct operations to MTypes.
@@ -834,7 +867,8 @@ class SAMPIntegratedClient(object):
         return self.client.receiveResponse(private_key, responder_id, msg_tag, response)
 
     def bindReceiveMessage(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType to a function or class method, being intended for
+        """
+        Bind a specific MType to a function or class method, being intended for
         a call or a notification.
 
         The function must be of the form:
@@ -865,7 +899,8 @@ class SAMPIntegratedClient(object):
         self.client.bindReceiveMessage(mtype, function, declare=True, metadata=None)
 
     def bindReceiveNotification(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType notification to a function or class method.
+        """
+        Bind a specific MType notification to a function or class method.
 
         The function must be of the form:
 
@@ -896,7 +931,8 @@ class SAMPIntegratedClient(object):
         self.client.bindReceiveNotification(mtype, function, declare, metadata)
 
     def bindReceiveCall(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType call to a function or class method.
+        """
+        Bind a specific MType call to a function or class method.
 
         The function must be of the form:
 
@@ -927,7 +963,8 @@ class SAMPIntegratedClient(object):
         self.client.bindReceiveCall(mtype, function, declare, metadata)
 
     def bindReceiveResponse(self, msg_tag, function):
-        """Bind a specific msg-tag response to a function or class method.
+        """
+        Bind a specific msg-tag response to a function or class method.
 
         The function must be of the form:
 
@@ -948,7 +985,8 @@ class SAMPIntegratedClient(object):
         self.client.bindReceiveResponse(msg_tag, function)
 
     def unbindReceiveNotification(self, mtype, declare=True):
-        """Remove from the notifications binding table the specified MType and unsubscribe
+        """
+        Remove from the notifications binding table the specified MType and unsubscribe
         the client from it (if required).
 
         Parameters
@@ -963,7 +1001,8 @@ class SAMPIntegratedClient(object):
         self.client.unbindReceiveNotification(mtype, declare)
 
     def unbindReceiveCall(self, mtype, declare=True):
-        """Remove from the calls binding table the specified MType and unsubscribe
+        """
+        Remove from the calls binding table the specified MType and unsubscribe
         the client from it (if required).
 
         Parameters
@@ -988,7 +1027,8 @@ class SAMPIntegratedClient(object):
         self.client.unbindReceiveResponse(msg_tag)
 
     def declareSubscriptions(self, subscriptions=None):
-        """Declares the MTypes the client wishes to subscribe to,
+        """
+        Declares the MTypes the client wishes to subscribe to,
         implicitly defined with the MType binding methods `bindReceiveNotification` and `bindReceiveCall`.
 
         An optional `subscriptions` map can be added to the final map passed to
@@ -1004,7 +1044,8 @@ class SAMPIntegratedClient(object):
         self.client.declareSubscriptions(subscriptions)
 
     def getPrivateKey(self):
-        """Return the client private key used for the Standard Profile communications
+        """
+        Return the client private key used for the Standard Profile communications
         obtained at registration time (`samp.private-key`).
 
         Returns
@@ -1015,7 +1056,8 @@ class SAMPIntegratedClient(object):
         return self.client.getPrivateKey()
 
     def getPublicId(self):
-        """Return public client ID obtained at registration time (`samp.self-id`).
+        """
+        Return public client ID obtained at registration time (`samp.self-id`).
 
         Returns
         -------
@@ -1026,66 +1068,65 @@ class SAMPIntegratedClient(object):
 
 
 class SAMPClient(object):
-
     """
     Utility class which provides facilities to create and manage a SAMP compliant
     XML-RPC server that acts as SAMP callable client application.
 
-      Parameters
-      ----------
-      hub : `SAMPHubProxy`
-          An instance of `SAMPHubProxy` to be used for messaging with the SAMP Hub.
+    Parameters
+    ----------
+    hub : `SAMPHubProxy`
+        An instance of `SAMPHubProxy` to be used for messaging with the SAMP Hub.
 
-      name : str, optional
-          Client name (corresponding to `samp.name` metadata keyword).
+    name : str, optional
+        Client name (corresponding to `samp.name` metadata keyword).
 
-      description : str, optional
-          Client description (corresponding to `samp.description.text` metadata keyword).
+    description : str, optional
+        Client description (corresponding to `samp.description.text` metadata keyword).
 
-      metadata : dict, optional
-          Client application metadata in the standard SAMP format.
+    metadata : dict, optional
+        Client application metadata in the standard SAMP format.
 
-      addr : str
-          Listening address (or IP).
+    addr : str
+        Listening address (or IP).
 
-      port : int, optional
-          Listening XML-RPC server socket port
+    port : int, optional
+        Listening XML-RPC server socket port
 
-      https : bool
-          Set the callable client running on a Secure Sockets Layer connection (HTTPS)?
-          By default SSL is disabled.
+    https : bool
+        Set the callable client running on a Secure Sockets Layer connection (HTTPS)?
+        By default SSL is disabled.
 
-      key_file : str
-          Set the file containing the private key for SSL connections. If the
-          certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
 
-      cert_file : str
-          Specify the file which contains a certificate to be used to identify the
-          local side of the secure connection.
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
 
-      cert_reqs : int
-          The parameter `cert_reqs` specifies whether a certificate is required
-          from the Hub side of the connection, and whether it will be validated if provided. It
-          must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-          (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-          If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-          point to a file of CA certificates.
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the Hub side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
 
-      ca_certs : str
-          The `ca_certs` file contains a set of concatenated "Certification Authority"
-          certificates, which are used to validate the certificate passed from the Hub end of the
-          connection.
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority"
+        certificates, which are used to validate the certificate passed from the Hub end of the
+        connection.
 
-      ssl_version : int
-          The `ssl_version` option specifies which version of the SSL protocol to use.
-          Typically, the server chooses a particular protocol version, and the client must adapt to the
-          server's choice. Most of the versions are not interoperable with the other versions. If not
-          specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
-          compatibility with other versions Hub side. Other SSL protocol versions are:
-          `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions Hub side. Other SSL protocol versions are:
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
-      callable : bool
-          Is the client callable?
+    callable : bool
+        Is the client callable?
     """
 
     def __init__(self, hub, name=None, description=None, metadata=None,
@@ -1163,7 +1204,8 @@ class SAMPClient(object):
         self._run_client()
 
     def stop(self, timeout=0.1):
-        """Stop the client.
+        """
+        Stop the client.
 
         Parameters
         ----------
@@ -1176,7 +1218,8 @@ class SAMPClient(object):
             self._thread = None
 
     def isRunning(self):
-        """Return an information concerning the client running status.
+        """
+        Return an information concerning the client running status.
 
         Returns
         -------
@@ -1236,7 +1279,8 @@ class SAMPClient(object):
         return ""
 
     def receiveNotification(self, private_key, sender_id, message):
-        """Standard callable client `receiveNotification` method.
+        """
+        Standard callable client `receiveNotification` method.
 
         This method is automatically handled when the `bindReceiveNotification`
         method is used to bind distinct operations to MTypes.
@@ -1282,7 +1326,8 @@ class SAMPClient(object):
         return ""
 
     def receiveCall(self, private_key, sender_id, msg_id, message):
-        """Standard callable client C{receiveCall} method.
+        """
+        Standard callable client C{receiveCall} method.
 
         This method is automatically handled when the `bindReceiveCall` method
         is used to bind distinct operations to MTypes.
@@ -1319,7 +1364,8 @@ class SAMPClient(object):
         return ""
 
     def receiveResponse(self, private_key, responder_id, msg_tag, response):
-        """Standard callable client `receiveResponse` method.
+        """
+        Standard callable client `receiveResponse` method.
 
         This method is automatically handled when the `bindReceiveResponse` method
         is used to bind distinct operations to MTypes.
@@ -1351,7 +1397,8 @@ class SAMPClient(object):
         return self._handle_response(private_key, responder_id, msg_tag, response)
 
     def bindReceiveMessage(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType to a function or class method, being intended for
+        """
+        Bind a specific MType to a function or class method, being intended for
         a call or a notification.
 
         The function must be of the form:
@@ -1383,7 +1430,8 @@ class SAMPClient(object):
         self.bindReceiveNotification(mtype, function, declare=True, metadata=None)
 
     def bindReceiveNotification(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType notification to a function or class method.
+        """
+        Bind a specific MType notification to a function or class method.
 
         The function must be of the form:
 
@@ -1421,7 +1469,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def bindReceiveCall(self, mtype, function, declare=True, metadata=None):
-        """Bind a specific MType call to a function or class method.
+        """
+        Bind a specific MType call to a function or class method.
 
         The function must be of the form:
 
@@ -1459,7 +1508,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def bindReceiveResponse(self, msg_tag, function):
-        """Bind a specific msg-tag response to a function or class method.
+        """
+        Bind a specific msg-tag response to a function or class method.
 
         The function must be of the form:
 
@@ -1483,7 +1533,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def unbindReceiveNotification(self, mtype, declare=True):
-        """Remove from the notifications binding table the specified MType and unsubscribe
+        """
+        Remove from the notifications binding table the specified MType and unsubscribe
         the client from it (if required).
 
         Parameters
@@ -1503,7 +1554,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def unbindReceiveCall(self, mtype, declare=True):
-        """Remove from the calls binding table the specified MType and unsubscribe
+        """
+        Remove from the calls binding table the specified MType and unsubscribe
         the client from it (if required).
 
         Parameters
@@ -1523,7 +1575,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def unbindReceiveResponse(self, msg_tag):
-        """Remove from the responses binding table the specified message-tag.
+        """
+        Remove from the responses binding table the specified message-tag.
 
         Parameters
         ----------
@@ -1536,7 +1589,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def declareSubscriptions(self, subscriptions=None):
-        """Declares the MTypes the client wishes to subscribe to, implicitly defined
+        """
+        Declares the MTypes the client wishes to subscribe to, implicitly defined
         with the MType binding methods `bindReceiveNotification` and `bindReceiveCall`.
 
         An optional `subscriptions` map can be added to the final map passed to
@@ -1555,7 +1609,8 @@ class SAMPClient(object):
             raise SAMPClientError("Client not callable.")
 
     def register(self):
-        """Register the client to the SAMP Hub.
+        """
+        Register the client to the SAMP Hub.
 
         If the registration fails a `SAMPClientError` is raised.
         """
@@ -1585,7 +1640,8 @@ class SAMPClient(object):
             raise SAMPClientError("Unable to register to the SAMP Hub. Hub proxy not connected.")
 
     def unregister(self):
-        """Unregister the client from the SAMP Hub.
+        """
+        Unregister the client from the SAMP Hub.
 
         If the unregistration fails a `SAMPClientError` is raised.
         """
@@ -1635,7 +1691,8 @@ class SAMPClient(object):
             raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
 
     def declareMetadata(self, metadata=None):
-        """Declare the client application metadata supported.
+        """
+        Declare the client application metadata supported.
 
         Parameters
         ----------
@@ -1657,7 +1714,8 @@ class SAMPClient(object):
             raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
 
     def getPrivateKey(self):
-        """Return the client private key used for the Standard Profile communications
+        """
+        Return the client private key used for the Standard Profile communications
         obtained at registration time (`samp.private-key`).
 
         Returns
@@ -1668,7 +1726,8 @@ class SAMPClient(object):
         return self._private_key
 
     def getPublicId(self):
-        """Return public client ID obtained at registration time (`samp.self-id`).
+        """
+        Return public client ID obtained at registration time (`samp.self-id`).
 
         Returns
         -------
