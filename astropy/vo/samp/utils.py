@@ -269,18 +269,9 @@ class SAMPMsgReplierWrapper(object):
 
         def wrapped_f(*args):
 
-            test = False
-
-            if PYTHON_VERSION > 2.5:
-                test = (inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)\
-                    or (inspect.isfunction(f) and f.__code__.co_argcount == 5) or \
-                    args[2] is None
-            else:
-                test = (inspect.ismethod(f) and f.__func__.func_code.co_argcount == 6)\
-                    or (inspect.isfunction(f) and f.func_code.co_argcount == 5) or \
-                    args[2] is None
-
-            if test:
+            if ((inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)
+                     or (inspect.isfunction(f) and f.__code__.co_argcount == 5)
+                     or args[2] is None):
 
                 # It is a notification
                 f(*args)

@@ -1226,18 +1226,8 @@ class SAMPClient(object):
             for mtype in msubs:
                 if mtype in self._notification_bindings:
                     bound_func = self._notification_bindings[mtype][0]
-                    test = False
-                    if PYTHON_VERSION > 2.5:
-                        test = (inspect.ismethod(bound_func) and
-                                bound_func.__func__.__code__.co_argcount == 6) or \
-                            (inspect.isfunction(bound_func) and
-                           bound_func.__code__.co_argcount == 5)
-                    else:
-                        test = (inspect.ismethod(bound_func) and
-                                bound_func.__func__.func_code.co_argcount == 6) or \
-                            (inspect.isfunction(bound_func) and
-                           bound_func.func_code.co_argcount == 5)
-                    if test:
+                    if ((inspect.ismethod(bound_func) and bound_func.__func__.__code__.co_argcount == 6) or
+                        (inspect.isfunction(bound_func) and bound_func.__code__.co_argcount == 5)):
                         bound_func(private_key, sender_id, msg_mtype, msg_params, message)
                     else:
                         bound_func(private_key, sender_id, None, msg_mtype, msg_params, message)
