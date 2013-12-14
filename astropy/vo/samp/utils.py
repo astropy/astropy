@@ -11,7 +11,7 @@ import sys
 import traceback
 from ...extern.six.moves import queue
 from ...extern.six.moves import socketserver
-from ...extern.six import StringIO
+from ...extern.six import StringIO, PY2, PY3
 
 try:
     import bsddb
@@ -36,7 +36,7 @@ except:
 
 PYTHON_VERSION = float(platform.python_version()[:3])
 
-if PYTHON_VERSION >= 3.0:
+if PY3:
     import http.client
     from http.client import HTTPConnection, HTTPS_PORT
     # from http.server import *
@@ -45,7 +45,7 @@ else:
     from httplib import HTTPConnection, HTTPS_PORT, HTTP
     # from SimpleHTTPServer import *
 
-if PYTHON_VERSION >= 3.0:
+if PY3:
     import urllib.parse as urlparse
     import urllib.error
     import urllib.request
@@ -64,7 +64,7 @@ else:
         from cgi import parse_qs
     from urllib2 import urlopen, URLError
 
-if PYTHON_VERSION >= 3.0:
+if PY3:
     import xmlrpc.client as xmlrpc
     from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 else:
@@ -554,7 +554,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 self.end_headers()
                 self.wfile.write(response)
 
-    elif PYTHON_VERSION >= 2.6 and PYTHON_VERSION < 2.7:
+    else:
 
         def do_POST(self):
             """Handles the HTTP POST request.
@@ -632,90 +632,6 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                     self.send_header("X-exception", str(e))
                     self.send_header("X-traceback", traceback.format_exc())
 
-                self.end_headers()
-            else:
-                # got a valid XML RPC response
-                self.send_response(200)
-                self.send_header("Content-Type", "text/xml")
-                self.send_header("Content-Length", str(len(response)))
-                self.end_headers()
-                self.wfile.write(response)
-
-                # shut down the connection
-                self.wfile.flush()
-                self.connection.shutdown(1)
-
-    else:
-
-        def do_POST(self):
-            """Handles the HTTP POST request.
-
-            Attempts to interpret all HTTP POST requests as XML-RPC calls,
-            which are forwarded to the server's `_dispatch` method for handling.
-            """
-
-            # Check that the path is legal
-            if not self.is_rpc_path_valid():
-                self.report_404()
-                return
-
-            try:
-                # Get arguments by reading body of request        self.connection.close().
-                # We read this in chunks to avoid straining
-                # socket.read(); around the 10 or 15Mb mark, some platforms
-                # begin to have problems (bug #792570).
-                max_chunk_size = 10*1024*1024
-                size_remaining = int(self.headers["content-length"])
-                L = []
-                while size_remaining:
-                    chunk_size = min(size_remaining, max_chunk_size)
-                    L.append(self.rfile.read(chunk_size))
-                    size_remaining -= len(L[-1])
-                data = ''.join(L)
-
-                params, method = xmlrpc.loads(data)
-
-                if method == "samp.webhub.register":
-                    params = list(params)
-                    params.append(self.client_address)
-                    if 'Origin' in self.headers:
-                        params.append(self.headers.get('Origin'))
-                    else:
-                        params.append('unknown')
-                    params = tuple(params)
-                    data = xmlrpc.dumps(params, methodname=method)
-
-                elif method in ('samp.hub.notify', 'samp.hub.notifyAll',
-                                'samp.hub.call', 'samp.hub.callAll',
-                                'samp.hub.callAndWait'):
-
-                    user = "unknown"
-
-                    if 'Authorization' in self.headers:
-                        # handle Basic authentication
-                        (enctype, encstr) = self.headers.get('Authorization').split()
-                        user, password = base64.standard_b64decode(encstr).split(':')
-
-                    if method == 'samp.hub.callAndWait':
-                        params[2]["host"] = self.address_string()
-                        params[2]["user"] = user
-                    else:
-                        params[-1]["host"] = self.address_string()
-                        params[-1]["user"] = user
-
-                    data = xmlrpc.dumps(params, methodname=method)
-
-                # In previous versions of SimpleXMLRPCServer, _dispatch
-                # could be overridden in this class, instead of in
-                # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
-                # check to see if a subclass implements _dispatch and dispatch
-                # using that method if present.
-                response = self.server._marshaled_dispatch(
-                    data, getattr(self, '_dispatch', None)
-                )
-            except:  # This should only happen if the module is buggy
-                # internal error, report as HTTP server error
-                self.send_response(500)
                 self.end_headers()
             else:
                 # got a valid XML RPC response
@@ -929,7 +845,7 @@ if SSL_SUPPORT:
                                       ssl_version=self.ssl_version)
             self.sock = sslconn
 
-    if PYTHON_VERSION < 3.0:
+    if PY2:
 
         class HTTPS(HTTP):
 
@@ -985,7 +901,7 @@ if SSL_SUPPORT:
             # create a HTTPS connection object from a host descriptor
             # host may be a string, or a (host, x509-dict) tuple
             host, extra_headers, x509 = self.get_host_info(host)
-            if PYTHON_VERSION < 3.0:
+            if PY2:
                 return HTTPS(host, None, self.key_file, self.cert_file,
                              self.cert_reqs, self.ca_certs, self.ssl_version)
             else:

@@ -8,7 +8,6 @@ import socket
 import sys
 import threading
 import traceback
-from ...extern.six import StringIO
 
 try:
     import ssl
@@ -16,6 +15,8 @@ except ImportError:
     SSL_SUPPORT = False
 else:
     SSL_SUPPORT = True
+
+from ...extern.six import StringIO
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .constants import _THREAD_STARTED_COUNT
@@ -25,7 +26,7 @@ from .utils import SecureXMLRPCServer, ThreadingXMLRPCServer
 from .hub import SAMPHubServer
 
 # Python 2 / 3 dependent imports ... for now get from utils to avoid code duplication
-from .utils import PYTHON_VERSION, xmlrpc
+from .utils import xmlrpc
 
 
 __all__ = ['SAMPHubProxy', 'SAMPIntegratedClient', 'SAMPClient']
