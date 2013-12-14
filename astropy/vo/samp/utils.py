@@ -9,9 +9,9 @@ import platform
 import socket
 import sys
 import traceback
-from astropy.extern.six.moves import queue
-from astropy.extern.six.moves import socketserver
-from astropy.extern.six import StringIO
+from ...extern.six.moves import queue
+from ...extern.six.moves import socketserver
+from ...extern.six import StringIO
 
 try:
     import bsddb
@@ -28,7 +28,7 @@ else:
     SSL_SUPPORT = True
 
 try:
-    from astropy.extern.six.moves import tkinter as tk
+    from ..extern.six.moves import tkinter as tk
     HAS_TKINTER = True
 except:
     HAS_TKINTER = False

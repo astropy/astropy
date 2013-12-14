@@ -8,7 +8,7 @@ import socket
 import sys
 import threading
 import traceback
-from astropy.extern.six import StringIO
+from ...extern.six import StringIO
 
 try:
     import ssl

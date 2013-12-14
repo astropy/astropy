@@ -11,8 +11,8 @@ import select
 import threading
 import traceback
 import datetime
-from astropy.extern.six import StringIO
-from astropy.extern.six.moves import queue
+from ...extern.six import StringIO
+from ...extern.six.moves import queue
 
 try:
     import ssl
