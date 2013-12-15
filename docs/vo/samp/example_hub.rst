@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. doctest-skip-all
+
 .. _vo-samp-example_hub:
 
 *****************************************

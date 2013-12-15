@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. doctest-skip-all
+
 .. _vo-samp-example_clients:
 
 *****************************************************
@@ -26,8 +28,8 @@ Next create two clients and connect them::
    ...                                                 "client2.version":"0.25"})
    >>> client1.connect()
    >>> client2.connect()
-   >>> print("client1", client1.getPrivateKey(), client1.getPublicId())
-   >>> print("client2", client2.getPrivateKey(), client2.getPublicId())
+   >>> print "client1", client1.getPrivateKey(), client1.getPublicId()
+   >>> print "client2", client2.getPrivateKey(), client2.getPublicId()
 
 Define functions to call when receiving a notification, call or response::
 
