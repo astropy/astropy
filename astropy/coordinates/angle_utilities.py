@@ -544,14 +544,18 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     # it to 0 and carry upwards.  If the field is hidden (by the
     # fields kwarg) we round up around the middle, 30.0.
     if precision is None:
-        rounding_thresh = 60.0 - (10.0 ** -5)
+        round_up_thresh = 60.0 - (10.0 ** -5)
+        round_down_thresh = 10.0 ** -5
     else:
-        rounding_thresh = 60.0 - (10.0 ** -precision)
+        round_up_thresh = 60.0 - (10.0 ** -precision)
+        round_down_thresh = 10.0 ** -precision
 
     values = list(values)
-    if fields == 3 and values[2] >= rounding_thresh:
+    if fields == 3 and values[2] >= round_up_thresh:
         values[2] = 0.0
         values[1] += 1.0
+    elif fields == 3 and values[2] <= round_down_thresh:
+        values[2] = 0
     elif fields < 3 and values[2] >= 30.0:
         values[1] += 1.0
 
