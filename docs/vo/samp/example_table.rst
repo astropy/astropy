@@ -95,7 +95,7 @@ that listens for requests to load a table and loads it when received::
     # Print out table
     print t
 
-Sending a table from TOPCAT then results in the client printing out e.g.
+Sending a table from TOPCAT then results in the client printing out e.g.::
 
     Downloading http://127.0.0.1:2525/dynamic/4/t12.vot [Done]
                col1             col2     col3    col4     col5    col6 col7  col8 col9 col10
