@@ -2,7 +2,90 @@
 """
 Convenience functions for `astropy.cosmology`.
 """
+import warnings
+import numpy as np
 from .core import get_current as _get_current
+from .core import CosmologyError
+from ..units import Quantity
+
+
+def z_at_value(func, fval, zmin=0, zmax=1e4, ztol=1e-5):
+    """ Find the redshift `z` at which `func(z) = fval`.
+
+    This function finds the redshift at which one of the cosmology
+    functions (for example Planck13.distmod) is equal to a known
+    value. WARNING: Make sure you understand the behaviour of the
+    function that you are trying to invert! Depending on the
+    cosmology, there may not be a unique solution. For example, in the
+    standard Lambda CDM cosmology, there are two redshifts which give
+    an angular diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To
+    force `z_at_value` to find the solution you are interested in, use
+    the `zmin` and `zmax` keywords to limit the search range (see the
+    example below).
+
+    Parameters
+    ----------
+    func : function or method
+       A function that takes a redshift as input.
+    fval : astropy.Quantity instance
+       The value of `func(z)`.
+    zmin : float
+       The lower search limit for `z` (default 0).
+    zmax : float
+       The upper search limit for `z` (default 10,000).
+    ztol : float
+       The relative error in `z` acceptable for convergence.
+
+    Returns
+    -------
+    z : float
+      The redshift `z` satisfying `zmin < z < zmax` and `func(z) =
+      fval` within `ztol`.
+
+    Notes
+    -----
+    This function works for any arbitrary input cosmology, but is slow
+    and inefficient if you want to invert a very large number of
+    values for the same cosmology. In this case, you may want to
+    generate an array of function values at many closely-spaced
+    redshifts that cover the redshift range you're interested in, and
+    then use interpolation to find the redshifts.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from astropy.cosmology import Planck13, z_at_value
+    >>> z_at_value(Planck13.age, 2 * u.Gyr)
+    3.1981191749374629
+    >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmax=1.5)
+    0.68127769625288614
+    >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmin=2.5)
+    3.7914918534022011
+    """
+    from scipy.optimize import fminbound
+
+    testval = func(zmin)
+    if isinstance(testval, Quantity):
+        unit = testval.unit
+        val = fval.to(unit).value
+        f = lambda z: abs(func(z).value - val)
+    else:
+        f = lambda z: abs(func(z) - fval)
+
+    zbest, resval, ierr, ncall = fminbound(f, zmin, zmax, full_output=1)
+
+    if ierr != 0:
+        warnings.warn('Maximum number of function calls ({}) reached'.format(
+            ncall))
+
+    if np.allclose(zbest, zmax):
+        raise CosmologyError("Best guess z is very close the upper z limit.\n"
+                             "Try re-running with a different zmax.")
+    elif np.allclose(zbest, zmin):
+        raise CosmologyError("Best guess z is very close the lower z limit.\n"
+                             "Try re-running with a different zmin.")
+    return zbest
+
 
 def age(z, cosmo=None):
     """ Age of the universe in Gyr at redshift `z`.

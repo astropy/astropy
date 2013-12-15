@@ -824,6 +824,37 @@ def test_massivenu_density():
     assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_z_at_value():
+    z_at_value = funcs.z_at_value
+    cosmo = core.Planck13
+    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
+    assert np.allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
+                       1.3685792789133948)
+    assert np.allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
+                       0.7951983674601507)
+    assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
+                                  zmax=2), 0.681277696252886)
+    assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
+                                  zmin=2.5), 3.7914918534022011)
+    assert np.allclose(z_at_value(cosmo.distmod, 46 * u.mag),
+                       1.9913870174451891)
+
+    # test behaviour when the solution is outside z limits (should
+    # raise a CosmologyError)
+    try:
+        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
+    except core.CosmologyError:
+        pass
+    else:
+        raise RuntimeError('Test did not raise expected CosmologyError')
+    try:
+        z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
+    except core.CosmologyError:
+        pass
+    else:
+        raise RuntimeError('Test did not raise expected CosmologyError')
+
 def test_default_reset():
     # Check that the default is being reset after tests. This test should be
     # updated if the default cosmology is updated.
