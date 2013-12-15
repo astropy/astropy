@@ -11,8 +11,11 @@ import select
 import threading
 import traceback
 import datetime
+import warnings
+
 from ...extern.six import StringIO
 from ...extern.six.moves import queue
+from ... import log
 
 try:
     import ssl
@@ -31,8 +34,8 @@ else:
 from .constants import SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP, SAMP_RESTRICT_OWNER
 from .constants import SAMP_HUB_MULTIPLE_INSTANCE, SAMP_STATUS_OK
 from .constants import _THREAD_STARTED_COUNT, __profile_version__, __release__
-from .errors import SAMPHubError, SAMPProxyError
-from .utils import internet_on, SAMPLog, SafeTransport, ServerProxyPool, _HubAsClient
+from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
+from .utils import internet_on, SafeTransport, ServerProxyPool, _HubAsClient
 from .utils import WebProfileXMLRPCServer, SecureXMLRPCServer
 from .utils import ThreadingXMLRPCServer, WebProfilePopupDialogue
 
@@ -83,10 +86,6 @@ class SAMPHubServer(object):
           Hub automatically unregisters the clients which result inactive for a period longer
           than `client_timeout` seconds. By default `client_timeout` is set to 0 (clients never
           expire).
-
-      log : `SAMPLog`
-          A `SAMPLog` instance for the Hub logging. If missing then
-          a standard `SAMPLog` instance is used.
 
       mode : str
           Defines the Hub running mode. If `mode` is 'single' then the Hub runs
@@ -163,7 +162,7 @@ class SAMPHubServer(object):
     """
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None, timeout=0,
-                 client_timeout=0, log=None,
+                 client_timeout=0,
                  mode=SAMP_HUB_SINGLE_INSTANCE, label="",
                  owner="", owner_group="", auth_file=None,
                  access_restrict=None, admin="admin", https=False,
@@ -182,10 +181,6 @@ class SAMPHubServer(object):
         self._owner_group = owner_group
         self._timeout = timeout
         self._client_timeout = client_timeout
-        if log == None:
-            self._log = SAMPLog()
-        else:
-            self._log = log
         self._pool_size = pool_size
 
         self._web_profile = web_profile
@@ -197,12 +192,12 @@ class SAMPHubServer(object):
         self._web_profile_requests_semaphore = queue.Queue(1)
         if web_profile:
             try:
-                self._web_profile_server = WebProfileXMLRPCServer(('localhost', 21012), self._log,
+                self._web_profile_server = WebProfileXMLRPCServer(('localhost', 21012), log,
                                                                   logRequests=False, allow_none=True)
                 self._web_profile_server.register_introspection_functions()
-                self._log.info("Hub set to run with Web Profile support enabled.")
+                log.info("Hub set to run with Web Profile support enabled.")
             except:
-                self._log.error("Port 21012 already in use. Impossible to run the Hub with Web Profile support.")
+                log.warn("Port 21012 already in use. Impossible to run the Hub with Web Profile support.")
                 self._web_profile = web_profile = False
 
         # SSL general settings
@@ -228,7 +223,6 @@ class SAMPHubServer(object):
         # Athentication file test
         if auth_file != None:
             if not os.path.isfile(auth_file):
-                self._log.error("Unable to load authentication file!")
                 raise SAMPHubError("Unable to load authentication file!")
 
         self._host_name = "127.0.0.1"
@@ -243,24 +237,22 @@ class SAMPHubServer(object):
         if https:
 
             if keyfile != None and not os.path.isfile(keyfile):
-                self._log.error("Unable to load SSL private key file!")
                 raise SAMPHubError("Unable to load SSL private key file!")
 
             if certfile == None or not os.path.isfile(certfile):
-                self._log.error("Unable to load SSL cert file!")
                 raise SAMPHubError("Unable to load SSL cert file!")
 
             if auth_file != None:
-                self._log.info("Hub set for Basic Authentication using SSL.")
+                log.info("Hub set for Basic Authentication using SSL.")
                 self._server = BasicAuthSecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
                                                            keyfile, certfile, cert_reqs, ca_certs, ssl_version,
-                                                           auth_file, access_restrict, self._log,
+                                                           auth_file, access_restrict, log,
                                                            logRequests=False, allow_none=True)
             else:
-                self._log.info("Hub set for using SSL.")
+                log.info("Hub set for using SSL.")
                 self._server = SecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
                                                   keyfile, certfile, cert_reqs, ca_certs, ssl_version,
-                                                  self._log, logRequests=False, allow_none=True)
+                                                  log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
             self._url = "https://%s:%s" %(self._addr or self._host_name,
@@ -268,13 +260,13 @@ class SAMPHubServer(object):
         else:
 
             if auth_file != None:
-                self._log.info("Hub set for Basic Authentication.")
+                log.info("Hub set for Basic Authentication.")
                 self._server = BasicAuthXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                     auth_file, access_restrict, self._log,
+                                                     auth_file, access_restrict, log,
                                                      logRequests=False, allow_none=True)
             else:
                 self._server = ThreadingXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                     self._log, logRequests=False, allow_none=True)
+                                                     log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
             self._url = "http://%s:%s" %(self._addr or self._host_name,
@@ -374,7 +366,7 @@ class SAMPHubServer(object):
             if self._timeout > 0 and self._last_activity_time != None:
                 if time.time() - self._last_activity_time >= self._timeout:
                     self._thread_lock.release()
-                    self._log.warning("Timeout expired, Hub is shutting down!")
+                    warnings.warn("Timeout expired, Hub is shutting down!", SAMPWarning)
                     self.stop()
                     break
             if self._thread_lock.locked() == True:
@@ -389,7 +381,7 @@ class SAMPHubServer(object):
                 for private_key in self._client_activity_time.keys():
                     if now - self._client_activity_time[private_key] > self._client_timeout \
                        and private_key != self._hub_private_key:
-                        self._log.warning("Client %s timeout expired!" % private_key)
+                        warnings.warn("Client %s timeout expired!" % private_key, SAMPWarning)
                         self._notifyDisconnection(private_key)
                         self._unregister(private_key)
 
@@ -443,7 +435,7 @@ class SAMPHubServer(object):
             self._setupHubAsClient()
             self._startThreads()
 
-            self._log.info("Hub started")
+            log.info("Hub started")
 
         if wait and self._is_running:
             self._thread_run.join()
@@ -465,7 +457,7 @@ class SAMPHubServer(object):
                 lockfile_parsed = urlparse.urlparse(lockfilename)
 
                 if lockfile_parsed[0] != 'file':
-                    self._log.warning("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename)
+                    warnings.warn("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename, SAMPWarning)
                     return False
                 else:
                     lockfilename = lockfile_parsed[2]
@@ -473,7 +465,7 @@ class SAMPHubServer(object):
             # If it is a fresh Hub instance
             if self._lockfilename is None:
 
-                self._log.debug("Running mode: " + self._mode)
+                log.debug("Running mode: " + self._mode)
 
                 if self._mode == SAMP_HUB_SINGLE_INSTANCE:
                     lockfilename = ".samp"
@@ -498,16 +490,16 @@ class SAMPHubServer(object):
                 lockfilename = os.path.join(lockfiledir, lockfilename)
 
             else:
-                self._log.debug("Running mode: multiple")
+                log.debug("Running mode: multiple")
                 lockfilename = self._lockfilename
 
         hub_is_running, lockfiledict = SAMPHubServer.checkRunningHub(lockfilename)
 
         if hub_is_running:
-            self._log.warning("Another SAMP Hub is already running. Start-up process aborted.")
+            warnings.warn("Another SAMP Hub is already running. Start-up process aborted.", SAMPWarning)
             return False
 
-        self._log.debug("Lock-file: " + lockfilename)
+        log.debug("Lock-file: " + lockfilename)
 
         result = self._new_lockfile(lockfilename)
         if result:
@@ -675,7 +667,7 @@ class SAMPHubServer(object):
         """Stop the current SAMP Hub instance and delete the lock file."""
         if self._is_running:
 
-            self._log.info("Hub is stopping...")
+            log.info("Hub is stopping...")
 
             self._notifyShutdown()
 
@@ -706,7 +698,7 @@ class SAMPHubServer(object):
         self._last_activity_time = None
         self._lockfilename = None
 
-        self._log.info("Hub stopped.")
+        log.info("Hub stopped.")
 
     def _joinOneThread(self, thread_name, timeout):
         t = getattr(self, thread_name)
@@ -837,17 +829,17 @@ class SAMPHubServer(object):
         for mtype in msubs:
             if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
                 try:
-                    self._log.debug("notify disconnection to %s" % (public_id))
+                    log.debug("notify disconnection to %s" % (public_id))
                     threading.Thread(target=_xmlrpc_call_disconnect,
                                      args=(endpoint, private_key, self._hub_public_id,
                                     {"samp.mtype":"samp.hub.disconnect",
                                     "samp.params": {"reason": "Timeout expired!"}})).start()
                 except:
-                    self._log.warning("disconnection notification to client %s failed\n" % (public_id))
+                    warnings.warn("disconnection notification to client %s failed\n" % (public_id), SAMPWarning)
 
     def _ping(self):
         self._updateLastActivityTime()
-        self._log.debug("ping")
+        log.debug("ping")
         return "1"
 
     def _query_by_metadata(self, key, value):
@@ -866,7 +858,7 @@ class SAMPHubServer(object):
                 self._xmlrpcEndpoints[self._private_keys[private_key][0]] = (xmlrpc_addr, _HubAsClient(self._hubAsClientRequestHandler))
                 return ""
             # Dictionary stored with the public id
-            self._log.debug("setXmlrpcCallback: %s %s" % (private_key, xmlrpc_addr))
+            log.debug("setXmlrpcCallback: %s %s" % (private_key, xmlrpc_addr))
             server_proxy_pool = None
             if SSL_SUPPORT and xmlrpc_addr[0:5] == "https":
                 server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy,
@@ -894,7 +886,7 @@ class SAMPHubServer(object):
         self._private_keys[private_key] = (public_id, time.time())
         self._updateLastActivityTime(private_key)
         self._notifyRegister(private_key)
-        self._log.debug("register: private-key = %s and self-id = %s" % (private_key, public_id))
+        log.debug("register: private-key = %s and self-id = %s" % (private_key, public_id))
         return {"samp.self-id": public_id,
                 "samp.private-key": private_key,
                 "samp.hub-id": self._hub_public_id}
@@ -956,14 +948,14 @@ class SAMPHubServer(object):
 
         self._thread_lock.release()
 
-        self._log.debug("unregister %s (%s)" % (public_key, private_key))
+        log.debug("unregister %s (%s)" % (public_key, private_key))
 
         return ""
 
     def _declareMetadata(self, private_key, metadata):
         self._updateLastActivityTime(private_key)
         if private_key in self._private_keys:
-            self._log.debug("declareMetadata: private-key = %s metadata = %s" % (private_key, str(metadata)))
+            log.debug("declareMetadata: private-key = %s metadata = %s" % (private_key, str(metadata)))
             self._metadata[private_key] = metadata
             self._notifyMetadata(private_key)
         else:
@@ -974,19 +966,17 @@ class SAMPHubServer(object):
         self._updateLastActivityTime(private_key)
         if private_key in self._private_keys:
             client_private_key = self._getPrivateKeyFromPublicId(client_id)
-            self._log.debug("getMetadata: private-key = %s client-id = %s" %
+            log.debug("getMetadata: private-key = %s client-id = %s" %
                             (private_key, client_id))
             if client_private_key != None:
                 if client_private_key in self._metadata:
-                    self._log.debug("--> metadata = %s" % self._metadata[client_private_key])
+                    log.debug("--> metadata = %s" % self._metadata[client_private_key])
                     return self._metadata[client_private_key]
                 else:
                     return {}
             else:
-                self._log.warning("Invalid client ID %s" % client_id)
                 raise SAMPProxyError(6, "Invalid client ID")
         else:
-            self._log.warning("Private-key %s expired or invalid." % private_key)
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
 
     def _declareSubscriptions(self, private_key, mtypes):
@@ -995,7 +985,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
 
-            self._log.debug("declareSubscriptions: private-key = %s mtypes = %s" % (private_key, str(mtypes)))
+            log.debug("declareSubscriptions: private-key = %s mtypes = %s" % (private_key, str(mtypes)))
 
             # remove subscription to previous mtypes
             if private_key in self._id2mtypes:
@@ -1021,7 +1011,7 @@ class SAMPHubServer(object):
                             if mtype2 in mtypes:
                                 del(mtypes[mtype2])
 
-            self._log.debug("declareSubscriptions: subscriptions accepted from %s => %s" % (private_key, str(mtypes)))
+            log.debug("declareSubscriptions: subscriptions accepted from %s => %s" % (private_key, str(mtypes)))
 
             for mtype in mtypes:
 
@@ -1046,11 +1036,11 @@ class SAMPHubServer(object):
             client_private_key = self._getPrivateKeyFromPublicId(client_id)
             if client_private_key != None:
                 if client_private_key in self._id2mtypes:
-                    self._log.debug("getSubscriptions: client-id = %s mtypes = %s" %
+                    log.debug("getSubscriptions: client-id = %s mtypes = %s" %
                                     (client_id, str(self._id2mtypes[client_private_key])))
                     return self._id2mtypes[client_private_key]
                 else:
-                    self._log.debug("getSubscriptions: client-id = %s mtypes = missing" % client_id)
+                    log.debug("getSubscriptions: client-id = %s mtypes = missing" % client_id)
                     return {}
             else:
                 raise SAMPProxyError(6, "Invalid client ID")
@@ -1066,7 +1056,7 @@ class SAMPHubServer(object):
             for pkey in self._private_keys.keys():
                 if pkey != private_key:
                     reg_clients.append(self._private_keys[pkey][0])
-            self._log.debug("getRegisteredClients: private_key = %s clients = %s" % (private_key, reg_clients))
+            log.debug("getRegisteredClients: private_key = %s clients = %s" % (private_key, reg_clients))
             return reg_clients
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
@@ -1082,7 +1072,7 @@ class SAMPHubServer(object):
                 if pkey != private_key and self._isSubscribed(pkey, mtype):
                     sub_clients[self._private_keys[pkey][0]] = {}
 
-            self._log.debug("getSubscribedClients: private_key = %s mtype = %s clients = %s" %
+            log.debug("getSubscribedClients: private_key = %s mtype = %s clients = %s" %
                             (private_key, mtype, sub_clients))
             return sub_clients
         else:
@@ -1157,7 +1147,7 @@ class SAMPHubServer(object):
         if sender_private_key in self._private_keys:
             sender_public_id = self._private_keys[sender_private_key][0]
             try:
-                self._log.debug("notify %s from %s to %s" % (message["samp.mtype"], sender_public_id, recipient_public_id))
+                log.debug("notify %s from %s to %s" % (message["samp.mtype"], sender_public_id, recipient_public_id))
                 recipient_private_key = self._getPrivateKeyFromPublicId(recipient_public_id)
                 if recipient_private_key != None:
                     for attempt in range(10):
@@ -1176,12 +1166,12 @@ class SAMPHubServer(object):
                                 err = StringIO()
                                 traceback.print_exc(file=err)
                                 txt = err.getvalue()
-                                self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
+                                log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
                                 time.sleep(0.01)
                 else:
                     raise SAMPProxyError(6, "Invalid client ID")
             except:
-                self._log.warning("%s notification from client %s to client %s failed\n" % (message["samp.mtype"], sender_public_id, recipient_public_id))
+                warnings.warn("%s notification from client %s to client %s failed\n" % (message["samp.mtype"], sender_public_id, recipient_public_id), SAMPWarning)
 
     def _notifyAll(self, private_key, message):
         self._updateLastActivityTime(private_key)
@@ -1229,7 +1219,7 @@ class SAMPHubServer(object):
     def _call_(self, sender_private_key, sender_public_id, recipient_public_id, msg_id, message):
         if sender_private_key in self._private_keys:
             try:
-                self._log.debug("call %s from %s to %s (%s)" % (msg_id.split(";;")[0], sender_public_id, recipient_public_id, message["samp.mtype"]))
+                log.debug("call %s from %s to %s (%s)" % (msg_id.split(";;")[0], sender_public_id, recipient_public_id, message["samp.mtype"]))
                 recipient_private_key = self._getPrivateKeyFromPublicId(recipient_public_id)
                 if recipient_private_key != None:
                     for attempt in range(10):
@@ -1248,12 +1238,12 @@ class SAMPHubServer(object):
                                 err = StringIO()
                                 traceback.print_exc(file=err)
                                 txt = err.getvalue()
-                                self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
+                                log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
                                 time.sleep(0.01)
                 else:
                     raise SAMPProxyError(6, "Invalid client ID")
             except:
-                self._log.warning("%s call %s from client %s to client %s failed\n" % (message["samp.mtype"], msg_id.split(";;")[0], sender_public_id, recipient_public_id))
+                warnings.warn("%s call %s from client %s to client %s failed\n" % (message["samp.mtype"], msg_id.split(";;")[0], sender_public_id, recipient_public_id), SAMPWarning)
 
     def _callAll(self, private_key, msg_tag, message):
         self._updateLastActivityTime(private_key)
@@ -1330,7 +1320,7 @@ class SAMPHubServer(object):
                 recipient_msg_tag = msg_id.split(";;", 3)
 
             try:
-                self._log.debug("reply %s from %s to %s" % (counter, responder_public_id, recipient_public_id))
+                log.debug("reply %s from %s to %s" % (counter, responder_public_id, recipient_public_id))
                 if recipient_msg_tag == "sampy::sync::call":
                     if msg_id in self._sync_msg_ids_heap.keys():
                         self._sync_msg_ids_heap[msg_id] = response
@@ -1354,12 +1344,12 @@ class SAMPHubServer(object):
                                     err = StringIO()
                                     traceback.print_exc(file=err)
                                     txt = err.getvalue()
-                                    self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
+                                    log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
                                     time.sleep(0.01)
                     else:
                         raise SAMPProxyError(6, "Invalid client ID")
             except:
-                self._log.warning("%s reply from client %s to client %s failed\n" % (recipient_msg_tag, responder_public_id, recipient_public_id))
+                warnings.warn("%s reply from client %s to client %s failed\n" % (recipient_msg_tag, responder_public_id, recipient_public_id), SAMPWarning)
 
     def _getPrivateKeyFromPublicId(self, public_id):
 
@@ -1711,13 +1701,13 @@ def main(timeout=0):
 
             if options.access_restrict != None:
                 if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
-                    log.warning("The access cannot be restricted to the owner if the owner "
-                                "name is not specified!")
+                    warnings.warn("The access cannot be restricted to the owner if the owner "
+                                "name is not specified!", SAMPWarning)
                     sys.exit()
 
                 if options.access_restrict == SAMP_RESTRICT_GROUP and options.owner_group == "":
-                    log.warning("The access cannot be restricted to the owner group if the owner "
-                                "group name is not specified!")
+                    warnings.warn("The access cannot be restricted to the owner group if the owner "
+                                "group name is not specified!", SAMPWarning)
                     sys.exit()
 
         args = copy.deepcopy(options.__dict__)

@@ -1176,7 +1176,7 @@ class SAMPClient(object):
             if SSL_SUPPORT and https:
                 self.client = SecureXMLRPCServer((self._addr or self._host_name, self._port),
                                                  keyfile, certfile, cert_reqs, ca_certs, ssl_version,
-                                                 self._log, logRequests=False, allow_none=True)
+                                                 log, logRequests=False, allow_none=True)
             else:
                 self.client = ThreadingXMLRPCServer((self._addr or self._host_name,
                                                      self._port), logRequests=False, allow_none=True)

@@ -9,6 +9,8 @@ import platform
 import socket
 import sys
 import traceback
+import warnings
+
 from ...extern.six.moves import queue
 from ...extern.six.moves import socketserver
 from ...extern.six import StringIO, PY2, PY3
@@ -72,7 +74,7 @@ else:
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from .constants import SAMP_STATUS_ERROR, SAMPY_ICON
-
+from .errors import SAMPWarning
 
 def internet_on():
     try:
@@ -82,7 +84,7 @@ def internet_on():
         pass
     return False
 
-__all__ = ["SAMPLog", "SAMPMsgReplierWrapper"]
+__all__ = ["SAMPMsgReplierWrapper"]
 
 __doctest_skip__ = ['.']
 
@@ -293,150 +295,6 @@ class SAMPMsgReplierWrapper(object):
                                         "samp.result": {"txt": txt}})
 
         return wrapped_f
-
-
-class SAMPLog(object):
-
-    """SAMP Hub logging class.
-
-    Provides methods for gracefully print SAMPy logging messages.
-    """
-
-    #: Disable logging at all
-    OFF = 0
-    #: Log error messages only
-    ERROR = 1
-    #: Log errors and warnings
-    WARNING = 2
-    #: Log info, warning and error messages
-    INFO = 3
-    #: Log everything for debugging
-    DEBUG = 4
-
-    def __init__(self, level=INFO, stdout=sys.stdout, stderr=sys.stderr, prefix="SAMP"):
-        """
-        Log class constructor.
-
-        @param level: logging level (one among L{OFF}, L{ERROR}, L{WARNING},
-        L{INFO} and L{DEBUG}). By default it is set to L{INFO}.
-        @type level: int
-
-        @param stdout: file-like output device. By default it is set to sys.stdout.
-        @type stdout: file
-
-        @param stderr: file-like error device. By default it is set to sys.stderr.
-        @type stderr: file
-
-        @param prefix: prefix string to logging messages ("SAMP" by default)
-        @type prefix: string
-        """
-        self._level = level
-        self._stdout = stdout
-        self._stderr = stderr
-        self._prefix = prefix
-
-    def setLevel(self, level):
-        """
-        Set the logging level.
-
-        @param level: one among L{OFF}, L{ERROR}, L{WARNING}, L{INFO} and L{DEBUG}.
-        @type level: int
-        """
-        self._level = level
-
-    def getLevel(self):
-        """
-        Return the current logging level.
-
-        @return: the current logging level. See L{setLevel}.
-        @rtype: int
-        """
-        return self._level
-
-    def translateLevel(self, level):
-        """
-        Translate a logging level from the numeric form to a string form and vice versa.
-        For example: L{ERROR} is translated in C{"ERROR"} string and vice versa.
-
-        @param level: the logging level to be translated
-        @type level: int/str
-
-        @return: the logging level traslated from the numeric form to the string form and vice versa.
-        @rtype: int/str
-        """
-
-        if isinstance(level, int):
-            if level == SAMPLog.OFF:
-                return "OFF"
-            elif level == SAMPLog.INFO:
-                return "INFO"
-            elif level == SAMPLog.ERROR:
-                return "ERROR"
-            elif level == SAMPLog.WARNING:
-                return "WARNING"
-            elif level == SAMPLog.DEBUG:
-                return "DEBUG"
-        elif isinstance(level, str):
-            if level.upper() == "OFF":
-                return SAMPLog.OFF
-            elif level.upper() == "INFO":
-                return SAMPLog.INFO
-            elif level.upper() == "ERROR":
-                return SAMPLog.ERROR
-            elif level.upper() == "WARNING":
-                return SAMPLog.WARNING
-            elif level.upper() == "DEBUG":
-                return SAMPLog.DEBUG
-        else:
-            return None
-
-    def info(self, message):
-        """
-        Log an INFO message.
-
-        @param message: the message to be logged
-        @type message: string
-        """
-        if self._level >= self.INFO:
-            self._stdout.write('[%s] Info    (%s): %s\n' %
-                               (self._prefix, datetime.datetime.now().isoformat(), message))
-            self._stdout.flush()
-
-    def error(self, message):
-        """
-        Log an ERROR message.
-
-        @param message: the message to be logged
-        @type message: string
-        """
-        if self._level >= self.ERROR:
-            self._stderr.write('[%s] Error   (%s): %s\n' %
-                               (self._prefix, datetime.datetime.now().isoformat(), message))
-            self._stderr.flush()
-
-    def warning(self, message):
-        """
-        Log a WARNING message.
-
-        @param message: the message to be logged
-        @type message: string
-        """
-        if self._level >= self.WARNING:
-            self._stderr.write('[%s] Warning (%s): %s\n' %
-                               (self._prefix, datetime.datetime.now().isoformat(), message))
-            self._stderr.flush()
-
-    def debug(self, message):
-        """
-        Log a DEBUG message.
-
-        @param message: the message to be logged
-        @type message: string
-        """
-        if self._level >= self.DEBUG:
-            self._stdout.write('[%s] Debug   (%s): %s\n' %
-                               (self._prefix, datetime.datetime.now().isoformat(), message))
-            self._stdout.flush()
 
 
 class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
@@ -660,7 +518,7 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
         if self.log == None:
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
-            self.log.warning("Exception happened during processing of request from %s: %s" % (client_address, sys.exc_info()[1]))
+            warnings.warn("Exception happened during processing of request from %s: %s" % (client_address, sys.exc_info()[1]), SAMPWarning)
 
 
 class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
