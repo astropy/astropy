@@ -5,14 +5,9 @@ import glob
 import os
 import sys
 
-import setuptools_bootstrap
+import ah_bootstrap
+ah_bootstrap.use_astropy_helpers()
 from setuptools import setup
-
-# TODO: Any code related to getting astropy_helpers on sys.path will be moved
-# into an astropy_helpers bootstrap script that will also handle the details of
-# *where* to get astropy_helpers: Via submodule sync in source repository
-# clones, or via setuptools setup_requires
-sys.path.insert(1, 'astropy_helpers')
 
 #A dirty hack to get around some early import/configurations ambiguities
 if sys.version_info[0] >= 3:
@@ -20,8 +15,6 @@ if sys.version_info[0] >= 3:
 else:
     import __builtin__ as builtins
 builtins._ASTROPY_SETUP_ = True
-
-from distutils.dist import Distribution
 
 import astropy
 from astropy_helpers.setup_helpers import (
