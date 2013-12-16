@@ -29,12 +29,6 @@ except ImportError:
 else:
     SSL_SUPPORT = True
 
-try:
-    from ..extern.six.moves import tkinter as tk
-    HAS_TKINTER = True
-except:
-    HAS_TKINTER = False
-
 
 PYTHON_VERSION = float(platform.python_version()[:3])
 
@@ -126,127 +120,61 @@ class ServerProxyPool(object):
         return _ServerProxyPoolMethod(self._proxies, name)
 
 
-if HAS_TKINTER:
-    class WebProfilePopupDialogue(tk.Tk):
+class WebProfilePopupDialogue(object):
 
-        """Pop-up dialog (Tkinter backend) which asks the user to consent
-        or reject a connection through the WebProfile.
-        """
+    """Terminal dialog (no backend) which asks the user to consent
+    or reject a connection through the WebProfile
+    """
 
-        def __init__(self, queue, screenName=None, baseName=None, className='Tk',
-                     useTk=1, sync=0, use=None):
+    def __init__(self, queue):
 
-            tk.Tk.__init__(self, screenName, baseName, className,
-                           useTk, sync, use)
+        self._queue = queue
 
-            self._queue = queue
+    def showPopup(self, request):
 
-            self.title("SAMP Hub")
-            self._text = tk.Label(self, font=("Helvetica", 14),
-                                  fg="red", justify=tk.CENTER)
-            self._text.pack(padx=5, pady=5, expand=1, fill=tk.X,)
+        samp_name = "unknown"
 
-            a = tk.Button(self, text="CONSENT", command=self._consent)
-            a.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.LEFT)
+        if isinstance(request[0], str):
+            # To support the old protocol version
+            samp_name = request[0]
+        else:
+            samp_name = request[0]["samp.name"]
 
-            r = tk.Button(self, text="REJECT", command=self._reject)
-            r.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.RIGHT)
+        self.cls()
 
-            self.protocol("WM_DELETE_WINDOW", self._reject)
+        text = \
+            """A Web application which declares to be
 
-            self.withdraw()
+Name: %s
+Origin: %s
 
-        def showPopup(self, request):
+is requesting to be registered with the SAMP Hub.
+Pay attention that if you permit its registration, such
+application will acquire all current user privileges, like
+file read/write.
 
-            samp_name = "unknown"
+Do you give your consent? [yes|no]
+""" % (samp_name, request[2])
 
-            if isinstance(request[0], str):
-        # To support the old protocol version
-                samp_name = request[0]
-            else:
-                samp_name = request[0]["samp.name"]
+        print (text)
+        self.beep()
 
-            text = \
-                """A Web application which declares to be
+        answer = raw_input("[no] >>> ")
+        if answer.lower() in ["yes", "y"]:
+            print("OK!")
+            self._consent()
+        else:
+            print("REJECTED!")
+            self._reject()
 
-  Name: %s
-  Origin: %s
+    def _consent(self):
+        self._queue.put(True)
 
-  is requesting to be registered with the SAMP Hub.
-  Pay attention that if you permit its registration, such
-  application will acquire all current user privileges, like
-  file read/write.
+    def _reject(self):
+        self._queue.put(False)
 
-  Do you give your consent?""" % (samp_name, request[2])
-
-            self._text.configure(text=text)
-            self.deiconify()
-
-        def _consent(self):
-            self._queue.put(True)
-            self.withdraw()
-
-        def _reject(self):
-            self._queue.put(False)
-            self.withdraw()
-
-else:
-
-    class WebProfilePopupDialogue(object):
-
-        """Terminal dialog (no backend) which asks the user to consent
-        or reject a connection through the WebProfile
-        """
-
-        def __init__(self, queue):
-
-            self._queue = queue
-
-        def showPopup(self, request):
-
-            samp_name = "unknown"
-
-            if isinstance(request[0], str):
-                # To support the old protocol version
-                samp_name = request[0]
-            else:
-                samp_name = request[0]["samp.name"]
-
-            self.cls()
-
-            text = \
-                """A Web application which declares to be
-
-  Name: %s
-  Origin: %s
-
-  is requesting to be registered with the SAMP Hub.
-  Pay attention that if you permit its registration, such
-  application will acquire all current user privileges, like
-  file read/write.
-
-  Do you give your consent? [yes|no]
-  """ % (samp_name, request[2])
-
-            print (text)
-            self.beep()
-
-            answer = raw_input("[no] >>> ")
-            if answer.lower() in ["yes", "y"]:
-                print("OK!")
-                self._consent()
-            else:
-                print("REJECTED!")
-                self._reject()
-
-        def _consent(self):
-            self._queue.put(True)
-
-        def _reject(self):
-            self._queue.put(False)
-
-        def update(self):
-            pass
+    def update(self):
+        pass
 
 
 class SAMPMsgReplierWrapper(object):
