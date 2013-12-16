@@ -212,7 +212,7 @@ Bug Fixes
 
 - ``astropy.modeling``
 
-  - Fixed bug in computation of model derivatives in `LinearLSQFitter`. [#1900]
+  - Fixed bug in computation of model derivatives in `LinearLSQFitter`. [#1903]
 
 - ``astropy.nddata``
 
