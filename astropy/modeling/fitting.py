@@ -40,14 +40,14 @@ DEFAULT_MIN_BOUND = -10 ** 12
 
 
 def _convert_input(x, y, z=None):
-    x = np.asarray(x)
-    y = np.asarray(y)
+    x = np.asarray(x, dtype=np.float)
+    y = np.asarray(y, dtype=np.float)
     if x.shape[0] != y.shape[0]:
         raise ValueError("x and y should have the same shape")
     if z is None:
         farg = (x, y)
     else:
-        z = np.asarray(z)
+        z = np.asarray(z, dtype=np.float)
         if x.shape != z.shape:
             raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
@@ -183,9 +183,9 @@ class LinearLSQFitter(Fitter):
     @staticmethod
     def _deriv_with_constraints(model, param_indices, x=None, y=None):
         if y is None:
-            d = np.array(model.deriv(x=x))
+            d = np.array(model.deriv(x, *model.parameters))
         else:
-            d = np.array(model.deriv(x=x, y=y))
+            d = np.array(model.deriv(x, y, *model.parameters))
 
         if model.col_deriv:
             return d[param_indices]
@@ -274,7 +274,7 @@ class LinearLSQFitter(Fitter):
                                                    fitparam_indices,
                                                    x=x)
             else:
-                lhs = model_copy.deriv(x=x)
+                lhs = model_copy.deriv(x, *model_copy.parameters)
             if len(y.shape) == 2:
                 rhs = y
                 multiple = y.shape[1]
@@ -293,13 +293,15 @@ class LinearLSQFitter(Fitter):
                 lhs = self._deriv_with_constraints(model_copy,
                                                    fitparam_indices, x=x, y=y)
             else:
-                lhs = model_copy.deriv(x=x, y=y)
+                lhs = model_copy.deriv(x, y, *model_copy.parameters)
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]
             else:
                 rhs = z.flatten()
-
+        # If the derivative is defined along rows (as with non-linear models)
+        if model_copy.col_deriv:
+            lhs = np.asarray(lhs).T
         if weights is not None:
             weights = np.asarray(weights, dtype=np.float)
             if len(x) != len(weights):
@@ -618,7 +620,7 @@ class SLSQPFitter(Fitter):
         p0, param_indices = model_copy._model_to_fit_params()
         pars = [getattr(model_copy, name) for name in model_copy.param_names]
         bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
-        
+
         bounds = np.asarray(bounds)
         for i in bounds:
             if i[0] is None:
@@ -628,7 +630,7 @@ class SLSQPFitter(Fitter):
         # older versions of scipy require this array to be float
         bounds = np.asarray(bounds, dtype=np.float)
         eqcons = np.array(model_copy.eqcons)
-        ineqcons = np.array(model_copy.ineqcons) 
+        ineqcons = np.array(model_copy.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
             self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
