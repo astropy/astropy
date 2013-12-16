@@ -65,6 +65,9 @@ New Features
     <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
     has been added. [#377]
 
+  - :func:`astropy.units.equivalencies.spectral` can now handle angular
+    wave number. [#1306 and #1899]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
