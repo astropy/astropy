@@ -458,6 +458,9 @@ Python 2                       Python 3                       six
 The above table holds true, analogously, for ``values``, ``keys``,
 ``zip``, ``range`` and ``map``.
 
+Note that for keys only, ``list(d)`` is an acceptable shortcut to
+``list(six.iterkeys(d))``.
+
 Issues with ``\u`` escapes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
