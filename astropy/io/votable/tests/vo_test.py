@@ -127,7 +127,7 @@ def _test_regression(_python_based=False, binary_mode=1):
         new_dtypes = []
         for dtype in dtypes:
             dtype = list(dtype)
-            dtype[1] = dtype[1].replace(b'<', b'>')
+            dtype[1] = dtype[1].replace(str('<'), str('>'))
             new_dtypes.append(tuple(dtype))
         dtypes = new_dtypes
     assert table.array.dtype == dtypes
