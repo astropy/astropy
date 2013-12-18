@@ -140,7 +140,7 @@ def test_to_string_radian_with_precision():
     assert a.to_string(precision=3, sep='fromunit') == '3.000rad'
 
 
-def test_segagesimal_round_down():
+def test_sexagesimal_round_down():
     from .. import ICRS
     c = ICRS(1, 2, unit=('deg', 'deg'))
     assert c.to_string() == '0h04m00s 2d00m00s'
