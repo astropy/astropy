@@ -25,31 +25,26 @@ def test_fk4_no_e_fk5():
 
     t = Table.read(os.path.join(ROOT, 'fk4_no_e_fk4.csv'), format='ascii')
 
-    for i in range(len(t)):
+    # FK4 to FK5
+    c1 = FK4(t['ra_in'], t['dec_in'],
+             unit=(u.degree, u.degree),
+             obstime=Time(t['obstime'], scale='utc'))
+    c2 = c1.transform_to(FK4NoETerms)
 
-        # Extract row
-        r = t[i]
+    # Find difference
+    diff = angular_separation(c2.ra.radian, c2.dec.radian,
+                              np.radians(t['ra_fk4ne']), np.radians(t['dec_fk4ne']))
 
-        # FK4 to FK5
-        c1 = FK4(r['ra_in'], r['dec_in'],
-                            unit=(u.degree, u.degree),
-                            obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK4NoETerms)
+    assert np.all(np.degrees(diff) * 3600. < TOLERANCE)
 
-        # Find difference
-        diff = angular_separation(c2.ra.radian, c2.dec.radian,
-                                    np.radians(r['ra_fk4ne']), np.radians(r['dec_fk4ne']))
+    # FK5 to FK4
+    c1 = FK4NoETerms(t['ra_in'], t['dec_in'],
+                     unit=(u.degree, u.degree),
+                     obstime=Time(t['obstime'], scale='utc'))
+    c2 = c1.transform_to(FK4)
 
-        assert np.degrees(diff) * 3600. < TOLERANCE
+    # Find difference
+    diff = angular_separation(c2.ra.radian, c2.dec.radian,
+                              np.radians(t['ra_fk4']), np.radians(t['dec_fk4']))
 
-        # FK5 to FK4
-        c1 = FK4NoETerms(r['ra_in'], r['dec_in'],
-                                   unit=(u.degree, u.degree),
-                                   obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK4)
-
-        # Find difference
-        diff = angular_separation(c2.ra.radian, c2.dec.radian,
-                                    np.radians(r['ra_fk4']), np.radians(r['dec_fk4']))
-
-        assert np.degrees(diff) * 3600. < TOLERANCE
+    assert np.all(np.degrees(diff) * 3600. < TOLERANCE)
