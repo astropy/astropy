@@ -24,11 +24,11 @@ New Features
     now possible to specify the table alignment within the text via the
     ``tablealign`` keyword. [#1838]
 
-  - If ``header_start`` is specified in a call to ``ascii.get_reader`` or any 
+  - If ``header_start`` is specified in a call to ``ascii.get_reader`` or any
     method that calls ``get_reader`` (e.g. ``ascii.read``) but ``data_start``
     is not specified at the same time, then ``data_start`` is calculated so
-    that the data starts after the header. Before this, the default was 
-    that the header line was read again as the first data line 
+    that the data starts after the header. Before this, the default was
+    that the header line was read again as the first data line
     [#855 and #1844].
 
 - ``astropy.io.fits``
@@ -190,6 +190,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where sexagesimal notation would sometimes include
+    exponential notation in the last field. [#1908, #1913]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -249,7 +252,7 @@ Bug Fixes
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
-  
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
