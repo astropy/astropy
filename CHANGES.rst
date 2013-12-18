@@ -214,6 +214,8 @@ Bug Fixes
 
   - Fixed bug in computation of model derivatives in `LinearLSQFitter`. [#1903]
 
+  - Raise a `NotImplementedError` when fitting composite models. [#1914]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
