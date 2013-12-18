@@ -444,7 +444,7 @@ class NonLinearLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
-            raise NotImplementedError("Fitting of composite models is not implemented in 0.3.")
+            raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
         self._validate_constraints(model)
@@ -602,7 +602,7 @@ class SLSQPFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
-            raise NotImplementedError("Fitting of composite models is not implemented in 0.3.")
+            raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
         if model.linear:
