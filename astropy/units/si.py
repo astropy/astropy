@@ -148,7 +148,7 @@ def_unit(['eV', 'electronvolt'], _si.e.value * J, namespace=_ns, prefixes=True,
          doc="Electron Volt")
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, namespace=_ns, prefixes=True,
          doc="Pascal: pressure")
-def_unit(['bar'], 100 * Pa, namespace=_ns,
+def_unit(['bar'], 1e5 * Pa, namespace=_ns,
          doc="bar: pressure")
 
 

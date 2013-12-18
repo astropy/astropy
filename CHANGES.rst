@@ -68,6 +68,9 @@ Bug Fixes
 
   - Fix error for inplace operations on non-contiguous quantities [#1834].
 
+  - The definition of the unit `bar` has been corrected to `1e5
+    Pascal` from `100 Pascal` [#1910]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
