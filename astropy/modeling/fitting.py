@@ -25,7 +25,7 @@ import numpy as np
 from ..logger import log
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
-
+from .core import _CompositeModel
 
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
@@ -443,6 +443,8 @@ class NonLinearLSQFitter(Fitter):
         model_copy : `ParametricModel`
             a copy of the input model with parameters set by the fitter
         """
+        if isinstance(model, _CompositeModel):
+            raise NotImplementedError("Fitting of composite models is not implemented in 0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
         self._validate_constraints(model)
@@ -599,6 +601,8 @@ class SLSQPFitter(Fitter):
         model_copy : `ParametricModel`
             a copy of the input model with parameters set by the fitter
         """
+        if isinstance(model, _CompositeModel):
+            raise NotImplementedError("Fitting of composite models is not implemented in 0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
         if model.linear:
