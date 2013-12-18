@@ -24,11 +24,11 @@ New Features
     now possible to specify the table alignment within the text via the
     ``tablealign`` keyword. [#1838]
 
-  - If ``header_start`` is specified in a call to ``ascii.get_reader`` or any 
+  - If ``header_start`` is specified in a call to ``ascii.get_reader`` or any
     method that calls ``get_reader`` (e.g. ``ascii.read``) but ``data_start``
     is not specified at the same time, then ``data_start`` is calculated so
-    that the data starts after the header. Before this, the default was 
-    that the header line was read again as the first data line 
+    that the data starts after the header. Before this, the default was
+    that the header line was read again as the first data line
     [#855 and #1844].
 
 - ``astropy.io.fits``
@@ -248,10 +248,13 @@ Bug Fixes
 
   - Fix error for inplace operations on non-contiguous quantities [#1834].
 
+  - The definition of the unit `bar` has been corrected to `1e5
+    Pascal` from `100 Pascal` [#1910]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
-  
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
