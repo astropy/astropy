@@ -141,11 +141,17 @@ def test_unknown_unit():
     assert 'FOO' in str(warning_lines[0].message)
 
 
-def test_unknown_unit2():
+def test_multiple_solidus():
+    assert u.Unit("m/s/kg").to_string() == u.m / u.s / u.kg
+
     with catch_warnings(u.UnitsWarning) as warning_lines:
-        assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
+        assert u.Unit("m/s/kg").to_string() == u.m / (u.s * u.kg)
 
     assert 'm/s/kg' in str(warning_lines[0].message)
+    assert 'discouraged' in str(warning_lines[0].message)
+
+    with pytest.raises(ValueError):
+        u.Unit("m/s/kg", format="vounit")
 
 
 def test_unknown_unit3():
@@ -273,7 +279,7 @@ def test_equiv_compose():
 
 
 def test_empty_compose():
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         composed = u.m.compose(units=[])
 
 
@@ -479,7 +485,7 @@ def test_comparison():
     assert u.cm < u.m
     assert u.cm <= u.m
 
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         u.m > u.kg
 
 

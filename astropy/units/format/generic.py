@@ -11,6 +11,7 @@ from ...extern import six
 
 import os
 import re
+import warnings
 
 from . import utils
 from .base import Base
@@ -141,10 +142,14 @@ class Generic(Base):
 
         def p_division_product_of_units(p):
             '''
-            division_product_of_units : product_of_units division unit_expression
+            division_product_of_units : division_product_of_units division product_of_units
+                                      | product_of_units
             '''
             from ..core import Unit
-            p[0] = Unit(p[1] / p[3])
+            if len(p) == 4:
+                p[0] = Unit(p[1] / p[3])
+            else:
+                p[0] = p[1]
 
         def p_inverse_unit(p):
             '''
@@ -357,6 +362,16 @@ class Generic(Base):
         if not isinstance(s, six.text_type):
             s = s.decode('ascii')
 
+        result = self._do_parse(s, debug=debug)
+        if s.count('/') > 1:
+            from ..core import UnitsWarning
+            warnings.warn(
+                "'{0}' contains multiple slashes, which is "
+                "discouraged by the FITS standard".format(s),
+                UnitsWarning)
+        return result
+
+    def _do_parse(self, s, debug=False):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:

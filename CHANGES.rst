@@ -275,6 +275,13 @@ Bug Fixes
     example due to differences in case, the exception will now include
     recommendations. [#1870]
 
+  - The generic and FITS unit parsers now accept multiple slashes in
+    the unit string.  There are multiple ways to interpret them, but
+    the approach taken here is to convert "m/s/kg" to "m s-1 kg-1".
+    Multiple slashes are accepted, but discouraged, by the FITS
+    standard, due to the ambiguity of parsing, so a warning is raised
+    when it is encountered. [#1911]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]

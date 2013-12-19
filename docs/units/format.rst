@@ -179,10 +179,12 @@ parse.
 
 Normally, passing an unrecognized unit string raises an exception::
 
-  >>> u.Unit("m/s/s")  # The FITS standard only allows one '/'
+  >>> # The FITS standard uses 'angstrom', not 'Angstroem'
+  >>> u.Unit("Angstroem", format="fits")
   Traceback (most recent call last):
     ...
-  ValueError: 'm/s/s' did not parse as unit: Syntax error
+  ValueError: 'Angstroem' did not parse as unit format 'fits': At col
+  0, 'Angstroem' is not a valid unit in string 'Angstroem'
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
 argument `parse_strict` that can take one of three values to control
@@ -198,24 +200,25 @@ this behavior:
 
 So, for example, one can do::
 
-   >>> x = u.Unit("m/s/s", parse_strict="warn")  # doctest: +SKIP
-   WARNING: UnitsWarning: 'm/s/s' did not parse as unit: Syntax error
-   [astropy.units.core]
+   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")
+   WARNING: UnitsWarning: 'Angstroem' did not parse as unit format
+   'fits': At col 0, 'Angstroem' is not a valid unit in string
+   'Angstroem' [astropy.units.core]
 
 This `~astropy.units.core.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
-   >>> x.to_string()  # doctest: +SKIP
-   'm/s/s'
-   >>> x.to(u.km / u.s / u.s)  # doctest: +SKIP
+   >>> x.to_string()
+   'Angstroem'
+   >>> x.to(u.km)
    Traceback (most recent call last):
      ...
-   ValueError: The unit 'm/s/s' is unrecognized.  It can not be
+   ValueError: The unit 'Angstroem' is unrecognized.  It can not be
    converted to other units.
-   >>> x / u.m  # doctest: +SKIP
+   >>> x / u.m
    Traceback (most recent call last):
      ...
-   ValueError: The unit 'm/s/s' is unrecognized, so all arithmetic
+   ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
    operations with it are invalid.
