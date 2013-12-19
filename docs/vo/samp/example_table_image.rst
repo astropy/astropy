@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 .. _vo-samp-example_table:
 
 .. doctest-skip-all
@@ -26,9 +28,8 @@ Sending a table to TOPCAT and Ds9
 =================================
 
 The easiest way to send a VO table to TOPCAT is to make use of the
-`~astropy.vo.samp.SAMPIntegratedClient` class. Once TOPCAT is open, then first
-instantiate a `~astropy.vo.samp.SAMPIntegratedClient` instance and connect to
-the hub::
+|SAMPIntegratedClient| class. Once TOPCAT is open, then first instantiate a
+|SAMPIntegratedClient| instance and connect to the hub::
 
     >>> from astropy.vo.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -58,15 +59,17 @@ and the details of the table that we set above::
     >>> message["samp.params"] = params
 
 Finally, we can broadcast this to all clients that are listening for
-``table.load.votable`` messages::
+``table.load.votable`` messages using
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.notifyAll`::
 
     >>> client.notifyAll(message)
 
 The above message will actually be broadcast to all applications connected via
 SAMP. For example, if we open `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_ in
 addition to TOPCAT, and we run the above command, both applications will load
-the table. We can use the ``getRegisteredClients`` method to find all the
-clients connected to the hub::
+the table. We can use the
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.getRegisteredClients` method to
+find all the clients connected to the hub::
 
     >>> client.getRegisteredClients()
     ['hub', 'c1', 'c2']
@@ -85,11 +88,12 @@ These IDs don't mean much, but we can find out more using::
     'topcat.version': '4.0-1'}
 
 We can see that ``c1`` is the TOPCAT client. We can now re-send the data, but
-this time only to TOPCAT, using::
+this time only to TOPCAT, using the
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.notify` method::
 
     >>> client.notify('c1', message)
 
-Once finished, we should make sure we disconnect from the hub:
+Once finished, we should make sure we disconnect from the hub::
 
     >>> client.disconnect()
 
@@ -97,8 +101,8 @@ Receiving a table from TOPCAT
 =============================
 
 To receive a table from TOPCAT, we have to set up a client that listens for
-messages from the hub. As before, we instantiate a
-`~astropy.vo.samp.SAMPIntegratedClient` instance and connect to the hub::
+messages from the hub. As before, we instantiate a |SAMPIntegratedClient|
+instance and connect to the hub::
 
     >>> from astropy.vo.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -117,8 +121,9 @@ and we instantiate it:
 
     >>> r = Receiver()
 
-We can now use the ``bindReceiveCall`` method to tell our receiver to listed to
-all ``table.load.votable`` messages::
+We can now use the
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.bindReceiveCall` method to tell
+our receiver to listed to all ``table.load.votable`` messages::
 
     >>> client.bindReceiveCall("table.load.votable", r.receive_call)
 
@@ -200,9 +205,8 @@ Sending an image to Ds9 and Aladin
 ==================================
 
 As for tables, the easiest way to send a FITS image over SAMP is to make use of
-the :class:`~astropy.vo.samp.SAMPIntegratedClient` class. Once Aladin or Ds9 are open,
-then first instantiate a :class:`~astropy.vo.samp.SAMPIntegratedClient` instance and
-connect to the hub as before::
+the |SAMPIntegratedClient| class. Once Aladin or Ds9 are open, then first
+instantiate a |SAMPIntegratedClient| instance and connect to the hub as before::
 
     >>> from astropy.vo.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -235,7 +239,7 @@ As for `Sending a table to TOPCAT and Ds9`_, the ``notifyAll`` method will
 broadcast the image to all listening clients, and as for tables it is possible
 to instead use the `notify` method to send it to a specific client.
 
-Once finished, we should make sure we disconnect from the hub:
+Once finished, we should make sure we disconnect from the hub::
 
     >>> client.disconnect()
 
