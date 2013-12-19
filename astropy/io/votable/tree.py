@@ -1970,6 +1970,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         warn_unknown_attrs('TABLE', six.iterkeys(extra), config, pos)
 
+    def __repr__(self):
+        return repr(self.to_table())
+
+    def __bytes__(self):
+        return bytes(self.to_table())
+    if six.PY2:
+        __str__ = __bytes__
+
+    def __unicode__(self):
+        return six.text_type(self.to_table())
+    if six.PY3:
+        __str__ = __unicode__
+
     @property
     def ref(self):
         return self._ref

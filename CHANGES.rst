@@ -213,6 +213,11 @@ Bug Fixes
     1.3).  The kwarg is still accepted but it will be ignored, and a
     warning is emitted. [#1809]
 
+  - Printing out a `astropy.io.votable.tree.Table` object using `repr`
+    or `str` now uses the pretty formatting in `astropy.table`, so
+    it's possible to easily preview the contents of a
+    `VOTable`. [#1766]
+
 - ``astropy.modeling``
 
   - Fixed bug in computation of model derivatives in `LinearLSQFitter`. [#1903]
