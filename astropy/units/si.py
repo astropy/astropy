@@ -168,7 +168,7 @@ def_unit(['C', 'coulomb'], A * s, namespace=_ns, prefixes=True,
          doc="coulomb: electric charge")
 def_unit(['V', 'Volt', 'volt'], J * C ** -1, namespace=_ns, prefixes=True,
          doc="Volt: electric potential or electromotive force")
-def_unit(['Ohm', 'ohm'], V * A ** -1, namespace=_ns, prefixes=True,
+def_unit((['Ohm', 'ohm'], ['Ohm']), V * A ** -1, namespace=_ns, prefixes=True,
          doc="Ohm: electrical resistance",
          format={'latex': r'\Omega', 'unicode': 'Ω'})
 def_unit(['S', 'Siemens', 'siemens'], A * V ** -1, namespace=_ns,
