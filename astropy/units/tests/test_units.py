@@ -554,3 +554,9 @@ def test_suggestions():
             assert 'Did you mean {0}?'.format(matches) in six.text_type(e)
         else:
             assert False, 'Expected ValueError'
+
+
+def test_fits_hst_unit():
+    """See #1911."""
+    x = u.Unit("erg /s /cm**2 /angstrom")
+    assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1

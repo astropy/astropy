@@ -282,6 +282,11 @@ Bug Fixes
     standard, due to the ambiguity of parsing, so a warning is raised
     when it is encountered. [#1911]
 
+  - The use of ``angstrom`` (with a lower case ``a``) is now accepted
+    in FITS unit strings, since it is in common usage.  However, since
+    it is not officially part of the FITS standard, a warning will be
+    issued when it is encountered.  [#1911]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]

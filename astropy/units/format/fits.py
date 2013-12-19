@@ -68,7 +68,7 @@ class Fits(generic.Generic):
             'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan', 'bin',
             'voxel', 'adu', 'beam'
         ]
-        deprecated_units = ['erg', 'Angstrom']
+        deprecated_units = ['erg', 'Angstrom', 'angstrom']
 
         for unit in simple_units + deprecated_units:
             names[unit] = getattr(u, unit)
