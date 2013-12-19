@@ -138,3 +138,9 @@ def test_to_string_radian_with_precision():
     # Check that specifying the precision works
     a = Angle(3., unit=u.rad)
     assert a.to_string(precision=3, sep='fromunit') == '3.000rad'
+
+
+def test_sexagesimal_round_down():
+    from .. import ICRS
+    c = ICRS(1, 2, unit=('deg', 'deg'))
+    assert c.to_string() == '0h04m00s 2d00m00s'

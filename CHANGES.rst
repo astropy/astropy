@@ -190,6 +190,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where sexagesimal notation would sometimes include
+    exponential notation in the last field. [#1908, #1913]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
