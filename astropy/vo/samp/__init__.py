@@ -12,3 +12,5 @@ from .errors import *
 from .utils import *
 from .hub import *
 from .client import *
+from .integrated_client import *
+from .hub_proxy import *
