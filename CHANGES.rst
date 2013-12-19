@@ -31,6 +31,11 @@ Bug Fixes
     VOTable 1.1 and 1.2, and all fields in VOTable 1.3).  The kwarg is still
     accepted but it will be ignored, and a warning is emitted.
 
+  - Printing out a `astropy.io.votable.tree.Table` object using `repr`
+    or `str` now uses the pretty formatting in `astropy.table`, so
+    it's possible to easily preview the contents of a
+    `VOTable`. [#1766]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
