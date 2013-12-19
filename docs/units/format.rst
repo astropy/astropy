@@ -200,7 +200,7 @@ this behavior:
 
 So, for example, one can do::
 
-   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")
+   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SKIP
    WARNING: UnitsWarning: 'Angstroem' did not parse as unit format
    'fits': At col 0, 'Angstroem' is not a valid unit in string
    'Angstroem' [astropy.units.core]
@@ -210,14 +210,14 @@ original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
-   >>> x.to_string()
+   >>> x.to_string()  # doctest: +SKIP
    'Angstroem'
-   >>> x.to(u.km)
+   >>> x.to(u.km)  # doctest: +SKIP
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized.  It can not be
    converted to other units.
-   >>> x / u.m
+   >>> x / u.m  # doctest: +SKIP
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
