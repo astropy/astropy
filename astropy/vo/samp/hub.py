@@ -1169,12 +1169,12 @@ class SAMPHubServer(object):
         if private_key in self._private_keys:
             if not "samp.mtype" in message:
                 raise SAMPProxyError(3, "samp.mtype keyword is missing")
-            recipient_ids = self._notifyAll(private_key, message)
+            recipient_ids = self._notifyAll_(private_key, message)
             return recipient_ids
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
 
-    def _notifyAll(self, sender_private_key, message):
+    def _notifyAll_(self, sender_private_key, message):
 
         recipient_ids = []
         msubs = SAMPHubServer.getMTypeSubtypes(message["samp.mtype"])
