@@ -18,12 +18,12 @@ you have to do is to create a |SAMPHubServer| instance and start it:
 >>> hub = samp.SAMPHubServer()
 >>> hub.start()
 
-To start a hub from the command line use the ``sampy`` command line utility::
+To start a hub from the command line use the ``samp_hub`` command line utility::
  
-   $ sampy
+   $ samp_hub
 
-To get more help on available options for ``sampy``::
+To get more help on available options for ``samp_hub``::
 
-   $ sampy -h
+   $ samp_hub -h
 
 TODO: give info how to stop the server and explain that it is a separate process from Python.

@@ -21,7 +21,7 @@ It provides classes to easily:
 2. interface an application or script to a running Hub;
 3. create and manage a SAMP client.
 
-``astropy.vo.samp`` provides also a stand-alone program ``sampy`` capable to
+``astropy.vo.samp`` provides also a stand-alone program ``samp_hub`` capable to
 instantiate a persistent hub.
 
 .. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/Documents/latest/SAMP.html

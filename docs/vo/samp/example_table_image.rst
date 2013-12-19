@@ -20,7 +20,7 @@ examples you can either start up one of these applications first, or you can
 start up the `astropy.vo.samp` hub. You can start this using the following
 command::
 
-    $ sampy
+    $ samp_hub
 
 Sending a table to TOPCAT and Ds9
 =================================
