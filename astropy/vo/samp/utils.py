@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Utility functions and classes"""
+
 from __future__ import print_function, division
+
 import base64
-import datetime
 import hashlib
 import inspect
 import platform
@@ -72,9 +73,9 @@ from .errors import SAMPWarning
 
 def internet_on():
     try:
-        response = urlopen('http://google.com',timeout=1)
+        urlopen('http://google.com',timeout=1)
         return True
-    except URLError as err:
+    except URLError:
         pass
     return False
 
@@ -691,7 +692,7 @@ if SSL_SUPPORT:
                 return HTTPS(host, None, self.key_file, self.cert_file,
                              self.cert_reqs, self.ca_certs, self.ssl_version)
             else:
-                self._connection = host, http.client.HTTPSConnection(chost,
+                self._connection = host, http.client.HTTPSConnection(host,
                                                                      None, **(x509 or {}))
                 return self._connection[1]
 
