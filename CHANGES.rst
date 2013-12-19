@@ -128,6 +128,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Implemented `len()` for coordinate objects. [#1761]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
