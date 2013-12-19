@@ -1,6 +1,6 @@
 .. include:: references.txt
 
-.. _vo-samp-example_table:
+.. _vo-samp-example-table-image:
 
 .. doctest-skip-all
 
@@ -221,7 +221,7 @@ which is a human-readable name for the table. The URL can be a local URL
     >>> params["url"] = 'file:///Users/tom/Desktop/MSX_E.fits'
     >>> params["name"] = "MSX Band E Image of the Galactic Center"
 
-See :ref:`vo-samp-example_table` for an example of how to construct local URLs
+See `Sending a table to TOPCAT and Ds9`_ for an example of how to construct local URLs
 more easily. Now we can set up the message itself. This includes the type of
 message (here we use ``image.load.fits`` which indicates that a FITS image
 should be loaded, and the details of the table that we set above::
