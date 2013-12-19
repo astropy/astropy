@@ -8,6 +8,7 @@ import warnings
 from optparse import OptionParser, OptionGroup
 
 from ...extern.six import StringIO
+from ... import log
 
 from .constants import (SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP,
                         SAMP_RESTRICT_OWNER, SAMP_HUB_MULTIPLE_INSTANCE,
@@ -77,10 +78,12 @@ def main(timeout=0):
                          type="choice", choices=["OFF", "ERROR", "WARNING", "INFO", "DEBUG"])
 
     log_group.add_option("-O", "--log-output", dest="logout", metavar="FILE",
-                         help="set the output file for INFO and DEBUG messages.")
+                         help="set the output file for the log messages.")
 
-    log_group.add_option("-E", "--log-error", dest="logerr", metavar="FILE",
-                         help="set the output file for WARNING and ERROR messages.")
+    # The following was implemented in SAMPy but is not easy to implement here
+    # without modifying the Astropy logger.
+    # log_group.add_option("-E", "--log-error", dest="logerr", metavar="FILE",
+    #                      help="set the output file for WARNING and ERROR messages.")
 
     parser.add_option_group(log_group)
 
@@ -202,7 +205,6 @@ def main(timeout=0):
     parser.set_defaults(client_timeout=0)
     parser.set_defaults(loglevel="INFO")
     parser.set_defaults(logout="")
-    parser.set_defaults(logerr="")
     parser.set_defaults(label="")
     parser.set_defaults(owner="")
     parser.set_defaults(owner_group="")
@@ -238,55 +240,47 @@ def main(timeout=0):
             else:
                 options.ssl_version = ssl.PROTOCOL_SSLv23
 
-        level = SAMPLog.INFO
-        stdout = sys.stdout
-        stderr = sys.stderr
-
-        if options.loglevel in ("OFF", "ERROR", "WARNING", "DEBUG"):
-            if options.loglevel == "OFF":
-                level = SAMPLog.OFF
-            if options.loglevel == "ERROR":
-                level = SAMPLog.ERROR
-            if options.loglevel == "WARNING":
-                level = SAMPLog.WARNING
-            if options.loglevel == "DEBUG":
-                level = SAMPLog.DEBUG
+        if options.loglevel in ("OFF", "ERROR", "WARNING", "DEBUG", "INFO"):
+            log.setLevel(options.loglevel)
 
         if options.logout != "":
-            stdout = open(options.logout, "a")
-        if options.logerr != "":
-            stderr = open(options.logerr, "a")
-
-        log = SAMPLog(level=level, stdout=stdout, stderr=stderr)
-
-        if BDB_SUPPORT:
-
-            if options.access_restrict != None:
-                if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
-                    warnings.warn("The access cannot be restricted to the owner if the owner "
-                                "name is not specified!", SAMPWarning)
-                    sys.exit()
-
-                if options.access_restrict == SAMP_RESTRICT_GROUP and options.owner_group == "":
-                    warnings.warn("The access cannot be restricted to the owner group if the owner "
-                                "group name is not specified!", SAMPWarning)
-                    sys.exit()
-
-        args = copy.deepcopy(options.__dict__)
-        del(args["loglevel"])
-        del(args["logout"])
-        del(args["logerr"])
-        args["log"] = log
-
-        hub = SAMPHubServer(**args)
-        hub.start(False)
-
-        if not timeout:
-            while hub.isRunning():
-                time.sleep(0.01)
+            context = log.log_to_file(options.logout)
         else:
-            time.sleep(timeout)
-            hub.stop()
+            class dummy_context(object):
+                def __enter__(self):
+                    pass
+                def __exit__(self, exc_type, exc_value, traceback):
+                    pass
+            context = dummy_context()
+
+        with context:
+
+            if BDB_SUPPORT:
+
+                if options.access_restrict != None:
+                    if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
+                        warnings.warn("The access cannot be restricted to the owner if the owner "
+                                    "name is not specified!", SAMPWarning)
+                        sys.exit()
+
+                    if options.access_restrict == SAMP_RESTRICT_GROUP and options.owner_group == "":
+                        warnings.warn("The access cannot be restricted to the owner group if the owner "
+                                    "group name is not specified!", SAMPWarning)
+                        sys.exit()
+
+            args = copy.deepcopy(options.__dict__)
+            del(args["loglevel"])
+            del(args["logout"])
+
+            hub = SAMPHubServer(**args)
+            hub.start(False)
+
+            if not timeout:
+                while hub.isRunning():
+                    time.sleep(0.01)
+            else:
+                time.sleep(timeout)
+                hub.stop()
 
     except KeyboardInterrupt:
         hub.stop()
