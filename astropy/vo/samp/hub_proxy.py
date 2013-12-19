@@ -19,6 +19,8 @@ except ImportError:
 else:
     SSL_SUPPORT = True
 
+__all__ = ['SAMPHubProxy']
+
 
 class SAMPHubProxy(object):
     """
