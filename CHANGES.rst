@@ -255,16 +255,14 @@ Bug Fixes
 
   - Fixed minor string formatting issue for dimensionless quantities. [#1772]
 
-<<<<<<< HEAD
   - Fix error for inplace operations on non-contiguous quantities [#1834].
 
   - The definition of the unit `bar` has been corrected to `1e5
     Pascal` from `100 Pascal` [#1910]
-=======
+
   - For units that are close to known units, but not quite, for
     example due to differences in case, the exception will now include
     recommendations. [#1870]
->>>>>>> Add CHANGES.rst entry
 
 - ``astropy.utils``
 
