@@ -40,8 +40,7 @@ To learn how to use ``astropy.vo.samp`` have a look at these examples:
 
    example_hub
    example_clients
-   example_table
-   example_image
+   example_table_image
 
 Reference/API
 =============
