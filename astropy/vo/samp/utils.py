@@ -212,14 +212,14 @@ class SAMPMsgReplierWrapper(object):
                 try:
                     result = f(*args)
                     if result:
-                        self.cli.hub.reply(self.cli.getPrivateKey(), args[2],
+                        self.cli.hub.reply(self.cli.get_private_key(), args[2],
                                            {"samp.status": SAMP_STATUS_ERROR,
                                             "samp.result": result})
                 except:
                     err = StringIO()
                     traceback.print_exc(file=err)
                     txt = err.getvalue()
-                    self.cli.hub.reply(self.cli.getPrivateKey(), args[2],
+                    self.cli.hub.reply(self.cli.get_private_key(), args[2],
                                        {"samp.status": SAMP_STATUS_ERROR,
                                         "samp.result": {"txt": txt}})
 

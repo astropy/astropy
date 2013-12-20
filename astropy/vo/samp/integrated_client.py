@@ -90,7 +90,9 @@ class SAMPIntegratedClient(object):
             pass
 
     # GENERAL
-    def isConnected(self):
+    
+    @property
+    def is_connected(self):
         """
         Testing method to verify the client connection with a running Hub.
 
@@ -99,7 +101,7 @@ class SAMPIntegratedClient(object):
         isConnected : bool
             True if the client is connected to a Hub, False otherwise.
         """
-        return self.hub.isConnected() & self.client.isRunning()
+        return self.hub.is_connected & self.client.is_running
 
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
@@ -169,7 +171,7 @@ class SAMPIntegratedClient(object):
         except SAMPClientError as cliEx:
             pass
 
-        if self.client.isRunning():
+        if self.client.is_running:
             self.client.stop()
         self.hub.disconnect()
 
@@ -183,35 +185,35 @@ class SAMPIntegratedClient(object):
         """
         return self.hub.ping()
 
-    def declareMetadata(self, metadata):
+    def declare_metadata(self, metadata):
         """
-        Proxy to `declareMetadata` SAMP Hub method.
+        Proxy to `declare_metadata` SAMP Hub method.
         """
-        return self.client.declareMetadata(metadata)
+        return self.client.declare_metadata(metadata)
 
-    def getMetadata(self, client_id):
+    def get_metadata(self, client_id):
         """
-        Proxy to `getMetadata` SAMP Hub method.
+        Proxy to `get_metadata` SAMP Hub method.
         """
-        return self.hub.getMetadata(self.client.getPrivateKey(), client_id)
+        return self.hub.get_metadata(self.client.get_private_key(), client_id)
 
-    def getSubscriptions(self, client_id):
+    def get_subscriptions(self, client_id):
         """
-        Proxy to `getSubscriptions` SAMP Hub method.
+        Proxy to `get_subscriptions` SAMP Hub method.
         """
-        return self.hub.getSubscriptions(self.client.getPrivateKey(), client_id)
+        return self.hub.get_subscriptions(self.client.get_private_key(), client_id)
 
-    def getRegisteredClients(self):
+    def get_registered_clients(self):
         """
-        Proxy to `getRegisteredClients` SAMP Hub method.
+        Proxy to `get_registered_clients` SAMP Hub method.
         """
-        return self.hub.getRegisteredClients(self.client.getPrivateKey())
+        return self.hub.get_registered_clients(self.client.get_private_key())
 
-    def getSubscribedClients(self, mtype):
+    def get_subscribed_clients(self, mtype):
         """
-        Proxy to `getSubscribedClients` SAMP Hub method.
+        Proxy to `get_subscribed_clients` SAMP Hub method.
         """
-        return self.hub.getSubscribedClients(self.client.getPrivateKey(), mtype)
+        return self.hub.get_subscribed_clients(self.client.get_private_key(), mtype)
 
     def _format_easy_msg(self, mtype, params):
 
@@ -229,7 +231,7 @@ class SAMPIntegratedClient(object):
 
     def notify(self, recipient_id, message):
         """Proxy to `notify` SAMP Hub method."""
-        return self.hub.notify(self.client.getPrivateKey(), recipient_id, message)
+        return self.hub.notify(self.client.get_private_key(), recipient_id, message)
 
     def enotify(self, recipient_id, mtype, **params):
         """
@@ -264,17 +266,17 @@ class SAMPIntegratedClient(object):
         """
         return self.notify(recipient_id, self._format_easy_msg(mtype, params))
 
-    def notifyAll(self, message):
+    def notify_all(self, message):
         """
-        Proxy to `notifyAll` SAMP Hub method.
+        Proxy to `notify_all` SAMP Hub method.
         """
-        return self.hub.notifyAll(self.client.getPrivateKey(), message)
+        return self.hub.notify_all(self.client.get_private_key(), message)
 
-    def enotifyAll(self, mtype, **params):
+    def enotify_all(self, mtype, **params):
         """
         Easy to use `notify`.
 
-        This is a proxy to `notifyAll` method that allows to
+        This is a proxy to `notify_all` method that allows to
         send the notification message in a simplified way.
 
 
@@ -296,16 +298,16 @@ class SAMPIntegratedClient(object):
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
-        >>> cli.enotifyAll("samp.msg.progress", txt = "initialization",
+        >>> cli.enotify_all("samp.msg.progress", txt = "initialization",
         ...                percent = "10", extra_kws = {"my.extra.info": "just an example"})
         """
-        return self.notifyAll(self._format_easy_msg(mtype, params))
+        return self.notify_all(self._format_easy_msg(mtype, params))
 
     def call(self, recipient_id, msg_tag, message):
         """
         Proxy to `call` SAMP Hub method.
         """
-        return self.hub.call(self.client.getPrivateKey(), recipient_id, msg_tag, message)
+        return self.hub.call(self.client.get_private_key(), recipient_id, msg_tag, message)
 
     def ecall(self, recipient_id, msg_tag, mtype, **params):
         """
@@ -344,15 +346,15 @@ class SAMPIntegratedClient(object):
 
         return self.call(recipient_id, msg_tag, self._format_easy_msg(mtype, params))
 
-    def callAll(self, msg_tag, message):
-        """Proxy to `callAll` SAMP Hub method."""
-        return self.hub.callAll(self.client.getPrivateKey(), msg_tag, message)
+    def call_all(self, msg_tag, message):
+        """Proxy to `call_all` SAMP Hub method."""
+        return self.hub.call_all(self.client.get_private_key(), msg_tag, message)
 
-    def ecallAll(self, msg_tag, mtype, **params):
+    def ecall_all(self, msg_tag, mtype, **params):
         """
-        Easy to use `callAll`.
+        Easy to use `call_all`.
 
-        This is a proxy to `callAll` method that allows to
+        This is a proxy to `call_all` method that allows to
         send the call message in a simplified way.
 
         Note that reserved `extra_kws` keyword is a dictionary with the special meaning of
@@ -376,24 +378,24 @@ class SAMPIntegratedClient(object):
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
-        >>> msgid = cli.ecallAll("xyz", "samp.msg.progress", txt = "initialization",
+        >>> msgid = cli.ecall_all("xyz", "samp.msg.progress", txt = "initialization",
         ...                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
         """
-        self.callAll(msg_tag, self._format_easy_msg(mtype, params))
+        self.call_all(msg_tag, self._format_easy_msg(mtype, params))
 
-    def callAndWait(self, recipient_id, message, timeout):
+    def call_and_wait(self, recipient_id, message, timeout):
         """
         Proxy to `callAndWait` SAMP Hub method.
 
         If timeout expires a `SAMPProxyError` instance is raised.
         """
-        return self.hub.callAndWait(self.client.getPrivateKey(), recipient_id, message, timeout)
+        return self.hub.callAndWait(self.client.get_private_key(), recipient_id, message, timeout)
 
-    def ecallAndWait(self, recipient_id, mtype, timeout, **params):
+    def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
-        Easy to use `callAndWait`.
+        Easy to use `call_and_wait`.
 
-        This is a proxy to `callAll` method that allows to
+        This is a proxy to `call_all` method that allows to
         send the call message in a simplified way.
 
         Note that reserved `extra_kws` keyword is a dictionary with the special meaning of
@@ -418,14 +420,14 @@ class SAMPIntegratedClient(object):
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
-        >>> cli.ecallAndWait("xyz", "samp.msg.progress", "5", txt = "initialization",
+        >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5", txt = "initialization",
         ...                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
         """
-        return self.callAndWait(recipient_id, self._format_easy_msg(mtype, params), timeout)
+        return self.call_and_wait(recipient_id, self._format_easy_msg(mtype, params), timeout)
 
     def reply(self, msg_id, response):
         """Proxy to `reply` SAMP Hub method."""
-        return self.hub.reply(self.client.getPrivateKey(), msg_id, response)
+        return self.hub.reply(self.client.get_private_key(), msg_id, response)
 
     def _format_easy_response(self, status, result, error):
 
@@ -441,7 +443,7 @@ class SAMPIntegratedClient(object):
         """
         Easy to use `reply`.
 
-        This is a proxy to `callAll` method that allows to
+        This is a proxy to `call_all` method that allows to
         send a reply message in a simplified way.
 
         Parameters
@@ -470,67 +472,67 @@ class SAMPIntegratedClient(object):
 
     # CLIENT
 
-    def receiveNotification(self, private_key, sender_id, message):
-        return self.client.receiveNotification(private_key, sender_id, message)
+    def receive_notification(self, private_key, sender_id, message):
+        return self.client.receive_notification(private_key, sender_id, message)
 
-    receiveNotification.__doc__ = SAMPClient.receiveNotification.__doc__
+    receive_notification.__doc__ = SAMPClient.receive_notification.__doc__
 
-    def receiveCall(self, private_key, sender_id, msg_id, message):
-        return self.client.receiveCall(private_key, sender_id, msg_id, message)
+    def receive_call(self, private_key, sender_id, msg_id, message):
+        return self.client.receive_call(private_key, sender_id, msg_id, message)
 
-    receiveCall.__doc__ = SAMPClient.receiveCall.__doc__
+    receive_call.__doc__ = SAMPClient.receive_call.__doc__
 
-    def receiveResponse(self, private_key, responder_id, msg_tag, response):
-        return self.client.receiveResponse(private_key, responder_id, msg_tag, response)
+    def receive_response(self, private_key, responder_id, msg_tag, response):
+        return self.client.receive_response(private_key, responder_id, msg_tag, response)
 
-    receiveResponse.__doc__ = SAMPClient.receiveResponse.__doc__
+    receive_response.__doc__ = SAMPClient.receive_response.__doc__
 
-    def bindReceiveMessage(self, mtype, function, declare=True, metadata=None):
-        self.client.bindReceiveMessage(mtype, function, declare=True, metadata=None)
+    def bind_receive_message(self, mtype, function, declare=True, metadata=None):
+        self.client.bind_receive_message(mtype, function, declare=True, metadata=None)
 
-    bindReceiveMessage.__doc__ = SAMPClient.bindReceiveMessage.__doc__
+    bind_receive_message.__doc__ = SAMPClient.bind_receive_message.__doc__
 
-    def bindReceiveNotification(self, mtype, function, declare=True, metadata=None):
-        self.client.bindReceiveNotification(mtype, function, declare, metadata)
+    def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
+        self.client.bind_receive_notification(mtype, function, declare, metadata)
 
-    bindReceiveNotification.__doc__ = SAMPClient.bindReceiveNotification.__doc__
+    bind_receive_notification.__doc__ = SAMPClient.bind_receive_notification.__doc__
 
-    def bindReceiveCall(self, mtype, function, declare=True, metadata=None):
-        self.client.bindReceiveCall(mtype, function, declare, metadata)
+    def bind_receive_call(self, mtype, function, declare=True, metadata=None):
+        self.client.bind_receive_call(mtype, function, declare, metadata)
 
-    bindReceiveCall.__doc__ = SAMPClient.bindReceiveCall.__doc__
+    bind_receive_call.__doc__ = SAMPClient.bind_receive_call.__doc__
 
-    def bindReceiveResponse(self, msg_tag, function):
-        self.client.bindReceiveResponse(msg_tag, function)
+    def bind_receive_response(self, msg_tag, function):
+        self.client.bind_receive_response(msg_tag, function)
 
-    bindReceiveResponse.__doc__ = SAMPClient.bindReceiveResponse.__doc__
+    bind_receive_response.__doc__ = SAMPClient.bind_receive_response.__doc__
 
-    def unbindReceiveNotification(self, mtype, declare=True):
-        self.client.unbindReceiveNotification(mtype, declare)
+    def unbind_receive_notification(self, mtype, declare=True):
+        self.client.unbind_receive_notification(mtype, declare)
 
-    unbindReceiveNotification.__doc__ = SAMPClient.unbindReceiveNotification.__doc__
+    unbind_receive_notification.__doc__ = SAMPClient.unbind_receive_notification.__doc__
 
-    def unbindReceiveCall(self, mtype, declare=True):
-        self.client.unbindReceiveCall(mtype, declare)
+    def unbind_receive_call(self, mtype, declare=True):
+        self.client.unbind_receive_call(mtype, declare)
 
-    unbindReceiveCall.__doc__ = SAMPClient.unbindReceiveCall.__doc__
+    unbind_receive_call.__doc__ = SAMPClient.unbind_receive_call.__doc__
 
-    def unbindReceiveResponse(self, msg_tag):
-        self.client.unbindReceiveResponse(msg_tag)
+    def unbind_receive_response(self, msg_tag):
+        self.client.unbind_receive_response(msg_tag)
 
-    unbindReceiveResponse.__doc__ = SAMPClient.unbindReceiveResponse.__doc__
+    unbind_receive_response.__doc__ = SAMPClient.unbind_receive_response.__doc__
 
-    def declareSubscriptions(self, subscriptions=None):
-        self.client.declareSubscriptions(subscriptions)
+    def declare_subscriptions(self, subscriptions=None):
+        self.client.declare_subscriptions(subscriptions)
 
-    declareSubscriptions.__doc__ = SAMPClient.declareSubscriptions.__doc__
+    declare_subscriptions.__doc__ = SAMPClient.declare_subscriptions.__doc__
 
-    def getPrivateKey(self):
-        return self.client.getPrivateKey()
+    def get_private_key(self):
+        return self.client.get_private_key()
 
-    getPrivateKey.__doc__ = SAMPClient.getPrivateKey.__doc__
+    get_private_key.__doc__ = SAMPClient.get_private_key.__doc__
 
-    def getPublicId(self):
-        return self.client.getPublicId()
+    def get_public_id(self):
+        return self.client.get_public_id()
 
-    getPublicId.__doc__ = SAMPClient.getPublicId.__doc__
+    get_public_id.__doc__ = SAMPClient.get_public_id.__doc__

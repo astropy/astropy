@@ -32,7 +32,7 @@ def test_SAMPClient_connect():
     cli.register()
 
     metadata = {"cli.version":"0.01"}
-    cli.declareMetadata(metadata)
+    cli.declare_metadata(metadata)
 
     cli.unregister()
     cli.stop()
@@ -83,11 +83,11 @@ class TestSAMPCommunication(object):
         cli2.start()
         cli2.register()
         # Declare metadata
-        cli1.declareMetadata(metadata1)
-        cli2.declareMetadata(metadata2)
+        cli1.declare_metadata(metadata1)
+        cli2.declare_metadata(metadata2)
 
-        print("\nCLI1", cli1.getPrivateKey(), cli1.getPublicId(), "\n")
-        print("\nCLI2", cli2.getPrivateKey(), cli2.getPublicId(), "\n")
+        print("\nCLI1", cli1.get_private_key(), cli1.get_public_id(), "\n")
+        print("\nCLI2", cli2.get_private_key(), cli2.get_public_id(), "\n")
 
         # Function called when a notification is received
         def test_receive_notification(private_key, sender_id, mtype,
@@ -100,7 +100,7 @@ class TestSAMPCommunication(object):
                               extra):
             print("Call:", private_key, sender_id, msg_id, mtype, params,
                   extra, "\n\n")
-            self.myhub1.reply(cli1.getPrivateKey(), msg_id,
+            self.myhub1.reply(cli1.get_private_key(), msg_id,
                               {"samp.status": samp.SAMP_STATUS_OK,
                                "samp.result": {"txt": "printed"}})
 
@@ -110,15 +110,15 @@ class TestSAMPCommunication(object):
 
         # Subscribe Client 1 to "samp.*" and "samp.app.*" MType and bind it to
         # the related functions
-        cli1.bindReceiveNotification("samp.app.*", test_receive_notification)
-        cli1.bindReceiveCall("samp.app.*", test_receive_call)
+        cli1.bind_receive_notification("samp.app.*", test_receive_notification)
+        cli1.bind_receive_call("samp.app.*", test_receive_call)
 
         # Bind Client 2 message-tags received to suitable functions
-        cli2.bindReceiveResponse("my-dummy-print", test_receive_response)
-        cli2.bindReceiveResponse("my-dummy-print-specific", test_receive_response)
+        cli2.bind_receive_response("my-dummy-print", test_receive_response)
+        cli2.bind_receive_response("my-dummy-print-specific", test_receive_response)
 
         # Client 2 notifies to All "samp.app.echo" MType using myhub
-        self.myhub2.notifyAll(cli2.getPrivateKey(),
+        self.myhub2.notify_all(cli2.get_private_key(),
                               {"samp.mtype": "samp.app.echo",
                                "samp.params": {"txt": "Hello world!"}})
 
@@ -126,7 +126,7 @@ class TestSAMPCommunication(object):
 
         # Client 2 calls to All "samp.app.echo" MType using "my-dummy-print"
         # as message-tag
-        print(self.myhub2.callAll(cli2.getPrivateKey(), "my-dummy-print",
+        print(self.myhub2.call_all(cli2.get_private_key(), "my-dummy-print",
                                   {"samp.mtype": "samp.app.echo",
                                    "samp.params": {"txt": "Hello world!"}}),
               "\n\n")
@@ -136,8 +136,8 @@ class TestSAMPCommunication(object):
         # Client 2 calls "samp.app.echo" MType on Client 1 tagging it as
         # "my-dummy-print-specific"
         try:
-            print(cli2.hub.call(cli2.getPrivateKey(),
-                                cli1.getPublicId(),
+            print(cli2.hub.call(cli2.get_private_key(),
+                                cli1.get_public_id(),
                                 "my-dummy-print-specific",
                                 {"samp.mtype": "samp.app.echo",
                                  "samp.params": {"txt": "Hello Cli 1!"}}),
@@ -153,21 +153,21 @@ class TestSAMPCommunication(object):
                                    params, extra):
             print("SYNC Call:", sender_id, msg_id, mtype, params, extra, "\n\n")
             time.sleep(1)
-            self.myhub1.reply(cli1.getPrivateKey(), msg_id,
+            self.myhub1.reply(cli1.get_private_key(), msg_id,
                               {"samp.status": samp.SAMP_STATUS_OK,
                                "samp.result": {"txt": "printed sync"}})
             return ""
 
         # Bind test MType for sync calls
-        cli1.bindReceiveCall("samp.test", test_receive_sync_call)
+        cli1.bind_receive_call("samp.test", test_receive_sync_call)
 
         now = time.time()
 
         print("SYNCRO --->\n\n")
         try:
             # Sync call
-            print(self.myhub2.callAndWait(cli2.getPrivateKey(),
-                                          cli1.getPublicId(),
+            print(self.myhub2.call_and_wait(cli2.get_private_key(),
+                                          cli1.get_public_id(),
                                           {"samp.mtype": "samp.test",
                                            "samp.params": {"txt":
                                                            "Hello SYNCRO Cli 1!"}},

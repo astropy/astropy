@@ -139,9 +139,9 @@ class SAMPClient(object):
                                                      self._port), logRequests=False, allow_none=True)
 
             self.client.register_introspection_functions()
-            self.client.register_function(self.receiveNotification, 'samp.client.receiveNotification')
-            self.client.register_function(self.receiveCall, 'samp.client.receiveCall')
-            self.client.register_function(self.receiveResponse, 'samp.client.receiveResponse')
+            self.client.register_function(self.receive_notification, 'samp.client.receiveNotification')
+            self.client.register_function(self.receive_call, 'samp.client.receiveCall')
+            self.client.register_function(self.receive_response, 'samp.client.receiveResponse')
 
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
@@ -174,7 +174,8 @@ class SAMPClient(object):
             self._thread.join(timeout)
             self._thread = None
 
-    def isRunning(self):
+    @property
+    def is_running(self):
         """
         Return an information concerning the client running status.
 
@@ -216,14 +217,14 @@ class SAMPClient(object):
 
     def _handle_notification(self, private_key, sender_id, message):
 
-        if private_key == self.getPrivateKey() and "samp.mtype" in message:
+        if private_key == self.get_private_key() and "samp.mtype" in message:
 
             msg_mtype = message["samp.mtype"]
             del message["samp.mtype"]
             msg_params = message["samp.params"]
             del message["samp.params"]
 
-            msubs = SAMPHubServer.getMTypeSubtypes(msg_mtype)
+            msubs = SAMPHubServer.get_mtype_subtypes(msg_mtype)
             for mtype in msubs:
                 if mtype in self._notification_bindings:
                     bound_func = self._notification_bindings[mtype][0]
@@ -235,11 +236,11 @@ class SAMPClient(object):
 
         return ""
 
-    def receiveNotification(self, private_key, sender_id, message):
+    def receive_notification(self, private_key, sender_id, message):
         """
-        Standard callable client `receiveNotification` method.
+        Standard callable client `receive_notification` method.
 
-        This method is automatically handled when the `bindReceiveNotification`
+        This method is automatically handled when the `bind_receive_notification`
         method is used to bind distinct operations to MTypes.
         In case of a customized callable client implementation that inherits from
         the `SAMPClient` class this method should be overwritten.
@@ -266,14 +267,14 @@ class SAMPClient(object):
         return self._handle_notification(private_key, sender_id, message)
 
     def _handle_call(self, private_key, sender_id, msg_id, message):
-        if private_key == self.getPrivateKey() and "samp.mtype" in message:
+        if private_key == self.get_private_key() and "samp.mtype" in message:
 
             msg_mtype = message["samp.mtype"]
             del message["samp.mtype"]
             msg_params = message["samp.params"]
             del message["samp.params"]
 
-            msubs = SAMPHubServer.getMTypeSubtypes(msg_mtype)
+            msubs = SAMPHubServer.get_mtype_subtypes(msg_mtype)
 
             for mtype in msubs:
                 if mtype in self._call_bindings:
@@ -282,11 +283,11 @@ class SAMPClient(object):
 
         return ""
 
-    def receiveCall(self, private_key, sender_id, msg_id, message):
+    def receive_call(self, private_key, sender_id, msg_id, message):
         """
-        Standard callable client C{receiveCall} method.
+        Standard callable client C{receive_call} method.
 
-        This method is automatically handled when the `bindReceiveCall` method
+        This method is automatically handled when the `bind_receive_call` method
         is used to bind distinct operations to MTypes.
         In case of a customized callable client implementation that inherits from
         the `SAMPClient` class this method should be overwritten.
@@ -316,15 +317,15 @@ class SAMPClient(object):
         return self._handle_call(private_key, sender_id, msg_id, message)
 
     def _handle_response(self, private_key, responder_id, msg_tag, response):
-        if private_key == self.getPrivateKey() and msg_tag in self._response_bindings:
+        if private_key == self.get_private_key() and msg_tag in self._response_bindings:
             self._response_bindings[msg_tag](private_key, responder_id, msg_tag, response)
         return ""
 
-    def receiveResponse(self, private_key, responder_id, msg_tag, response):
+    def receive_response(self, private_key, responder_id, msg_tag, response):
         """
-        Standard callable client `receiveResponse` method.
+        Standard callable client `receive_response` method.
 
-        This method is automatically handled when the `bindReceiveResponse` method
+        This method is automatically handled when the `bind_receive_response` method
         is used to bind distinct operations to MTypes.
         In case of a customized callable client implementation that inherits from
         the `SAMPClient` class this method should be overwritten.
@@ -353,7 +354,7 @@ class SAMPClient(object):
         """
         return self._handle_response(private_key, responder_id, msg_tag, response)
 
-    def bindReceiveMessage(self, mtype, function, declare=True, metadata=None):
+    def bind_receive_message(self, mtype, function, declare=True, metadata=None):
         """
         Bind a specific MType to a function or class method, being intended for
         a call or a notification.
@@ -377,16 +378,16 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see also `declareSubscriptions`).
+            subscribed to the MType (see also `declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declareSubscriptions`).
+            with the MType subscribed to (see also `declare_subscriptions`).
         """
-        self.bindReceiveCall(mtype, function, declare=True, metadata=None)
-        self.bindReceiveNotification(mtype, function, declare=True, metadata=None)
+        self.bind_receive_call(mtype, function, declare=True, metadata=None)
+        self.bind_receive_notification(mtype, function, declare=True, metadata=None)
 
-    def bindReceiveNotification(self, mtype, function, declare=True, metadata=None):
+    def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
         """
         Bind a specific MType notification to a function or class method.
 
@@ -410,22 +411,22 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see alse `declareSubscriptions`).
+            subscribed to the MType (see alse `declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declareSubscriptions`).
+            with the MType subscribed to (see also `declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
                 metadata = {}
             self._notification_bindings[mtype] = [function, metadata]
             if declare:
-                self._declareSubscriptions()
+                self._declare_subscriptions()
         else:
             raise SAMPClientError("Client not callable.")
 
-    def bindReceiveCall(self, mtype, function, declare=True, metadata=None):
+    def bind_receive_call(self, mtype, function, declare=True, metadata=None):
         """
         Bind a specific MType call to a function or class method.
 
@@ -449,22 +450,22 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see also `declareSubscriptions`).
+            subscribed to the MType (see also `declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declareSubscriptions`).
+            with the MType subscribed to (see also `declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
                 metadata = {}
             self._call_bindings[mtype] = [function, metadata]
             if declare:
-                self._declareSubscriptions()
+                self._declare_subscriptions()
         else:
             raise SAMPClientError("Client not callable.")
 
-    def bindReceiveResponse(self, msg_tag, function):
+    def bind_receive_response(self, msg_tag, function):
         """
         Bind a specific msg-tag response to a function or class method.
 
@@ -489,7 +490,7 @@ class SAMPClient(object):
         else:
             raise SAMPClientError("Client not callable.")
 
-    def unbindReceiveNotification(self, mtype, declare=True):
+    def unbind_receive_notification(self, mtype, declare=True):
         """
         Remove from the notifications binding table the specified MType and unsubscribe
         the client from it (if required).
@@ -501,16 +502,16 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            unsubscribed from the MType (see alse `declareSubscriptions`).
+            unsubscribed from the MType (see alse `declare_subscriptions`).
         """
         if self._callable:
             del self._notification_bindings[mtype]
             if declare:
-                self._declareSubscriptions()
+                self._declare_subscriptions()
         else:
             raise SAMPClientError("Client not callable.")
 
-    def unbindReceiveCall(self, mtype, declare=True):
+    def unbind_receive_call(self, mtype, declare=True):
         """
         Remove from the calls binding table the specified MType and unsubscribe
         the client from it (if required).
@@ -522,16 +523,16 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            unsubscribed from the MType (see alse `declareSubscriptions`).
+            unsubscribed from the MType (see alse `declare_subscriptions`).
         """
         if self._callable:
             del self._call_bindings[mtype]
             if declare:
-                self._declareSubscriptions()
+                self._declare_subscriptions()
         else:
             raise SAMPClientError("Client not callable.")
 
-    def unbindReceiveResponse(self, msg_tag):
+    def unbind_receive_response(self, msg_tag):
         """
         Remove from the responses binding table the specified message-tag.
 
@@ -545,23 +546,23 @@ class SAMPClient(object):
         else:
             raise SAMPClientError("Client not callable.")
 
-    def declareSubscriptions(self, subscriptions=None):
+    def declare_subscriptions(self, subscriptions=None):
         """
         Declares the MTypes the client wishes to subscribe to, implicitly defined
-        with the MType binding methods `bindReceiveNotification` and `bindReceiveCall`.
+        with the MType binding methods `bind_receive_notification` and `bind_receive_call`.
 
         An optional `subscriptions` map can be added to the final map passed to
-        the `SAMPHubProxy.declareSubscriptions` operation.
+        the `SAMPHubProxy.declare_subscriptions` operation.
 
         Parameters
         ----------
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to,
             with the same format of the C{subscriptions} map passed to the
-            `SAMPHubProxy.declareSubscriptions` operation.
+            `SAMPHubProxy.declare_subscriptions` operation.
         """
         if self._callable:
-            self._declareSubscriptions(subscriptions)
+            self._declare_subscriptions(subscriptions)
         else:
             raise SAMPClientError("Client not callable.")
 
@@ -571,7 +572,7 @@ class SAMPClient(object):
 
         If the registration fails a `SAMPClientError` is raised.
         """
-        if self.hub.isConnected():
+        if self.hub.is_connected:
 
             if self._private_key != None:
                 raise SAMPClientError("Client already registered")
@@ -584,13 +585,14 @@ class SAMPClient(object):
                 self._private_key = result["samp.private-key"]
                 self._hub_id = result["samp.hub-id"]
                 if self._callable:
-                    self._setXmlrpcCallback()
-                    self._declareSubscriptions()
+                    self._set_xmlrpc_callback()
+                    self._declare_subscriptions()
                 if self._metadata != {}:
-                    self.declareMetadata()
+                    self.declare_metadata()
             except SAMPProxyError as err:
                 raise SAMPClientError(err.faultString)
             except:
+                raise
                 raise SAMPClientError("Unexpected error: registration failed")
 
         else:
@@ -602,7 +604,7 @@ class SAMPClient(object):
 
         If the unregistration fails a `SAMPClientError` is raised.
         """
-        if self.hub.isConnected():
+        if self.hub.is_connected:
 
             try:
                 self.hub.unregister(self._private_key)
@@ -614,17 +616,17 @@ class SAMPClient(object):
         else:
             raise SAMPClientError("Unable to unregister from the SAMP Hub. Hub proxy not connected.")
 
-    def _setXmlrpcCallback(self):
-        if self.hub.isConnected() and self._private_key != None:
+    def _set_xmlrpc_callback(self):
+        if self.hub.is_connected and self._private_key != None:
 
             try:
-                self.hub.setXmlrpcCallback(self._private_key,
+                self.hub.set_xmlrpc_callback(self._private_key,
                                            self._xmlrpcAddr)
             except:
                 pass
 
-    def _declareSubscriptions(self, subscriptions=None):
-        if self.hub.isConnected() and self._private_key != None:
+    def _declare_subscriptions(self, subscriptions=None):
+        if self.hub.is_connected and self._private_key != None:
 
             try:
                 mtypes_dict = {}
@@ -640,14 +642,14 @@ class SAMPClient(object):
                 if subscriptions:
                     mtypes_dict.update(copy.deepcopy(subscriptions))
 
-                self.hub.declareSubscriptions(self._private_key, mtypes_dict)
+                self.hub.declare_subscriptions(self._private_key, mtypes_dict)
 
             except Exception as ex:
                 raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered (%s)." %str(ex))
         else:
             raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
 
-    def declareMetadata(self, metadata=None):
+    def declare_metadata(self, metadata=None):
         """
         Declare the client application metadata supported.
 
@@ -658,19 +660,19 @@ class SAMPClient(object):
             as defined in the SAMP definition document. If omitted, then none metadata are
             declared.
         """
-        if self.hub.isConnected() and self._private_key != None:
+        if self.hub.is_connected and self._private_key != None:
 
             try:
                 if metadata != None:
                     self._metadata.update(metadata)
 
-                self.hub.declareMetadata(self._private_key, self._metadata)
+                self.hub.declare_metadata(self._private_key, self._metadata)
             except:
                 raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
         else:
             raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
 
-    def getPrivateKey(self):
+    def get_private_key(self):
         """
         Return the client private key used for the Standard Profile communications
         obtained at registration time (`samp.private-key`).
@@ -682,7 +684,7 @@ class SAMPClient(object):
         """
         return self._private_key
 
-    def getPublicId(self):
+    def get_public_id(self):
         """
         Return public client ID obtained at registration time (`samp.self-id`).
 

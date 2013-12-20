@@ -32,7 +32,8 @@ class SAMPHubProxy(object):
         self._connected = False
         self.lockfile = {}
 
-    def isConnected(self):
+    @property
+    def is_connected(self):
         """
         Testing method to verify the proxy connection with a running hub.
 
@@ -44,7 +45,7 @@ class SAMPHubProxy(object):
         return self._connected
 
     @staticmethod
-    def getRunningHubs():
+    def get_running_hubs():
         """
         Return a dictionary containing the lock-file contents of all the currently
         running hubs (single and/or multiple mode).
@@ -79,7 +80,7 @@ class SAMPHubProxy(object):
                 # Windows
                 lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
 
-        hub_is_running, lockfiledict = SAMPHubServer.checkRunningHub(lockfilename)
+        hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
 
         if hub_is_running:
             hubs[lockfilename] = lockfiledict
@@ -99,7 +100,7 @@ class SAMPHubProxy(object):
             for filename in os.listdir(lockfiledir):
                 if re.match('samp\\-hub\\-\d+\\-\d+', filename) != None:
                     lockfilename = os.path.join(lockfiledir, filename)
-                    hub_is_running, lockfiledict = SAMPHubServer.checkRunningHub(lockfilename)
+                    hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
                     if hub_is_running:
                         hubs[lockfilename] = lockfiledict
 
@@ -162,7 +163,7 @@ class SAMPHubProxy(object):
         self.lockfile = {}
 
         if hub_params == None:
-            hubs = SAMPHubProxy.getRunningHubs()
+            hubs = SAMPHubProxy.get_running_hubs()
             if len(hubs.keys()) > 0:
                 # Use Single instance hub by default
                 lockfilename = ""
@@ -234,7 +235,7 @@ class SAMPHubProxy(object):
         """Proxy to `ping` SAMP Hub method (Standard Profile only)."""
         return self.proxy.samp.hub.ping()
 
-    def setXmlrpcCallback(self, private_key, xmlrpc_addr):
+    def set_xmlrpc_callback(self, private_key, xmlrpc_addr):
         """Proxy to `setXmlrpcCallback` SAMP Hub method (Standard Profile only)."""
         return self.proxy.samp.hub.setXmlrpcCallback(private_key, xmlrpc_addr)
 
@@ -246,27 +247,27 @@ class SAMPHubProxy(object):
         """Proxy to `unregister` SAMP Hub method."""
         return self.proxy.samp.hub.unregister(private_key)
 
-    def declareMetadata(self, private_key, metadata):
+    def declare_metadata(self, private_key, metadata):
         """Proxy to `declareMetadata` SAMP Hub method."""
         return self.proxy.samp.hub.declareMetadata(private_key, metadata)
 
-    def getMetadata(self, private_key, client_id):
+    def get_metadata(self, private_key, client_id):
         """Proxy to `getMetadata` SAMP Hub method."""
         return self.proxy.samp.hub.getMetadata(private_key, client_id)
 
-    def declareSubscriptions(self, private_key, subscriptions):
+    def declare_subscriptions(self, private_key, subscriptions):
         """Proxy to `declareSubscriptions` SAMP Hub method."""
         return self.proxy.samp.hub.declareSubscriptions(private_key, subscriptions)
 
-    def getSubscriptions(self, private_key, client_id):
+    def get_subscriptions(self, private_key, client_id):
         """Proxy to `getSubscriptions` SAMP Hub method."""
         return self.proxy.samp.hub.getSubscriptions(private_key, client_id)
 
-    def getRegisteredClients(self, private_key):
+    def get_registered_clients(self, private_key):
         """Proxy to `getRegisteredClients` SAMP Hub method."""
         return self.proxy.samp.hub.getRegisteredClients(private_key)
 
-    def getSubscribedClients(self, private_key, mtype):
+    def get_subscribed_clients(self, private_key, mtype):
         """Proxy to `getSubscribedClients` SAMP Hub method."""
         return self.proxy.samp.hub.getSubscribedClients(private_key, mtype)
 
@@ -275,7 +276,7 @@ class SAMPHubProxy(object):
         # Add user in Basic Authentication case
         return self.proxy.samp.hub.notify(private_key, recipient_id, message)
 
-    def notifyAll(self, private_key, message):
+    def notify_all(self, private_key, message):
         """Proxy to `notifyAll` SAMP Hub method."""
         return self.proxy.samp.hub.notifyAll(private_key, message)
 
@@ -283,11 +284,11 @@ class SAMPHubProxy(object):
         """Proxy to `call` SAMP Hub method."""
         return self.proxy.samp.hub.call(private_key, recipient_id, msg_tag, message)
 
-    def callAll(self, private_key, msg_tag, message):
+    def call_all(self, private_key, msg_tag, message):
         """Proxy to `callAll` SAMP Hub method."""
         return self.proxy.samp.hub.callAll(private_key, msg_tag, message)
 
-    def callAndWait(self, private_key, recipient_id, message, timeout):
+    def call_and_wait(self, private_key, recipient_id, message, timeout):
         """Proxy to `callAndWait` SAMP Hub method.
 
         If timeout expires a `SAMPProxyError` instance is raised.

@@ -276,7 +276,7 @@ def main(timeout=0):
             hub.start(False)
 
             if not timeout:
-                while hub.isRunning():
+                while hub.is_running:
                     time.sleep(0.01)
             else:
                 time.sleep(timeout)
