@@ -9,19 +9,18 @@ from .core import CosmologyError
 from ..units import Quantity
 
 
-def z_at_value(func, fval, zmin=0, zmax=1e4, ztol=1e-5):
+def z_at_value(func, fval, zmin=0, zmax=1e3, ztol=1e-5, maxfun=500):
     """ Find the redshift `z` at which `func(z) = fval`.
 
-    This function finds the redshift at which one of the cosmology
-    functions (for example Planck13.distmod) is equal to a known
-    value. WARNING: Make sure you understand the behaviour of the
-    function that you are trying to invert! Depending on the
-    cosmology, there may not be a unique solution. For example, in the
-    standard Lambda CDM cosmology, there are two redshifts which give
-    an angular diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To
-    force `z_at_value` to find the solution you are interested in, use
-    the `zmin` and `zmax` keywords to limit the search range (see the
-    example below).
+    This finds the redshift at which one of the cosmology functions
+    (for example Planck13.distmod) is equal to a known value. WARNING:
+    Make sure you understand the behaviour of the function that you
+    are trying to invert! Depending on the cosmology, there may not be
+    a unique solution. For example, in the standard Lambda CDM
+    cosmology, there are two redshifts which give an angular diameter
+    distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force `z_at_value`
+    to find the solution you are interested in, use the `zmin` and
+    `zmax` keywords to limit the search range (see the example below).
 
     Parameters
     ----------
@@ -29,12 +28,15 @@ def z_at_value(func, fval, zmin=0, zmax=1e4, ztol=1e-5):
        A function that takes a redshift as input.
     fval : astropy.Quantity instance
        The value of `func(z)`.
-    zmin : float
+    zmin : float, optional
        The lower search limit for `z` (default 0).
-    zmax : float
-       The upper search limit for `z` (default 10,000).
-    ztol : float
+    zmax : float, optional
+       The upper search limit for `z` (default 1000).
+    ztol : float, optional
        The relative error in `z` acceptable for convergence.
+    maxfun : int, optional
+       The maximum number of function evaluations allowed in the
+       optimization routine (default 500).
 
     Returns
     -------
@@ -44,29 +46,49 @@ def z_at_value(func, fval, zmin=0, zmax=1e4, ztol=1e-5):
 
     Notes
     -----
-    This function works for any arbitrary input cosmology, but is slow
-    and inefficient if you want to invert a very large number of
-    values for the same cosmology. In this case, you may want to
-    generate an array of function values at many closely-spaced
-    redshifts that cover the redshift range you're interested in, and
-    then use interpolation to find the redshifts.
+    This works for any arbitrary input cosmology, but is inefficient
+    if you want to invert a large number of values for the same
+    cosmology. In this case, it is faster to instead generate an array
+    of function values at many closely-spaced redshifts that cover the
+    relevant redshift range, and then use interpolation to find the
+    redshift at each value you're interested in.
 
     Examples
     --------
     >>> import astropy.units as u
     >>> from astropy.cosmology import Planck13, z_at_value
+
+    The age and lookback time are monotonic with redshift, and so a
+    unique solution can be found:
+
     >>> z_at_value(Planck13.age, 2 * u.Gyr)
     3.1981191749374629
+
+    The angular diameter is not monotonic however, and there are two
+    redshifts give a value of 1500 Mpc. Use the zmin and zmax keywords
+    to find the one you're interested in:
+
     >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmax=1.5)
     0.68127769625288614
     >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmin=2.5)
     3.7914918534022011
+
+    Also note that the luminosity distance and distance modulus (two
+    other commonly inverted quantities) are monotonic in flat and open
+    universes, but not in closed universes.
     """
     from scipy.optimize import fminbound
 
-    testval = func(zmin)
-    if isinstance(testval, Quantity):
-        unit = testval.unit
+    fval_zmin = func(zmin)
+    fval_zmax = func(zmax)
+    if np.sign(fval - fval_zmin) != np.sign(fval_zmax - fval):
+        warnings.warn("""\
+fval is not bracketed by func(zmin) and func(zmax). This means that
+either there is no solution, or that there is more than one solution
+between zmin and zmax satisfying fval = func(z).""")
+
+    if isinstance(fval_zmin, Quantity):
+        unit = fval_zmin.unit
         val = fval.to(unit).value
         f = lambda z: abs(func(z).value - val)
     else:
@@ -84,6 +106,7 @@ def z_at_value(func, fval, zmin=0, zmax=1e4, ztol=1e-5):
     elif np.allclose(zbest, zmin):
         raise CosmologyError("Best guess z is very close the lower z limit.\n"
                              "Try re-running with a different zmin.")
+
     return zbest
 
 
@@ -99,7 +122,11 @@ def age(z, cosmo=None):
     -------
     t : astropy.units.Quantity
       The age of the universe in Gyr at each input redshift.
-        """
+
+    See Also
+    --------
+    z_at_value : Find the redshift corresponding to an age.
+    """
     if cosmo is None:
         cosmo = _get_current()
     return cosmo.age(z)
@@ -223,6 +250,10 @@ def distmod(z, cosmo=None):
     -------
     distmod : astropy.units.Quantity
       Distance modulus at each input redshift.
+
+    See Also
+    --------
+    z_at_value : Find the redshift corresponding to a distance modulus.
     """
     if cosmo is None:
         cosmo = _get_current()
@@ -300,6 +331,10 @@ def lookback_time(z, cosmo=None):
     -------
     t : astropy.units.Quantity
       Lookback time at each input redshift.
+
+    See Also
+    --------
+    z_at_value : Find the redshift corresponding to a lookback time.
     """
     if cosmo is None:
         cosmo = _get_current()
@@ -364,6 +399,10 @@ def luminosity_distance(z, cosmo=None):
     -------
     lumdist : astropy.units.Quantity
       Angular diameter distance at each input redshift.
+
+    See Also
+    --------
+    z_at_value : Find the redshift corresponding to a luminosity distance.
     """
     if cosmo is None:
         cosmo = _get_current()
