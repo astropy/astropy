@@ -810,6 +810,10 @@ class FLRW(Cosmology):
         -------
         t : astropy.units.Quantity
           Lookback time in Gyr to each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to a lookback time.
         """
 
         from scipy.integrate import quad
@@ -831,6 +835,10 @@ class FLRW(Cosmology):
         -------
         t : astropy.units.Quantity
           The age of the universe in Gyr at each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to an age.
         """
 
         from scipy.integrate import quad
@@ -960,6 +968,10 @@ class FLRW(Cosmology):
         d : astropy.units.Quantity
           Luminosity distance in Mpc at each input redshift.
 
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to a luminosity distance.
+
         References
         ----------
         Weinberg, 1972, pp 420-424; Weedman, 1986, pp 60-62.
@@ -1080,6 +1092,10 @@ class FLRW(Cosmology):
         -------
         distmod : astropy.units.Quantity
           Distance modulus at each input redshift, in magnitudes
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to a distance modulus.
         """
 
         # Remember that the luminosity distance is in Mpc
