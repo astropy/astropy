@@ -8,6 +8,7 @@ from .core import get_current as _get_current
 from .core import CosmologyError
 from ..units import Quantity
 
+__doctest_requires__ = {'*': ['scipy.integrate']}
 
 def z_at_value(func, fval, zmin=0, zmax=1e3, ztol=1e-5, maxfun=500):
     """ Find the redshift `z` at which `func(z) = fval`.
