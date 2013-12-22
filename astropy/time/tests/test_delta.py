@@ -19,6 +19,8 @@ class TestTimeDelta():
     def setup(self):
         self.t = Time('2010-01-01', scale='utc')
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
+        self.t3 = Time('2010-01-03 01:02:03', scale='utc',
+                       lon='-75d', lat='30d')
         self.dt = TimeDelta(100.0, format='sec')
         self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
 
@@ -146,3 +148,16 @@ class TestTimeDelta():
             self.dt * self.dt
         with pytest.raises(OperandTypeError):
             self.dt * self.t
+
+    def test_keep_lon_lat(self):
+        # closes #1924 (partially)
+        dt = TimeDelta(1000., format='sec')
+        for t in (self.t, self.t3):
+            ta = t + dt
+            assert ta.lon == t.lon and ta.lat == t.lat
+
+            tr = dt + t
+            assert tr.lon == t.lon and tr.lat == t.lat
+
+            ts = t - dt
+            assert ts.lon == t.lon and ts.lat == t.lat
