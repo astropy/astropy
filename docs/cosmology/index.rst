@@ -183,10 +183,12 @@ the `Reference/API`_ section.
 Finally, if you know a cosmological quantity and you want to know the
 redshift which it corresponds to, you can use `z_at_value`:
 
+.. doctest-requires:: scipy
+
   >>> import astropy.units as u
   >>> from astropy.cosmology import Planck13, z_at_value
   >>> z_at_value(Planck13.age, 2 * u.Gyr)
-  3.1981226843560968
+  3.1981...
 
 For some quantities there can be more than one redshift that satisfies
 a value. In this case you can use the `zmin` and `zmax` keywords to
