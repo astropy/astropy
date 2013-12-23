@@ -47,6 +47,7 @@ cdef extern from "erfa.h":
     # Geodetic
     int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
     int eraGd2gc(int n, double elong, double phi, double height, double xyz[3])
+    int eraGc2gd(int n, double xyz[3], double *elong, double *phi, double *height )
 
     # Sidereal time
     double eraGmst06(double uta, double utb, double tta, double ttb)
@@ -1325,16 +1326,89 @@ def era_gd2gc(n, elong, phi, height):
     **
     **  4) The inverse transformation is performed in the function eraGc2gd.
     """
+    assert elong.shape[0] == phi.shape[0] == height.shape[0]
+    cdef unsigned int i
+    cdef unsigned int nitems = elong.shape[0]
     cdef np.ndarray[double, ndim=1] xyz = np.empty(3, dtype=np.double)
+    cdef np.ndarray[double, ndim=2] out = np.empty((3, nitems), dtype=np.double)
 
     errs = {-1: 'illegal identifier',
              -2: 'illegal case'}
 
-    ret = eraGd2gc(n, elong, phi, height, &xyz[0])
-    check_return(ret, 'eraGd2gc', errors=errs)
+    for i in range(nitems):
+        ret = eraGd2gc(n, elong[i], phi[i], height[i], &xyz[0])
+        check_return(ret, 'eraGd2gc', errors=errs)
+        out[:, i] = xyz
 
-    return xyz
+    return out
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def era_gc2gd(n, xyz):
+    """
+    Wrap
+    int eraGc2gd(int n, double xyz[3], double *elong, double *phi, double *height )
+
+    **  Given:
+    **     n       int        ellipsoid identifier (Note 1)
+    **     xyz     double[3]  geocentric vector (Note 2)
+    **
+    **  Returned:
+    **     elong   double     longitude (radians, east +ve)
+    **     phi     double     latitude (geodetic, radians, Note 3)
+    **     height  double     height above ellipsoid (geodetic, Notes 2,3)
+    **
+    **  Returned (function value):
+    **            int         status:  0 = OK
+    **                                -1 = illegal identifier (Note 3)
+    **                                -2 = internal error (Note 3)
+    **
+    **  Notes:
+    **
+    **  1) The identifier n is a number that specifies the choice of
+    **     reference ellipsoid.  The following are supported:
+    **
+    **        n    ellipsoid
+    **
+    **        1     ERFA_WGS84
+    **        2     ERFA_GRS80
+    **        3     ERFA_WGS72
+    **
+    **     The n value has no significance outside the ERFA software.  For
+    **     convenience, symbols ERFA_WGS84 etc. are defined in erfam.h.
+    **
+    **  2) The geocentric vector (xyz, given) and height (height, returned)
+    **     are in meters.
+    **
+    **  3) An error status -1 means that the identifier n is illegal.  An
+    **     error status -2 is theoretically impossible.  In all error cases,
+    **     phi and height are both set to -1e9.
+    **
+    **  4) The inverse transformation is performed in the function eraGd2gc.
+    **
+    **  Called:
+    **     eraEform     Earth reference ellipsoids
+    **     eraGc2gde    geocentric to geodetic transformation, general
+    **
+    **  Copyright (C) 2013, NumFOCUS Foundation.
+    **  Derived, with permission, from the SOFA library.  See notes at end of file.
+    """
+    assert xyz.shape[0] == 3
+    cdef unsigned int i
+    cdef unsigned int nitems = xyz.shape[1]
+    cdef np.ndarray[double, ndim=1] xyz_item = np.empty(3, dtype=np.double)
+    cdef np.ndarray[double, ndim=1] elong = np.empty(nitems, dtype=np.double)
+    cdef np.ndarray[double, ndim=1] phi = np.empty(nitems, dtype=np.double)
+    cdef np.ndarray[double, ndim=1] height = np.empty(nitems, dtype=np.double)
+
+    errs = {-1: 'illegal identifier',
+             -2: 'illegal case'}
+    for i in range(nitems):
+        xyz_item = xyz[:, i]
+        ret = eraGc2gd(n, &xyz_item[0], &elong[i], &phi[i], &height[i])
+        check_return(ret, 'eraGd2gc', errors=errs)
+
+    return elong, phi, height
 
 @cython.wraparound(False)
 @cython.boundscheck(False)

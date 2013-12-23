@@ -24,7 +24,6 @@ from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
-
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
            'TimePlotDate', 'TimeDatetime', 'TimeString',
@@ -154,6 +153,11 @@ class Time(object):
         (if float, should be decimal degrees).
         They are required to calculate local sidereal times and give improved
         precision for conversion from/to TDB and TCB.
+    height : Quantity or float, optional
+        Height above reference ellipsoid (if float, should be meters)
+    location : EarthLocation instance, Quantity or other iterable, optional
+        Instance or iterable should have length 3 and have units of length,
+        or be in meters (if used, lon, lat, and height are ignored)
     copy : bool, optional
         Make a copy of the input values
     """
@@ -178,7 +182,8 @@ class Time(object):
     @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
-                lon=None, lat=None, copy=False):
+                lon=None, lat=None, height=None, location=None,
+                copy=False):
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
@@ -189,14 +194,21 @@ class Time(object):
     @kwargs_after_scale
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 lon=None, lat=None, copy=False):
+                 lon=None, lat=None, height=None, location=None,
+                 copy=False):
 
-        if lon is not None or lat is not None:
-            from ..coordinates import Longitude, Latitude
-
-        self.lon = lon if lon is None else Longitude(lon, u.degree,
-                                                     wrap_angle=180*u.degree)
-        self.lat = lat if lat is None else Latitude(lat, u.degree)
+        if(location is not None or
+           lon is not None or lat is not None or height is not None):
+            from .utils import EarthLocation
+            if location is not None:
+                self.location = EarthLocation(location, unit=u.meter)
+            else:
+                self.location = EarthLocation.from_geodetic(
+                    0. if lon is None else lon,
+                    0. if lat is None else lat,
+                    0. if height is None else height)
+        else:
+            self.location = None
 
         if precision is not None:
             self.precision = precision
@@ -210,6 +222,13 @@ class Time(object):
                 self._set_scale(scale)
         else:
             self._init_from_vals(val, val2, format, scale, copy)
+
+        if(self.location is not None and
+           self.location.ndim > 1 and self.location.shape[1] > 1 and
+           (self.isscalar or self.location.shape[1] != len(self))):
+            raise ValueError('Have {0} times but {1} locations.  Should '
+                             'either give a single location or one for each '
+                             'time'.format(len(self), len(self.location)))
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -430,6 +449,18 @@ class Time(object):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
+    @property
+    def lon(self):
+        return self.location.longitude if self.location is not None else None
+
+    @property
+    def lat(self):
+        return self.location.latitude if self.location is not None else None
+
+    @property
+    def height(self):
+        return self.location.height if self.location is not None else None
+
     def _shaped_like_input(self, values):
         if self.isscalar:
             value0 = values[0]
@@ -523,6 +554,8 @@ class Time(object):
         elif longitude == 'greenwich':
             longitude = Longitude(0., u.degree,
                                   wrap_angle=180.*u.degree)
+        elif hasattr(longitude, 'longitude'):
+            longitude = longitude.longitude
         else:
             # sanity check on input
             longitude = Longitude(longitude, u.degree,
@@ -615,7 +648,7 @@ class Time(object):
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
         attrs = ('isscalar', '_delta_ut1_utc', '_delta_tdb_tt',
-                 'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
+                 'location', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
                 setattr(tm, attr, getattr(self, attr))
@@ -867,16 +900,17 @@ class Time(object):
             # subtract 0.5, so UT is fraction of the day from midnight
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
+            if self.location is None:
+                from .utils import EarthLocation
+                location = EarthLocation.from_geodetic(0., 0., 0.)
+            else:
+                location = self.location
             # Compute geodetic params needed for d_tdb_tt()
-            elon = 0. if self.lon is None else self.lon.to(u.radian).value
-            phi = 0. if self.lat is None else self.lat.to(u.radian).value
+            rxy = np.sqrt(location.x ** 2 + location.y ** 2).to(u.km).value
+            z = location.z.to(u.km).value
+            lon = location.longitude.to('radian').value
 
-            # Compute geocentric vector in km (era_gd2gc returns m)
-            xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0) / 1000.0
-            rxy = np.hypot(xyz[0], xyz[1])
-            z = xyz[2]
-
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, rxy, z)
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, lon, rxy, z)
 
         return self._delta_tdb_tt
 

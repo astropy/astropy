@@ -190,19 +190,19 @@ class TestTimeDelta():
         dt = TimeDelta(1000., format='sec')
         for t in (self.t, self.t3):
             ta = t + dt
-            assert ta.lon == t.lon and ta.lat == t.lat
+            assert ta.location == t.location
             assert ta.precision == t.precision
             assert ta.in_subfmt == t.in_subfmt
             assert ta.out_subfmt == t.out_subfmt
 
             tr = dt + t
-            assert tr.lon == t.lon and tr.lat == t.lat
+            assert tr.location == t.location
             assert tr.precision == t.precision
             assert tr.in_subfmt == t.in_subfmt
             assert tr.out_subfmt == t.out_subfmt
 
             ts = t - dt
-            assert ts.lon == t.lon and ts.lat == t.lat
+            assert ts.location == t.location
             assert ts.precision == t.precision
             assert ts.in_subfmt == t.in_subfmt
             assert ts.out_subfmt == t.out_subfmt
