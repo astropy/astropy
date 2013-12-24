@@ -7,6 +7,7 @@ import operator
 from ...tests.helper import pytest
 from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                 TIME_SCALES, TIME_DELTA_SCALES)
+from ... import units as u
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -23,7 +24,7 @@ class TestTimeDelta():
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
         self.t3 = Time('2010-01-03 01:02:03', scale='utc', precision=9,
                        in_subfmt='date_hms', out_subfmt='date_hm',
-                       lon='-75d', lat='30d', )
+                       location=(-75.*u.degree, 30.*u.degree, 500*u.m))
         self.dt = TimeDelta(100.0, format='sec')
         self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
 
@@ -190,19 +191,19 @@ class TestTimeDelta():
         dt = TimeDelta(1000., format='sec')
         for t in (self.t, self.t3):
             ta = t + dt
-            assert ta.location == t.location
+            assert ta.location is t.location
             assert ta.precision == t.precision
             assert ta.in_subfmt == t.in_subfmt
             assert ta.out_subfmt == t.out_subfmt
 
             tr = dt + t
-            assert tr.location == t.location
+            assert tr.location is t.location
             assert tr.precision == t.precision
             assert tr.in_subfmt == t.in_subfmt
             assert tr.out_subfmt == t.out_subfmt
 
             ts = t - dt
-            assert ts.location == t.location
+            assert ts.location is t.location
             assert ts.precision == t.precision
             assert ts.in_subfmt == t.in_subfmt
             assert ts.out_subfmt == t.out_subfmt

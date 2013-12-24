@@ -112,10 +112,10 @@ def kwargs_after_scale(func):
     def new_func(*args, **kwargs):
         if len(args) > 5:
             AstropyBackwardsIncompatibleChangeWarning(
-                'The order of longitude and latitude has been changed in '
-                'version 0.4 to lon, lat.  To avoid mistakes, set these '
-                '(and later arguments) using keyword arguments: '
-                'lon=..., lat=..., etc.')
+                'lon and lat have been replaced with location in version 0.4. '
+                'Code should be changed to set the location explicitly using '
+                'a keyword argument: location=(lon, lat, [height]) or '
+                'location=(x, y, z)')
         return func(*args, **kwargs)
     return new_func
 
@@ -147,17 +147,11 @@ class Time(object):
         Subformat for inputting string times
     out_subfmt : str, optional
         Subformat for outputting string times
-    lon, lat : `~astropy.coordinates.Angle` or float, optional
-        Earth East longitude and latitude of observer.  Can be anything that
-        initialises an `~astropy.coordinates.Angle` object
-        (if float, should be decimal degrees).
-        They are required to calculate local sidereal times and give improved
-        precision for conversion from/to TDB and TCB.
-    height : Quantity or float, optional
-        Height above reference ellipsoid (if float, should be meters)
-    location : EarthLocation instance, Quantity or other iterable, optional
-        Instance or iterable should have length 3 and have units of length,
-        or be in meters (if used, lon, lat, and height are ignored)
+    location : `~astropy.time.utils.EarthLocation` or iterable, optional
+        If given as an iterable, it should be able to initialize an
+        an EarthLocation instance, i.e., either contain 3 items with units of
+        length for geocentric coordinates, or contain a longitude, latitude,
+        and an optional height for geodetic coordinates.
     copy : bool, optional
         Make a copy of the input values
     """
@@ -182,8 +176,7 @@ class Time(object):
     @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
-                lon=None, lat=None, height=None, location=None,
-                copy=False):
+                location=None, copy=False, **kwargs):
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
@@ -194,19 +187,20 @@ class Time(object):
     @kwargs_after_scale
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 lon=None, lat=None, height=None, location=None,
-                 copy=False):
+                 location=None, copy=False, **kwargs):
 
-        if(location is not None or
-           lon is not None or lat is not None or height is not None):
+        if 'lon' in kwargs or 'lat' in kwargs:
+            AstropyBackwardsIncompatibleChangeWarning(
+                'lon and lat have been replaced with location in version 0.4. '
+                'Code should be changed to set the location explicitly using '
+                'a keyword argument: location=(lon, lat, [height]) or '
+                'location=(x, y, z)')
+            if location is None:
+                location = (kwargs.pop('lon', None), kwargs.pop('lat', None))
+
+        if location is not None:
             from .utils import EarthLocation
-            if location is not None:
-                self.location = EarthLocation(location, unit=u.meter)
-            else:
-                self.location = EarthLocation.from_geodetic(
-                    0. if lon is None else lon,
-                    0. if lat is None else lat,
-                    0. if height is None else height)
+            self.location = EarthLocation(*location)
         else:
             self.location = None
 
@@ -449,18 +443,6 @@ class Time(object):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
-    @property
-    def lon(self):
-        return self.location.longitude if self.location is not None else None
-
-    @property
-    def lat(self):
-        return self.location.latitude if self.location is not None else None
-
-    @property
-    def height(self):
-        return self.location.height if self.location is not None else None
-
     def _shaped_like_input(self, values):
         if self.isscalar:
             value0 = values[0]
@@ -500,6 +482,16 @@ class Time(object):
     def vals(self):
         """Time values in current format as a numpy array"""
         return self.value
+
+    @property
+    @deprecated("0.4", name="lon", alternative="location.longitude")
+    def lon(self):
+        return self.location.longitude
+
+    @property
+    @deprecated("0.4", name="lon", alternative="location.latitude")
+    def lat(self):
+        return self.location.latitude
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time
@@ -547,15 +539,13 @@ class Time(object):
                     .format(model, kind, sorted(available_models.keys())))
 
         if longitude is None:
-            if self.lon is None:
-                raise ValueError('No longitude is given but the longitude in '
+            if self.location is None:
+                raise ValueError('No longitude is given but the location for '
                                  'the Time object is not set.')
-            longitude = self.lon
+            longitude = self.location.longitude
         elif longitude == 'greenwich':
             longitude = Longitude(0., u.degree,
                                   wrap_angle=180.*u.degree)
-        elif hasattr(longitude, 'longitude'):
-            longitude = longitude.longitude
         else:
             # sanity check on input
             longitude = Longitude(longitude, u.degree,
@@ -906,7 +896,7 @@ class Time(object):
             else:
                 location = self.location
             # Compute geodetic params needed for d_tdb_tt()
-            rxy = np.sqrt(location.x ** 2 + location.y ** 2).to(u.km).value
+            rxy = np.hypot(location.x + location.y).to(u.km).value
             z = location.z.to(u.km).value
             lon = location.longitude.to('radian').value
 
