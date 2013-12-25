@@ -845,30 +845,37 @@ class Time(object):
                 raise OperandTypeError(self, other)
 
         other_tai = other.tai
-        # Note: jd1 is exact, and jd2 carry-over is done in
-        # Time/TimeDelta initialisation
-        jd1 = self_tai.jd1 - other_tai.jd1
-        jd2 = self_tai.jd2 - other_tai.jd2
 
         # T      - Tdelta = T
         # Tdelta - Tdelta = Tdelta
         # T      - T      = Tdelta
         # Tdelta - T      = error
-        self_delta = isinstance(self, TimeDelta)
-        other_delta = isinstance(other, TimeDelta)
-        self_time = not self_delta  # only 2 possibilities
-        other_time = not other_delta
-        if (self_delta and other_delta) or (self_time and other_time):
-            out = TimeDelta(jd1, jd2, format='jd')
-            if self_delta:
-                out = out.replicate(format=self.format)
-            return out
-        elif (self_time and other_delta):
-            tai = Time(jd1, jd2, format='jd', scale='tai',
-                       lon=self.lon, lat=self.lat, copy=False)
-            return getattr(tai.replicate(format=self.format), self.scale)
-        else:
-            raise OperandTypeError(self, other)
+        self_time = not isinstance(self, TimeDelta)
+        other_time = not isinstance(other, TimeDelta)
+
+        jd1 = self_tai._time.jd1 - other_tai._time.jd1
+        jd2 = self_tai._time.jd2 - other_tai._time.jd2
+        if other_time:
+            if self_time:
+                # Note: jd1 is exact; jd2 carry-over done in TimeDelta init.
+                tai = TimeDelta(jd1, jd2, format='jd')
+                tai.isscalar = len(jd1) == 1
+                return tai
+            else:
+                raise OperandTypeError(self, other)
+
+        tai = self_tai.replicate()
+        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
+        tai.isscalar = len(jd1) == 1
+
+        if self_time:
+            # remove attributes that are invalidated by changing time
+            for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
+                if hasattr(tai, attr):
+                    delattr(tai, attr)
+            return getattr(tai, self.scale)
+
+        return tai
 
     def __add__(self, other):
         self_tai = self.tai
@@ -879,32 +886,31 @@ class Time(object):
                 raise OperandTypeError(self, other)
 
         other_tai = other.tai
-        # Note: jd1 is exact, and jd2 carry-over is done in
-        # Time/TimeDelta initialisation
-        jd1 = self_tai.jd1 + other_tai.jd1
-        jd2 = self_tai.jd2 + other_tai.jd2
 
         # T      + Tdelta = T
         # Tdelta + Tdelta = Tdelta
         # T      + T      = error
         # Tdelta + T      = T
-        self_delta = isinstance(self, TimeDelta)
-        other_delta = isinstance(other, TimeDelta)
-        self_time = not self_delta  # only 2 possibilities
-        other_time = not other_delta
-        if (self_delta and other_delta):
-            out = TimeDelta(jd1, jd2, format='jd')
-            return out.replicate(format=self.format)
-        elif (self_time and other_delta) or (self_delta and other_time):
-            format = self.format if self_time else other.format
-            scale = self.scale if self_time else other.scale
-            tai = Time(jd1, jd2, format='jd', scale='tai',
-                       lon=self.lon if self_time else other.lon,
-                       lat=self.lat if self_time else other.lat,
-                       copy=False)
-            return getattr(tai.replicate(format=format), scale)
-        else:
+        self_time = not isinstance(self, TimeDelta)
+        other_time = not isinstance(other, TimeDelta)
+        if self_time and other_time:
             raise OperandTypeError(self, other)
+
+        jd1 = self_tai._time.jd1 + other_tai._time.jd1
+        jd2 = self_tai._time.jd2 + other_tai._time.jd2
+        tai = (other_tai if other_time else self_tai).replicate()
+        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
+        tai.isscalar = len(jd1) == 1
+
+        if self_time or other_time:
+            # remove attributes that are invalidated by changing time
+            for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
+                if hasattr(tai, attr):
+                    delattr(tai, attr)
+
+            return getattr(tai, other.scale if other_time else self.scale)
+
+        return tai
 
     def __radd__(self, other):
         return self.__add__(other)
