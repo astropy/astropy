@@ -616,6 +616,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - Fixed attribute error in ``astropy.wcs.Wcsprm`` (lattype->lattyp) [#1463]
+
   - Included a new command-line script called ``wcslint`` and accompanying API
     for validating the WCS in a given FITS file or header. [#580]
 

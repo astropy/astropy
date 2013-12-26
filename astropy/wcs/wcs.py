@@ -959,7 +959,7 @@ naxis kwarg.
             raise ValueError(
                 "WCS does not have longitude type of 'RA', therefore " +
                 "(ra, dec) data can not be used as input")
-        if self.wcs.lattype != 'DEC':
+        if self.wcs.lattyp != 'DEC':
             raise ValueError(
                 "WCS does not have longitude type of 'DEC', therefore " +
                 "(ra, dec) data can not be used as input")
@@ -989,7 +989,7 @@ naxis kwarg.
             raise ValueError(
                 "WCS does not have longitude type of 'RA', therefore " +
                 "(ra, dec) data can not be returned")
-        if self.wcs.lattype != 'DEC':
+        if self.wcs.lattyp != 'DEC':
             raise ValueError(
                 "WCS does not have longitude type of 'DEC', therefore " +
                 "(ra, dec) data can not be returned")
