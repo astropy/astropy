@@ -6,20 +6,36 @@ Some other things you might want to do
 Delete a branch on GitHub
 -------------------------
 
-::
+`git` strongly encourages making a new branch each time you make a change in the
+code. At some point you will need to clean up the branches you no longer need--
+that point is *after* your changes have been accepted if you made a pull request
+for those changes.
+
+There are two places to delete the branch: in your local repo and on GitHub.
+
+You can do these independent of each other. 
+
+To delete both your local copy AND the GitHub copy from the command line follow
+these instructions::
 
    # change to the master branch (if you still have one, otherwise change to
    # another branch)
    git checkout master
 
    # delete branch locally
-   git branch -D my-unwanted-branch
+   # Note: -d tells git to check whether your branch has been merged somewhere
+   # if it hasn't, and you delete it, it is gone forever.
+   #
+   # Use -D instead to force deletion regardless of merge status
+   git branch -d my-unwanted-branch
 
    # delete branch on GitHub
    git push origin :my-unwanted-branch
 
-(Note the colon ``:`` before ``test-branch``.  See also:
-http://github.com/guides/remove-a-remote-branch
+(Note the colon ``:`` before ``test-branch``.) See `Github's instructions for
+deleting a branch 
+<https://help.github.com/articles/creating-and-deleting-branches-within-your-repository>`_
+if you want to delete the GitHub copy through GitHub. 
 
 Several people sharing a single repository
 ------------------------------------------
@@ -272,7 +288,9 @@ fix one particular issue.  If that issue is listed on GitHub, a natural
 way to address it is to convert the issue to a pull request by
 attaching code containing the fix for the issue. This can currently only be
 done using the GitHub API (there's no button or anything on the web
-site that does it, at least as of 2/6/2012). There are two options to do this:
+site that does it, at least as of 2/6/2012). There are two options to do this,
+both of which only work if you own the repository or have the ability to commit
+directly to it (for Astropy, that means being an Astropy maintainer):
 
 * You can use the script at https://gist.github.com/1750715, which will
   do this for you automatically |emdash| just download the script and run it as
