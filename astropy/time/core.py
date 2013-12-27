@@ -766,7 +766,7 @@ class Time(object):
         return iers_table.ut1_utc(self.utc, return_status=return_status)
 
     # Property for ERFA DUT arg = UT1 - UTC
-    def _get_delta_ut1_utc(self, jd1=None, jd2=0.):
+    def _get_delta_ut1_utc(self, jd1=None, jd2=None):
         """
         Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
@@ -779,8 +779,12 @@ class Time(object):
         if not hasattr(self, '_delta_ut1_utc'):
             from ..utils.iers import IERS
             iers_table = IERS.open()
+            # jd1, jd2 are normally set (see above), except if delta_ut1_utc
+            # is access directly; ensure we behave as expected for that case
             if jd1 is None:
-                jd1 = self.utc
+                self_utc = self.utc
+                jd1, jd2 = self_utc.jd1, self_utc.jd2
+
             self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
         return self._delta_ut1_utc
