@@ -895,12 +895,13 @@ class Time(object):
                 location = EarthLocation.from_geodetic(0., 0., 0.)
             else:
                 location = self.location
-            # Compute geodetic params needed for d_tdb_tt()
-            rxy = np.hypot(location.x + location.y).to(u.km).value
-            z = location.z.to(u.km).value
-            lon = location.longitude.to('radian').value
-
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, lon, rxy, z)
+            # Geodetic params needed for d_tdb_tt()
+            lon = location.longitude
+            rxy = np.hypot(location.x, location.y)
+            z = location.z
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(
+                jd1, jd2, ut, lon.to(u.radian).value,
+                rxy.to(u.km).value, z.to(u.km).value)
 
         return self._delta_tdb_tt
 
