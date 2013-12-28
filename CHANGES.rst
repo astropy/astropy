@@ -140,6 +140,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Ensure that ``delta_ut1_utc`` gets calculated when accessed directly,
+    instead of failing and giving a rather obscure error message [#1925]
+
 - ``astropy.units``
 
 - ``astropy.utils``
