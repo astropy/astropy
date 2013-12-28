@@ -249,6 +249,9 @@ Bug Fixes
     `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
     or `TCB` [#1732]
 
+  - Fix a bug when computing the TDB to TT offset.  The transform routine was
+    using meters instead of kilometers for the Earth vector.  [#1929]
+
 - ``astropy.units``
   - ``Quantity`` initialisation rewritten for speed [#1775]
 

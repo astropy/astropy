@@ -168,8 +168,8 @@ class TestBasic():
         assert t.tai.iso == '2006-01-15 21:25:10.500000'
         assert t.tt.iso == '2006-01-15 21:25:42.684000'
         assert t.tcg.iso == '2006-01-15 21:25:43.322690'
-        assert t.tdb.iso == '2006-01-15 21:25:42.683799'
-        assert t.tcb.iso == '2006-01-15 21:25:56.893378'
+        assert t.tdb.iso == '2006-01-15 21:25:42.684372'
+        assert t.tcb.iso == '2006-01-15 21:25:56.893951'
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
