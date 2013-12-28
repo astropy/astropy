@@ -66,44 +66,77 @@ class TestTimeDelta():
         assert t2.iso == self.t2.iso
 
     def test_add_vector(self):
+        """Check time arithmetic as well as properly keeping track of whether
+        a time is a scalar or a vector"""
         t = Time(0.0, format='mjd', scale='utc')
         t2 = Time([0.0, 1.0], format='mjd', scale='utc')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
+
+        out = t + dt
+        assert allclose_jd(out.mjd, 100.0)
+        assert out.isscalar
 
         out = t + dt2
         assert allclose_jd(out.mjd, [100.0, 200.0])
+        assert not out.isscalar
 
         out = t2 + dt
         assert allclose_jd(out.mjd, [100.0, 101.0])
+        assert not out.isscalar
+
+        out = dt + dt
+        assert allclose_jd(out.jd, 200.0)
+        assert out.isscalar
 
         out = dt + dt2
         assert allclose_jd(out.jd, [200.0, 300.0])
+        assert not out.isscalar
 
         # Reverse the argument order
+        out = dt + t
+        assert allclose_jd(out.mjd, 100.0)
+        assert out.isscalar
+
         out = dt2 + t
         assert allclose_jd(out.mjd, [100.0, 200.0])
+        assert not out.isscalar
 
         out = dt + t2
         assert allclose_jd(out.mjd, [100.0, 101.0])
+        assert not out.isscalar
 
         out = dt2 + dt
         assert allclose_jd(out.jd, [200.0, 300.0])
+        assert not out.isscalar
 
     def test_sub_vector(self):
+        """Check time arithmetic as well as properly keeping track of whether
+        a time is a scalar or a vector"""
         t = Time(0.0, format='mjd', scale='utc')
         t2 = Time([0.0, 1.0], format='mjd', scale='utc')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
+        out = t - dt
+        assert allclose_jd(out.mjd, -100.0)
+        assert out.isscalar
+
         out = t - dt2
         assert allclose_jd(out.mjd, [-100.0, -200.0])
+        assert not out.isscalar
 
         out = t2 - dt
         assert allclose_jd(out.mjd, [-100.0, -99.0])
+        assert not out.isscalar
+
+        out = dt - dt
+        assert allclose_jd(out.jd, 0.0)
+        assert out.isscalar
 
         out = dt - dt2
         assert allclose_jd(out.jd, [0.0, -100.0])
+        assert not out.isscalar
 
     def test_copy_timedelta(self):
         """Test copying the values of a TimeDelta object by passing it into the

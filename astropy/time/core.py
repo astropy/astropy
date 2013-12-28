@@ -859,14 +859,14 @@ class Time(object):
             if self_time:
                 # Note: jd1 is exact; jd2 carry-over done in TimeDelta init.
                 tai = TimeDelta(jd1, jd2, format='jd')
-                tai.isscalar = len(jd1) == 1
+                tai.isscalar = self_tai.isscalar and other_tai.isscalar
                 return tai
             else:
                 raise OperandTypeError(self, other)
 
         tai = self_tai.replicate()
         tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = len(jd1) == 1
+        tai.isscalar = self_tai.isscalar and other_tai.isscalar
 
         if self_time:
             # remove attributes that are invalidated by changing time
@@ -900,7 +900,7 @@ class Time(object):
         jd2 = self_tai._time.jd2 + other_tai._time.jd2
         tai = (other_tai if other_time else self_tai).replicate()
         tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = len(jd1) == 1
+        tai.isscalar = self_tai.isscalar and other_tai.isscalar
 
         if self_time or other_time:
             # remove attributes that are invalidated by changing time
