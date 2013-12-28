@@ -25,11 +25,9 @@ def test_SAMPClient_connect():
     hub = samp.SAMPHubServer(web_profile=False,
                              lockfile=lockfile)
 
-    os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(self.lockfile)
+    os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
 
     proxy = samp.SAMPHubProxy()
-
-    del os.environ['SAMP_HUB']  # hacky
 
     try:
         hub.start()
@@ -51,9 +49,10 @@ def test_SAMPClient_connect():
 
     hub.stop()
 
+    del os.environ['SAMP_HUB']  # hacky
+
     if os.path.exists(lockfile):
         os.remove(lockfile)
-
 
 
 @remote_data

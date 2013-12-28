@@ -448,7 +448,7 @@ class SAMPIntegratedClient(object):
 
         Parameters
         ----------
-        @msg_id : str
+        msg_id : str
             Message ID to which reply.
 
         status : str
