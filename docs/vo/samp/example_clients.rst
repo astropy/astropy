@@ -13,53 +13,57 @@ running SAMP Hub and create a callable client thanks to the |SAMPIntegratedClien
 class which integrates the funcionalities of the more specific classes |SAMPClient|
 and |SAMPHubProxy|.
 
-First start a SAMP hub::
+First we start a SAMP hub::
 
    >>> from astropy.vo import samp
    >>> hub = samp.SAMPHubServer()
    >>> hub.start()
 
-Next create two clients and connect them::
+Next, we create two clients and connect them to the hub::
 
-   >>> client1 = samp.SAMPIntegratedClient(name = "Client 1", description = "Test Client 1",
+   >>> client1 = samp.SAMPIntegratedClient(name="Client 1", description="Test Client 1",
    ...                                     metadata = {"client1.version":"0.01"})
-   >>> client2 = samp.SAMPIntegratedClient(metadata = {"samp.name":"Client 2",
-   ...                                                 "samp.description.text":"Test Client 2",
-   ...                                                 "client2.version":"0.25"})
+   >>> client2 = samp.SAMPIntegratedClient(name="Client 2", description="Test Client 2",
+   ...                                     metadata = {"client2.version":"0.25"})
    >>> client1.connect()
    >>> client2.connect()
-   >>> print "client1", client1.get_private_key(), client1.get_public_id()
-   >>> print "client2", client2.get_private_key(), client2.get_public_id()
 
-Define functions to call when receiving a notification, call or response::
+We now define functions to call when receiving a notification, call or response::
 
    >>> def test_receive_notification(private_key, sender_id, mtype, params, extra):
    ...     print("Notification:", private_key, sender_id, mtype, params, extra)
+
    >>> def test_receive_call(private_key, sender_id, msg_id, mtype, params, extra):
    ...     print("Call:", private_key, sender_id, msg_id, mtype, params, extra)
    ...     client1.ereply(msg_id, SAMP_STATUS_OK, result = {"txt": "printed"})
+
    >>> def test_receive_response(private_key, sender_id, msg_id, response):
    ...     print("Response:", private_key, sender_id, msg_id, response)
 
-Subscribe client 1 to ``"samp.*"`` and ``"samp.app.*"`` MTypes and bind them to the related functions::
+We subscribe client 1 to ``"samp.*"`` and ``"samp.app.*"`` and bind them to the
+related functions::
 
    >>> client1.bind_receive_notification("samp.app.*", test_receive_notification)
    >>> client1.bind_receive_call("samp.app.*", test_receive_call)
 
-Bind client 2 message-tags received to suitable functions::
+We now bind message tags received by client 2 to suitable functions::
 
    >>> client2.bind_receive_response("my-dummy-print", test_receive_response)
    >>> client2.bind_receive_response("my-dummy-print-specific", test_receive_response)
 
-Client 2 notifies to All "samp.app.echo" MType using the hub::
+We are now ready to test out the clients and callback functions. Client 2
+notifies all clients using the "samp.app.echo" message type via the hub::
 
    >>> client2.enotify_all("samp.app.echo", txt="Hello world!")
    ['cli#2']
    Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
+
+We can also find a dictionary giving the clients that would currently recevei ``samp.app.echo`` messages::
+
    >>> print(client2.getSubscribedClients("samp.app.echo"))
    {'cli#2': {}}
 
-Client 2 calls to all ``"samp.app.echo"`` MType using ``"my-dummy-print"`` as message-tag::
+Client 2 calls all clients with the ``"samp.app.echo"`` message type using ``"my-dummy-print"`` as a message-tag::
 
    >>> print(client2.call_all("my-dummy-print",
    ...                        {"samp.mtype": "samp.app.echo",
@@ -69,7 +73,7 @@ Client 2 calls to all ``"samp.app.echo"`` MType using ``"my-dummy-print"`` as me
    Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
 
 
-Client 2 calls ``"samp.app.echo"`` MType on client 1 tagging it as ``"my-dummy-print-specific"``::
+Client 2 then calls client 1 using the ``"samp.app.echo"`` message type, tagging the message as ``"my-dummy-print-specific"``::
 
    >>> try:
    ...     print(client2.call(client1.getPublicId(),
@@ -82,8 +86,7 @@ Client 2 calls ``"samp.app.echo"`` MType on client 1 tagging it as ``"my-dummy-p
    Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#2;;cli#hub;;cli#2;;my-dummy-print-specific samp.app.echo {'txt': 'Hello Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
    Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print-specific {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
 
-
-Function called to test synchronous calls::
+We can now define a function called to test synchronous calls::
 
    >>> def test_receive_sync_call(private_key, sender_id, msg_id, mtype, params, extra):
    ...     import time
@@ -92,8 +95,7 @@ Function called to test synchronous calls::
    ...     client1.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
    ...                            "samp.result": {"txt": "printed sync"}})
 
-
-Bind test MType for sync calls::
+We now bind the ``samp.test`` message type to ``test_receive_sync_call``::
 
    >>> client1.bind_receive_call("samp.test", test_receive_sync_call)
    >>> try:
@@ -108,8 +110,7 @@ Bind test MType for sync calls::
    SYNC Call: cli#2 msg#3;;cli#hub;;cli#2;;sampy::sync::call samp.test {'txt': 'Hello SYNCRO Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
    {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed sync'}}
 
-
-Disconnect the clients from the hub at the end::
+Finally, we disconnect the clients from the hub at the end::
 
    >>> client1.disconnect()
    >>> client2.disconnect()
