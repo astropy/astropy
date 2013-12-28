@@ -2,6 +2,7 @@
 import functools
 
 import numpy as np
+import operator
 
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
@@ -19,6 +20,9 @@ class TestTimeDelta():
     def setup(self):
         self.t = Time('2010-01-01', scale='utc')
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
+        self.t3 = Time('2010-01-03 01:02:03', scale='utc', precision=9,
+                       in_subfmt='date_hms', out_subfmt='date_hm',
+                       lon='-75d', lat='30d', )
         self.dt = TimeDelta(100.0, format='sec')
         self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
 
@@ -62,44 +66,77 @@ class TestTimeDelta():
         assert t2.iso == self.t2.iso
 
     def test_add_vector(self):
+        """Check time arithmetic as well as properly keeping track of whether
+        a time is a scalar or a vector"""
         t = Time(0.0, format='mjd', scale='utc')
         t2 = Time([0.0, 1.0], format='mjd', scale='utc')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
+
+        out = t + dt
+        assert allclose_jd(out.mjd, 100.0)
+        assert out.isscalar
 
         out = t + dt2
         assert allclose_jd(out.mjd, [100.0, 200.0])
+        assert not out.isscalar
 
         out = t2 + dt
         assert allclose_jd(out.mjd, [100.0, 101.0])
+        assert not out.isscalar
+
+        out = dt + dt
+        assert allclose_jd(out.jd, 200.0)
+        assert out.isscalar
 
         out = dt + dt2
         assert allclose_jd(out.jd, [200.0, 300.0])
+        assert not out.isscalar
 
         # Reverse the argument order
+        out = dt + t
+        assert allclose_jd(out.mjd, 100.0)
+        assert out.isscalar
+
         out = dt2 + t
         assert allclose_jd(out.mjd, [100.0, 200.0])
+        assert not out.isscalar
 
         out = dt + t2
         assert allclose_jd(out.mjd, [100.0, 101.0])
+        assert not out.isscalar
 
         out = dt2 + dt
         assert allclose_jd(out.jd, [200.0, 300.0])
+        assert not out.isscalar
 
     def test_sub_vector(self):
+        """Check time arithmetic as well as properly keeping track of whether
+        a time is a scalar or a vector"""
         t = Time(0.0, format='mjd', scale='utc')
         t2 = Time([0.0, 1.0], format='mjd', scale='utc')
         dt = TimeDelta(100.0, format='jd')
         dt2 = TimeDelta([100.0, 200.0], format='jd')
 
+        out = t - dt
+        assert allclose_jd(out.mjd, -100.0)
+        assert out.isscalar
+
         out = t - dt2
         assert allclose_jd(out.mjd, [-100.0, -200.0])
+        assert not out.isscalar
 
         out = t2 - dt
         assert allclose_jd(out.mjd, [-100.0, -99.0])
+        assert not out.isscalar
+
+        out = dt - dt
+        assert allclose_jd(out.jd, 0.0)
+        assert out.isscalar
 
         out = dt - dt2
         assert allclose_jd(out.jd, [0.0, -100.0])
+        assert not out.isscalar
 
     def test_copy_timedelta(self):
         """Test copying the values of a TimeDelta object by passing it into the
@@ -146,3 +183,45 @@ class TestTimeDelta():
             self.dt * self.dt
         with pytest.raises(OperandTypeError):
             self.dt * self.t
+
+    def test_keep_properties(self):
+        # closes #1924 (partially)
+        dt = TimeDelta(1000., format='sec')
+        for t in (self.t, self.t3):
+            ta = t + dt
+            assert ta.lon == t.lon and ta.lat == t.lat
+            assert ta.precision == t.precision
+            assert ta.in_subfmt == t.in_subfmt
+            assert ta.out_subfmt == t.out_subfmt
+
+            tr = dt + t
+            assert tr.lon == t.lon and tr.lat == t.lat
+            assert tr.precision == t.precision
+            assert tr.in_subfmt == t.in_subfmt
+            assert tr.out_subfmt == t.out_subfmt
+
+            ts = t - dt
+            assert ts.lon == t.lon and ts.lat == t.lat
+            assert ts.precision == t.precision
+            assert ts.in_subfmt == t.in_subfmt
+            assert ts.out_subfmt == t.out_subfmt
+
+        t_tdb = self.t.tdb
+        assert hasattr(t_tdb, '_delta_tdb_tt')
+        assert not hasattr(t_tdb, '_delta_ut1_utc')
+        t_tdb_ut1 = t_tdb.ut1
+        assert hasattr(t_tdb_ut1, '_delta_tdb_tt')
+        assert hasattr(t_tdb_ut1, '_delta_ut1_utc')
+        t_tdb_ut1_utc = t_tdb_ut1.utc
+        assert hasattr(t_tdb_ut1_utc, '_delta_tdb_tt')
+        assert hasattr(t_tdb_ut1_utc, '_delta_ut1_utc')
+        for op in (operator.add, operator.sub):
+            t1 = op(t_tdb, dt)
+            assert hasattr(t1, '_delta_tdb_tt')  # needed to make TDB again
+            assert not hasattr(t1, '_delta_ut1_utc')
+            t2 = op(t_tdb_ut1, dt)
+            assert not hasattr(t2, '_delta_tdb_tt')
+            assert hasattr(t2, '_delta_ut1_utc')  # needed to make UT1 again
+            t3 = op(t_tdb_ut1_utc, dt)
+            assert not hasattr(t3, '_delta_tdb_tt')
+            assert not hasattr(t3, '_delta_ut1_utc')
