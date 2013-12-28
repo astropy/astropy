@@ -28,8 +28,8 @@ Next create two clients and connect them::
    ...                                                 "client2.version":"0.25"})
    >>> client1.connect()
    >>> client2.connect()
-   >>> print "client1", client1.getPrivateKey(), client1.getPublicId()
-   >>> print "client2", client2.getPrivateKey(), client2.getPublicId()
+   >>> print "client1", client1.get_private_key(), client1.get_public_id()
+   >>> print "client2", client2.get_private_key(), client2.get_public_id()
 
 Define functions to call when receiving a notification, call or response::
 
@@ -43,19 +43,17 @@ Define functions to call when receiving a notification, call or response::
 
 Subscribe client 1 to ``"samp.*"`` and ``"samp.app.*"`` MTypes and bind them to the related functions::
 
-   >>> client1.bindReceiveNotification("samp.app.*", test_receive_notification)
-   >>> client1.bindReceiveCall("samp.app.*", test_receive_call)
-
+   >>> client1.bind_receive_notification("samp.app.*", test_receive_notification)
+   >>> client1.bind_receive_call("samp.app.*", test_receive_call)
 
 Bind client 2 message-tags received to suitable functions::
 
-   >>> client2.bindReceiveResponse("my-dummy-print", test_receive_response)
-   >>> client2.bindReceiveResponse("my-dummy-print-specific", test_receive_response)
-
+   >>> client2.bind_receive_response("my-dummy-print", test_receive_response)
+   >>> client2.bind_receive_response("my-dummy-print-specific", test_receive_response)
 
 Client 2 notifies to All "samp.app.echo" MType using the hub::
 
-   >>> client2.enotifyAll("samp.app.echo", txt="Hello world!")
+   >>> client2.enotify_all("samp.app.echo", txt="Hello world!")
    ['cli#2']
    Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
    >>> print(client2.getSubscribedClients("samp.app.echo"))
@@ -63,9 +61,9 @@ Client 2 notifies to All "samp.app.echo" MType using the hub::
 
 Client 2 calls to all ``"samp.app.echo"`` MType using ``"my-dummy-print"`` as message-tag::
 
-   >>> print(client2.callAll("my-dummy-print",
-   ...                       {"samp.mtype": "samp.app.echo",
-   ...                        "samp.params": {"txt": "Hello world!"}}))
+   >>> print(client2.call_all("my-dummy-print",
+   ...                        {"samp.mtype": "samp.app.echo",
+   ...                         "samp.params": {"txt": "Hello world!"}}))
    {'cli#1': 'msg#1;;cli#hub;;cli#2;;my-dummy-print'}
    Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#1;;cli#hub;;cli#2;;my-dummy-print samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
    Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
@@ -97,13 +95,13 @@ Function called to test synchronous calls::
 
 Bind test MType for sync calls::
 
-   >>> client1.bindReceiveCall("samp.test", test_receive_sync_call)
+   >>> client1.bind_receive_call("samp.test", test_receive_sync_call)
    >>> try:
    ...     # Sync call
-   ...     print(client2.callAndWait(client1.getPublicId(),
-   ...                               {"samp.mtype": "samp.test",
-   ...                                "samp.params": {"txt": "Hello SYNCRO client 1!"}},
-   ...                                "10"))
+   ...     print(client2.call_and_wait(client1.getPublicId(),
+   ...                                 {"samp.mtype": "samp.test",
+   ...                                  "samp.params": {"txt": "Hello SYNCRO client 1!"}},
+   ...                                  "10"))
    ... except SAMPProxyError as e:
    ...     # If timeout expires than a SAMPProxyError is returned
    ...     print("Error ({0}): {1}".format(e.faultCode, e.faultString))

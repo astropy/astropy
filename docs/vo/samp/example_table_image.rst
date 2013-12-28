@@ -62,7 +62,7 @@ Finally, we can broadcast this to all clients that are listening for
 ``table.load.votable`` messages using
 :meth:`~astropy.vo.samp.SAMPIntegratedClient.notifyAll`::
 
-    >>> client.notifyAll(message)
+    >>> client.notify_all(message)
 
 The above message will actually be broadcast to all applications connected via
 SAMP. For example, if we open `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_ in
@@ -71,12 +71,12 @@ the table. We can use the
 :meth:`~astropy.vo.samp.SAMPIntegratedClient.getRegisteredClients` method to
 find all the clients connected to the hub::
 
-    >>> client.getRegisteredClients()
+    >>> client.get_registered_clients()
     ['hub', 'c1', 'c2']
 
 These IDs don't mean much, but we can find out more using::
 
-   >>> client.getMetadata('c1')
+   >>> client.get_metadata('c1')
    {'author.affiliation': 'Astrophysics Group, Bristol University',
     'author.email': 'm.b.taylor@bristol.ac.uk',
     'author.name': 'Mark Taylor',
@@ -125,7 +125,7 @@ We can now use the
 :meth:`~astropy.vo.samp.SAMPIntegratedClient.bindReceiveCall` method to tell
 our receiver to listed to all ``table.load.votable`` messages::
 
-    >>> client.bindReceiveCall("table.load.votable", r.receive_call)
+    >>> client.bind_receive_call("table.load.votable", r.receive_call)
 
 We can now check that the message has not been received yet::
 
@@ -179,7 +179,7 @@ reads the table once it has::
     r = Receiver()
 
     # Listen for any instructions to load a table
-    client.bindReceiveCall("table.load.votable", r.receive_call)
+    client.bind_receive_call("table.load.votable", r.receive_call)
 
     # We now run the loop to wait for the message in a try/finally block so that if
     # the program is interrupted e.g. by control-C, the client terminates
@@ -233,7 +233,7 @@ should be loaded, and the details of the table that we set above::
 Finally, we can broadcast this to all clients that are listening for
 ``table.load.votable`` messages::
 
-    >>> client.notifyAll(message)
+    >>> client.notify_all(message)
 
 As for `Sending a table to TOPCAT and Ds9`_, the ``notifyAll`` method will
 broadcast the image to all listening clients, and as for tables it is possible
