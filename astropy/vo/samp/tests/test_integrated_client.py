@@ -33,8 +33,10 @@ class TestIntegratedClient(object):
                           "client.version": "1.2"}
 
     def teardown_method(self, method):
-        self.client1.disconnect()
-        self.client2.disconnect()
+        if self.client1.is_connected:
+            self.client1.disconnect()
+        if self.client2.is_connected:
+            self.client2.disconnect()
         self.hub.stop()
 
     def test_ping(self):
@@ -88,7 +90,7 @@ class TestIntegratedClient(object):
         assert self.client2.is_connected
 
     @pytest.mark.xfail  # need a better exception than current 'Fault'
-    def test_notify(self):
+    def test_no_mtype(self):
         message = {}
         with pytest.raises(SAMPError):
             self.client1.notify(self.client2_id, message)
@@ -104,6 +106,14 @@ class TestIntegratedClient(object):
 
         # Easy notify
         self.client1.enotify(self.client2_id, "table.load.votable")
+
+    def test_notify_extra(self):
+        """
+        Ensures that passing extra_kws works correctly when passed to _format_easy_msg
+        """
+        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client1.enotify(self.client2_id, "table.load.votable",
+                             extra_kws={'simple.example':'test'})
 
     def test_notify_all(self):
 
@@ -141,6 +151,7 @@ class TestIntegratedClient(object):
         # Easy call
         self.client1.ecall_all('test_tag', "table.load.votable")
 
+    @pytest.mark.xfail
     def test_call_and_wait(self):
 
         self.client2.declare_subscriptions({'table.load.votable':Receiver()})
@@ -152,3 +163,65 @@ class TestIntegratedClient(object):
 
         # Easy call_and_wait
         self.client1.ecall_and_wait(self.client2_id, 'test_tag', "table.load.votable")
+
+    def test_bind_receive_notification(self):
+
+        class TestReceiver(object):
+            def test_receive_notification(self, private_key, sender_id, mtype,
+                                          params, extra):
+                self.private_key = private_key
+                self.sender_id = sender_id
+                self.mtype = mtype
+                self.params = params
+                self.extra = extra
+
+        rec = TestReceiver()
+
+        self.client2.bind_receive_notification('test.message', rec.test_receive_notification)
+
+        self.client1.enotify(self.client2_id, "test.message", a=1, b='a')
+
+        private_key = self.client2.get_private_key()
+
+        # self.client2.unbind_receive_notification("test.message")  # TODO: fix
+
+        self.client2.disconnect()  # TODO: should not be needed
+
+        assert rec.private_key == private_key
+        assert rec.sender_id == self.client1_id
+        assert rec.mtype == 'test.message'
+        assert rec.params == {'a':1, 'b':'a'}
+
+    def test_bind_receive_call(self):
+
+        class TestReceiver(object):
+            def test_receive_call(self, private_key, sender_id, msg_id, mtype,
+                                          params, extra):
+                self.private_key = private_key
+                self.sender_id = sender_id
+                self.msg_id = msg_id
+                self.mtype = mtype
+                self.params = params
+                self.extra = extra
+
+        rec = TestReceiver()
+
+        self.client2.bind_receive_call('test.call', rec.test_receive_call)
+
+        self.client1.ecall(self.client2_id, "message.id", "test.call", a=1, b='a')
+
+        private_key = self.client2.get_private_key()
+
+        # self.client2.unbind_receive_call("test.call")  # TODO: fix
+
+        self.client2.disconnect()  # TODO: should not be needed
+
+        assert rec.private_key == private_key
+        assert rec.sender_id == self.client1_id
+        # assert rec.msg_id == 'message.id'  # TODO: fix
+        assert rec.mtype == 'test.call'
+        assert rec.params == {'a':1, 'b':'a'}
+
+    def test_del(self):
+        self.client1.__del__()
+        self.client2.__del__()

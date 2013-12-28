@@ -195,25 +195,25 @@ class SAMPIntegratedClient(object):
         """
         Proxy to `get_metadata` SAMP Hub method.
         """
-        return self.hub.get_metadata(self.client.get_private_key(), client_id)
+        return self.hub.get_metadata(self.get_private_key(), client_id)
 
     def get_subscriptions(self, client_id):
         """
         Proxy to `get_subscriptions` SAMP Hub method.
         """
-        return self.hub.get_subscriptions(self.client.get_private_key(), client_id)
+        return self.hub.get_subscriptions(self.get_private_key(), client_id)
 
     def get_registered_clients(self):
         """
         Proxy to `get_registered_clients` SAMP Hub method.
         """
-        return self.hub.get_registered_clients(self.client.get_private_key())
+        return self.hub.get_registered_clients(self.get_private_key())
 
     def get_subscribed_clients(self, mtype):
         """
         Proxy to `get_subscribed_clients` SAMP Hub method.
         """
-        return self.hub.get_subscribed_clients(self.client.get_private_key(), mtype)
+        return self.hub.get_subscribed_clients(self.get_private_key(), mtype)
 
     def _format_easy_msg(self, mtype, params):
 
@@ -231,7 +231,7 @@ class SAMPIntegratedClient(object):
 
     def notify(self, recipient_id, message):
         """Proxy to `notify` SAMP Hub method."""
-        return self.hub.notify(self.client.get_private_key(), recipient_id, message)
+        return self.hub.notify(self.get_private_key(), recipient_id, message)
 
     def enotify(self, recipient_id, mtype, **params):
         """
@@ -270,7 +270,7 @@ class SAMPIntegratedClient(object):
         """
         Proxy to `notify_all` SAMP Hub method.
         """
-        return self.hub.notify_all(self.client.get_private_key(), message)
+        return self.hub.notify_all(self.get_private_key(), message)
 
     def enotify_all(self, mtype, **params):
         """
@@ -307,7 +307,7 @@ class SAMPIntegratedClient(object):
         """
         Proxy to `call` SAMP Hub method.
         """
-        return self.hub.call(self.client.get_private_key(), recipient_id, msg_tag, message)
+        return self.hub.call(self.get_private_key(), recipient_id, msg_tag, message)
 
     def ecall(self, recipient_id, msg_tag, mtype, **params):
         """
@@ -348,7 +348,7 @@ class SAMPIntegratedClient(object):
 
     def call_all(self, msg_tag, message):
         """Proxy to `call_all` SAMP Hub method."""
-        return self.hub.call_all(self.client.get_private_key(), msg_tag, message)
+        return self.hub.call_all(self.get_private_key(), msg_tag, message)
 
     def ecall_all(self, msg_tag, mtype, **params):
         """
@@ -389,7 +389,7 @@ class SAMPIntegratedClient(object):
 
         If timeout expires a `SAMPProxyError` instance is raised.
         """
-        return self.hub.call_and_wait(self.client.get_private_key(), recipient_id, message, timeout)
+        return self.hub.call_and_wait(self.get_private_key(), recipient_id, message, timeout)
 
     def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
@@ -427,7 +427,7 @@ class SAMPIntegratedClient(object):
 
     def reply(self, msg_id, response):
         """Proxy to `reply` SAMP Hub method."""
-        return self.hub.reply(self.client.get_private_key(), msg_id, response)
+        return self.hub.reply(self.get_private_key(), msg_id, response)
 
     def _format_easy_response(self, status, result, error):
 
