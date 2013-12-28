@@ -1,4 +1,8 @@
+import os
+import tempfile
+
 from ....tests.helper import pytest
+
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 
@@ -6,6 +10,7 @@ from ..integrated_client import SAMPIntegratedClient
 # - reply/ereply
 # - call_and_wait
 # - bind_receive_response
+# - make proxy accept a lockfile name
 
 
 class Receiver(object):
@@ -22,8 +27,13 @@ class TestIntegratedClient(object):
 
     def setup_method(self, method):
 
-        self.hub = SAMPHubServer(web_profile=False)
+        fileobj, self.lockfile = tempfile.mkstemp()
+
+        self.hub = SAMPHubServer(web_profile=False,
+                                 lockfile=self.lockfile)
         self.hub.start()
+
+        os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(self.lockfile)
 
         self.client1 = SAMPIntegratedClient()
         self.client1.connect()
@@ -32,6 +42,8 @@ class TestIntegratedClient(object):
         self.client2 = SAMPIntegratedClient()
         self.client2.connect()
         self.client2_id = self.client2.get_public_id()
+
+        del os.environ['SAMP_HUB']  # hacky
 
         self.metadata1 = {"samp.name": "Client 1",
                           "samp.description.text": "Client 1 Description",
@@ -42,11 +54,16 @@ class TestIntegratedClient(object):
                           "client.version": "1.2"}
 
     def teardown_method(self, method):
+
         if self.client1.is_connected:
             self.client1.disconnect()
         if self.client2.is_connected:
             self.client2.disconnect()
+
         self.hub.stop()
+
+        if os.path.exists(self.lockfile):
+            os.remove(self.lockfile)
 
     def test_ping(self):
         self.client1.ping()

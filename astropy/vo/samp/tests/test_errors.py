@@ -5,7 +5,6 @@ from ... import samp
 def test_SAMPHubError():
     """Test that SAMPHubError can be instantiated"""
     samp.SAMPHubError("test")
-    assert True
 
 
 def test_SAMPClientError():
@@ -16,4 +15,3 @@ def test_SAMPClientError():
 def test_SAMPProxyError():
     """Test that SAMPProxyError can be instantiated"""
     samp.SAMPProxyError("test", "any")
-    assert True

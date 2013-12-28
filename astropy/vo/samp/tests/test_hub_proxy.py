@@ -21,9 +21,9 @@ class TestHubProxy(object):
         self.proxy = SAMPHubProxy()
         self.proxy.connect()
 
-    def teardown_method(self, method):
-
         del os.environ['SAMP_HUB']  # hacky
+
+    def teardown_method(self, method):
 
         if self.proxy.is_connected:
             self.proxy.disconnect()

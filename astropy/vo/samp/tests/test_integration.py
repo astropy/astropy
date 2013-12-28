@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Integration tests, i.e. tests involving several classes"""
+
+import os
 import time
+import tempfile
+
 from ....tests.helper import remote_data
 from ... import samp
 
@@ -10,15 +14,22 @@ def test_SAMPMsgReplierWrapper():
     """Test that SAMPMsgReplierWrapper can be instantiated"""
     cli = samp.SAMPIntegratedClient()
     samp.SAMPMsgReplierWrapper(cli)
-    assert True
 
 
 @remote_data
 def test_SAMPClient_connect():
     """Test that SAMPClient can connect and register"""
 
-    hub = samp.SAMPHubServer(web_profile=False)
+    fileobj, lockfile = tempfile.mkstemp()
+
+    hub = samp.SAMPHubServer(web_profile=False,
+                             lockfile=lockfile)
+
+    os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(self.lockfile)
+
     proxy = samp.SAMPHubProxy()
+
+    del os.environ['SAMP_HUB']  # hacky
 
     try:
         hub.start()
@@ -39,6 +50,10 @@ def test_SAMPClient_connect():
     proxy.disconnect()
 
     hub.stop()
+
+    if os.path.exists(lockfile):
+        os.remove(lockfile)
+
 
 
 @remote_data
@@ -184,5 +199,3 @@ class TestSAMPCommunication(object):
         cli1.stop()
         cli2.unregister()
         cli2.stop()
-
-        assert True
