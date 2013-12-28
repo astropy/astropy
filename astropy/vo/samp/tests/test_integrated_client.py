@@ -2,12 +2,21 @@ from ....tests.helper import pytest
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 
+# TODO:
+# - reply/ereply
+# - call_and_wait
+# - bind_receive_response
+
+
 class Receiver(object):
+
     def __init__(self):
         self.received = False
+
     def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
         self.params = params
         self.received = True
+
 
 class TestIntegratedClient(object):
 
@@ -77,9 +86,9 @@ class TestIntegratedClient(object):
         assert self.client1.get_subscribed_clients('table.load.votable') == {}
 
         rec = Receiver()
-        self.client1.declare_subscriptions({'table.load.votable':rec})
+        self.client1.declare_subscriptions({'table.load.votable': rec})
 
-        assert self.client2.get_subscribed_clients('table.load.votable') == {self.client1_id:{}}
+        assert self.client2.get_subscribed_clients('table.load.votable') == {self.client1_id: {}}
         assert self.client1.get_subscribed_clients('table.load.votable') == {}  # a bit strange, make sure this is clear in docstring
 
         assert 'table.load.votable' in self.client1.get_subscriptions(self.client1_id)
@@ -97,7 +106,7 @@ class TestIntegratedClient(object):
 
     def test_notify(self):
 
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
 
         # Standard notify
         message = {}
@@ -111,13 +120,13 @@ class TestIntegratedClient(object):
         """
         Ensures that passing extra_kws works correctly when passed to _format_easy_msg
         """
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
         self.client1.enotify(self.client2_id, "table.load.votable",
-                             extra_kws={'simple.example':'test'})
+                             extra_kws={'simple.example': 'test'})
 
     def test_notify_all(self):
 
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
 
         # Standard notify
         message = {}
@@ -129,7 +138,7 @@ class TestIntegratedClient(object):
 
     def test_call(self):
 
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
 
         # Standard call
         message = {}
@@ -141,7 +150,7 @@ class TestIntegratedClient(object):
 
     def test_call_all(self):
 
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
 
         # Standard call
         message = {}
@@ -154,7 +163,7 @@ class TestIntegratedClient(object):
     @pytest.mark.xfail
     def test_call_and_wait(self):
 
-        self.client2.declare_subscriptions({'table.load.votable':Receiver()})
+        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
 
         # Standard call_and_wait
         message = {}
@@ -167,6 +176,7 @@ class TestIntegratedClient(object):
     def test_bind_receive_notification(self):
 
         class TestReceiver(object):
+
             def test_receive_notification(self, private_key, sender_id, mtype,
                                           params, extra):
                 self.private_key = private_key
@@ -190,13 +200,14 @@ class TestIntegratedClient(object):
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
         assert rec.mtype == 'test.message'
-        assert rec.params == {'a':1, 'b':'a'}
+        assert rec.params == {'a': 1, 'b': 'a'}
 
     def test_bind_receive_call(self):
 
         class TestReceiver(object):
+
             def test_receive_call(self, private_key, sender_id, msg_id, mtype,
-                                          params, extra):
+                                  params, extra):
                 self.private_key = private_key
                 self.sender_id = sender_id
                 self.msg_id = msg_id
@@ -220,7 +231,7 @@ class TestIntegratedClient(object):
         assert rec.sender_id == self.client1_id
         # assert rec.msg_id == 'message.id'  # TODO: fix
         assert rec.mtype == 'test.call'
-        assert rec.params == {'a':1, 'b':'a'}
+        assert rec.params == {'a': 1, 'b': 'a'}
 
     def test_del(self):
         self.client1.__del__()
