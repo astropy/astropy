@@ -701,7 +701,9 @@ class Time(object):
             # Compute geodetic params needed for d_tdb_tt()
             phi = np.radians(self.lat)
             elon = np.radians(self.lon)
-            xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0)
+
+            # Compute geocentric vector in km (era_gd2gc returns m)
+            xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0) / 1000.0
             u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
             v = xyz[2]
 
