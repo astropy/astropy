@@ -389,7 +389,7 @@ class SAMPIntegratedClient(object):
 
         If timeout expires a `SAMPProxyError` instance is raised.
         """
-        return self.hub.callAndWait(self.client.get_private_key(), recipient_id, message, timeout)
+        return self.hub.call_and_wait(self.client.get_private_key(), recipient_id, message, timeout)
 
     def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
