@@ -1,8 +1,8 @@
 .. _development-workflow:
 
-=======================
-Workflow for Developers
-=======================
+===============================
+How to make a code contribution
+===============================
 
 This document outlines the process for contributing code to the Astropy
 project.
@@ -10,9 +10,11 @@ project.
 Pre-requisites
 ==============
 
-Before following the steps in this document you need a local copy of the
-astropy source. Instructions for doing that, including the basics you need
-for setting up git and GitHub, are at :ref:`get_devel`.
+Before following the steps in this document you need:
+
++ an account on `GitHub <https://github.com>`_
++ a local copy of the astropy source. Instructions for doing that, including the
+  basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
 Recommended, but required
 =========================
