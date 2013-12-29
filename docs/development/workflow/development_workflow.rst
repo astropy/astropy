@@ -24,7 +24,14 @@ environment in which you also use the stable version. It can be done |emdash|
 but can only be done *succesfully* if you always remember whether the
 development version or stable version is the active one.
 
-:ref:`virtual_envs` offer a better solution and take only a few minutes to set up. It is well worth your time.
+:ref:`virtual_envs` offer a better solution and take only a few minutes to set
+up. It is well worth your time.
+
+Not sure what your first contribution should be? Take a look at the `Astropy
+issue list`_ and grab one labeled "easy"...but note that even your first "easy"
+fix is likely to take a while if you are not familiar with the Astropy source
+code! The developers are friendly and want you to help, so don't be shy about
+asking questions on the `astropy-dev mailing list`_.
 
 New to `git`?
 =============
