@@ -22,7 +22,7 @@ There is a minimalist, command-only version of this at :ref:`command_history`.
 You should  have `pull request 1917`_ open as you read the commands so you can
 see the edits made to the code.
 
-There is also a very exciting terminal-cast at :ref:`   terminal_cast`.
+There is also a very exciting terminal-cast at :ref:`terminal_cast`.
 
 Before you begin
 ----------------
