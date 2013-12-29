@@ -107,30 +107,50 @@ Getting help
 ************
 
 If you want to get help or discuss issues with other Astropy users, you can
-sign up for the `astropy mailing list <http://mail.scipy.org/mailman/listinfo/astropy>`_.
+sign up for the `astropy mailing list`_.
 Alternatively, the `astropy-dev mailing list`_ is where you should go to
 discuss more technical aspects of Astropy with the developers.
+
+.. _reporting_issues:
+
+****************
+Reporting Issues
+****************
+
+If you have found a bug in Astropy please report it. The preferred way is to
+create a new issue on the Astropy `GitHub issue page
+<http://github.com/astropy/astropy/issues>`_; that requires `creating a free
+account <https://github.com>`_ on GitHub if you do not have one.
+
+If you prefer not to create a GitHub account, please report the issue to either
+the `astropy mailing list`_ or the `astropy-dev mailing list`_. 
+
+Please include an example that demonstrates the issue that will allow the
+developers to reproduce and fix the problem. You may be asked to also provide
+information about your operating system and a full Python stack trace; the
+Astropy developers will walk you through obtaining a stack trace if it is
+necessary.
 
 ************
 Contributing
 ************
 
-Pre-requisite: GitHub account
-------------------------------
+The Astropy project is made both by and for its users, so we highly encourage
+contributions at all levels.  This spans the gamut from sending an email
+mentioning a typo in the documentation or requesting a new feature to one of the
+addresses in :ref:`getting_help` all the way to developing a major new package.
 
-All contributions to Astropy require a free `GitHub <http://github.com>`_
-account; 
-`get one now <http://github.com>`_ if you don't already have one.
+The full range of ways to be part of the Astropy project are described at
+`Contribute to Astropy <http://www.astropy.org/contribute.html>`_. To get
+started contributing code or documentation (no git or GitHub experience
+necessary):
 
-Contribute these ways
-----------------------
+.. toctree::
+    :maxdepth: 1
 
+    development/workflow/get_devel_version
+    development/workflow/development_workflow
 
-* Report issues at the issue in the
-  `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_. 
-* :ref:`get_devel` (if you want to eventually contribute code, start here)
-* Write code, following the :ref:`development-workflow`
-* `Write a tutorial <https://github.com/astropy/astropy-tutorials>`_
 
 .. _developer-docs:
 
@@ -146,6 +166,7 @@ as a whole, see :doc:`development/vision`.
 .. toctree::
    :maxdepth: 1
 
+   development/workflow/development_workflow
    development/workflow/maintainer_workflow
    development/codeguide
    development/docguide
@@ -163,3 +184,5 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _astropy mailing list: http://mail.scipy.org/mailman/listinfo/astropy
