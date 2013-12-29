@@ -53,8 +53,6 @@ TIME_FORMATS = {}
 TIME_DELTA_FORMATS = {}
 
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
-TIME_DELTA_SCALES = ('tai',)
-
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -71,6 +69,24 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'ut1'): ('tai', 'utc'),
               ('tt', 'utc'): ('tai',),
               }
+GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
+BARYCENTRIC_SCALES = ('tcb', 'tdb')
+TIME_DELTA_SCALES = GEOCENTRIC_SCALES + BARYCENTRIC_SCALES
+# TODO: access these from erfa.h??
+# L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
+# d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
+ERFA_ELG = 6.969290134e-10
+# L_B = 1 - d(TDB)/d(TCB)
+ERFA_ELB = 1.550519768e-8
+# scale offsets as second = first + first * scale_offset[(first,second)]
+SCALE_OFFSETS = {('tt', 'tai'): None,
+                 ('tai', 'tt'): None,
+                 ('tcg', 'tt'): -ERFA_ELG,
+                 ('tt', 'tcg'): ERFA_ELG/(1.-ERFA_ELG),
+                 ('tcg', 'tai'): -ERFA_ELG,
+                 ('tai', 'tcg'): ERFA_ELG/(1.-ERFA_ELG),
+                 ('tcb', 'tdb'): -ERFA_ELB,
+                 ('tdb', 'tcb'): ERFA_ELB/(1.-ERFA_ELB)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -861,80 +877,108 @@ class Time(object):
         return len(self.jd1)
 
     def __sub__(self, other):
-        self_tai = self.tai
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other)
+                other = TimeDelta(other, scale=self.scale)
             except:
                 raise OperandTypeError(self, other)
-
-        other_tai = other.tai
 
         # T      - Tdelta = T
         # Tdelta - Tdelta = Tdelta
         # T      - T      = Tdelta
         # Tdelta - T      = error
-        self_time = not isinstance(self, TimeDelta)
-        other_time = not isinstance(other, TimeDelta)
+        self_is_time = not isinstance(self, TimeDelta)
+        other_is_time = not isinstance(other, TimeDelta)
 
-        jd1 = self_tai._time.jd1 - other_tai._time.jd1
-        jd2 = self_tai._time.jd2 - other_tai._time.jd2
-        if other_time:
-            if self_time:
-                # Note: jd1 is exact; jd2 carry-over done in TimeDelta init.
-                tai = TimeDelta(jd1, jd2, format='jd')
-                tai.isscalar = self_tai.isscalar and other_tai.isscalar
-                return tai
+        # we need a constant scale to calculate, which is guaranteed for
+        # TimeDelta, but not for Time; for two times, ensure scale is OK
+        if self_is_time:
+            if other_is_time:
+                if self.scale in TimeDelta.SCALES:
+                    scale = self.scale
+                elif other.scale in TimeDelta.SCALES:
+                    scale = other.scale
+                else:
+                    scale = 'tai'
             else:
+                scale = other.scale
+        else:
+            if other_is_time:
                 raise OperandTypeError(self, other)
+            scale = self.scale
 
-        tai = self_tai.replicate()
-        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = self_tai.isscalar and other_tai.isscalar
+        try:
+            self_scaled = getattr(self, scale)
+            other_scaled = getattr(other, scale)
+        except AttributeError:
+            raise TypeError("Cannot subtract TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
 
-        if self_time:
+        jd1 = self_scaled._time.jd1 - other_scaled._time.jd1
+        jd2 = self_scaled._time.jd2 - other_scaled._time.jd2
+        if other_is_time:  # T - T
+            # Note: jd1 is exact; jd2 carry-over done in TimeDelta init.
+            out = TimeDelta(jd1, jd2, format='jd', scale=scale)
+            out.isscalar = self.isscalar and other.isscalar
+            return out
+
+        # T - Tdelta or Tdelta - Tdelta
+        out = self_scaled.replicate()
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        if self_is_time:
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-                if hasattr(tai, attr):
-                    delattr(tai, attr)
-            return getattr(tai, self.scale)
+                if hasattr(out, attr):
+                    delattr(out, attr)
 
-        return tai
+            return getattr(out, self.scale)
+        else:
+            return out
 
     def __add__(self, other):
-        self_tai = self.tai
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other)
+                other = TimeDelta(other, scale=self.scale)
             except:
                 raise OperandTypeError(self, other)
-
-        other_tai = other.tai
 
         # T      + Tdelta = T
         # Tdelta + Tdelta = Tdelta
         # T      + T      = error
         # Tdelta + T      = T
-        self_time = not isinstance(self, TimeDelta)
-        other_time = not isinstance(other, TimeDelta)
-        if self_time and other_time:
+        self_is_time = not isinstance(self, TimeDelta)
+        other_is_time = not isinstance(other, TimeDelta)
+        if self_is_time and other_is_time:
             raise OperandTypeError(self, other)
 
-        jd1 = self_tai._time.jd1 + other_tai._time.jd1
-        jd2 = self_tai._time.jd2 + other_tai._time.jd2
-        tai = (other_tai if other_time else self_tai).replicate()
-        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = self_tai.isscalar and other_tai.isscalar
+        # we need a constant scale to calculate, which is guaranteed for
+        # TimeDelta, but not for Time; pick self if we deal with two TimeDelta
+        scale = self.scale if other_is_time else other.scale
+        try:
+            self_scaled = getattr(self, scale)
+            other_scaled = getattr(other, scale)
+        except AttributeError:
+            raise TypeError("Cannot add TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
 
-        if self_time or other_time:
+        jd1 = self_scaled._time.jd1 + other_scaled._time.jd1
+        jd2 = self_scaled._time.jd2 + other_scaled._time.jd2
+
+        out = (other_scaled if other_is_time else self_scaled).replicate()
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        if self_is_time or other_is_time:
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-                if hasattr(tai, attr):
-                    delattr(tai, attr)
+                if hasattr(out, attr):
+                    delattr(out, attr)
 
-            return getattr(tai, other.scale if other_time else self.scale)
+            return getattr(out, other.scale if other_is_time else self.scale)
 
-        return tai
+        return out
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -943,36 +987,40 @@ class Time(object):
         out = self.__sub__(other)
         return -out
 
-    def _tai_difference(self, other, op=None):
-        """If other is of same class as self, return difference in TAI.
+    def _time_difference(self, other, op=None):
+        """If other is of same class as self, return difference in self.scale.
         Otherwise, raise OperandTypeError.
         """
         if other.__class__ is not self.__class__:
             try:
-                other = self.__class__(other)
+                other = self.__class__(other, scale=self.scale)
             except:
                 raise OperandTypeError(self, other, op)
-        self_tai = self.tai
-        other_tai = other.tai
-        return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
+        try:
+            other_scaled = getattr(other, self.scale)
+        except AttributeError:
+            raise TypeError("Cannot compare TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
+
+        return (self.jd1 - other_scaled.jd1) + (self.jd2 - other_scaled.jd2)
 
     def __lt__(self, other):
-        return self._tai_difference(other, '<') < 0.
+        return self._time_difference(other, '<') < 0.
 
     def __le__(self, other):
-        return self._tai_difference(other, '<=') <= 0.
+        return self._time_difference(other, '<=') <= 0.
 
     def __eq__(self, other):
-        return self._tai_difference(other, '==') == 0.
+        return self._time_difference(other, '==') == 0.
 
     def __ne__(self, other):
-        return self._tai_difference(other, '!=') != 0.
+        return self._time_difference(other, '!=') != 0.
 
     def __gt__(self, other):
-        return self._tai_difference(other, '>') > 0.
+        return self._time_difference(other, '>') > 0.
 
     def __ge__(self, other):
-        return self._tai_difference(other, '>=') >= 0.
+        return self._time_difference(other, '>=') >= 0.
 
 
 class TimeDelta(Time):
@@ -1004,10 +1052,13 @@ class TimeDelta(Time):
     FORMATS = TIME_DELTA_FORMATS
     """Dict of time delta formats"""
 
-    def __init__(self, val, val2=None, format=None, scale=None, copy=False):
+    def __init__(self, val, val2=None, format=None, scale='tai', copy=False):
         # Note: scale is not used but is needed because of the inheritance
         # from Time.
-        if not isinstance(val, self.__class__):
+        if isinstance(val, self.__class__):
+            if scale is not None:
+                self._set_scale(scale)
+        else:
             if format is None:
                 try:
                     val = val.to(u.day)
@@ -1019,7 +1070,39 @@ class TimeDelta(Time):
                                      .format(self.__class__.__name__))
                 format = 'jd'
 
-            self._init_from_vals(val, val2, format, 'tai', copy)
+            self._init_from_vals(val, val2, format, scale, copy)
+            self.SCALES = (GEOCENTRIC_SCALES if scale in GEOCENTRIC_SCALES
+                           else BARYCENTRIC_SCALES)
+
+    def replicate(self, *args, **kwargs):
+        out = super(TimeDelta, self).replicate(*args, **kwargs)
+        out.SCALES = self.SCALES
+        return out
+
+    def _set_scale(self, scale):
+        """
+        This is the key routine that actually does time scale conversions.
+        This is not public and not connected to the read-only scale property.
+        """
+
+        if scale == self.scale:
+            return
+        if scale not in self.SCALES:
+            raise ValueError("Scale {0} is not in the allowed scales {1}"
+                             .format(repr(scale), sorted(self.SCALES)))
+
+        # For TimeDelta, there can only be a change in scale factor,
+        # which is written as time2 - time1 = scale_offset * time1
+        scale_offset = SCALE_OFFSETS[(self.scale, scale)]
+        if scale_offset is None:
+            self._time.scale = scale
+        else:
+            jd1, jd2 = self._time.jd1, self._time.jd2
+            offset1, offset2 = day_frac(jd1, jd2, factor=scale_offset)
+            self._time = self.FORMATS[self.format](
+                jd1 + offset1, jd2 + offset2, scale,
+                self.precision, self.in_subfmt,
+                self.out_subfmt, from_jd=True)
 
     def __neg__(self):
         """Negation of a `TimeDelta` object."""
@@ -1057,7 +1140,7 @@ class TimeDelta(Time):
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd')
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
@@ -1090,7 +1173,7 @@ class TimeDelta(Time):
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd')
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)
