@@ -54,7 +54,8 @@ Double check your setup
 Before going further, make sure you have set up astropy as described in
 :ref:`get_devel`. 
 
-In a terminal window, change directory to the one containing your clone of Astropy. Then, run ``git remote``; the output should look something like this::
+In a terminal window, change directory to the one containing your clone of
+Astropy. Then, run ``git remote``; the output should look something like this::
 
     origin
     upstream
@@ -76,8 +77,9 @@ your clone of git knows about with ``git branch -a`` you will see there are
     remotes/origin/master   # master on your fork of Astropy on GitHub
     remotes/upstream/master # the official development branch of Astropy
 
- The naming scheme used by `git` will also be used here. A plain branch name,
- like ``master`` means a branch in your local copy of Astropy. A branch on a remote, like ``origin`` , is labeled by that remote, ``origin/master``. 
+The naming scheme used by `git` will also be used here. A plain branch name,
+like ``master`` means a branch in your local copy of Astropy. A branch on a
+remote, like ``origin`` , is labeled by that remote, ``origin/master``. 
 
 This duplication of names can get very confusing for maintainers when trying
 to merge code contributions into the official master branch,
@@ -87,7 +89,9 @@ branch, ``master``. Always work on a branch instead.
 Essential `git` commands
 ------------------------
 
-A full `git` tutorial is beyond the scope of this document but this list describes the few ``git`` commands you are likely to encounter in contributing to Astropy:
+A full `git` tutorial is beyond the scope of this document but this list
+describes the few ``git`` commands you are likely to encounter in contributing
+to Astropy:
 
 * ``git fetch`` gets the latest development version of Astropy, which you will
   use as the basis for making your changes.
@@ -98,8 +102,9 @@ A full `git` tutorial is beyond the scope of this document but this list describ
 * ``git push`` copies the changes you committed to GitHub
 * ``git status`` to see a list of files that have been modified or created.
 
-.. note::
-   A good graphical interface to git makes some of these steps much easier. Some options are described in :ref:`git_gui_options`.
+.. note::    
+    A good graphical interface to git makes some of these steps much
+    easier. Some options are described in :ref:`git_gui_options`.
 
 Astropy Guidelines for `git`
 ============================
@@ -168,10 +173,12 @@ branch. Branches that are for a collection of related edits are often called
 Making a new branch for each set of related changes will make it easier for
 someone reviewing your branch to see what you are doing.
 
-Choose an informative name for the branch to remind yourself and the rest of
-us what the changes in the branch are for. Branch names like ``add-ability-to-fly`` or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
+Choose an informative name for the branch to remind yourself and the rest of us
+what the changes in the branch are for. Branch names like ``add-ability-to-fly``
+or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
 
-Always make your branch from ``upstream/master`` so that you are basing your changes on the latest version of Astropy::
+Always make your branch from ``upstream/master`` so that you are basing your
+changes on the latest version of Astropy::
 
     # Update the mirror of trunk
     git fetch upstream
@@ -208,7 +215,7 @@ Conceptually, you will:
 #. Make changes to one or more files and/or add a new file.
 #. Check that your changes do not break existing code.
 #. Add documentation to your code and, as appropriate, to the Astropy
-  documentation.
+   documentation.
 #. Ideally, also make sure your changes do not break the documentation.
 #. Add tests of the code you contribute.
 #. Commit your changes in `git`
@@ -285,7 +292,8 @@ example entry, which fixed
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
     being ignored when none was present in the FITS file. [#1845]
 
-If the change is a new feature, rather than an existing issue, you will not be able to put in the issue number until *after* you make the pull request. 
+If the change is a new feature, rather than an existing issue, you will not be
+able to put in the issue number until *after* you make the pull request.
 
 .. _push-to-github:
 
@@ -301,7 +309,8 @@ This step is easy because of the way you created the feature branch. Just::
 Ask for your changes to be reviewed
 ===================================
 
-A *pull request* on GitHub is a request to merge the changes you have made into another repository.
+A *pull request* on GitHub is a request to merge the changes you have made into
+another repository.
 
 When you are ready to ask for someone to review your code and consider merging
 it into Astropy:
@@ -333,3 +342,4 @@ it into Astropy:
 .. _Interactive tutorial: http://try.github.io/
 .. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: http://git-scm.com/book/
+.. _Astropy issue list: https://github.com/astropy/astropy/issues
