@@ -71,7 +71,11 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               }
 GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
 BARYCENTRIC_SCALES = ('tcb', 'tdb')
-TIME_DELTA_SCALES = GEOCENTRIC_SCALES + BARYCENTRIC_SCALES
+ROTATIONAL_SCALES = ('ut1',)
+TIME_DELTA_TYPES = {scale: scales for scales in
+                    (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES, ROTATIONAL_SCALES)
+                    for scale in scales}
+TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
 # TODO: access these from erfa.h??
 # L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
 # d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
@@ -879,7 +883,8 @@ class Time(object):
     def __sub__(self, other):
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other, scale=self.scale)
+                other = TimeDelta(other, scale=(self.scale if self.scale in
+                                                TimeDelta.SCALES else 'tai'))
             except:
                 raise OperandTypeError(self, other)
 
@@ -901,18 +906,19 @@ class Time(object):
                 else:
                     scale = 'tai'
             else:
-                scale = other.scale
+                scale = (self.scale if self.scale in other.SCALES
+                         else other.scale)
         else:
             if other_is_time:
                 raise OperandTypeError(self, other)
             scale = self.scale
+            if scale not in other.SCALES:
+                raise TypeError("Cannot subtract TimeDelta instances with "
+                                "scales '{0}' and '{1}'"
+                                .format(self.scale, other.scale))
 
-        try:
-            self_scaled = getattr(self, scale)
-            other_scaled = getattr(other, scale)
-        except AttributeError:
-            raise TypeError("Cannot subtract TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+        self_scaled = getattr(self, scale)
+        other_scaled = getattr(other, scale)
 
         jd1 = self_scaled._time.jd1 - other_scaled._time.jd1
         jd2 = self_scaled._time.jd2 - other_scaled._time.jd2
@@ -940,7 +946,8 @@ class Time(object):
     def __add__(self, other):
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other, scale=self.scale)
+                other = TimeDelta(other, scale=(self.scale if self.scale in
+                                                TimeDelta.SCALES else 'tai'))
             except:
                 raise OperandTypeError(self, other)
 
@@ -953,15 +960,21 @@ class Time(object):
         if self_is_time and other_is_time:
             raise OperandTypeError(self, other)
 
-        # we need a constant scale to calculate, which is guaranteed for
-        # TimeDelta, but not for Time; pick self if we deal with two TimeDelta
-        scale = self.scale if other_is_time else other.scale
-        try:
-            self_scaled = getattr(self, scale)
-            other_scaled = getattr(other, scale)
-        except AttributeError:
-            raise TypeError("Cannot add TimeDelta instances with scales "
-                            "'{0}' and '{1}'".format(self.scale, other.scale))
+        # ideally, we calculate in the scale of the Time item, since that is
+        # what we want the output in, but this may not be possible, since
+        # TimeDelta cannot be used for UTC (which doesn't have constant scale).
+        if(other_is_time and other.scale in self.SCALES or
+           self_is_time and self.scale not in other.SCALES):
+            scale = other.scale
+        else:
+            scale = self.scale
+            if scale not in other.SCALES:
+                raise TypeError("Cannot add TimeDelta instances with scales "
+                                "'{0}' and '{1}'"
+                                .format(self.scale, other.scale))
+
+        self_scaled = getattr(self, scale)
+        other_scaled = getattr(other, scale)
 
         jd1 = self_scaled._time.jd1 + other_scaled._time.jd1
         jd2 = self_scaled._time.jd2 + other_scaled._time.jd2
@@ -1071,8 +1084,8 @@ class TimeDelta(Time):
                 format = 'jd'
 
             self._init_from_vals(val, val2, format, scale, copy)
-            self.SCALES = (GEOCENTRIC_SCALES if scale in GEOCENTRIC_SCALES
-                           else BARYCENTRIC_SCALES)
+
+            self.SCALES = TIME_DELTA_TYPES[scale]
 
     def replicate(self, *args, **kwargs):
         out = super(TimeDelta, self).replicate(*args, **kwargs)
