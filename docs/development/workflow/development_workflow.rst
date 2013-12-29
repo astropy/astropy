@@ -133,13 +133,16 @@ These, conceptually, are the steps you will follow in contributing to Astropy:
 #. :ref:`push-to-github`
 #. From GitHub, :ref:`pull-request` to let the Astropy maintainers know
    you have contributions to review.
-#. Make additional edits, as needed, of your local branch of Astropy in
-   response to comments on the pull request.
-#. Push those changes to GitHub, which automatically updates the pull request.
+#. :ref:`revise and push` in response to comments on the pull
+   request. Pushing those changes to GitHub automatically updates the
+   pull request.
 
 This way of working helps to keep work well organized, with readable history.
 This in turn makes it easier for project maintainers (that might be you) to
 see what you've done, and why you did it.
+
+A worked example that follows these steps for fixing an Astropy issue is at
+:ref:`astropy-fix-example`.
 
 Some additional topics related to `git` are in :ref:`additional-git`.
 
@@ -262,7 +265,8 @@ In more detail
    documentation) do not need tests. Detailed instructions are at
    :ref:`testing-guidelines`, but if you have no experience writing tests or
    with the `py.test` testing framework submit your changes without adding
-   tests, but mention in the pull request that you have not written tests.
+   tests, but mention in the pull request that you have not written tests. An 
+   example of writing a test is in :ref:`astropy-fix-example`.
 
 #. Stage your changes using ``git add`` and commit them using ``git commit``.
    An example of doing that, based on the fix for an actual Astropy issue, is
@@ -336,6 +340,14 @@ it into Astropy:
    pull request message.  This is still a good way to start a preliminary
    code review.
 
+.. _revise and push:
+
+Revise and push as necessary
+============================
+
+You may be asked to make changes in the discussion in the pull request. Make
+those changes in your local copy, commit them to your local repo and push them
+to GitHub. GitHub will automatically update your pull request.
 
 .. include:: links.inc
 
