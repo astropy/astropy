@@ -15,6 +15,7 @@ from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils
+from ...utils.misc import did_you_mean
 
 
 class Fits(generic.Generic):
@@ -80,7 +81,9 @@ class Fits(generic.Generic):
     def _parse_unit(cls, unit):
         if unit not in cls._units:
             raise ValueError(
-                "Unit {0!r} not supported by the FITS standard.".format(unit))
+                "Unit {0!r} not supported by the FITS standard. {1}".format(
+                    unit, did_you_mean(
+                        unit, cls._units)))
 
         if unit in cls._deprecated_units:
             warnings.warn(

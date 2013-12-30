@@ -7,11 +7,14 @@ Handles a "generic" string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...extern import six
+
 import os
 import re
 
 from . import utils
 from .base import Base
+from ...utils.misc import did_you_mean
 
 
 class Generic(Base):
@@ -100,7 +103,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r'%|[a-zA-Z][a-zA-Z_]*'
+            r'%|((?!\d)\w)+'
             t.value = cls._get_unit(t)
             return t
 
@@ -113,10 +116,12 @@ class Generic(Base):
 
         try:
             from . import generic_lextab
-            lexer = lex.lex(optimize=True, lextab=generic_lextab)
+            lexer = lex.lex(optimize=True, lextab=generic_lextab,
+                            reflags=re.UNICODE)
         except ImportError:
             lexer = lex.lex(optimize=True, lextab='generic_lextab',
-                            outputdir=os.path.dirname(__file__))
+                            outputdir=os.path.dirname(__file__),
+                            reflags=re.UNICODE)
 
         def p_main(p):
             '''
@@ -327,10 +332,10 @@ class Generic(Base):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit".format(
-                    t.lexpos, t.value))
+                "At col {0}, {1}".format(
+                    t.lexpos, six.text_type(e)))
 
     @classmethod
     def _parse_unit(cls, s):
@@ -340,10 +345,15 @@ class Generic(Base):
             return registry['percent']
         elif s in registry:
             return registry[s]
+
         raise ValueError(
-            '{0} is not a valid unit'.format(s))
+            '{0} is not a valid unit. {1}'.format(
+                s, did_you_mean(s, registry)))
 
     def parse(self, s, debug=False):
+        if not isinstance(s, six.text_type):
+            s = s.decode('ascii')
+
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
@@ -352,12 +362,10 @@ class Generic(Base):
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
-                if str(e):
-                    raise ValueError("{0} in string {1!r}".format(
-                        str(e), s))
+                if six.text_type(e):
+                    raise ValueError(six.text_type(e))
                 else:
-                    raise ValueError(
-                        "Syntax error parsing unit string {0!r}".format(s))
+                    raise ValueError("Syntax error")
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

@@ -12,6 +12,7 @@ from numpy.testing.utils import assert_allclose
 from ...tests.helper import raises, pytest
 
 from ... import units as u
+from ...constants import si
 from .. import core
 from .. import format as u_format
 from ..utils import is_effectively_unity
@@ -75,7 +76,11 @@ def test_cds_grammar():
         (["mmag"], u.mmag),
         (["Mpc"], u.Mpc),
         (["Gyr"], u.Gyr),
-        (["°"], u.degree)]
+        (["°"], u.degree),
+        (["°/s"], u.degree / u.s),
+        (["Å"], u.AA),
+        (["Å/s"], u.AA / u.s),
+        (["\\h"], si.h)]
 
     for strings, unit in data:
         for s in strings:

@@ -79,6 +79,10 @@ Bug Fixes
   - The definition of the unit `bar` has been corrected to `1e5
     Pascal` from `100 Pascal` [#1910]
 
+  - For units that are close to known units, but not quite, for
+    example due to differences in case, the exception will now include
+    recommendations. [#1870]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]

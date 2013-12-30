@@ -182,8 +182,7 @@ Normally, passing an unrecognized unit string raises an exception::
   >>> u.Unit("m/s/s")  # The FITS standard only allows one '/'
   Traceback (most recent call last):
     ...
-  ValueError: 'm/s/s' did not parse as unit format 'generic': Syntax
-  error parsing unit string 'm/s/s'
+  ValueError: 'm/s/s' did not parse as unit: Syntax error
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
 argument `parse_strict` that can take one of three values to control
@@ -200,8 +199,7 @@ this behavior:
 So, for example, one can do::
 
    >>> x = u.Unit("m/s/s", parse_strict="warn")  # doctest: +SKIP
-   WARNING: UnitsWarning: 'm/s/s' did not parse as unit format
-   'generic': Syntax error parsing unit string 'm/s/s'
+   WARNING: UnitsWarning: 'm/s/s' did not parse as unit: Syntax error
    [astropy.units.core]
 
 This `~astropy.units.core.UnrecognizedUnit` object remembers the

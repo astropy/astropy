@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A "grab bag" of relatively small general-purpose utilities that don't have
@@ -9,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 
 
 import contextlib
+import difflib
 import functools
 import inspect
 import json
@@ -17,6 +19,7 @@ import signal
 import sys
 import textwrap
 import traceback
+import unicodedata
 import warnings
 
 from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
@@ -829,3 +832,72 @@ class JsonCustomEncoder(json.JSONEncoder):
         elif isinstance(obj, bytes):  # pragma: py3
             return obj.decode()
         return json.JSONEncoder.default(self, obj)
+
+
+def strip_accents(s):
+    """
+    Remove accents from a Unicode string.
+
+    This helps with matching "ångström" to "angstrom", for example.
+    """
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn')
+
+
+def did_you_mean(s, candidates, n=3, cutoff=0.8):
+    """
+    When a string isn't found in a set of candidates, we can be nice
+    to provide a list of alternatives in the exception.  This
+    convenience function helps to format that part of the exception.
+
+    Parameters
+    ----------
+    s : str
+
+    candidates : sequence of str or dict of str keys
+
+    n : int
+        The maximum number of results to include.  See
+        `difflib.get_close_matches`.
+
+    cutoff : float
+        In the range [0, 1]. Possibilities that don't score at least
+        that similar to word are ignored.  See
+        `difflib.get_close_matches`.
+
+    Returns
+    -------
+    message : str
+        Returns the string "Did you mean X, Y, or Z?", or the empty
+        string if no alternatives were found.
+    """
+    # The heuristic here is to first try "singularizing" the word.  If
+    # that doesn't match anything use difflib to find close matches in
+    # original, lower and upper case.
+
+    matches = []
+    if s.endswith('s'):
+        if s[:-1] in candidates:
+            matches = [s[:-1]]
+
+    if not len(matches):
+        if isinstance(s, six.text_type):
+            s = strip_accents(s)
+        matches = list(set(
+            difflib.get_close_matches(
+                s, candidates, n=n, cutoff=cutoff) +
+            difflib.get_close_matches(
+                s.lower(), candidates, n=n, cutoff=cutoff) +
+            difflib.get_close_matches(
+                s.upper(), candidates, n=n, cutoff=cutoff)))
+
+    if len(matches):
+        matches.sort()
+        if len(matches) == 1:
+            matches = matches[0]
+        else:
+            matches = ', '.join(matches[:-1]) + ' or ' + matches[-1]
+        return 'Did you mean {0}?'.format(matches)
+
+    return ''

@@ -12,11 +12,13 @@ import keyword
 import os
 import re
 
+from ...extern import six
 from ...extern.six.moves import zip
 
 from .base import Base
 from . import utils
 from ..utils import is_effectively_unity
+from ...utils.misc import did_you_mean
 
 
 # TODO: Support logarithmic units using bracketed syntax
@@ -106,7 +108,7 @@ class CDS(Base):
             return t
 
         def t_UNIT(t):
-            r'\%|[a-zA-Z][a-zA-Z_]*'
+            r'\%|°|\\h|((?!\d)\w)+'
             t.value = cls._get_unit(t)
             return t
 
@@ -119,10 +121,12 @@ class CDS(Base):
 
         try:
             from . import cds_lextab
-            lexer = lex.lex(optimize=True, lextab=cds_lextab)
+            lexer = lex.lex(optimize=True, lextab=cds_lextab,
+                            reflags=re.UNICODE)
         except ImportError:
             lexer = lex.lex(optimize=True, lextab='cds_lextab',
-                            outputdir=os.path.dirname(__file__))
+                            outputdir=os.path.dirname(__file__),
+                            reflags=re.UNICODE)
 
         def p_main(p):
             '''
@@ -250,23 +254,28 @@ class CDS(Base):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit".format(
-                    t.lexpos, t.value))
+                "At col {0}, {1}".format(
+                    t.lexpos, six.text_type(e)))
 
     @classmethod
     def _parse_unit(cls, unit):
         if unit not in cls._units:
             raise ValueError(
                 "Unit {0!r} not supported by the CDS SAC "
-                "standard.".format(unit))
+                "standard. {1}".format(
+                    unit, did_you_mean(
+                        unit, cls._units)))
 
         return cls._units[unit]
 
     def parse(self, s, debug=False):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
+
+        if not isinstance(s, six.text_type):
+            s = s.decode('ascii')
 
         # This is a short circuit for the case where the string
         # is just a single unit name
@@ -276,12 +285,10 @@ class CDS(Base):
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
-                if str(e):
-                    raise ValueError("{0} in unit {1!r}".format(
-                        str(e), s))
+                if six.text_type(e):
+                    raise ValueError(six.text_type(e))
                 else:
-                    raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                    raise ValueError("Syntax error")
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
