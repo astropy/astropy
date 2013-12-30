@@ -72,9 +72,9 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
 GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
 BARYCENTRIC_SCALES = ('tcb', 'tdb')
 ROTATIONAL_SCALES = ('ut1',)
-TIME_DELTA_TYPES = {scale: scales for scales in
-                    (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES, ROTATIONAL_SCALES)
-                    for scale in scales}
+TIME_DELTA_TYPES = dict((scale, scales)
+                        for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
+                                       ROTATIONAL_SCALES) for scale in scales)
 TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
 # TODO: access these from erfa.h??
 # L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
