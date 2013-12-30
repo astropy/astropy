@@ -4,6 +4,7 @@ Handles the "VOUnit" unit format.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ...extern import six
 from ...extern.six.moves import zip
 
 import keyword
@@ -12,6 +13,7 @@ from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils
+from ...utils.misc import did_you_mean
 
 
 class VOUnit(generic.Generic):
@@ -72,7 +74,9 @@ class VOUnit(generic.Generic):
         if unit not in cls._units:
             raise ValueError(
                 "Unit {0!r} not supported by the VOUnit "
-                "standard.".format(unit))
+                "standard. {1}".format(
+                    unit, did_you_mean(
+                        unit, cls._units)))
 
         if unit in cls._deprecated_units:
             warnings.warn(

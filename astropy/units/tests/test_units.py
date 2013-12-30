@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
@@ -11,6 +12,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
+from ...extern import six
 from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest, raises, catch_warnings
 from ...utils.compat.fractions import Fraction
@@ -529,3 +531,20 @@ def test_unicode_policy():
 
     assert_follows_unicode_guidelines(
         u.degree, roundtrip=u.__dict__)
+
+
+def test_suggestions():
+    for search, matches in [
+            ('microns', 'micron'),
+            ('s/microns', 'micron'),
+            ('M', 'm'),
+            ('metre', 'meter'),
+            ('angstroms', 'angstrom'),
+            ('milimeter', 'millimeter'),
+            ('ångström', 'Angstrom or angstrom')]:
+        try:
+            u.Unit(search)
+        except ValueError as e:
+            assert 'Did you mean {0}?'.format(matches) in six.text_type(e)
+        else:
+            assert False, 'Expected ValueError'
