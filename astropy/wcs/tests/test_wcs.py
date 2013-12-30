@@ -223,7 +223,12 @@ def test_fixes():
     def run():
         header = get_pkg_data_contents(
             'data/nonstandard_units.hdr', encoding='binary')
-        w = wcs.WCS(header)
+        try:
+            w = wcs.WCS(header, translate_units='dhs')
+        except wcs.InvalidTransformError:
+            pass
+        else:
+            assert False, "Expected InvalidTransformError"
 
     with catch_warnings(wcs.FITSFixedWarning) as w:
         run()
@@ -482,13 +487,21 @@ def test_scamp_sip_distortion_parameters():
     w.all_pix2world(0, 0, 0)
 
 
-def test_fixes():
+def test_fixes2():
     """
     From github issue #1854
     """
     header = get_pkg_data_contents(
         'data/nonstandard_units.hdr', encoding='binary')
-    w = wcs.WCS(header, fix=False)
-
     with pytest.raises(wcs.InvalidTransformError):
-        w.to_header()
+        w = wcs.WCS(header, fix=False)
+
+
+def test_unit_normalization():
+    """
+    From github issue #1918
+    """
+    header = get_pkg_data_contents(
+        'data/unit.hdr', encoding='binary')
+    w = wcs.WCS(header)
+    assert w.wcs.cunit[2] == 'm/s'

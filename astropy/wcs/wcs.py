@@ -282,11 +282,16 @@ class WCS(WCSBase):
 
     3. When the header includes duplicate keywords, in most cases the
        last encountered is used.
+
+    4. `~astropy.wcs.Wcsprm.set` is called immediately after
+       construction, so any invalid keywords or transformations will
+       be raised by the constructor, not when subsequently calling a
+       transformation method.
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=True, naxis=None, keysel=None, colsel=None,
-                 fix=True, translate_units=''):
+                 fix=True, translate_units='', _do_set=True):
         close_fds = []
 
         if header is None:
@@ -390,6 +395,9 @@ naxis kwarg.
 
         if fix:
             self.fix(translate_units=translate_units)
+
+        if _do_set:
+            self.wcs.set()
 
         for fd in close_fds:
             fd.close()
@@ -1965,7 +1973,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
 
     result = []
     for wcsprm in wcsprms:
-        subresult = WCS(fix=False)
+        subresult = WCS(fix=False, _do_set=False)
         subresult.wcs = wcsprm
         result.append(subresult)
 
@@ -2076,7 +2084,7 @@ def validate(source):
                 try:
                     WCS(hdu.header,
                         key=wcs.wcs.name or ' ',
-                        relax=True, fix=True)
+                        relax=True, fix=True, _do_set=False)
                 except WcsError as e:
                     wcs_results.append(str(e))
 
