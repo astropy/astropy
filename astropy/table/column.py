@@ -714,7 +714,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             fill_value = data.fill_value
         self.mask = mask
         self.fill_value = fill_value
-        self._name = name
+        self._name = fix_column_name(name)
         self.unit = unit
         self.format = format
         self.description = description
