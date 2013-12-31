@@ -18,6 +18,7 @@ from datetime import datetime
 import numpy as np
 import functools
 
+from .. import units as u
 from ..utils import deprecated, deprecated_attribute
 from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
 from ..utils.compat.misc import override__dir__
@@ -172,9 +173,9 @@ class Time(object):
         if lon is not None or lat is not None:
             from ..coordinates import Longitude, Latitude
 
-        self.lon = lon if lon is None else Longitude(lon, 'degree',
-                                                     wrap_angle='180d')
-        self.lat = lat if lat is None else Latitude(lat, 'degree')
+        self.lon = lon if lon is None else Longitude(lon, u.degree,
+                                                     wrap_angle=180*u.degree)
+        self.lat = lat if lat is None else Latitude(lat, u.degree)
 
         if precision is not None:
             self.precision = precision
@@ -499,13 +500,15 @@ class Time(object):
                                  'the Time object is not set.')
             longitude = self.lon
         elif longitude == 'greenwich':
-            longitude = Longitude(0., 'deg', wrap_angle='180d')
+            longitude = Longitude(0., u.degree,
+                                  wrap_angle=180.*u.degree)
         else:
             # sanity check on input
-            longitude = Longitude(longitude, 'deg', wrap_angle='180d')
+            longitude = Longitude(longitude, u.degree,
+                                  wrap_angle=180.*u.degree)
 
         gst = self._erfa_sidereal_time(available_models[model.upper()])
-        return Longitude(gst + longitude, 'hourangle')
+        return Longitude(gst + longitude, u.hourangle)
     sidereal_time.__doc__ = sidereal_time.__doc__.format(
         'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
         'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
@@ -523,7 +526,7 @@ class Time(object):
         sidereal_time = erfa_function(*erfa_parameters)
 
         return Longitude(self._shaped_like_input(sidereal_time),
-                         'radian').to('hourangle')
+                         u.radian).to(u.hourangle)
 
     def copy(self, format=None):
         """
@@ -815,15 +818,15 @@ class Time(object):
             ut = njd1 + njd2
 
             # Compute geodetic params needed for d_tdb_tt()
-            elon = 0. if self.lon is None else self.lon.to("radian").value
-            phi = 0. if self.lat is None else self.lat.to("radian").value
+            elon = 0. if self.lon is None else self.lon.to(u.radian).value
+            phi = 0. if self.lat is None else self.lat.to(u.radian).value
 
             # Compute geocentric vector in km (era_gd2gc returns m)
             xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0) / 1000.0
-            u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
-            v = xyz[2]
+            rxy = np.hypot(xyz[0], xyz[1])
+            z = xyz[2]
 
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, u, v)
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, rxy, z)
 
         return self._delta_tdb_tt
 
@@ -988,9 +991,9 @@ class TimeDelta(Time):
         if not isinstance(val, self.__class__):
             if format is None:
                 try:
-                    val = val.to('day')
+                    val = val.to(u.day)
                     if val2 is not None:
-                        val2 = val2.to('day')
+                        val2 = val2.to(u.day)
                 except:
                     raise ValueError('Only Quantities with Time units can '
                                      'be used to initiate {0} instances .'
@@ -1031,7 +1034,7 @@ class TimeDelta(Time):
             jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
         except Exception as err:  # try downgrading self to a quantity
             try:
-                return self.to('day') * other
+                return self.to(u.day) * other
             except:
                 raise err
 
@@ -1064,7 +1067,7 @@ class TimeDelta(Time):
             jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
         except Exception as err:  # try downgrading self to a quantity
             try:
-                return self.to('day') / other
+                return self.to(u.day) / other
             except:
                 raise err
 
@@ -1076,12 +1079,12 @@ class TimeDelta(Time):
 
     def __rtruediv__(self, other):
         """Division by `TimeDelta` objects of numbers/arrays."""
-        return other / self.to('day')
+        return other / self.to(u.day)
 
     def to(self, *args, **kwargs):
-        from astropy.units import day
-        return (self._shaped_like_input(self._time.jd1 + self._time.jd2) * day
-                ).to(*args, **kwargs)
+        return u.Quantity(self._shaped_like_input(self._time.jd1 +
+                                                  self._time.jd2),
+                          u.day).to(*args, **kwargs)
 
 
 class TimeFormat(object):
@@ -1143,7 +1146,7 @@ class TimeFormat(object):
 
         if hasattr(val1, 'to'):
             # set possibly scaled unit any quantities should be converted to
-            _unit = '{0!r}day'.format(getattr(self, 'unit', 1.))
+            _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
             val1 = val1.to(_unit).value
             if val2 is not None:
                 val2 = val2.to(_unit).value
