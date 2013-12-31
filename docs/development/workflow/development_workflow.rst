@@ -7,6 +7,9 @@ How to make a code contribution
 This document outlines the process for contributing code to the Astropy
 project.
 
+**Already experienced with git? Contributed before?** Jump right to 
+:ref:`astropy-git`.
+
 Pre-requisites
 ==============
 
@@ -16,8 +19,8 @@ Before following the steps in this document you need:
 + a local copy of the astropy source. Instructions for doing that, including the
   basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
-Recommended, but required
-=========================
+Recommended, but not required
+=============================
 
 You cannot easily work on the development version of astropy in a python
 environment in which you also use the stable version. It can be done |emdash|
@@ -105,6 +108,8 @@ to Astropy:
 .. note::    
     A good graphical interface to git makes some of these steps much
     easier. Some options are described in :ref:`git_gui_options`.
+
+.. _astropy-git:
 
 Astropy Guidelines for `git`
 ============================

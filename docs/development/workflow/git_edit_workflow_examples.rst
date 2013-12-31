@@ -549,7 +549,7 @@ Please see `pull request 1917`_ for the pull request from this example.
 Revise and push as necessary
 ----------------------------
 
-You may be asked to make changes in the discussion in the pull request. Make
+You may be asked to make changes in the discussion of the pull request. Make
 those changes in your local copy, commit them to your local repo and push them
 to GitHub. GitHub will automatically update your pull request.
 
