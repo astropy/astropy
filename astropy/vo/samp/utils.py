@@ -70,14 +70,22 @@ else:
 
 from .constants import SAMP_STATUS_ERROR, SAMPY_ICON
 from .errors import SAMPWarning
+from ...config import ConfigurationItem
+
+ALLOW_INTERNET = ConfigurationItem('use_internet', True,
+                                   "Whether to allow astropy.vo.samp to use the internet, if available")
+
 
 def internet_on():
-    try:
-        urlopen('http://google.com',timeout=1)
-        return True
-    except URLError:
-        pass
-    return False
+    if not ALLOW_INTERNET():
+        return False
+    else:
+        try:
+            urlopen('http://google.com',timeout=1)
+            return True
+        except URLError:
+            pass
+        return False
 
 __all__ = ["SAMPMsgReplierWrapper"]
 

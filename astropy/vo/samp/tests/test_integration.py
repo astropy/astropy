@@ -6,37 +6,40 @@ import time
 import tempfile
 
 from ....tests.helper import remote_data
-from ... import samp
+from ..hub import SAMPHubServer
+from ..hub_proxy import SAMPHubProxy
+from ..client import SAMPClient
+from ..integrated_client import SAMPIntegratedClient
+from ..constants import SAMP_STATUS_OK
+from ..errors import SAMPProxyError
+from ..utils import SAMPMsgReplierWrapper
+
+# By default, tests should not use the internet.
+from ..utils import ALLOW_INTERNET
+ALLOW_INTERNET.set(False)
 
 
-@remote_data
 def test_SAMPMsgReplierWrapper():
     """Test that SAMPMsgReplierWrapper can be instantiated"""
-    cli = samp.SAMPIntegratedClient()
-    samp.SAMPMsgReplierWrapper(cli)
+    cli = SAMPIntegratedClient()
+    SAMPMsgReplierWrapper(cli)
 
 
-@remote_data
 def test_SAMPClient_connect():
     """Test that SAMPClient can connect and register"""
 
     fileobj, lockfile = tempfile.mkstemp()
 
-    hub = samp.SAMPHubServer(web_profile=False,
+    hub = SAMPHubServer(web_profile=False,
                              lockfile=lockfile)
+    hub.start()
 
     os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
 
-    proxy = samp.SAMPHubProxy()
-
-    try:
-        hub.start()
-    except:
-        print("Another hub is running.")
-
+    proxy = SAMPHubProxy()
     proxy.connect()
 
-    cli = samp.SAMPClient(proxy, name="Client", description="Test Client")
+    cli = SAMPClient(proxy, name="Client", description="Test Client")
     cli.start()
     cli.register()
 
@@ -55,7 +58,6 @@ def test_SAMPClient_connect():
         os.remove(lockfile)
 
 
-@remote_data
 class TestSAMPCommunication(object):
 
     """Test SAMP client-server communications.
@@ -63,14 +65,21 @@ class TestSAMPCommunication(object):
 
     def setup_class(self):
 
-        self.hub = samp.SAMPHubServer(web_profile=False)
+        fileobj, lockfile = tempfile.mkstemp()
+
+        self.hub = SAMPHubServer(web_profile=False,
+                                 lockfile=lockfile)
         self.hub.start()
 
-        self.myhub1 = samp.SAMPHubProxy()
+        os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
+
+        self.myhub1 = SAMPHubProxy()
         self.myhub1.connect()
 
-        self.myhub2 = samp.SAMPHubProxy()
+        self.myhub2 = SAMPHubProxy()
         self.myhub2.connect()
+
+        del os.environ['SAMP_HUB']  # hacky
 
     def teardown_class(self):
 
@@ -82,10 +91,10 @@ class TestSAMPCommunication(object):
 
         # Create a client that uses
         # the passed Hub Proxy
-        cli1 = samp.SAMPClient(self.myhub1, name="Client 1",
+        cli1 = SAMPClient(self.myhub1, name="Client 1",
                                description="Test Client 1")
         # Create another client
-        cli2 = samp.SAMPClient(self.myhub2, name="Client 2",
+        cli2 = SAMPClient(self.myhub2, name="Client 2",
                                description="Test Client 2")
         # Create metadata dictionaries
         metadata1 = {"cli1.version":"0.01"}
@@ -115,7 +124,7 @@ class TestSAMPCommunication(object):
             print("Call:", private_key, sender_id, msg_id, mtype, params,
                   extra, "\n\n")
             self.myhub1.reply(cli1.get_private_key(), msg_id,
-                              {"samp.status": samp.SAMP_STATUS_OK,
+                              {"samp.status": SAMP_STATUS_OK,
                                "samp.result": {"txt": "printed"}})
 
         # Function called when a response is received
@@ -157,7 +166,7 @@ class TestSAMPCommunication(object):
                                  "samp.params": {"txt": "Hello Cli 1!"}}),
                   "\n\n")
 
-        except samp.SAMPProxyError as e:
+        except SAMPProxyError as e:
             print("Error (%s): %s" % (e.faultCode, e.faultString))
 
         time.sleep(1)
@@ -168,7 +177,7 @@ class TestSAMPCommunication(object):
             print("SYNC Call:", sender_id, msg_id, mtype, params, extra, "\n\n")
             time.sleep(1)
             self.myhub1.reply(cli1.get_private_key(), msg_id,
-                              {"samp.status": samp.SAMP_STATUS_OK,
+                              {"samp.status": SAMP_STATUS_OK,
                                "samp.result": {"txt": "printed sync"}})
             return ""
 
@@ -186,7 +195,7 @@ class TestSAMPCommunication(object):
                                            "samp.params": {"txt":
                                                            "Hello SYNCRO Cli 1!"}},
                                           "10"), "\n\n")
-        except samp.SAMPProxyError as e:
+        except SAMPProxyError as e:
             # If timeout expires than a SAMPProxyError is returned
             print("Error (%s): %s" % (e.faultCode, e.faultString))
 

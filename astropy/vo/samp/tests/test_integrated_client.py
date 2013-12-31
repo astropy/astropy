@@ -8,9 +8,12 @@ from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 from ..constants import SAMP_STATUS_OK
 
+# By default, tests should not use the internet.
+from ..utils import ALLOW_INTERNET
+ALLOW_INTERNET.set(False)
+
 # TODO:
 # - reply/ereply
-# - call_and_wait
 # - bind_receive_response
 # - make proxy accept a lockfile name
 
