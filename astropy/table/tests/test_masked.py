@@ -166,10 +166,10 @@ class TestMaskedColumnInit(SetupData):
         assert np.all(b.mask == mask_list)
 
     def test_incomplete_mask_spec(self):
-        """Incomplete mask specification (mask values cycle through available)"""
+        """Incomplete mask specification raises MaskError"""
         mask_list = [False, True]
-        b = MaskedColumn(name='b', length=4, mask=mask_list)
-        assert np.all(b.mask == mask_list + mask_list)
+        with pytest.raises(ma.MaskError):
+            MaskedColumn(name='b', length=4, mask=mask_list)
 
 
 class TestTableInit(SetupData):

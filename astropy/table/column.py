@@ -3,13 +3,13 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
-import abc
 import functools
 import operator
 
 import warnings
 
 from copy import deepcopy
+from distutils import version
 
 import numpy as np
 from numpy import ma
@@ -24,6 +24,8 @@ from .pprint import (_pformat_col, _pformat_col_iter, _more_tabcol)
 from .np_utils import fix_column_name
 
 from ..config import ConfigurationItem
+
+NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 AUTO_COLNAME = ConfigurationItem(
     'auto_colname', 'col{0}',
@@ -70,8 +72,8 @@ def _column_compare(op):
     return compare
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseColumn(object):
+class BaseColumn(np.ndarray):
+
     meta = MetaData()
 
     # Define comparison operators
@@ -81,6 +83,107 @@ class BaseColumn(object):
     __le__ = _column_compare(operator.le)
     __gt__ = _column_compare(operator.gt)
     __ge__ = _column_compare(operator.ge)
+
+    @_check_column_new_args
+    def __new__(cls, data=None, name=None,
+                dtype=None, shape=(), length=0,
+                description=None, unit=None, format=None, meta=None,
+                dtypes=None, units=None):
+
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          AstropyDeprecationWarning)
+
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          AstropyDeprecationWarning)
+
+        if data is None:
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = np.zeros(length, dtype=dtype)
+        elif isinstance(data, BaseColumn) and hasattr(data, '_name'):
+            # When unpickling a MaskedColumn, ``data`` will be a bare BaseColumn with none
+            # of the expected attributes.  In this case do NOT execute this block which
+            # initializes from ``data`` attributes.
+            self_data = np.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if unit is None:
+                unit = unit or data.unit
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
+            if name is None:
+                name = data.name
+        elif isinstance(data, Quantity):
+            if unit is None:
+                self_data = np.asarray(data, dtype=dtype)
+                unit = data.unit
+            else:
+                self_data = np.asarray(data.to(unit), dtype=dtype)
+        else:
+            self_data = np.asarray(data, dtype=dtype)
+
+        self = self_data.view(cls)
+        self._name = fix_column_name(name)
+        self.unit = unit
+        self.format = format
+        self.description = description
+        self.parent_table = None
+        self.meta = meta
+
+        return self
+
+    @property
+    def data(self):
+        return self.view(np.ndarray)
+
+    def copy(self, order='C', data=None, copy_data=True):
+        """
+        Return a copy of the current instance.
+
+        If ``data`` is supplied then a view (reference) of ``data`` is used, and
+        ``copy_data`` is ignored.
+
+        Parameters
+        ----------
+        order : {'C', 'F', 'A', 'K'}, optional
+            Controls the memory layout of the copy. 'C' means C-order,
+            'F' means F-order, 'A' means 'F' if `a` is Fortran contiguous,
+            'C' otherwise. 'K' means match the layout of `a` as closely
+            as possible. (Note that this function and :func:numpy.copy are very
+            similar, but have different default values for their order=
+            arguments.)  Default is 'C'.
+        data : array, optional
+            If supplied then use a view of ``data`` instead of the instance
+            data.  This allows copying the instance attributes and meta.
+        copy_data : bool, optional
+            Make a copy of the internal numpy array instead of using a reference.
+            Default is True.
+
+        Returns
+        -------
+        col: Column or MaskedColumn
+            Copy of the current column (same type as original)
+        """
+        if data is None:
+            data = self.data
+            if copy_data:
+                data = data.copy(order)
+
+        # Create the new instance with all available kwargs.
+        kwargs = dict(name=self.name, data=data, unit=self.unit, format=self.format,
+                      description=self.description, meta=deepcopy(self.meta))
+        if hasattr(self, 'fill_value'):
+            kwargs['fill_value'] = self.fill_value
+        out = self.__class__(**kwargs)
+
+        self._copy_groups(out)
+
+        return out
 
     def __setstate__(self, state):
         """
@@ -122,6 +225,9 @@ class BaseColumn(object):
         # Obj will be none for direct call to Column() creator
         if obj is None:
             return
+
+        if six.callable(super(BaseColumn, self).__array_finalize__):
+            super(BaseColumn, self).__array_finalize__(obj)
 
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
@@ -176,16 +282,6 @@ class BaseColumn(object):
         used in a structured array dtype definition.
         """
         return (self.name, self.dtype.str, self.shape[1:])
-
-    def __repr__(self):
-        unit = None if self.unit is None else six.text_type(self.unit)
-        out = "<{0} name={1} unit={2} format={3} " \
-            "description={4}>\n{5}".format(
-            self.__class__.__name__,
-            repr(self.name), repr(unit),
-            repr(self.format), repr(self.description), repr(self.data))
-
-        return out
 
     def iter_str_vals(self):
         """
@@ -379,17 +475,6 @@ class BaseColumn(object):
             new_unit, self.data, equivalencies=equivalencies)
         self.unit = new_unit
 
-    def __unicode__(self):
-        lines, n_header = _pformat_col(self)
-        return '\n'.join(lines)
-    if six.PY3:
-        __str__ = __unicode__
-
-    def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
-
     @property
     def groups(self):
         if not hasattr(self, '_groups'):
@@ -429,8 +514,13 @@ class BaseColumn(object):
         elif hasattr(self, '_groups'):
             out._groups = groups.ColumnGroups(out, indices=self._groups._indices)
 
+    # Strip off the BaseColumn-ness for repr and str so that MaskedColumn.data __repr__
+    # does not include masked_BaseColumn(data = [1 2], ...).
+    def __repr__(self):
+        return np.asarray(self).__repr__()
 
-class Column(BaseColumn, np.ndarray):
+
+class Column(BaseColumn):
     """Define a data column for use in a Table object.
 
     Parameters
@@ -515,73 +605,38 @@ class Column(BaseColumn, np.ndarray):
                 description=None, unit=None, format=None, meta=None,
                 dtypes=None, units=None):
 
-        if dtypes is not None:
-            dtype = dtypes
-            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          AstropyDeprecationWarning)
-
-        if units is not None:
-            unit = units
-            warnings.warn("'units' has been renamed to the singular 'unit'.",
-                          AstropyDeprecationWarning)
-
-        if data is None:
-            dtype = (np.dtype(dtype).str, shape)
-            self_data = np.zeros(length, dtype=dtype)
-        elif isinstance(data, Column):
-            self_data = np.asarray(data.data, dtype=dtype)
-            if description is None:
-                description = data.description
-            if unit is None:
-                unit = unit or data.unit
-            if format is None:
-                format = data.format
-            if meta is None:
-                meta = deepcopy(data.meta)
-            if name is None:
-                name = data.name
-        elif isinstance(data, MaskedColumn):
+        if isinstance(data, MaskedColumn):
             raise TypeError("Cannot convert a MaskedColumn to a Column")
-        elif isinstance(data, Quantity):
-            if unit is None:
-                self_data = np.asarray(data, dtype=dtype)
-                unit = data.unit
-            else:
-                self_data = np.asarray(data.to(unit), dtype=dtype)
-        else:
-            self_data = np.asarray(data, dtype=dtype)
 
-        self = self_data.view(cls)
-        self._name = fix_column_name(name)
-        self.unit = unit
-        self.format = format
-        self.description = description
-        self.parent_table = None
-        self.meta = meta
-
+        self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
+                                          shape=shape, length=length, description=description,
+                                          unit=unit, format=format, meta=meta,
+                                          dtypes=dtypes, units=units)
         return self
 
-    @property
-    def data(self):
-        return self.view(np.ndarray)
-
-    def copy(self, order='C', data=None, copy_data=True):
-        """Return a copy of the current Column instance.  If ``data`` is supplied
-        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
-        """
-        if data is None:
-            data = self.view(np.ndarray)
-            if copy_data:
-                data = data.copy(order)
-
-        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
-                     description=self.description, meta=deepcopy(self.meta))
-        self._copy_groups(out)
+    def __repr__(self):
+        unit = None if self.unit is None else six.text_type(self.unit)
+        out = "<{0} name={1} unit={2} format={3} " \
+            "description={4}>\n{5}".format(
+            self.__class__.__name__,
+            repr(self.name), repr(unit),
+            repr(self.format), repr(self.description), repr(self.data))
 
         return out
 
+    def __unicode__(self):
+        lines, n_header = _pformat_col(self)
+        return '\n'.join(lines)
+    if six.PY3:
+        __str__ = __unicode__
 
-class MaskedColumn(BaseColumn, ma.MaskedArray):
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
+
+
+class MaskedColumn(Column, ma.MaskedArray):
     """Define a masked data column for use in a Table object.
 
     Parameters
@@ -673,94 +728,45 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 description=None, unit=None, format=None, meta=None,
                 units=None, dtypes=None):
 
-        if dtypes is not None:
-            dtype = dtypes
-            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          AstropyDeprecationWarning)
-
-        if units is not None:
-            unit = units
-            warnings.warn("'units' has been renamed to the singular 'unit'.",
-                          AstropyDeprecationWarning)
-
-        if data is None:
-            dtype = (np.dtype(dtype).str, shape)
-            self_data = ma.zeros(length, dtype=dtype)
-        elif isinstance(data, (Column, MaskedColumn)):
-            self_data = ma.asarray(data.data, dtype=dtype)
-            if description is None:
-                description = data.description
-            if unit is None:
-                unit = unit or data.unit
-            if format is None:
-                format = data.format
-            if meta is None:
-                meta = deepcopy(data.meta)
-            if name is None:
-                name = data.name
-        elif isinstance(data, Quantity):
-            if unit is None:
-                self_data = ma.asarray(data, dtype=dtype)
-                unit = data.unit
-            else:
-                self_data = ma.asarray(data.to(unit), dtype=dtype)
-        else:
-            self_data = ma.asarray(data, dtype=dtype)
-
-        self = self_data.view(MaskedColumn)
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
+        else:
+            mask = deepcopy(mask)
+
+        # Create self using MaskedArray as a wrapper class, following the example of
+        # class MSubArray in
+        # https://github.com/numpy/numpy/blob/maintenance/1.8.x/numpy/ma/tests/test_subclassing.py
+        # This pattern makes it so that __array_finalize__ is called as expected (e.g. #1471 and
+        # https://github.com/astropy/astropy/commit/ff6039e8)
+
+        # First just pass through all args and kwargs to BaseColumn, then wrap that object
+        # with MaskedArray.
+        self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
+                               unit=unit, format=format, description=description, meta=meta,
+                               units=units, dtypes=dtypes)
+        self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
+
+        # Note: do not set fill_value in the MaskedArray constructor because this does not
+        # go through the fill_value workarounds (see _fix_fill_value below).
         if fill_value is None and hasattr(data, 'fill_value'):
             fill_value = data.fill_value
-        self.mask = mask
         self.fill_value = fill_value
-        self._name = fix_column_name(name)
-        self.unit = unit
-        self.format = format
-        self.description = description
+
         self.parent_table = None
-        self.meta = meta
 
         return self
-
-    def __array_finalize__(self, obj):
-        BaseColumn.__array_finalize__(self, obj)
-        ma.MaskedArray.__array_finalize__(self, obj)
-
-    # Surprisingly, MaskedArray is buggy and does not call __array_finalize__
-    # after __getitem__, but instead does call _update_from, so we override
-    # this instead to copy over the column metadata.
-    def _update_from(self, obj):
-        BaseColumn.__array_finalize__(self, obj)
-        ma.MaskedArray._update_from(self, obj)
-
-    # We also need to fix this for take(), which *also* does not call
-    # __array_finalize__. Fun times.
-    def take(self, indices, axis=None, out=None, mode='raise', **kwargs):
-        """
-        Return an array formed from the elements of `a` at the given indices.
-
-        Refer to `numpy.take` for full documentation.
-
-        See Also
-        --------
-        numpy.take : equivalent function
-        """
-        out = ma.MaskedArray.take(self, indices, axis=axis, out=out, mode=mode, **kwargs)
-        if isinstance(out, MaskedColumn):  # don't do this for scalars
-            BaseColumn.__array_finalize__(out, self)
-        return out
 
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
         value of a string array in MaskedArray with Python 3.x.  See
         https://github.com/numpy/numpy/pull/2733.  This mimics the check in
-        numpy.ma.core._check_fill_value() (version < 1.7) which incorrectly sets
+        numpy.ma.core._check_fill_value() (version < 1.8) which incorrectly sets
         fill_value to a default if self.dtype.char is 'U' (which is the case for Python
         3).  Here we change the string to a byte string so that in Python 3 the
         isinstance(val, basestring) part fails.
         """
-        if isinstance(val, six.string_types) and (self.dtype.char not in 'SV'):
+        if (NUMPY_VERSION < version.LooseVersion('1.8.0') and
+                isinstance(val, six.string_types) and (self.dtype.char not in 'SV')):
             val = val.encode()
         return val
 
@@ -825,34 +831,4 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         data = super(MaskedColumn, self).filled(fill_value)
         out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
-        return out
-
-    def copy(self, order='C', data=None, copy_data=True):
-        """
-        Return a copy of the current MaskedColumn instance.  If ``data`` is supplied
-        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
-
-        Parameters
-        ----------
-        data : array; optional
-            Data to use when creating MaskedColumn copy.  If not supplied the
-            column data array is used.
-        copy_data : bool; optional
-            Make a copy of input data instead of using a reference (default=True)
-
-        Returns
-        -------
-        column : MaskedColumn
-            A copy of ``self``
-        """
-        if data is None:
-            data = self.view(ma.MaskedArray)
-            if copy_data:
-                data = data.copy(order)
-
-        out = MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
-                           # Do not include mask=self.mask since `data` has the mask
-                           fill_value=self.fill_value,
-                           description=self.description, meta=deepcopy(self.meta))
-        self._copy_groups(out)
         return out
