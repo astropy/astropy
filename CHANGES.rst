@@ -96,6 +96,8 @@ API Changes
 
 - ``astropy.time``
 
+  - Correct use of UT in TDB calculation [#1938, #1939].
+
 - ``astropy.units``
 
   - ``Quantity`` now converts input to float by default, as this is
