@@ -1,10 +1,12 @@
 import os
+import time
 import tempfile
 
 from ....tests.helper import pytest
 
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
+from ..constants import SAMP_STATUS_OK
 
 # TODO:
 # - reply/ereply
@@ -214,6 +216,8 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
+        time.sleep(1.)
+
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
         assert rec.mtype == 'test.message'
@@ -244,11 +248,51 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
+        time.sleep(1.)
+
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
-        # assert rec.msg_id == 'message.id'  # TODO: fix
+        assert rec.msg_id.endswith('message.id')
         assert rec.mtype == 'test.call'
         assert rec.params == {'a': 1, 'b': 'a'}
+
+    def test_ecall_and_wait(self):
+
+        class TestReceiver(object):
+
+            def test_receive_call(self, private_key, sender_id, msg_id, mtype,
+                                  params, extra):
+                self.private_key = private_key
+                self.sender_id = sender_id
+                self.msg_id = msg_id
+                self.mtype = mtype
+                self.params = params
+                self.extra = extra
+                self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
+                                  "samp.result": {"txt": "test"}})
+
+        rec = TestReceiver()
+        rec.client = self.client2
+
+        self.client2.bind_receive_call('test.call', rec.test_receive_call)
+
+        result = self.client1.ecall_and_wait(self.client2_id, "test.call", timeout=5., a=1, b='a')
+
+        private_key = self.client2.get_private_key()
+
+        # self.client2.unbind_receive_call("test.call")  # TODO: fix
+
+        self.client2.disconnect()  # TODO: should not be needed
+
+        time.sleep(1.)
+
+        assert rec.private_key == private_key
+        assert rec.sender_id == self.client1_id
+        assert rec.mtype == 'test.call'
+        assert rec.params == {'a': 1, 'b': 'a'}
+
+        assert result['samp.status'] == SAMP_STATUS_OK
+        assert result['samp.result'] == {'txt': 'test'}
 
     def test_del(self):
         self.client1.__del__()
