@@ -823,10 +823,10 @@ class Time(object):
 
             # Compute geocentric vector in km (era_gd2gc returns m)
             xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0) / 1000.0
-            u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
-            v = xyz[2]
+            rxy = np.hypot(xyz[0], xyz[1])
+            z = xyz[2]
 
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, u, v)
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, rxy, z)
 
         return self._delta_tdb_tt
 
