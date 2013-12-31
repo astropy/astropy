@@ -106,10 +106,12 @@ User Documentation
 Getting help
 ************
 
-If you want to get help or discuss issues with other Astropy users, you can
-sign up for the `astropy mailing list`_.
-Alternatively, the `astropy-dev mailing list`_ is where you should go to
-discuss more technical aspects of Astropy with the developers.
+If you want to get help or discuss issues with other Astropy users, you can sign
+up for the `astropy mailing list`_. Alternatively, the `astropy-dev mailing
+list`_ is where you should go to discuss more technical aspects of Astropy with
+the developers. You can also email the astropy developers privately at 
+`astropy-feedback@googlegroups.com`_...but remember that questions you ask 
+publicly serve as resources for other users!
 
 .. _reporting_issues:
 
@@ -123,7 +125,9 @@ create a new issue on the Astropy `GitHub issue page
 account <https://github.com>`_ on GitHub if you do not have one.
 
 If you prefer not to create a GitHub account, please report the issue to either
-the `astropy mailing list`_ or the `astropy-dev mailing list`_. 
+the `astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
+private email to the astropy core developers at 
+`astropy-feedback@googlegroups.com <mailto:astropy-feedback@googlegroups.com>`_.
 
 Please include an example that demonstrates the issue that will allow the
 developers to reproduce and fix the problem. You may be asked to also provide
@@ -137,8 +141,8 @@ Contributing
 
 The Astropy project is made both by and for its users, so we highly encourage
 contributions at all levels.  This spans the gamut from sending an email
-mentioning a typo in the documentation or requesting a new feature to one of the
-addresses in :ref:`getting_help` all the way to developing a major new package.
+mentioning a typo in the documentation or requesting a new feature all the way
+to developing a major new package.
 
 The full range of ways to be part of the Astropy project are described at
 `Contribute to Astropy <http://www.astropy.org/contribute.html>`_. To get
@@ -186,3 +190,4 @@ Indices and Tables
 * :ref:`search`
 
 .. _astropy mailing list: http://mail.scipy.org/mailman/listinfo/astropy
+.. _astropy-feedback@googlegroups.com: mailto:astropy-feedback@googlegroups.com
