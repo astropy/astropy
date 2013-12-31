@@ -572,9 +572,9 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   >>> t.tcg.iso
   '2006-01-15 21:25:43.322690'
   >>> t.tdb.iso
-  '2006-01-15 21:25:42.684372'
+  '2006-01-15 21:25:42.684373'
   >>> t.tcb.iso
-  '2006-01-15 21:25:56.893951'
+  '2006-01-15 21:25:56.893952'
 
 Sidereal Time
 -------------
