@@ -139,11 +139,6 @@ class TestTimeDeltaQuantity():
         q = np.log10(t0/u.second)
         assert isinstance(q, u.Quantity)
         assert q.value == np.log10(t0.sec)
-
-    @pytest.mark.xfail
-    def test_valid_quantity_operations3(self):
-        """These should work too, but do not yet -- see #1455"""
-        t0 = TimeDelta(100000., format='sec')
         s = 1.*u.m
         v = s/t0
         assert isinstance(v, u.Quantity)
