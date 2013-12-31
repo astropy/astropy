@@ -17,6 +17,7 @@ from datetime import datetime
 
 import numpy as np
 
+from .. import units as u
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -704,10 +705,10 @@ class Time(object):
 
             # Compute geocentric vector in km (era_gd2gc returns m)
             xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0) / 1000.0
-            u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
-            v = xyz[2]
+            rxy = np.hypot(xyz[0], xyz[1])
+            z = xyz[2]
 
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, u, v)
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, rxy, z)
 
         return self._delta_tdb_tt
 
@@ -872,9 +873,9 @@ class TimeDelta(Time):
         if not isinstance(val, self.__class__):
             if format is None:
                 try:
-                    val = val.to('day')
+                    val = val.to(u.day)
                     if val2 is not None:
-                        val2 = val2.to('day')
+                        val2 = val2.to(u.day)
                 except:
                     raise ValueError('Only Quantities with Time units can '
                                      'be used to initiate {0} instances .'
@@ -915,7 +916,7 @@ class TimeDelta(Time):
             jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
         except Exception as err:  # try downgrading self to a quantity
             try:
-                return self.to('day') * other
+                return self.to(u.day) * other
             except:
                 raise err
 
@@ -948,7 +949,7 @@ class TimeDelta(Time):
             jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
         except Exception as err:  # try downgrading self to a quantity
             try:
-                return self.to('day') / other
+                return self.to(u.day) / other
             except:
                 raise err
 
@@ -960,12 +961,12 @@ class TimeDelta(Time):
 
     def __rtruediv__(self, other):
         """Division by `TimeDelta` objects of numbers/arrays."""
-        return other / self.to('day')
+        return other / self.to(u.day)
 
     def to(self, *args, **kwargs):
-        from astropy.units import day
-        return (self._shaped_like_input(self._time.jd1 + self._time.jd2) * day
-                ).to(*args, **kwargs)
+        return u.Quantity(self._shaped_like_input(self._time.jd1 +
+                                                  self._time.jd2),
+                          u.day).to(*args, **kwargs)
 
 
 class TimeFormat(object):
@@ -1027,7 +1028,7 @@ class TimeFormat(object):
 
         if hasattr(val1, 'to'):
             # set possibly scaled unit any quantities should be converted to
-            _unit = '{0!r}day'.format(getattr(self, 'unit', 1.))
+            _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
             val1 = val1.to(_unit).value
             if val2 is not None:
                 val2 = val2.to(_unit).value
