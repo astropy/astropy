@@ -103,7 +103,10 @@ class BaseColumn(np.ndarray):
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
-        elif isinstance(data, BaseColumn):
+        elif isinstance(data, BaseColumn) and hasattr(data, '_name'):
+            # When unpickling a MaskedColumn, ``data`` will be a bare BaseColumn with none
+            # of the expected attributes.  In this case do NOT execute this block which
+            # initializes from ``data`` attributes.
             self_data = np.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
@@ -748,11 +751,6 @@ class MaskedColumn(Column, ma.MaskedArray):
         if fill_value is None and hasattr(data, 'fill_value'):
             fill_value = data.fill_value
         self.fill_value = fill_value
-
-        # self._name = fix_column_name(name)
-        # self.unit = unit
-        # self.format = format
-        # self.description = description
 
         self.parent_table = None
 
