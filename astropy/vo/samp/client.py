@@ -132,7 +132,7 @@ class SAMPClient(object):
 
             if SSL_SUPPORT and https:
                 self.client = SecureXMLRPCServer((self._addr or self._host_name, self._port),
-                                                 keyfile, certfile, cert_reqs, ca_certs, ssl_version,
+                                                 key_file, cert_file, cert_reqs, ca_certs, ssl_version,
                                                  log, logRequests=False, allow_none=True)
             else:
                 self.client = ThreadingXMLRPCServer((self._addr or self._host_name,
@@ -592,7 +592,6 @@ class SAMPClient(object):
             except SAMPProxyError as err:
                 raise SAMPClientError(err.faultString)
             except:
-                raise
                 raise SAMPClientError("Unexpected error: registration failed")
 
         else:
