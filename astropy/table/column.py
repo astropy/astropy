@@ -17,7 +17,6 @@ from numpy import ma
 from ..units import Unit, Quantity
 from ..utils import deprecated
 from ..utils.console import color_print
-from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from . import pprint
@@ -41,31 +40,18 @@ def _auto_names(n_cols):
     return [str(conf.auto_colname).format(i) for i in range(n_cols)]
 
 
-def _column_compare(op):
-    """
-    Convenience function to return a function that properly does a
-    comparison between a column object and something else.
-    """
-    def compare(self, other):
-        # We have to define this to ensure that we always return boolean arrays
-        # (otherwise in some cases, Column objects are returned).
-        if isinstance(other, BaseColumn):
-            other = other.data
-        return op(self.data, other)
-    return compare
+# list of one and two-dimensional comparison functions, which sometimes return
+# a Column class and sometimes a plain array.  Used in __array_wrap__ to ensure
+# they only return plain (masked) arrays (see #1446 and #1685)
+_comparison_functions = set(
+    [np.greater, np.greater_equal, np.less, np.less_equal,
+     np.not_equal, np.equal,
+     np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
 class BaseColumn(np.ndarray):
 
     meta = MetaData()
-
-    # Define comparison operators
-    __eq__ = _column_compare(operator.eq)
-    __ne__ = _column_compare(operator.ne)
-    __lt__ = _column_compare(operator.lt)
-    __le__ = _column_compare(operator.le)
-    __gt__ = _column_compare(operator.gt)
-    __ge__ = _column_compare(operator.ge)
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
@@ -79,7 +65,7 @@ class BaseColumn(np.ndarray):
             # BaseColumn with none of the expected attributes.  In this case
             # do NOT execute this block which initializes from ``data``
             # attributes.
-            self_data = np.asarray(data.data, dtype=dtype)
+            self_data = np.asanyarray(data.content, dtype=dtype)
             if description is None:
                 description = data.description
             if unit is None:
@@ -92,12 +78,16 @@ class BaseColumn(np.ndarray):
                 name = data.name
         elif isinstance(data, Quantity):
             if unit is None:
-                self_data = np.asarray(data, dtype=dtype)
                 unit = data.unit
             else:
-                self_data = np.asarray(data.to(unit), dtype=dtype)
+                data = data.to(unit)
+
+            self_data = np.asanyarray(data, dtype=dtype)
         else:
             self_data = np.asarray(data, dtype=dtype)
+
+        if data is not None:
+            cls = _column_classes[(cls, self_data.__class__)]
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
@@ -108,6 +98,11 @@ class BaseColumn(np.ndarray):
         self._parent_table = None
 
         return self
+
+    @property
+    def content(self):
+        pos = self.__class__.__mro__.index(BaseColumn) + 1
+        return self.view(self.__class__.__mro__[pos])
 
     @property
     def data(self):
@@ -142,7 +137,7 @@ class BaseColumn(np.ndarray):
             'F' means F-order, 'A' means 'F' if ``a`` is Fortran contiguous,
             'C' otherwise. 'K' means match the layout of ``a`` as closely
             as possible. (Note that this function and :func:numpy.copy are very
-            similar, but have different default values for their order=
+            similar, but have different default values for their order
             arguments.)  Default is 'C'.
         data : array, optional
             If supplied then use a view of ``data`` instead of the instance
@@ -161,16 +156,12 @@ class BaseColumn(np.ndarray):
             if copy_data:
                 data = data.copy(order)
 
-        # Create the new instance with all available kwargs.
-        kwargs = dict(name=self.name, data=data, unit=self.unit,
-                      format=self.format, description=self.description,
-                      meta=deepcopy(self.meta))
-        # Use `kwargs.update` instead of `kwargs['fill_value'] =` since some
-        # versions of Python 2.6.x will blow up on unicode keyword arguments
-        if hasattr(self, 'fill_value'):
-            kwargs.update(fill_value=self.fill_value)
-
-        out = self.__class__(**kwargs)
+        out = data.view(self.__class__)
+        out.__array_finalize__(self)
+        # for MaskedColumn, MaskedArray.__array_finalize__ also copies mask
+        # from self, which is not the idea here, so undo
+        if isinstance(self, MaskedColumn):
+            out._mask = data._mask
 
         self._copy_groups(out)
 
@@ -215,6 +206,25 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
+    def __getitem__(self, item):
+        result = super(BaseColumn, self).__getitem__(item)
+        # if we are getting just a single item, we should return the content
+        # of the column rather than another BaseColumn instance.  For columns
+        # holding ndarray, this happens automatically, but not so for, e.g.,
+        # those holding quantity (subclasses).
+        if isinstance(result, BaseColumn) and result.shape == ():
+            return result.content
+        else:
+            return result
+
+    # avoid == and != to be done based on type of subclass
+    # (helped solve #1446; see also __array_wrap__)
+    def __eq__(self, other):
+        return self.content.__eq__(other)
+
+    def __ne__(self, other):
+        return self.content.__ne__(other)
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
@@ -236,20 +246,31 @@ class BaseColumn(np.ndarray):
         """
         __array_wrap__ is called at the end of every ufunc.
 
-        If the output is the same shape as the column then call the standard
-        ndarray __array_wrap__ which will return a Column object.
+        Normally, we want a Column object back and do not have to do anything
+        special.  But there are two exceptions:
 
-        If instead the output shape is different (e.g. for reduction ufuncs
-        like sum() or mean()) then return the output viewed as a standard
-        np.ndarray.  The "[()]" selects everything, but also converts a zero
-        rank array to a scalar.  For some reason np.sum() returns a zero rank
-        scalar array while np.mean() returns a scalar.  So the [()] is needed
-        for this case.
+        1) If the output shape is different (e.g. for reduction ufuncs
+           like sum() or mean()), a Column still linking to a parent_table
+           makes little sense, so we return the output viewed as the
+           column content (ndarray, MaskedArray, or array subclass).
+           For this case, we also use "[()]" to select everything, but also
+           converts a zero rank array to a scalar.  (For some reason np.sum()
+           returns a zero rank scalar array while np.mean() returns a scalar;
+           So the [()] is needed for this case.
+
+        2) When the output is created by any function that returns a boolean
+           we also want to consistently return an array rather than a column
+           (see #1446 and #1685)
         """
-        if self.shape == out_arr.shape:
-            return np.ndarray.__array_wrap__(self, out_arr, context)
-        else:
-            return out_arr.view(np.ndarray)[()]
+        # we should always call super, since, e.g., for Quantity,
+        # unit differences are only accounted for here.
+        out_arr = super(BaseColumn, self).__array_wrap__(out_arr, context)
+        if (self.shape != out_arr.shape or
+            (isinstance(out_arr, BaseColumn) and
+             (context is not None and context[0] in _comparison_functions))):
+            return out_arr.content[()]
+
+        return out_arr
 
     @property
     def name(self):
@@ -525,6 +546,9 @@ class BaseColumn(np.ndarray):
     def __repr__(self):
         return np.asarray(self).__repr__()
 
+    def __str__(self):
+        return np.asarray(self).__str__()
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
@@ -591,25 +615,13 @@ class Column(BaseColumn):
       array shape of a single cell in the column.
     """
 
-    def __new__(cls, data=None, name=None,
-                dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
-
-        if isinstance(data, MaskedColumn) and np.any(data.mask):
-            raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
-
-        self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
-                                          shape=shape, length=length, description=description,
-                                          unit=unit, format=format, meta=meta)
-        return self
-
     def __repr__(self):
         unit = None if self.unit is None else six.text_type(self.unit)
         out = "<{0} name={1} unit={2} format={3} " \
             "description={4}>\n{5}".format(
             self.__class__.__name__,
             repr(self.name), repr(unit),
-            repr(self.format), repr(self.description), repr(self.data))
+            repr(self.format), repr(self.description), repr(self.content))
 
         return out
 
@@ -725,7 +737,8 @@ class MaskedColumn(Column, ma.MaskedArray):
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta)
-        self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
+        self = ma.MaskedArray.__new__(cls, data=self_data, keep_mask=False,
+                                      mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds (see _fix_fill_value below).
@@ -783,6 +796,14 @@ class MaskedColumn(Column, ma.MaskedArray):
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 
     @property
+    def content(self):
+        out = self.view(self.__class__.__bases__[1])
+        # The following is necessary because of a bug in Numpy, which was
+        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
+        out.fill_value = self.fill_value
+        return out
+
+    @property
     def data(self):
         out = self.view(ma.MaskedArray)
         # The following is necessary because of a bug in Numpy, which was
@@ -825,3 +846,16 @@ class MaskedColumn(Column, ma.MaskedArray):
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
+
+
+class _ColumnClasses(dict):
+    def __getitem__(self, classes):
+        if classes not in self:
+            self[classes] = type(classes[1].__name__ + classes[0].__name__,
+                                 classes, {})
+        return super(_ColumnClasses, self).__getitem__(classes)
+
+_column_classes = _ColumnClasses(
+    {(BaseColumn, np.ndarray): BaseColumn,
+     (Column, np.ndarray): Column,
+     (MaskedColumn, ma.MaskedArray): MaskedColumn})

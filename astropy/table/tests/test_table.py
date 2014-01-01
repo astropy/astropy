@@ -124,11 +124,14 @@ class TestSetTableColumn(SetupData):
         t = table_types.Table()
 
         t['aa'] = np.array([1,2,3]) * u.m
-        assert np.all(t['aa'] == np.array([1,2,3]))
-        assert t['aa'].unit == u.m
-
         t['bb'] = 3 * u.m
-        assert np.all(t['bb'] == 3)
+        if t.masked:
+            assert np.all(t['aa'] == np.array([1,2,3]))
+            assert np.all(t['bb'] == 3)
+        else:
+            assert np.all(t['aa'] == np.array([1,2,3]) * u.m)
+            assert np.all(t['bb'] == 3 * u.m)
+        assert t['aa'].unit == u.m
         assert t['bb'].unit == u.m
 
     def test_set_new_col_existing_table(self, table_types):

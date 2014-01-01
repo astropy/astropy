@@ -23,7 +23,8 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
-from .column import BaseColumn, Column, MaskedColumn, _auto_names
+from .column import (BaseColumn, Column, MaskedColumn,
+                     _auto_names, _column_classes)
 from .row import Row
 from .np_utils import fix_column_name
 
@@ -758,8 +759,6 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
-            NewColumn = self.MaskedColumn if self.masked else self.Column
-
             # Make sure value is an ndarray so we can get the dtype
             if not isinstance(value, np.ndarray):
                 value = np.asarray(value)
@@ -774,15 +773,19 @@ class Table(object):
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
                 new_column.name = item
-            elif len(self) == 0:
-                new_column = NewColumn(name=item, data=value)
             else:
-                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
-                                       shape=value.shape[1:])
-                new_column[:] = value
+                NewColumn = MaskedColumn if self.masked else Column
 
-                if isinstance(value, Quantity):
-                    new_column.unit = value.unit
+                if len(self) == 0:
+                    new_column = NewColumn(name=item, data=value)
+                else:
+                    if not self.masked:
+                        NewColumn = _column_classes[(Column, value.__class__)]
+                    new_column = NewColumn(name=item, length=len(self),
+                                           dtype=value.dtype,
+                                           shape=value.shape[1:],
+                                           unit=getattr(value, 'unit', None))
+                    new_column[:] = value
 
             # Now add new column to the table
             self.add_column(new_column)
