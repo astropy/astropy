@@ -8,25 +8,29 @@
 Starting and stopping a ``SAMPHubServer``
 *****************************************
 
-This module contains classes to create a SAMP Hub and/or interface 
-an application to a running SAMP Hub (Standard Profile).
+There are several ways you can start up a SAMP hub:
 
-Creating a SAMP hub is very simple. The only thing you have to do is to create
-a |SAMPHubServer| instance and start it::
+* By starting up another application that includes a hub, such as
+  `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_, then connecting
+  to it from `astropy.vo.samp`.
 
-    >>> from astropy.vo import samp
-    >>> hub = samp.SAMPHubServer()
-    >>> hub.start()
+* By creating a |SAMPHubServer| instance and starting it, either from the
+  interactive Python prompt, or from a Python script::
 
-You can also start a hub from the command line using the ``samp_hub`` command
-line utility::
- 
-   $ samp_hub
+        >>> from astropy.vo.samp import SAMPHubServer
+        >>> hub = SAMPHubServer()
+        >>> hub.start()
 
-To get more help on available options for ``samp_hub``::
+  You can then stop the hub by calling::
 
-   $ samp_hub -h
+        >>> hub.stop()
 
-To stop the server, you can simply press control-C.
+* By using the ``samp_hub`` command-line utility, which is included in Astropy::
 
-.. TODO: give info how to stop the server and explain that it is a separate process from Python.
+       $ samp_hub
+
+  To get more help on available options for ``samp_hub``::
+
+       $ samp_hub -h
+
+  To stop the server, you can simply press control-C.

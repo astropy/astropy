@@ -27,22 +27,28 @@ SAMP is a protocol that is used by a number of other tools such as
 and `Aladin <http://aladin.u-strasbg.fr>`_, which means that it is possible to
 send and receive data to and from these tools.
 
-.. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/Documents/latest/SAMP.html
+The following classes are available in `astropy.vo.samp`:
 
-Getting Started
-===============
+* |SAMPHubServer|, which is used to instantiate a hub server that clients can
+  then connect to.
+* |SAMPHubProxy|, which is used to connect to an existing hub (including hubs
+  started from other applications such as
+  `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_).
+* |SAMPClient|, which is used to create a SAMP client
+* |SAMPIntegratedClient|, which is the same as |SAMPClient| except that it has
+  a self-contained |SAMPHubProxy| to provide a simpler user interface.
+
+.. _IVOA Simple Application Messaging Protocol: http://www.ivoa.net/Documents/latest/SAMP.html
 
 Using `astropy.vo.samp`
 =======================
-
-To learn how to use ``astropy.vo.samp`` have a look at these examples: 
 
 .. toctree::
    :maxdepth: 2
 
    example_hub
-   example_clients
    example_table_image
+   example_clients
 
 Reference/API
 =============

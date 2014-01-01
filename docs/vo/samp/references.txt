@@ -1,4 +1,4 @@
-.. |SAMPClient| replace:: :class:`~astropy.vo.samp.hub.client.SAMPClient`
+.. |SAMPClient| replace:: :class:`~astropy.vo.samp.client.SAMPClient`
 .. |SAMPIntegratedClient| replace:: :class:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient`
 .. |SAMPHubServer| replace:: :class:`~astropy.vo.samp.hub.SAMPHubServer`
 .. |SAMPHubProxy| replace:: :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy`

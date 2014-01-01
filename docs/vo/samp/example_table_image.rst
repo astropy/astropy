@@ -60,7 +60,7 @@ and the details of the table that we set above::
 
 Finally, we can broadcast this to all clients that are listening for
 ``table.load.votable`` messages using
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.notifyAll`::
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`::
 
     >>> client.notify_all(message)
 
@@ -68,7 +68,7 @@ The above message will actually be broadcast to all applications connected via
 SAMP. For example, if we open `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_ in
 addition to TOPCAT, and we run the above command, both applications will load
 the table. We can use the
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.getRegisteredClients` method to
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.get_registered_clients` method to
 find all the clients connected to the hub::
 
     >>> client.get_registered_clients()
@@ -89,7 +89,7 @@ These IDs don't mean much, but we can find out more using::
 
 We can see that ``c1`` is the TOPCAT client. We can now re-send the data, but
 this time only to TOPCAT, using the
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.notify` method::
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify` method::
 
     >>> client.notify('c1', message)
 
@@ -122,7 +122,7 @@ and we instantiate it:
     >>> r = Receiver()
 
 We can now use the
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.bindReceiveCall` method to tell
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_call` method to tell
 our receiver to listed to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
@@ -235,7 +235,7 @@ Finally, we can broadcast this to all clients that are listening for
 
     >>> client.notify_all(message)
 
-As for `Sending a table to TOPCAT and Ds9`_, the ``notifyAll`` method will
+As for `Sending a table to TOPCAT and Ds9`_, the :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all` method will
 broadcast the image to all listening clients, and as for tables it is possible
 to instead use the `notify` method to send it to a specific client.
 
