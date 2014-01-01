@@ -24,7 +24,7 @@ __all__ = ['main']
 
 
 def main(timeout=0):
-    """This main function is executed by the `sampy` command line tool."""
+    """This main function is executed by the `samp_hub` command line tool."""
 
     parser = OptionParser(version="%prog " + __release__)
 

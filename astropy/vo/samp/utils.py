@@ -12,7 +12,7 @@ import sys
 import traceback
 import warnings
 
-from ...extern.six.moves import queue
+from ...extern.six.moves import queue, input
 from ...extern.six.moves import socketserver
 from ...extern.six import StringIO, PY2, PY3
 
@@ -130,8 +130,8 @@ class ServerProxyPool(object):
 
 
 class WebProfilePopupDialogue(object):
-
-    """Terminal dialog (no backend) which asks the user to consent
+    """
+    Terminal dialog (no backend) which asks the user to consent
     or reject a connection through the WebProfile
     """
 
@@ -149,8 +149,6 @@ class WebProfilePopupDialogue(object):
         else:
             samp_name = request[0]["samp.name"]
 
-        self.cls()
-
         text = \
             """A Web application which declares to be
 
@@ -162,13 +160,10 @@ Pay attention that if you permit its registration, such
 application will acquire all current user privileges, like
 file read/write.
 
-Do you give your consent? [yes|no]
-""" % (samp_name, request[2])
+Do you give your consent? [yes|no]""" % (samp_name, request[2])
 
-        print (text)
-        self.beep()
-
-        answer = raw_input("[no] >>> ")
+        print(text)
+        answer = input(">>> ")
         if answer.lower() in ["yes", "y"]:
             print("OK!")
             self._consent()
@@ -240,7 +235,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
     def do_GET(self):
 
-        if self.path == '/sampy/icon':
+        if self.path == '/samp/icon':
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'image/png')
             self.end_headers()

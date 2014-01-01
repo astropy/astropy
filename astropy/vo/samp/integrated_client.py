@@ -258,8 +258,8 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization",
         ...             percent = "10", extra_kws = {"my.extra.info": "just an example"})
@@ -295,8 +295,8 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify_all("samp.msg.progress", txt = "initialization",
         ...                percent = "10", extra_kws = {"my.extra.info": "just an example"})
@@ -337,8 +337,8 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization",
         ...                   percent = "10", extra_kws = {"my.extra.info": "just an example"})
@@ -375,8 +375,8 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall_all("xyz", "samp.msg.progress", txt = "initialization",
         ...                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
@@ -417,8 +417,8 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient
+        >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5", txt = "initialization",
         ...                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
@@ -462,10 +462,10 @@ class SAMPIntegratedClient(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> cli = sampy.SAMPIntegratedClient()
+        >>> from astropy.vo.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
+        >>> cli = SAMPIntegratedClient()
         >>> ...
-        >>> cli.ereply("abd", sampy.SAMP_STATUS_ERROR, result={},
+        >>> cli.ereply("abd", SAMP_STATUS_ERROR, result={},
         ...            error={"samp.errortxt": "Test error message"})
         """
         return self.reply(msg_id, self._format_easy_response(status, result, error))

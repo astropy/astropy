@@ -393,13 +393,11 @@ class SAMPHubServer(object):
         self._hub_public_id = result["samp.self-id"]
         self._hub_private_key = result["samp.private-key"]
         self._set_xmlrpc_callback(self._hub_private_key, self._url)
-        self._declare_metadata(self._hub_private_key, {"samp.name": "Hub",
-                                                      "samp.description.text": self._label,
-                                                      "author.name": "Luigi Paioro",
-                                                      "author.email": "luigi@iasf-milano.inaf.it",
-                                                      "author.affiliation": "INAF-IASF Milano",
-                                                      "samp.documentation.url": "http://packages.python.org/sampy/",
-                                                      "samp.icon.url": self._url + "/sampy/icon"})
+        self._declare_metadata(self._hub_private_key, {"samp.name": "Astropy SAMP Hub",
+                                                       "samp.description.text": self._label,
+                                                       "author.name": "The Astropy Collaboration",
+                                                       "samp.documentation.url": "http://docs.astropy.org/en/latest/vo/samp",
+                                                       "samp.icon.url": self._url + "/samp/icon"})
         self._declare_subscriptions(self._hub_private_key, {"samp.app.ping":{}, "x-samp.query.by-meta":{}})
 
     def start(self, wait=False):
@@ -1085,8 +1083,8 @@ class SAMPHubServer(object):
 
         Examples
         --------
-        >>> import astropy.vo.samp as sampy
-        >>> sampy.SAMPHubServer.get_mtype_subtypes("samp.app.ping")
+        >>> from astropy.vo.samp import SAMPHubServer
+        >>> SAMPHubServer.get_mtype_subtypes("samp.app.ping")
         ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
         """
 
@@ -1276,7 +1274,7 @@ class SAMPHubServer(object):
             now = time.time()
             response = {}
 
-            msg_id = self._call(private_key, recipient_id, "sampy::sync::call", message)
+            msg_id = self._call(private_key, recipient_id, "samp::sync::call", message)
             self._sync_msg_ids_heap[msg_id] = None
 
             while self._is_running:
@@ -1312,7 +1310,7 @@ class SAMPHubServer(object):
 
             try:
                 log.debug("reply %s from %s to %s" % (counter, responder_public_id, recipient_public_id))
-                if recipient_msg_tag == "sampy::sync::call":
+                if recipient_msg_tag == "samp::sync::call":
                     if msg_id in self._sync_msg_ids_heap.keys():
                         self._sync_msg_ids_heap[msg_id] = response
                 else:
