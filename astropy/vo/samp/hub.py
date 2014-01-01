@@ -246,8 +246,8 @@ class SAMPHubServer(object):
                                                   log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
-            self._url = "https://%s:%s" %(self._addr or self._host_name,
-                                          self._port)
+            self._url = "https://%s:%s" % (self._addr or self._host_name,
+                                           self._port)
         else:
 
             if auth_file != None:
@@ -260,8 +260,8 @@ class SAMPHubServer(object):
                                                      log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
-            self._url = "http://%s:%s" %(self._addr or self._host_name,
-                                         self._port)
+            self._url = "http://%s:%s" % (self._addr or self._host_name,
+                                          self._port)
 
         self._server.register_introspection_functions()
 
@@ -398,7 +398,7 @@ class SAMPHubServer(object):
                                                        "author.name": "The Astropy Collaboration",
                                                        "samp.documentation.url": "http://docs.astropy.org/en/latest/vo/samp",
                                                        "samp.icon.url": self._url + "/samp/icon"})
-        self._declare_subscriptions(self._hub_private_key, {"samp.app.ping":{}, "x-samp.query.by-meta":{}})
+        self._declare_subscriptions(self._hub_private_key, {"samp.app.ping": {}, "x-samp.query.by-meta": {}})
 
     def start(self, wait=False):
         """Start the current SAMP Hub instance and create the lock file. Hub start-up can
@@ -753,7 +753,7 @@ class SAMPHubServer(object):
             if mtype in self._mtype2ids:
                 for key in self._mtype2ids[mtype]:
                     self._notify_(self._hub_private_key, self._private_keys[key][0],
-                                  {"samp.mtype":"samp.hub.event.shutdown",
+                                  {"samp.mtype": "samp.hub.event.shutdown",
                                    "samp.params": {}})
 
     def _notify_register(self, private_key):
@@ -764,7 +764,7 @@ class SAMPHubServer(object):
                 for key in self._mtype2ids[mtype]:
                     # if key != private_key:
                     self._notify(self._hub_private_key, self._private_keys[key][0],
-                                 {"samp.mtype":"samp.hub.event.register",
+                                 {"samp.mtype": "samp.hub.event.register",
                                   "samp.params": {"id": public_id}})
 
     def _notify_unregister(self, private_key):
@@ -775,7 +775,7 @@ class SAMPHubServer(object):
                 for key in self._mtype2ids[mtype]:
                     if key != private_key:
                         self._notify(self._hub_private_key, self._private_keys[key][0],
-                                     {"samp.mtype":"samp.hub.event.unregister",
+                                     {"samp.mtype": "samp.hub.event.unregister",
                                       "samp.params": {"id": public_id}})
 
     def _notify_metadata(self, private_key):
@@ -786,7 +786,7 @@ class SAMPHubServer(object):
                 for key in self._mtype2ids[mtype]:
                     # if key != private_key:
                     self._notify(self._hub_private_key, self._private_keys[key][0],
-                                 {"samp.mtype":"samp.hub.event.metadata",
+                                 {"samp.mtype": "samp.hub.event.metadata",
                                   "samp.params": {"id": public_id,
                                                   "metadata": self._metadata[private_key]}
                                   })
@@ -798,7 +798,7 @@ class SAMPHubServer(object):
                 public_id = self._private_keys[private_key][0]
                 for key in self._mtype2ids[mtype]:
                     self._notify(self._hub_private_key, self._private_keys[key][0],
-                                 {"samp.mtype":"samp.hub.event.subscriptions",
+                                 {"samp.mtype": "samp.hub.event.subscriptions",
                                   "samp.params": {"id": public_id,
                                                   "subscriptions": self._id2mtypes[private_key]}
                                   })
@@ -821,8 +821,8 @@ class SAMPHubServer(object):
                     log.debug("notify disconnection to %s" % (public_id))
                     threading.Thread(target=_xmlrpc_call_disconnect,
                                      args=(endpoint, private_key, self._hub_public_id,
-                                    {"samp.mtype":"samp.hub.disconnect",
-                                    "samp.params": {"reason": "Timeout expired!"}})).start()
+                                           {"samp.mtype": "samp.hub.disconnect",
+                                            "samp.params": {"reason": "Timeout expired!"}})).start()
                 except:
                     warnings.warn("disconnection notification to client %s failed\n" % (public_id), SAMPWarning)
 
@@ -852,10 +852,10 @@ class SAMPHubServer(object):
             if SSL_SUPPORT and xmlrpc_addr[0:5] == "https":
                 server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy,
                                                     xmlrpc_addr, transport=SafeTransport(key_file=self._keyfile,
-                                                   cert_file=self._certfile,
-                                                   cert_reqs=self._cert_reqs,
-                                                   ca_certs=self._ca_certs,
-                                                   ssl_version=ssl.PROTOCOL_SSLv3),
+                                                                                         cert_file=self._certfile,
+                                                                                         cert_reqs=self._cert_reqs,
+                                                                                         ca_certs=self._ca_certs,
+                                                                                         ssl_version=ssl.PROTOCOL_SSLv3),
                                                     allow_none=1)
             else:
                 server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy,
@@ -956,7 +956,7 @@ class SAMPHubServer(object):
         if private_key in self._private_keys:
             client_private_key = self._get_private_keyFromPublicId(client_id)
             log.debug("get_metadata: private-key = %s client-id = %s" %
-                            (private_key, client_id))
+                      (private_key, client_id))
             if client_private_key != None:
                 if client_private_key in self._metadata:
                     log.debug("--> metadata = %s" % self._metadata[client_private_key])
@@ -1026,7 +1026,7 @@ class SAMPHubServer(object):
             if client_private_key != None:
                 if client_private_key in self._id2mtypes:
                     log.debug("get_subscriptions: client-id = %s mtypes = %s" %
-                                    (client_id, str(self._id2mtypes[client_private_key])))
+                              (client_id, str(self._id2mtypes[client_private_key])))
                     return self._id2mtypes[client_private_key]
                 else:
                     log.debug("get_subscriptions: client-id = %s mtypes = missing" % client_id)
@@ -1062,7 +1062,7 @@ class SAMPHubServer(object):
                     sub_clients[self._private_keys[pkey][0]] = {}
 
             log.debug("get_subscribed_clients: private_key = %s mtype = %s clients = %s" %
-                            (private_key, mtype, sub_clients))
+                      (private_key, mtype, sub_clients))
             return sub_clients
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
@@ -1096,7 +1096,7 @@ class SAMPHubServer(object):
         indexes.append(-1)
 
         for i in indexes:
-            tmp_mtype = ".".join(msubs[:i+1])
+            tmp_mtype = ".".join(msubs[:i + 1])
             if tmp_mtype != mtype:
                 if tmp_mtype != "":
                     tmp_mtype = tmp_mtype + ".*"
@@ -1124,7 +1124,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
             if self._is_subscribed(self._get_private_keyFromPublicId(recipient_id),
-                                  message["samp.mtype"]) == False:
+                                   message["samp.mtype"]) == False:
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
 
             threading.Thread(target=self._notify_, args=(private_key, recipient_id, message)).start()
@@ -1196,7 +1196,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
             if self._is_subscribed(self._get_private_keyFromPublicId(recipient_id),
-                                  message["samp.mtype"]) == False:
+                                   message["samp.mtype"]) == False:
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
             public_id = self._private_keys[private_key][0]
             msg_id = self._get_new_hub_msg_id(public_id, msg_tag)
@@ -1446,5 +1446,3 @@ class SAMPHubServer(object):
             return callback
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
-
-

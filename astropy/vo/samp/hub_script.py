@@ -247,8 +247,10 @@ def main(timeout=0):
             context = log.log_to_file(options.logout)
         else:
             class dummy_context(object):
+
                 def __enter__(self):
                     pass
+
                 def __exit__(self, exc_type, exc_value, traceback):
                     pass
             context = dummy_context()
@@ -260,12 +262,12 @@ def main(timeout=0):
                 if options.access_restrict != None:
                     if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
                         warnings.warn("The access cannot be restricted to the owner if the owner "
-                                    "name is not specified!", SAMPWarning)
+                                      "name is not specified!", SAMPWarning)
                         sys.exit()
 
                     if options.access_restrict == SAMP_RESTRICT_GROUP and options.owner_group == "":
                         warnings.warn("The access cannot be restricted to the owner group if the owner "
-                                    "group name is not specified!", SAMPWarning)
+                                      "group name is not specified!", SAMPWarning)
                         sys.exit()
 
             args = copy.deepcopy(options.__dict__)

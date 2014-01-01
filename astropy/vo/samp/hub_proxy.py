@@ -197,7 +197,7 @@ class SAMPHubProxy(object):
             if SSL_SUPPORT and url[0:5] == "https":
                 self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
                                              url, transport=SafeTransport(key_file, cert_file, cert_reqs,
-                                            ca_certs, ssl_version),
+                                                                          ca_certs, ssl_version),
                                              allow_none=1)
             else:
                 self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy, url, allow_none=1)

@@ -10,7 +10,6 @@ from ..utils import ALLOW_INTERNET
 ALLOW_INTERNET.set(False)
 
 
-
 class TestHubProxy(object):
 
     def setup_method(self, method):

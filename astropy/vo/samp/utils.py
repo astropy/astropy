@@ -81,7 +81,7 @@ def internet_on():
         return False
     else:
         try:
-            urlopen('http://google.com',timeout=1)
+            urlopen('http://google.com', timeout=1)
             return True
         except URLError:
             pass
@@ -204,8 +204,8 @@ class SAMPMsgReplierWrapper(object):
         def wrapped_f(*args):
 
             if ((inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)
-                     or (inspect.isfunction(f) and f.__code__.co_argcount == 5)
-                     or args[2] is None):
+                or (inspect.isfunction(f) and f.__code__.co_argcount == 5)
+                    or args[2] is None):
 
                 # It is a notification
                 f(*args)
@@ -260,7 +260,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 # We read this in chunks to avoid straining
                 # socket.read(); around the 10 or 15Mb mark, some platforms
                 # begin to have problems (bug #792570).
-                max_chunk_size = 10*1024*1024
+                max_chunk_size = 10 * 1024 * 1024
                 size_remaining = int(self.headers["content-length"])
                 L = []
                 while size_remaining:
@@ -363,7 +363,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 # We read this in chunks to avoid straining
                 # socket.read(); around the 10 or 15Mb mark, some platforms
                 # begin to have problems (bug #792570).
-                max_chunk_size = 10*1024*1024
+                max_chunk_size = 10 * 1024 * 1024
                 size_remaining = int(self.headers["content-length"])
                 L = []
                 while size_remaining:

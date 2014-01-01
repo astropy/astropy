@@ -6,6 +6,7 @@ from ..errors import SAMPHubError, SAMPClientError, SAMPProxyError
 from ..utils import ALLOW_INTERNET
 ALLOW_INTERNET.set(False)
 
+
 def test_SAMPHubError():
     """Test that SAMPHubError can be instantiated"""
     SAMPHubError("test")

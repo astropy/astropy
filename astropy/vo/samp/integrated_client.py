@@ -90,7 +90,7 @@ class SAMPIntegratedClient(object):
             pass
 
     # GENERAL
-    
+
     @property
     def is_connected(self):
         """

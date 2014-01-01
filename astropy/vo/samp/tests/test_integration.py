@@ -31,7 +31,7 @@ def test_SAMPClient_connect():
     fileobj, lockfile = tempfile.mkstemp()
 
     hub = SAMPHubServer(web_profile=False,
-                             lockfile=lockfile)
+                        lockfile=lockfile)
     hub.start()
 
     os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
@@ -43,7 +43,7 @@ def test_SAMPClient_connect():
     cli.start()
     cli.register()
 
-    metadata = {"cli.version":"0.01"}
+    metadata = {"cli.version": "0.01"}
     cli.declare_metadata(metadata)
 
     cli.unregister()
@@ -92,13 +92,13 @@ class TestSAMPCommunication(object):
         # Create a client that uses
         # the passed Hub Proxy
         cli1 = SAMPClient(self.myhub1, name="Client 1",
-                               description="Test Client 1")
+                          description="Test Client 1")
         # Create another client
         cli2 = SAMPClient(self.myhub2, name="Client 2",
-                               description="Test Client 2")
+                          description="Test Client 2")
         # Create metadata dictionaries
-        metadata1 = {"cli1.version":"0.01"}
-        metadata2 = {"cli2.version":"0.25"}
+        metadata1 = {"cli1.version": "0.01"}
+        metadata2 = {"cli2.version": "0.25"}
 
         # Start and register clients
         cli1.start()
@@ -142,16 +142,16 @@ class TestSAMPCommunication(object):
 
         # Client 2 notifies to All "samp.app.echo" MType using myhub
         self.myhub2.notify_all(cli2.get_private_key(),
-                              {"samp.mtype": "samp.app.echo",
-                               "samp.params": {"txt": "Hello world!"}})
+                               {"samp.mtype": "samp.app.echo",
+                                "samp.params": {"txt": "Hello world!"}})
 
         time.sleep(1)
 
         # Client 2 calls to All "samp.app.echo" MType using "my-dummy-print"
         # as message-tag
         print(self.myhub2.call_all(cli2.get_private_key(), "my-dummy-print",
-                                  {"samp.mtype": "samp.app.echo",
-                                   "samp.params": {"txt": "Hello world!"}}),
+                                   {"samp.mtype": "samp.app.echo",
+                                    "samp.params": {"txt": "Hello world!"}}),
               "\n\n")
 
         time.sleep(1)
@@ -190,11 +190,11 @@ class TestSAMPCommunication(object):
         try:
             # Sync call
             print(self.myhub2.call_and_wait(cli2.get_private_key(),
-                                          cli1.get_public_id(),
-                                          {"samp.mtype": "samp.test",
-                                           "samp.params": {"txt":
+                                            cli1.get_public_id(),
+                                            {"samp.mtype": "samp.test",
+                                             "samp.params": {"txt":
                                                            "Hello SYNCRO Cli 1!"}},
-                                          "10"), "\n\n")
+                                            "10"), "\n\n")
         except SAMPProxyError as e:
             # If timeout expires than a SAMPProxyError is returned
             print("Error (%s): %s" % (e.faultCode, e.faultString))

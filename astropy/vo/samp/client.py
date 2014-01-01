@@ -229,7 +229,7 @@ class SAMPClient(object):
                 if mtype in self._notification_bindings:
                     bound_func = self._notification_bindings[mtype][0]
                     if ((inspect.ismethod(bound_func) and bound_func.__func__.__code__.co_argcount == 6) or
-                        (inspect.isfunction(bound_func) and bound_func.__code__.co_argcount == 5)):
+                            (inspect.isfunction(bound_func) and bound_func.__code__.co_argcount == 5)):
                         bound_func(private_key, sender_id, msg_mtype, msg_params, message)
                     else:
                         bound_func(private_key, sender_id, None, msg_mtype, msg_params, message)
@@ -620,7 +620,7 @@ class SAMPClient(object):
 
             try:
                 self.hub.set_xmlrpc_callback(self._private_key,
-                                           self._xmlrpcAddr)
+                                             self._xmlrpcAddr)
             except:
                 pass
 
@@ -644,7 +644,7 @@ class SAMPClient(object):
                 self.hub.declare_subscriptions(self._private_key, mtypes_dict)
 
             except Exception as ex:
-                raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered (%s)." %str(ex))
+                raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered (%s)." % str(ex))
         else:
             raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
 
