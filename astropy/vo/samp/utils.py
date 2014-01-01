@@ -115,8 +115,9 @@ class _ServerProxyPoolMethod:
 
 
 class ServerProxyPool(object):
-
-    """A thread-safe pool of `xmlrpc.ServerProxy` objects."""
+    """
+    A thread-safe pool of `xmlrpc.ServerProxy` objects.
+    """
 
     def __init__(self, size, proxy_class, *args, **keywords):
 
@@ -182,19 +183,18 @@ Do you give your consent? [yes|no]""" % (samp_name, request[2])
 
 
 class SAMPMsgReplierWrapper(object):
-
-    """Decorator class/function that allows to automatically grab
+    """
+    Decorator class/function that allows to automatically grab
     errors and returned maps (if any) from a function bound
     to a SAMP call (or notify).
 
-
-      Parameters
-      ----------
-      cli : `SAMPIntegratedClient` or `SAMPClient`
-          SAMP client instance.
-          Decorator initialization, accepting the instance of the
-          client that receives the call or notification.
-      """
+    Parameters
+    ----------
+    cli : `SAMPIntegratedClient` or `SAMPClient`
+        SAMP client instance.
+        Decorator initialization, accepting the instance of the
+        client that receives the call or notification.
+    """
 
     def __init__(self, cli):
         self.cli = cli
@@ -230,8 +230,9 @@ class SAMPMsgReplierWrapper(object):
 
 
 class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
-
-    """XMLRPC handler of Standar Profile requests (internal use only)"""
+    """
+    XMLRPC handler of Standar Profile requests (internal use only)
+    """
 
     def do_GET(self):
 
@@ -244,7 +245,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     if PYTHON_VERSION >= 2.7:
 
         def do_POST(self):
-            """Handles the HTTP POST request.
+            """
+            Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
             which are forwarded to the server's `_dispatch` method for handling.
@@ -347,7 +349,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     else:
 
         def do_POST(self):
-            """Handles the HTTP POST request.
+            """
+            Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
             which are forwarded to the server's `_dispatch` method for handling.
@@ -437,8 +440,9 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
 
 class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
-
-    """Asynchronous multithreaded XMLRPC server (internal use only)"""
+    """
+    Asynchronous multithreaded XMLRPC server (internal use only)
+    """
 
     def __init__(self, addr, log=None, requestHandler=SAMPSimpleXMLRPCRequestHandler,
                  logRequests=True, allow_none=True, encoding=None):
@@ -454,8 +458,8 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
 
 
 class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
-
-    """Handler of XMLRPC requests performed through the WebProfile (internal use
+    """
+    Handler of XMLRPC requests performed through the WebProfile (internal use
     only)
     """
 
@@ -580,8 +584,9 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
 
 class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
-
-    """XMLRPC server supporting the SAMP Web Profile"""
+    """
+    XMLRPC server supporting the SAMP Web Profile
+    """
 
     def __init__(self, addr, log=None, requestHandler=WebProfileRequestHandler,
                  logRequests=True, allow_none=True, encoding=None):
@@ -603,8 +608,8 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
 if SSL_SUPPORT:
 
     class HTTPSConnection(HTTPConnection):
-
-        """This class allows communication via SSL (client side - internal use
+        """
+        This class allows communication via SSL (client side - internal use
         only).
         """
 
@@ -638,8 +643,9 @@ if SSL_SUPPORT:
     if PY2:
 
         class HTTPS(HTTP):
-
-            """Facility class fo HTTP communication (internal use only)"""
+            """
+            Facility class fo HTTP communication (internal use only)
+            """
 
             _connection_class = HTTPSConnection
 
@@ -667,8 +673,9 @@ if SSL_SUPPORT:
                 return self._conn.getresponse(buffering)
 
     class SafeTransport(xmlrpc.Transport):
-
-        """Handles an HTTPS transaction to an XML-RPC server. (internal use only)"""
+        """
+        Handles an HTTPS transaction to an XML-RPC server. (internal use only)
+        """
 
         def __init__(self, key_file=None, cert_file=None,
                      cert_reqs=ssl.CERT_NONE, ca_certs=None,
@@ -701,7 +708,8 @@ if SSL_SUPPORT:
 
     class SecureXMLRPCServer(ThreadingXMLRPCServer):
 
-        """An XMLRPC server supporting secure sockets connections (internal use only)
+        """
+        An XMLRPC server supporting secure sockets connections (internal use only)
         """
 
         def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
@@ -737,8 +745,8 @@ if SSL_SUPPORT:
 if BDB_SUPPORT:
 
     class BasicAuthSimpleXMLRPCRequestHandler(SAMPSimpleXMLRPCRequestHandler):
-
-        """XML-RPC Request Handler for Basic Authentication support. (internal use only)
+        """
+        XML-RPC Request Handler for Basic Authentication support. (internal use only)
 
         Paramters
         ---------
@@ -829,8 +837,8 @@ if BDB_SUPPORT:
             self.connection.close()
 
     class BasicAuthXMLRPCServer(ThreadingXMLRPCServer):
-
-        """XML-RPC server with Basic Authentication support. (internal use only).
+        """
+        XML-RPC server with Basic Authentication support. (internal use only).
 
         Parameters
         ----------
@@ -868,9 +876,10 @@ if BDB_SUPPORT:
 if SSL_SUPPORT and BDB_SUPPORT:
 
     class BasicAuthSecureXMLRPCServer(ThreadingXMLRPCServer):
-
-        """XML-RPC server with Basic Authentication support, secure socket
-        connections and multithreaded. (internal use only)"""
+        """
+        XML-RPC server with Basic Authentication support, secure socket
+        connections and multithreaded. (internal use only)
+        """
 
         def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
                      auth_file, access_restrict=None, log=None,

@@ -46,110 +46,110 @@ __doctest_skip__ = ['.', 'SAMPHubServer.*']
 
 
 class SAMPHubServer(object):
+    """
+    SAMP Hub Server.
 
-    """SAMP Hub Server.
+    The SSL parameters are usable only if Python has
+    been compiled with SSL support and/or U{ssl <http://docs.python.org/dev/library/ssl.html>}
+    module is installed (available by default since Python 2.6).
 
-      The SSL parameters are usable only if Python has
-      been compiled with SSL support and/or U{ssl <http://docs.python.org/dev/library/ssl.html>}
-      module is installed (available by default since Python 2.6).
+    Parameters
+    ----------
+    secret : str
+        Secret code.
 
-      Parameters
-      ----------
-      secret : str
-          Secret code.
+    addr : str
+        Listening address (or IP)
 
-      addr : str
-          Listening address (or IP)
+    port : int
+        Listening port number.
 
-      port : int
-          Listening port number.
+    lockfile : str
+        Custom lockfile name.
 
-      lockfile : str
-          Custom lockfile name.
+    timeout : int
+        Hub inactivity timeout. If `timeout` > 0 then the Hub automatically
+        stops after an inactivity period longer than `timeout` seconds. By default `timeout`
+        is set to 0 (Hub never expires).
 
-      timeout : int
-          Hub inactivity timeout. If `timeout` > 0 then the Hub automatically
-          stops after an inactivity period longer than `timeout` seconds. By default `timeout`
-          is set to 0 (Hub never expires).
+    client_timeout : int
+        Client inactivity timeout. If `client_timeout` > 0 then the
+        Hub automatically unregisters the clients which result inactive for a period longer
+        than `client_timeout` seconds. By default `client_timeout` is set to 0 (clients never
+        expire).
 
-      client_timeout : int
-          Client inactivity timeout. If `client_timeout` > 0 then the
-          Hub automatically unregisters the clients which result inactive for a period longer
-          than `client_timeout` seconds. By default `client_timeout` is set to 0 (clients never
-          expire).
+    mode : str
+        Defines the Hub running mode. If `mode` is 'single' then the Hub runs
+        using the standard `.samp` lock-file, having a single instance for user desktop
+        session. Otherwise, if `mode` is 'multiple', then the Hub runs using a non-standard
+        lock-file, placed in `.samp-1` directory, of the form `samp-hub-<PID>-<ID>`, where
+        `<PID>` is the process id and `<ID>` is a general sub-id (integer number).
 
-      mode : str
-          Defines the Hub running mode. If `mode` is 'single' then the Hub runs
-          using the standard `.samp` lock-file, having a single instance for user desktop
-          session. Otherwise, if `mode` is 'multiple', then the Hub runs using a non-standard
-          lock-file, placed in `.samp-1` directory, of the form `samp-hub-<PID>-<ID>`, where
-          `<PID>` is the process id and `<ID>` is a general sub-id (integer number).
+    label : str
+        A string used to label the Hub with a human readable name. This string
+        is written in the lock-file assigned to the `hub.label` token.
 
-      label : str
-          A string used to label the Hub with a human readable name. This string
-          is written in the lock-file assigned to the `hub.label` token.
+    owner : str
+        General purpose Hub owner name. This value is written in the lock-file
+        and assigned to the `hub.owner.name` token.
 
-      owner : str
-          General purpose Hub owner name. This value is written in the lock-file
-          and assigned to the `hub.owner.name` token.
+    owner_group : str
+        General purpose Hub owner group name. This value is written in the
+        lock-file and assigned to the `hub.owner.group` token.
 
-      owner_group : str
-          General purpose Hub owner group name. This value is written in the
-          lock-file and assigned to the `hub.owner.group` token.
+    auth_file : str
+        Authentication file path used for Basic Authentication. The authentication file
+        must be a Berkeley DB file in Hash format containing a set of
+        `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...)` key/value pairs.
 
-      auth_file : str
-          Authentication file path used for Basic Authentication. The authentication file
-          must be a Berkeley DB file in Hash format containing a set of
-          `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...)` key/value pairs.
+    access_restrict : str
+        Define whether the Hub access must be restricted to the Hub owner, to a certain owner
+        group or not restricted at all.
+        Values accepted: `SAMP_RESTRICT_OWNER`, `SAMP_RESTRICT_GROUP`, `None`.
 
-      access_restrict : str
-          Define whether the Hub access must be restricted to the Hub owner, to a certain owner
-          group or not restricted at all.
-          Values accepted: `SAMP_RESTRICT_OWNER`, `SAMP_RESTRICT_GROUP`, `None`.
+    admin : str
+        Define the name of the administrator user in case of restricted access. The administrator user
+        can always access the hub instance even if it is running with `SAMP_RESTRICT_OWNER` policy.
+        The administrator must be declared in the authentication file.
 
-      admin : str
-          Define the name of the administrator user in case of restricted access. The administrator user
-          can always access the hub instance even if it is running with `SAMP_RESTRICT_OWNER` policy.
-          The administrator must be declared in the authentication file.
+    https : bool
+        Set the Hub running on a Secure Sockets Layer connection (HTTPS)?
+        By default SSL is disabled.
 
-      https : bool
-          Set the Hub running on a Secure Sockets Layer connection (HTTPS)?
-          By default SSL is disabled.
+    keyfile : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
 
-      keyfile : str
-          Set the file containing the private key for SSL connections. If the
-          certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
+    certfile : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
 
-      certfile : str
-          Specify the file which contains a certificate to be used to identify the
-          local side of the secure connection.
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the client side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
 
-      cert_reqs : int
-          The parameter `cert_reqs` specifies whether a certificate is required
-          from the client side of the connection, and whether it will be validated if provided. It
-          must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-          (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-          If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-          point to a file of CA certificates.
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority"
+        certificates, which are used to validate certificates passed from the client end of the
+        connection.
 
-      ca_certs : str
-          The `ca_certs` file contains a set of concatenated "Certification Authority"
-          certificates, which are used to validate certificates passed from the client end of the
-          connection.
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses    a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are    not interoperable with the other versions. If not
+        specified the default SSL version is  `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions client side. Other SSL protocol versions are:
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
-      ssl_version : int
-          The `ssl_version` option specifies which version of the SSL protocol to use.
-          Typically, the server chooses    a particular protocol version, and the client must adapt to the
-          server's choice. Most of the versions are    not interoperable with the other versions. If not
-          specified the default SSL version is  `ssl.PROTOCOL_SSLv23`. This version provides the most
-          compatibility with other versions client side. Other SSL protocol versions are:
-          `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    web_profile : bool
+        The `web_profile` option enables/disables the Web Profile support.
 
-      web_profile : bool
-          The `web_profile` option enables/disables the Web Profile support.
-
-      pool_size : int
-          The number of socket connections opened to communicate with the clients.
+    pool_size : int
+        The number of socket connections opened to communicate with the clients.
     """
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None, timeout=0,
@@ -401,7 +401,8 @@ class SAMPHubServer(object):
         self._declare_subscriptions(self._hub_private_key, {"samp.app.ping": {}, "x-samp.query.by-meta": {}})
 
     def start(self, wait=False):
-        """Start the current SAMP Hub instance and create the lock file. Hub start-up can
+        """
+        Start the current SAMP Hub instance and create the lock file. Hub start-up can
         be blocking or non blocking depending on the `wait` parameter.
 
         Parameters
@@ -598,7 +599,8 @@ class SAMPHubServer(object):
 
     @staticmethod
     def check_running_hub(lockfilename):
-        """Test whether a Hub identified by `lockfilename` is running or not.
+        """
+        Test whether a Hub identified by `lockfilename` is running or not.
 
         Parameters
         ----------
@@ -1069,7 +1071,8 @@ class SAMPHubServer(object):
 
     @staticmethod
     def get_mtype_subtypes(mtype):
-        """Return a list containing all the possible wildcarded subtypes of MType.
+        """
+        Return a list containing all the possible wildcarded subtypes of MType.
 
         Parameters
         ----------

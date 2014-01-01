@@ -98,7 +98,7 @@ class SAMPIntegratedClient(object):
 
         Returns
         -------
-        isConnected : bool
+        is_connected : bool
             True if the client is connected to a Hub, False otherwise.
         """
         return self.hub.is_connected & self.client.is_running
@@ -230,7 +230,9 @@ class SAMPIntegratedClient(object):
         return msg
 
     def notify(self, recipient_id, message):
-        """Proxy to `notify` SAMP Hub method."""
+        """
+        Proxy to `notify` SAMP Hub method.
+        """
         return self.hub.notify(self.get_private_key(), recipient_id, message)
 
     def enotify(self, recipient_id, mtype, **params):
@@ -347,7 +349,9 @@ class SAMPIntegratedClient(object):
         return self.call(recipient_id, msg_tag, self._format_easy_msg(mtype, params))
 
     def call_all(self, msg_tag, message):
-        """Proxy to `call_all` SAMP Hub method."""
+        """
+        Proxy to `callAll` SAMP Hub method.
+        """
         return self.hub.call_all(self.get_private_key(), msg_tag, message)
 
     def ecall_all(self, msg_tag, mtype, **params):
