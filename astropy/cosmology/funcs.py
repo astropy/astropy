@@ -10,18 +10,21 @@ from ..units import Quantity
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
-def z_at_value(func, fval, zmin=0, zmax=1e3, ztol=1e-5, maxfun=500):
+def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     """ Find the redshift `z` at which `func(z) = fval`.
 
-    This finds the redshift at which one of the cosmology functions
-    (for example Planck13.distmod) is equal to a known value. WARNING:
-    Make sure you understand the behaviour of the function that you
-    are trying to invert! Depending on the cosmology, there may not be
-    a unique solution. For example, in the standard Lambda CDM
-    cosmology, there are two redshifts which give an angular diameter
-    distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force `z_at_value`
-    to find the solution you are interested in, use the `zmin` and
-    `zmax` keywords to limit the search range (see the example below).
+    This finds the redshift at which one of the cosmology functions or
+    methods (for example Planck13.distmod) is equal to a known value.
+
+    .. warning::
+      Make sure you understand the behaviour of the function that you
+      are trying to invert! Depending on the cosmology, there may not
+      be a unique solution. For example, in the standard Lambda CDM
+      cosmology, there are two redshifts which give an angular
+      diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force
+      `z_at_value` to find the solution you are interested in, use the
+      `zmin` and `zmax` keywords to limit the search range (see the
+      example below).
 
     Parameters
     ----------
@@ -50,9 +53,30 @@ def z_at_value(func, fval, zmin=0, zmax=1e3, ztol=1e-5, maxfun=500):
     This works for any arbitrary input cosmology, but is inefficient
     if you want to invert a large number of values for the same
     cosmology. In this case, it is faster to instead generate an array
-    of function values at many closely-spaced redshifts that cover the
-    relevant redshift range, and then use interpolation to find the
-    redshift at each value you're interested in.
+    of values at many closely-spaced redshifts that cover the relevant
+    redshift range, and then use interpolation to find the redshift at
+    each value you're interested in. For example, to efficiently find
+    the redshifts corresponding to 10^6 values of the distance modulus
+    in a Planck13 cosmology, you could do the following:
+
+    >>> import astropy.units as u
+    >>> from astropy.cosmology import Planck13, z_at_value
+
+    # Generate 10^6 distance moduli between 23 and 43 for which we
+    # want to find the corresponding redshifts
+    >>> Dvals = (23 + np.random.rand(1e6) * 20) * u.mag
+
+    # Make a grid of distance moduli covering the redshift range we
+    # need using 50 equally log-spaced values between zmin and
+    # zmax. We use log spacing to adequately sample the steep part of
+    # the curve at low distance moduli.
+    >>> zmin = z_at_value(Planck13.distmod, Dvals.min())
+    >>> zmax = z_at_value(Planck13.distmod, Dvals.max())
+    >>> zgrid = np.logspace(zmin, zmax)
+    >>> Dgrid = Planck13.distmod(zgrid)
+
+    # Finally interpolate to find the redshift at each distance modulus.
+    >>> zvals = np.interp(Dvals.value, zgrid, Dgrid.value)
 
     Examples
     --------
@@ -84,9 +108,9 @@ def z_at_value(func, fval, zmin=0, zmax=1e3, ztol=1e-5, maxfun=500):
     fval_zmax = func(zmax)
     if np.sign(fval - fval_zmin) != np.sign(fval_zmax - fval):
         warnings.warn("""\
-fval is not bracketed by func(zmin) and func(zmax). This means that
-either there is no solution, or that there is more than one solution
-between zmin and zmax satisfying fval = func(z).""")
+fval is not bracketed by func(zmin) and func(zmax). This means either
+there is no solution, or that there is more than one solution between
+zmin and zmax satisfying fval = func(z).""")
 
     if isinstance(fval_zmin, Quantity):
         unit = fval_zmin.unit

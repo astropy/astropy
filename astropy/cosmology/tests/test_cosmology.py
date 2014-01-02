@@ -855,6 +855,28 @@ def test_z_at_value():
     else:
         raise RuntimeError('Test did not raise expected CosmologyError')
 
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_z_at_value_roundtrip():
+    """
+    Calculate values from a known redshift, and then check that
+    z_at_value returns the right answer.
+    """
+    z = 0.5
+    names = ('distmod H kpc_comoving_per_arcmin kpc_proper_per_arcmin '
+             'age lookback_time angular_diameter_distance luminosity_distance '
+             'arcsec_per_kpc_comoving arcsec_per_kpc_proper scale_factor '
+             'comoving_distance comoving_volume critical_density').split()
+
+    for name in names:
+        print('Round-trip testing Planck13.', name)
+        f = getattr(core.Planck13, name)
+        fval = f(z)
+        # we need zmax here to pick the right solution for
+        # angular_diameter_distance and related methods.
+        assert np.allclose(z, funcs.z_at_value(f, fval, zmax=1.5))
+
+
 def test_default_reset():
     # Check that the default is being reset after tests. This test should be
     # updated if the default cosmology is updated.

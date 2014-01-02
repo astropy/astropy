@@ -40,7 +40,7 @@ arcmin_in_radians = 1 / 60. * pi / 180
 a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
 
 # Boltzmann constant in eV / K
-kB_evK = const.k_B.decompose().to(u.eV / u.K)
+kB_evK = const.k_B.to(u.eV / u.K)
 
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
