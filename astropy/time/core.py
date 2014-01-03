@@ -810,12 +810,13 @@ class Time(object):
                     jd2 = self._time.jd2
 
             # First go from the current input time (which is either
-            # TDB or TT) to an approximate UTC.  Since TT and TDB are
-            # pretty close (few msec?), assume TT.
+            # TDB or TT) to an approximate UT1.  Since TT and TDB are
+            # pretty close (few msec?), assume TT.  Similarly, since the
+            # UT1 terms are very small, use UTC instead of UT1.
             njd1, njd2 = erfa_time.tt_tai(jd1, jd2)
             njd1, njd2 = erfa_time.tai_utc(njd1, njd2)
-            # TODO: actually need to go to UT1 which needs DUT.
-            ut = njd1 + njd2
+            # subtract 0.5, so UT is fraction of the day from midnight
+            ut = day_frac(njd1 - 0.5, njd2)[1]
 
             # Compute geodetic params needed for d_tdb_tt()
             elon = 0. if self.lon is None else self.lon.to(u.radian).value
