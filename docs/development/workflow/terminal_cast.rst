@@ -11,4 +11,4 @@ Terminal-cast of worked example
 
 .. raw:: html
 
-    <iframe src='http://asciinema.org/a/6945/raw?container_width=695&speed=4' width='700' height='800'></iframe>
+    <iframe src='http://asciinema.org/a/7003/raw?container_width=695&speed=4' width='700' height='800'></iframe>
