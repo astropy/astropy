@@ -68,7 +68,7 @@ def main(timeout=0):
 
     log_group = OptionGroup(parser, "Logging options",
                             "Additional options which allow to customize the logging output. By "
-                            "default SAMPy Hub uses the standard output and standard error "
+                            "default the SAMP Hub uses the standard output and standard error "
                             "devices to print out INFO level logging messages. Using the options "
                             "here below it is possible to modify the logging level and also "
                             "specify the output files where redirect the logging messages.")

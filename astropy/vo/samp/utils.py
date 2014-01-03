@@ -68,7 +68,7 @@ else:
     import xmlrpclib as xmlrpc
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
-from .constants import SAMP_STATUS_ERROR, SAMPY_ICON
+from .constants import SAMP_STATUS_ERROR, SAMP_ICON
 from .errors import SAMPWarning
 from ...config import ConfigurationItem
 
@@ -240,7 +240,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'image/png')
             self.end_headers()
-            self.wfile.write(base64.decodestring(SAMPY_ICON))
+            self.wfile.write(base64.decodestring(SAMP_ICON))
 
     if PYTHON_VERSION >= 2.7:
 

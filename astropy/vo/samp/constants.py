@@ -4,9 +4,8 @@
 __all__ = ['SAMP_STATUS_OK', 'SAMP_STATUS_WARNING', 'SAMP_STATUS_ERROR',
            'SAMP_HUB_SINGLE_INSTANCE', 'SAMP_HUB_MULTIPLE_INSTANCE',
            'SAMP_RESTRICT_GROUP', 'SAMP_RESTRICT_OWNER',
-           'SAFE_MTYPES', 'SAMPY_ICON']
+           'SAFE_MTYPES', 'SAMP_ICON']
 
-__release__ = "1.3.0"
 __profile_version__ = "1.3"
 
 #: General constant for samp.ok status string
@@ -29,7 +28,7 @@ SAMP_RESTRICT_OWNER = "OWNER"
 SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
                "coord.*", "spectrum.*", "bibcode.*", "voresource.*"]
 
-SAMPY_ICON = b"""
+SAMP_ICON = b"""
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJN
 AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAC2VBMVEX/gQD/hQD/hAD/kwD/
 egD+ggD9eQD9eAD/jwD/mgD9aQD/iAH+gQL/jQD+dQD9bwD9LgD+MwD7AAD9LgT8JQD9KQn+PQD8

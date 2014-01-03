@@ -7,6 +7,7 @@ from ....tests.helper import pytest
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 from ..constants import SAMP_STATUS_OK
+from ..errors import SAMPError
 
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
