@@ -16,6 +16,15 @@ except ImportError:
 ELLIPSOIDS = {'WGS84': 1, 'GRS80': 2, 'WGS72': 3}
 
 
+def _check_ellipsoid(ellipsoid=None, default='WGS84'):
+    if ellipsoid is None:
+        ellipsoid = default
+    if ellipsoid not in ELLIPSOIDS:
+        raise ValueError('Ellipsoid {0} not among known ones ({1})'
+                         .format(ellipsoid, ELLIPSOIDS.keys()))
+    return ellipsoid
+
+
 class EarthLocation(CartesianPoints):
     """
     Location on Earth
@@ -94,8 +103,8 @@ class EarthLocation(CartesianPoints):
         height : Quantity or float, optional
             Height above reference ellipsoid (if float, in meters; default: 0)
         ellipsoid : str, optional
-            Name of the reference ellipsoid to use (default: '{0}')
-            Available ellipoids are: {1}
+            Name of the reference ellipsoid to use (default: 'WGS84')
+            Available ellipoids are:  'WGS84', 'GRS80', 'WGS72'
         dtype : ~numpy.dtype, optional
             See `~astropy.units.Quantity`
 
@@ -108,7 +117,7 @@ class EarthLocation(CartesianPoints):
             If `lon`, `lat`, and `height` do not have the same shape
 
         """
-        ellipsoid = cls._check_ellipsoid(cls, ellipsoid)
+        ellipsoid = _check_ellipsoid(ellipsoid, default=cls.ellipsoid)
         lon = Longitude(lon, u.degree, wrap_angle='180d', copy=False)
         lat = Latitude(lat, u.degree, copy=False)
         height = u.Quantity(height, u.meter, copy=False)
@@ -125,9 +134,6 @@ class EarthLocation(CartesianPoints):
         self.ellipsoid = ellipsoid
         return self
 
-    from_geodetic.__doc__ = from_geodetic.__doc__.format(ellipsoid,
-                                                         ELLIPSOIDS.keys())
-
     @property
     def geodetic(self):
         """Convert to geodetic coordinates for the default ellipsoid."""
@@ -140,7 +146,7 @@ class EarthLocation(CartesianPoints):
         ----------
         ellipsoid : str, optional
             Reference ellipsoid to use.  Default is the one the coordinates
-            were initialized with.  Available are: {0}
+            were initialized with.  Available are: 'WGS84', 'GRS80', 'WGS72'
 
         Returns
         -------
@@ -148,7 +154,8 @@ class EarthLocation(CartesianPoints):
             The tuple contains instances of `~astropy.coordinates.Longitude`,
             `~astropy.coordinates.Latitude`, and `~astropy.units.Quantity`
         """
-        ellipsoid = self._check_ellipsoid(ellipsoid)
+
+        ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_value = self.to(u.meter).value
         if self_value.ndim == 1:
             self_value = self_value.reshape(-1, 1)
@@ -158,16 +165,6 @@ class EarthLocation(CartesianPoints):
                           wrap_angle='180d'),
                 Latitude(lat.squeeze() * u.radian, u.degree),
                 u.Quantity(height.squeeze(), u.meter))
-
-    to_geodetic.__doc__ = to_geodetic.__doc__.format(ELLIPSOIDS.keys())
-
-    def _check_ellipsoid(self, ellipsoid=None):
-        if ellipsoid is None:
-            ellipsoid = self.ellipsoid
-        if ellipsoid not in ELLIPSOIDS:
-            raise ValueError('Ellipsoid {0} not among known ones ({1})'
-                             .format(ellipsoid, ELLIPSOIDS.keys()))
-        return ellipsoid
 
     @property
     def longitude(self):
