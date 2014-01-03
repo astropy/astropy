@@ -97,6 +97,15 @@ essential items:
   problem, set up authentication 
   `using SSH keys instead <https://help.github.com/articles/generating-ssh-keys>`_
 
+We also recommend setting up `git` so that when you copy changes from your 
+computer to `GitHub`_ only the copy (called a *branch*) of Astropy that you are
+working on gets pushed up to GitHub. Do that with::
+
+    git config --global push.default simple
+
+If you skip this step now it is not a problem; `git` will remind you to do it in
+those cases when it is relevant.
+
 .. note::
 
     Make sure you make a note of which authentication method you set up
@@ -135,26 +144,32 @@ Tell git where to look for changes in the development version of Astropy
 Right now your local copy of `Astropy`_ doesn't know where the development
 version of `Astropy`_ is. There is no easy way to keep your local copy up to
 date. In `git` the name for another location of the same repository is a
-*remote* and the repository that contains the latest "official" development
-version is, by tradition, called the *upstream* remote. 
+*remote*. The repository that contains the latest "official" development
+version is traditionally called the *upstream* remote, but here we use a
+more meaningful name for the remote: *astropy*. 
 
 Change into the ``astropy`` directory you created in the previous step and
-let `git` know about about the upstream remote::
+let `git` know about about the astropy remote::
 
     cd astropy
-    git remote add upstream git://github.com/astropy/astropy.git
+    git remote add astropy git://github.com/astropy/astropy.git
 
 You can check that everything is set up properly so far by asking `git` to
 show you all of the remotes it knows about for your local repository of 
 `Astropy`_ with ``git remote -v``, which should display something like::
 
-    upstream   git://github.com/astropy/astropy.git (fetch)
-    upstream   git://github.com/astropy/astropy.git (push)
+    astropy   git://github.com/astropy/astropy.git (fetch)
+    astropy   git://github.com/astropy/astropy.git (push)
     origin     git@github.com:your-user-name/astropy.git (fetch)
     origin     git@github.com:your-user-name/astropy.git (push)
     
 Note that `git` already knew about one remote, called *origin*; that is your
 fork of Astropy on `GitHub`_.
+
+To make more explicit that origin is really *your* fork of Astropy, rename that
+remote to your `GitHub`_ user name::
+
+  git remote rename origin your-user-name
 
 .. _make_a_branch:
 

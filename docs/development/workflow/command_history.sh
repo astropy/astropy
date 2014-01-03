@@ -1,15 +1,22 @@
+#
+# Setup
+#
 # Start by cloning the repo from your GitHub account if you need to...
 git clone https://github.com/mwcraig/astropy.git apy-bugs
-# ...remember to set up the upstream remote
-git remote add upstream git://github.com/astropy/astropy.git
-# ...then navigate to that clone in a terminal, and:
-git fetch upstream                  # get the latest from the official repo
+# ...then navigate to that clone in a terminal, and...
+cd apy-bugs
+# ...rename the origin remote make its meaning clearer and...
+git remote rename origin mwcraig
+# ...remember to set up the official remote.
+git remote add astropy git://github.com/astropy/astropy.git
+# get the latest from the official repo
+git fetch astropy
 #
 # Make a new branch for this fix
 #
-git branch fix-1761 upstream/master # branch just for this work
-git checkout fix-1761               # work on this branch
-git push --set-upstream origin fix-1761 # Hey GitHub, get ready to receive my work
+git branch i-1761 astropy/master # branch just for this work
+git checkout i-1761               # work on this branch
+git push --set-upstream mwcraig i-1761 # Hey GitHub, get ready to receive my work
 #
 # Make a python environment for this work -- conda version shown
 #
@@ -38,7 +45,7 @@ git add test_arrays.py          # get ready to commit
 git commit -m'Add test for array coordinate length (issue #1761)'
 git status                      # Best to be informed!
 #
-# Fix the bug
+# Edit test_arrays.py
 #
 cd ..                           # up a level to coordinates
 #

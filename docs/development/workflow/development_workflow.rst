@@ -60,12 +60,12 @@ Before going further, make sure you have set up astropy as described in
 In a terminal window, change directory to the one containing your clone of
 Astropy. Then, run ``git remote``; the output should look something like this::
 
-    origin
-    upstream
+    your-github-username
+    astropy
 
 If that works, also run ``git fetch --all``. If it runs without errors then 
 your installation is working and you have a complete list of all branches in
-your clone, ``origin`` and ``upstream``
+your clone, ``your-github-username`` and ``astropy``.
 
 About names in `git`
 --------------------
@@ -76,17 +76,17 @@ especially for the branch called ``master``. If you list all of the branches
 your clone of git knows about with ``git branch -a`` you will see there are
 *three* different branches called ``master``::
 
-    * master                # this is master in your local repo
-    remotes/origin/master   # master on your fork of Astropy on GitHub
-    remotes/upstream/master # the official development branch of Astropy
+    * master                              # this is master in your local repo
+    remotes/your-github-username/master   # master on your fork of Astropy on GitHub
+    remotes/astropy/master                # the official development branch of Astropy
 
 The naming scheme used by `git` will also be used here. A plain branch name,
 like ``master`` means a branch in your local copy of Astropy. A branch on a
-remote, like ``origin`` , is labeled by that remote, ``origin/master``. 
+remote, like ``astropy`` , is labeled by that remote, ``astropy/master``. 
 
 This duplication of names can get very confusing for maintainers when trying
 to merge code contributions into the official master branch,
-``upstream/master``. As a result, you should never do any work in your master
+``astropy/master``. As a result, you should never do any work in your master
 branch, ``master``. Always work on a branch instead.
 
 Essential `git` commands
@@ -125,6 +125,14 @@ Astropy Guidelines for `git`
   should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
 
+In addition there are a couple of `git` naming conventions used in this
+document:
+
+* Change the name of the remote ``origin`` to ``your-github-username``.
+* Name the remote that is the primary Astropy repository 
+  ``astropy``; in prior versions of this documentation it was referred to as
+  ``upstream``.
+
 Workflow
 ========
 
@@ -157,14 +165,14 @@ Fetch the latest Astropy
 ========================
 
 From time to time you should fetch the development version (i.e. Astropy 
-``upstream/master``) changes from GitHub::
+``astropy/master``) changes from GitHub::
 
-   git fetch upstream
+   git fetch astropy
 
 This will pull down any commits you don't have, and set the remote branches to
 point to the latest commit. For example, 'trunk' is the branch referred to by
-``upstream/master``, and if there have been commits since
-you last checked, ``upstream/master`` will change after you do the fetch.
+``astropy/master``, and if there have been commits since
+you last checked, ``astropy/master`` will change after you do the fetch.
 
 .. _make-feature-branch:
 
@@ -185,14 +193,14 @@ Choose an informative name for the branch to remind yourself and the rest of us
 what the changes in the branch are for. Branch names like ``add-ability-to-fly``
 or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
 
-Always make your branch from ``upstream/master`` so that you are basing your
+Always make your branch from ``astropy/master`` so that you are basing your
 changes on the latest version of Astropy::
 
     # Update the mirror of trunk
-    git fetch upstream
+    git fetch astropy
 
-    # Make new feature branch starting at upstream/master
-    git branch my-new-feature upstream/master
+    # Make new feature branch starting at astropy/master
+    git branch my-new-feature astropy/master
     git checkout my-new-feature
 
 Connect the branch to GitHub
@@ -205,10 +213,10 @@ for your proposed changes to be managed by the Astropy maintainers on GitHub.
 To connect your local branch to GitHub, you `git push`_ this new branch up to
 your GitHub repo with the ``--set-upstream`` option::
 
-   git push --set-upstream origin my-new-feature
+   git push --set-upstream your-github-username my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
-``origin/my-new-feature`` branch in your GitHub fork of Astropy.
+``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
 
 You will still need to ``git push`` your changes to GitHub periodically. The
 setup in this section will make that easier.

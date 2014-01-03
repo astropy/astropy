@@ -31,16 +31,16 @@ Make sure you have a local copy of astropy set up as described in
 :ref:`get_devel`. In a nutshell, the output of ``git remote -v``, run in the
 directory where your local of Astropy resides, should be something like this::
 
-    upstream   git://github.com/astropy/astropy.git (fetch)
-    upstream   git://github.com/astropy/astropy.git (push)
-    origin     git@github.com:your-user-name/astropy.git (fetch)
-    origin     git@github.com:your-user-name/astropy.git (push)
+    astropy   git://github.com/astropy/astropy.git (fetch)
+    astropy   git://github.com/astropy/astropy.git (push)
+    your-user-name     git@github.com:your-user-name/astropy.git (fetch)
+    your-user-name     git@github.com:your-user-name/astropy.git (push)
 
-The precise form of the URLs for ``origin`` depend on the authentication
-method you set up with GitHub.
+The precise form of the URLs for ``your-user-name`` depends on the
+authentication method you set up with GitHub.
 
-The important point is that ``upstream`` should point to the official
-Astropy repo and ``origin`` should point to *your* copy of Astropy on GitHub.
+The important point is that ``astropy`` should point to the official Astropy
+repo and ``your-user-name`` should point to *your* copy of Astropy on GitHub.
 
 
 Grab the latest updates to astropy
@@ -52,14 +52,14 @@ separately to outline the process in words as well as code.
 Inform your local copy of Astropy about the latest changes in the development
 version with::
 
-    git fetch upstream
+    git fetch astropy
 
 Set up an isolated workspace
 ----------------------------
 + Make a new `git` branch for fixing this issue, check it out, and let my
   GitHub account know about this branch::
 
-    git branch fix-1761 upstream/master   # branch based on latest from GitHub
+    git branch fix-1761 astropy/master   # branch based on latest from GitHub
     git checkout fix-1761                   # switch to this branch
     git push --set-upstream origin fix-1761 # tell my github acct about it 
 
