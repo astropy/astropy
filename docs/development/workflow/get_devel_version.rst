@@ -204,7 +204,7 @@ and you should be rewarded with::
 Right now you have the development version of `Astropy`_, but python will not
 see it. Though there are more sophisticated ways of managing multiple versions
 of `Astropy`_, for now this straightforward way will work (if you want to jump
-ahead to the more sophisticated method look at :ref:`virtual_envs`.
+ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 .. note::
     There are a couple of circumstances in which this quick method of
@@ -238,7 +238,7 @@ should have dev in the name.
     back to the stable version unless you are developing astropy. If you want
     to develop astropy, there is a better way of separating the development
     version from the version you do science with. That method, using a 
-    `virtualenv`, is discussed later.
+    `virtualenv`, is discussed at :ref:`virtual_envs`.
 
     For now **remember to change back to your usual version** when you are
     done with this.
