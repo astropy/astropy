@@ -68,6 +68,8 @@ Bug Fixes
   - Fix a bug when computing the TDB to TT offset.  The transform routine was
     using meters instead of kilometers for the Earth vector.  [#1929]
 
+  - Correct use of UT in TDB calculation [#1938, #1939].
+
 - ``astropy.units``
 
   - ``Quantity`` initialisation rewritten for speed [#1775]
