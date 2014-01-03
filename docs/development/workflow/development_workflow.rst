@@ -19,8 +19,8 @@ Before following the steps in this document you need:
 + a local copy of the astropy source. Instructions for doing that, including the
   basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
-Recommended, but not required
-=============================
+Strongly Recommended, but not required
+======================================
 
 You cannot easily work on the development version of astropy in a python
 environment in which you also use the stable version. It can be done |emdash|
@@ -140,6 +140,7 @@ These, conceptually, are the steps you will follow in contributing to Astropy:
 
 #. :ref:`fetch-latest`
 #. :ref:`make-feature-branch`; you will make your changes on this branch.
+#. :ref:`install-branch`
 #. Follow :ref:`edit-flow` to write/edit/document/test code - make
    frequent, small commits.
 #. :ref:`add-changelog`
@@ -220,6 +221,29 @@ From now on git will know that ``my-new-feature`` is related to the
 
 You will still need to ``git push`` your changes to GitHub periodically. The
 setup in this section will make that easier.
+
+.. _install-branch:
+
+Install your branch
+===================
+
+Ideally you should set up a python virtual environment just for this fix;
+instructions for doing to are at :ref:`virtual-pythons`. Doing so ensures you
+will not corrupt your main astropy install and makes it very easy to recover
+from mistakes.
+
+Once you have activated that environment you need to install the version of
+Astropy you are working on. DO that with::
+
+    python setup.py develop  # python 2.x, not python 3
+
+or::
+
+    python3 setup.py install # python 3
+
+If you are using python 3 you will need to re-install after making changes to
+the Astropy source code. Re-installing goes much faster than the initial install
+because it typically does not require new compilation.
 
 .. _edit-flow:
 
