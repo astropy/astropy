@@ -37,6 +37,16 @@ class TestTimeUT1():
         with pytest.raises(IndexError):
             tnow.ut1
 
+    def test_delta_ut1_utc(self):
+        """Accessing delta_ut1_utc should try to get it from IERS
+        (closes #1924 partially)"""
+        t = Time('2012-06-30 12:00:00', scale='utc')
+        assert not hasattr(t, '_delta_ut1_utc')
+        # accessing delta_ut1_utc calculates it
+        assert allclose_sec(t.delta_ut1_utc, -0.58682110003124965)
+        # and keeps it around
+        assert allclose_sec(t._delta_ut1_utc, -0.58682110003124965)
+
 
 @pytest.mark.skipif('not HAS_IERS_A')
 class TestTimeUT1_IERSA():
