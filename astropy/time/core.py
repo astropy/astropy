@@ -782,6 +782,12 @@ class Time(object):
         if not hasattr(self, '_delta_ut1_utc'):
             from ..utils.iers import IERS
             iers_table = IERS.open()
+            # jd1, jd2 are normally set (see above), except if delta_ut1_utc
+            # is access directly; ensure we behave as expected for that case
+            if jd1 is None:
+                self_utc = self.utc
+                jd1, jd2 = self_utc.jd1, self_utc.jd2
+
             self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
         return self._delta_ut1_utc
