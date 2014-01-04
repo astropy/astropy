@@ -8,11 +8,10 @@ import warnings
 from optparse import OptionParser, OptionGroup
 
 from ...extern.six import StringIO
-from ... import log
+from ... import log, __version__
 
 from .constants import (SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP,
-                        SAMP_RESTRICT_OWNER, SAMP_HUB_MULTIPLE_INSTANCE,
-                        __release__)
+                        SAMP_RESTRICT_OWNER, SAMP_HUB_MULTIPLE_INSTANCE)
 from .errors import SAMPWarning, SAMPHubError
 from .hub import SAMPHubServer
 from .utils import BDB_SUPPORT, SSL_SUPPORT
@@ -26,7 +25,7 @@ __all__ = ['main']
 def main(timeout=0):
     """This main function is executed by the `samp_hub` command line tool."""
 
-    parser = OptionParser(version="%prog " + __release__)
+    parser = OptionParser(version="%prog " + __version__)
 
     parser.disable_interspersed_args()
 

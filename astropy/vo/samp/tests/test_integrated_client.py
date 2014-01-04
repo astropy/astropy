@@ -7,7 +7,7 @@ from ....tests.helper import pytest
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 from ..constants import SAMP_STATUS_OK
-from ..errors import SAMPError
+from ..errors import SAMPClientError
 
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
@@ -124,7 +124,7 @@ class TestIntegratedClient(object):
     @pytest.mark.xfail  # need a better exception than current 'Fault'
     def test_no_mtype(self):
         message = {}
-        with pytest.raises(SAMPError):
+        with pytest.raises(SAMPClientError):
             self.client1.notify(self.client2_id, message)
 
     def test_notify(self):
