@@ -19,6 +19,14 @@ ALLOW_INTERNET.set(False)
 # - make proxy accept a lockfile name
 
 
+def wait_until_attribute_exists(object, attribute, timeout=None, step=0.1):
+    start_time = time.time()
+    while not hasattr(object, attribute):
+        time.sleep(step)
+        if time.time() - start_time > timeout:
+            raise AttributeError("Timeout while waiting for attribute {0} to exist on {1}".format(attribute, object))
+
+
 class Receiver(object):
 
     def __init__(self):
@@ -220,7 +228,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        time.sleep(1.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
@@ -252,7 +260,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        time.sleep(1.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
@@ -288,7 +296,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        time.sleep(1.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
