@@ -168,6 +168,27 @@ class Tab(Basic):
         self.data.splitter.process_val = None
         self.data.splitter.skipinitialspace = False
 
+class Csv(Basic):
+    """Read a CSV (comma-separated-values) file.
+
+    Example::
+
+    num,ra,dec,radius,mag
+    1,32.23222,10.1211,0.8,18.1
+    2,38.12321,-88.1321,2.2,17.0
+
+    """
+    _format_name = 'csv'
+    _io_registry_suffix = '.csv'
+    _io_registry_can_write = True
+    _description = 'Comma-separated-values'
+
+    def __init__(self):
+        core.BaseReader.__init__(self)
+        self.data.splitter.delimiter = ','
+        self.header.splitter.delimiter = ','
+        self.header.start_line = 0
+        self.data.start_line = 1 
 
 class Rdb(Tab):
     """Read a tab-separated file with an extra line after the column definition

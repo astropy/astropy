@@ -43,6 +43,7 @@ from .core import (InconsistentTableError,
                    )
 from .basic import (Basic,
                     Rdb,
+                    Csv,
                     Tab,
                     NoHeader,
                     CommentedHeader)
