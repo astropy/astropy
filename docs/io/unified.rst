@@ -72,6 +72,7 @@ ascii.fixed_width_no_header  Yes   Yes            No
                   ascii.rdb  Yes   Yes           Yes
            ascii.sextractor  Yes    No            No
                   ascii.tab  Yes   Yes            No
+                  ascii.csv  Yes   Yes           Yes
                         cds  Yes    No            No        Yes
                     daophot  Yes    No            No        Yes
                        fits  Yes   Yes           Yes
@@ -79,7 +80,7 @@ ascii.fixed_width_no_header  Yes   Yes            No
                        ipac  Yes   Yes            No        Yes
                       latex  Yes   Yes            No        Yes
                         rdb  Yes   Yes            No        Yes
-                    votable  Yes   Yes           Yes
+                    votable  Yes   Yes           Yes           
 =========================== ==== ===== ============= ==========
 
 Deprecated format names like ``aastex`` will be removed in a future version.
@@ -145,6 +146,7 @@ indicates which support write functionality.
 ``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line
 ``ascii.sextractor``                         :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table
 ``ascii.tab``                            Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values
+``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.basic.Csv`: Basic table with comma-separated values
 =============================== ====== ===== ============================================================================================
 
 .. note::

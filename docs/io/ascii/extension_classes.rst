@@ -25,4 +25,5 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.basic.Rdb`: tab-separated values with an extra line after the column definition line
 * :class:`~astropy.io.ascii.sextractor.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.basic.Tab`: tab-separated values
+* :class:`~astropy.io.ascii.basic.Csv': comma-separated values
 

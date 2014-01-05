@@ -144,6 +144,7 @@ functionality.
 ``rdb``                     Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line
 ``sextractor``                  :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table
 ``tab``                     Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values
+``csv``                     Yes :class:`~astropy.io.ascii.basic.Csv`: Basic table with comma-separated values
 ========================= ===== ============================================================================================
 
 
