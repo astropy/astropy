@@ -145,6 +145,9 @@ Bug Fixes
   - Ensure that ``delta_ut1_utc`` gets calculated when accessed directly,
     instead of failing and giving a rather obscure error message [#1925]
 
+  - Increase ``__array_priority__`` so that ``TimeDelta`` can convert itself
+    to a ``Quantity`` also in reverse operations [#1940]
+
 - ``astropy.units``
 
 - ``astropy.utils``

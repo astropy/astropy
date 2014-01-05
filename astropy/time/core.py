@@ -152,7 +152,7 @@ class Time(object):
 
     # Make sure that reverse arithmetic (e.g., TimeDelta.__rmul__)
     # gets called over the __mul__ of Numpy arrays.
-    __array_priority__ = 1000
+    __array_priority__ = 20000
 
     @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
