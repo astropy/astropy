@@ -85,9 +85,9 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     col_name_count = _counter(col_name_list)
     repeated_names = [name for name, count in six.iteritems(col_name_count) if count > 1]
     if repeated_names:
-        raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
+        raise TableMergeError('Merging column names resulted in duplicates: {0}.  '
                               'Change uniq_col_name or table_names args to fix this.'
-                              .format(str(repeated_names)))
+                              .format(repeated_names))
 
     # Convert col_name_map to a regular dict with tuple (immutable) values
     col_name_map = OrderedDict((name, col_name_map[name]) for name in col_name_list)
