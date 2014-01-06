@@ -282,4 +282,6 @@ that only dimensionless quantities are converted to Numpy arrays:
 
 Similarly, while most numpy functions work properly, a few have
 :ref:`known issues <quantity_issues>`, either ignoring the unit (e.g.,
-`np.dot`) or not reinitializing it properly (e.g., `np.hstack`).
+`np.dot`) or not reinitializing it properly (e.g., `np.hstack`).  This
+propagates to more complex functions such as `np.linalg.norm` and
+`scipy.integrate.odeint`.

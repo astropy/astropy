@@ -13,9 +13,10 @@ projects or packages.
 Quantities lose their units with some operations
 ------------------------------------------------
 
-Quantities are subclassed from numpy's `ndarray` and in some numpy
-operations the subclass is ignored, which means that either a plain
-array is returned, or a `Quantity` without units.  E.g.::
+Quantities are subclassed from numpy's `ndarray` and in some numpy operations
+(and in scipy operations using numpy internally) the subclass is ignored, which
+means that either a plain array is returned, or a `Quantity` without units.
+E.g.::
 
     In [1]: import astropy.units as u; import numpy as np
 
