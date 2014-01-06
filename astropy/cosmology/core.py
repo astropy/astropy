@@ -244,14 +244,14 @@ class FLRW(Cosmology):
     def _namelead(self):
         """ Helper function for constructing __repr__"""
         if self.name is None:
-            return "{0:s}(".format(self.__class__.__name__)
+            return "{0}(".format(self.__class__.__name__)
         else:
-            return "{0:s}(name=\"{1:s}\", ".format(self.__class__.__name__,
+            return "{0}(name=\"{1}\", ".format(self.__class__.__name__,
                                                    self.name)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
-                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6:s})"
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
+                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._Ode0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
@@ -1465,8 +1465,8 @@ class FlatLambdaCDM(LambdaCDM):
         return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
-                 "Neff={4:.3g}, m_nu={5:s})"
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
+                 "Neff={4:.3g}, m_nu={5})"
         return retstr.format(self._namelead(), self._H0, self._Om0, 
                              self._Tcmb0, self._Neff, self.m_nu)
 
@@ -1643,8 +1643,8 @@ class wCDM(FLRW):
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
-                 "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7:s})"
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
+                 "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7})"
         return retstr.format(self._namelead(), self._H0, self._Om0, 
                              self._Ode0, self._w0, self._Tcmb0, self._Neff, 
                              self.m_nu)
@@ -1769,8 +1769,8 @@ class FlatwCDM(wCDM):
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
-                 "Neff={5:.3g}, m_nu={6:s})"
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
+                 "Neff={5:.3g}, m_nu={6})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
@@ -1906,9 +1906,9 @@ class w0waCDM(FLRW):
             np.exp(-3 * self._wa * z / zp1)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, "\
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "Ode0={3:.3g}, w0={4:.3g}, wa={5:.3g}, Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8:s})"
+                 "Neff={7:.3g}, m_nu={8})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wa,
                              self._Tcmb0, self._Neff, self.m_nu)
@@ -1978,8 +1978,8 @@ class Flatw0waCDM(w0waCDM):
         self._wa = float(wa)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, "\
-                 "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6:s})"
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
+                 "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
@@ -2134,9 +2134,9 @@ class wpwaCDM(FLRW):
             np.exp(-3 * self._wa * z / zp1)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, wp={4:.3g}, "\
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, wp={4:.3g}, "\
                  "wa={5:.3g}, zp={6:.3g}, Tcmb0={7:.4g}, Neff={8:.3g}, "\
-                 "m_nu={9:s})"
+                 "m_nu={9})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._wp, self._wa, self._zp,
                              self._Tcmb0, self._Neff, self.m_nu)
@@ -2279,9 +2279,9 @@ class w0wzCDM(FLRW):
             np.exp(-3 * self._wz * z)
 
     def __repr__(self):
-        retstr = "{0:s}H0={1:.3g}, Om0={2:.3g}, "\
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "Ode0={3:.3g}, w0={4:.3g}, wz={5:.3g} Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8:s})"
+                 "Neff={7:.3g}, m_nu={8})"
         return retstr.format(self._namelead(), self._H0, self._Om0, 
                              self._Ode0, self._w0, self._wz, self._Tcmb0, 
                              self._Neff, self.m_nu)
