@@ -283,7 +283,7 @@ class CDS(Base):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
-            return self._parse_unit(s)
+            return self._parse_unit(s, detailed_exception=False)
         except ValueError:
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
