@@ -173,10 +173,9 @@ class Csv(Basic):
 
     Example::
 
-    num,ra,dec,radius,mag
-    1,32.23222,10.1211,0.8,18.1
-    2,38.12321,-88.1321,2.2,17.0
-
+      num,ra,dec,radius,mag
+      1,32.23222,10.1211,0.8,18.1
+      2,38.12321,-88.1321,2.2,17.0
     """
     _format_name = 'csv'
     _io_registry_suffix = '.csv'
