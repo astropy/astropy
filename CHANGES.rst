@@ -119,10 +119,6 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
-  
-  - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
-    no longer attempts to reference the undefined variable
-    ``self.matrix`` during instantiation
 
 - ``astropy.cosmology``
 
@@ -204,6 +200,10 @@ Bug Fixes
 
   - Fixed a bug where sexagesimal notation would sometimes include
     exponential notation in the last field. [#1908, #1913]
+
+  - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
+    no longer attempts to reference the undefined variable
+    ``self.matrix`` during instantiation
 
 - ``astropy.cosmology``
 
