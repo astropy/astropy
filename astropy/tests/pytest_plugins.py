@@ -106,6 +106,21 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
 
 def pytest_configure(config):
+    # Turn all DeprecationWarnings (which indicate deprecated uses of
+    # Python itself or Numpy, but not within Astropy, where we use our
+    # own deprecation warning class) into exceptions so that we find
+    # out about them early.
+
+    # Here's the wrinkle: py.test itself uses the compiler module on
+    # Python 2.x, which is deprecated.  If we import compiler *now*,
+    # then we won't get a DeprecationWarning exception about it later.
+    try:
+        import compiler
+    except ImportError:
+        pass
+
+    warnings.filterwarnings("error", ".*", DeprecationWarning)
+
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
