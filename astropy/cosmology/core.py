@@ -151,7 +151,7 @@ class FLRW(Cosmology):
                                    (8. * pi * const.G.cgs)).cgs
 
         # Load up neutrino masses.
-        self._nneutrinos = floor(self._Neff)
+        self._nneutrinos = int(floor(self._Neff))
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
         # because propertly calculating it is a) complicated b) depends

@@ -214,7 +214,7 @@ def discretize_oversample_1D(model, x_range, factor=10):
     values = model(x)
 
     # Reshape and compute mean
-    values = np.reshape(values, (x.size / factor, factor))
+    values = np.reshape(values, (x.size // factor, factor))
     return values.mean(axis=1)[:-1]
 
 
@@ -232,7 +232,7 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     values = model(x_grid, y_grid)
 
     # Reshape and compute mean
-    shape = (y.size / factor, factor, x.size / factor, factor)
+    shape = (y.size // factor, factor, x.size // factor, factor)
     values = np.reshape(values, shape)
     return values.mean(axis=3).mean(axis=1)[:-1, :-1]
 
