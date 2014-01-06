@@ -831,6 +831,9 @@ class Quantity(np.ndarray):
         try:
             value = format(self.value, format_spec)
             full_format_spec = "s"
+        except TypeError:  # For Python 3.4 and above
+            value = format(str(self.value), format_spec)
+            full_format_spec = "s"
         except ValueError:
             value = self.value
             full_format_spec = format_spec
