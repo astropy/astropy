@@ -343,6 +343,9 @@ Bug Fixes
 
   - Fixed compatibility with Python 3.4. [#1945]
 
+  - The test suite will now raise exceptions when a deprecated feature
+    of Python or Numpy is used.  [#1948]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
