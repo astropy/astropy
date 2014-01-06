@@ -308,3 +308,26 @@ def test_obstime():
     # because the obstime is different
     assert (icrs_50.ra.degree != icrs_75.ra.degree and
             icrs_50.dec.degree != icrs_75.dec.degree)
+
+
+def test_composite_static_matrix_transform():
+    """
+    Checks to make sure that CompositeStaticMatrixTransform 
+    correctly combines multiple transformations
+    """
+    half_sqrt_two = 0.5*np.sqrt(2)
+    forwards_45_mat = np.array([[half_sqrt_two, -1*half_sqrt_two, 0],
+                                [half_sqrt_two, half_sqrt_two, 0],
+                                [0, 0, 1]])
+    backwards_45_mat = forwards_45_mat.T
+    id_mat = np.identity(3)
+    
+    id_transform = t.CompositeStaticMatrixTransform(ICRS, ICRS, 
+                                                    [forwards_45_mat, 
+                                                    backwards_45_mat])
+
+    npt.assert_allclose(id_transform.matrix, id_mat)
+    
+
+    
+    

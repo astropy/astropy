@@ -119,6 +119,10 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+  
+  - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
+    no longer attempts to reference the undefined variable
+    ``self.matrix`` during instantiation
 
 - ``astropy.cosmology``
 
