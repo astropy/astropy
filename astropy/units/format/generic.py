@@ -338,7 +338,7 @@ class Generic(Base):
                     t.lexpos, six.text_type(e)))
 
     @classmethod
-    def _parse_unit(cls, s):
+    def _parse_unit(cls, s, detailed_exception=True):
         from ..core import get_current_unit_registry
         registry = get_current_unit_registry().registry
         if s == '%':
@@ -346,9 +346,12 @@ class Generic(Base):
         elif s in registry:
             return registry[s]
 
-        raise ValueError(
-            '{0} is not a valid unit. {1}'.format(
-                s, did_you_mean(s, registry)))
+        if detailed_exception:
+            raise ValueError(
+                '{0} is not a valid unit. {1}'.format(
+                    s, did_you_mean(s, registry)))
+        else:
+            raise ValueError()
 
     def parse(self, s, debug=False):
         if not isinstance(s, six.text_type):
@@ -357,7 +360,7 @@ class Generic(Base):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
-            return self._parse_unit(s)
+            return self._parse_unit(s, detailed_exception=False)
         except ValueError as e:
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
