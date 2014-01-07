@@ -142,12 +142,6 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Ensure that ``delta_ut1_utc`` gets calculated when accessed directly,
-    instead of failing and giving a rather obscure error message [#1925]
-
-  - Increase ``__array_priority__`` so that ``TimeDelta`` can convert itself
-    to a ``Quantity`` also in reverse operations [#1940]
-
 - ``astropy.units``
 
 - ``astropy.utils``
@@ -257,8 +251,14 @@ Bug Fixes
     `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
     or `TCB` [#1732]
 
+  - Ensure that ``delta_ut1_utc`` gets calculated when accessed directly,
+    instead of failing and giving a rather obscure error message [#1925]
+
   - Fix a bug when computing the TDB to TT offset.  The transform routine was
     using meters instead of kilometers for the Earth vector.  [#1929]
+    
+  - Increase ``__array_priority__`` so that ``TimeDelta`` can convert itself
+    to a ``Quantity`` also in reverse operations [#1940]
 
 - ``astropy.units``
 
