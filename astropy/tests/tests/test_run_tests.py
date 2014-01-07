@@ -8,8 +8,7 @@ import sys
 
 from .. import helper
 from ... import _get_test_runner
-from .. helper import pytest, raises
-
+from .. helper import pytest
 
 # run_tests should raise ValueError when asked to run on a module it can't find
 def test_module_not_found():
@@ -32,8 +31,7 @@ except SyntaxError:
         helper.pytest.fail("Not running the 2to3'd tests!")
 
 
-NOT_PYTHON_3_3 = (sys.version_info[:2] != (3, 3))
-@raises(DeprecationWarning)
-@pytest.mark.skipif("NOT_PYTHON_3_3")
 def test_deprecation_warning():
-    '{0:s}'.format(object())
+    if sys.version_info[:2] == (3, 3):
+        with pytest.raises(DeprecationWarning):
+            '{0:s}'.format(object())
