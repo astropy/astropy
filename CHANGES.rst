@@ -289,6 +289,11 @@ Bug Fixes
   - A new function, `astropy.wcs.get_include`, has been added to get
     the location of the `astropy.wcs` C header files. [#1755]
 
+  - `astropy.wcs.Wcsprm.set` is called from within the
+    `astropy.wcs.WCS` constructor, therefore any invalid information
+    in the keywords will be raised from the constructor, rather than
+    on a subsequent call to a transformation method. [#1918]
+
 - Misc
 
   - There are a number of improvements to make `astropy` work better

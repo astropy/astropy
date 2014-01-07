@@ -2181,6 +2181,14 @@ Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 `~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
 provides access to the core WCS transformations that it supports.
 
+.. note::
+    The members of this object correspond roughly to the key/value
+    pairs in the FITS header.  However, they are adjusted and
+    normalized in a number of ways that make performing the WCS
+    transformation easier.  Therefore, they can not be relied upon to
+    get the original values in the header.  For that, use
+    `astropy.io.fits.Header` directly.
+
 The FITS header parsing enforces correct FITS "keyword = value" syntax
 with regard to the equals sign occurring in columns 9 and 10.
 However, it does recognize free-format character (NOST 100-2.0,
