@@ -183,8 +183,9 @@ Normally, passing an unrecognized unit string raises an exception::
   >>> u.Unit("Angstroem", format="fits")
   Traceback (most recent call last):
     ...
-  ValueError: 'Angstroem' did not parse as unit format 'fits': At col
-  0, 'Angstroem' is not a valid unit in string 'Angstroem'
+  ValueError: 'Angstroem' did not parse as fits unit: At col 0, Unit
+  u'Angstroem' not supported by the FITS standard. Did you mean
+  Angstrom or angstrom?
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
 argument `parse_strict` that can take one of three values to control
