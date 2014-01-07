@@ -260,13 +260,16 @@ class CDS(Base):
                     t.lexpos, six.text_type(e)))
 
     @classmethod
-    def _parse_unit(cls, unit):
+    def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
-            raise ValueError(
-                "Unit {0!r} not supported by the CDS SAC "
-                "standard. {1}".format(
-                    unit, did_you_mean(
-                        unit, cls._units)))
+            if detailed_exception:
+                raise ValueError(
+                    "Unit {0!r} not supported by the CDS SAC "
+                    "standard. {1}".format(
+                        unit, did_you_mean(
+                            unit, cls._units)))
+            else:
+                raise ValueError()
 
         return cls._units[unit]
 
@@ -280,7 +283,7 @@ class CDS(Base):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
-            return self._parse_unit(s)
+            return self._parse_unit(s, detailed_exception=False)
         except ValueError:
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
