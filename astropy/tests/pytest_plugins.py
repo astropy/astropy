@@ -111,11 +111,19 @@ def pytest_configure(config):
     # own deprecation warning class) into exceptions so that we find
     # out about them early.
 
-    # Here's the wrinkle: py.test itself uses the compiler module on
-    # Python 2.x, which is deprecated.  If we import compiler *now*,
-    # then we won't get a DeprecationWarning exception about it later.
+    # Here's the wrinkle: a couple of our third-party dependencies
+    # (py.test and scipy) are still using deprecated features
+    # themselves, and we'd like to ignore those.  Fortunately, those
+    # show up only at import time, so if we import those things *now*,
+    # before we turn the warnings into exceptions, we're golden.
     try:
+        # A deprecated stdlib module used by py.test
         import compiler
+    except ImportError:
+        pass
+
+    try:
+        import scipy
     except ImportError:
         pass
 
