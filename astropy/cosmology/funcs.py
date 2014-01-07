@@ -90,7 +90,7 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     3.1981191749374629
 
     The angular diameter is not monotonic however, and there are two
-    redshifts give a value of 1500 Mpc. Use the zmin and zmax keywords
+    redshifts that give a value of 1500 Mpc. Use the zmin and zmax keywords
     to find the one you're interested in:
 
     >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc, zmax=1.5)
@@ -119,7 +119,8 @@ zmin and zmax satisfying fval = func(z).""")
     else:
         f = lambda z: abs(func(z) - fval)
 
-    zbest, resval, ierr, ncall = fminbound(f, zmin, zmax, full_output=1)
+    zbest, resval, ierr, ncall = fminbound(f, zmin, zmax, maxfun=maxfun,
+                                           full_output=1)
 
     if ierr != 0:
         warnings.warn('Maximum number of function calls ({}) reached'.format(
