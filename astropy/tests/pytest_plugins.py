@@ -129,6 +129,14 @@ def pytest_configure(config):
 
     warnings.filterwarnings("error", ".*", DeprecationWarning)
 
+    # py.tests warning.showwarning does not include the line argument
+    # on Python 2.6, so we need to explicitly ignore this warning.
+    if sys.version_info[:2] == (2, 6):
+        warnings.filterwarnings(
+            "always",
+            r"functions overriding warnings\.showwarning\(\) must support the 'line' argument",
+            DeprecationWarning)
+
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
