@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
+  $Id: prj.c,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -154,7 +154,7 @@ struct prjprm *prj;
   prj->r0     = 0.0;
   prj->phi0   = UNDEFINED;
   prj->theta0 = UNDEFINED;
-  prj->bounds = 1;
+  prj->bounds = 3;
 
   strcpy(prj->name, "undefined");
   for (k = 9; k < 40; prj->name[k++] = '\0');
@@ -717,7 +717,7 @@ int stat[];
 
         /* Bounds checking. */
         istat = 0;
-        if (prj->bounds) {
+        if (prj->bounds&1) {
           if (*thetap < prj->w[5]) {
             /* Overlap. */
             istat = 1;
@@ -1047,7 +1047,7 @@ int stat[];
       for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
         /* Bounds checking. */
         istat = 0;
-        if (prj->bounds) {
+        if (prj->bounds&1) {
           if (*thetap < prj->w[8]) {
             /* Divergence. */
             istat = 1;
@@ -1278,10 +1278,13 @@ int stat[];
     } else {
       r =  prj->r0*cosd(*thetap)/s;
 
+      /* Bounds checking. */
       istat = 0;
-      if (prj->bounds && s < 0.0) {
-        istat = 1;
-        if (!status) status = PRJERR_BAD_WORLD_SET("tans2x");
+      if (prj->bounds&1) {
+        if (s < 0.0) {
+          istat = 1;
+          if (!status) status = PRJERR_BAD_WORLD_SET("tans2x");
+        }
       }
 
       for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
@@ -1801,9 +1804,11 @@ int stat[];
     if (prj->w[1] == 0.0) {
       /* Orthographic projection. */
       istat = 0;
-      if (prj->bounds && *thetap < 0.0) {
-        istat = 1;
-        if (!status) status = PRJERR_BAD_WORLD_SET("sins2x");
+      if (prj->bounds&1) {
+        if (*thetap < 0.0) {
+          istat = 1;
+          if (!status) status = PRJERR_BAD_WORLD_SET("sins2x");
+        }
       }
 
       for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
@@ -1820,7 +1825,7 @@ int stat[];
 
       for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
         istat = 0;
-        if (prj->bounds) {
+        if (prj->bounds&1) {
           t = -atand(prj->pv[1]*(*xp) - prj->pv[2]*(*yp));
           if (*thetap < t) {
             istat = 1;
@@ -2409,10 +2414,13 @@ int stat[];
     }
     r *= prj->r0;
 
+    /* Bounds checking. */
     istat = 0;
-    if (prj->bounds && s > prj->w[0]) {
-      istat = 1;
-      if (!status) status = PRJERR_BAD_WORLD_SET("zpns2x");
+    if (prj->bounds&1) {
+      if (s > prj->w[0]) {
+        istat = 1;
+        if (!status) status = PRJERR_BAD_WORLD_SET("zpns2x");
+      }
     }
 
     for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
@@ -4934,9 +4942,12 @@ int stat[];
     } else {
       r = prj->w[2] - prj->w[3]*sind(t)/s;
 
-      if (prj->bounds && r*prj->w[0] < 0.0) {
-        istat = 1;
-        if (!status) status = PRJERR_BAD_WORLD_SET("cops2x");
+      /* Bounds checking. */
+      if (prj->bounds&1) {
+        if (r*prj->w[0] < 0.0) {
+          istat = 1;
+          if (!status) status = PRJERR_BAD_WORLD_SET("cops2x");
+        }
       }
     }
 
@@ -6307,7 +6318,7 @@ int stat[];
     for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
       xf = *phip;
 
-      /* Check bounds. */
+      /* Bounds checking. */
       if (fabs(xf) <= 1.0) {
         if (fabs(yf) > 3.0) {
           *phip = 0.0;
@@ -6680,7 +6691,7 @@ int stat[];
     for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
       xf = (float)(*phip);
 
-      /* Check bounds. */
+      /* Bounds checking. */
       if (fabs((double)xf) <= 1.0) {
         if (fabs((double)yf) > 3.0) {
           *phip = 0.0;
@@ -7106,7 +7117,7 @@ int stat[];
     for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
       xf = *phip;
 
-      /* Check bounds. */
+      /* Bounds checking. */
       if (fabs(xf) <= 1.0) {
         if (fabs(yf) > 3.0) {
           *phip = 0.0;
@@ -7713,18 +7724,19 @@ int stat[];
 
         /* Recall that theta[] holds (x - x_c). */
         s *= *thetap;
-        if (fabs(s) < slim) {
-          if (s != 0.0) s -= *thetap;
-          *phip += s;
-          *thetap = t;
-          *(statp++) = istat;
-        } else {
-          /* Out-of-bounds. */
-          *phip   = 0.0;
-          *thetap = 0.0;
-          *(statp++) = 1;
-          if (!status) status = PRJERR_BAD_PIX_SET("hpxx2s");
+        if (s != 0.0) s -= *thetap;
+        *phip += s;
+        *thetap = t;
+
+        /* Bounds checking. */
+        if (prj->bounds&2) {
+          if (slim <= fabs(s)) {
+            istat = 1;
+            if (!status) status = PRJERR_BAD_PIX_SET("hpxx2s");
+          }
         }
+
+        *(statp++) = istat;
       }
 
     } else {
@@ -7929,8 +7941,9 @@ int stat[];
 
 {
   int mx, my, rowlen, rowoff, status;
-  double abseta, eta, sigma, xi, xr, yr;
-  register int ix, iy, *statp;
+  double abseta, eta, eta1, sigma, xi, xi1, xr, yr;
+  const double tol = 1.0e-12;
+  register int istat, ix, iy, *statp;
   register const double *xp, *yp;
   register double *phip, *thetap;
 
@@ -7980,25 +7993,25 @@ int stat[];
       xr = *phip;
 
       if (xr <= 0.0 && 0.0 < yr) {
-        xi  = -xr - yr;
-        eta =  xr - yr;
+        xi1  = -xr - yr;
+        eta1 =  xr - yr;
         *phip = -180.0;
       } else if (xr < 0.0 && yr <= 0.0) {
-        xi  =  xr - yr;
-        eta =  xr + yr;
+        xi1  =  xr - yr;
+        eta1 =  xr + yr;
         *phip = -90.0;
       } else if (0.0 <= xr && yr < 0.0) {
-        xi  =  xr + yr;
-        eta = -xr + yr;
+        xi1  =  xr + yr;
+        eta1 = -xr + yr;
         *phip = 0.0;
       } else {
-        xi  = -xr + yr;
-        eta = -xr - yr;
+        xi1  = -xr + yr;
+        eta1 = -xr - yr;
         *phip = 90.0;
       }
 
-      xi  += 45.0;
-      eta += 90.0;
+      xi  = xi1  + 45.0;
+      eta = eta1 + 90.0;
       abseta = fabs(eta);
 
       if (abseta <= 90.0) {
@@ -8006,7 +8019,17 @@ int stat[];
           /* Equatorial regime. */
           *phip  += xi;
           *thetap = asind(eta/67.5);
-          *(statp++) = 0;
+          istat = 0;
+
+          /* Bounds checking. */
+          if (prj->bounds&2) {
+            if (45.0+tol < fabs(xi1)) {
+              istat = 1;
+              if (!status) status = PRJERR_BAD_PIX_SET("xphx2s");
+            }
+          }
+
+          *(statp++) = istat;
 
         } else {
           /* Polar regime. */
@@ -8026,7 +8049,7 @@ int stat[];
               *phip =  90.0;
             }
           } else {
-            *phip += 45.0 + (xi - 45.0)/sigma;
+            *phip += 45.0 + xi1/sigma;
           }
 
           if (sigma < prj->w[3]) {
@@ -8035,7 +8058,17 @@ int stat[];
             *thetap = asind(1.0 - sigma*sigma/3.0);
           }
           if (eta < 0.0) *thetap = -(*thetap);
-          *(statp++) = 0;
+
+          /* Bounds checking. */
+          istat = 0;
+          if (prj->bounds&2) {
+            if (eta < -45.0 && eta+90.0+tol < fabs(xi1)) {
+              istat = 1;
+              if (!status) status = PRJERR_BAD_PIX_SET("xphx2s");
+            }
+          }
+
+          *(statp++) = istat;
         }
 
       } else {

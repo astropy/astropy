@@ -161,6 +161,27 @@ b_order = """
 ``int`` (read-only) Order of the polynomial (``B_ORDER``).
 """
 
+bounds_check = """
+bounds_check(pix2world, world2pix)
+
+Parameters
+----------
+pix2world : bool, optional
+    When `True`, enable bounds checking for the pixel-to-world (p2x)
+    transformation for the ``HPX`` and ``XPH`` projections.  Default
+    is `False`.
+
+world2pix : bool, optional
+    When `True`, enable bounds checking for the world-to-pixel (s2x)
+    transformation for the ``AZP``, ``SZP``, ``TAN``, ``SIN``, ``ZPN``
+    and ``COP`` projections.  Default is `False`.
+
+Notes
+-----
+Note that by default (without calling `bounds_check`) strict bounds
+checking is enabled.
+"""
+
 bp = """
 ``double array[bp_order+1][bp_order+1]`` Focal plane to pixel
 transformation matrix.

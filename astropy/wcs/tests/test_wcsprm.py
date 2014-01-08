@@ -730,3 +730,8 @@ def test_sub_segfault():
     w = wcs.WCS(header)
     sub = w.sub([wcs.WCSSUB_CELESTIAL])
     gc.collect()
+
+
+def test_bounds_check():
+    w = _wcs.Wcsprm()
+    w.bounds_check(False)

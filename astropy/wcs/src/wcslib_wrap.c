@@ -451,6 +451,38 @@ PyWcsprm_init(
 }
 
 /*@null@*/ static PyObject*
+PyWcsprm_bounds_check(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+  unsigned char pix2sky    = 0;
+  unsigned char sky2pix    = 0;
+  int           bounds     = 0;
+  int           status     = 0;
+  const char*   keywords[] = {"pix2world", "world2pix", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "|bb:bounds_check", (char **)keywords,
+          &pix2sky, &sky2pix)) {
+    return NULL;
+  }
+
+  if (pix2sky) {
+      bounds |= 2;
+  }
+
+  if (sky2pix) {
+      bounds |= 1;
+  }
+
+  wcsbchk(&self->x, bounds);
+
+  Py_RETURN_NONE;
+}
+
+
+/*@null@*/ static PyObject*
 PyWcsprm_copy(
     PyWcsprm* self) {
 
@@ -3242,6 +3274,7 @@ static PyGetSetDef PyWcsprm_getset[] = {
 };
 
 static PyMethodDef PyWcsprm_methods[] = {
+  {"bounds_check", (PyCFunction)PyWcsprm_bounds_check, METH_VARARGS|METH_KEYWORDS, doc_bounds_check},
   {"cdfix", (PyCFunction)PyWcsprm_cdfix, METH_NOARGS, doc_cdfix},
   {"celfix", (PyCFunction)PyWcsprm_celfix, METH_NOARGS, doc_celfix},
   {"__copy__", (PyCFunction)PyWcsprm_copy, METH_NOARGS, doc_copy},
