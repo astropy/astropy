@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 # test helper.run_tests function
 
-import sys
+import warnings
 
 from .. import helper
 from ... import _get_test_runner
@@ -32,6 +32,5 @@ except SyntaxError:
 
 
 def test_deprecation_warning():
-    if sys.version_info[:2] == (3, 3):
-        with pytest.raises(DeprecationWarning):
-            '{0:s}'.format(object())
+    with pytest.raises(DeprecationWarning):
+        warnings.warn('test warning', DeprecationWarning)
