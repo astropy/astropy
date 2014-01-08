@@ -69,6 +69,15 @@ class VOUnit(generic.Generic):
 
         return names, deprecated_names
 
+    def parse(self, s, debug=False):
+        result = self._do_parse(s, debug=debug)
+        if s.count('/') > 1:
+            from ..core import UnitsError
+            raise UnitsError(
+                "'{0}' contains multiple slashes, which is "
+                "disallowed by the VOUnit standard".format(s))
+        return result
+
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
