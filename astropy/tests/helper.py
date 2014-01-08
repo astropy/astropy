@@ -132,7 +132,7 @@ class TestRunner(object):
                 docs_path = os.path.join(
                     docs_path, package.replace('.', os.path.sep))
             if not os.path.exists(docs_path):
-                raise ValueError(
+                warnings.warn(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
 
