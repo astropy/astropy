@@ -4,9 +4,8 @@ from __future__ import print_function
 
 import numpy as np
 
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 from ....table import Table, Column
-from .... import log
 
 try:
     import h5py
@@ -366,6 +365,8 @@ def test_skip_meta(tmpdir):
     t1.meta['e'] = np.array([1, 2, 3])
     t1.meta['f'] = str
 
-    with log.log_to_list() as warning_list:
+    with catch_warnings() as w:
         t1.write(test_file, path='the_table')
-    assert warning_list[0].message.startswith("Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
+    assert len(w) == 1
+    assert str(w[0].message).startswith(
+        "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
