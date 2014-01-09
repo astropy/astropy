@@ -134,6 +134,7 @@ functionality.
 ``basic``                   Yes :class:`~astropy.io.ascii.basic.Basic`: Basic table with custom delimiters
 ``cds``                         :class:`~astropy.io.ascii.cds.Cds`: CDS format table
 ``commented_header``        Yes :class:`~astropy.io.ascii.basic.CommentedHeader`: Column names in a commented line
+``csv``                     Yes :class:`~astropy.io.ascii.basic.Csv`: Basic table with comma-separated values
 ``daophot``                     :class:`~astropy.io.ascii.daophot.Daophot`: IRAF DAOphot format table
 ``fixed_width``             Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: Fixed width
 ``fixed_width_no_header``   Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthNoHeader`: Fixed width with no header
@@ -144,7 +145,6 @@ functionality.
 ``rdb``                     Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line
 ``sextractor``                  :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table
 ``tab``                     Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values
-``csv``                     Yes :class:`~astropy.io.ascii.basic.Csv`: Basic table with comma-separated values
 ========================= ===== ============================================================================================
 
 
