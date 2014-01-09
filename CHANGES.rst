@@ -30,6 +30,9 @@ New Features
     that the data starts after the header. Before this, the default was
     that the header line was read again as the first data line
     [#855 and #1844].
+    
+  - A new ``csv`` format was added as a convenience for handling CSV (comma- 
+    separated values) data. [#1935]
 
 - ``astropy.io.fits``
 
