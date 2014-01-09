@@ -15,15 +15,17 @@ from .cds import CDS
 from .console import Console
 from .fits import Fits
 from .latex import Latex
+from .ogip import OGIP
 from .unicode_format import Unicode
 from .vounit import VOUnit
 
 __all__ = [
-    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
-    'VOUnit', 'get_format']
-    
-FORMATS = ['Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
-    'VOUnit']
+    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
+    'Unscaled', 'VOUnit', 'get_format']
+
+FORMATS = [
+    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
+    'Unscaled', 'VOUnit']
 
 
 def get_format(format=None):
@@ -54,4 +56,3 @@ def get_format(format=None):
         if isclass(val) and (issubclass(val, Base) and key.lower() == format.lower()):
             return val()
     raise ValueError("Unknown format {0!r}".format(format))
-

@@ -133,9 +133,8 @@ formats:
     standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
     as well as what is used by VOTable versions 1.2 and earlier.
 
-.. These are to-be-implemented
-
-  - OGIP Units: A standard for storing units in `OGIP FITS files
+  - ``"ogip"``: A standard for storing units as recommended by the
+    `Office of Guest Investigator Programs (OGIP)
     <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 `astropy.units` is also able to write, but not read, units in the

@@ -8,6 +8,8 @@ Regression tests for the units.format package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from ...extern import six
+
 from numpy.testing.utils import assert_allclose
 from ...tests.helper import raises, pytest
 
@@ -93,12 +95,77 @@ def test_cds_grammar_fail():
         print(s)
         u_format.CDS().parse(s)
 
-    data = ['0.1 nm', 'solMass(3/2)', 'km / s', 'km s-1',
-            'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2',
-            '5x8+3m', '0.1---', '---m', 'm---']
+    data = ['0.1 nm',
+            'solMass(3/2)',
+            'km / s',
+            'km s-1',
+            'pix0.1nm',
+            'pix/(0.1nm)',
+            'km*s',
+            'km**2',
+            '5x8+3m',
+            '0.1---',
+            '---m',
+            'm---']
 
     for s in data:
         yield _test_cds_grammar_fail, s
+
+
+def test_ogip_grammar():
+    def _test_ogip_grammar(s, unit):
+        print(s)
+        unit2 = u_format.OGIP().parse(s)
+        assert unit2 == unit
+
+    # These examples are taken from the EXAMPLES section of
+    # http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
+    data = [
+        (["count /s", "count/s", "count s**(-1)", "count / s", "count /s "],
+         u.count / u.s),
+        (["/pixel /s", "/(pixel * s)"], (u.pixel * u.s) ** -1),
+        (["count /m**2 /s /eV", "count m**(-2) * s**(-1) * eV**(-1)",
+          "count /(m**2 * s * eV)"],
+         u.count * u.m ** -2 * u.s ** -1 * u.eV ** -1),
+        (["erg /pixel /s /GHz", "erg /s /GHz /pixel", "erg /pixel /(s * GHz)"],
+         u.erg / (u.s * u.GHz * u.pixel)),
+        (["keV**2 /yr /angstrom", "10**(10) keV**2 /yr /m",
+          # Though this is given as an example, it seems to violate the rules
+          # of not raising scales to powers, so I'm just excluding it
+          # "(10**2 MeV)**2 /yr /m"
+         ],
+         u.keV**2 / (u.yr * u.angstrom)),
+        (["10**(46) erg /s", "10**46 erg /s", "10**(39) J /s", "10**(39) W",
+          "10**(15) YW", "YJ /fs"],
+         10**46 * u.erg / u.s),
+        (["10**(-7) J /cm**2 /MeV", "10**(-9) J m**(-2) eV**(-1)",
+          "nJ m**(-2) eV**(-1)", "nJ /m**2 /eV"],
+         10 ** -7 * u.J * u.cm ** -2 * u.MeV ** -1),
+        (["sqrt(erg /pixel /s /GHz)", "(erg /pixel /s /GHz)**(0.5)",
+          "(erg /pixel /s /GHz)**(1/2)",
+          "erg**(0.5) pixel**(-0.5) s**(-0.5) GHz**(-0.5)"],
+         (u.erg * u.pixel ** -1 * u.s ** -1 * u.GHz ** -1) ** 0.5),
+        (["(count /s) (/pixel /s)", "(count /s) * (/pixel /s)",
+          "count /pixel /s**2"],
+         (u.count / u.s) * (1.0 / (u.pixel * u.s)))]
+
+    for strings, unit in data:
+        for s in strings:
+            yield _test_ogip_grammar, s, unit
+
+
+def test_ogip_grammar_fail():
+    @raises(ValueError)
+    def _test_ogip_grammar_fail(s):
+        u_format.OGIP().parse(s)
+
+    data = ['log(photon /m**2 /s /Hz)',
+            'sin( /pixel /s)',
+            'log(photon /cm**2 /s /Hz) /(sin( /pixel /s))',
+            'log(photon /cm**2 /s /Hz) (sin( /pixel /s))**(-1)']
+
+    for s in data:
+        yield _test_ogip_grammar_fail, s
 
 
 def test_roundtrip():
@@ -148,6 +215,19 @@ def test_roundtrip_cds():
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_cds, val
+
+
+def test_roundtrip_ogip():
+    def _test_roundtrip_ogip(unit):
+        a = core.Unit(unit.to_string('ogip'), format='ogip')
+        b = core.Unit(unit.decompose().to_string('ogip'), format='ogip')
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+
+    x = u_format.OGIP()
+    for key, val in x._units.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_roundtrip_ogip, val
 
 
 def test_fits_units_available():

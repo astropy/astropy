@@ -57,6 +57,11 @@ New Features
 
 - ``astropy.units``
 
+  - Support for the unit format `Office of Guest Investigator Programs
+    (OGIP) FITS files
+    <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__
+    has been added. [#377]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
