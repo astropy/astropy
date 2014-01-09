@@ -344,7 +344,7 @@ class _FormatQ(_FormatP):
 
     _format_code = 'Q'
     _format_re = re.compile(_FormatP._format_re_template % _format_code)
-    _descriptor_format = '2i4'
+    _descriptor_format = '2i8'
 
 
 class Column(object):
