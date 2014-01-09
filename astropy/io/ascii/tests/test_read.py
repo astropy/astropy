@@ -697,3 +697,15 @@ def test_header_start_exception():
                    ascii.BaseReader, ascii.FixedWidthNoHeader, ascii.Cds, ascii.Daophot]:
         with pytest.raises(ValueError):
             reader = ascii.core._get_reader(readerclass, header_start=5)
+
+
+def test_csv_table_read():
+    """
+    Check for a regression introduced by #1935.  Pseudo-CSV file with
+    commented header line.
+    """
+    lines = ['# a, b',
+             '1, 2',
+             '3, 4']
+    t = ascii.read(lines)
+    assert t.colnames == ['a', 'b']
