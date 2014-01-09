@@ -157,7 +157,7 @@ To get the first and second groups together use a slice::
 You can also supply a numpy array of indices or a boolean mask to select particular
 groups, e.g.::
 
-  >>> mask = obs_by_name.groups.keys == 'M101'
+  >>> mask = obs_by_name.groups.keys['name'] == 'M101'
   >>> print obs_by_name.groups[mask]
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
