@@ -228,6 +228,7 @@ def _guess(table, read_kwargs):
 def _get_guess_kwargs_list():
     guess_kwargs_list = [dict(Reader=basic.Rdb),
                          dict(Reader=basic.Tab),
+                         dict(Reader=basic.Csv),
                          dict(Reader=cds.Cds),
                          dict(Reader=daophot.Daophot),
                          dict(Reader=sextractor.SExtractor),

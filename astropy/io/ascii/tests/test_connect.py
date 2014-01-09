@@ -8,7 +8,8 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.mark.parametrize('filename', ['t/cds.dat', 't/ipac.dat',
-                                      't/daophot.dat', 't/latex1.tex'])
+                                      't/daophot.dat', 't/latex1.tex',
+                                      't/simple_csv.csv'])
 def test_read_generic(filename):
     Table.read(os.path.join(ROOT, filename), format='ascii')
 
@@ -78,3 +79,16 @@ def test_write_rdb_noformat(tmpdir):
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.rdb"))
     t.write(path)
+
+
+def test_read_csv():
+    Table.read(os.path.join(ROOT, 't/simple_csv.csv'), format='ascii.csv')
+
+
+def test_write_csv(tmpdir):
+    t = Table()
+    t.add_column(Column(name='a', data=[1, 2, 3]))
+    t.add_column(Column(name='b', data=['a', 'b', 'c']))
+    path = str(tmpdir.join("data.csv"))
+    t.write(path, format='ascii.csv')
+

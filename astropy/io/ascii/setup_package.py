@@ -54,5 +54,6 @@ def get_package_data():
                                    't/test5.dat',
                                    't/vots_spec.dat',
                                    't/whitespace.dat',
+                                   't/simple_csv.csv',
                                    ]
     }

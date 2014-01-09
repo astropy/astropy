@@ -349,7 +349,7 @@ best reference is to read the code for the existing
 **Define custom readers by class inheritance**
 ::
 
-   # Note: Tab and Rdb are already included in astropy.io.ascii for convenience.
+   # Note: Tab, Csv, and Rdb are included in astropy.io.ascii for convenience.
    class Tab(astropy.io.ascii.Basic):
        def __init__(self):
            astropy.io.ascii.Basic.__init__(self)
@@ -366,6 +366,14 @@ best reference is to read the code for the existing
        def __init__(self):
            astropy.io.ascii.Tab.__init__(self)
            self.data.start_line = 2
+
+    class Csv(astropy.io.ascii.Basic):
+        def __init(self):
+            astropy.io.ascii.Basic.__init__(self)
+            self.data.splitter.delimiter = ','
+            self.header.splitter.delimiter = ','
+            self.header.start_line = 0
+            self.data.start_line = 1
 
 **Create a custom splitter.process_val function**
 ::
