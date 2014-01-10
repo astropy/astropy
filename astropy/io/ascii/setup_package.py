@@ -57,3 +57,7 @@ def get_package_data():
                                    't/simple_csv.csv',
                                    ]
     }
+
+
+def requires_2to3():
+    return False

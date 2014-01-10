@@ -31,6 +31,8 @@ daophot.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
 import re
 import numpy as np
 from . import core
@@ -67,7 +69,7 @@ class Daophot(core.BaseReader):
       >>> filename = os.path.join(ascii.__path__[0], 'tests/t/daophot.dat')
       >>> data = ascii.read(filename)
       >>> for name, keyword in data.meta['keywords'].items():
-      ...     print name, keyword['value'], keyword['units'], keyword['format']
+      ...     print(name, keyword['value'], keyword['units'], keyword['format'])
       ...
       MERGERAD INDEF scaleunit %-23.7g
       IRAF NOAO/IRAFV2.10EXPORT version %-23s
@@ -78,7 +80,7 @@ class Daophot(core.BaseReader):
 
       >>> for colname in data.colnames:
       ...     col = data[colname]
-      ...     print colname, col.unit, col.format
+      ...     print(colname, col.unit, col.format)
       ...
       ID None %-9d
       XCENTER pixels %-10.3f

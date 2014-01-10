@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This file connects the readers/writers to the astropy.table.Table class
 
+from __future__ import absolute_import, division, print_function
+
 import re
 
 from .. import registry as io_registry
 from ...table import Table
+from ...extern.six.moves import zip
 
 __all__ = []
 
@@ -59,7 +62,7 @@ def _get_connectors_table():
 
         rows.append((io_format, suffix, can_write,
                      '{}: {}'.format(class_link, description)))
-    out = Table(zip(*rows), names=('Format', 'Suffix', 'Write', 'Description'))
+    out = Table(list(zip(*rows)), names=('Format', 'Suffix', 'Write', 'Description'))
     for colname in ('Format', 'Description'):
         width = max(len(x) for x in out[colname])
         out[colname].format = '%-{}s'.format(width)

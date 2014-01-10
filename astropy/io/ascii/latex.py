@@ -31,7 +31,11 @@ latex.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
 import re
+
+from ...extern import six
 from . import core
 
 latexdicts = {'AA':  {'tabletype': 'table',
@@ -57,8 +61,8 @@ def add_dictval_to_list(adict, key, alist):
     :param key: key of value
     :param list: list where value should be added
     '''
-    if key in adict.keys():
-        if isinstance(adict[key], basestring):
+    if key in adict:
+        if isinstance(adict[key], six.string_types):
             alist.append(adict[key])
         else:
             alist.extend(adict[key])
