@@ -5,6 +5,7 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 from ...table import pprint
+from ...extern.six import PY3
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
@@ -278,3 +279,14 @@ class TestFormat():
         t['a'].format = lambda x: x * 3
         with pytest.raises(ValueError):
             str(t['a'])
+
+
+def test_pprint_py3_bytes():
+    """
+    Test for #1346.  Make sure a bytestring (dtype=S<N>) in Python 3 is printed
+    correctly (without the "b" prefix like b'string').
+    """
+    val = bytes('val', encoding='utf-8') if PY3 else 'val'
+    dat = np.array([(val,)], dtype=[('col', 'S3')])
+    t = table.Table(dat)
+    assert t['col'].pformat() == ['col', '---', 'val']
