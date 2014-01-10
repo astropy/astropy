@@ -56,3 +56,7 @@ def get_package_data():
                                    't/whitespace.dat',
                                    ]
     }
+
+
+def requires_2to3():
+    return False
