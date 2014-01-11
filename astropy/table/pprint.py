@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..extern.six import text_type
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import xrange
 
@@ -13,7 +14,16 @@ from .. import log
 from ..utils.console import Getch, color_print
 from ..config import ConfigurationItem
 
-_format_funcs = {None: lambda format_, val: six.text_type(val)}
+
+if six.PY3:
+    def default_format_func(format_, val):
+        if isinstance(val, bytes):
+            return val.decode('utf-8')
+        else:
+            return str(val)
+    _format_funcs = {None: default_format_func}
+else:
+    _format_funcs = {None: lambda format_, val: text_type(val)}
 
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
                               'the pretty-printer to use if it cannot determine the terminal size. '
