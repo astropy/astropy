@@ -108,24 +108,33 @@ instance and connect to the hub::
     >>> client = SAMPIntegratedClient()
     >>> client.connect()
 
-We now set up a receiver class which will handle any received message::
+We now set up a receiver class which will handle any received message. We need
+to take care to write handlers for both notifications and calls (the difference
+between the two being that calls expect a reply)::
 
     >>> class Receiver(object):
-    ...     def __init__(self):
+    ...     def __init__(self, client):
+    ...         self.client = client
     ...         self.received = False
     ...     def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
+    ...         self.params = params
+    ...         self.received = True
+    ...         self.client.reply(msg_id, {"samp.status": "samp.ok", "samp.result": {}})
+    ...     def receive_notification(self, private_key, sender_id, mtype, params, extra):
     ...         self.params = params
     ...         self.received = True
 
 and we instantiate it:
 
-    >>> r = Receiver()
+    >>> r = Receiver(client)
 
 We can now use the
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_call` method to tell
-our receiver to listed to all ``table.load.votable`` messages::
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_call` and
+:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_notification` methods
+to tell our receiver to listed to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
+    >>> client.bind_receive_notification("table.load.votable", r.receive_notification)
 
 We can now check that the message has not been received yet::
 
