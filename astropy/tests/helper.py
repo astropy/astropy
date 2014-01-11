@@ -366,15 +366,15 @@ class astropy_test(Command, object):
                     if filename.startswith('test') and filename.endswith('.py'):
                         full_path = os.path.join(root, filename)
                         content = open(full_path, 'rb').read()
-                        # The following test is hacky, because maybe the tests
-                        # mention 'unicode_literals' somewhere in the file, just
-                        # not at the start.
-                        if b'unicode_literals' not in content:
-                            full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
-                            f = open(full_path_fixed, 'wb')
-                            f.write(b'from __future__ import unicode_literals\n\n')
-                            f.write(content)
-                            f.close()
+                        # We just fix all files, and don't try and find out
+                        # whether the unicode_literals import is already
+                        # present as it requires properly parsing the Python
+                        # code.
+                        full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
+                        f = open(full_path_fixed, 'wb')
+                        f.write(b'from __future__ import unicode_literals\n\n')
+                        f.write(content)
+                        f.close()
 
         if self.docs_path is None:
             if os.path.exists('docs'):
