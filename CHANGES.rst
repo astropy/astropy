@@ -203,6 +203,10 @@ Bug Fixes
   - Fixed a bug where sexagesimal notation would sometimes include
     exponential notation in the last field. [#1908, #1913]
 
+  - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
+    no longer attempts to reference the undefined variable
+    ``self.matrix`` during instantiation. [#1944]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
