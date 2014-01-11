@@ -658,9 +658,9 @@ class CompositeStaticMatrixTransform(StaticMatrixTransform):
         matrix = np.array(self.matricies[0])
         if len(self.matricies) > 1:
             for m in self.matricies[1:]:
-                matrix = np.dot(np.asarray(self.matrix), m)
+                matrix = np.dot(np.asarray(matrix), m)
 
-        super(CompositeStaticMatrixTransform, self).__init__(self, fromsys,
+        super(CompositeStaticMatrixTransform, self).__init__(fromsys,
             tosys, matrix, priority)
 
 
