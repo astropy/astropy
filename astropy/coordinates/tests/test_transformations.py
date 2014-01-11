@@ -327,7 +327,3 @@ def test_composite_static_matrix_transform():
                                                     backwards_45_mat])
 
     npt.assert_allclose(id_transform.matrix, id_mat)
-    
-
-    
-    

@@ -203,7 +203,7 @@ Bug Fixes
 
   - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
     no longer attempts to reference the undefined variable
-    ``self.matrix`` during instantiation
+    ``self.matrix`` during instantiation. [#1944]
 
 - ``astropy.cosmology``
 
