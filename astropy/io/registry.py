@@ -147,8 +147,8 @@ def register_reader(data_format, data_class, function, force=False):
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
-        raise Exception('Reader for format {0!r} and class {1!r} is '
-                        'already defined'.format(data_format,
+        raise Exception("Reader for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format,
                                                  data_class.__name__))
 
     _update__doc__(data_class, 'read')
@@ -174,8 +174,8 @@ def register_writer(data_format, data_class, function, force=False):
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
     else:
-        raise Exception('Writer for format {0!r} and class {1!r} is '
-                        'already defined'.format(data_format,
+        raise Exception("Writer for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format,
                                                  data_class.__name__))
 
     _update__doc__(data_class, 'write')
@@ -230,8 +230,8 @@ def register_identifier(data_format, data_class, identifier, force=False):
     if not (data_format, data_class) in _identifiers or force:
         _identifiers[(data_format, data_class)] = identifier
     else:
-        raise Exception('Identifier for format {0!r} and class {1!r} is '
-                        'already defined'.format(data_format,
+        raise Exception("Identifier for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format,
                                                  data_class.__name__))
 
 
@@ -262,9 +262,9 @@ def get_reader(data_format, data_class):
         return _readers[(data_format, data_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
-        raise Exception('No reader defined for format {0!r} and class {1!r}.\n'
-                        'The available formats are:\n'
-                        '{2}'
+        raise Exception("No reader defined for format '{0}' and class '{1}'.\n"
+                        "The available formats are:\n"
+                        "{2}"
                         .format(data_format, data_class.__name__, format_table_str))
 
 
@@ -273,9 +273,9 @@ def get_writer(data_format, data_class):
         return _writers[(data_format, data_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
-        raise Exception('No writer defined for format {0!r} and class {1!r}.\n'
-                        'The available formats are:\n'
-                        '{2}'
+        raise Exception("No writer defined for format '{0}' and class '{1}'.\n"
+                        "The available formats are:\n"
+                        "{2}"
                         .format(data_format, data_class.__name__, format_table_str))
 
 
