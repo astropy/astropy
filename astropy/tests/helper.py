@@ -373,8 +373,10 @@ class astropy_test(Command, object):
                         # code.
                         full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
                         f = open(full_path_fixed, 'wb')
-                        f.write(b'from __future__ import unicode_literals\n\n')
-                        f.write(content)
+                        content_lines = content.splitlines(True)
+                        pos = 1 if b"coding: utf-8" in content_lines[0] else 0
+                        content_lines.insert(pos, b'from __future__ import unicode_literals\n')
+                        f.writelines(content_lines)
                         f.close()
 
         if self.docs_path is None:
