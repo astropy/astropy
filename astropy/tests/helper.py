@@ -364,14 +364,18 @@ class astropy_test(Command, object):
         if self.unicode_literals:
             for root, dirs, files in os.walk(testing_path):
                 for filename in files:
-                    if filename.startswith('test') and filename.endswith('.py'):
+                    if ((filename.startswith('test_') and filename.endswith('.py'))
+                        or filename.endswith('_test.py')):
                         full_path = os.path.join(root, filename)
                         content = open(full_path, 'rb').read()
                         # We just fix all files, and don't try and find out
                         # whether the unicode_literals import is already
                         # present as it requires properly parsing the Python
                         # code.
-                        full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
+                        if filename.endswith('_test.py'):
+                            full_path_fixed = os.path.join(root, filename.replace('_test.py', '_unicode_literals_test.py'))
+                        else:
+                            full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
                         f = open(full_path_fixed, 'wb')
                         content_lines = content.splitlines(True)
                         pos = 1 if b"coding: utf-8" in content_lines[0] else 0
