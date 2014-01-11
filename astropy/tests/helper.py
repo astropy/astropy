@@ -313,7 +313,7 @@ class astropy_test(Command, object):
         ('skip-docs', None,
          "When provided, don't test the documentation .rst files."),
         ('unicode-literals', None,
-         "When provided, also run all tests with the unicode_literals import")
+         "When provided, also run all tests with the unicode_literals import (Python 2 only)")
     ]
 
     user_options = _fix_user_options(user_options)
@@ -340,7 +340,8 @@ class astropy_test(Command, object):
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
         # run_tests
-        pass
+        if self.unicode_literals and six.PY3:
+            raise ValueError("--unicode-literals option cannot be used with Python 3")
 
     def run(self):
 
