@@ -311,7 +311,9 @@ class astropy_test(Command, object):
          'the current directory contains a directory called "docs", that '
          'will be used.'),
         ('skip-docs', None,
-         "When provided, don't test the documentation .rst files.")
+         "When provided, don't test the documentation .rst files."),
+        ('unicode-literals', None,
+         "When provided, also run all tests with the unicode_literals import")
     ]
 
     user_options = _fix_user_options(user_options)
@@ -333,6 +335,7 @@ class astropy_test(Command, object):
         self.parallel = 0
         self.docs_path = None
         self.skip_docs = False
+        self.unicode_literals = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -340,6 +343,8 @@ class astropy_test(Command, object):
         pass
 
     def run(self):
+
+        # Make sure the 'build' command is run first
         self.reinitialize_command('build', inplace=False)
         self.run_command('build')
         build_cmd = self.get_finalized_command('build')
@@ -352,6 +357,24 @@ class astropy_test(Command, object):
         testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, testing_path)
         shutil.copy('setup.cfg', testing_path)
+
+        # If requested, go through the temporary directory and create a copy of
+        # the tests that include the 'unicode_literals' import.
+        if self.unicode_literals:
+            for root, dirs, files in os.walk(testing_path):
+                for filename in files:
+                    if filename.startswith('test') and filename.endswith('.py'):
+                        full_path = os.path.join(root, filename)
+                        content = open(full_path, 'rb').read()
+                        # The following test is hacky, because maybe the tests
+                        # mention 'unicode_literals' somewhere in the file, just
+                        # not at the start.
+                        if b'unicode_literals' not in content:
+                            full_path_fixed = os.path.join(root, filename.replace('.py', '_unicode_literals.py'))
+                            f = open(full_path_fixed, 'wb')
+                            f.write(b'from __future__ import unicode_literals\n\n')
+                            f.write(content)
+                            f.close()
 
         if self.docs_path is None:
             if os.path.exists('docs'):
