@@ -5,8 +5,7 @@
 Regression tests for the units package
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
+from __future__ import absolute_import, division, print_function
 
 
 import numpy as np

@@ -433,6 +433,7 @@ def create_model(model_class, parameters, use_constraints=True):
     """
     Create instance of model class.
     """
+    print(model_class, parameters, use_constraints)
     constraints = {}
     if issubclass(model_class, Parametric1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:

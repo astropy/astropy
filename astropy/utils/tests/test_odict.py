@@ -7,8 +7,7 @@ OrderedDict and slightly customized (and renamed) the modules
 test_support.py and mapping_tests.py that provide support for those
 tests.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from ...extern import six
 
