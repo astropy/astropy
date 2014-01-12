@@ -178,17 +178,23 @@ reads the table once it has::
 
     # Set up a receiver class
     class Receiver(object):
-        def __init__(self):
+        def __init__(self, client):
+            self.client = client
             self.received = False
         def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
             self.params = params
             self.received = True
+            self.client.reply(msg_id, {"samp.status": "samp.ok", "samp.result": {}})
+        def receive_notification(self, private_key, sender_id, mtype, params, extra):
+            self.params = params
+            self.received = True
 
     # Instantiate the receiver
-    r = Receiver()
+    r = Receiver(client)
 
     # Listen for any instructions to load a table
     client.bind_receive_call("table.load.votable", r.receive_call)
+    client.bind_receive_notification("table.load.votable", r.receive_notification)
 
     # We now run the loop to wait for the message in a try/finally block so that if
     # the program is interrupted e.g. by control-C, the client terminates
