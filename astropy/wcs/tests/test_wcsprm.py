@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import gc
 import locale
 import re
 
@@ -8,9 +9,10 @@ from numpy.testing import assert_array_equal
 import numpy as np
 
 from ...tests.helper import pytest, raises
+from ...io import fits
 from .. import wcs
 from .. import _wcs
-from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
+from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename
 from ... import units as u
 
 
@@ -719,3 +721,12 @@ def test_locale():
 def test_unicode():
     w = _wcs.Wcsprm()
     w.alt = "\u2030"
+
+
+def test_sub_segfault():
+    # Issue #1960
+    header = fits.Header.fromtextfile(
+        get_pkg_data_filename('data/sub-segfault.hdr'))
+    w = wcs.WCS(header)
+    sub = w.sub([wcs.WCSSUB_CELESTIAL])
+    gc.collect()

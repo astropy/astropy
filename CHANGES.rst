@@ -30,8 +30,8 @@ New Features
     that the data starts after the header. Before this, the default was
     that the header line was read again as the first data line
     [#855 and #1844].
-    
-  - A new ``csv`` format was added as a convenience for handling CSV (comma- 
+
+  - A new ``csv`` format was added as a convenience for handling CSV (comma-
     separated values) data. [#1935]
 
 - ``astropy.io.fits``
@@ -268,7 +268,7 @@ Bug Fixes
 
   - Fix a bug when computing the TDB to TT offset.  The transform routine was
     using meters instead of kilometers for the Earth vector.  [#1929]
-    
+
   - Increase ``__array_priority__`` so that ``TimeDelta`` can convert itself
     to a ``Quantity`` also in reverse operations [#1940]
 
@@ -317,6 +317,9 @@ Bug Fixes
     `astropy.wcs.WCS` constructor, therefore any invalid information
     in the keywords will be raised from the constructor, rather than
     on a subsequent call to a transformation method. [#1918]
+
+  - Fix a memory corruption bug when using `astropy.wcs.Wcs.sub` with
+    `~astropy.wcs.WCSSUB_CELESTIAL`. [#1960]
 
 - Misc
 

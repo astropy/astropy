@@ -1737,11 +1737,7 @@ PyWcsprm_sub(
     goto exit;
   }
 
-  if (nsub == 0) {
-    alloc_size = self->x.naxis;
-  } else {
-    alloc_size = nsub;
-  }
+  alloc_size = self->x.naxis;
 
   py_dest_wcs = (PyWcsprm*)PyWcsprm_cnew();
   py_dest_wcs->x.flag = -1;
