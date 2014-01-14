@@ -18,15 +18,17 @@ Quantities are subclassed from numpy's `ndarray` and in some numpy operations
 means that either a plain array is returned, or a `Quantity` without units.
 E.g.::
 
-    In [1]: import astropy.units as u, numpy as np
+    In [1]: import astropy.units as u
 
-    In [2]: q = u.Quantity(np.arange(10.), u.m)
+    In [2]: import numpy as np
 
-    In [3]: np.dot(q,q)
-    Out[3]: 285.0
+    In [3]: q = u.Quantity(np.arange(10.), u.m)
 
-    In [4]: np.hstack((q,q))
-    Out[4]: 
+    In [4]: np.dot(q,q)
+    Out[4]: 285.0
+
+    In [5]: np.hstack((q,q))
+    Out[5]: 
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] (Unit not initialised)>
 
