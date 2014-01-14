@@ -49,22 +49,19 @@ class TestJoin():
 
     def test_table_meta_merge_conflict(self):
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.join(self.t1, self.t3, join_type='inner')
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='warn')
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='silent')
         assert len(w) == 0
 
@@ -404,22 +401,19 @@ class TestVStack():
 
     def test_table_meta_merge_conflict(self):
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.vstack([self.t1, self.t5], join_type='inner')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
         assert len(w) == 0
 
@@ -600,22 +594,19 @@ class TestHStack():
 
     def test_table_meta_merge_conflict(self):
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.hstack([self.t1, self.t5], join_type='inner')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
         assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+        with catch_warnings() as w:
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
         assert len(w) == 0
 
@@ -725,5 +716,3 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
-
-

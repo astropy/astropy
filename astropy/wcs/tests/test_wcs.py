@@ -478,11 +478,12 @@ def test_find_all_wcs_crash():
 
 
 def test_validate():
-    results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
-    results_txt = repr(results)
-    with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
-        assert set([x.strip() for x in fd.readlines()]) == set([
-            x.strip() for x in results_txt.splitlines()])
+    with catch_warnings():
+        results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
+        results_txt = repr(results)
+        with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
+            assert set([x.strip() for x in fd.readlines()]) == set([
+                x.strip() for x in results_txt.splitlines()])
 
 
 def test_validate_with_2_wcses():
