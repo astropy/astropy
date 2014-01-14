@@ -8,6 +8,42 @@ lists issues that are too difficult to fix, may require some
 intervention from the user to workaround, or are due to bugs in other
 projects or packages.
 
+.. _quantity_issues:
+
+Quantities lose their units with some operations
+------------------------------------------------
+
+Quantities are subclassed from numpy's `ndarray` and in some numpy operations
+(and in scipy operations using numpy internally) the subclass is ignored, which
+means that either a plain array is returned, or a `Quantity` without units.
+E.g.::
+
+    In [1]: import astropy.units as u
+
+    In [2]: import numpy as np
+
+    In [3]: q = u.Quantity(np.arange(10.), u.m)
+
+    In [4]: np.dot(q,q)
+    Out[4]: 285.0
+
+    In [5]: np.hstack((q,q))
+    Out[5]: 
+    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
+                5., 6., 7., 8., 9.] (Unit not initialised)>
+
+Work-arounds are available for some cases.  For the above::
+
+    In [6]: q.dot(q)
+    Out[6]: <Quantity 285.0 m2>
+
+    In [7]: u.Quantity([q, q]).flatten()
+    Out[7]: 
+    <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
+                5., 6., 7., 8., 9.] m>
+
+See: https://github.com/astropy/astropy/issues/1274
+
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
 
