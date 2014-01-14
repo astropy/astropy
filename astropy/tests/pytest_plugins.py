@@ -5,12 +5,17 @@ into conftest.py in the root directory.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+import __future__
+
 from ..extern import six
 from ..extern.six.moves import filter
 
+import ast
 import doctest
 import fnmatch
 import imp
+import io
 import locale
 import math
 import os
@@ -19,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import types
 import warnings
 
 from .helper import pytest, treat_deprecations_as_exceptions
@@ -567,3 +573,139 @@ def modarg(request):
                 os.environ['XDG_CACHE_HOME'] = oldcachedir
 
         request.addfinalizer(teardown)
+
+
+def pytest_pycollect_makemodule(path, parent):
+    # This is where we set up testing both with and without
+    # from __future__ import unicode_literals
+
+    # On Python 3, just do the regular thing that py.test does
+    if sys.version_info[0] == 3:
+        return pytest.Module(path, parent)
+    else:
+        return Pair(path, parent)
+
+
+class Pair(pytest.File):
+    """
+    This class treats a given test .py file as a pair of .py files
+    where one has __future__ unicode_literals and the other does not.
+    """
+    def collect(self):
+        # First, just do the regular import of the module to make
+        # sure it's sane and valid.  This block is copied directly
+        # from py.test
+        try:
+            mod = self.fspath.pyimport(ensuresyspath=True)
+        except SyntaxError:
+            excinfo = pytest.py.code.ExceptionInfo()
+            raise self.CollectError(excinfo.getrepr(style="short"))
+        except self.fspath.ImportMismatchError:
+            e = sys.exc_info()[1]
+            raise self.CollectError(
+                "import file mismatch:\n"
+                "imported module %r has this __file__ attribute:\n"
+                "  %s\n"
+                "which is not the same as the test file we want to collect:\n"
+                "  %s\n"
+                "HINT: remove __pycache__ / .pyc files and/or use a "
+                "unique basename for your test file modules"
+                % e.args
+            )
+
+        # Now get the file's content.
+        with io.open(six.text_type(self.fspath), 'rb') as fd:
+            content = fd.read()
+
+        # If the file contains the special marker, only test it as-is.
+        if b'SKIP_UNICODE_LITERAL_CHECK' in content:
+            return [pytest.Module(self.fspath, self)]
+
+        # Return the file in both unicode_literal-enabled and disabled forms
+        return [
+            UnicodeLiteralsModule(mod.__name__, content, self.fspath, self),
+            NoUnicodeLiteralsModule(mod.__name__, content, self.fspath, self)
+        ]
+
+
+class ModifiedModule(pytest.Module):
+    def __init__(self, mod_name, content, path, parent):
+        self.mod_name = mod_name
+        self.content = content
+        super(ModifiedModule, self).__init__(path, parent)
+
+    def _importtestmodule(self):
+        # We have to remove the __future__ statements *before* parsing
+        # with compile, otherwise the flags are ignored.
+        content = re.sub(
+            br'from __future__ import ((\(.*?\))|([^\n]+))', b'',
+            self.content, flags=re.DOTALL)
+
+        new_mod = types.ModuleType(self.mod_name)
+        new_mod.__file__ = six.text_type(self.fspath)
+
+        if hasattr(self, '_transform_ast'):
+            # ast.parse doesn't let us hand-select the __future__
+            # statements, but built-in compile, with the PyCF_ONLY_AST
+            # flag does.
+            tree = compile(
+                content, six.text_type(self.fspath), 'exec',
+                self.flags | ast.PyCF_ONLY_AST, True)
+            tree = self._transform_ast(tree)
+            # Now that we've transformed the tree, recompile it
+            code = compile(
+                tree, six.text_type(self.fspath), 'exec')
+        else:
+            # If we don't need to transform the AST, we can skip
+            # parsing/compiling in two steps
+            code = compile(
+                content, six.text_type(self.fspath), 'exec',
+                self.flags, True)
+
+        pwd = os.getcwd()
+        try:
+            os.chdir(os.path.dirname(six.text_type(self.fspath)))
+            six.exec_(code, new_mod.__dict__)
+        finally:
+            os.chdir(pwd)
+        self.config.pluginmanager.consider_module(new_mod)
+        return new_mod
+
+
+class UnicodeLiteralsModule(ModifiedModule):
+    flags = (
+        __future__.absolute_import.compiler_flag |
+        __future__.division.compiler_flag |
+        __future__.print_function.compiler_flag |
+        __future__.unicode_literals.compiler_flag
+    )
+
+
+class NoUnicodeLiteralsModule(ModifiedModule):
+    flags = (
+        __future__.absolute_import.compiler_flag |
+        __future__.division.compiler_flag |
+        __future__.print_function.compiler_flag
+    )
+
+    def _transform_ast(self, tree):
+        # When unicode_literals is disabled, we still need to convert any
+        # byte string containing non-ascii characters into a Unicode string.
+        # If it doesn't decode as utf-8, we assume it's some other kind
+        # of byte string and just ultimately leave it alone.
+
+        class NonAsciiLiteral(ast.NodeTransformer):
+            def visit_Str(self, node):
+                s = node.s
+                if isinstance(s, bytes):
+                    try:
+                        s.decode('ascii')
+                    except UnicodeDecodeError:
+                        try:
+                            s = s.decode('utf-8')
+                        except UnicodeDecodeError:
+                            pass
+                        else:
+                            return ast.copy_location(ast.Str(s=s), node)
+                return node
+        return NonAsciiLiteral().visit(tree)

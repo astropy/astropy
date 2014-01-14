@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+                         unicode_literals)
 
 # test helper.run_tests function
 
-import warnings
+from ... extern import six
 
 from .. import helper
 from ... import _get_test_runner
@@ -35,3 +37,7 @@ except SyntaxError:
 # def test_deprecation_warning():
 #     with pytest.raises(DeprecationWarning):
 #         warnings.warn('test warning', DeprecationWarning)
+
+
+def test_unicode_literal_conversion():
+    assert isinstance('ångström', six.text_type)
