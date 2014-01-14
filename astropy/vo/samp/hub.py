@@ -148,6 +148,21 @@ class SAMPHubServer(object):
     web_profile : bool
         The `web_profile` option enables/disables the Web Profile support.
 
+    web_profile_dialog : class
+        If the `web_profile` option is set, then web a web SAMP client wishes
+        to connect to the hub, a message is shown in the terminal by default to
+        ask whether to approve the connection. With this option, a class can be
+        specified to replace the terminal-based pop-up with e.g. a GUI pop-up.
+        The class should be instantiated with a `queue.Queue` instance as the
+        sole argument. Two methods should be provided: ``show_dialog``, which
+        opens the dialog, and ``update_dialog``, which updates it at regular
+        intervals (needed by some GUIs). The ``show_dialog`` method should take
+        one argument which is a tuple with the identity of the client (as a
+        dictionary with the ``'samp.name'`` key), the address of the client (as
+        a string), and the origin of the request (as a string). The value
+        `True` should be added to the queue if the connection is approved, and
+        `False` otherwise.
+
     pool_size : int
         The number of socket connections opened to communicate with the clients.
     """
@@ -159,7 +174,7 @@ class SAMPHubServer(object):
                  access_restrict=None, admin="admin", https=False,
                  keyfile=None, certfile=None,
                  cert_reqs=0, ca_certs=None, ssl_version=2, web_profile=True,
-                 pool_size=20):
+                 web_profile_dialog=None, pool_size=20):
         # General settings
         self._is_running = False
         self._lockfilename = lockfile
@@ -178,6 +193,7 @@ class SAMPHubServer(object):
         self._web_profile_server = None
         self._web_profile_callbacks = {}
         self._web_profile_popup_dialogue = None
+        self._web_profile_popup_dialogue_class = web_profile_dialog or WebProfilePopupDialogue
         self._web_profile_requests_queue = queue.Queue(1)
         self._web_profile_requests_result = queue.Queue(1)
         self._web_profile_requests_semaphore = queue.Queue(1)
@@ -719,8 +735,7 @@ class SAMPHubServer(object):
     def _serve_forever(self):
 
         if self._web_profile:
-            self._web_profile_popup_dialogue = \
-                WebProfilePopupDialogue(self._web_profile_requests_result)
+            self._web_profile_popup_dialogue = self._web_profile_popup_dialogue_class(self._web_profile_requests_result)
 
         while self._is_running:
 
@@ -734,16 +749,21 @@ class SAMPHubServer(object):
 
             if self._web_profile:
 
+                # We now check if there are any connection requests from the
+                # web profile, and if so, we initialize the pop-up.
                 try:
                     request = self._web_profile_requests_queue.get_nowait()
-                    self._web_profile_popup_dialogue.showPopup(request)
                 except queue.Empty:
                     pass
+                else:
+                    self._web_profile_popup_dialogue.show_dialog(request)
 
+                # We now check for requests over the web profile socket, and we
+                # also update the pop-up in case there are any changes.
                 try:
                     r = w = e = None
                     r, w, e = select.select([self._web_profile_server.socket], [], [], 0.01)
-                    self._web_profile_popup_dialogue.update()
+                    self._web_profile_popup_dialogue.update_dialog()
                 except:
                     pass
                 if r:

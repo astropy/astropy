@@ -140,7 +140,7 @@ class WebProfilePopupDialogue(object):
 
         self._queue = queue
 
-    def showPopup(self, request):
+    def show_dialog(self, request):
 
         samp_name = "unknown"
 
@@ -178,7 +178,7 @@ Do you give your consent? [yes|no]""" % (samp_name, request[2])
     def _reject(self):
         self._queue.put(False)
 
-    def update(self):
+    def update_dialog(self):
         pass
 
 
