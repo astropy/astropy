@@ -4,14 +4,16 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
-from ..coordinates import CartesianPoints, Longitude, Latitude
+from . import CartesianPoints, Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time
-    from . import erfa_time
+    from ..time import erfa_time
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
+
+__all__ = ['EarthLocation']
 
 ELLIPSOIDS = {'WGS84': 1, 'GRS80': 2, 'WGS72': 3}
 
@@ -114,11 +116,12 @@ class EarthLocation(CartesianPoints):
             If the units on `lon` and `lat` are inconsistent with angular ones,
             or that on `height` with a length.
         ValueError
-            If `lon`, `lat`, and `height` do not have the same shape
+            If `lon`, `lat`, and `height` do not have the same shape, or
+            if the ellipsoid is not recognized as among the ones implemented
 
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls.ellipsoid)
-        lon = Longitude(lon, u.degree, wrap_angle='180d', copy=False)
+        lon = Longitude(lon, u.degree, wrap_angle=180*u.degree, copy=False)
         lat = Latitude(lat, u.degree, copy=False)
         height = u.Quantity(height, u.meter, copy=False)
         if not (lon.shape == lat.shape == height.shape):
@@ -162,7 +165,7 @@ class EarthLocation(CartesianPoints):
         lon, lat, height = erfa_time.era_gc2gd(ELLIPSOIDS[ellipsoid],
                                                self_value)
         return (Longitude(lon.squeeze() * u.radian, u.degree,
-                          wrap_angle='180d'),
+                          wrap_angle=180.*u.degree),
                 Latitude(lat.squeeze() * u.radian, u.degree),
                 u.Quantity(height.squeeze(), u.meter))
 

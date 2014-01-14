@@ -199,7 +199,7 @@ class Time(object):
                 location = (kwargs.pop('lon', None), kwargs.pop('lat', None))
 
         if location is not None:
-            from .utils import EarthLocation
+            from ..coordinates import EarthLocation
             self.location = EarthLocation(*location)
         else:
             self.location = None
@@ -891,7 +891,7 @@ class Time(object):
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
             if self.location is None:
-                from .utils import EarthLocation
+                from ..coordinates import EarthLocation
                 location = EarthLocation.from_geodetic(0., 0., 0.)
             else:
                 location = self.location
