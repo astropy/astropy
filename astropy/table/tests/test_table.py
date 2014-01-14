@@ -13,23 +13,7 @@ from ...extern import six
 from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
-
-
-class MaskedTable(table.Table):
-    def __init__(self, *args, **kwargs):
-        kwargs['masked'] = True
-        table.Table.__init__(self, *args, **kwargs)
-
-
-# Fixture to run all the Column tests for both an unmasked (ndarray)
-# and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
-def table_types(request):
-    class TableTypes:
-        def __init__(self, request):
-            self.Table = MaskedTable if request.param else table.Table
-            self.Column = table.MaskedColumn if request.param else table.Column
-    return TableTypes(request)
+from .conftest import MaskedTable
 
 
 class SetupData(object):
@@ -773,8 +757,8 @@ class TestRemove(SetupData):
         self.t.add_column(self.b)
         self.t.remove_rows([0, 2])
         assert self.t['a'].meta == {'aa': [0, 1, 2, 3, 4]}
-        assert self.t.dtype == np.dtype([('a', 'int'),
-                                         ('b', 'int')])
+        assert self.t.dtype == np.dtype([(str('a'), 'int'),
+                                         (str('b'), 'int')])
 
     def test_delitem1(self, table_types):
         self._setup(table_types)
@@ -953,7 +937,7 @@ class TestIterator():
     def test_iterator(self, table_types):
         d = np.array([(2, 1),
                       (3, 6),
-                      (4, 5)], dtype=[('a', 'i4'), ('b', 'i4')])
+                      (4, 5)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
         t = table_types.Table(d)
         if t.masked:
             with pytest.raises(ValueError):
@@ -994,7 +978,7 @@ class TestConvertNumpyArray():
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
-            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+            np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
 
 
 def _assert_copies(t, t2, deep=True):
@@ -1210,22 +1194,18 @@ def test_unicode_column_names(table_types):
 
 
 def test_unicode_content():
-    if six.PY2:
-        string_a = 'астрономическая питона'.decode('utf-8')
-        string_b = 'миллиарды световых лет'.decode('utf-8')
-    else:
-        string_a = 'астрономическая питона'
-        string_b = 'миллиарды световых лет'
+    if isinstance('', bytes):
+        return
+
+    string_a = 'астрономическая питона'
+    string_b = 'миллиарды световых лет'
 
     a = table.Table(
         [[string_a, 2],
          [string_b, 3]],
         names=('a', 'b'))
 
-    if six.PY2:
-        assert r'\u0430\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043f\u0438\u0442\u043e\u043d\u0430' in repr(a)
-    else:
-        assert string_a in repr(a)
+    assert repr(string_a) in repr(a)
     assert string_a in six.text_type(a)
     # This only works because the coding of this file is utf-8, which
     # matches the default encoding of Table.__str__

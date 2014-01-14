@@ -451,11 +451,11 @@ def test_pickling():
     assert other is u.m
 
     new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
-    u.add_enabled_units([new_unit])
-    p = pickle.dumps(new_unit)
-    new_unit_copy = pickle.loads(p)
-    assert new_unit_copy.names == ['foo']
-    assert new_unit_copy.get_format_name('baz') == 'bar'
+    with u.add_enabled_units([new_unit]):
+        p = pickle.dumps(new_unit)
+        new_unit_copy = pickle.loads(p)
+        assert new_unit_copy.names == ['foo']
+        assert new_unit_copy.get_format_name('baz') == 'bar'
 
 
 @raises(ValueError)

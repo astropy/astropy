@@ -8,14 +8,9 @@ from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
 from ...utils.exceptions import AstropyDeprecationWarning
+from .conftest import MaskedTable
 
 numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
-
-
-class MaskedTable(table.Table):
-    def __init__(self, *args, **kwargs):
-        kwargs['masked'] = True
-        table.Table.__init__(self, *args, **kwargs)
 
 
 def test_masked_row_with_object_col():
@@ -36,16 +31,6 @@ def test_masked_row_with_object_col():
         assert t[0]['col0'] == 1
         t['col0'].mask = True
         assert t[0]['col0'] is np.ma.masked
-
-
-# Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
-def table_types(request):
-    class TableTypes:
-        def __init__(self, request):
-            self.Table = MaskedTable if request.param else table.Table
-            self.Column = table.MaskedColumn if request.param else table.Column
-    return TableTypes(request)
 
 
 @pytest.mark.usefixtures('table_types')
@@ -152,7 +137,7 @@ class TestRow():
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
-            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+            np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
 
     def test_format_row(self, table_types):
         """Test formatting row"""

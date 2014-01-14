@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
@@ -323,16 +325,16 @@ class TestParse:
         assert issubclass(self.array['unicode_test'].dtype.type,
                           np.object_)
         assert_array_equal(self.array['unicode_test'],
-                           ["Ce\xe7i n'est pas un pipe",
-                            '\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
+                           ["Ceçi n'est pas un pipe",
+                            'வணக்கம்',
                             'XXXX', '', ''])
 
     def test_fixed_unicode_test(self):
         assert issubclass(self.array['fixed_unicode_test'].dtype.type,
                           np.unicode_)
         assert_array_equal(self.array['fixed_unicode_test'],
-                           ["Ce\xe7i n'est",
-                            '\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
+                           ["Ceçi n'est",
+                            'வணக்கம்',
                             '0123456789', '', ''])
 
     def test_unsignedByte(self):

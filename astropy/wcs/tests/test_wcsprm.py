@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -720,7 +722,7 @@ def test_locale():
 @raises(UnicodeEncodeError)
 def test_unicode():
     w = _wcs.Wcsprm()
-    w.alt = "\u2030"
+    w.alt = "‰"
 
 
 def test_sub_segfault():

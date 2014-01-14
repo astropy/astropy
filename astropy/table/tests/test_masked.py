@@ -8,12 +8,6 @@ import numpy.ma as ma
 from ...tests.helper import pytest
 from ...table import Column, MaskedColumn, Table
 
-class SubclassTable(Table):
-    pass
-
-@pytest.fixture(params = [True, False])
-def tableclass(request):
-    return Table if request.param else SubclassTable
 
 class SetupData(object):
     def setup_method(self, method):

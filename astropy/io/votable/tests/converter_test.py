@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from .. import converters
 from .. import exceptions
 from .. import tree
-from ....tests.helper import raises
+from ....tests.helper import raises, catch_warnings
 
 
 @raises(exceptions.E13)
@@ -20,16 +20,18 @@ def test_invalid_arraysize():
     converters.get_converter(field)
 
 
-def test_oversize_char(recwarn):
+def test_oversize_char():
     config = {'pedantic': True}
-    field = tree.Field(
-        None, name='c', datatype='char',
-        config=config)
-    c = converters.get_converter(field, config=config)
-    w = recwarn.pop(exceptions.W47)
+    with catch_warnings(exceptions.W47) as w:
+        field = tree.Field(
+            None, name='c', datatype='char',
+            config=config)
+        c = converters.get_converter(field, config=config)
+    assert len(w) == 1
 
-    c.parse("XXX")
-    w = recwarn.pop(exceptions.W46)
+    with catch_warnings(exceptions.W46) as w:
+        c.parse("XXX")
+    assert len(w) == 1
 
 
 def test_char_mask():
@@ -41,15 +43,16 @@ def test_char_mask():
     assert c.output("Foo", True) == ''
 
 
-def test_oversize_unicode(recwarn):
+def test_oversize_unicode():
     config = {'pedantic': True}
-    field = tree.Field(
-        None, name='c2', datatype='unicodeChar',
-        config=config)
-    c = converters.get_converter(field, config=config)
+    with catch_warnings(exceptions.W46) as w:
+        field = tree.Field(
+            None, name='c2', datatype='unicodeChar',
+            config=config)
+        c = converters.get_converter(field, config=config)
 
-    c.parse("XXX")
-    w = recwarn.pop(exceptions.W46)
+        c.parse("XXX")
+    assert len(w) == 1
 
 
 def test_unicode_mask():
@@ -155,12 +158,13 @@ def test_bit():
 
 def test_bit_mask(recwarn):
     config = {'pedantic': True}
-    field = tree.Field(
-        None, name='c', datatype='bit',
-        config=config)
-    c = converters.get_converter(field, config=config)
-    c.output(True, True)
-    recwarn.pop(exceptions.W39)
+    with catch_warnings(exceptions.W39) as w:
+        field = tree.Field(
+            None, name='c', datatype='bit',
+            config=config)
+        c = converters.get_converter(field, config=config)
+        c.output(True, True)
+    assert len(w) == 1
 
 
 @raises(exceptions.E05)

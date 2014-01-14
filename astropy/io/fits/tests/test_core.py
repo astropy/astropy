@@ -70,15 +70,15 @@ class TestCore(FitsTestCase):
         table = hdulist[1]
         assert table.data.dtype.names == ('c1', 'c2', 'c3', 'c4')
         assert table.columns.names == ['c1', 'c2', 'c3', 'c4']
-        table.columns.del_col('c1')
+        table.columns.del_col(str('c1'))
         assert table.data.dtype.names == ('c2', 'c3', 'c4')
         assert table.columns.names == ['c2', 'c3', 'c4']
 
-        table.columns.del_col('c3')
+        table.columns.del_col(str('c3'))
         assert table.data.dtype.names == ('c2', 'c4')
         assert table.columns.names == ['c2', 'c4']
 
-        table.columns.add_col(fits.Column('foo', '3J'))
+        table.columns.add_col(fits.Column(str('foo'), str('3J')))
         assert table.data.dtype.names == ('c2', 'c4', 'foo')
         assert table.columns.names == ['c2', 'c4', 'foo']
 

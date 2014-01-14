@@ -2,6 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...tests.helper import catch_warnings
+
 import io
 import os
 import shutil
@@ -183,7 +185,7 @@ def test_configitem_options(tmpdir):
     assert 'tstnmo = op2' in lns
 
 
-def test_config_noastropy_fallback(monkeypatch, recwarn):
+def test_config_noastropy_fallback(monkeypatch):
     """
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
@@ -210,9 +212,10 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
-    test_configitem()
-    assert len(recwarn.list) > 0
-    w = recwarn.pop()
+    with catch_warnings() as w:
+        test_configitem()
+    assert len(w) > 0
+    w = w[0]
     assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
     assert 'and configuration cannot be saved due to' in str(w.message)

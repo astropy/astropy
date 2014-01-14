@@ -14,13 +14,6 @@ from ... import units as u
 NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
 
-@pytest.fixture(params=[table.Column, table.MaskedColumn])
-def Column(request):
-    # Fixture to run all the Column tests for both an unmasked (ndarray)
-    # and masked (MaskedArray) column.
-    return request.param
-
-
 class TestColumn():
 
     def test_1(self, Column):

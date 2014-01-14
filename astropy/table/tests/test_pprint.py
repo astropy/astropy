@@ -11,24 +11,6 @@ BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
 
 
-class MaskedTable(table.Table):
-    def __init__(self, *args, **kwargs):
-        kwargs['masked'] = True
-        table.Table.__init__(self, *args, **kwargs)
-
-
-# Fixture to run all tests for both an unmasked (ndarray) and masked
-# (MaskedArray) column.
-@pytest.fixture(params=[False, True])
-def table_type(request):
-    # return MaskedTable if request.param else table.Table
-    try:
-        request.param
-        return MaskedTable
-    except AttributeError:
-        return table.Table
-
-
 @pytest.mark.usefixtures('table_type')
 class TestMultiD():
 
@@ -287,6 +269,6 @@ def test_pprint_py3_bytes():
     correctly (without the "b" prefix like b'string').
     """
     val = bytes('val', encoding='utf-8') if PY3 else 'val'
-    dat = np.array([(val,)], dtype=[('col', 'S3')])
+    dat = np.array([(val,)], dtype=[(str('col'), 'S3')])
     t = table.Table(dat)
     assert t['col'].pformat() == ['col', '---', 'val']

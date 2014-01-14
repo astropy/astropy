@@ -11,20 +11,7 @@ from ...table import Column
 from ...utils import OrderedDict
 
 
-class MaskedTable(table.Table):
-    def __init__(self, *args, **kwargs):
-        kwargs['masked'] = True
-        table.Table.__init__(self, *args, **kwargs)
-
-
-# Fixture to run all the Column tests for both an unmasked (ndarray)
-# and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
-def table_type(request):
-    return MaskedTable if request.param else table.Table
-
-
-@pytest.mark.usefixtures('table_type')
+#pytest.mark.usefixtures('table_type')
 class BaseInitFrom():
     def _setup(self, table_type):
         pass
@@ -126,7 +113,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
 @pytest.mark.usefixtures('table_type')
 class TestInitFromListOfLists(BaseInitFromListLike):
 
-    def setup_method(self, method):
+    def setup_method(self, table_type):
         self._setup(table_type)
         self.data = [(np.int32(1), np.int32(3)),
                      Column(name='col1', data=[2, 4], dtype=np.int32),
@@ -214,7 +201,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
     def _setup(self, table_type):
         self.data = np.array([(1, 2, 3),
                               (3, 4, 5)],
-                             dtype=[('x', 'i8'), ('y', 'i4'), ('z', 'i8')])
+                             dtype=[(str('x'), 'i8'), (str('y'), 'i4'), (str('z'), 'i8')])
 
     def test_ndarray_ref(self, table_type):
         """Init with ndarray and copy=False and show that table uses reference
@@ -276,7 +263,7 @@ class TestInitFromRow(BaseInitFromDictLike):
     def _setup(self, table_type):
         arr = np.array([(1, 2, 3),
                         (3, 4, 5)],
-                       dtype=[('x', 'i8'), ('y', 'i8'), ('z', 'f8')])
+                       dtype=[(str('x'), 'i8'), (str('y'), 'i8'), (str('z'), 'f8')])
         self.data = table_type(arr, meta={'comments': ['comment1', 'comment2']})
 
     def test_init_from_row(self, table_type):
@@ -302,7 +289,7 @@ class TestInitFromTable(BaseInitFromDictLike):
     def _setup(self, table_type):
         arr = np.array([(1, 2, 3),
                         (3, 4, 5)],
-                       dtype=[('x', 'i8'), ('y', 'i8'), ('z', 'f8')])
+                       dtype=[(str('x'), 'i8'), (str('y'), 'i8'), (str('z'), 'f8')])
         self.data = table_type(arr, meta={'comments': ['comment1', 'comment2']})
 
     def test_data_meta_copy(self, table_type):

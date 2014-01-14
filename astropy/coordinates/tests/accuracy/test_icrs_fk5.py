@@ -2,6 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+# SKIP_UNICODE_LITERAL_CHECK
+
 import os
 
 import numpy as np

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from __future__ import (absolute_import, division, print_function,
@@ -19,7 +20,7 @@ def test_negative_zero_dms():
     assert_allclose(a.degree, -10. / 3600.)
 
     # Unicode minus
-    a = Angle('\u221200:00:10', u.deg)
+    a = Angle('−00:00:10', u.deg)
     assert_allclose(a.degree, -10. / 3600.)
 
 

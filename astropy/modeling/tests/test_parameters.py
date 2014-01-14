@@ -3,7 +3,7 @@
 Tests models.parameters
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 import numpy as np
 from numpy.testing import utils
@@ -206,7 +206,7 @@ class TestParameters(object):
         Uses an iraf example.
         """
         new_model = self.linear_fitter(self.model, self.x, self.y)
-        print self.y, self.x
+        print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,

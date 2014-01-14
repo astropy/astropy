@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# SKIP_UNICODE_LITERAL_CHECK
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
