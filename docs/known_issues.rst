@@ -34,11 +34,11 @@ E.g.::
 
 Work-arounds are available for some cases.  For the above::
 
-    In [5]: q.dot(q)
-    Out[5]: <Quantity 285.0 m2>
+    In [6]: q.dot(q)
+    Out[6]: <Quantity 285.0 m2>
 
-    In [6]: u.Quantity([q, q]).flatten()
-    Out[6]: 
+    In [7]: u.Quantity([q, q]).flatten()
+    Out[7]: 
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] m>
 
