@@ -14,6 +14,12 @@ from os import path
 from distutils.version import LooseVersion
 import re
 
+import sphinx
+try:
+    from sphinx.errors import VersionRequirementError
+except ImportError:
+    VersionRequirementError = ImportError
+
 from ..utils.compat import subprocess
 
 
@@ -43,10 +49,20 @@ def get_graphviz_version():
 graphviz_found = LooseVersion(get_graphviz_version())
 graphviz_broken = LooseVersion('0.30')
 
+# Ideally, we'd set use needs_sphinx here, but that version check ignores
+# beta version numbering, so we also do our own version check.
 if graphviz_found >= graphviz_broken:
-    needs_sphinx = '1.2b2'
+    specific_sphinx_version = '1.2b2'
+    needs_sphinx = '1.2'
 else:
-    needs_sphinx = '1.1'
+    specific_sphinx_version = needs_sphinx = '1.1'
+
+sphinx_found = LooseVersion(sphinx.__version__)
+sphinx_required = LooseVersion(specific_sphinx_version)
+if sphinx_found < sphinx_required:
+    raise VersionRequirementError(
+        "This project needs at least Sphinx v{0} and therefore cannot be "
+        "built with this version.".format(specific_sphinx_version))
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
