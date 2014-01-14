@@ -18,7 +18,7 @@ Quantities are subclassed from numpy's `ndarray` and in some numpy operations
 means that either a plain array is returned, or a `Quantity` without units.
 E.g.::
 
-    In [1]: import astropy.units as u; import numpy as np
+    In [1]: import astropy.units as u, numpy as np
 
     In [2]: q = u.Quantity(np.arange(10.), u.m)
 
