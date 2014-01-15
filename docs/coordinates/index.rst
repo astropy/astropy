@@ -99,7 +99,7 @@ of coordinates::
     >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
     >>> c = ICRS(ra1, dec1, unit=(u.degree, u.degree))  # doctest: +SKIP
     >>> catalog = ICRS(ra2, dec2, unit=(u.degree, u.degree))  # doctest: +SKIP
-    >>> idx, d2d, d3d = c1.match_to_catalog_sky(catalog)  # doctest: +SKIP
+    >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)  # doctest: +SKIP
 
 These array coordinates can also be indexed in the same way as numpy
 arrays::
