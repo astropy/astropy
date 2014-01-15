@@ -77,6 +77,7 @@ ALLOW_INTERNET = ConfigurationItem('use_internet', True,
 
 
 def internet_on():
+    return False
     if not ALLOW_INTERNET():
         return False
     else:
@@ -130,28 +131,18 @@ class ServerProxyPool(object):
         return _ServerProxyPoolMethod(self._proxies, name)
 
 
-class WebProfilePopupDialogue(object):
-    """
-    Terminal dialog (no backend) which asks the user to consent
-    or reject a connection through the WebProfile
-    """
+def web_profile_text_dialog(request, queue):
 
-    def __init__(self, queue):
+    samp_name = "unknown"
 
-        self._queue = queue
+    if isinstance(request[0], str):
+        # To support the old protocol version
+        samp_name = request[0]
+    else:
+        samp_name = request[0]["samp.name"]
 
-    def show_dialog(self, request):
-
-        samp_name = "unknown"
-
-        if isinstance(request[0], str):
-            # To support the old protocol version
-            samp_name = request[0]
-        else:
-            samp_name = request[0]["samp.name"]
-
-        text = \
-            """A Web application which declares to be
+    text = \
+        """A Web application which declares to be
 
 Name: %s
 Origin: %s
@@ -163,23 +154,9 @@ file read/write.
 
 Do you give your consent? [yes|no]""" % (samp_name, request[2])
 
-        print(text)
-        answer = input(">>> ")
-        if answer.lower() in ["yes", "y"]:
-            print("OK!")
-            self._consent()
-        else:
-            print("REJECTED!")
-            self._reject()
-
-    def _consent(self):
-        self._queue.put(True)
-
-    def _reject(self):
-        self._queue.put(False)
-
-    def update_dialog(self):
-        pass
+    print(text)
+    answer = input(">>> ")
+    queue.put(answer.lower() in ["yes", "y"])
 
 
 class SAMPMsgReplierWrapper(object):

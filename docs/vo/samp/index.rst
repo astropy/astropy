@@ -49,6 +49,7 @@ Using `astropy.vo.samp`
    example_hub
    example_table_image
    example_clients
+   advanced_embed_samp_hub
 
 Reference/API
 =============
