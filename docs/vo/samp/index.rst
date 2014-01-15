@@ -25,7 +25,10 @@ SAMP is a protocol that is used by a number of other tools such as
 `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
 `SAO Ds9 <http://hea-www.harvard.edu/RD/ds9>`_,
 and `Aladin <http://aladin.u-strasbg.fr>`_, which means that it is possible to
-send and receive data to and from these tools.
+send and receive data to and from these tools. The `astropy.vo.samp` package
+also supports the 'web profile' for SAMP, which means that it can be used to
+communicate with web SAMP clients. See the `sampjs
+<http://astrojs.github.io/sampjs/>`_ library examples for more details.
 
 The following classes are available in `astropy.vo.samp`:
 
