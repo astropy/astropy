@@ -1,9 +1,8 @@
-*****************************
 Embedding a SAMP hub in a GUI
-*****************************
+-----------------------------
 
 Overview
-========
+^^^^^^^^
 
 If you wish to embed a SAMP hub in your Python GUI tool, you will need to start
 the hub programmatically using::
@@ -48,7 +47,7 @@ the user whether to approve the connection. If the user accepts, you should
 pass `True` to ``queue_result``, otherwise you should pass `False`.
 
 Example of embedding a SAMP hub in a Tk application
-===================================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following code is a full example of a simple Tk application that watches
 for web SAMP connections and opens the appropriate dialog::

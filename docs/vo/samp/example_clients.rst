@@ -4,20 +4,20 @@
 
 .. _vo-samp-example_clients:
 
-*****************************************************
-Using ``SAMPIntegratedClient`` objects to communicate
-*****************************************************
 
-``astropy.vo.samp`` can also be used to easily interface your Python script (or application) to a
-running SAMP Hub and create a callable client thanks to the |SAMPIntegratedClient|
-class which integrates the funcionalities of the more specific classes |SAMPClient|
-and |SAMPHubProxy|.
+Communication between integrated clients objects
+------------------------------------------------
 
-First we start a SAMP hub::
+As shown in :doc:`example_table_image`, the |SAMPIntegratedClient| class can be
+used to communicate with other SAMP-enabled tools such as `TOPCAT
+<http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO Ds9
+<http://hea-www.harvard.edu/RD/ds9>`_, or `Aladin Desktop
+<http://aladin.u-strasbg.fr>`_.
 
-   >>> from astropy.vo import samp
-   >>> hub = samp.SAMPHubServer()
-   >>> hub.start()
+In this section, we look at how we can set up two |SAMPIntegratedClient|
+instances and communicate between them.
+
+First, start up a SAMP hub as described in :doc:`example_hub`.
 
 Next, we create two clients and connect them to the hub::
 
@@ -58,7 +58,7 @@ notifies all clients using the "samp.app.echo" message type via the hub::
    ['cli#2']
    Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
 
-We can also find a dictionary giving the clients that would currently recevei ``samp.app.echo`` messages::
+We can also find a dictionary giving the clients that would currently receive ``samp.app.echo`` messages::
 
    >>> print(client2.getSubscribedClients("samp.app.echo"))
    {'cli#2': {}}
@@ -71,7 +71,6 @@ Client 2 calls all clients with the ``"samp.app.echo"`` message type using ``"my
    {'cli#1': 'msg#1;;cli#hub;;cli#2;;my-dummy-print'}
    Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#1;;cli#hub;;cli#2;;my-dummy-print samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
    Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
-
 
 Client 2 then calls client 1 using the ``"samp.app.echo"`` message type, tagging the message as ``"my-dummy-print-specific"``::
 
