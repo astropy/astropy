@@ -84,6 +84,9 @@ New Features
 
 - ``astropy.vo``
 
+  - A new sub-package, `astropy.vo.samp`, is now available (this was previously
+    the SAMPy package, which has been refactored for use in Astropy). [#1907]
+
 - ``astropy.wcs``
 
 API Changes
