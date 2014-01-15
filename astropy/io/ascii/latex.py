@@ -58,7 +58,7 @@ def add_dictval_to_list(adict, key, alist):
     :param list: list where value should be added
     '''
     if key in adict.keys():
-        if type(adict[key]) == str:
+        if isinstance(adict[key], basestring):
             alist.append(adict[key])
         else:
             alist.extend(adict[key])
