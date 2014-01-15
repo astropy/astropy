@@ -5,18 +5,20 @@ Embedding a SAMP hub in a GUI
 Overview
 ========
 
-If you wish to embed a SAMP hub in your Python GUI tool, you will need to start the hub programmatically using:
+If you wish to embed a SAMP hub in your Python GUI tool, you will need to start
+the hub programmatically using::
 
     from astropy.vo.samp import SAMPHubServer
     hub = SAMPHubServer()
     hub.start()
-    
-This launches the hub in a thread and is non-blocking. If you are not interested in connections from web SAMP clients, then you can simply use:
+
+This launches the hub in a thread and is non-blocking. If you are not
+interested in connections from web SAMP clients, then you can simply use::
 
     from astropy.vo.samp import SAMPHubServer
     hub = SAMPHubServer(web_profile=False)
     hub.start()
-    
+
 and this should be all you need to do. However, if you want to keep the web
 profile active, there is an additional consideration, which is that when a web
 SAMP client connects, you will need to ask the user whehter they accept the
@@ -27,7 +29,7 @@ instead likely want to open a GUI dialog.
 To do this, there are two things you need to do. First, disable the default text-based dialog::
 
    hub.set_web_profile_text_dialog(False)
-   
+
 and secondly, run the following command to get the queues which will allow your
 GUI to communicate with the SAMP hub::
 
@@ -40,7 +42,7 @@ string containing the client address, and a string containing the origin of the
 request. The following is an example of such a tuple::
 
     ({'samp.name': 'Monitor'}, ['127.0.0.1', 58105], 'http://astrojs.github.io')
-    
+
 Once your GUI sees such an object in the queue, it should open a dialog asking
 the user whether to approve the connection. If the user accepts, you should
 pass `True` to ``queue_result``, otherwise you should pass `False`.
@@ -68,7 +70,8 @@ for web SAMP connections and opens the appropriate dialog::
     file read/write.
 
     Do you give your consent?
-    """ 
+    """
+
 
     class WebProfileDialog(object):
 
@@ -78,7 +81,7 @@ for web SAMP connections and opens the appropriate dialog::
 
             self._queue_in = queue_in
             self._queue_out = queue_out
-    
+
             self.wait_for_dialog()
 
         def wait_for_dialog(self):
@@ -97,7 +100,7 @@ for web SAMP connections and opens the appropriate dialog::
             self.window.title("SAMP Hub")
 
             self.label = tk.Label(self.window, font=("Helvetica", 14),
-                             fg="red", justify=tk.CENTER)
+                                  fg="red", justify=tk.CENTER)
             self.label.pack(padx=5, pady=5, expand=1, fill=tk.X,)
 
             a = tk.Button(self.window, text="CONSENT", command=self.consent)
@@ -107,8 +110,8 @@ for web SAMP connections and opens the appropriate dialog::
             r.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.RIGHT)
 
             self.window.protocol("WM_DELETE_WINDOW", self.reject)
-            
-            if isinstance(request[0], str): # To support the old protocol version
+
+            if isinstance(request[0], str):  # To support the old protocol version
                 samp_name = request[0]
             else:
                 samp_name = request[0]["samp.name"]
@@ -144,7 +147,7 @@ for web SAMP connections and opens the appropriate dialog::
 
     # Main GUI loop
     root.mainloop()
-    
+
 If you run the above script, a window will open saying "Example SAMP Tk
 application". If you then go to the following page for example:
 
