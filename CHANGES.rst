@@ -199,6 +199,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - Allow passing unicode delimiters when reading or writing tables.
+    The delimiter must be convertible to pure ASCII.  [#1949]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
