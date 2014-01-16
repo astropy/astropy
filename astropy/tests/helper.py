@@ -20,6 +20,7 @@ import os
 import subprocess
 import shutil
 import tempfile
+import types
 import warnings
 
 try:
@@ -481,8 +482,11 @@ class catch_warnings(warnings.catch_warnings):
     """
     def __init__(self, *classes):
         for module in list(six.itervalues(sys.modules)):
-            if hasattr(module, '__warningregistry__'):
-                del module.__warningregistry__
+            # We don't want to deal with six.MovedModules, only "real"
+            # modules.
+            if (isinstance(module, types.ModuleType) and
+                hasattr(module, '__warningregistry__')):
+                    del module.__warningregistry__
         super(catch_warnings, self).__init__(record=True)
         self.classes = classes
 
