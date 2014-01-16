@@ -134,7 +134,7 @@ class SAMPClient(object):
         try:
             if internet_on():
                 self._host_name = socket.getfqdn()
-        except:
+        except socket.error:
             pass
 
         self.hub = hub
@@ -210,7 +210,7 @@ class SAMPClient(object):
             try:
                 r = w = e = None
                 r, w, e = select.select([self.client.socket], [], [], 0.1)
-            except:
+            except select.error:
                 pass
             if r:
                 self.client.handle_request()

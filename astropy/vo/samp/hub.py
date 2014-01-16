@@ -211,7 +211,7 @@ class SAMPHubServer(object):
                                                                   logRequests=False, allow_none=True)
                 self._web_profile_server.register_introspection_functions()
                 log.info("Hub set to run with Web Profile support enabled.")
-            except:
+            except socket.error:
                 log.warn("Port 21012 already in use. Impossible to run the Hub with Web Profile support.")
                 self._web_profile = web_profile = False
 
@@ -245,7 +245,7 @@ class SAMPHubServer(object):
             try:
                 self._host_name = socket.getfqdn()
                 socket.getaddrinfo(self._addr or self._host_name, self._port or 0)
-            except:
+            except socket.error:
                 pass
 
         # XML-RPC server settings
@@ -584,7 +584,7 @@ class SAMPHubServer(object):
             if os.path.isfile(lockfilename):
                 try:
                     os.remove(lockfilename)
-                except:
+                except OSError:
                     pass
 
         # HUB MULTIPLE INSTANCE MODE
@@ -607,7 +607,7 @@ class SAMPHubServer(object):
                         if os.path.isfile(lockfilename):
                             try:
                                 os.remove(lockfilename)
-                            except:
+                            except OSError:
                                 pass
 
     def _start_threads(self):
@@ -645,7 +645,7 @@ class SAMPHubServer(object):
             lockfile = urlopen(lockfilename)
             lockfile_content = lockfile.readlines()
             lockfile.close()
-        except:
+        except IOError:
             return is_running, lockfiledict
 
         for line in lockfile_content:
@@ -765,7 +765,7 @@ class SAMPHubServer(object):
             try:
                 r = w = e = None
                 r, w, e = select.select([self._server.socket], [], [], 0.1)
-            except:
+            except select.error:
                 pass
             if r:
                 self._server.handle_request()
@@ -787,7 +787,7 @@ class SAMPHubServer(object):
                 try:
                     r = w = e = None
                     r, w, e = select.select([self._web_profile_server.socket], [], [], 0.01)
-                except:
+                except select.error:
                     pass
                 if r:
                     self._web_profile_server.handle_request()
