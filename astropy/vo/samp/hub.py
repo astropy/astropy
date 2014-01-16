@@ -121,12 +121,12 @@ class SAMPHubServer(object):
         Set the Hub running on a Secure Sockets Layer connection (HTTPS)? By
         default SSL is disabled.
 
-    keyfile : str, optional
+    key_file : str, optional
         The path to a file containing the private key for SSL connections. If
-        the certificate file (`certfile`) contains the private key, then
-        `keyfile` can be omitted.
+        the certificate file (`cert_file`) contains the private key, then
+        `key_file` can be omitted.
 
-    certfile : str, optional
+    cert_file : str, optional
         The path to a file containing a certificate to be used to identify the
         local side of the secure connection.
 
@@ -180,7 +180,7 @@ class SAMPHubServer(object):
                  client_timeout=0, mode=SAMP_HUB_SINGLE_INSTANCE, label="",
                  owner="", owner_group="", auth_file=None,
                  access_restrict=None, admin="admin", https=False,
-                 keyfile=None, certfile=None, cert_reqs=0, ca_certs=None,
+                 key_file=None, cert_file=None, cert_reqs=0, ca_certs=None,
                  ssl_version=ssl.PROTOCOL_SSLv23, web_profile=True,
                  pool_size=20):
 
@@ -217,8 +217,8 @@ class SAMPHubServer(object):
 
         # SSL general settings
         self._https = https
-        self._keyfile = keyfile
-        self._certfile = certfile
+        self._key_file = key_file
+        self._cert_file = cert_file
         self._cert_reqs = cert_reqs
         self._ca_certs = cert_reqs
         self._ssl_version = ssl_version
@@ -251,22 +251,22 @@ class SAMPHubServer(object):
         # XML-RPC server settings
         if https:
 
-            if keyfile is not None and not os.path.isfile(keyfile):
+            if key_file is not None and not os.path.isfile(key_file):
                 raise SAMPHubError("Unable to load SSL private key file!")
 
-            if certfile is None or not os.path.isfile(certfile):
+            if cert_file is None or not os.path.isfile(cert_file):
                 raise SAMPHubError("Unable to load SSL cert file!")
 
             if auth_file is not None:
                 log.info("Hub set for Basic Authentication using SSL.")
                 self._server = BasicAuthSecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                           keyfile, certfile, cert_reqs, ca_certs, ssl_version,
+                                                           key_file, cert_file, cert_reqs, ca_certs, ssl_version,
                                                            auth_file, access_restrict, log,
                                                            logRequests=False, allow_none=True)
             else:
                 log.info("Hub set for using SSL.")
                 self._server = SecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                  keyfile, certfile, cert_reqs, ca_certs, ssl_version,
+                                                  key_file, cert_file, cert_reqs, ca_certs, ssl_version,
                                                   log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
@@ -896,8 +896,8 @@ class SAMPHubServer(object):
             server_proxy_pool = None
             if SSL_SUPPORT and xmlrpc_addr[0:5] == "https":
                 server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy,
-                                                    xmlrpc_addr, transport=SafeTransport(key_file=self._keyfile,
-                                                                                         cert_file=self._certfile,
+                                                    xmlrpc_addr, transport=SafeTransport(key_file=self._key_file,
+                                                                                         cert_file=self._cert_file,
                                                                                          cert_reqs=self._cert_reqs,
                                                                                          ca_certs=self._ca_certs,
                                                                                          ssl_version=ssl.PROTOCOL_SSLv3),

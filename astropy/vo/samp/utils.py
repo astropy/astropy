@@ -610,8 +610,8 @@ if SSL_SUPPORT:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((self.host, self.port))
             sslconn = ssl.wrap_socket(sock, server_side=False,
-                                      certfile=self.cert_file,
-                                      keyfile=self.key_file,
+                                      cert_file=self.cert_file,
+                                      key_file=self.key_file,
                                       cert_reqs=self.cert_reqs,
                                       ca_certs=self.ca_certs,
                                       ssl_version=self.ssl_version)
@@ -689,7 +689,7 @@ if SSL_SUPPORT:
         An XMLRPC server supporting secure sockets connections (internal use only)
         """
 
-        def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
+        def __init__(self, addr, key_file, cert_file, cert_reqs, ca_certs, ssl_version,
                      log=None, requestHandler=SimpleXMLRPCRequestHandler,
                      logRequests=True, allow_none=True, encoding=None):
             """
@@ -697,8 +697,8 @@ if SSL_SUPPORT:
 
             It it very similar to SimpleXMLRPCServer but it uses HTTPS for transporting XML data.
             """
-            self.keyfile = keyfile
-            self.certfile = certfile
+            self.key_file = key_file
+            self.cert_file = cert_file
             self.cert_reqs = cert_reqs
             self.ca_certs = ca_certs
             self.ssl_version = ssl_version
@@ -711,8 +711,8 @@ if SSL_SUPPORT:
             # override this to wrap socket with SSL
             sock, addr = self.socket.accept()
             sslconn = ssl.wrap_socket(sock, server_side=True,
-                                      certfile=self.certfile,
-                                      keyfile=self.keyfile,
+                                      cert_file=self.cert_file,
+                                      key_file=self.key_file,
                                       cert_reqs=self.cert_reqs,
                                       ca_certs=self.ca_certs,
                                       ssl_version=self.ssl_version)
@@ -858,13 +858,13 @@ if SSL_SUPPORT and BDB_SUPPORT:
         connections and multithreaded. (internal use only)
         """
 
-        def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
+        def __init__(self, addr, key_file, cert_file, cert_reqs, ca_certs, ssl_version,
                      auth_file, access_restrict=None, log=None,
                      requestHandler=BasicAuthSimpleXMLRPCRequestHandler,
                      logRequests=True, allow_none=True, encoding=None):
 
-            self.keyfile = keyfile
-            self.certfile = certfile
+            self.key_file = key_file
+            self.cert_file = cert_file
             self.cert_reqs = cert_reqs
             self.ca_certs = ca_certs
             self.ssl_version = ssl_version
@@ -879,8 +879,8 @@ if SSL_SUPPORT and BDB_SUPPORT:
             # override this to wrap socket with SSL
             sock, addr = self.socket.accept()
             sslconn = ssl.wrap_socket(sock, server_side=True,
-                                      certfile=self.certfile,
-                                      keyfile=self.keyfile,
+                                      cert_file=self.cert_file,
+                                      key_file=self.key_file,
                                       cert_reqs=self.cert_reqs,
                                       ca_certs=self.ca_certs,
                                       ssl_version=self.ssl_version)

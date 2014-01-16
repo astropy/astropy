@@ -128,7 +128,7 @@ class SAMPHubProxy(object):
 
         key_file : str
             Set the file containing the private key for SSL connections. If the
-            certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
+            certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
 
         cert_file : str
             Specify the file which contains a certificate to be used to identify the

@@ -156,10 +156,10 @@ def main(timeout=0):
         ssl_group.add_option("-s", "--https", dest="https", action="store_true",
                              help="run the Hub using the Secure Sockets Layer.")
 
-        ssl_group.add_option("-C", "--cert-file", dest="certfile", metavar="FILE",
+        ssl_group.add_option("-C", "--cert-file", dest="cert_file", metavar="FILE",
                              help="set the certificate file.")
 
-        ssl_group.add_option("-K", "--key-file", dest="keyfile", metavar="FILE",
+        ssl_group.add_option("-K", "--key-file", dest="key_file", metavar="FILE",
                              help="set the key file. By default this option is ignored, "
                              "assuming that the private key is stored in the certificate file.")
 
@@ -192,8 +192,8 @@ def main(timeout=0):
         parser.add_option_group(ssl_group)
 
         parser.set_defaults(https=False)
-        parser.set_defaults(certfile=None)
-        parser.set_defaults(keyfile=None)
+        parser.set_defaults(cert_file=None)
+        parser.set_defaults(key_file=None)
         parser.set_defaults(cert_reqs="NONE")
         parser.set_defaults(ca_certs=None)
         parser.set_defaults(ssl_version="SSLv23")
