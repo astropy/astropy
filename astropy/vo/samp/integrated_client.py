@@ -23,60 +23,68 @@ class SAMPIntegratedClient(object):
         Client name (corresponding to `samp.name` metadata keyword).
 
     description : str, optional
-        Client description (corresponding to `samp.description.text` metadata keyword).
+        Client description (corresponding to `samp.description.text` metadata
+        keyword).
 
     metadata : dict, optional
-        Client application metadata in the standard SAMP format. If present, `samp.name`
-        keyword and `samp.description.text` keyword are overwritten by the parameters
-        `name` and `description`.
+        Client application metadata in the standard SAMP format. If present,
+        `samp.name` keyword and `samp.description.text` keyword are overwritten
+        by the parameters `name` and `description`.
 
-    addr : string, optional
-        Listening address (or IP).
+    addr : str, optional
+        Listening address (or IP). This defaults to 127.0.0.1 if the internet
+        is not reachable, otherwise it defaults to the host name.
 
     port : int, optional
-        Listening XML-RPC server socket port.
+        Listening XML-RPC server socket port. If left set to 0 (the default),
+        the operating system will select a free port.
 
-    https : bool
-        Set the callable client running on a Secure Sockets Layer connection (HTTPS).
-        By default SSL is desabled.
+    https : bool, optional
+        Set the callable client running on a Secure Sockets Layer connection
+        (HTTPS). By default SSL is desabled.
 
-    key_file : str
+    key_file : str, optional
         Set the file containing the private key for SSL connections. If the
-        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+        certificate file (`cert_file`) contains the private key, then
+        `key_file` can be omitted.
 
-    cert_file : str
-        Specify the file which contains a certificate to be used to identify the
-        local side of the secure connection.
+    cert_file : str, optional
+        Specify the file which contains a certificate to be used to identify
+        the local side of the secure connection.
 
-    cert_reqs : int
+    cert_reqs : int, optional
         The parameter `cert_reqs` specifies whether a certificate is required
-        from the Hub side of the connection, and whether it will be validated if provided. It
-        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-        point to a file of CA certificates.
+        from the Hub side of the connection, and whether it will be validated
+        if provided. It must be one of the three values `ssl.CERT_NONE`
+        (certificates ignored), `ssl.CERT_OPTIONAL` (not required, but
+        validated if provided), or `ssl.CERT_REQUIRED` (required and
+        validated). If the value of this parameter is not `ssl.CERT_NONE`, then
+        the `ca_certs` parameter must point to a file of CA certificates.
 
-    ca_certs : str
-        The `ca_certs` file contains a set of concatenated "Certification Authority"
-        certificates, which are used to validate the certificate passed from the Hub end of the
-        connection.
+    ca_certs : str, optional
+        The path to a file containing a set of concatenated "Certification
+        Authority" certificates, which are used to validate the certificate
+        passed from the Hub end of the connection.
 
-    ssl_version : int
-        The `ssl_version` option specifies which version of the SSL protocol to use.
-        Typically, the server chooses a particular protocol version, and the client must adapt to the
-        server's choice. Most of the versions are not interoperable with the other versions. If not
-        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
-        compatibility with other versions Hub side. Other SSL protocol versions are:
-        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    ssl_version : int, optional
+        The `ssl_version` option specifies which version of the SSL protocol to
+        use. Typically, the server chooses a particular protocol version, and
+        the client must adapt to the server's choice. Most of the versions are
+        not interoperable with the other versions. If not specified the default
+        SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions Hub side. Other SSL protocol versions
+        are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
+        `ssl.PROTOCOL_TLSv1`.
 
-    callable : bool
+    callable : bool, optional
         Is the client callable?
     """
 
     def __init__(self, name=None, description=None, metadata=None,
-                 addr=None, port=0, https=False, key_file=None,
-                 cert_file=None, cert_reqs=0, ca_certs=None, ssl_version=2,
+                 addr=None, port=0, https=False, key_file=None, cert_file=None,
+                 cert_reqs=0, ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv23,
                  callable=True):
+
         self.hub = SAMPHubProxy()
 
         self.client = SAMPClient(self.hub, name, description, metadata, addr, port,
@@ -105,7 +113,7 @@ class SAMPIntegratedClient(object):
 
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
-                ca_certs=None, ssl_version=1, pool_size=20):
+                ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv3, pool_size=20):
         """
         Connect with the current or specified SAMP Hub, start and register the client.
 
@@ -113,44 +121,52 @@ class SAMPIntegratedClient(object):
 
         Parameters
         ----------
-        hub_params : dict
-            Optional dictionary containig the lock-file content of the Hub
-            with which to connect. This dictionary has the form `{<token-name>: <token-string>, ...}`.
+        hub_params : dict, optional
+            Optional dictionary containig the lock-file content of the Hub with
+            which to connect. This dictionary has the form `{<token-name>:
+            <token-string>, ...}`.
 
-        user : str
-            In case of Basic Authenticated connections, `user` specifies the user name.
+        user : str, optional
+            In case of Basic Authenticated connections, `user` specifies the
+            user name.
 
-        password : str
-            In case of Basic Authenticated connections, `password` specifies the user password.
+        password : str, optional
+            In case of Basic Authenticated connections, `password` specifies
+            the user password.
 
-        key_file : str
+        key_file : str, optional
             Set the file containing the private key for SSL connections. If the
-            certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
+            certificate file (`certfile`) contains the private key, then
+            `keyfile` can be omitted.
 
-        cert_file : str
-            Specify the file which contains a certificate to be used to identify the
-            local side of the secure connection.
+        cert_file : str, optional
+            Specify the file which contains a certificate to be used to
+            identify the local side of the secure connection.
 
-        cert_reqs : int
-            The parameter `cert_reqs` specifies whether a certificate is required
-            from the server side of the connection, and whether it will be validated if provided. It
-            must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-            (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-            If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-            point to a file of CA certificates.
+        cert_reqs : int, optional
+            The parameter `cert_reqs` specifies whether a certificate is
+            required from the server side of the connection, and whether it
+            will be validated if provided. It must be one of the three values
+            `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL` (not
+            required, but validated if provided), or `ssl.CERT_REQUIRED`
+            (required and validated). If the value of this parameter is not
+            `ssl.CERT_NONE`, then the `ca_certs` parameter must point to a file
+            of CA certificates.
 
-        ca_certs : str
-            The `ca_certs` file contains a set of concatenated "Certification Authority"
-            certificates, which are used to validate the certificate passed from the server end of the
-            connection.
+        ca_certs : str, optional
+            The `ca_certs` file contains a set of concatenated "Certification
+            Authority" certificates, which are used to validate the certificate
+            passed from the server end of the connection.
 
-        ssl_version : int
-            The `ssl_version` option specifies which version of the SSL protocol to use.
-            Typically, the server chooses a particular protocol version, and the client must adapt to the
-            server's choice. Most of the versions are not interoperable with the other versions. If not
-            specified the default SSL version is `ssl.PROTOCOL_SSLv3`. This version provides the most
-            compatibility with other versions server side. Other SSL protocol versions are:
-            `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
+        ssl_version : int, optional
+            The `ssl_version` option specifies which version of the SSL
+            protocol to use. Typically, the server chooses a particular
+            protocol version, and the client must adapt to the server's choice.
+            Most of the versions are not interoperable with the other versions.
+            If not specified the default SSL version is `ssl.PROTOCOL_SSLv3`.
+            This version provides the most compatibility with other versions
+            server side. Other SSL protocol versions are: `ssl.PROTOCOL_SSLv2`,
+            `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
 
         pool_size : int
             Number of socket connections opened to communicate with the Hub.
