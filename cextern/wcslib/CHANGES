@@ -1,6 +1,37 @@
-WCSLIB version 4.19 (2013/09/30)
+WCSLIB version 4.20 (2013/12/18)
 --------------------------------
 
+* C library
+
+  - New function, wcsbchk(), for controlling bounds checking in the
+    projection routines.
+
+  - Enable bounds checking in the pixel-to-sky (x2s) direction for HPX
+    and XPH if prjprm::bounds&2.  Tightened bounds checking in xphx2s().
+    prjini() now sets prjprm::bounds = 3 to enable all bounds checking
+    by default. 
+
+  - Fixed an incorrect error message in wcs_units().  Also report
+    potentially unsafe units translations in unitfix() - both
+    contributed by Michael Droettboom.
+
+* Fortran wrappers
+
+  - Wrapper for wcsbchk().
+
+* PGSBOX
+
+  - Fixed a few nuisance warnings from gfortran 4.7.2 relating to
+    implicit type conversions in pgsbox.f.
+
+* User manual
+
+  - Added mention of wcsjs (Javascript) in the section on other
+    packages.
+
+
+WCSLIB version 4.19 (2013/09/30)
+--------------------------------
 
 * C library
 
@@ -30,8 +61,8 @@ WCSLIB version 4.18 (2013/07/13)
 
 * Fortran wrappers
 
-  - Wrappers for XPH and corresponding modifications to the test
-    programs.
+  - Wrappers for the XPH projection functions and corresponding
+    modifications to the test programs.
 
   - Fixed a few inconsequential warnings from gfortran 4.7.2 relating
     to implicit type conversions in the test programs.
@@ -2042,4 +2073,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.19 2013/09/29 14:17:53 mcalabre Exp $
+$Id: CHANGES,v 4.20 2013/12/18 05:42:50 mcalabre Exp $

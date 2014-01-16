@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
+  $Id: wcs.c,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1477,6 +1477,24 @@ int wcsperr(const struct wcsprm *wcs, const char *prefix)
       }
     }
   }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsbchk(struct wcsprm *wcs, int bounds)
+
+{
+  int status;
+
+  if (wcs == 0x0) return WCSERR_NULL_POINTER;
+
+  if (wcs->flag != WCSSET) {
+    if ((status = wcsset(wcs))) return status;
+  }
+
+  wcs->cel.prj.bounds = bounds;
 
   return 0;
 }

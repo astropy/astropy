@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
+  $Id: prj.h,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.19 - C routines that implement the spherical map projections
+* WCSLIB 4.20 - C routines that implement the spherical map projections
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -111,8 +111,9 @@
 * zero).  The projection routines for AZP, SZP, TAN, SIN, ZPN, and COP also
 * return error 2 if (phi,theta) corresponds to the overlapped (far) side of
 * the projection but also return the corresponding value of (x,y).  This
-* strict bounds checking may be relaxed at any time by setting prjprm::bounds
-* to 0 (rather than 1); the projections need not be reinitialized.
+* strict bounds checking may be relaxed at any time by setting
+* prjprm::bounds%2 to 0 (rather than 1); the projections need not be
+* reinitialized.
 *
 * Argument checking (deprojection routines):
 * ------------------------------------------
@@ -432,8 +433,12 @@
 *     projection-specific default.
 *
 *   int bounds
-*     (Given) Controls strict bounds checking for the AZP, SZP, TAN, SIN, ZPN,
-*     and COP projections; set to zero to disable checking.
+*     (Given) Controls strict bounds checking.  If bounds&1 then enable bounds
+*     checking for the sky-to-pixel (s2x) transformation for the AZP, SZP,
+*     TAN, SIN, ZPN, and COP projections.  If bounds&2 then enable bounds
+*     checking for the pixel-to-sky transformation for the HPX and XPH
+*     projections.  Set to 3 by prjini() by default which enables both.  Zero
+*     it to disable all checking.
 *
 * The remaining members of the prjprm struct are maintained by the setup
 * routines and must not be modified elsewhere:

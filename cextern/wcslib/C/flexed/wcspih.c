@@ -8153,7 +8153,7 @@ char *wcspihtext;
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -8175,7 +8175,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 4.19 2013/09/29 14:17:52 mcalabre Exp $
+  $Id: wcspih.c,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical

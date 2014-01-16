@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsunits.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
+  $Id: wcsunits.h,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.19 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.20 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -34,11 +34,11 @@
 * The Flexible Image Transport System (FITS), a data format widely used in
 * astronomy for data interchange and archive, is described in
 *
-*   "Definition of The Flexible Image Transport System (FITS)",
-*   Hanisch, R.J., Farris, A., Greisen, E.W., et al. 2001, A&A, 376, 359
+*   "Definition of the Flexible Image Transport System (FITS), version 3.0",
+*   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
+*   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
 *
-* which formalizes NOST 100-2.0, a document produced by the NASA/Science
-* Office of Standards and Technology, see http://fits.gsfc.nasa.gov.
+* See also http://fits.gsfc.nasa.gov
 *
 * Refer to the README file provided with WCSLIB for an overview of the
 * library.
@@ -158,7 +158,7 @@
 *                         0: Success.
 *                         9: Internal parser error.
 *                        12: Potentially unsafe translation, whether applied
-*                             or not (see notes).
+*                            or not (see notes).
 *
 * Notes:
 *   Translation of non-standard unit specifications: apart from leading and

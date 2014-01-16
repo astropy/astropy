@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.19 - an implementation of the FITS WCS standard.
+  WCSLIB 4.20 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
+  $Id: wcs.h,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.19 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.20 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -373,6 +373,33 @@
 *                         1: Null wcsprm pointer passed.
 *
 *
+* wcsbchk() - Enable/disable strict bounds checking
+* -------------------------------------------------
+* wcsbchk() is used to control strict bounds checking in the projection
+* routines.  Note that wcsset() always enables strict bounds checking.
+* wcsbchk() will invoke wcsset() on the wcsprm struct beforehand if necessary.
+*
+* Given and returned:
+*   wcs       struct wcsprm*
+*                       Coordinate transformation parameters.
+*
+* Given:
+*   bounds    int       If bounds&1 then enable bounds checking for the
+*                       sky-to-pixel (s2x) transformation for the AZP, SZP,
+*                       TAN, SIN, ZPN, and COP projections.
+*
+*                       If bounds&2 then enable bounds checking for the
+*                       pixel-to-sky transformation for the HPX and XPH
+*                       projections.
+*
+*                       Zero it to disable all checking.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null wcsprm pointer passed.
+*
+*
 * wcsset() - Setup routine for the wcsprm struct
 * ----------------------------------------------
 * wcsset() sets up a wcsprm struct according to information supplied within
@@ -406,6 +433,11 @@
 *
 *                       For returns > 1, a detailed error message is set in
 *                       wcsprm::err if enabled, see wcserr_enable().
+*
+* Notes:
+*   wcsset() always enables strict bounds checking in the projection routines
+*   (via a call to prjini()).  Use wcsbchk() to modify bounds-checking after
+*   wcsset() is invoked.
 *
 *
 * wcsp2s() - Pixel-to-world transformation
@@ -1495,6 +1527,8 @@ int wcsfree(struct wcsprm *wcs);
 int wcsprt(const struct wcsprm *wcs);
 
 int wcsperr(const struct wcsprm *wcs, const char *prefix);
+
+int wcsbchk(struct wcsprm *wcs, int bounds);
 
 int wcsset(struct wcsprm *wcs);
 
