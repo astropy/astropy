@@ -46,7 +46,7 @@ else:
 
         unpacked_sources = extern_pytest.sources.encode("ascii")
         unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodebytes(unpacked_sources)))
+            zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
     else:
         exec("def do_exec_def(co, loc): exec co in loc\n")
         extern_pytest.do_exec = do_exec_def
