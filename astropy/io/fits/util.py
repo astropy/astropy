@@ -30,12 +30,12 @@ def itersubclasses(cls, _seen=None):
     >>> class D(B,C): pass
     >>> class E(D): pass
     >>>
-    >>> for cls in itersubclasses(A):
+    >>> for cls in sorted(itersubclasses(A), key=lambda cls: cls.__name__):
     ...     print(cls.__name__)
     B
+    C
     D
     E
-    C
     >>> # get ALL (new-style) classes currently defined
     >>> [cls.__name__ for cls in itersubclasses(object)]
     ['type', ...'tuple', ...]
