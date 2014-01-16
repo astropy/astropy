@@ -339,6 +339,8 @@ Bug Fixes
     on big endian platforms, such as MIPS, PPC, s390x and
     SPARC. [#1849]
 
+  - Fixed compatibility with Python 3.4. [#1945]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
