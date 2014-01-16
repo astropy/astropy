@@ -4,12 +4,8 @@ Defines custom errors and exceptions used in `astropy.vo.samp`.
 """
 
 from ...extern import six
+from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...utils.exceptions import AstropyUserWarning
-
-if six.PY3:
-    import xmlrpc.client as xmlrpc
-else:
-    import xmlrpclib as xmlrpc
 
 
 __all__ = ['SAMPWarning', 'SAMPHubError', 'SAMPClientError', 'SAMPProxyError']

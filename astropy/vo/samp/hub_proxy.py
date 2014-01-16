@@ -98,7 +98,7 @@ class SAMPHubProxy(object):
 
         if os.path.isdir(lockfiledir):
             for filename in os.listdir(lockfiledir):
-                if re.match('samp\\-hub\\-\d+\\-\d+', filename) != None:
+                if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
                     lockfilename = os.path.join(lockfiledir, filename)
                     hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
                     if hub_is_running:
@@ -162,7 +162,7 @@ class SAMPHubProxy(object):
         self._connected = False
         self.lockfile = {}
 
-        if hub_params == None:
+        if hub_params is None:
             hubs = SAMPHubProxy.get_running_hubs()
             if len(hubs.keys()) > 0:
                 # Use Single instance hub by default
@@ -190,7 +190,7 @@ class SAMPHubProxy(object):
             url = hub_params["samp.hub.xmlrpc.url"].replace("\\", "")
 
             # URL formatting for Basic Authentication parameters
-            if user != None and password != None:
+            if user is not None and password is not None:
                 trans, addr = url.split("://")
                 url = "%s://%s:%s@%s" % (trans, user, password, addr)
 

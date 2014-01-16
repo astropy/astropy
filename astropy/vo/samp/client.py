@@ -32,74 +32,85 @@ class SAMPClient(object):
     Parameters
     ----------
     hub : `SAMPHubProxy`
-        An instance of `SAMPHubProxy` to be used for messaging with the SAMP Hub.
+        An instance of `SAMPHubProxy` to be used for messaging with the SAMP
+        Hub.
 
     name : str, optional
         Client name (corresponding to `samp.name` metadata keyword).
 
     description : str, optional
-        Client description (corresponding to `samp.description.text` metadata keyword).
+        Client description (corresponding to `samp.description.text` metadata
+        keyword).
 
     metadata : dict, optional
         Client application metadata in the standard SAMP format.
 
-    addr : str
-        Listening address (or IP).
+    addr : str, optional
+        Listening address (or IP). This defaults to 127.0.0.1 if the internet
+        is not reachable, otherwise it defaults to the host name.
 
     port : int, optional
-        Listening XML-RPC server socket port
+        Listening XML-RPC server socket port. If left set to 0 (the default),
+        the operating system will select a free port.
 
-    https : bool
-        Set the callable client running on a Secure Sockets Layer connection (HTTPS)?
-        By default SSL is disabled.
+    https : bool, optional
+        If `True`, set the callable client running on a Secure Sockets Layer
+        (SSL) connection (HTTPS). By default SSL is disabled.
 
-    key_file : str
-        Set the file containing the private key for SSL connections. If the
-        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+    key_file : str, optional
+        The path to a file containing the private key for SSL connections. If
+        the certificate file (`cert_file`) contains the private key, then
+        `key_file` can be omitted.
 
-    cert_file : str
-        Specify the file which contains a certificate to be used to identify the
-        local side of the secure connection.
+    cert_file : str, optional
+        The path to a file which contains a certificate to be used to identify
+        the local side of the secure connection.
 
-    cert_reqs : int
-        The parameter `cert_reqs` specifies whether a certificate is required
-        from the Hub side of the connection, and whether it will be validated if provided. It
-        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+    cert_reqs : int, optional
+        Whether a certificate is required from the Hub side of the connection,
+        and whether it will be validated if provided. It must be one of the
+        three values `ssl.CERT_NONE` (certificates ignored),
+        `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
+        `ssl.CERT_REQUIRED` (required and validated). If the value of this
+        parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
         point to a file of CA certificates.
 
-    ca_certs : str
-        The `ca_certs` file contains a set of concatenated "Certification Authority"
-        certificates, which are used to validate the certificate passed from the Hub end of the
-        connection.
+    ca_certs : str, optional
+        The path to a file containing a set of concatenated "Certification
+        Authority" certificates, which are used to validate the certificate
+        passed from the Hub end of the connection.
 
-    ssl_version : int
-        The `ssl_version` option specifies which version of the SSL protocol to use.
-        Typically, the server chooses a particular protocol version, and the client must adapt to the
-        server's choice. Most of the versions are not interoperable with the other versions. If not
-        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
-        compatibility with other versions Hub side. Other SSL protocol versions are:
+    ssl_version : int, optional
+        Which version of the SSL protocol to use. Typically, the server chooses
+        a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the
+        other versions. If not specified the default SSL version is
+        `ssl.PROTOCOL_SSLv23`. This version provides the most compatibility
+        with other versions Hub side. Other SSL protocol versions are:
         `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
-    callable : bool
-        Is the client callable?
+    callable : bool, optional
+        Whether the client is callable.
     """
+
+    # TODO: define what is meant by callable
 
     def __init__(self, hub, name=None, description=None, metadata=None,
                  addr=None, port=0, https=False, key_file=None, cert_file=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=2, callable=True):
+                 cert_reqs=0, ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv23,
+                 callable=True):
+
         # GENERAL
         self._thread = None
         self._is_running = False
 
-        if metadata == None:
+        if metadata is None:
             metadata = {}
 
-        if name != None:
+        if name is not None:
             metadata["samp.name"] = name
 
-        if description != None:
+        if description is not None:
             metadata["samp.description.text"] = description
 
         self._metadata = metadata
@@ -143,6 +154,8 @@ class SAMPClient(object):
             self.client.register_function(self.receive_call, 'samp.client.receiveCall')
             self.client.register_function(self.receive_response, 'samp.client.receiveResponse')
 
+            # If the port was set to zero, then the operating system has
+            # selected a free port. We now check what this port number is.
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
 
@@ -167,7 +180,7 @@ class SAMPClient(object):
         Parameters
         ----------
         timeout : float
-            Timeout after wich the client terminates even if the threading is still alive.
+            Timeout after which the client terminates even if the threading is still alive.
         """
         self._is_running = False
         if self._thread is not None:
@@ -184,7 +197,7 @@ class SAMPClient(object):
         running : bool
             `True` if the client is running, `False` otherwise.
         """
-        return self._is_running != None
+        return self._is_running is not None
 
     def _run_client(self):
         if self._callable:
@@ -285,7 +298,7 @@ class SAMPClient(object):
 
     def receive_call(self, private_key, sender_id, msg_id, message):
         """
-        Standard callable client C{receive_call} method.
+        Standard callable client ``receive_call`` method.
 
         This method is automatically handled when the `bind_receive_call` method
         is used to bind distinct operations to MTypes.
@@ -446,7 +459,7 @@ class SAMPClient(object):
             MType to be catched.
 
         function : callable
-            Application function to be used when C{mtype} is received.
+            Application function to be used when ``mtype`` is received.
 
         declare : bool
             Specify whether the client must be automatically declared as
@@ -558,7 +571,7 @@ class SAMPClient(object):
         ----------
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to,
-            with the same format of the C{subscriptions} map passed to the
+            with the same format of the ``subscriptions`` map passed to the
             `SAMPHubProxy.declare_subscriptions` operation.
         """
         if self._callable:
@@ -574,7 +587,7 @@ class SAMPClient(object):
         """
         if self.hub.is_connected:
 
-            if self._private_key != None:
+            if self._private_key is not None:
                 raise SAMPClientError("Client already registered")
 
             try:
@@ -616,7 +629,7 @@ class SAMPClient(object):
             raise SAMPClientError("Unable to unregister from the SAMP Hub. Hub proxy not connected.")
 
     def _set_xmlrpc_callback(self):
-        if self.hub.is_connected and self._private_key != None:
+        if self.hub.is_connected and self._private_key is not None:
 
             try:
                 self.hub.set_xmlrpc_callback(self._private_key,
@@ -625,7 +638,7 @@ class SAMPClient(object):
                 pass
 
     def _declare_subscriptions(self, subscriptions=None):
-        if self.hub.is_connected and self._private_key != None:
+        if self.hub.is_connected and self._private_key is not None:
 
             try:
                 mtypes_dict = {}
@@ -659,10 +672,10 @@ class SAMPClient(object):
             as defined in the SAMP definition document. If omitted, then none metadata are
             declared.
         """
-        if self.hub.is_connected and self._private_key != None:
+        if self.hub.is_connected and self._private_key is not None:
 
             try:
-                if metadata != None:
+                if metadata is not None:
                     self._metadata.update(metadata)
 
                 self.hub.declare_metadata(self._private_key, self._metadata)

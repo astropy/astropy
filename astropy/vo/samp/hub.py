@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import socket
-import sys
-import time
-import stat
 import copy
-import uuid
+import datetime
+import os
 import re
 import select
+import socket
+import stat
+import sys
 import threading
 import traceback
-import datetime
+import time
+import uuid
 import warnings
 
 from ...extern.six import StringIO
@@ -50,105 +50,114 @@ class SAMPHubServer(object):
     SAMP Hub Server.
 
     The SSL parameters are usable only if Python has
-    been compiled with SSL support and/or U{ssl <http://docs.python.org/dev/library/ssl.html>}
+    been compiled with SSL support and/or ssl <http://docs.python.org/dev/library/ssl.html>
     module is installed (available by default since Python 2.6).
 
     Parameters
     ----------
-    secret : str
-        Secret code.
+    secret : str, optional
+        The secret code to use for the SAMP lockfile. If none is is specified,
+        the :func:`uuid.uuid1` function is used to generate one.
 
-    addr : str
-        Listening address (or IP)
+    addr : str, optional
+        Listening address (or IP). This defaults to 127.0.0.1 if the internet
+        is not reachable, otherwise it defaults to the host name.
 
-    port : int
-        Listening port number.
+    port : int, optional
+        Listening XML-RPC server socket port. If left set to 0 (the default),
+        the operating system will select a free port.
 
-    lockfile : str
+    lockfile : str, optional
         Custom lockfile name.
 
-    timeout : int
+    timeout : int, optional
         Hub inactivity timeout. If `timeout` > 0 then the Hub automatically
-        stops after an inactivity period longer than `timeout` seconds. By default `timeout`
-        is set to 0 (Hub never expires).
+        stops after an inactivity period longer than `timeout` seconds. By
+        default `timeout` is set to 0 (Hub never expires).
 
-    client_timeout : int
-        Client inactivity timeout. If `client_timeout` > 0 then the
-        Hub automatically unregisters the clients which result inactive for a period longer
-        than `client_timeout` seconds. By default `client_timeout` is set to 0 (clients never
-        expire).
+    client_timeout : int, optional
+        Client inactivity timeout. If `client_timeout` > 0 then the Hub
+        automatically unregisters the clients which result inactive for a
+        period longer than `client_timeout` seconds. By default
+        `client_timeout` is set to 0 (clients never expire).
 
-    mode : str
+    mode : str, optional
         Defines the Hub running mode. If `mode` is 'single' then the Hub runs
-        using the standard `.samp` lock-file, having a single instance for user desktop
-        session. Otherwise, if `mode` is 'multiple', then the Hub runs using a non-standard
-        lock-file, placed in `.samp-1` directory, of the form `samp-hub-<PID>-<ID>`, where
-        `<PID>` is the process id and `<ID>` is a general sub-id (integer number).
+        using the standard `.samp` lock-file, having a single instance for user
+        desktop session. Otherwise, if `mode` is 'multiple', then the Hub runs
+        using a non-standard lock-file, placed in `.samp-1` directory, of the
+        form `samp-hub-<PID>-<ID>`, where `<PID>` is the process id and `<ID>`
+        is a general sub-id (integer number).
 
-    label : str
+    label : str, optional
         A string used to label the Hub with a human readable name. This string
         is written in the lock-file assigned to the `hub.label` token.
 
-    owner : str
+    owner : str, optional
         General purpose Hub owner name. This value is written in the lock-file
         and assigned to the `hub.owner.name` token.
 
-    owner_group : str
+    owner_group : str, optional
         General purpose Hub owner group name. This value is written in the
         lock-file and assigned to the `hub.owner.group` token.
 
-    auth_file : str
+    auth_file : str, optional
         Authentication file path used for Basic Authentication. The authentication file
         must be a Berkeley DB file in Hash format containing a set of
         `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...)` key/value pairs.
 
-    access_restrict : str
-        Define whether the Hub access must be restricted to the Hub owner, to a certain owner
-        group or not restricted at all.
-        Values accepted: `SAMP_RESTRICT_OWNER`, `SAMP_RESTRICT_GROUP`, `None`.
+    access_restrict : str, optional
+        Define whether the Hub access must be restricted to the Hub owner, to a
+        certain owner group or not restricted at all. Values accepted:
+        `SAMP_RESTRICT_OWNER`, `SAMP_RESTRICT_GROUP`, `None`.
 
-    admin : str
-        Define the name of the administrator user in case of restricted access. The administrator user
-        can always access the hub instance even if it is running with `SAMP_RESTRICT_OWNER` policy.
-        The administrator must be declared in the authentication file.
+    admin : str, optional
+        Define the name of the administrator user in case of restricted access.
+        The administrator user can always access the hub instance even if it is
+        running with `SAMP_RESTRICT_OWNER` policy. The administrator must be
+        declared in the authentication file.
 
-    https : bool
-        Set the Hub running on a Secure Sockets Layer connection (HTTPS)?
-        By default SSL is disabled.
+    https : bool, optional
+        Set the Hub running on a Secure Sockets Layer connection (HTTPS)? By
+        default SSL is disabled.
 
-    keyfile : str
-        Set the file containing the private key for SSL connections. If the
-        certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
+    keyfile : str, optional
+        The path to a file containing the private key for SSL connections. If
+        the certificate file (`certfile`) contains the private key, then
+        `keyfile` can be omitted.
 
-    certfile : str
-        Specify the file which contains a certificate to be used to identify the
+    certfile : str, optional
+        The path to a file containing a certificate to be used to identify the
         local side of the secure connection.
 
-    cert_reqs : int
+    cert_reqs : int, optional
         The parameter `cert_reqs` specifies whether a certificate is required
-        from the client side of the connection, and whether it will be validated if provided. It
-        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-        point to a file of CA certificates.
+        from the client side of the connection, and whether it will be
+        validated if provided. It must be one of the three values
+        `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL` (not
+        required, but validated if provided), or `ssl.CERT_REQUIRED` (required
+        and validated). If the value of this parameter is not `ssl.CERT_NONE`,
+        then the `ca_certs` parameter must point to a file of CA certificates.
 
-    ca_certs : str
-        The `ca_certs` file contains a set of concatenated "Certification Authority"
-        certificates, which are used to validate certificates passed from the client end of the
-        connection.
+    ca_certs : str, optional
+        The path to a file containing a set of concatenated "Certification
+        Authority" certificates, which are used to validate the certificate
+        passed from the Hub end of the connection.
 
-    ssl_version : int
-        The `ssl_version` option specifies which version of the SSL protocol to use.
-        Typically, the server chooses    a particular protocol version, and the client must adapt to the
-        server's choice. Most of the versions are    not interoperable with the other versions. If not
-        specified the default SSL version is  `ssl.PROTOCOL_SSLv23`. This version provides the most
-        compatibility with other versions client side. Other SSL protocol versions are:
-        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    ssl_version : int, optional
+        The `ssl_version` option specifies which version of the SSL protocol to
+        use. Typically, the server chooses a particular protocol version, and
+        the client must adapt to the server's choice. Most of the versions are
+        not interoperable with the other versions. If not specified the default
+        SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions client side. Other SSL protocol
+        versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
+        `ssl.PROTOCOL_TLSv1`.
 
-    web_profile : bool
+    web_profile : bool, optional
         The `web_profile` option enables/disables the Web Profile support.
 
-    web_profile_dialog : class
+    web_profile_dialog : class, optional
         If the `web_profile` option is set, then web a web SAMP client wishes
         to connect to the hub, a message is shown in the terminal by default to
         ask whether to approve the connection. With this option, a class can be
@@ -163,17 +172,16 @@ class SAMPHubServer(object):
         `True` should be added to the queue if the connection is approved, and
         `False` otherwise.
 
-    pool_size : int
+    pool_size : int, optional
         The number of socket connections opened to communicate with the clients.
     """
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None, timeout=0,
-                 client_timeout=0,
-                 mode=SAMP_HUB_SINGLE_INSTANCE, label="",
+                 client_timeout=0, mode=SAMP_HUB_SINGLE_INSTANCE, label="",
                  owner="", owner_group="", auth_file=None,
                  access_restrict=None, admin="admin", https=False,
-                 keyfile=None, certfile=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=2, web_profile=True,
+                 keyfile=None, certfile=None, cert_reqs=0, ca_certs=None,
+                 ssl_version=ssl.PROTOCOL_SSLv23, web_profile=True,
                  pool_size=20):
 
         # General settings
@@ -219,7 +227,7 @@ class SAMPHubServer(object):
         self._access_restrict = access_restrict
 
         # Reformat access_restrict string to suitable dictionary
-        if access_restrict != None:
+        if access_restrict is not None:
             if access_restrict == SAMP_RESTRICT_GROUP:
                 access_restrict = {"group": owner_group, "admin": admin}
             elif access_restrict == SAMP_RESTRICT_OWNER:
@@ -228,7 +236,7 @@ class SAMPHubServer(object):
                 access_restrict = None
 
         # Athentication file test
-        if auth_file != None:
+        if auth_file is not None:
             if not os.path.isfile(auth_file):
                 raise SAMPHubError("Unable to load authentication file!")
 
@@ -243,13 +251,13 @@ class SAMPHubServer(object):
         # XML-RPC server settings
         if https:
 
-            if keyfile != None and not os.path.isfile(keyfile):
+            if keyfile is not None and not os.path.isfile(keyfile):
                 raise SAMPHubError("Unable to load SSL private key file!")
 
-            if certfile == None or not os.path.isfile(certfile):
+            if certfile is None or not os.path.isfile(certfile):
                 raise SAMPHubError("Unable to load SSL cert file!")
 
-            if auth_file != None:
+            if auth_file is not None:
                 log.info("Hub set for Basic Authentication using SSL.")
                 self._server = BasicAuthSecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
                                                            keyfile, certfile, cert_reqs, ca_certs, ssl_version,
@@ -266,7 +274,7 @@ class SAMPHubServer(object):
                                            self._port)
         else:
 
-            if auth_file != None:
+            if auth_file is not None:
                 log.info("Hub set for Basic Authentication.")
                 self._server = BasicAuthXMLRPCServer((self._addr or self._host_name, self._port or 0),
                                                      auth_file, access_restrict, log,
@@ -370,7 +378,7 @@ class SAMPHubServer(object):
         while self._is_running:
             time.sleep(1)
             self._thread_lock.acquire()
-            if self._timeout > 0 and self._last_activity_time != None:
+            if self._timeout > 0 and self._last_activity_time is not None:
                 if time.time() - self._last_activity_time >= self._timeout:
                     self._thread_lock.release()
                     warnings.warn("Timeout expired, Hub is shutting down!", SAMPWarning)
@@ -538,10 +546,10 @@ class SAMPHubServer(object):
         if self._owner_group != "":
             lockfile.write("hub.owner.group=%s\n" % self._owner_group)
 
-        if self._auth_file != None:
+        if self._auth_file is not None:
             lockfile.write("hub.access.auth.file=%s\n" % self._auth_file)
 
-        if self._access_restrict != None:
+        if self._access_restrict is not None:
             lockfile.write("hub.access.auth.restrict=%s\n" % self._access_restrict)
 
         if SSL_SUPPORT and self._https:
@@ -591,7 +599,7 @@ class SAMPHubServer(object):
 
         if os.path.isdir(lockfiledir):
             for filename in os.listdir(lockfiledir):
-                if re.match('samp\\-hub\\-\d+\\-\d+', filename) != None:
+                if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
                     lockfilename = os.path.join(lockfiledir, filename)
                     hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
                     if not hub_is_running:
@@ -665,7 +673,7 @@ class SAMPHubServer(object):
         return is_running, lockfiledict
 
     def _create_secret_code(self):
-        if self._hub_secret_code_customized != None:
+        if self._hub_secret_code_customized is not None:
             return self._hub_secret_code_customized
         else:
             return str(uuid.uuid1())
@@ -994,7 +1002,7 @@ class SAMPHubServer(object):
             client_private_key = self._get_private_keyFromPublicId(client_id)
             log.debug("get_metadata: private-key = %s client-id = %s" %
                       (private_key, client_id))
-            if client_private_key != None:
+            if client_private_key is not None:
                 if client_private_key in self._metadata:
                     log.debug("--> metadata = %s" % self._metadata[client_private_key])
                     return self._metadata[client_private_key]
@@ -1060,7 +1068,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
             client_private_key = self._get_private_keyFromPublicId(client_id)
-            if client_private_key != None:
+            if client_private_key is not None:
                 if client_private_key in self._id2mtypes:
                     log.debug("get_subscriptions: client-id = %s mtypes = %s" %
                               (client_id, str(self._id2mtypes[client_private_key])))
@@ -1176,7 +1184,7 @@ class SAMPHubServer(object):
             try:
                 log.debug("notify %s from %s to %s" % (message["samp.mtype"], sender_public_id, recipient_public_id))
                 recipient_private_key = self._get_private_keyFromPublicId(recipient_public_id)
-                if recipient_private_key != None:
+                if recipient_private_key is not None:
                     for attempt in range(10):
                         if self._is_running:
                             try:
@@ -1248,7 +1256,7 @@ class SAMPHubServer(object):
             try:
                 log.debug("call %s from %s to %s (%s)" % (msg_id.split(";;")[0], sender_public_id, recipient_public_id, message["samp.mtype"]))
                 recipient_private_key = self._get_private_keyFromPublicId(recipient_public_id)
-                if recipient_private_key != None:
+                if recipient_private_key is not None:
                     for attempt in range(10):
                         if self._is_running:
                             try:
@@ -1320,7 +1328,7 @@ class SAMPHubServer(object):
                     del(self._sync_msg_ids_heap[msg_id])
                     raise SAMPProxyError(1, "Timeout expired!")
 
-                if self._sync_msg_ids_heap[msg_id] != None:
+                if self._sync_msg_ids_heap[msg_id] is not None:
                     response = copy.deepcopy(self._sync_msg_ids_heap[msg_id])
                     del(self._sync_msg_ids_heap[msg_id])
                     break
@@ -1353,7 +1361,7 @@ class SAMPHubServer(object):
                         self._sync_msg_ids_heap[msg_id] = response
                 else:
                     recipient_private_key = self._get_private_keyFromPublicId(recipient_public_id)
-                    if recipient_private_key != None:
+                    if recipient_private_key is not None:
                         for attempt in range(10):
                             if self._is_running:
                                 try:
@@ -1396,7 +1404,7 @@ class SAMPHubServer(object):
     def _update_last_activity_time(self, private_key=None):
         self._thread_lock.acquire()
         self._last_activity_time = time.time()
-        if private_key != None:
+        if private_key is not None:
             self._client_activity_time[private_key] = time.time()
         self._thread_lock.release()
 

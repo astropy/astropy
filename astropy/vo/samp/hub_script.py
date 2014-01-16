@@ -258,7 +258,7 @@ def main(timeout=0):
 
             if BDB_SUPPORT:
 
-                if options.access_restrict != None:
+                if options.access_restrict is not None:
                     if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
                         warnings.warn("The access cannot be restricted to the owner if the owner "
                                       "name is not specified!", SAMPWarning)

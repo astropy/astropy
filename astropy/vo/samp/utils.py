@@ -217,7 +217,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'image/png')
             self.end_headers()
-            self.wfile.write(base64.decodestring(SAMP_ICON))
+            self.wfile.write(SAMP_ICON)
 
     if PYTHON_VERSION >= 2.7:
 
@@ -428,7 +428,7 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
                                     logRequests, allow_none, encoding)
 
     def handle_error(self, request, client_address):
-        if self.log == None:
+        if self.log is None:
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
             warnings.warn("Exception happened during processing of request from %s: %s" % (client_address, sys.exc_info()[1]), SAMPWarning)
@@ -755,7 +755,7 @@ if BDB_SUPPORT:
                 groups = self.db[id][16:]
                 pwd = hashlib.md5(pwd.encode('utf-8')).digest()
 
-                if self.access_restrict != None:
+                if self.access_restrict is not None:
 
                     # ADMIN TEST
                     if "admin" in self.access_restrict:
@@ -844,7 +844,7 @@ if BDB_SUPPORT:
                                            logRequests, allow_none, encoding)
 
         def finish_request(self, request, client_address):
-            if self.auth_file != None and self.RequestHandlerClass == BasicAuthSimpleXMLRPCRequestHandler:
+            if self.auth_file is not None and self.RequestHandlerClass == BasicAuthSimpleXMLRPCRequestHandler:
                 self.RequestHandlerClass(request, client_address, self,
                                          self.auth_file, self.access_restrict)
             else:
@@ -887,7 +887,7 @@ if SSL_SUPPORT and BDB_SUPPORT:
             return sslconn, addr
 
         def finish_request(self, request, client_address):
-            if self.auth_file != None and self.RequestHandlerClass == BasicAuthSimpleXMLRPCRequestHandler:
+            if self.auth_file is not None and self.RequestHandlerClass == BasicAuthSimpleXMLRPCRequestHandler:
                 self.RequestHandlerClass(request, client_address, self,
                                          self.auth_file, self.access_restrict)
             else:

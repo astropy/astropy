@@ -436,9 +436,9 @@ class SAMPIntegratedClient(object):
     def _format_easy_response(self, status, result, error):
 
         msg = {"samp.status": status}
-        if result != None:
+        if result is not None:
             msg.update({"samp.result": result})
-        if error != None:
+        if error is not None:
             msg.update({"samp.error": error})
 
         return msg
