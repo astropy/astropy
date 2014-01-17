@@ -625,20 +625,16 @@ class Longitude(Angle):
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses),
         # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        object_state = list(np.ndarray.__reduce__(self))
-        subclass_state = (self._unit, self.wrap_angle)
-        object_state[2] = (object_state[2], subclass_state)
+        object_state = list(super(Longitude, self).__reduce__())
+        object_state[2] = (object_state[2], self._wrap_angle)
         return tuple(object_state)
 
     def __setstate__(self, state):
         # patch to unpickle Quantity objects (ndarray subclasses),
         # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        nd_state, own_state = state
-        np.ndarray.__setstate__(self, nd_state)
-
-        unit, wrap_angle = own_state
-        self._unit = unit
-        self.wrap_angle = wrap_angle
+        super_state, own_state = state
+        super(Longitude, self).__setstate__(super_state)
+        self._wrap_angle = own_state
 
     def _wrap_internal(self):
         """

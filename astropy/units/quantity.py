@@ -409,7 +409,7 @@ class Quantity(np.ndarray):
         # patch to pickle Quantity objects (ndarray subclasses),
         # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
-        object_state = list(np.ndarray.__reduce__(self))
+        object_state = list(super(Quantity, self).__reduce__())
         subclass_state = (self._unit,)
         object_state[2] = (object_state[2], subclass_state)
         return tuple(object_state)
@@ -419,7 +419,7 @@ class Quantity(np.ndarray):
         # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         nd_state, own_state = state
-        np.ndarray.__setstate__(self, nd_state)
+        super(Quantity, self).__setstate__(nd_state)
 
         unit, = own_state
         self._unit = unit
