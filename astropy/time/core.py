@@ -1331,8 +1331,14 @@ class TimeCxcSec(TimeFromEpoch):
 class TimeGPS(TimeFromEpoch):
     """GPS time: seconds from 1980-01-06 00:00:00 UTC
 
-    GPS time includes leap seconds.  For details, see
-    http://tycho.usno.navy.mil/gpstt.html
+    Notes
+    =====
+    This implementation is strictly a representation of the number of seconds
+    (including leap seconds) since midnight UTC on 1980-01-06.  GPS can also be
+    considered as a time scale which is ahead of TAI by a fixed offset (to within
+    about 100 nanoseconds).
+
+    For details, see http://tycho.usno.navy.mil/gpstt.html
     """
     name = 'gps'
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
