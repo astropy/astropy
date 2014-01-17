@@ -361,7 +361,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
         try:
             name, obj, parent = import_by_name(name)
         except ImportError, e:
-            warn('[automodapi] failed to import %r: %s' % (name, e))
+            warn('[automodsumm] failed to import %r: %s' % (name, e))
             continue
 
         fn = os.path.join(path, name + suffix)
