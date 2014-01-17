@@ -689,8 +689,8 @@ if SSL_SUPPORT:
             # override this to wrap socket with SSL
             sock, addr = self.socket.accept()
             sslconn = ssl.wrap_socket(sock, server_side=True,
-                                      cert_file=self.cert_file,
-                                      key_file=self.key_file,
+                                      certfile=self.cert_file,
+                                      keyfile=self.key_file,
                                       cert_reqs=self.cert_reqs,
                                       ca_certs=self.ca_certs,
                                       ssl_version=self.ssl_version)

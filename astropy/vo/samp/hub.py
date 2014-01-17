@@ -667,7 +667,7 @@ class SAMPHubServer(object):
                 is_running = True
             except:
                 if SSL_SUPPORT:
-                    if sys.exc_info()[0] == ssl.SSLError:
+                    if sys.exc_info()[0] in [ssl.SSLError, ssl.SSLEOFError]:
                         # SSL connection refused for certifcate reasons...
                         # anyway the server is alive
                         is_running = True
