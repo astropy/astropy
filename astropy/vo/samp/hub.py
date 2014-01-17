@@ -118,7 +118,7 @@ class SAMPHubServer(object):
         declared in the authentication file.
 
     https : bool, optional
-        Set the Hub running on a Secure Sockets Layer connection (HTTPS)? By
+        Set the Hub running on a Secure Sockets Layer connection (HTTPS). By
         default SSL is disabled.
 
     key_file : str, optional

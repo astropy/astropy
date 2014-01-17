@@ -31,15 +31,15 @@ class SAMPClient(object):
 
     Parameters
     ----------
-    hub : `SAMPHubProxy`
-        An instance of `SAMPHubProxy` to be used for messaging with the SAMP
-        Hub.
+    hub : :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy`
+        An instance of :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy` to be
+        used for messaging with the SAMP Hub.
 
     name : str, optional
-        Client name (corresponding to `samp.name` metadata keyword).
+        Client name (corresponding to ``samp.name`` metadata keyword).
 
     description : str, optional
-        Client description (corresponding to `samp.description.text` metadata
+        Client description (corresponding to ``samp.description.text`` metadata
         keyword).
 
     metadata : dict, optional
@@ -59,8 +59,8 @@ class SAMPClient(object):
 
     key_file : str, optional
         The path to a file containing the private key for SSL connections. If
-        the certificate file (`cert_file`) contains the private key, then
-        `key_file` can be omitted.
+        the certificate file (``cert_file``) contains the private key, then
+        ``key_file`` can be omitted.
 
     cert_file : str, optional
         The path to a file which contains a certificate to be used to identify
@@ -253,15 +253,17 @@ class SAMPClient(object):
 
     def receive_notification(self, private_key, sender_id, message):
         """
-        Standard callable client `receive_notification` method.
+        Standard callable client ``receive_notification`` method.
 
-        This method is automatically handled when the `bind_receive_notification`
-        method is used to bind distinct operations to MTypes.
-        In case of a customized callable client implementation that inherits from
-        the `SAMPClient` class this method should be overwritten.
+        This method is automatically handled when the
+        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
+        method is used to bind distinct operations to MTypes. In case of a
+        customized callable client implementation that inherits from the
+        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        overwritten.
 
-        ATTENTION: When overwritten, this method must always return
-                   a string result (even empty).
+        .. note:: When overwritten, this method must always return
+                  a string result (even empty).
 
         Parameters
         ----------
@@ -282,6 +284,7 @@ class SAMPClient(object):
         return self._handle_notification(private_key, sender_id, message)
 
     def _handle_call(self, private_key, sender_id, msg_id, message):
+
         if private_key == self.get_private_key() and "samp.mtype" in message:
 
             msg_mtype = message["samp.mtype"]
@@ -302,13 +305,15 @@ class SAMPClient(object):
         """
         Standard callable client ``receive_call`` method.
 
-        This method is automatically handled when the `bind_receive_call` method
-        is used to bind distinct operations to MTypes.
-        In case of a customized callable client implementation that inherits from
-        the `SAMPClient` class this method should be overwritten.
+        This method is automatically handled when the
+        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call` method is
+        used to bind distinct operations to MTypes. In case of a customized
+        callable client implementation that inherits from the
+        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        overwritten.
 
-        ATTENTION: When overwritten, this method must always return
-                   a string result (even empty).
+        .. note:: When overwritten, this method must always return
+                  a string result (even empty).
 
         Parameters
         ----------
@@ -338,15 +343,17 @@ class SAMPClient(object):
 
     def receive_response(self, private_key, responder_id, msg_tag, response):
         """
-        Standard callable client `receive_response` method.
+        Standard callable client ``receive_response`` method.
 
-        This method is automatically handled when the `bind_receive_response` method
-        is used to bind distinct operations to MTypes.
-        In case of a customized callable client implementation that inherits from
-        the `SAMPClient` class this method should be overwritten.
+        This method is automatically handled when the
+        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_response` method
+        is used to bind distinct operations to MTypes. In case of a customized
+        callable client implementation that inherits from the
+        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        overwritten.
 
-        ATTENTION: When overwritten, this method must always return
-                   a string result (even empty).
+        .. note:: When overwritten, this method must always return
+                  a string result (even empty).
 
         Parameters
         ----------
@@ -374,45 +381,14 @@ class SAMPClient(object):
         Bind a specific MType to a function or class method, being intended for
         a call or a notification.
 
-        The function must be of the form:
-        `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
+        The function must be of the form::
 
-        where `private_key` is the client private-key, the `sender_id` argument is the
-        notification sender ID, `msg_id` is the Hub message-id (calls only, otherwise is `None`),
-        `mtype` is the message MType, `params` is the message parameter set (content of
-        "samp.params") and `extra` is a dictionary containing any extra message map entry.
-        The client is automatically declared subscribed to the MType by default.
+            def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)
 
-        Parameters
-        ----------
-        mtype : str
-            MType to be catched.
-
-        function : callable
-            Application function to be used when `mtype` is received.
-
-        declare : bool
-            Specify whether the client must be automatically declared as
-            subscribed to the MType (see also `declare_subscriptions`).
-
-        metadata : dict, optional
-            Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declare_subscriptions`).
-        """
-        self.bind_receive_call(mtype, function, declare=True, metadata=None)
-        self.bind_receive_notification(mtype, function, declare=True, metadata=None)
-
-    def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
-        """
-        Bind a specific MType notification to a function or class method.
-
-        The function must be of the form:
-
-        `def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)`
-
-        where `private_key` is the client private-key, `sender_id` argument is
-        the notification sender ID, `mtype` is the message MType, `params` is
-        the notified message parameter set (content of "samp.params") and `extra` is a
+        where ``private_key`` is the client private-key, ``sender_id`` is the
+        notification sender ID, ``msg_id`` is the Hub message-id (calls only,
+        otherwise is `None`), ``mtype`` is the message MType, ``params`` is the
+        message parameter set (content of ``"samp.params"``) and ``extra`` is a
         dictionary containing any extra message map entry. The client is
         automatically declared subscribed to the MType by default.
 
@@ -424,13 +400,49 @@ class SAMPClient(object):
         function : callable
             Application function to be used when `mtype` is received.
 
-        declare : bool
+        declare : bool, optional
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see alse `declare_subscriptions`).
+            subscribed to the MType (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declare_subscriptions`).
+            with the MType subscribed to (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+        """
+        self.bind_receive_call(mtype, function, declare=declare, metadata=metadata)
+        self.bind_receive_notification(mtype, function, declare=declare, metadata=metadata)
+
+    def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
+        """
+        Bind a specific MType notification to a function or class method.
+
+        The function must be of the form::
+
+            def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)
+
+        where ``private_key`` is the client private-key, ``sender_id`` is the
+        notification sender ID, ``mtype`` is the message MType, ``params`` is
+        the notified message parameter set (content of ``"samp.params"``) and
+        ``extra`` is a dictionary containing any extra message map entry. The
+        client is automatically declared subscribed to the MType by default.
+
+        Parameters
+        ----------
+        mtype : str
+            MType to be catched.
+
+        function : callable
+            Application function to be used when `mtype` is received.
+
+        declare : bool, optional
+            Specify whether the client must be automatically declared as
+            subscribed to the MType (see also :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+
+        metadata : dict, optional
+            Dictionary containing additional metadata to declare associated
+            with the MType subscribed to (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -445,15 +457,16 @@ class SAMPClient(object):
         """
         Bind a specific MType call to a function or class method.
 
-        The function must be of the form:
+        The function must be of the form::
 
-        `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
+            def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)
 
-        where `private_key` is the client private-key, `sender_id` argument is the
-        notification sender ID, `msg_id` is the Hub message-id, `mtype` is the message MType,
-        `params` is the message parameter set (content of "samp.params") and `extra` is a
-        dictionary containing any extra message map entry. The client is
-        automatically declared subscribed to the MType by default.
+        where ``private_key`` is the client private-key, ``sender_id`` is the
+        notification sender ID, ``msg_id`` is the Hub message-id, ``mtype`` is
+        the message MType, ``params`` is the message parameter set (content of
+        ``"samp.params"``) and ``extra`` is a dictionary containing any extra
+        message map entry. The client is automatically declared subscribed to
+        the MType by default.
 
         Parameters
         ----------
@@ -463,13 +476,15 @@ class SAMPClient(object):
         function : callable
             Application function to be used when ``mtype`` is received.
 
-        declare : bool
+        declare : bool, optional
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see also `declare_subscriptions`).
+            subscribed to the MType (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
-            with the MType subscribed to (see also `declare_subscriptions`).
+            with the MType subscribed to (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             if not metadata:
@@ -484,13 +499,13 @@ class SAMPClient(object):
         """
         Bind a specific msg-tag response to a function or class method.
 
-        The function must be of the form:
+        The function must be of the form::
 
-        `def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)`
+            def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)
 
-        where `private_key` is the client private-key, `responder_id` argument is the message
-        responder ID, `msg_tag` is the message-tag provided at call time and `response` is the
-        response received.
+        where ``private_key`` is the client private-key, ``responder_id`` is
+        the message responder ID, ``msg_tag`` is the message-tag provided at
+        call time and ``response`` is the response received.
 
         Parameters
         ----------
@@ -498,7 +513,7 @@ class SAMPClient(object):
             Message-tag to be catched.
 
         function : callable
-            Application function to be used when `msg_tag` is received.
+            Application function to be used when ``msg_tag`` is received.
         """
         if self._callable:
             self._response_bindings[msg_tag] = function
@@ -517,7 +532,8 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            unsubscribed from the MType (see alse `declare_subscriptions`).
+            unsubscribed from the MType (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._notification_bindings[mtype]
@@ -538,7 +554,8 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            unsubscribed from the MType (see alse `declare_subscriptions`).
+            unsubscribed from the MType (see alse
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
             del self._call_bindings[mtype]
@@ -564,17 +581,21 @@ class SAMPClient(object):
     def declare_subscriptions(self, subscriptions=None):
         """
         Declares the MTypes the client wishes to subscribe to, implicitly defined
-        with the MType binding methods `bind_receive_notification` and `bind_receive_call`.
+        with the MType binding methods
+        :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
+        and :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call`.
 
-        An optional `subscriptions` map can be added to the final map passed to
-        the `SAMPHubProxy.declare_subscriptions` operation.
+        An optional ``subscriptions`` map can be added to the final map passed
+        to the :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
+        method.
 
         Parameters
         ----------
         subscriptions : dict, optional
-            Dictionary containing the list of MTypes to subscribe to,
-            with the same format of the ``subscriptions`` map passed to the
-            `SAMPHubProxy.declare_subscriptions` operation.
+            Dictionary containing the list of MTypes to subscribe to, with the
+            same format of the ``subscriptions`` map passed to the
+            :meth:`~astropy.vo.samp.hub_proxySAMPHubProxy.declare_subscriptions`
+            method.
         """
         if self._callable:
             self._declare_subscriptions(subscriptions)
@@ -585,7 +606,7 @@ class SAMPClient(object):
         """
         Register the client to the SAMP Hub.
 
-        If the registration fails a `SAMPClientError` is raised.
+        If the registration fails, a `~astropy.vo.samp.errors.SAMPClientError` is raised.
         """
         if self.hub.is_connected:
 
@@ -616,7 +637,7 @@ class SAMPClient(object):
         """
         Unregister the client from the SAMP Hub.
 
-        If the unregistration fails a `SAMPClientError` is raised.
+        If the unregistration fails a `~astropy.vo.samp.errors.SAMPClientError` is raised.
         """
         if self.hub.is_connected:
 
@@ -670,8 +691,8 @@ class SAMPClient(object):
         Parameters
         ----------
         metadata : dict, optional
-            Dictionary containig the client application metadata
-            as defined in the SAMP definition document. If omitted, then none metadata are
+            Dictionary containig the client application metadata as defined in
+            the SAMP definition document. If omitted, then no metadata are
             declared.
         """
         if self.hub.is_connected and self._private_key is not None:
@@ -689,7 +710,7 @@ class SAMPClient(object):
     def get_private_key(self):
         """
         Return the client private key used for the Standard Profile communications
-        obtained at registration time (`samp.private-key`).
+        obtained at registration time (``samp.private-key``).
 
         Returns
         -------
@@ -700,7 +721,7 @@ class SAMPClient(object):
 
     def get_public_id(self):
         """
-        Return public client ID obtained at registration time (`samp.self-id`).
+        Return public client ID obtained at registration time (``samp.self-id``).
 
         Returns
         -------
