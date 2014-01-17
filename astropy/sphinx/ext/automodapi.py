@@ -39,11 +39,20 @@ It accepts the following options:
     * ``:no-heading:```
         If specified do not create a top level heading for the section.
 
-This extension also adds a sphinx configuration option
-`automodapi_toctreedirnm`. It must be a string that specifies the name of
-the directory the automodsumm generated documentation ends up in. This
-directory path should be relative to the documentation root (e.g., same
-place as ``index.rst``). It defaults to 'api'
+This extension also adds two sphinx configuration option:
+
+* `automodapi_toctreedirnm`
+    This must be a string that specifies the name of the directory the
+    automodsumm generated documentation ends up in. This directory path should
+    be relative to the documentation root (e.g., same place as ``index.rst``).
+    Defaults to ``'api'``.
+
+* `automodapi_writereprocessed`
+    Should be a bool, and if True, will cause `automodapi` to write files with
+    any ``automodapi``  sections replaced with the content Sphinx processes
+    after ``automodapi`` has run.   The output files are not actually used by
+    sphinx, so this option is only for figuring out the cause of sphinx warnings
+    or other debugging.   Defaults to `False`.
 
 """
 
@@ -233,7 +242,26 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     modname=modnm, clsinhsechds=h2 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
-        return ''.join(newstrs)
+
+        newsourcestr = ''.join(newstrs)
+
+        if app.config.automodapi_writereprocessed:
+            #sometimes they are unicode, sometimes not, depending on how sphinx
+            #has processed things
+            if isinstance(newsourcestr, unicode):
+                ustr = newsourcestr
+            else:
+                ustr = newsourcestr.decode(app.config.source_encoding)
+
+            if docname is None:
+                with open(os.path.join(app.srcdir, 'unknown.automodapi'), 'a') as f:
+                    f.write('\n**NEW DOC**\n\n')
+                    f.write(ustr.encode('utf8'))
+            else:
+                with open(os.path.join(app.srcdir, docname + '.automodapi'), 'w') as f:
+                    f.write(ustr.encode('utf8'))
+
+        return newsourcestr
     else:
         return sourcestr
 
@@ -273,3 +301,4 @@ def setup(app):
     app.connect('source-read', process_automodapi)
 
     app.add_config_value('automodapi_toctreedirnm', 'api', True)
+    app.add_config_value('automodapi_writereprocessed', False, True)
