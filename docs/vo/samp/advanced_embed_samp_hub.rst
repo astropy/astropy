@@ -1,3 +1,7 @@
+.. include:: references.txt
+
+.. doctest-skip-all
+
 Embedding a SAMP hub in a GUI
 -----------------------------
 

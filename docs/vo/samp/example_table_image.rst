@@ -1,8 +1,8 @@
 .. include:: references.txt
 
-.. _vo-samp-example-table-image:
-
 .. doctest-skip-all
+
+.. _vo-samp-example-table-image:
 
 Sending/receiving tables and images over SAMP
 ---------------------------------------------
