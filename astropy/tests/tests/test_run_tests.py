@@ -4,9 +4,11 @@ from __future__ import (absolute_import, division, print_function,
 
 # test helper.run_tests function
 
+import warnings
+
 from .. import helper
 from ... import _get_test_runner
-
+from .. helper import pytest
 
 # run_tests should raise ValueError when asked to run on a module it can't find
 def test_module_not_found():
@@ -27,3 +29,8 @@ try:
 except SyntaxError:
     def test_run_after_2to3():
         helper.pytest.fail("Not running the 2to3'd tests!")
+
+
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning):
+        warnings.warn('test warning', DeprecationWarning)

@@ -775,8 +775,9 @@ def test_validate():
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
-    result = validate(get_pkg_data_filename('data/regression.xml'),
-                      output, xmllint=False)
+    with catch_warnings():
+        result = validate(get_pkg_data_filename('data/regression.xml'),
+                          output, xmllint=False)
 
     assert result == False
 
@@ -948,10 +949,11 @@ def test_resource_structure():
 def test_no_resource_check():
     output = io.StringIO()
 
-    # We can't test xmllint, because we can't rely on it being on the
-    # user's machine.
-    result = validate(get_pkg_data_filename('data/no_resource.xml'),
-                      output, xmllint=False)
+    with catch_warnings():
+        # We can't test xmllint, because we can't rely on it being on the
+        # user's machine.
+        result = validate(get_pkg_data_filename('data/no_resource.xml'),
+                          output, xmllint=False)
 
     assert result == False
 

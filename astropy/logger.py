@@ -551,9 +551,13 @@ def _checkLevel(level):
     if isinstance(level, int):
         rv = level
     elif str(level) == level:
-        if level not in logging._levelNames:
+        if sys.version_info[:2] >= (3, 4):
+            names = logging._nameToLevel
+        else:
+            names = logging._levelNames
+        if level not in names:
             raise ValueError("Unknown level: %r" % level)
-        rv = logging._levelNames[level]
+        rv = names[level]
     else:
         raise TypeError("Level not an integer or a valid string: %r" % level)
     return rv

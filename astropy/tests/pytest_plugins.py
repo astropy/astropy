@@ -21,7 +21,7 @@ import sys
 import tempfile
 import warnings
 
-from .helper import pytest
+from .helper import pytest, treat_deprecations_as_exceptions
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -106,6 +106,8 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 
 
 def pytest_configure(config):
+    treat_deprecations_as_exceptions()
+
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):

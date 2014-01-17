@@ -16,7 +16,8 @@ class TestDivisionFunctions(FitsTestCase):
         a1 = np.rec.array(
             s,
             dtype=np.dtype([('c1', '>i4'), ('c2', '|S3'),
-                         ('c3', '>f4'), ('c4', '|i1')]))
+                            ('c3', '>f4'), ('c4', '|i1')]),
+            shape=len(s) // 12)
 
     def test_card_with_continue(self):
         h = fits.PrimaryHDU()

@@ -137,10 +137,11 @@ class TestRunner(object):
                 docs_path = os.path.join(
                     docs_path, package.replace('.', os.path.sep))
             if not os.path.exists(docs_path):
-                raise ValueError(
+                warnings.warn(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
-            all_args += ' ' + docs_path + ' --doctest-rst '
+            else:
+                all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
         if args is not None:
@@ -462,6 +463,59 @@ class raises(object):
         return run_raises_test
 
 
+def treat_deprecations_as_exceptions():
+    """
+    Turn all DeprecationWarnings (which indicate deprecated uses of
+    Python itself or Numpy, but not within Astropy, where we use our
+    own deprecation warning class) into exceptions so that we find
+    out about them early.
+
+    This completely resets the warning filters and any "already seen"
+    warning state.
+    """
+    # First, totally reset the warning state
+    for module in list(six.itervalues(sys.modules)):
+        # We don't want to deal with six.MovedModules, only "real"
+        # modules.
+        if (isinstance(module, types.ModuleType) and
+            hasattr(module, '__warningregistry__')):
+            del module.__warningregistry__
+
+    warnings.resetwarnings()
+
+    # Hide the next couple of DeprecationWarnings
+    warnings.simplefilter('ignore', DeprecationWarning)
+    # Here's the wrinkle: a couple of our third-party dependencies
+    # (py.test and scipy) are still using deprecated features
+    # themselves, and we'd like to ignore those.  Fortunately, those
+    # show up only at import time, so if we import those things *now*,
+    # before we turn the warnings into exceptions, we're golden.
+    try:
+        # A deprecated stdlib module used by py.test
+        import compiler
+    except ImportError:
+        pass
+
+    try:
+        import scipy
+    except ImportError:
+        pass
+
+    # Now, start over again with the warning filters
+    warnings.resetwarnings()
+    # Now, turn DeprecationWarnings into exceptions
+    warnings.filterwarnings("error", ".*", DeprecationWarning)
+
+    # py.tests warning.showwarning does not include the line argument
+    # on Python 2.6, so we need to explicitly ignore this warning.
+    if sys.version_info[:2] == (2, 6):
+        warnings.filterwarnings(
+            "always",
+            r"functions overriding warnings\.showwarning\(\) must support "
+            r"the 'line' argument",
+            DeprecationWarning)
+
+
 class catch_warnings(warnings.catch_warnings):
     """
     A high-powered version of warnings.catch_warnings to use for testing
@@ -481,18 +535,12 @@ class catch_warnings(warnings.catch_warnings):
         assert len(w) > 0
     """
     def __init__(self, *classes):
-        for module in list(six.itervalues(sys.modules)):
-            # We don't want to deal with six.MovedModules, only "real"
-            # modules.
-            if (isinstance(module, types.ModuleType) and
-                hasattr(module, '__warningregistry__')):
-                    del module.__warningregistry__
         super(catch_warnings, self).__init__(record=True)
         self.classes = classes
 
     def __enter__(self):
         warning_list = super(catch_warnings, self).__enter__()
-        warnings.resetwarnings()
+        treat_deprecations_as_exceptions()
         if len(self.classes) == 0:
             warnings.simplefilter('always')
         else:
@@ -500,6 +548,9 @@ class catch_warnings(warnings.catch_warnings):
             for cls in self.classes:
                 warnings.simplefilter('always', cls)
         return warning_list
+
+    def __exit__(self, type, value, traceback):
+        treat_deprecations_as_exceptions()
 
 
 def assert_follows_unicode_guidelines(
