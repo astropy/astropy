@@ -108,7 +108,7 @@ class SAMPHubProxy(object):
 
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
-                ca_certs=None, ssl_version=1, pool_size=20):
+                ca_certs=None, ssl_version=None, pool_size=20):
         """
         Connect to the current SAMP Hub.
 
@@ -161,6 +161,9 @@ class SAMPHubProxy(object):
 
         self._connected = False
         self.lockfile = {}
+
+        if SSL_SUPPORT and ssl_version is None:
+            ssl_version = ssl.PROTOCOL_SSLv3
 
         if hub_params is None:
             hubs = SAMPHubProxy.get_running_hubs()

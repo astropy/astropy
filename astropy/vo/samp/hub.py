@@ -181,8 +181,7 @@ class SAMPHubServer(object):
                  owner="", owner_group="", auth_file=None,
                  access_restrict=None, admin="admin", https=False,
                  key_file=None, cert_file=None, cert_reqs=0, ca_certs=None,
-                 ssl_version=ssl.PROTOCOL_SSLv23, web_profile=True,
-                 pool_size=20):
+                 ssl_version=None, web_profile=True, pool_size=20):
 
         # General settings
         self._is_running = False
@@ -197,6 +196,9 @@ class SAMPHubServer(object):
         self._timeout = timeout
         self._client_timeout = client_timeout
         self._pool_size = pool_size
+
+        if SSL_SUPPORT and ssl_version is None:
+            ssl_version = ssl.PROTOCOL_SSLv23
 
         self._web_profile = web_profile
         self._web_profile_server = None

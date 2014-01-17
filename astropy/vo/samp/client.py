@@ -97,8 +97,7 @@ class SAMPClient(object):
 
     def __init__(self, hub, name=None, description=None, metadata=None,
                  addr=None, port=0, https=False, key_file=None, cert_file=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv23,
-                 callable=True):
+                 cert_reqs=0, ca_certs=None, ssl_version=None, callable=True):
 
         # GENERAL
         self._thread = None
@@ -112,6 +111,9 @@ class SAMPClient(object):
 
         if description is not None:
             metadata["samp.description.text"] = description
+
+        if SSL_SUPPORT and ssl_version is None:
+            ssl_version = ssl.PROTOCOL_SSLv23
 
         self._metadata = metadata
 

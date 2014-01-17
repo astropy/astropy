@@ -82,8 +82,7 @@ class SAMPIntegratedClient(object):
 
     def __init__(self, name=None, description=None, metadata=None,
                  addr=None, port=0, https=False, key_file=None, cert_file=None,
-                 cert_reqs=0, ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv23,
-                 callable=True):
+                 cert_reqs=0, ca_certs=None, ssl_version=None, callable=True):
 
         self.hub = SAMPHubProxy()
 
@@ -113,7 +112,7 @@ class SAMPIntegratedClient(object):
 
     def connect(self, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
-                ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv3, pool_size=20):
+                ca_certs=None, ssl_version=None, pool_size=20):
         """
         Connect with the current or specified SAMP Hub, start and register the client.
 
