@@ -20,6 +20,7 @@ import os
 import subprocess
 import shutil
 import tempfile
+import types
 import warnings
 
 try:
@@ -46,7 +47,7 @@ else:
 
         unpacked_sources = extern_pytest.sources.encode("ascii")
         unpacked_sources = pickle.loads(
-            zlib.decompress(base64.decodebytes(unpacked_sources)))
+            zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
     else:
         exec("def do_exec_def(co, loc): exec co in loc\n")
         extern_pytest.do_exec = do_exec_def
@@ -481,8 +482,11 @@ class catch_warnings(warnings.catch_warnings):
     """
     def __init__(self, *classes):
         for module in list(six.itervalues(sys.modules)):
-            if hasattr(module, '__warningregistry__'):
-                del module.__warningregistry__
+            # We don't want to deal with six.MovedModules, only "real"
+            # modules.
+            if (isinstance(module, types.ModuleType) and
+                hasattr(module, '__warningregistry__')):
+                    del module.__warningregistry__
         super(catch_warnings, self).__init__(record=True)
         self.classes = classes
 

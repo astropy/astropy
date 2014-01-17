@@ -195,6 +195,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- The included version of py.test has been upgraded to 2.5.1.
+
 0.3.1 (unreleased)
 ------------------
 
