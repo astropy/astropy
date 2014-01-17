@@ -16,6 +16,10 @@ import warnings
 
 from ...extern.six import StringIO
 from ...extern.six.moves import queue
+from ...extern.six.moves.urllib import parse as urlparse
+from ...extern.six.moves.urllib.request import urlopen
+from ...extern.six.moves import xmlrpc_client as xmlrpc
+
 from ... import log
 
 from .constants import SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP, SAMP_RESTRICT_OWNER
@@ -26,10 +30,6 @@ from .utils import internet_on, SafeTransport, ServerProxyPool, _HubAsClient
 from .utils import WebProfileXMLRPCServer, SecureXMLRPCServer
 from .utils import ThreadingXMLRPCServer, web_profile_text_dialog
 from .utils import BDB_SUPPORT, SSL_SUPPORT
-
-# Python 2 / 3 dependent imports ... for now get from utils to avoid code duplication
-from .utils import xmlrpc, urlopen
-from .utils import urlparse
 
 if SSL_SUPPORT:
     import ssl

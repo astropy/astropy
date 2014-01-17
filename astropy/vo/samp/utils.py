@@ -33,39 +33,15 @@ else:
 
 PYTHON_VERSION = float(platform.python_version()[:3])
 
-if PY3:
-    import http.client
-    from http.client import HTTPConnection, HTTPS_PORT
-    # from http.server import *
-else:
-    import httplib
-    from httplib import HTTPConnection, HTTPS_PORT, HTTP
-    # from SimpleHTTPServer import *
+from ...extern.six.moves.http_client import HTTPConnection, HTTPS_PORT
+from ...extern.six.moves.urllib.parse import parse_qs
+from ...extern.six.moves.urllib.error import URLError
+from ...extern.six.moves.urllib.request import urlopen
+from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 if PY3:
-    import urllib.parse as urlparse
-    import urllib.error
-    import urllib.request
-    try:
-        from urllib.parse import parse_qs
-    except ImportError:
-        from cgi import parse_qs
-    from urllib.error import URLError
-    from urllib.request import urlopen
-else:
-    import urllib2
-    import urlparse
-    try:
-        from urlparse import parse_qs
-    except ImportError:
-        from cgi import parse_qs
-    from urllib2 import urlopen, URLError
-
-if PY3:
-    import xmlrpc.client as xmlrpc
     from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 else:
-    import xmlrpclib as xmlrpc
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from .constants import SAMP_STATUS_ERROR, SAMP_ICON
@@ -619,6 +595,8 @@ if SSL_SUPPORT:
 
     if PY2:
 
+        from ...extern.six.moves.http_client import HTTP
+
         class HTTPS(HTTP):
             """
             Facility class fo HTTP communication (internal use only)
@@ -679,8 +657,8 @@ if SSL_SUPPORT:
                 return HTTPS(host, None, self.key_file, self.cert_file,
                              self.cert_reqs, self.ca_certs, self.ssl_version)
             else:
-                self._connection = host, http.client.HTTPSConnection(host,
-                                                                     None, **(x509 or {}))
+                from ...extern.six.moves.http_client import HTTPSConnection
+                self._connection = host, HTTPSConnection(host, None, **(x509 or {}))
                 return self._connection[1]
 
     class SecureXMLRPCServer(ThreadingXMLRPCServer):
