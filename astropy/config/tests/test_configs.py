@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import io
 import os
 import shutil
 import sys
+
+MODULE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 try:
     # used by test_get_config_items
@@ -49,7 +50,7 @@ def test_configitem():
 
     ci = ConfigurationItem('tstnm', 34, 'this is a Description')
 
-    assert ci.module == 'astropy.config.tests.test_configs'
+    assert ci.module == 'astropy.config.tests.{0}'.format(MODULE_NAME)
     assert ci() == 34
     assert ci.description == 'this is a Description'
 
@@ -105,14 +106,14 @@ def test_configitem_save(tmpdir):
 
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
+            assert '[config.tests.{0}]'.format(MODULE_NAME) in lns
             assert 'tstnm2 = 30' in lns
 
         ci.save(31)
 
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
+            assert '[config.tests.{0}]'.format(MODULE_NAME) in lns
             assert 'tstnm2 = 31' in lns
 
         # also try to save one that doesn't yet exist
@@ -121,7 +122,7 @@ def test_configitem_save(tmpdir):
 
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
+            assert '[config.tests.{0}]'.format(MODULE_NAME) in lns
             assert 'tstnm2 = 30' in lns
 
     finally:
@@ -188,6 +189,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
+
     from ...tests.helper import pytest
     from .. import paths, configuration
 
@@ -225,9 +227,9 @@ def test_get_config_items():
 
     from ..configuration import get_config_items
 
-    itemslocal = get_config_items(sys.modules['astropy.config.tests.test_configs'])
+    itemslocal = get_config_items(sys.modules['astropy.config.tests.{0}'.format(MODULE_NAME)])
     itemslocalnone = get_config_items(None)
-    itemsname = get_config_items('astropy.config.tests.test_configs')
+    itemsname = get_config_items('astropy.config.tests.{0}'.format(MODULE_NAME))
 
     assert itemslocal == itemsname
     assert itemslocal == itemslocalnone

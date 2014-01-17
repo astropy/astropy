@@ -4,8 +4,7 @@
 Separate tests specifically for equivalencies
 """
 
-from __future__ import (absolute_import, unicode_literals, division,
-                        print_function)
+from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from numpy.testing.utils import assert_allclose
