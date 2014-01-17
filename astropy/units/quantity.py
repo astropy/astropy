@@ -411,7 +411,7 @@ class Quantity(np.ndarray):
 
         object_state = list(super(Quantity, self).__reduce__())
         subclass_state = (self._unit,)
-        object_state[2] = (object_state[2], subclass_state)
+        object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
     def __setstate__(self, state):
@@ -420,9 +420,7 @@ class Quantity(np.ndarray):
 
         nd_state, own_state = state
         super(Quantity, self).__setstate__(nd_state)
-
-        unit, = own_state
-        self._unit = unit
+        self.__dict__.update(own_state)
 
     def to(self, unit, equivalencies=[]):
         """ Returns a new `Quantity` object with the specified units.
