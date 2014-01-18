@@ -4,6 +4,8 @@ from ...extern.six.moves import input
 
 from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
 
+__all__ = []
+
 
 class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
     """

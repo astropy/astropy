@@ -250,35 +250,45 @@ class SAMPHubServer(object):
 
         # Hub message id counter, used to create hub msg ids
         self._hub_msg_id_counter = 0
-        # Hub secred code
+
+        # Hub secret code
         self._hub_secret_code_customized = secret
         self._hub_secret = self._create_secret_code()
+
         # Hub public id (as SAMP client)
         self._hub_public_id = ""
+
         # Client ids
         # {private_key: (public_id, timestamp)}
         self._private_keys = {}
+
         # Metadata per client
         # {private_key: metadata}
         self._metadata = {}
+
         # List of subscribed clients per MType
         # {mtype: private_key list}
         self._mtype2ids = {}
+
         # List of subscribed MTypes per client
         # {private_key: mtype list}
         self._id2mtypes = {}
+
         # List of XML-RPC addresses per client
         # {public_id: (XML-RPC address, ServerProxyPool instance)}
         self._xmlrpcEndpoints = {}
+
         # Synchronous message id heap
         self._sync_msg_ids_heap = {}
+
         # Public ids counter
         self._client_id_counter = -1
 
         # Standard Profile only operations
         self._server.register_function(self._ping, 'samp.hub.ping')
         self._server.register_function(self._set_xmlrpc_callback, 'samp.hub.setXmlrpcCallback')
-        # Stadard API operations
+
+        # Standard API operations
         self._server.register_function(self._register, 'samp.hub.register')
         self._server.register_function(self._unregister, 'samp.hub.unregister')
         self._server.register_function(self._declare_metadata, 'samp.hub.declareMetadata')
@@ -293,12 +303,9 @@ class SAMPHubServer(object):
         self._server.register_function(self._call_all, 'samp.hub.callAll')
         self._server.register_function(self._call_and_wait, 'samp.hub.callAndWait')
         self._server.register_function(self._reply, 'samp.hub.reply')
-        # Hub as client operations (see _hub_as_client_request_handler)
-        # self._server.register_function(self._receive_notification, 'samp.client.receiveNotification')
-        # self._server.register_function(self._receive_call, 'samp.client.receiveCall')
-        # self._server.register_function(self._receive_response, 'samp.client.receiveResponse')
 
         if web_profile:
+
             # Web Profile methods like Standard Profile
             self._web_profile_server.register_function(self._ping, 'samp.webhub.ping')
             self._web_profile_server.register_function(self._unregister, 'samp.webhub.unregister')
@@ -314,6 +321,7 @@ class SAMPHubServer(object):
             self._web_profile_server.register_function(self._call_all, 'samp.webhub.callAll')
             self._web_profile_server.register_function(self._call_and_wait, 'samp.webhub.callAndWait')
             self._web_profile_server.register_function(self._reply, 'samp.webhub.reply')
+
             # Methods peculiar for Web Profile
             self._web_profile_server.register_function(self._web_profile_register, 'samp.webhub.register')
             self._web_profile_server.register_function(self._web_profile_allowReverseCallbacks, 'samp.webhub.allowReverseCallbacks')

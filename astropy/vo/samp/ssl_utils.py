@@ -8,51 +8,51 @@ if six.PY3:
 else:
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
-from ...extern.six.moves.http_client import HTTPConnection, HTTP, HTTPS_PORT
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from .standard_profile import ThreadingXMLRPCServer
 
-__all__ = ["SafeTransport"]
+__all__ = []
 
-
-class HTTPSConnection(HTTPConnection):
-    """
-    This class allows communication via SSL (client side - internal use
-    only).
-    """
-
-    default_port = HTTPS_PORT
-
-    def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                 ssl_version=ssl.PROTOCOL_SSLv3, strict=None):
-
-        HTTPConnection.__init__(self, host, port, strict)
-
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.cert_reqs = cert_reqs
-        self.ca_certs = ca_certs
-        self.ssl_version = ssl_version
-
-    def connect(self):
-        "Connect to a host on a given (SSL) port."
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((self.host, self.port))
-        sslconn = ssl.wrap_socket(sock, server_side=False,
-                                  cert_file=self.cert_file,
-                                  key_file=self.key_file,
-                                  cert_reqs=self.cert_reqs,
-                                  ca_certs=self.ca_certs,
-                                  ssl_version=self.ssl_version)
-        self.sock = sslconn
 
 if six.PY2:
 
+    from ...extern.six.moves.http_client import HTTPConnection, HTTP, HTTPS_PORT
+
+    class HTTPSConnection(HTTPConnection):
+        """
+        This class allows communication via SSL.
+        """
+
+        default_port = HTTPS_PORT
+
+        def __init__(self, host, port=None, key_file=None, cert_file=None,
+                     cert_reqs=ssl.CERT_NONE, ca_certs=None,
+                     ssl_version=ssl.PROTOCOL_SSLv3, strict=None):
+
+            HTTPConnection.__init__(self, host, port, strict)
+
+            self.key_file = key_file
+            self.cert_file = cert_file
+            self.cert_reqs = cert_reqs
+            self.ca_certs = ca_certs
+            self.ssl_version = ssl_version
+
+        def connect(self):
+            "Connect to a host on a given (SSL) port."
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((self.host, self.port))
+            sslconn = ssl.wrap_socket(sock, server_side=False,
+                                      cert_file=self.cert_file,
+                                      key_file=self.key_file,
+                                      cert_reqs=self.cert_reqs,
+                                      ca_certs=self.ca_certs,
+                                      ssl_version=self.ssl_version)
+            self.sock = sslconn
+
     class HTTPS(HTTP):
         """
-        Facility class fo HTTP communication (internal use only)
+        Facility class fo HTTP communication.
         """
 
         _connection_class = HTTPSConnection
@@ -80,9 +80,14 @@ if six.PY2:
             "Get the response from the server."
             return self._conn.getresponse(buffering)
 
+else:
+
+    from ...extern.six.moves.http_client import HTTPSConnection
+
+
 class SafeTransport(xmlrpc.Transport):
     """
-    Handles an HTTPS transaction to an XML-RPC server. (internal use only)
+    Handles an HTTPS transaction to an XML-RPC server.
     """
 
     def __init__(self, key_file=None, cert_file=None,
@@ -110,14 +115,13 @@ class SafeTransport(xmlrpc.Transport):
             return HTTPS(host, None, self.key_file, self.cert_file,
                          self.cert_reqs, self.ca_certs, self.ssl_version)
         else:
-            from ...extern.six.moves.http_client import HTTPSConnection
             self._connection = host, HTTPSConnection(host, None, **(x509 or {}))
             return self._connection[1]
 
 
 class SecureXMLRPCServer(ThreadingXMLRPCServer):
     """
-    An XMLRPC server supporting secure sockets connections (internal use only)
+    An XMLRPC server supporting secure sockets connections.
     """
 
     def __init__(self, addr, key_file, cert_file, cert_reqs, ca_certs, ssl_version,

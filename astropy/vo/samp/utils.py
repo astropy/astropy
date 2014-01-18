@@ -34,7 +34,8 @@ __all__ = ["SAMPMsgReplierWrapper"]
 __doctest_skip__ = ['.']
 
 
-class _ServerProxyPoolMethod:
+class _ServerProxyPoolMethod(object):
+
     # some magic to bind an XML-RPC method to an RPC server.
     # supports "nested" methods (e.g. examples.getStateName)
 
