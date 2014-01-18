@@ -622,20 +622,6 @@ class Longitude(Angle):
         super(Longitude, self).__setitem__(item, value)
         self._wrap_internal()
 
-    def __reduce__(self):
-        # patch to pickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        object_state = list(super(Longitude, self).__reduce__())
-        object_state[2] = (object_state[2], self._wrap_angle)
-        return tuple(object_state)
-
-    def __setstate__(self, state):
-        # patch to unpickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        super_state, own_state = state
-        super(Longitude, self).__setstate__(super_state)
-        self._wrap_angle = own_state
-
     def _wrap_internal(self):
         """
         Wrap the internal values in the Longitude object.  Using the `Angle`
