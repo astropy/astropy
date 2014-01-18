@@ -410,7 +410,6 @@ class Quantity(np.ndarray):
         # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         object_state = list(super(Quantity, self).__reduce__())
-        subclass_state = (self._unit,)
         object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
