@@ -18,10 +18,10 @@ angular separation.
 Getting Started
 ===============
 
-There are many functions available to calculate cosmological quantities.
-They generally take a redshift as input. For example, the two cases
-below give you the value of the Hubble constant at z=0 (i.e., `H0`), and
-the number of transverse proper kpc corresponding to an arcminute at z=3:
+There are many functions available to calculate cosmological
+quantities as a function of redshift. For example, the two cases below
+calculate the Hubble constant at z=0 (i.e., `H0`), and the number of
+transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
   >>> cosmology.core.set_current(cosmology.WMAP9)
@@ -71,13 +71,13 @@ Using `cosmology`
 =================
 
 Most of the functionality is enabled by the
-`~astropy.cosmology.core.FLRW` object. This represents a
-homogeneous and isotropic cosmology (a cosmology characterized by the
+`~astropy.cosmology.core.FLRW` object. This represents a homogeneous
+and isotropic cosmology (a cosmology characterized by the
 Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
-solved Einstein's field equation for this special case).  However,
-you can't work with this class directly, as you must specify a
-dark energy model by using one of its subclasses instead,
-such as `~astropy.cosmology.core.FlatLambdaCDM`.
+solved Einstein's field equation for this special case).  However, you
+can't work with this class directly, as you must specify a dark energy
+model by using one of its subclasses instead, such as
+`~astropy.cosmology.core.FlatLambdaCDM`.
 
 You can create a new `~astropy.cosmology.core.FlatLambdaCDM` object with
 arguments giving the Hubble parameter and omega matter (both at z=0):
@@ -180,6 +180,21 @@ can also be explicitly given a cosmology using the `cosmo` keyword
 argument. A full list of convenience functions is included below, in
 the `Reference/API`_ section.
 
+Finally, if you know a cosmological quantity and you want to know the
+redshift which it corresponds to, you can use `z_at_value`:
+
+.. doctest-requires:: scipy
+
+  >>> import astropy.units as u
+  >>> from astropy.cosmology import Planck13, z_at_value
+  >>> z_at_value(Planck13.age, 2 * u.Gyr)
+  3.1981...
+
+For some quantities there can be more than one redshift that satisfies
+a value. In this case you can use the `zmin` and `zmax` keywords to
+restrict the search range.
+
+
 The Current Cosmology
 ---------------------
 
@@ -197,18 +212,8 @@ cosmology for the current Python session.
 
 If you haven't set a current cosmology using one of the methods
 described above, then the cosmology module will use the 9-year WMAP
-parameters and print a warning message letting you know this. For
-example, if you call a convenience function without setting the
-current cosmology or using the `cosmo=` keyword you see the following
-message:
-
-.. doctest-requires:: scipy
-
-  >>> from astropy import cosmology
-  >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1
-  <Quantity 7.846670... Gyr>
-
-The 9-year WMAP and Planck 2013 cosmologies are also available
+parameters and print a warning message letting you know this. The
+9-year WMAP and Planck 2013 cosmologies are also available
 
 .. doctest-requires:: scipy
 
@@ -235,8 +240,8 @@ The 9-year WMAP and Planck 2013 cosmologies are also available
 Built-in Cosmologies
 --------------------
 
-A number of pre-loaded cosmologies are available from the
-WMAP and Planck satellites.  For example,
+A number of pre-loaded cosmologies are available from analyses using
+the WMAP and Planck satellite data. For example,
 
 .. doctest-requires:: scipy
 
