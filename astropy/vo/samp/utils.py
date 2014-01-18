@@ -53,7 +53,6 @@ ALLOW_INTERNET = ConfigurationItem('use_internet', True,
 
 
 def internet_on():
-    return False
     if not ALLOW_INTERNET():
         return False
     else:
