@@ -125,14 +125,6 @@ class SAMPIntegratedClient(object):
             which to connect. This dictionary has the form `{<token-name>:
             <token-string>, ...}`.
 
-        user : str, optional
-            In case of Basic Authenticated connections, `user` specifies the
-            user name.
-
-        password : str, optional
-            In case of Basic Authenticated connections, `password` specifies
-            the user password.
-
         key_file : str, optional
             Set the file containing the private key for SSL connections. If the
             certificate file (`cert_file`) contains the private key, then

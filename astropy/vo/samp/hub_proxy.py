@@ -6,18 +6,20 @@ import copy
 import sys
 import traceback
 
+from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO
 
 from .hub import SAMPHubServer
 from .errors import SAMPHubError
-from .utils import ServerProxyPool, SafeTransport, xmlrpc
+from .utils import ServerProxyPool
 
-try:
+
+from .constants import SSL_SUPPORT
+
+if SSL_SUPPORT:
     import ssl
-except ImportError:
-    SSL_SUPPORT = False
-else:
-    SSL_SUPPORT = True
+    from .ssl_utils import SafeTransport
+
 
 __all__ = ['SAMPHubProxy']
 
@@ -120,12 +122,6 @@ class SAMPHubProxy(object):
             Optional dictionary containing the lock-file content of the Hub with which to connect.
             This dictionary has the form `{<token-name>: <token-string>, ...}`.
 
-        user : str
-            In case of Basic Authenticated connections, `user` specifies the user name.
-
-        password : str
-            In case of Basic Authenticated connections, `password` specifies the user password.
-
         key_file : str
             Set the file containing the private key for SSL connections. If the
             certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
@@ -191,11 +187,6 @@ class SAMPHubProxy(object):
         try:
 
             url = hub_params["samp.hub.xmlrpc.url"].replace("\\", "")
-
-            # URL formatting for Basic Authentication parameters
-            if user is not None and password is not None:
-                trans, addr = url.split("://")
-                url = "%s://%s:%s@%s" % (trans, user, password, addr)
 
             if SSL_SUPPORT and url[0:5] == "https":
                 self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
@@ -276,7 +267,6 @@ class SAMPHubProxy(object):
 
     def notify(self, private_key, recipient_id, message):
         """Proxy to `notify` SAMP Hub method."""
-        # Add user in Basic Authentication case
         return self.proxy.samp.hub.notify(private_key, recipient_id, message)
 
     def notify_all(self, private_key, message):

@@ -22,23 +22,20 @@ from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 from ... import log
 
-from .constants import SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP, SAMP_RESTRICT_OWNER
+from .constants import SAMP_HUB_SINGLE_INSTANCE
 from .constants import SAMP_HUB_MULTIPLE_INSTANCE, SAMP_STATUS_OK
 from .constants import _THREAD_STARTED_COUNT, __profile_version__
 from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
-from .utils import internet_on, SafeTransport, ServerProxyPool, _HubAsClient
-from .utils import WebProfileXMLRPCServer, SecureXMLRPCServer
-from .utils import ThreadingXMLRPCServer, web_profile_text_dialog
-from .utils import BDB_SUPPORT, SSL_SUPPORT
+from .utils import internet_on, ServerProxyPool, _HubAsClient
+
+from .standard_profile import ThreadingXMLRPCServer
+from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
+
+from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
     import ssl
-
-if BDB_SUPPORT:
-    from .utils import BasicAuthXMLRPCServer
-
-if SSL_SUPPORT and BDB_SUPPORT:
-    from .utils import BasicAuthSecureXMLRPCServer
+    from .ssl_utils import SafeTransport, SecureXMLRPCServer
 
 __all__ = ['SAMPHubServer']
 
@@ -101,22 +98,6 @@ class SAMPHubServer(object):
         General purpose Hub owner group name. This value is written in the
         lock-file and assigned to the `hub.owner.group` token.
 
-    auth_file : str, optional
-        Authentication file path used for Basic Authentication. The authentication file
-        must be a Berkeley DB file in Hash format containing a set of
-        `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...)` key/value pairs.
-
-    access_restrict : str, optional
-        Define whether the Hub access must be restricted to the Hub owner, to a
-        certain owner group or not restricted at all. Values accepted:
-        `SAMP_RESTRICT_OWNER`, `SAMP_RESTRICT_GROUP`, `None`.
-
-    admin : str, optional
-        Define the name of the administrator user in case of restricted access.
-        The administrator user can always access the hub instance even if it is
-        running with `SAMP_RESTRICT_OWNER` policy. The administrator must be
-        declared in the authentication file.
-
     https : bool, optional
         Set the Hub running on a Secure Sockets Layer connection (HTTPS). By
         default SSL is disabled.
@@ -178,21 +159,17 @@ class SAMPHubServer(object):
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None, timeout=0,
                  client_timeout=0, mode=SAMP_HUB_SINGLE_INSTANCE, label="",
-                 owner="", owner_group="", auth_file=None,
-                 access_restrict=None, admin="admin", https=False,
-                 key_file=None, cert_file=None, cert_reqs=0, ca_certs=None,
-                 ssl_version=None, web_profile=True, pool_size=20):
+                 https=False, key_file=None, cert_file=None, cert_reqs=0,
+                 ca_certs=None, ssl_version=None, web_profile=True,
+                 pool_size=20):
 
         # General settings
         self._is_running = False
         self._lockfilename = lockfile
-        self._admin = admin
         self._addr = addr
         self._port = port
         self._mode = mode
         self._label = label
-        self._owner = owner
-        self._owner_group = owner_group
         self._timeout = timeout
         self._client_timeout = client_timeout
         self._pool_size = pool_size
@@ -224,23 +201,6 @@ class SAMPHubServer(object):
         self._cert_reqs = cert_reqs
         self._ca_certs = cert_reqs
         self._ssl_version = ssl_version
-        # Basic Authentication settings
-        self._auth_file = auth_file
-        self._access_restrict = access_restrict
-
-        # Reformat access_restrict string to suitable dictionary
-        if access_restrict is not None:
-            if access_restrict == SAMP_RESTRICT_GROUP:
-                access_restrict = {"group": owner_group, "admin": admin}
-            elif access_restrict == SAMP_RESTRICT_OWNER:
-                access_restrict = {"user": owner, "admin": admin}
-            else:
-                access_restrict = None
-
-        # Athentication file test
-        if auth_file is not None:
-            if not os.path.isfile(auth_file):
-                raise SAMPHubError("Unable to load authentication file!")
 
         self._host_name = "127.0.0.1"
         if internet_on():
@@ -259,31 +219,18 @@ class SAMPHubServer(object):
             if cert_file is None or not os.path.isfile(cert_file):
                 raise SAMPHubError("Unable to load SSL cert file!")
 
-            if auth_file is not None:
-                log.info("Hub set for Basic Authentication using SSL.")
-                self._server = BasicAuthSecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                           key_file, cert_file, cert_reqs, ca_certs, ssl_version,
-                                                           auth_file, access_restrict, log,
-                                                           logRequests=False, allow_none=True)
-            else:
-                log.info("Hub set for using SSL.")
-                self._server = SecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                  key_file, cert_file, cert_reqs, ca_certs, ssl_version,
-                                                  log, logRequests=False, allow_none=True)
+            log.info("Hub set for using SSL.")
+            self._server = SecureXMLRPCServer((self._addr or self._host_name, self._port or 0),
+                                              key_file, cert_file, cert_reqs, ca_certs, ssl_version,
+                                              log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
             self._url = "https://%s:%s" % (self._addr or self._host_name,
                                            self._port)
         else:
 
-            if auth_file is not None:
-                log.info("Hub set for Basic Authentication.")
-                self._server = BasicAuthXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                     auth_file, access_restrict, log,
-                                                     logRequests=False, allow_none=True)
-            else:
-                self._server = ThreadingXMLRPCServer((self._addr or self._host_name, self._port or 0),
-                                                     log, logRequests=False, allow_none=True)
+            self._server = ThreadingXMLRPCServer((self._addr or self._host_name, self._port or 0),
+                                                 log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
             self._url = "http://%s:%s" % (self._addr or self._host_name,
@@ -543,16 +490,6 @@ class SAMPHubServer(object):
             self._label = "Hub %d-%s" % (os.getpid(), _THREAD_STARTED_COUNT)
         if self._label != "":
             lockfile.write("hub.label=%s\n" % self._label)
-        if self._owner != "":
-            lockfile.write("hub.owner.name=%s\n" % self._owner)
-        if self._owner_group != "":
-            lockfile.write("hub.owner.group=%s\n" % self._owner_group)
-
-        if self._auth_file is not None:
-            lockfile.write("hub.access.auth.file=%s\n" % self._auth_file)
-
-        if self._access_restrict is not None:
-            lockfile.write("hub.access.auth.restrict=%s\n" % self._access_restrict)
 
         if SSL_SUPPORT and self._https:
             # Certificate request

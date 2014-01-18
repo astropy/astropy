@@ -1,20 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import sys
 import time
 import copy
 import traceback
-import warnings
 from optparse import OptionParser, OptionGroup
 
 from ...extern.six import StringIO
 from ... import log, __version__
 
-from .constants import (SAMP_HUB_SINGLE_INSTANCE, SAMP_RESTRICT_GROUP,
-                        SAMP_RESTRICT_OWNER, SAMP_HUB_MULTIPLE_INSTANCE)
-from .errors import SAMPWarning, SAMPHubError
+from .constants import SAMP_HUB_SINGLE_INSTANCE, SAMP_HUB_MULTIPLE_INSTANCE, SSL_SUPPORT
+from .errors import SAMPHubError
 from .hub import SAMPHubServer
-from .utils import BDB_SUPPORT, SSL_SUPPORT
 
 if SSL_SUPPORT:
     import ssl
@@ -90,20 +86,7 @@ def main(timeout=0):
                             "Advanced options addressed to facilitate administrative tasks and "
                             "allow new non-standard Hub behaviors. In particular the --label "
                             "options is used to assign a value to hub.label token and is used to "
-                            "assign a name to the Hub instance. Option --auth-file sets the "
-                            "authentication file enabling the access control through Basic "
-                            "Authentication. The authentication file is a Berkeley DB file "
-                            "in Hash format containing a set of <user name>=md5(<password>)<group 1>,<group 2>,<group 3>,... "
-                            "key=value pairs. Options --owner and --group are additional tokens "
-                            "(hub.owner.name and hub.owner.group respectively) available for "
-                            "possible administrative tasks and usable in conjunction with --restrict "
-                            "option for authentication tasks. --restrict option allows to restrict "
-                            "the Hub access only to OWNER or to a certain owner GROUP. Access restriction "
-                            "is actually enabled only if an authentication file is provided. "
-                            "--admin option defines the name of the administrator user in case "
-                            "of restricted access. The administrator user can always access the "
-                            "hub instance even if it is running with the OWNER restricion policy. "
-                            "The administrator must be declared in the authentication file. "
+                            "assign a name to the Hub instance. "
                             "The very special --multi option allows to start a Hub in multi-instance mode. "
                             "Multi-instance mode is a non-standard Hub behavior that enables "
                             "multiple contemporaneous running Hubs. Multi-instance hubs place "
@@ -114,23 +97,6 @@ def main(timeout=0):
 
     adv_group.add_option("-l", "--label", dest="label", metavar="LABEL",
                          help="assign a LABEL to the Hub.")
-
-    adv_group.add_option("-o", "--owner", dest="owner", metavar="OWNER",
-                         help="assign a OWNER to the Hub.")
-
-    adv_group.add_option("-g", "--group", dest="owner_group", metavar="GROUP",
-                         help="assign a GROUP to the Hub.")
-
-    if BDB_SUPPORT:
-        adv_group.add_option("-a", "--auth-file", dest="auth_file", metavar="FILE",
-                             help="filename for Basic Authentication.")
-
-        adv_group.add_option("-r", "--restrict", dest="access_restrict", metavar="LEVEL",
-                             help="set the access restriction to OWNER or GROUP.",
-                             type="choice", choices=["OWNER", "GROUP"])
-
-        adv_group.add_option("-A", "--admin", dest="admin", metavar="NAME",
-                             help="set the name of the administrator user.")
 
     adv_group.add_option("-m", "--multi", dest="mode",
                          help="run the Hub in multi-instance mode generating a custom "
@@ -209,10 +175,6 @@ def main(timeout=0):
     parser.set_defaults(owner_group="")
     parser.set_defaults(admin="admin")
 
-    if BDB_SUPPORT:
-        parser.set_defaults(auth_file=None)
-        parser.set_defaults(access_restrict=None)
-
     parser.set_defaults(mode=SAMP_HUB_SINGLE_INSTANCE)
 
     (options, args) = parser.parse_args()
@@ -255,19 +217,6 @@ def main(timeout=0):
             context = dummy_context()
 
         with context:
-
-            if BDB_SUPPORT:
-
-                if options.access_restrict is not None:
-                    if options.access_restrict == SAMP_RESTRICT_OWNER and options.owner == "":
-                        warnings.warn("The access cannot be restricted to the owner if the owner "
-                                      "name is not specified!", SAMPWarning)
-                        sys.exit()
-
-                    if options.access_restrict == SAMP_RESTRICT_GROUP and options.owner_group == "":
-                        warnings.warn("The access cannot be restricted to the owner group if the owner "
-                                      "group name is not specified!", SAMPWarning)
-                        sys.exit()
 
             args = copy.deepcopy(options.__dict__)
             del(args["loglevel"])

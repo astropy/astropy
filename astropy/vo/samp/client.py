@@ -7,19 +7,19 @@ import select
 import socket
 import threading
 
-try:
-    import ssl
-except ImportError:
-    SSL_SUPPORT = False
-else:
-    SSL_SUPPORT = True
-
 from ... import log
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING, _THREAD_STARTED_COUNT
 from .hub import SAMPHubServer
 from .errors import SAMPClientError, SAMPProxyError
-from .utils import internet_on, SecureXMLRPCServer, ThreadingXMLRPCServer
+from .utils import internet_on
+
+from .constants import SSL_SUPPORT
+from .standard_profile import ThreadingXMLRPCServer
+
+if SSL_SUPPORT:
+    import ssl
+    from .ssl_utils import SecureXMLRPCServer
 
 __all__ = ['SAMPClient']
 
