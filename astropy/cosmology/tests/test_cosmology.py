@@ -863,14 +863,17 @@ def test_z_at_value_roundtrip():
     z_at_value returns the right answer.
     """
     z = 0.5
-    names = ('distmod H kpc_comoving_per_arcmin kpc_proper_per_arcmin '
-             'age lookback_time angular_diameter_distance luminosity_distance '
-             'arcsec_per_kpc_comoving arcsec_per_kpc_proper scale_factor '
-             'comoving_distance comoving_volume critical_density').split()
 
-    for name in names:
-        print('Round-trip testing Planck13.', name)
-        f = getattr(core.Planck13, name)
+    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError')
+
+    core.set_current('Planck13')
+    for name in dir(funcs):
+        if name.startswith('_') or name in skip:
+            continue
+        f = getattr(funcs, name)
+        if not hasattr(f, '__call__'):
+            continue
+        print('Round-trip testing {}'.format(name))
         fval = f(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
