@@ -110,7 +110,7 @@ class SAMPIntegratedClient(object):
         """
         return self.hub.is_connected & self.client.is_running
 
-    def connect(self, hub_params=None, user=None, password=None,
+    def connect(self, hub=None, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=None, pool_size=20):
         """
@@ -120,6 +120,9 @@ class SAMPIntegratedClient(object):
 
         Parameters
         ----------
+        hub : `~astropy.vo.samp.SAMPHubServer`
+            The hub to connect to.
+
         hub_params : dict, optional
             Optional dictionary containig the lock-file content of the Hub with
             which to connect. This dictionary has the form `{<token-name>:
@@ -162,7 +165,7 @@ class SAMPIntegratedClient(object):
         pool_size : int
             Number of socket connections opened to communicate with the Hub.
         """
-        self.hub.connect(hub_params, user, password, key_file, cert_file, cert_reqs,
+        self.hub.connect(hub, hub_params, user, password, key_file, cert_file, cert_reqs,
                          ca_certs, ssl_version, pool_size)
         self.client.start()
         self.client.register()

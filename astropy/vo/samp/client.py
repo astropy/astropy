@@ -9,7 +9,7 @@ import threading
 
 from ... import log
 
-from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING, _THREAD_STARTED_COUNT
+from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
 from .errors import SAMPClientError, SAMPProxyError
 from .utils import internet_on
@@ -170,8 +170,6 @@ class SAMPClient(object):
 
     def start(self):
         """Start the client in a non-blocking way."""
-        global _THREAD_STARTED_COUNT
-        _THREAD_STARTED_COUNT += 1
         self._is_running = True
         self._run_client()
 

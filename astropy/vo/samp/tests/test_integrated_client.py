@@ -16,7 +16,6 @@ ALLOW_INTERNET.set(False)
 # TODO:
 # - reply/ereply
 # - bind_receive_response
-# - make proxy accept a lockfile name
 
 
 def wait_until_attribute_exists(object, attribute, timeout=None, step=0.1):
@@ -41,23 +40,16 @@ class TestIntegratedClient(object):
 
     def setup_method(self, method):
 
-        fileobj, self.lockfile = tempfile.mkstemp()
-
-        self.hub = SAMPHubServer(web_profile=False,
-                                 lockfile=self.lockfile)
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple')
         self.hub.start()
 
-        os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(self.lockfile)
-
         self.client1 = SAMPIntegratedClient()
-        self.client1.connect()
+        self.client1.connect(hub=self.hub)
         self.client1_id = self.client1.get_public_id()
 
         self.client2 = SAMPIntegratedClient()
-        self.client2.connect()
+        self.client2.connect(hub=self.hub)
         self.client2_id = self.client2.get_public_id()
-
-        del os.environ['SAMP_HUB']  # hacky
 
         self.metadata1 = {"samp.name": "Client 1",
                           "samp.description.text": "Client 1 Description",
@@ -75,9 +67,6 @@ class TestIntegratedClient(object):
             self.client2.disconnect()
 
         self.hub.stop()
-
-        if os.path.exists(self.lockfile):
-            os.remove(self.lockfile)
 
     def test_ping(self):
         self.client1.ping()

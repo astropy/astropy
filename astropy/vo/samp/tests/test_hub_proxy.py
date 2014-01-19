@@ -14,18 +14,11 @@ class TestHubProxy(object):
 
     def setup_method(self, method):
 
-        fileobj, self.lockfile = tempfile.mkstemp()
-
-        self.hub = SAMPHubServer(web_profile=False,
-                                 lockfile=self.lockfile)
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple')
         self.hub.start()
 
-        os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(self.lockfile)
-
         self.proxy = SAMPHubProxy()
-        self.proxy.connect()
-
-        del os.environ['SAMP_HUB']  # hacky
+        self.proxy.connect(hub=self.hub)
 
     def teardown_method(self, method):
 
@@ -34,17 +27,11 @@ class TestHubProxy(object):
 
         self.hub.stop()
 
-        if os.path.exists(self.lockfile):
-            os.remove(self.lockfile)
-
     def test_is_connected(self):
         assert self.proxy.is_connected
 
     def test_disconnect(self):
         self.proxy.disconnect()
-
-    def test_get_running_hubs(self):
-        SAMPHubProxy.get_running_hubs()
 
     def test_ping(self):
         self.proxy.ping()
@@ -52,3 +39,13 @@ class TestHubProxy(object):
     def test_registration(self):
         result = self.proxy.register(self.proxy.lockfile["samp.secret"])
         self.proxy.unregister(result['samp.private-key'])
+
+def test_custom_lockfile(tmpdir):
+
+    lockfile = tmpdir.join('.samptest').realpath().strpath
+
+    hub = SAMPHubServer(web_profile=False, lockfile=lockfile)
+    hub.start()
+
+    proxy = SAMPHubProxy()
+    proxy.connect(hub=hub)

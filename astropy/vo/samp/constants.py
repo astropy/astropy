@@ -29,9 +29,6 @@ SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
 with open(os.path.join(DATA_DIR, 'astropy_icon.png'), 'rb') as f:
     SAMP_ICON = f.read()
 
-# TODO: document this global variable. Is this the right place for it?
-_THREAD_STARTED_COUNT = 0
-
 try:
     import ssl
 except ImportError:

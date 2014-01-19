@@ -28,16 +28,12 @@ def test_SAMPMsgReplierWrapper():
 def test_SAMPClient_connect():
     """Test that SAMPClient can connect and register"""
 
-    fileobj, lockfile = tempfile.mkstemp()
-
     hub = SAMPHubServer(web_profile=False,
-                        lockfile=lockfile)
+                        mode='multiple')
     hub.start()
 
-    os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
-
     proxy = SAMPHubProxy()
-    proxy.connect()
+    proxy.connect(hub=hub)
 
     cli = SAMPClient(proxy, name="Client", description="Test Client")
     cli.start()
@@ -52,11 +48,6 @@ def test_SAMPClient_connect():
 
     hub.stop()
 
-    del os.environ['SAMP_HUB']  # hacky
-
-    if os.path.exists(lockfile):
-        os.remove(lockfile)
-
 
 class TestSAMPCommunication(object):
 
@@ -65,21 +56,15 @@ class TestSAMPCommunication(object):
 
     def setup_class(self):
 
-        fileobj, lockfile = tempfile.mkstemp()
-
         self.hub = SAMPHubServer(web_profile=False,
-                                 lockfile=lockfile)
+                                 mode='multiple')
         self.hub.start()
 
-        os.environ['SAMP_HUB'] = "std-lockurl:file://" + os.path.abspath(lockfile)
-
         self.myhub1 = SAMPHubProxy()
-        self.myhub1.connect()
+        self.myhub1.connect(hub=self.hub)
 
         self.myhub2 = SAMPHubProxy()
-        self.myhub2.connect()
-
-        del os.environ['SAMP_HUB']  # hacky
+        self.myhub2.connect(hub=self.hub)
 
     def teardown_class(self):
 

@@ -12,7 +12,7 @@ from ...extern.six import StringIO
 from .hub import SAMPHubServer
 from .errors import SAMPHubError
 from .utils import ServerProxyPool
-
+from .lockfile_helpers import check_running_hub, get_running_hubs
 
 from .constants import SSL_SUPPORT
 
@@ -46,69 +46,7 @@ class SAMPHubProxy(object):
         """
         return self._connected
 
-    @staticmethod
-    def get_running_hubs():
-        """
-        Return a dictionary containing the lock-file contents of all the currently
-        running hubs (single and/or multiple mode).
-
-        The dictionary format is:
-        `{<lock-file>: {<token-name>: <token-string>, ...}, ...}`
-
-        where `{<lock-file>}` is the lock-file name, `{<token-name>}` and `{<token-string>}`
-        are the lock-file tokens (name and content).
-
-        Returns
-        -------
-        running_hubs : dict
-            Lock-file contents of all the currently running hubs.
-        """
-
-        hubs = {}
-        lockfilename = ""
-
-        # HUB SINGLE INSTANCE MODE
-
-        # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-        if "SAMP_HUB" in os.environ:
-            # For the time being I assume just the std profile supported.
-            if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-                lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
-        else:
-            if "HOME" in os.environ:
-                # UNIX
-                lockfilename = os.path.join(os.environ["HOME"], ".samp")
-            else:
-                # Windows
-                lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
-
-        hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
-
-        if hub_is_running:
-            hubs[lockfilename] = lockfiledict
-
-        # HUB MULTIPLE INSTANCE MODE
-
-        lockfiledir = ""
-
-        if "HOME" in os.environ:
-            # UNIX
-            lockfiledir = os.path.join(os.environ["HOME"], ".samp-1")
-        else:
-            # Windows
-            lockfiledir = os.path.join(os.environ["USERPROFILE"], ".samp-1")
-
-        if os.path.isdir(lockfiledir):
-            for filename in os.listdir(lockfiledir):
-                if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
-                    lockfilename = os.path.join(lockfiledir, filename)
-                    hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
-                    if hub_is_running:
-                        hubs[lockfilename] = lockfiledict
-
-        return hubs
-
-    def connect(self, hub_params=None, user=None, password=None,
+    def connect(self, hub=None, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=None, pool_size=20):
         """
@@ -118,6 +56,9 @@ class SAMPHubProxy(object):
 
         Parameters
         ----------
+        hub : `~astropy.vo.samp.SAMPHubServer`
+            The hub to connect to.
+
         hub_params : dict
             Optional dictionary containing the lock-file content of the Hub with which to connect.
             This dictionary has the form `{<token-name>: <token-string>, ...}`.
@@ -161,28 +102,35 @@ class SAMPHubProxy(object):
         if SSL_SUPPORT and ssl_version is None:
             ssl_version = ssl.PROTOCOL_SSLv3
 
+        if hub is not None and hub_params is not None:
+            raise ValueError("Cannot specify both hub and hub_params")
+
         if hub_params is None:
-            hubs = SAMPHubProxy.get_running_hubs()
-            if len(hubs.keys()) > 0:
-                # Use Single instance hub by default
-                lockfilename = ""
-                # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-                if "SAMP_HUB" in os.environ:
-                    # For the time being I assume just the std profile supported.
-                    if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-                        lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
-                    else:
-                        raise SAMPHubError("SAMP Hub profile not supported.")
-                else:
-                    if "HOME" in os.environ:
-                        # UNIX
-                        lockfilename = os.path.join(os.environ["HOME"], ".samp")
-                    else:
-                        # Windows
-                        lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
-                hub_params = hubs[lockfilename]
+
+            if hub is not None:
+                is_running, hub_params = check_running_hub(hub._lockfilename)
+                if not is_running:
+                    raise SAMPError("Hub is not running")
             else:
-                raise SAMPHubError("Unable to find a running SAMP Hub.")
+                hubs = get_running_hubs()
+                if len(hubs.keys()) > 0:
+                    # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
+                    if "SAMP_HUB" in os.environ:
+                        # For the time being I assume just the std profile supported.
+                        if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
+                            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
+                        else:
+                            raise SAMPHubError("SAMP Hub profile not supported.")
+                    else:
+                        if "HOME" in os.environ:
+                            # UNIX
+                            lockfilename = os.path.join(os.environ["HOME"], ".samp")
+                        else:
+                            # Windows
+                            lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
+                    hub_params = hubs[lockfilename]
+                else:
+                    raise SAMPHubError("Unable to find a running SAMP Hub.")
 
         try:
 

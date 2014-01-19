@@ -3,11 +3,9 @@
 import copy
 import datetime
 import os
-import re
 import select
 import socket
 import stat
-import sys
 import threading
 import traceback
 import time
@@ -17,16 +15,16 @@ import warnings
 from ...extern.six import StringIO
 from ...extern.six.moves import queue
 from ...extern.six.moves.urllib import parse as urlparse
-from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 from ... import log
 
 from .constants import SAMP_HUB_SINGLE_INSTANCE
 from .constants import SAMP_HUB_MULTIPLE_INSTANCE, SAMP_STATUS_OK
-from .constants import _THREAD_STARTED_COUNT, __profile_version__
+from .constants import __profile_version__
 from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
 from .utils import internet_on, ServerProxyPool, _HubAsClient
+from .lockfile_helpers import check_running_hub, remove_garbage_lock_files
 
 from .standard_profile import ThreadingXMLRPCServer
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
@@ -162,6 +160,9 @@ class SAMPHubServer(object):
                  https=False, key_file=None, cert_file=None, cert_reqs=0,
                  ca_certs=None, ssl_version=None, web_profile=True,
                  pool_size=20):
+
+        # Generate random ID for the hub
+        self._id = str(uuid.uuid1())
 
         # General settings
         self._is_running = False
@@ -327,6 +328,13 @@ class SAMPHubServer(object):
             self._web_profile_server.register_function(self._web_profile_allowReverseCallbacks, 'samp.webhub.allowReverseCallbacks')
             self._web_profile_server.register_function(self._web_profile_pullCallbacks, 'samp.webhub.pullCallbacks')
 
+    @property
+    def id(self):
+        """
+        The unique hub ID.
+        """
+        return self._id
+
     def __del__(self):
         self.stop()
 
@@ -414,7 +422,7 @@ class SAMPHubServer(object):
     def _create_lock_file(self):
 
         # Remove lock-files of dead hubs
-        self._remove_garbage_lock_files()
+        remove_garbage_lock_files()
 
         lockfilename = ""
         lockfiledir = ""
@@ -441,7 +449,7 @@ class SAMPHubServer(object):
                 if self._mode == SAMP_HUB_SINGLE_INSTANCE:
                     lockfilename = ".samp"
                 else:
-                    lockfilename = "samp-hub-%d-%s" % (os.getpid(), threading._counter + 1)
+                    lockfilename = "samp-hub-%s" % self.id
 
                 if "HOME" in os.environ:
                     # UNIX
@@ -464,7 +472,7 @@ class SAMPHubServer(object):
                 log.debug("Running mode: multiple")
                 lockfilename = self._lockfilename
 
-        hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
+        hub_is_running, lockfiledict = check_running_hub(lockfilename)
 
         if hub_is_running:
             warnings.warn("Another SAMP Hub is already running. Start-up process aborted.", SAMPWarning)
@@ -492,10 +500,10 @@ class SAMPHubServer(object):
 
         # Custom tokens
 
-        lockfile.write("hub.id=%d-%s\n" % (os.getpid(), _THREAD_STARTED_COUNT))
+        lockfile.write("hub.id=%s\n" % self.id)
 
         if self._label == "":
-            self._label = "Hub %d-%s" % (os.getpid(), _THREAD_STARTED_COUNT)
+            self._label = "Hub %s" % self.id
         if self._label != "":
             lockfile.write("hub.label=%s\n" % self._label)
 
@@ -511,52 +519,6 @@ class SAMPHubServer(object):
 
         return True
 
-    def _remove_garbage_lock_files(self):
-
-        lockfilename = ""
-
-        # HUB SINGLE INSTANCE MODE
-
-        if "HOME" in os.environ:
-            # UNIX
-            lockfilename = os.path.join(os.environ["HOME"], ".samp")
-        else:
-            # Windows
-            lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
-
-        hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
-
-        if not hub_is_running:
-            # If lockfilename belongs to a dead hub, then it is deleted
-            if os.path.isfile(lockfilename):
-                try:
-                    os.remove(lockfilename)
-                except OSError:
-                    pass
-
-        # HUB MULTIPLE INSTANCE MODE
-        lockfiledir = ""
-
-        if "HOME" in os.environ:
-            # UNIX
-            lockfiledir = os.path.join(os.environ["HOME"], ".samp-1")
-        else:
-            # Windows
-            lockfiledir = os.path.join(os.environ["USERPROFILE"], ".samp-1")
-
-        if os.path.isdir(lockfiledir):
-            for filename in os.listdir(lockfiledir):
-                if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
-                    lockfilename = os.path.join(lockfiledir, filename)
-                    hub_is_running, lockfiledict = SAMPHubServer.check_running_hub(lockfilename)
-                    if not hub_is_running:
-                        # If lockfilename belongs to a dead hub, then it is deleted
-                        if os.path.isfile(lockfilename):
-                            try:
-                                os.remove(lockfilename)
-                            except OSError:
-                                pass
-
     def _start_threads(self):
         self._thread_run = threading.Thread(target=self._serve_forever)
         self._thread_run.setDaemon(True)
@@ -567,57 +529,6 @@ class SAMPHubServer(object):
         self._thread_run.start()
         self._thread_hub_timeout.start()
         self._thread_client_timeout.start()
-
-    @staticmethod
-    def check_running_hub(lockfilename):
-        """
-        Test whether a Hub identified by `lockfilename` is running or not.
-
-        Parameters
-        ----------
-        lockfilename : str
-            Lock-file name (path + file name) of the Hub to be tested.
-        """
-
-        is_running = False
-        lockfiledict = {}
-
-        # Check whether a lockfile alredy exists
-        try:
-            if not (lockfilename.startswith("file:") or
-                    lockfilename.startswith("http:") or
-                    lockfilename.startswith("https:")):
-                lockfilename = "file://" + lockfilename
-
-            lockfile = urlopen(lockfilename)
-            lockfile_content = lockfile.readlines()
-            lockfile.close()
-        except IOError:
-            return is_running, lockfiledict
-
-        for line in lockfile_content:
-            if not line.startswith(b"#"):
-                kw, val = line.split(b"=")
-                lockfiledict[kw.decode().strip()] = val.decode().strip()
-
-        if "samp.hub.xmlrpc.url" in lockfiledict:
-            try:
-                proxy = xmlrpc.ServerProxy(lockfiledict["samp.hub.xmlrpc.url"].replace("\\", ""),
-                                           allow_none=1)
-                proxy.samp.hub.ping()
-                is_running = True
-            except xmlrpc.ProtocolError:
-                # There is a protocol error (e.g. for authentication required),
-                # but the server is alive
-                is_running = True
-            except:
-                if SSL_SUPPORT:
-                    if sys.exc_info()[0] in [ssl.SSLError, ssl.SSLEOFError]:
-                        # SSL connection refused for certifcate reasons...
-                        # anyway the server is alive
-                        is_running = True
-
-        return is_running, lockfiledict
 
     def _create_secret_code(self):
         if self._hub_secret_code_customized is not None:
