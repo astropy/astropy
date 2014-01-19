@@ -29,20 +29,15 @@ connection (for security reasons). By default, the confirmation messge is a
 text-based message in the terminal, but if you have a GUI tool, you will
 instead likely want to open a GUI dialog.
 
-To do this, there are two things you need to do. First, disable the default text-based dialog::
+To do this, you will need to define a class that handles the dialog, and you
+should then pass an **instance** of the class to |SAMPHubServer| (not the class
+itself). When initialized, |SAMPHubServer| will add two `queue.Queue` instances
+as attributes to the class, named ``queue_request`` and ``queue_result``.
 
-   hub.set_web_profile_text_dialog(False)
-
-and secondly, run the following command to get the queues which will allow your
-GUI to communicate with the SAMP hub::
-
-    queue_request, queue_result = hub.get_web_profile_dialog_queues()
-
-These are both standard instances of `Queue.Queue`. If a web client asks to
-connect to the SAMP hub, the ``queue_request`` queue is passed a tuple
-containing: a dictionary with details of the client that is connecting, a
-string containing the client address, and a string containing the origin of the
-request. The following is an example of such a tuple::
+If a web client asks to connect to the SAMP hub, the ``queue_request`` queue is
+passed a tuple containing: a dictionary with details of the client that is
+connecting, a string containing the client address, and a string containing the
+origin of the request. The following is an example of such a tuple::
 
     ({'samp.name': 'Monitor'}, ['127.0.0.1', 58105], 'http://astrojs.github.io')
 
@@ -78,19 +73,18 @@ for web SAMP connections and opens the appropriate dialog::
 
     class WebProfileDialog(object):
 
-        def __init__(self, root, queue_in, queue_out):
+        def __init__(self, root):
 
             self.root = root
-
-            self._queue_in = queue_in
-            self._queue_out = queue_out
 
             self.wait_for_dialog()
 
         def wait_for_dialog(self):
             try:
-                request = self._queue_in.get_nowait()
-            except Queue.Empty:
+                request = self.queue_request.get_nowait()
+            except Queue.Empty:  # queue is set but empty
+                pass
+            except AttributeError:  # queue has not been set yet
                 pass
             else:
                 self.show_dialog(request)
@@ -125,11 +119,11 @@ for web SAMP connections and opens the appropriate dialog::
             self.window.update()
 
         def consent(self):
-            self._queue_out.put(True)
+            self.queue_result.put(True)
             self.window.destroy()
 
         def reject(self):
-            self._queue_out.put(False)
+            self.queue_result.put(False)
             self.window.destroy()
 
     # Start up Tk application
@@ -140,13 +134,8 @@ for web SAMP connections and opens the appropriate dialog::
     root.update()
 
     # Start up SAMP hub
-    h = SAMPHubServer()
-    h.set_web_profile_text_dialog(False)
-    queue_in, queue_out = h.get_web_profile_dialog_queues()
+    h = SAMPHubServer(web_profile_dialog=WebProfileDialog(root))
     h.start()
-
-    # Prepare dialog in case it is needed
-    d = WebProfileDialog(root, queue_in, queue_out)
 
     # Main GUI loop
     root.mainloop()
