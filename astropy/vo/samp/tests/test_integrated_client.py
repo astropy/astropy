@@ -215,6 +215,7 @@ class TestIntegratedClient(object):
 
         # self.client2.unbind_receive_notification("test.message")  # TODO: fix
 
+        self.client1.disconnect()
         self.client2.disconnect()  # TODO: should not be needed
 
         self.hub._join_launched_threads()
@@ -249,6 +250,7 @@ class TestIntegratedClient(object):
 
         # self.client2.unbind_receive_call("test.call")  # TODO: fix
 
+        self.client1.disconnect()
         self.client2.disconnect()  # TODO: should not be needed
 
         self.hub._join_launched_threads()
@@ -287,6 +289,7 @@ class TestIntegratedClient(object):
 
         # self.client2.unbind_receive_call("test.call")  # TODO: fix
 
+        self.client1.disconnect()
         self.client2.disconnect()  # TODO: should not be needed
 
         self.hub._join_launched_threads()
