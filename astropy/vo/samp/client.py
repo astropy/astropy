@@ -200,6 +200,8 @@ class SAMPClient(object):
         self._is_running = False
         if self._callable and self._thread.is_alive():
             self._thread.join(timeout)
+        if self._thread.is_alive():
+            raise SAMPClientError("Client was not shut down successfully (timeout={0}s)".format(timeout))
 
     @property
     def is_running(self):
