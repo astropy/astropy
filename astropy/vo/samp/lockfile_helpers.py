@@ -34,9 +34,9 @@ def read_lockfile(lockfilename):
     lockfiledict = {}
     with get_readable_fileobj(lockfilename) as f:
         for line in f:
-            if not line.startswith(b"#"):
-                kw, val = line.split(b"=")
-                lockfiledict[kw.decode().strip()] = val.decode().strip()
+            if not line.startswith("#"):
+                kw, val = line.split("=")
+                lockfiledict[kw.strip()] = val.strip()
     return lockfiledict
 
 
