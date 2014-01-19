@@ -3,7 +3,7 @@
 
 import os
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+from ...utils.data import get_pkg_data_filename
 
 __all__ = ['SAMP_STATUS_OK', 'SAMP_STATUS_WARNING', 'SAMP_STATUS_ERROR',
            'SAMP_HUB_SINGLE_INSTANCE', 'SAMP_HUB_MULTIPLE_INSTANCE',
@@ -26,7 +26,7 @@ SAMP_HUB_MULTIPLE_INSTANCE = "multiple"
 SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
                "coord.*", "spectrum.*", "bibcode.*", "voresource.*"]
 
-with open(os.path.join(DATA_DIR, 'astropy_icon.png'), 'rb') as f:
+with open(get_pkg_data_filename('data/astropy_icon.png'), 'rb') as f:
     SAMP_ICON = f.read()
 
 try:
