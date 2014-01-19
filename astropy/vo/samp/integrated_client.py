@@ -109,7 +109,7 @@ class SAMPIntegratedClient(object):
         is_connected : bool
             True if the client is connected to a Hub, False otherwise.
         """
-        return self.hub.is_connected & self.client.is_running
+        return self.hub.is_connected and self.client.is_running
 
     def connect(self, hub=None, hub_params=None, user=None, password=None,
                 key_file=None, cert_file=None, cert_reqs=0,
