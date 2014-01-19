@@ -1,14 +1,115 @@
 import os
 import re
 import sys
+import stat
+import datetime
 
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
+from ...extern import six
 
-from .constants import SSL_SUPPORT
+from ... import log
+
+from .constants import SSL_SUPPORT, SAMP_HUB_SINGLE_INSTANCE, SAMP_HUB_MULTIPLE_INSTANCE
+
+from ...utils.data import get_readable_fileobj
 
 if SSL_SUPPORT:
     import ssl
+
+
+def read_lockfile(lockfilename):
+    """
+    Read in the lockfile given by ``lockfilename`` into a dictionary.
+    """
+    # lockfilename may be a local file or a remote URL, but
+    # get_readable_fileobj takes care of this.
+    lockfiledict = {}
+    with get_readable_fileobj(lockfilename) as f:
+        for line in f:
+            if not line.startswith(b"#"):
+                kw, val = line.split(b"=")
+                lockfiledict[kw.decode().strip()] = val.decode().strip()
+    return lockfiledict
+
+
+def write_lockfile(lockfilename, lockfiledict):
+
+    lockfile = open(lockfilename, "w")
+    lockfile.close()
+    os.chmod(lockfilename, stat.S_IREAD + stat.S_IWRITE)
+
+    lockfile = open(lockfilename, "w")
+    lockfile.write("# SAMP lockfile written on %s\n" % datetime.datetime.now().isoformat())
+    lockfile.write("# Standard Profile required keys\n")
+    for key, value in six.iteritems(lockfiledict):
+        lockfile.write("{0}={1}\n".format(key, value))
+    lockfile.close()
+
+
+def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None):
+
+    # Remove lock-files of dead hubs
+    remove_garbage_lock_files()
+
+    lockfiledir = ""
+
+    # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
+    if "SAMP_HUB" in os.environ:
+        # For the time being I assume just the std profile supported.
+        if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
+
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
+            lockfile_parsed = urlparse.urlparse(lockfilename)
+
+            if lockfile_parsed[0] != 'file':
+                warnings.warn("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename, SAMPWarning)
+                return False
+            else:
+                lockfilename = lockfile_parsed[2]
+    else:
+
+        # If it is a fresh Hub instance
+        if lockfilename is None:
+
+            log.debug("Running mode: " + mode)
+
+            if mode == SAMP_HUB_SINGLE_INSTANCE:
+                lockfilename = ".samp"
+            else:
+                lockfilename = "samp-hub-%s" % hub_id
+
+            if "HOME" in os.environ:
+                # UNIX
+                lockfiledir = os.environ["HOME"]
+            else:
+                # Windows
+                lockfiledir = os.environ["USERPROFILE"]
+
+            if mode == SAMP_HUB_MULTIPLE_INSTANCE:
+                lockfiledir = os.path.join(lockfiledir, ".samp-1")
+
+            # If missing create .samp-1 directory
+            if not os.path.isdir(lockfiledir):
+                os.mkdir(lockfiledir)
+                os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
+
+            lockfilename = os.path.join(lockfiledir, lockfilename)
+
+        else:
+            log.debug("Running mode: multiple")
+
+    hub_is_running, lockfiledict = check_running_hub(lockfilename)
+
+    if hub_is_running:
+        warnings.warn("Another SAMP Hub is already running. Start-up process aborted.", SAMPWarning)
+        return False
+
+    log.debug("Lock-file: " + lockfilename)
+
+    write_lockfile(lockfilename, hub_params)
+
+    return lockfilename
 
 
 def get_running_hubs():
@@ -65,7 +166,7 @@ def get_running_hubs():
 
     if os.path.isdir(lockfiledir):
         for filename in os.listdir(lockfiledir):
-            if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
+            if filename.startswith('samp-hub'):
                 lockfilename = os.path.join(lockfiledir, filename)
                 hub_is_running, lockfiledict = check_running_hub(lockfilename)
                 if hub_is_running:
@@ -96,21 +197,9 @@ def check_running_hub(lockfilename):
 
     # Check whether a lockfile alredy exists
     try:
-        if not (lockfilename.startswith("file:") or
-                lockfilename.startswith("http:") or
-                lockfilename.startswith("https:")):
-            lockfilename = "file://" + lockfilename
-
-        lockfile = urlopen(lockfilename)
-        lockfile_content = lockfile.readlines()
-        lockfile.close()
+        lockfiledict = read_lockfile(lockfilename)
     except IOError:
         return is_running, lockfiledict
-
-    for line in lockfile_content:
-        if not line.startswith(b"#"):
-            kw, val = line.split(b"=")
-            lockfiledict[kw.decode().strip()] = val.decode().strip()
 
     if "samp.hub.xmlrpc.url" in lockfiledict:
         try:
@@ -124,7 +213,7 @@ def check_running_hub(lockfilename):
             is_running = True
         except:
             if SSL_SUPPORT:
-                if sys.exc_info()[0] in [ssl.SSLError, ssl.SSLEOFError]:
+                if sys.exc_info()[0] in [ssl.SSLError]:
                     # SSL connection refused for certifcate reasons...
                     # anyway the server is alive
                     is_running = True
@@ -167,7 +256,7 @@ def remove_garbage_lock_files():
 
     if os.path.isdir(lockfiledir):
         for filename in os.listdir(lockfiledir):
-            if re.match('samp\\-hub\\-\d+\\-\d+', filename) is not None:
+            if filename.startswith('samp-hub'):
                 lockfilename = os.path.join(lockfiledir, filename)
                 hub_is_running, lockfiledict = check_running_hub(lockfilename)
                 if not hub_is_running:

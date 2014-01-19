@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
-import datetime
 import os
 import select
 import socket
-import stat
 import threading
 import traceback
 import time
@@ -14,17 +12,16 @@ import warnings
 
 from ...extern.six import StringIO
 from ...extern.six.moves import queue
-from ...extern.six.moves.urllib import parse as urlparse
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 from ... import log
 
 from .constants import SAMP_HUB_SINGLE_INSTANCE
-from .constants import SAMP_HUB_MULTIPLE_INSTANCE, SAMP_STATUS_OK
+from .constants import SAMP_STATUS_OK
 from .constants import __profile_version__
 from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
 from .utils import internet_on, ServerProxyPool, _HubAsClient
-from .lockfile_helpers import check_running_hub, remove_garbage_lock_files
+from .lockfile_helpers import read_lockfile, create_lock_file
 
 from .standard_profile import ThreadingXMLRPCServer
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
@@ -404,12 +401,10 @@ class SAMPHubServer(object):
         """
         if self._is_running == False:
 
+            self._lockfilename = create_lock_file(lockfilename=self._lockfilename, mode=self._mode, hub_id=self.id, hub_params=self.params)
+
             self._is_running = True
             self._update_last_activity_time()
-
-            if self._create_lock_file() == False:
-                self._is_running = False
-                return
 
             self._setup_hub_as_client()
             self._start_threads()
@@ -419,105 +414,36 @@ class SAMPHubServer(object):
         if wait and self._is_running:
             self._thread_run.join()
 
-    def _create_lock_file(self):
+    @property
+    def params(self):
+        """
+        The hub parameters (which are written to the logfile)
+        """
 
-        # Remove lock-files of dead hubs
-        remove_garbage_lock_files()
+        params = {}
 
-        lockfilename = ""
-        lockfiledir = ""
+        # Keys required by standard profile
 
-        # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-        if "SAMP_HUB" in os.environ:
-            # For the time being I assume just the std profile supported.
-            if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
+        params['samp.secret'] = self._hub_secret
+        params['samp.hub.xmlrpc.url'] = self._url
+        params['samp.profile.version'] = __profile_version__
 
-                lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
-                lockfile_parsed = urlparse.urlparse(lockfilename)
+        # Custom keys
 
-                if lockfile_parsed[0] != 'file':
-                    warnings.warn("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename, SAMPWarning)
-                    return False
-                else:
-                    lockfilename = lockfile_parsed[2]
-        else:
-            # If it is a fresh Hub instance
-            if self._lockfilename is None:
-
-                log.debug("Running mode: " + self._mode)
-
-                if self._mode == SAMP_HUB_SINGLE_INSTANCE:
-                    lockfilename = ".samp"
-                else:
-                    lockfilename = "samp-hub-%s" % self.id
-
-                if "HOME" in os.environ:
-                    # UNIX
-                    lockfiledir = os.environ["HOME"]
-                else:
-                    # Windows
-                    lockfiledir = os.environ["USERPROFILE"]
-
-                if self._mode == SAMP_HUB_MULTIPLE_INSTANCE:
-                    lockfiledir = os.path.join(lockfiledir, ".samp-1")
-
-                # If missing create .samp-1 directory
-                if not os.path.isdir(lockfiledir):
-                    os.mkdir(lockfiledir)
-                    os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
-
-                lockfilename = os.path.join(lockfiledir, lockfilename)
-
-            else:
-                log.debug("Running mode: multiple")
-                lockfilename = self._lockfilename
-
-        hub_is_running, lockfiledict = check_running_hub(lockfilename)
-
-        if hub_is_running:
-            warnings.warn("Another SAMP Hub is already running. Start-up process aborted.", SAMPWarning)
-            return False
-
-        log.debug("Lock-file: " + lockfilename)
-
-        result = self._new_lockfile(lockfilename)
-        if result:
-            self._lockfilename = lockfilename
-
-        return result
-
-    def _new_lockfile(self, lockfilename):
-
-        lockfile = open(lockfilename, "w")
-        lockfile.close()
-        os.chmod(lockfilename, stat.S_IREAD + stat.S_IWRITE)
-        lockfile = open(lockfilename, "w")
-        lockfile.write("# SAMP lockfile written on %s\n" % datetime.datetime.now().isoformat())
-        lockfile.write("# Standard Profile required keys\n")
-        lockfile.write("samp.secret=%s\n" % self._hub_secret)
-        lockfile.write("samp.hub.xmlrpc.url=%s\n" % self._url)
-        lockfile.write("samp.profile.version=%s\n" % __profile_version__)
-
-        # Custom tokens
-
-        lockfile.write("hub.id=%s\n" % self.id)
-
-        if self._label == "":
-            self._label = "Hub %s" % self.id
-        if self._label != "":
-            lockfile.write("hub.label=%s\n" % self._label)
+        params['hub.id'] = self.id
+        params['hub.label'] = self._label or "Hub {0}".format(self.id)
 
         if SSL_SUPPORT and self._https:
+
             # Certificate request
             cert_reqs_types = ["NONE", "OPTIONAL", "REQUIRED"]
-            lockfile.write("hub.ssl.certificate=%s\n" % cert_reqs_types[self._cert_reqs])
+            params['hub.ssl.certificate'] = cert_reqs_types[self._cert_reqs]
+
             # SSL protocol version
             ssl_protocol_types = ["SSLv2", "SSLv3", "SSLv23", "TLSv1"]
-            lockfile.write("hub.ssl.protocol=%s\n" % ssl_protocol_types[self._ssl_version])
+            params['hub.ssl.protocol'] = ssl_protocol_types[self._ssl_version]
 
-        lockfile.close()
-
-        return True
+        return params
 
     def _start_threads(self):
         self._thread_run = threading.Thread(target=self._serve_forever)
@@ -547,15 +473,9 @@ class SAMPHubServer(object):
             self._is_running = False
 
             if (os.path.isfile(self._lockfilename)):
-                lockfile = open(self._lockfilename, "r")
-                lockfile_content = lockfile.readlines()
-                lockfile.close()
-                for line in lockfile_content:
-                    if line.strip()[0] != "#":
-                        kw, val = line.split("=")
-                        if kw.strip() == "samp.secret" and val.strip() == self._hub_secret:
-                            os.remove(self._lockfilename)
-                            break
+                lockfiledict = read_lockfile(self._lockfilename)
+                if lockfiledict['samp.secret'] == self._hub_secret:
+                    os.remove(self._lockfilename)
 
         # Reset vaiables
         self._join_all_threads()
