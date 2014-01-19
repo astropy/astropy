@@ -371,7 +371,7 @@ class SAMPHubServer(object):
                     warnings.warn("Timeout expired, Hub is shutting down!", SAMPWarning)
                     self.stop()
                     break
-            if self._thread_lock.locked() == True:
+            if self._thread_lock.locked():
                 self._thread_lock.release()
 
     def _timeout_test_client(self):
@@ -967,7 +967,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
             if self._is_subscribed(self._get_private_keyFromPublicId(recipient_id),
-                                   message["samp.mtype"]) == False:
+                                   message["samp.mtype"]) is False:
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
 
             self._launch_thread(target=self._notify_, args=(private_key, recipient_id, message))
@@ -1039,7 +1039,7 @@ class SAMPHubServer(object):
 
         if private_key in self._private_keys:
             if self._is_subscribed(self._get_private_keyFromPublicId(recipient_id),
-                                   message["samp.mtype"]) == False:
+                                   message["samp.mtype"]) is False:
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
             public_id = self._private_keys[private_key][0]
             msg_id = self._get_new_hub_msg_id(public_id, msg_tag)
