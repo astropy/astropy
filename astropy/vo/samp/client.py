@@ -100,7 +100,6 @@ class SAMPClient(object):
                  cert_reqs=0, ca_certs=None, ssl_version=None, callable=True):
 
         # GENERAL
-        self._thread = None
         self._is_running = False
 
         if metadata is None:
@@ -143,6 +142,9 @@ class SAMPClient(object):
 
         if self._callable:
 
+            self._thread = threading.Thread(target=self._serve_forever)
+            self._thread.setDaemon(True)
+
             if SSL_SUPPORT and https:
                 self.client = SecureXMLRPCServer((self._addr or self._host_name, self._port),
                                                  key_file, cert_file, cert_reqs, ca_certs, ssl_version,
@@ -183,7 +185,7 @@ class SAMPClient(object):
             Timeout after which the client terminates even if the threading is still alive.
         """
         self._is_running = False
-        if self._thread is not None:
+        if self._callable and self._thread.is_alive():
             self._thread.join(timeout)
             self._thread = None
 
@@ -201,8 +203,6 @@ class SAMPClient(object):
 
     def _run_client(self):
         if self._callable:
-            self._thread = threading.Thread(target=self._serve_forever)
-            self._thread.setDaemon(True)
             self._thread.start()
 
     def _serve_forever(self):

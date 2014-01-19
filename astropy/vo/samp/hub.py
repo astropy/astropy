@@ -238,9 +238,13 @@ class SAMPHubServer(object):
 
         # Threading stuff
         self._thread_lock = threading.Lock()
-        self._thread_run = None
-        self._thread_hub_timeout = None
-        self._thread_client_timeout = None
+        self._thread_run = threading.Thread(target=self._serve_forever)
+        self._thread_run.setDaemon(True)
+        self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
+                                                    name="Hub timeout test")
+        self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
+                                                       name="Client timeout test")
+        self._launched_threads = []
 
         # Variables for timeout testing:
         self._last_activity_time = None
@@ -334,6 +338,27 @@ class SAMPHubServer(object):
 
     def __del__(self):
         self.stop()
+
+    def _launch_thread(self, group=None, target=None, name=None, args=None):
+
+        # Remove inactive threads
+        remove = []
+        for t in self._launched_threads:
+            if not t.is_alive():
+                remove.append(t)
+        for t in remove:
+            self._launched_threads.remove(t)
+
+        # Start new thread
+        t = threading.Thread(group=group, target=target, name=name, args=args)
+        t.start()
+
+        # Add to list of launched threads
+        self._launched_threads.append(t)
+
+    def _join_launched_threads(self, timeout=None):
+        for t in self._launched_threads:
+            t.join(timeout=timeout)
 
     def _timeout_test_hub(self):
 
@@ -450,12 +475,6 @@ class SAMPHubServer(object):
         return params
 
     def _start_threads(self):
-        self._thread_run = threading.Thread(target=self._serve_forever)
-        self._thread_run.setDaemon(True)
-        self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
-                                                    name="Hub timeout test")
-        self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
-                                                       name="Client timeout test")
         self._thread_run.start()
         self._thread_hub_timeout.start()
         self._thread_client_timeout.start()
@@ -501,19 +520,11 @@ class SAMPHubServer(object):
 
         log.info("Hub stopped.")
 
-    def _join_one_thread(self, thread_name, timeout):
-        t = getattr(self, thread_name)
-        if t is None:
-            return
-        t.join(timeout)
-        setattr(self, thread_name, None)
-
     def _join_all_threads(self, timeout=1):
-        for thread_name in [
-            "_thread_run",
-            "_thread_hub_timeout",
-                "_thread_client_timeout"]:
-            self._join_one_thread(thread_name, timeout)
+        self._thread_run.join(timeout=1.)
+        self._thread_hub_timeout.join(timeout=1.)
+        self._thread_client_timeout.join(timeout=1.)
+        self._join_launched_threads(timeout=1.)
 
     @property
     def is_running(self):
@@ -650,10 +661,10 @@ class SAMPHubServer(object):
             if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
                 try:
                     log.debug("notify disconnection to %s" % (public_id))
-                    threading.Thread(target=_xmlrpc_call_disconnect,
-                                     args=(endpoint, private_key, self._hub_public_id,
-                                           {"samp.mtype": "samp.hub.disconnect",
-                                            "samp.params": {"reason": "Timeout expired!"}})).start()
+                    self._launch_thread(target=_xmlrpc_call_disconnect,
+                                       args=(endpoint, private_key, self._hub_public_id,
+                                             {"samp.mtype": "samp.hub.disconnect",
+                                              "samp.params": {"reason": "Timeout expired!"}}))
                 except:
                     warnings.warn("disconnection notification to client %s failed\n" % (public_id), SAMPWarning)
 
@@ -959,7 +970,7 @@ class SAMPHubServer(object):
                                    message["samp.mtype"]) == False:
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
 
-            threading.Thread(target=self._notify_, args=(private_key, recipient_id, message)).start()
+            self._launch_thread(target=self._notify_, args=(private_key, recipient_id, message))
             return {}
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
@@ -1016,10 +1027,10 @@ class SAMPHubServer(object):
                     if key != sender_private_key:
                         _recipient_id = self._private_keys[key][0]
                         recipient_ids.append(_recipient_id)
-                        threading.Thread(target=self._notify,
+                        self._launch_thread(target=self._notify,
                                          args=(sender_private_key,
                                                _recipient_id, message)
-                                         ).start()
+                                         )
 
         return recipient_ids
 
@@ -1032,7 +1043,7 @@ class SAMPHubServer(object):
                 raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
             public_id = self._private_keys[private_key][0]
             msg_id = self._get_new_hub_msg_id(public_id, msg_tag)
-            threading.Thread(target=self._call_, args=(private_key, public_id, recipient_id, msg_id, message)).start()
+            self._launch_thread(target=self._call_, args=(private_key, public_id, recipient_id, msg_id, message))
             return msg_id
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
@@ -1091,10 +1102,10 @@ class SAMPHubServer(object):
                         _msg_id = self._get_new_hub_msg_id(sender_public_id, msg_tag)
                         receiver_public_id = self._private_keys[key][0]
                         msg_id[receiver_public_id] = _msg_id
-                        threading.Thread(target=self._call_,
+                        self._launch_thread(target=self._call_,
                                          args=(sender_private_key, sender_public_id,
                                                receiver_public_id, _msg_id, message)
-                                         ).start()
+                                         )
         return msg_id
 
     def _call_and_wait(self, private_key, recipient_id, message, timeout):
@@ -1127,7 +1138,7 @@ class SAMPHubServer(object):
     def _reply(self, private_key, msg_id, response):
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
-            threading.Thread(target=self._reply_, args=(private_key, msg_id, response)).start()
+            self._launch_thread(target=self._reply_, args=(private_key, msg_id, response))
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
 

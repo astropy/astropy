@@ -217,6 +217,8 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
+        self.hub._join_all_threads()
+
         wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
         assert rec.private_key == private_key
@@ -248,6 +250,8 @@ class TestIntegratedClient(object):
         # self.client2.unbind_receive_call("test.call")  # TODO: fix
 
         self.client2.disconnect()  # TODO: should not be needed
+
+        self.hub._join_all_threads()
 
         wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
@@ -284,6 +288,8 @@ class TestIntegratedClient(object):
         # self.client2.unbind_receive_call("test.call")  # TODO: fix
 
         self.client2.disconnect()  # TODO: should not be needed
+
+        self.hub._join_all_threads()
 
         wait_until_attribute_exists(rec, 'private_key', timeout=20.)
 
