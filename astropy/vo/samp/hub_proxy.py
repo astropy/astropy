@@ -108,9 +108,10 @@ class SAMPHubProxy(object):
         if hub_params is None:
 
             if hub is not None:
-                is_running, hub_params = check_running_hub(hub._lockfilename)
-                if not is_running:
-                    raise SAMPError("Hub is not running")
+                if not hub.is_running:
+                    raise SAMPHubError("Hub is not running")
+                else:
+                    hub_params = hub.params
             else:
                 hubs = get_running_hubs()
                 if len(hubs.keys()) > 0:

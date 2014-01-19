@@ -163,7 +163,8 @@ class SAMPHubServer(object):
 
         # General settings
         self._is_running = False
-        self._lockfilename = lockfile
+        self._customlockfilename = lockfile
+        self._lockfile = None
         self._addr = addr
         self._port = port
         self._mode = mode
@@ -399,17 +400,21 @@ class SAMPHubServer(object):
             an executable script. If `False` (default), then the Hub process runs in a
             separated thread. `False` is usually used in a Python shell.
         """
-        if self._is_running == False:
+        if self._is_running:
+            raise SAMPHubError("Hub is already running")
 
-            self._lockfilename = create_lock_file(lockfilename=self._lockfilename, mode=self._mode, hub_id=self.id, hub_params=self.params)
+        if self._lockfile is not None:
+            raise SAMPHubError("Hub is not running but lockfile is set")
 
-            self._is_running = True
-            self._update_last_activity_time()
+        self._lockfile = create_lock_file(lockfilename=self._customlockfilename, mode=self._mode, hub_id=self.id, hub_params=self.params)
 
-            self._setup_hub_as_client()
-            self._start_threads()
+        self._is_running = True
+        self._update_last_activity_time()
 
-            log.info("Hub started")
+        self._setup_hub_as_client()
+        self._start_threads()
+
+        log.info("Hub started")
 
         if wait and self._is_running:
             self._thread_run.join()
@@ -463,19 +468,24 @@ class SAMPHubServer(object):
             return str(uuid.uuid1())
 
     def stop(self):
-        """Stop the current SAMP Hub instance and delete the lock file."""
-        if self._is_running:
+        """
+        Stop the current SAMP Hub instance and delete the lock file.
+        """
 
-            log.info("Hub is stopping...")
+        if not self._is_running:
+            raise SAMPHubError("Hub is not running")
 
-            self._notify_shutdown()
+        log.info("Hub is stopping...")
 
-            self._is_running = False
+        self._notify_shutdown()
 
-            if (os.path.isfile(self._lockfilename)):
-                lockfiledict = read_lockfile(self._lockfilename)
-                if lockfiledict['samp.secret'] == self._hub_secret:
-                    os.remove(self._lockfilename)
+        self._is_running = False
+
+        if (os.path.isfile(self._lockfile)):
+            lockfiledict = read_lockfile(self._lockfile)
+            if lockfiledict['samp.secret'] == self._hub_secret:
+                os.remove(self._lockfile)
+        self._lockfile = None
 
         # Reset vaiables
         self._join_all_threads()
@@ -489,7 +499,6 @@ class SAMPHubServer(object):
         self._id2mtypes = {}
         self._xmlrpcEndpoints = {}
         self._last_activity_time = None
-        self._lockfilename = None
 
         log.info("Hub stopped.")
 
