@@ -12,7 +12,7 @@ from ...extern.six import StringIO
 from .hub import SAMPHubServer
 from .errors import SAMPHubError
 from .utils import ServerProxyPool
-from .lockfile_helpers import check_running_hub, get_running_hubs
+from .lockfile_helpers import get_main_running_hub
 
 from .constants import SSL_SUPPORT
 
@@ -113,25 +113,7 @@ class SAMPHubProxy(object):
                 else:
                     hub_params = hub.params
             else:
-                hubs = get_running_hubs()
-                if len(hubs.keys()) > 0:
-                    # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-                    if "SAMP_HUB" in os.environ:
-                        # For the time being I assume just the std profile supported.
-                        if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-                            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
-                        else:
-                            raise SAMPHubError("SAMP Hub profile not supported.")
-                    else:
-                        if "HOME" in os.environ:
-                            # UNIX
-                            lockfilename = os.path.join(os.environ["HOME"], ".samp")
-                        else:
-                            # Windows
-                            lockfilename = os.path.join(os.environ["USERPROFILE"], ".samp")
-                    hub_params = hubs[lockfilename]
-                else:
-                    raise SAMPHubError("Unable to find a running SAMP Hub.")
+                hub_params = get_main_running_hub()
 
         try:
 
