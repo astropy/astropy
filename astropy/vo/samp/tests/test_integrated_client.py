@@ -18,7 +18,7 @@ ALLOW_INTERNET.set(False)
 # - bind_receive_response
 
 
-def wait_until_attribute_exists(object, attribute, timeout=None, step=0.1):
+def wait_until_attribute_exists(object, attribute, timeout=None, step=1.):
     start_time = time.time()
     while not hasattr(object, attribute):
         time.sleep(step)
@@ -219,7 +219,7 @@ class TestIntegratedClient(object):
 
         self.hub._join_all_threads()
 
-        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
@@ -253,7 +253,7 @@ class TestIntegratedClient(object):
 
         self.hub._join_all_threads()
 
-        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id
@@ -291,7 +291,7 @@ class TestIntegratedClient(object):
 
         self.hub._join_all_threads()
 
-        wait_until_attribute_exists(rec, 'private_key', timeout=20.)
+        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
         assert rec.private_key == private_key
         assert rec.sender_id == self.client1_id

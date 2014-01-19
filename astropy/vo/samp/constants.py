@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Defines constants used in `astropy.vo.samp`."""
+"""
+Defines constants used in `astropy.vo.samp`.
+"""
 
 import os
 

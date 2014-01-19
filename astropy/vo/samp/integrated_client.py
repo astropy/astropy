@@ -60,7 +60,7 @@ class SAMPIntegratedClient(object):
         (certificates ignored), `ssl.CERT_OPTIONAL` (not required, but
         validated if provided), or `ssl.CERT_REQUIRED` (required and
         validated). If the value of this parameter is not `ssl.CERT_NONE`, then
-        the `ca_certs` parameter must point to a file of CA certificates.
+        the ``ca_certs`` parameter must point to a file of CA certificates.
 
     ca_certs : str, optional
         The path to a file containing a set of concatenated "Certification
@@ -117,7 +117,7 @@ class SAMPIntegratedClient(object):
         """
         Connect with the current or specified SAMP Hub, start and register the client.
 
-        If a SAMP Hub is not running or refuses the connection, a `SAMPHubError` is raised.
+        If a SAMP Hub is not running or refuses the connection, a :class:`~astropy.vo.samp.errors.SAMPHubError` is raised.
 
         Parameters
         ----------
@@ -145,7 +145,7 @@ class SAMPIntegratedClient(object):
             `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL` (not
             required, but validated if provided), or `ssl.CERT_REQUIRED`
             (required and validated). If the value of this parameter is not
-            `ssl.CERT_NONE`, then the `ca_certs` parameter must point to a file
+            `ssl.CERT_NONE`, then the ``ca_certs`` parameter must point to a file
             of CA certificates.
 
         ca_certs : str, optional
@@ -399,9 +399,9 @@ class SAMPIntegratedClient(object):
 
     def call_and_wait(self, recipient_id, message, timeout):
         """
-        Proxy to `callAndWait` SAMP Hub method.
+        Proxy to ``callAndWait`` SAMP Hub method.
 
-        If timeout expires a `SAMPProxyError` instance is raised.
+        If timeout expires a :class:`~astropy.vo.samp.errors.SAMPProxyError` instance is raised.
         """
         return self.hub.call_and_wait(self.get_private_key(), recipient_id, message, timeout)
 
@@ -442,7 +442,9 @@ class SAMPIntegratedClient(object):
         return self.call_and_wait(recipient_id, self._format_easy_msg(mtype, params), timeout)
 
     def reply(self, msg_id, response):
-        """Proxy to `reply` SAMP Hub method."""
+        """
+        Proxy to `reply` SAMP Hub method.
+        """
         return self.hub.reply(self.get_private_key(), msg_id, response)
 
     def _format_easy_response(self, status, result, error):

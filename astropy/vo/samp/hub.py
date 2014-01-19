@@ -40,9 +40,9 @@ class SAMPHubServer(object):
     """
     SAMP Hub Server.
 
-    The SSL parameters are usable only if Python has
-    been compiled with SSL support and/or ssl <http://docs.python.org/dev/library/ssl.html>
-    module is installed (available by default since Python 2.6).
+    The SSL parameters are usable only if Python has been compiled with SSL
+    support and/or `ssl <http://docs.python.org/dev/library/ssl.html>`_ module
+    is installed (available by default since Python 2.6).
 
     Parameters
     ----------
@@ -62,18 +62,18 @@ class SAMPHubServer(object):
         Custom lockfile name.
 
     timeout : int, optional
-        Hub inactivity timeout. If `timeout` > 0 then the Hub automatically
-        stops after an inactivity period longer than `timeout` seconds. By
-        default `timeout` is set to 0 (Hub never expires).
+        Hub inactivity timeout. If ``timeout > 0`` then the Hub automatically
+        stops after an inactivity period longer than ``timeout`` seconds. By
+        default ``timeout`` is set to 0 (Hub never expires).
 
     client_timeout : int, optional
-        Client inactivity timeout. If `client_timeout` > 0 then the Hub
+        Client inactivity timeout. If ``client_timeout > 0`` then the Hub
         automatically unregisters the clients which result inactive for a
         period longer than `client_timeout` seconds. By default
-        `client_timeout` is set to 0 (clients never expire).
+        ``client_timeout`` is set to 0 (clients never expire).
 
     mode : str, optional
-        Defines the Hub running mode. If `mode` is 'single' then the Hub runs
+        Defines the Hub running mode. If ``mode`` is ``'single'`` then the Hub runs
         using the standard `.samp` lock-file, having a single instance for user
         desktop session. Otherwise, if `mode` is 'multiple', then the Hub runs
         using a non-standard lock-file, placed in `.samp-1` directory, of the
@@ -98,21 +98,21 @@ class SAMPHubServer(object):
 
     key_file : str, optional
         The path to a file containing the private key for SSL connections. If
-        the certificate file (`cert_file`) contains the private key, then
-        `key_file` can be omitted.
+        the certificate file (``cert_file``) contains the private key, then
+        ``key_file`` can be omitted.
 
     cert_file : str, optional
         The path to a file containing a certificate to be used to identify the
         local side of the secure connection.
 
     cert_reqs : int, optional
-        The parameter `cert_reqs` specifies whether a certificate is required
+        The parameter ``cert_reqs`` specifies whether a certificate is required
         from the client side of the connection, and whether it will be
         validated if provided. It must be one of the three values
         `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL` (not
         required, but validated if provided), or `ssl.CERT_REQUIRED` (required
         and validated). If the value of this parameter is not `ssl.CERT_NONE`,
-        then the `ca_certs` parameter must point to a file of CA certificates.
+        then the ``ca_certs`` parameter must point to a file of CA certificates.
 
     ca_certs : str, optional
         The path to a file containing a set of concatenated "Certification
@@ -120,7 +120,7 @@ class SAMPHubServer(object):
         passed from the Hub end of the connection.
 
     ssl_version : int, optional
-        The `ssl_version` option specifies which version of the SSL protocol to
+        The ``ssl_version`` option specifies which version of the SSL protocol to
         use. Typically, the server chooses a particular protocol version, and
         the client must adapt to the server's choice. Most of the versions are
         not interoperable with the other versions. If not specified the default

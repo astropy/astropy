@@ -41,7 +41,7 @@ class SAMPHubProxy(object):
 
         Returns
         -------
-        isConnected : bool
+        is_connected : bool
             True if the proxy is connected to a Hub, False otherwise
         """
         return self._connected
@@ -52,47 +52,47 @@ class SAMPHubProxy(object):
         """
         Connect to the current SAMP Hub.
 
-        If a SAMP Hub is not running or refuses the connection, then a `SAMPHubError` is raised.
+        If a SAMP Hub is not running or refuses the connection, then a :class:`~astropy.vo.samp.errors.SAMPHubError` is raised.
 
         Parameters
         ----------
-        hub : `~astropy.vo.samp.SAMPHubServer`
+        hub : `~astropy.vo.samp.hub.SAMPHubServer`, optional
             The hub to connect to.
 
-        hub_params : dict
+        hub_params : dict, optional
             Optional dictionary containing the lock-file content of the Hub with which to connect.
             This dictionary has the form `{<token-name>: <token-string>, ...}`.
 
-        key_file : str
+        key_file : str, optional
             Set the file containing the private key for SSL connections. If the
-            certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+            certificate file (``cert_file``) contains the private key, then ``key_file`` can be omitted.
 
-        cert_file : str
+        cert_file : str, optional
             Specify the file which contains a certificate to be used to identify the
             local side of the secure connection.
 
-        cert_reqs : int
-            The parameter `cert_reqs` specifies whether a certificate is required
+        cert_reqs : int, optional
+            The parameter ``cert_reqs`` specifies whether a certificate is required
             from the server side of the connection, and whether it will be validated if provided. It
             must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
             (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-            If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+            If the value of this parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
             point to a file of CA certificates.
 
-        ca_certs : str
-            The `ca_certs` file contains a set of concatenated "Certification Authority"
+        ca_certs : str, optional
+            The ``ca_certs`` file contains a set of concatenated "Certification Authority"
             certificates, which are used to validate the certificate passed from the server end of the
             connection.
 
-        ssl_version : int
-            The `ssl_version` option specifies which version of the SSL protocol to use.
+        ssl_version : int, optional
+            The ``ssl_version`` option specifies which version of the SSL protocol to use.
             Typically, the server chooses a particular protocol version, and the client must adapt to the
             server's choice. Most of the versions are not interoperable with the other versions. If not
             specified the default SSL version is `ssl.PROTOCOL_SSLv3`. This version provides the most
             compatibility with other versions server side. Other SSL protocol versions are:
             `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
 
-        pool_size : int
+        pool_size : int, optional
             The number of socket connections opened to communicate with the Hub.
         """
 
@@ -151,74 +151,107 @@ class SAMPHubProxy(object):
                 raise SAMPHubError("SAMP Hub connection refused.\n" + txt)
 
     def disconnect(self):
-        """Disconnect from the current SAMP Hub."""
+        """
+        Disconnect from the current SAMP Hub.
+        """
         self.proxy = None
         self._connected = False
         self.lockfile = {}
 
     def ping(self):
-        """Proxy to `ping` SAMP Hub method (Standard Profile only)."""
+        """
+        Proxy to ``ping`` SAMP Hub method (Standard Profile only).
+        """
         return self.proxy.samp.hub.ping()
 
     def set_xmlrpc_callback(self, private_key, xmlrpc_addr):
-        """Proxy to `setXmlrpcCallback` SAMP Hub method (Standard Profile only)."""
+        """
+        Proxy to ``setXmlrpcCallback`` SAMP Hub method (Standard Profile only).
+        """
         return self.proxy.samp.hub.setXmlrpcCallback(private_key, xmlrpc_addr)
 
     def register(self, secret):
-        """Proxy to `register` SAMP Hub method."""
+        """
+        Proxy to ``register`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.register(secret)
 
     def unregister(self, private_key):
-        """Proxy to `unregister` SAMP Hub method."""
+        """
+        Proxy to ``unregister`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.unregister(private_key)
 
     def declare_metadata(self, private_key, metadata):
-        """Proxy to `declareMetadata` SAMP Hub method."""
+        """
+        Proxy to ``declareMetadata`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.declareMetadata(private_key, metadata)
 
     def get_metadata(self, private_key, client_id):
-        """Proxy to `getMetadata` SAMP Hub method."""
+        """
+        Proxy to ``getMetadata`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.getMetadata(private_key, client_id)
 
     def declare_subscriptions(self, private_key, subscriptions):
-        """Proxy to `declareSubscriptions` SAMP Hub method."""
+        """
+        Proxy to ``declareSubscriptions`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.declareSubscriptions(private_key, subscriptions)
 
     def get_subscriptions(self, private_key, client_id):
-        """Proxy to `getSubscriptions` SAMP Hub method."""
+        """
+        Proxy to ``getSubscriptions`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.getSubscriptions(private_key, client_id)
 
     def get_registered_clients(self, private_key):
-        """Proxy to `getRegisteredClients` SAMP Hub method."""
+        """
+        Proxy to ``getRegisteredClients`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.getRegisteredClients(private_key)
 
     def get_subscribed_clients(self, private_key, mtype):
-        """Proxy to `getSubscribedClients` SAMP Hub method."""
+        """
+        Proxy to ``getSubscribedClients`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.getSubscribedClients(private_key, mtype)
 
     def notify(self, private_key, recipient_id, message):
-        """Proxy to `notify` SAMP Hub method."""
+        """
+        Proxy to ``notify`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.notify(private_key, recipient_id, message)
 
     def notify_all(self, private_key, message):
-        """Proxy to `notifyAll` SAMP Hub method."""
+        """
+        Proxy to ``notifyAll`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.notifyAll(private_key, message)
 
     def call(self, private_key, recipient_id, msg_tag, message):
-        """Proxy to `call` SAMP Hub method."""
+        """
+        Proxy to ``call`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.call(private_key, recipient_id, msg_tag, message)
 
     def call_all(self, private_key, msg_tag, message):
-        """Proxy to `callAll` SAMP Hub method."""
+        """
+        Proxy to ``callAll`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.callAll(private_key, msg_tag, message)
 
     def call_and_wait(self, private_key, recipient_id, message, timeout):
-        """Proxy to `callAndWait` SAMP Hub method.
+        """
+        Proxy to ``callAndWait`` SAMP Hub method.
 
-        If timeout expires a `SAMPProxyError` instance is raised.
+        If timeout expires a :class:`~astropy.vo.samp.errors.SAMPProxyError` instance is raised.
         """
         return self.proxy.samp.hub.callAndWait(private_key, recipient_id, message, timeout)
 
     def reply(self, private_key, msg_id, response):
-        """Proxy to `reply` SAMP Hub method."""
+        """
+        Proxy to ``reply`` SAMP Hub method.
+        """
         return self.proxy.samp.hub.reply(private_key, msg_id, response)

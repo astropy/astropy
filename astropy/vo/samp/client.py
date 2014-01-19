@@ -72,7 +72,7 @@ class SAMPClient(object):
         three values `ssl.CERT_NONE` (certificates ignored),
         `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
         `ssl.CERT_REQUIRED` (required and validated). If the value of this
-        parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
         point to a file of CA certificates.
 
     ca_certs : str, optional
@@ -171,7 +171,9 @@ class SAMPClient(object):
         self.stop()
 
     def start(self):
-        """Start the client in a non-blocking way."""
+        """
+        Start the client in a non-blocking way.
+        """
         self._is_running = True
         self._run_client()
 
