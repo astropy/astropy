@@ -34,6 +34,17 @@ __all__ = ["SAMPMsgReplierWrapper"]
 __doctest_skip__ = ['.']
 
 
+def getattr_recursive(variable, attribute):
+    """
+    Get attributes recursively.
+    """
+    if '.' in attribute:
+        top, remaining = attribute.split('.', 1)
+        return getattr_recursive(getattr(variable, top), remaining)
+    else:
+        return getattr(variable, attribute)
+
+
 class _ServerProxyPoolMethod(object):
 
     # some magic to bind an XML-RPC method to an RPC server.
@@ -48,12 +59,11 @@ class _ServerProxyPoolMethod(object):
 
     def __call__(self, *args, **kwrds):
         proxy = self.__proxies.get()
+        function = getattr_recursive(proxy, self.__name)
         try:
-            response = eval("proxy.%s(*args, **kwrds)" % self.__name)
-        except:
+            response = function(*args, **kwrds)
+        finally:
             self.__proxies.put(proxy)
-            raise
-        self.__proxies.put(proxy)
         return response
 
 
