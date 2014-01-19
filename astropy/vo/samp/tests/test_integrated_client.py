@@ -217,7 +217,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        self.hub._join_all_threads()
+        self.hub._join_launched_threads()
 
         wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
@@ -251,7 +251,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        self.hub._join_all_threads()
+        self.hub._join_launched_threads()
 
         wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
@@ -289,7 +289,7 @@ class TestIntegratedClient(object):
 
         self.client2.disconnect()  # TODO: should not be needed
 
-        self.hub._join_all_threads()
+        self.hub._join_launched_threads()
 
         wait_until_attribute_exists(rec, 'private_key', timeout=60.)
 
