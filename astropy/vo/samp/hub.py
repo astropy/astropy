@@ -339,6 +339,12 @@ class SAMPHubServer(object):
         """
         return self._id
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        self.stop()
+
     def __del__(self):
         self.stop()
 
@@ -494,7 +500,7 @@ class SAMPHubServer(object):
         """
 
         if not self._is_running:
-            raise SAMPHubError("Hub is not running")
+            return
 
         log.info("Hub is stopping...")
 
@@ -509,7 +515,7 @@ class SAMPHubServer(object):
         self._lockfile = None
 
         # Reset vaiables
-        self._join_all_threads()
+        self._join_all_threads(timeout=10.)
 
         self._hub_msg_id_counter = 0
         self._hub_secret = self._create_secret_code()
@@ -523,11 +529,11 @@ class SAMPHubServer(object):
 
         log.info("Hub stopped.")
 
-    def _join_all_threads(self, timeout=1):
-        self._thread_run.join(timeout=1.)
-        self._thread_hub_timeout.join(timeout=1.)
-        self._thread_client_timeout.join(timeout=1.)
-        self._join_launched_threads(timeout=1.)
+    def _join_all_threads(self, timeout=None):
+        self._thread_run.join(timeout=timeout)
+        self._thread_hub_timeout.join(timeout=timeout)
+        self._thread_client_timeout.join(timeout=timeout)
+        self._join_launched_threads(timeout=timeout)
 
     @property
     def is_running(self):

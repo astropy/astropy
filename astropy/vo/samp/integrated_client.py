@@ -92,10 +92,13 @@ class SAMPIntegratedClient(object):
                                  ca_certs, ssl_version, callable)
 
     def __del__(self):
-        try:
-            self.disconnect()
-        except:
-            pass
+        self.disconnect()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        self.disconnect()
 
     # GENERAL
 
@@ -176,18 +179,13 @@ class SAMPIntegratedClient(object):
         Unregister the client from the current SAMP Hub, stop the client and
         disconnect from the Hub.
         """
-        cliEx = None
-        try:
-            self.client.unregister()
-        except SAMPClientError as cliEx:
-            pass
-
-        if self.client.is_running:
-            self.client.stop()
-        self.hub.disconnect()
-
-        if cliEx:
-            raise cliEx
+        if self.is_connected:
+            try:
+                self.client.unregister()
+            finally:
+                if self.client.is_running:
+                    self.client.stop()
+                self.hub.disconnect()
 
     # HUB
     def ping(self):

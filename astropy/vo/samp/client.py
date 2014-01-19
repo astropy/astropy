@@ -172,6 +172,12 @@ class SAMPClient(object):
     def __del__(self):
         self.stop()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        self.stop()
+
     def start(self):
         """
         Start the client in a non-blocking way.
@@ -179,7 +185,7 @@ class SAMPClient(object):
         self._is_running = True
         self._run_client()
 
-    def stop(self, timeout=0.1):
+    def stop(self, timeout=10.):
         """
         Stop the client.
 
@@ -188,10 +194,12 @@ class SAMPClient(object):
         timeout : float
             Timeout after which the client terminates even if the threading is still alive.
         """
+        # Setting _is_running to False causes the loop in _serve_forever to
+        # exit. The thread should then stop running. We wait for the thread to
+        # terminate until the timeout, then we continue anyway.
         self._is_running = False
         if self._callable and self._thread.is_alive():
             self._thread.join(timeout)
-            self._thread = None
 
     @property
     def is_running(self):
