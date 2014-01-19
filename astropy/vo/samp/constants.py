@@ -6,7 +6,6 @@ import os
 from ...utils.data import get_pkg_data_filename
 
 __all__ = ['SAMP_STATUS_OK', 'SAMP_STATUS_WARNING', 'SAMP_STATUS_ERROR',
-           'SAMP_HUB_SINGLE_INSTANCE', 'SAMP_HUB_MULTIPLE_INSTANCE',
            'SAFE_MTYPES', 'SAMP_ICON']
 
 __profile_version__ = "1.3"
@@ -17,11 +16,6 @@ SAMP_STATUS_OK = "samp.ok"
 SAMP_STATUS_WARNING = "samp.warning"
 #: General constant for samp.error status string
 SAMP_STATUS_ERROR = "samp.error"
-
-#: General constant to specify single instance Hub running mode
-SAMP_HUB_SINGLE_INSTANCE = "single"
-#: General constant to specify multiple instance Hub running mode
-SAMP_HUB_MULTIPLE_INSTANCE = "multiple"
 
 SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
                "coord.*", "spectrum.*", "bibcode.*", "voresource.*"]

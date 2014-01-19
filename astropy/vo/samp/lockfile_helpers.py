@@ -1,3 +1,6 @@
+# TODO: this file should be refactored to use a more thread-safe and
+# race-condition-safe lockfile mechanism.
+
 import os
 import re
 import sys
@@ -10,12 +13,15 @@ from ...extern import six
 
 from ... import log
 
-from .constants import SSL_SUPPORT, SAMP_HUB_SINGLE_INSTANCE, SAMP_HUB_MULTIPLE_INSTANCE
+from .constants import SSL_SUPPORT
 
 from ...utils.data import get_readable_fileobj
 
 if SSL_SUPPORT:
     import ssl
+    SSL_EXCEPTIONS = (ssl.SSLError,)
+else:
+    SSL_EXCEPTIONS = ()
 
 
 def read_lockfile(lockfilename):
@@ -74,15 +80,11 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
 
             log.debug("Running mode: " + mode)
 
-            if mode == SAMP_HUB_SINGLE_INSTANCE:
+            if mode == 'single':
                 lockfilename = ".samp"
             else:
                 lockfilename = "samp-hub-%s" % hub_id
-
-            lockfiledir = os.path.expanduser('~')
-
-            if mode == SAMP_HUB_MULTIPLE_INSTANCE:
-                lockfiledir = os.path.join(lockfiledir, ".samp-1")
+                lockfiledir = os.path.join(os.path.expanduser('~'), ".samp-1")
 
             # If missing create .samp-1 directory
             if not os.path.isdir(lockfiledir):
@@ -219,12 +221,10 @@ def check_running_hub(lockfilename):
             # There is a protocol error (e.g. for authentication required),
             # but the server is alive
             is_running = True
-        except:
-            if SSL_SUPPORT:
-                if sys.exc_info()[0] in [ssl.SSLError]:
-                    # SSL connection refused for certifcate reasons...
-                    # anyway the server is alive
-                    is_running = True
+        except SSL_EXCEPTIONS:
+            # SSL connection refused for certifcate reasons...
+            # anyway the server is alive
+            is_running = True
 
     return is_running, lockfiledict
 

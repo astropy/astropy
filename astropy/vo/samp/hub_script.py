@@ -8,7 +8,7 @@ from optparse import OptionParser, OptionGroup
 from ...extern.six import StringIO
 from ... import log, __version__
 
-from .constants import SAMP_HUB_SINGLE_INSTANCE, SAMP_HUB_MULTIPLE_INSTANCE, SSL_SUPPORT
+from .constants import SSL_SUPPORT
 from .errors import SAMPHubError
 from .hub import SAMPHubServer
 
@@ -101,7 +101,7 @@ def main(timeout=0):
     adv_group.add_option("-m", "--multi", dest="mode",
                          help="run the Hub in multi-instance mode generating a custom "
                          "lockfile with a random name.",
-                         action="store_const", const=SAMP_HUB_MULTIPLE_INSTANCE)
+                         action="store_const", const='multiple')
 
     parser.add_option_group(adv_group)
 
@@ -175,7 +175,7 @@ def main(timeout=0):
     parser.set_defaults(owner_group="")
     parser.set_defaults(admin="admin")
 
-    parser.set_defaults(mode=SAMP_HUB_SINGLE_INSTANCE)
+    parser.set_defaults(mode='single')
 
     (options, args) = parser.parse_args()
 

@@ -16,7 +16,6 @@ from ...extern.six.moves import xmlrpc_client as xmlrpc
 
 from ... import log
 
-from .constants import SAMP_HUB_SINGLE_INSTANCE
 from .constants import SAMP_STATUS_OK
 from .constants import __profile_version__
 from .errors import SAMPWarning, SAMPHubError, SAMPProxyError
@@ -153,7 +152,7 @@ class SAMPHubServer(object):
     """
 
     def __init__(self, secret=None, addr=None, port=0, lockfile=None, timeout=0,
-                 client_timeout=0, mode=SAMP_HUB_SINGLE_INSTANCE, label="",
+                 client_timeout=0, mode='single', label="",
                  https=False, key_file=None, cert_file=None, cert_reqs=0,
                  ca_certs=None, ssl_version=None, web_profile=True,
                  pool_size=20):
