@@ -88,8 +88,11 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
                 lockfiledir = os.path.join(os.path.expanduser('~'), ".samp-1")
 
                 # If missing create .samp-1 directory
-                if not os.path.isdir(lockfiledir):
+                try:
                     os.mkdir(lockfiledir)
+                except OSError:
+                    pass  # directory already exists
+                finally:
                     os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
                 lockfilename = os.path.join(lockfiledir, "samp-hub-%s" % hub_id)
