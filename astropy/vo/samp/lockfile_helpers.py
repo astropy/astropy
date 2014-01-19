@@ -3,6 +3,7 @@
 
 import os
 import re
+import socket
 import sys
 import stat
 import datetime
@@ -81,17 +82,17 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
             log.debug("Running mode: " + mode)
 
             if mode == 'single':
-                lockfilename = ".samp"
+                lockfilename = os.path.join(os.path.expanduser('~'), ".samp")
             else:
-                lockfilename = "samp-hub-%s" % hub_id
+
                 lockfiledir = os.path.join(os.path.expanduser('~'), ".samp-1")
 
-            # If missing create .samp-1 directory
-            if not os.path.isdir(lockfiledir):
-                os.mkdir(lockfiledir)
-                os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
+                # If missing create .samp-1 directory
+                if not os.path.isdir(lockfiledir):
+                    os.mkdir(lockfiledir)
+                    os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
-            lockfilename = os.path.join(lockfiledir, lockfilename)
+                lockfilename = os.path.join(lockfiledir, "samp-hub-%s" % hub_id)
 
         else:
             log.debug("Running mode: multiple")
@@ -225,6 +226,8 @@ def check_running_hub(lockfilename):
             # SSL connection refused for certifcate reasons...
             # anyway the server is alive
             is_running = True
+        except socket.error:
+            pass
 
     return is_running, lockfiledict
 
