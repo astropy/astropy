@@ -104,15 +104,12 @@ class SAMPMsgReplierWrapper(object):
 
         def wrapped_f(*args):
 
-            if ((inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)
-                or (inspect.isfunction(f) and f.__code__.co_argcount == 5)
-                    or args[2] is None):
+            if get_num_args(f) == 5 or args[2] is None:  # notification
 
-                # It is a notification
                 f(*args)
 
-            else:
-                # It's a call
+            else:  # call
+
                 try:
                     result = f(*args)
                     if result:
@@ -151,3 +148,15 @@ class _HubAsClientMethod(object):
 
     def __call__(self, *args):
         return self.__send(self.__name, args)
+
+
+def get_num_args(f):
+    """
+    Find the number of arguments a function or method takes (excluding ``self``).
+    """
+    if inspect.ismethod(f):
+        return f.__func__.__code__.co_argcount - 1
+    elif inspect.isfunction(f):
+        return f.__code__.co_argcount
+    else:
+        raise TypeError("f should be a function or a method")
