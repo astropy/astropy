@@ -8,6 +8,7 @@ import socket
 import threading
 
 from ... import log
+from ...extern.six.moves.urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
@@ -163,9 +164,10 @@ class SAMPClient(object):
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
 
-            self._xmlrpcAddr = "http://%s:%s" % (self._addr or
-                                                 self._host_name,
-                                                 self._port)
+            self._xmlrpcAddr = urlunparse(('http',
+                                           '{0}:{1}'.format(self._addr or self._host_name,
+                                                            self._port),
+                                           '', '', '', ''))
 
     def __del__(self):
         self.stop()

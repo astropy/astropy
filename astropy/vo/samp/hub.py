@@ -13,7 +13,7 @@ import warnings
 from ...extern.six import StringIO
 from ...extern.six.moves import queue
 from ...extern.six.moves import xmlrpc_client as xmlrpc
-
+from ...extern.six.moves.urllib.parse import urlunparse
 from ... import log
 
 from .constants import SAMP_STATUS_OK
@@ -223,16 +223,20 @@ class SAMPHubServer(object):
                                               log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
-            self._url = "https://%s:%s" % (self._addr or self._host_name,
-                                           self._port)
+            self._url = urlunparse(('https',
+                                    "{0}:{1}".format(self._addr or self._host_name,
+                                                     self._port),
+                                    '', '', '', ''))
         else:
 
             self._server = ThreadingXMLRPCServer((self._addr or self._host_name, self._port or 0),
                                                  log, logRequests=False, allow_none=True)
 
             self._port = self._server.socket.getsockname()[1]
-            self._url = "http://%s:%s" % (self._addr or self._host_name,
-                                          self._port)
+            self._url = urlunparse(('http',
+                                    "{0}:{1}".format(self._addr or self._host_name,
+                                                     self._port),
+                                    '', '', '', ''))
 
         self._server.register_introspection_functions()
 
