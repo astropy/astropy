@@ -872,16 +872,21 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    # The heuristic here is to first try "singularizing" the word.  If
-    # that doesn't match anything use difflib to find close matches in
-    # original, lower and upper case.
-
     if isinstance(s, six.text_type):
         s = strip_accents(s)
     s_lower = s.lower()
-    candidates_lower = set(x.lower() for x in candidates)
 
-    matches = []
+    # Create a mapping from the lower case name to all capitalization
+    # variants of that name.
+    candidates_lower = {}
+    for candidate in candidates:
+        candidate_lower = candidate.lower()
+        candidates_lower.setdefault(candidate_lower, [])
+        candidates_lower[candidate_lower].append(candidate)
+
+    # The heuristic here is to first try "singularizing" the word.  If
+    # that doesn't match anything use difflib to find close matches in
+    # original, lower and upper case.
     if s_lower.endswith('s') and s_lower[:-1] in candidates_lower:
         matches = [s_lower[:-1]]
     else:
@@ -890,11 +895,8 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
 
     if len(matches):
         capitalized_matches = set()
-        for candidate in candidates:
-            for match in matches:
-                if candidate.lower() == match:
-                    capitalized_matches.add(candidate)
-                    break
+        for match in matches:
+            capitalized_matches.update(candidates_lower[match])
 
         matches = sorted(capitalized_matches)
 
