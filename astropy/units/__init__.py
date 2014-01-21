@@ -27,6 +27,9 @@ from .equivalencies import *
 
 del bases
 
+
+one = dimensionless_unscaled
+
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
 
