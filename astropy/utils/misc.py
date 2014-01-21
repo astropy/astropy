@@ -872,28 +872,34 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
+    if isinstance(s, six.text_type):
+        s = strip_accents(s)
+    s_lower = s.lower()
+
+    # Create a mapping from the lower case name to all capitalization
+    # variants of that name.
+    candidates_lower = {}
+    for candidate in candidates:
+        candidate_lower = candidate.lower()
+        candidates_lower.setdefault(candidate_lower, [])
+        candidates_lower[candidate_lower].append(candidate)
+
     # The heuristic here is to first try "singularizing" the word.  If
     # that doesn't match anything use difflib to find close matches in
     # original, lower and upper case.
-
-    matches = []
-    if s.endswith('s'):
-        if s[:-1] in candidates:
-            matches = [s[:-1]]
-
-    if not len(matches):
-        if isinstance(s, six.text_type):
-            s = strip_accents(s)
-        matches = list(set(
-            difflib.get_close_matches(
-                s, candidates, n=n, cutoff=cutoff) +
-            difflib.get_close_matches(
-                s.lower(), candidates, n=n, cutoff=cutoff) +
-            difflib.get_close_matches(
-                s.upper(), candidates, n=n, cutoff=cutoff)))
+    if s_lower.endswith('s') and s_lower[:-1] in candidates_lower:
+        matches = [s_lower[:-1]]
+    else:
+        matches = difflib.get_close_matches(
+            s_lower, candidates_lower, n=n, cutoff=cutoff)
 
     if len(matches):
-        matches.sort()
+        capitalized_matches = set()
+        for match in matches:
+            capitalized_matches.update(candidates_lower[match])
+
+        matches = sorted(capitalized_matches)
+
         if len(matches) == 1:
             matches = matches[0]
         else:

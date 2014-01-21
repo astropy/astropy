@@ -545,9 +545,10 @@ def test_suggestions():
             ('s/microns', 'micron'),
             ('M', 'm'),
             ('metre', 'meter'),
-            ('angstroms', 'angstrom'),
+            ('angstroms', 'Angstrom or angstrom'),
             ('milimeter', 'millimeter'),
-            ('ångström', 'Angstrom or angstrom')]:
+            ('ångström', 'Angstrom or angstrom'),
+            ('kev', 'EV, eV, kV or keV')]:
         try:
             u.Unit(search)
         except ValueError as e:
