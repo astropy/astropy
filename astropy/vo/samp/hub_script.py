@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import time
 import copy
+import time
+import sys
+
 from ...utils.compat import argparse
 
 from ... import log, __version__
@@ -212,7 +214,6 @@ def main(timeout=0):
             pass
     except IOError as e:
         print("[SAMP] Error: I/O error({0}): {1}".format(e.errno, e.strerror))
-    except SAMPHubError:
-        pass
+        sys.exit(1)
     except SystemExit:
         pass
