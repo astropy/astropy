@@ -581,7 +581,7 @@ class ParametricModel(Model):
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
                     parameter = getattr(self, name)
-                    sl = parameter._param_metrics[name][0]
+                    sl = parameter.model._param_metrics[parameter.name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -700,7 +700,7 @@ class ParametricModel(Model):
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
                     parameter = getattr(self, name)
-                    sl = parameter._param_metrics[name][0]
+                    sl = parameter.model._param_metrics[parameter.name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -814,6 +814,9 @@ class LabeledInput(dict):
 
 
 class _CompositeModel(Model):
+
+    _param_names = []
+
     def __init__(self, transforms, n_inputs, n_outputs):
         """Base class for all composite models."""
 
@@ -859,7 +862,7 @@ class _CompositeModel(Model):
                     value = getattr(model, param_name).value
                     return value
             else:
-                super(_CompositeModel, self).__getattr__(self, attr)
+                raise AttributeError
         elif attr in self._param_names:
             split_names = attr.split('_')
             if len(split_names) > 1:
