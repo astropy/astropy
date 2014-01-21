@@ -180,10 +180,14 @@ class SAMPClient(object):
 
     def start(self):
         """
-        Start the client in a non-blocking way.
+        Start the client in a separate thread (non-blocking).
+
+        This only has an effect if ``callable`` was set to `True` when
+        initializing the client.
         """
-        self._is_running = True
-        self._run_client()
+        if self._callable:
+            self._is_running = True
+            self._run_client()
 
     def stop(self, timeout=10.):
         """
