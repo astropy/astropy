@@ -254,6 +254,40 @@ def test_outside_sky():
     assert not np.any(np.isnan(w.wcs_pix2world([[1000., 1000.]], 0)))
 
 
+def test_pix2world():
+    """
+    From github issue #1463
+    """
+    # TODO: write this to test the expected output behavior of pix2world,
+    # currently this just makes sure it doesn't error out in unexpected ways
+    filename = get_pkg_data_filename('data/sip2.fits')
+    with catch_warnings(wcs.wcs.FITSFixedWarning) as caught_warnings:
+        # this raises a warning unimportant for this testing the pix2world
+        #   FITSFixedWarning(u'The WCS transformation has more axes (2) than the
+        #        image it is associated with (0)')
+        ww = wcs.WCS(filename)
+
+        # might as well monitor for changing behavior
+        assert len(caught_warnings) == 1
+
+    n = 3
+    pixels = (np.arange(n)*np.ones((2, n))).T
+    result = ww.wcs_pix2world(pixels, 0, ra_dec_order=True)
+
+    close_enough = 1e-8
+    # assuming that the data of sip2.fits doesn't change
+    answer = np.array([[0.00024976, 0.00023018],
+                       [0.00023043, -0.00024997]])
+
+    assert np.all(np.abs(ww.wcs.pc-answer) < close_enough)
+
+    answer = np.array([[ 202.39265216,   47.17756518],
+                       [ 202.39335826,   47.17754619],
+                       [ 202.39406436,   47.1775272 ]])
+
+    assert  np.all(np.abs(result-answer) < close_enough)
+
+
 def test_load_fits_path():
     fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
