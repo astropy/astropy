@@ -520,3 +520,137 @@ class Parameter(object):
 
     def __abs__(self):
         return np.abs(self.value)
+
+
+class _CompositeModelParameters(object):
+    def __init__(self, transforms):
+        self.name = 'parameters'
+        self._transforms = transforms
+
+    def __get__(self, obj, objtype):
+        return np.hstack([model.parameters for model in obj.transforms])
+
+    def __set__(self, obj, value):
+        for i in obj._model_metrics:
+            setattr(obj.transforms[i], 'parameters', value[obj._model_metrics[i]])
+    '''
+    def __getitem__(self, index):
+        params = np.hstack([model.parameters for model in self._transforms])
+        return params[index]
+
+    ##This does not work ??
+    def __setitem__(self, index, value):
+        params = np.hstack([model.parameters for model in self._transforms])
+        #for model in self._model_metrics
+        try:
+            self._transforms[0].parameters[index] = value
+        except IndexError:
+            raise
+    '''
+    def __repr__(self):
+        return repr(np.hstack([model.parameters for model in obj.transforms]))
+
+class _CompositeModelParameter(object):
+    def __init__(self, name, model=None):
+        self.name = name
+        self.aname = '_' + name
+        self._model = model
+        if self._model is not None:
+            self._parname = '_'.join(self.name.split('_')[0:-2])
+        else:
+            self._parname = name
+
+    def __get__(self, obj, objtype):
+        valobj= getattr(obj, self.aname)
+        return valobj
+
+    def __set__(self, obj, value):
+        oldpar = getattr(obj, self.aname)
+        setattr(oldpar, "value", value)
+
+    def __repr__(self):
+        return "_CompositeModelParameter("+self.name+ ", value={0})".format(getattr(self._model, self._parname).value)
+
+    @property
+    def value(self):
+        if self._model is not None:
+            return getattr(self._model, self._parname).value
+
+    @value.setter
+    def value(self, val):
+        #self._value = val
+        attr = getattr(self._model, self._parname)
+        setattr(self._model, self._parname, val)
+
+    @property
+    def fixed(self):
+        return getattr(self._model, self._parname).fixed
+
+    @fixed.setter
+    def fixed(self, value):
+        """Fix a parameter"""
+        if self._model is not None:
+            assert isinstance(value, bool), "Fixed can be True or False"
+            attr = getattr(self._model, self._parname)
+            setattr(attr, 'fixed', value)
+        else:
+            raise AttributeError("can't set attribute 'fixed' on _CompositeParameter "
+                                 "definition")
+
+    @property
+    def tied(self):
+        return getattr(self._model, self._parname).tied
+
+    @tied.setter
+    def tied(self, value):
+        """Tie a parameter"""
+        if self._model is not None:
+            assert callable(value) or value in (False, None), \
+                 "Tied must be a callable"
+            attr = getattr(self._model, self._parname)
+            setattr(attr, 'tied', value)
+        else:
+            raise AttributeError("can't set attribute 'tied' on _CompositeParameter "
+                                 "definition")
+
+    @property
+    def bounds(self):
+        return getattr(self._model, self._parname).bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        """Set bounds on a parameter"""
+        if self._model is not None:
+            attr = getattr(self._model, self._parname)
+            setattr(attr, 'bounds', value)
+        else:
+            raise AttributeError("can't set attribute 'bounds' on _CompositeParameter "
+                                 "definition")
+
+    @property
+    def min(self):
+        return getattr(self._model, self._parname).bounds[0]
+
+    @min.setter
+    def min(self, value):
+        """Ste lowwe bound on a parameter"""
+        if self._model is not None:
+            attr = getattr(self._model, self._parname)
+            setattr(attr, 'min', value)
+        else:
+            raise AttributeError("can't set attribute 'tied' on _CompositeParameter "
+                                 "definition")
+
+    @property
+    def max(self):
+        return getattr(self._model, self._parname).bounds[1]
+
+    @max.setter
+    def max(self, value):
+        """Set an upper bound on a parameter"""
+        if self._model is not None:
+            attr = getattr(self._model, self._parname)
+            setattr(attr, 'max', value)
+        else:
+            raise AttributeError("can't set attribute 'max' on _CompositeParameter "
+                                 "definition")

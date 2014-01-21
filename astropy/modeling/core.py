@@ -49,8 +49,7 @@ from itertools import izip
 from textwrap import dedent
 
 import numpy as np
-
-from .parameters import Parameter, InputParameterError
+from .parameters import (Parameter, InputParameterError, _CompositeModelParameter, _CompositeModelParameters)
 from ..utils import indent, isiterable
 
 
@@ -581,7 +580,8 @@ class ParametricModel(Model):
             params = list(self.parameters)
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
-                    sl = self._param_metrics[name][0]
+                    parameter = getattr(self, name)
+                    sl = parameter._param_metrics[name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -699,7 +699,8 @@ class ParametricModel(Model):
             params = list(self.parameters)
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
-                    sl = self._param_metrics[name][0]
+                    parameter = getattr(self, name)
+                    sl = parameter._param_metrics[name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -816,15 +817,130 @@ class _CompositeModel(Model):
     def __init__(self, transforms, n_inputs, n_outputs):
         """Base class for all composite models."""
 
-        self._transforms = transforms
+        self._transforms = [model.copy() for model in transforms]
         param_names = []
-        for tr in self._transforms:
-            param_names.extend(tr.param_names)
-        super(_CompositeModel, self).__init__()
-        self.param_names = param_names
+        for i in range(len(transforms)):
+            model = transforms[i]
+            tr_name = model.__class__.__name__
+            tr_param_names = ["_".join([par_name, tr_name, str(i)]) for par_name in model.param_names]
+            param_names.extend(tr_param_names)
+        super(_CompositeModel, self).__init__(param_dim=1)
+        self._param_names = param_names
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
-        self.fittable = False
+        self.fittable = all([tr.fittable for tr in transforms])
+        self.linear = all([tr.linear for tr in transforms])
+        if self.fittable:
+             self._model_metrics = {}
+             total_size = 0
+             for i in range(len(self._transforms)):
+                 model_param_size = len(self._transforms[i].parameters)
+                 self._model_metrics[i] = slice(total_size, total_size + model_param_size)
+                 total_size += model_param_size
+             setattr(self.__class__, 'parameters', _CompositeModelParameters(transforms))
+
+    @property
+    def param_names(self):
+        return self._param_names
+    
+    def __deepcopy__(self, memo):
+        return self.__class__(self._transforms)
+
+    def __copy__(self):
+        return self.__class__(self._transforms)
+        
+    def __getattr__(self, attr):
+        if len(attr) > 1 and attr[0] == '_' and attr != '_model_metrics':
+            split_names = attr[1:].split('_')
+            if len(split_names) > 1:
+                param_name = "_".join(split_names[0:-2])
+                model = self._transforms[int(split_names[-1])]
+                if param_name in model.param_names:
+                    value = getattr(model, param_name).value
+                    return value
+            else:
+                super(_CompositeModel, self).__getattr__(self, attr)
+        elif attr in self._param_names:
+            split_names = attr.split('_')
+            if len(split_names) > 1:
+                model = self._transforms[int(split_names[-1])]
+            else:
+                model = None
+            return _CompositeModelParameter(attr, model=model)
+
+    def __setattr__(self, attr, value):
+        if attr[0] == '_':
+            attr_name = attr[1:]
+        else:
+            attr_name = attr
+        if attr_name in self._param_names:
+            split_names = attr.split('_')
+            if len(split_names) > 1 and split_names[-1].isdigit():
+                param_name = "_".join(split_names[0 : -2])
+                model = self._transforms[int(split_names[-1])]
+                setattr(model, param_name, value)
+        else:
+            super(_CompositeModel, self).__setattr__(attr, value)
+
+    @property
+    def fixed(self):
+        """
+        A dictionary mapping parameter names to their fixed constraint
+        """
+        return dict((name, getattr(self, name).fixed)
+                    for name in self.param_names)
+                    
+    @property
+    def tied(self):
+        """
+        A dictionary mapping parameter names to their tied constraint
+        """
+        return dict((name, getattr(self, name).tied)
+                    for name in self.param_names)
+
+    @property
+    def bounds(self):
+        return dict((name, getattr(self, name).bounds)
+                    for name in self.param_names)
+
+    @property
+    def param_sets(self):
+        """
+        Return parameters as a pset.
+        
+        This is an array where each column represents one parameter set.
+        """
+        '''
+        parameters = [getattr(self, attr) for attr in self.param_names]
+        values = [par.value for par in parameters]
+        shapes = [par.shape for par in parameters]
+        n_dims = np.asarray([len(p.shape) for p in parameters])
+
+        if (n_dims > 1).any():
+            if () in shapes:
+                psets = np.asarray(values, dtype=np.object)
+            else:
+                psets = np.asarray(values)
+        else:
+            psets = np.asarray(values)
+            psets.shape = (len(self.param_names), self.param_dim)
+        return psets
+        '''
+        return np.vstack([getattr(model, 'param_sets') for model in self._transforms])
+    
+    def _model_to_fit_params(self):
+        """
+        Create a set of parameters to be fitted.
+
+        These may be a subset of the model parameters, if some of them are held
+        constant or tied.
+        """
+        pars_and_ind = [model._model_to_fit_params() for model in self.transforms]
+        return np.hstack([p[0] for p in pars_and_ind]), np.hstack([p[1] for p in pars_and_ind])
+
+    @property
+    def transforms(self):
+        return self._transforms
 
     def __repr__(self):
         fmt = """
@@ -1004,10 +1120,9 @@ class SummedCompositeModel(_CompositeModel):
     """
 
     def __init__(self, transforms, inmap=None, outmap=None):
-        self._transforms = transforms
-        n_inputs = self._transforms[0].n_inputs
+        n_inputs = transforms[0].n_inputs
         n_outputs = n_inputs
-        for transform in self._transforms:
+        for transform in transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
                 ("A SummedCompositeModel expects n_inputs = n_outputs for "
                  "all transforms")
