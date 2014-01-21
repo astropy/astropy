@@ -221,6 +221,9 @@ Bug Fixes
     no longer attempts to reference the undefined variable
     ``self.matrix`` during instantiation. [#1944]
 
+  - Fixed pickling of ``Longitude``, ensuring ``wrap_angle`` is
+    preserved [#1961]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
