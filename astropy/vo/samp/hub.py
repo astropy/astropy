@@ -5,12 +5,10 @@ import os
 import select
 import socket
 import threading
-import traceback
 import time
 import uuid
 import warnings
 
-from ...extern.six import StringIO
 from ...extern.six.moves import queue
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six.moves.urllib.parse import urlunparse

@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from .client import SAMPClient
-from .errors import SAMPClientError
 from .hub_proxy import SAMPHubProxy
 
 __all__ = ['SAMPIntegratedClient']

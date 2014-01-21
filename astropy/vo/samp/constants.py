@@ -3,8 +3,6 @@
 Defines constants used in `astropy.vo.samp`.
 """
 
-import os
-
 from ...utils.data import get_pkg_data_filename
 
 __all__ = ['SAMP_STATUS_OK', 'SAMP_STATUS_WARNING', 'SAMP_STATUS_ERROR',

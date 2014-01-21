@@ -1,15 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import re
 import copy
-import sys
-import traceback
 
 from ...extern.six.moves import xmlrpc_client as xmlrpc
-from ...extern.six import StringIO
 
-from .hub import SAMPHubServer
 from .errors import SAMPHubError
 from .utils import ServerProxyPool
 from .lockfile_helpers import get_main_running_hub

@@ -2,10 +2,8 @@
 
 import time
 import copy
-import traceback
 from ...utils.compat import argparse
 
-from ...extern.six import StringIO
 from ... import log, __version__
 
 from .constants import SSL_SUPPORT

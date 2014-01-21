@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
-import inspect
 import os
 import select
 import socket
@@ -13,7 +12,7 @@ from ...extern.six.moves.urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
-from .errors import SAMPClientError, SAMPProxyError, SAMPWarning
+from .errors import SAMPClientError, SAMPWarning
 from .utils import internet_on, get_num_args
 
 from .constants import SSL_SUPPORT

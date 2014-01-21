@@ -1,22 +1,23 @@
 # TODO: this file should be refactored to use a more thread-safe and
 # race-condition-safe lockfile mechanism.
 
-import os
-import re
-import socket
-import sys
-import stat
 import datetime
+import os
+import socket
+import stat
+import warnings
 
-from ...extern.six.moves.urllib.request import urlopen
+from ...extern.six.moves.urllib.parse import urlparse
+
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern import six
 
 from ... import log
 
-from .constants import SSL_SUPPORT
-
 from ...utils.data import get_readable_fileobj
+
+from .constants import SSL_SUPPORT
+from .errors import SAMPHubError, SAMPWarning
 
 if SSL_SUPPORT:
     import ssl
@@ -67,7 +68,7 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
 
             lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
-            lockfile_parsed = urlparse.urlparse(lockfilename)
+            lockfile_parsed = urlparse(lockfilename)
 
             if lockfile_parsed[0] != 'file':
                 warnings.warn("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename, SAMPWarning)
