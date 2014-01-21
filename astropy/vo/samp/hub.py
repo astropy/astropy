@@ -176,6 +176,7 @@ class SAMPHubServer(object):
 
         self._web_profile_dialog = web_profile_dialog
         if self._web_profile_dialog is not None:
+            # TODO: Some sort of duck-typing on the web_profile_dialog object
             self._web_profile_dialog.queue_request = self._web_profile_requests_queue
             self._web_profile_dialog.queue_result = self._web_profile_requests_result
 
@@ -1306,3 +1307,42 @@ class SAMPHubServer(object):
             return callback
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
+
+
+class WebProfileDialog(object):
+    """
+    A base class to make writing Web Profile GUI consent dialogs
+    easier.
+
+    The concrete class must:
+
+        1) Poll `handle_queue` periodically, using the timer services of the
+           GUI's event loop.  The function passed to `handle_queue` will be
+           called when a request requires authorization.  This function will
+           be given the arguments `samp_name` (the name of the request), and
+           `request` (the
+
+        2) Call `consent` or `reject` based on the user's response to
+           the dialog.
+    """
+
+    def handle_queue(self, show_dialog):
+        try:
+            request = self.queue_request.get_nowait()
+        except queue.Empty:  # queue is set but empty
+            pass
+        except AttributeError:  # queue has not been set yet
+            pass
+        else:
+            if isinstance(request[0], str):  # To support the old protocol version
+                samp_name = request[0]
+            else:
+                samp_name = request[0]["samp.name"]
+
+            self.show_dialog(samp_name, request[0], request[1], request[2])
+
+    def consent(self):
+        self.queue_result.put(True)
+
+    def reject(self):
+        self.queue_result.put(False)
