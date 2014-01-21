@@ -140,7 +140,8 @@ We can now check that the message has not been received yet::
     >>> r.received
     False
 
-Let's now broadcast the table from TOPCAT. After a few seconds, we can try and check again if the message has been received::
+Let's now broadcast the table from TOPCAT. After a few seconds, we can try and
+check again if the message has been received::
 
     >>> r.received
     True
@@ -249,9 +250,10 @@ Finally, we can broadcast this to all clients that are listening for
 
     >>> client.notify_all(message)
 
-As for `Sending a table to TOPCAT and Ds9`_, the :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all` method will
-broadcast the image to all listening clients, and as for tables it is possible
-to instead use the `notify` method to send it to a specific client.
+As for `Sending a table to TOPCAT and Ds9`_, the
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`
+method will broadcast the image to all listening clients, and as for tables it
+is possible to instead use the `notify` method to send it to a specific client.
 
 Once finished, we should make sure we disconnect from the hub::
 

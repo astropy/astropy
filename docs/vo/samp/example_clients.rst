@@ -56,23 +56,30 @@ notifies all clients using the "samp.app.echo" message type via the hub::
 
    >>> client2.enotify_all("samp.app.echo", txt="Hello world!")
    ['cli#2']
-   Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
+   Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt':
+   'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
 
-We can also find a dictionary giving the clients that would currently receive ``samp.app.echo`` messages::
+We can also find a dictionary giving the clients that would currently receive
+``samp.app.echo`` messages::
 
    >>> print(client2.getSubscribedClients("samp.app.echo"))
    {'cli#2': {}}
 
-Client 2 calls all clients with the ``"samp.app.echo"`` message type using ``"my-dummy-print"`` as a message-tag::
+Client 2 calls all clients with the ``"samp.app.echo"`` message type using
+``"my-dummy-print"`` as a message-tag::
 
    >>> print(client2.call_all("my-dummy-print",
    ...                        {"samp.mtype": "samp.app.echo",
    ...                         "samp.params": {"txt": "Hello world!"}}))
    {'cli#1': 'msg#1;;cli#hub;;cli#2;;my-dummy-print'}
-   Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#1;;cli#hub;;cli#2;;my-dummy-print samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
-   Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
+   Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2
+   msg#1;;cli#hub;;cli#2;;my-dummy-print samp.app.echo {'txt': 'Hello world!'}
+   {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
+   Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print
+   {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
 
-Client 2 then calls client 1 using the ``"samp.app.echo"`` message type, tagging the message as ``"my-dummy-print-specific"``::
+Client 2 then calls client 1 using the ``"samp.app.echo"`` message type,
+tagging the message as ``"my-dummy-print-specific"``::
 
    >>> try:
    ...     print(client2.call(client1.getPublicId(),
@@ -82,8 +89,11 @@ Client 2 then calls client 1 using the ``"samp.app.echo"`` message type, tagging
    ... except SAMPProxyError as e:
    ...     print("Error ({0}): {1}".format(e.faultCode, e.faultString))
    msg#2;;cli#hub;;cli#2;;my-dummy-print-specific
-   Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#2;;cli#hub;;cli#2;;my-dummy-print-specific samp.app.echo {'txt': 'Hello Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
-   Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print-specific {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
+   Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2
+   msg#2;;cli#hub;;cli#2;;my-dummy-print-specific samp.app.echo {'txt': 'Hello
+   Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
+   Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print-specific
+   {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
 
 We can now define a function called to test synchronous calls::
 
@@ -106,7 +116,9 @@ We now bind the ``samp.test`` message type to ``test_receive_sync_call``::
    ... except SAMPProxyError as e:
    ...     # If timeout expires than a SAMPProxyError is returned
    ...     print("Error ({0}): {1}".format(e.faultCode, e.faultString))
-   SYNC Call: cli#2 msg#3;;cli#hub;;cli#2;;sampy::sync::call samp.test {'txt': 'Hello SYNCRO Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
+   SYNC Call: cli#2 msg#3;;cli#hub;;cli#2;;sampy::sync::call samp.test {'txt':
+   'Hello SYNCRO Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user':
+   'unknown'}
    {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed sync'}}
 
 Finally, we disconnect the clients from the hub at the end::
