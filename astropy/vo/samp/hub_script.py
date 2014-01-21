@@ -18,7 +18,7 @@ if SSL_SUPPORT:
 __all__ = ['main']
 
 
-def main(timeout=0):
+def hub_script(timeout=0):
     """
     This main function is executed by the `samp_hub` command line tool.
     """

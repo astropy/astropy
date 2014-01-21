@@ -1,6 +1,6 @@
 import sys
 
-from ..hub_script import main as hub_script
+from ..hub_script import hub_script
 
 from ..utils import ALLOW_INTERNET
 ALLOW_INTERNET.set(False)
