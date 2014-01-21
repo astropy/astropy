@@ -1,19 +1,19 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Separate tests specifically for equivalencies
-"""
+"""Separate tests specifically for equivalencies."""
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from ...extern.six.moves import zip
+
+# THIRD-PARTY
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
-from ...tests.helper import pytest
-
-from ...extern.six.moves import zip
+# LOCAL
 from ... import units as u
+from ...tests.helper import pytest
 
 
 def test_dimensionless_angles():
@@ -107,6 +107,7 @@ def test_30kms(function, value):
     shifted = velo.to(u.GHz, equivalencies=function(rest))
     np.testing.assert_almost_equal(shifted.value, value, decimal=7)
 
+
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
     # in the charge of the electron, which is known to about
@@ -159,6 +160,7 @@ def test_massenergy():
                                   equivalencies=u.mass_energy()).value,
                        pow_eV.value, rtol=1e-7)
 
+
 def test_is_equivalent():
     assert u.m.is_equivalent(u.pc)
     assert u.cycle.is_equivalent(u.mas)
@@ -177,6 +179,7 @@ def test_is_equivalent():
     assert u.g.is_equivalent((u.m, u.s, u.kg))
     assert not u.L.is_equivalent((u.m, u.s, u.kg))
     assert not (u.km / u.s).is_equivalent((u.m, u.s, u.kg))
+
 
 def test_parallax():
     a = u.arcsecond.to(u.pc, 10, u.parallax())
@@ -235,17 +238,23 @@ def test_spectral3():
 @pytest.mark.parametrize(
     ('in_val', 'in_unit'),
     [([0.1, 5000.0, 10000.0], u.AA),
+     ([1e+5, 2.0, 1.0], u.micron ** -1),
      ([2.99792458e+19, 5.99584916e+14, 2.99792458e+14], u.Hz),
      ([1.98644568e-14, 3.97289137e-19, 1.98644568e-19], u.J)])
 def test_spectral4(in_val, in_unit):
     """Wave number conversion w.r.t. wavelength, freq, and energy."""
-    # Forward
-    a = in_unit.to(u.micron ** -1, in_val, u.spectral())
-    assert_allclose(a, [1e+5, 2.0, 1.0])
+    # Spectroscopic and angular
+    out_units = [u.micron ** -1, u.radian / u.micron]
+    answers = [[1e+5, 2.0, 1.0], [6.28318531e+05, 12.5663706, 6.28318531]]
 
-    # Backward
-    b = (u.micron ** -1).to(in_unit, [1e+5, 2.0, 1.0], u.spectral())
-    assert_allclose(b, in_val)
+    for out_unit, ans in zip(out_units, answers):
+        # Forward
+        a = in_unit.to(out_unit, in_val, u.spectral())
+        assert_allclose(a, ans)
+
+        # Backward
+        b = out_unit.to(in_unit, ans, u.spectral())
+        assert_allclose(b, in_val)
 
 
 def test_spectraldensity():
