@@ -148,7 +148,7 @@ class NDUncertainty(object):
 
 class StdDevUncertainty(NDUncertainty):
     '''
-    A class for standard deviation uncertaintys
+    A class for standard deviation uncertainties
     '''
 
     support_correlated = False
