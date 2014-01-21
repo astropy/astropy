@@ -2,8 +2,12 @@
 """
 Convenience functions for `astropy.cosmology`.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import warnings
 import numpy as np
+
 from .core import get_current as _get_current
 from .core import CosmologyError
 from ..units import Quantity

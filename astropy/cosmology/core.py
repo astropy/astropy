@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+
 import sys
 import warnings
 from math import sqrt, pi, exp, log, floor
@@ -58,6 +63,7 @@ class Cosmology(object):
     pass
 
 
+@six.add_metaclass(ABCMeta)
 class FLRW(Cosmology):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
@@ -105,8 +111,6 @@ class FLRW(Cosmology):
     of the parameters.  That is, all of the attributes above are
     read only.
     """
-    __metaclass__ = ABCMeta
-
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name=None):
 
@@ -1483,7 +1487,7 @@ class FlatLambdaCDM(LambdaCDM):
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
                  "Neff={4:.3g}, m_nu={5})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, 
+        return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
 class wCDM(FLRW):
@@ -1661,8 +1665,8 @@ class wCDM(FLRW):
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
                  "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, 
-                             self._Ode0, self._w0, self._Tcmb0, self._Neff, 
+        return retstr.format(self._namelead(), self._H0, self._Om0,
+                             self._Ode0, self._w0, self._Tcmb0, self._Neff,
                              self.m_nu)
 
 
@@ -2298,8 +2302,8 @@ class w0wzCDM(FLRW):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "Ode0={3:.3g}, w0={4:.3g}, wz={5:.3g} Tcmb0={6:.4g}, "\
                  "Neff={7:.3g}, m_nu={8})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, 
-                             self._Ode0, self._w0, self._wz, self._Tcmb0, 
+        return retstr.format(self._namelead(), self._H0, self._Om0,
+                             self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
@@ -2400,7 +2404,7 @@ def set_current(cosmo):
     get_current : returns the currently-set cosmology
     """
     global _current
-    if isinstance(cosmo, basestring):
+    if isinstance(cosmo, six.string_types):
         _current = get_cosmology_from_string(cosmo)
     elif isinstance(cosmo, Cosmology):
         _current = cosmo
