@@ -68,7 +68,7 @@ class SAMPClient(object):
         the local side of the secure connection.
 
     cert_reqs : int, optional
-        Whether a certificate is required from the Hub side of the connection,
+        Whether a certificate is required from the server side of the connection,
         and whether it will be validated if provided. It must be one of the
         three values `ssl.CERT_NONE` (certificates ignored),
         `ssl.CERT_OPTIONAL` (not required, but validated if provided), or

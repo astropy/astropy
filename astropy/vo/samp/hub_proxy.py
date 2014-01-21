@@ -54,37 +54,41 @@ class SAMPHubProxy(object):
             The hub to connect to.
 
         hub_params : dict, optional
-            Optional dictionary containing the lock-file content of the Hub with which to connect.
-            This dictionary has the form `{<token-name>: <token-string>, ...}`.
+            Optional dictionary containing the lock-file content of the Hub
+            with which to connect. This dictionary has the form ``{<token-name>:
+            <token-string>, ...}``.
 
         key_file : str, optional
-            Set the file containing the private key for SSL connections. If the
-            certificate file (``cert_file``) contains the private key, then ``key_file`` can be omitted.
+            The path to a file containing the private key for SSL connections. If
+            the certificate file (``cert_file``) contains the private key, then
+            ``key_file`` can be omitted.
 
         cert_file : str, optional
-            Specify the file which contains a certificate to be used to identify the
-            local side of the secure connection.
+            The path to a file which contains a certificate to be used to identify
+            the local side of the secure connection.
 
         cert_reqs : int, optional
-            The parameter ``cert_reqs`` specifies whether a certificate is required
-            from the server side of the connection, and whether it will be validated if provided. It
-            must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-            (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-            If the value of this parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
+            Whether a certificate is required from the server side of the connection,
+            and whether it will be validated if provided. It must be one of the
+            three values `ssl.CERT_NONE` (certificates ignored),
+            `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
+            `ssl.CERT_REQUIRED` (required and validated). If the value of this
+            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
             point to a file of CA certificates.
 
         ca_certs : str, optional
-            The ``ca_certs`` file contains a set of concatenated "Certification Authority"
-            certificates, which are used to validate the certificate passed from the server end of the
-            connection.
+            The path to a file containing a set of concatenated "Certification
+            Authority" certificates, which are used to validate the certificate
+            passed from the Hub end of the connection.
 
         ssl_version : int, optional
-            The ``ssl_version`` option specifies which version of the SSL protocol to use.
-            Typically, the server chooses a particular protocol version, and the client must adapt to the
-            server's choice. Most of the versions are not interoperable with the other versions. If not
-            specified the default SSL version is `ssl.PROTOCOL_SSLv3`. This version provides the most
-            compatibility with other versions server side. Other SSL protocol versions are:
-            `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
+            Which version of the SSL protocol to use. Typically, the server chooses
+            a particular protocol version, and the client must adapt to the
+            server's choice. Most of the versions are not interoperable with the
+            other versions. If not specified the default SSL version is
+            `ssl.PROTOCOL_SSLv3`. This version provides the most compatibility
+            with other versions server side. Other SSL protocol versions are:
+            `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
         pool_size : int, optional
             The number of socket connections opened to communicate with the Hub.
