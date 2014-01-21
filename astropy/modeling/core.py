@@ -581,7 +581,7 @@ class ParametricModel(Model):
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
                     parameter = getattr(self, name)
-                    sl = parameter.model._param_metrics[parameter.name][0]
+                    sl = parameter._model._param_metrics[parameter.name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -700,7 +700,7 @@ class ParametricModel(Model):
             for idx, name in list(enumerate(self.param_names))[::-1]:
                 if self.fixed[name] or self.tied[name]:
                     parameter = getattr(self, name)
-                    sl = parameter.model._param_metrics[parameter.name][0]
+                    sl = parameter._model._param_metrics[parameter.name][0]
                     del params[sl]
                     del fitparam_indices[idx]
             return (np.array(params), fitparam_indices)
@@ -855,7 +855,7 @@ class _CompositeModel(Model):
     def __getattr__(self, attr):
         if len(attr) > 1 and attr[0] == '_' and attr != '_model_metrics':
             split_names = attr[1:].split('_')
-            if len(split_names) > 1:
+            if len(split_names) > 1 and attr[1:] in self._param_names:
                 param_name = "_".join(split_names[0:-2])
                 model = self._transforms[int(split_names[-1])]
                 if param_name in model.param_names:
