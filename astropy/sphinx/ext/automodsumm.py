@@ -361,7 +361,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
         try:
             name, obj, parent = import_by_name(name)
         except ImportError, e:
-            warn('[automodapi] failed to import %r: %s' % (name, e))
+            warn('[automodsumm] failed to import %r: %s' % (name, e))
             continue
 
         fn = os.path.join(path, name + suffix)
@@ -469,7 +469,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             ns['objtype'] = doc.objtype
             ns['underline'] = len(name) * '='
 
-            # We now check whether a file for reference footnotes exists for 
+            # We now check whether a file for reference footnotes exists for
             # the module being documented. We first check if the
             # current module is a file or a directory, as this will give a
             # different path for the reference file. For example, if
@@ -487,11 +487,11 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                 mod_name_dir = mod_name_dir.rsplit('/', 1)[0]
 
             # We then have to check whether it exists, and if so, we pass it
-            # to the template.  
+            # to the template.
             if os.path.exists(os.path.join(base_path, mod_name_dir, 'references.txt')):
-                # An important subtlety here is that the path we pass in has 
+                # An important subtlety here is that the path we pass in has
                 # to be relative to the file being generated, so we have to
-                # figure out the right number of '..'s 
+                # figure out the right number of '..'s
                 ndirsback = path.replace(base_path, '').count('/')
                 ref_file_rel_segments = ['..'] * ndirsback
                 ref_file_rel_segments.append(mod_name_dir)

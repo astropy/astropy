@@ -51,6 +51,11 @@ New Features
 
 - ``astropy.stats``
 
+- ``astropy.sphinx``
+
+  - The `automodapi` extension now includes a configuration option to write out
+    what `automidapi` generates for debugging purposes.
+
 - ``astropy.table``
 
 - ``astropy.time``
