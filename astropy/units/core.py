@@ -31,7 +31,7 @@ __all__ = [
     'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
     'get_current_unit_registry', 'set_enabled_units',
     'add_enabled_units', 'set_enabled_equivalencies',
-    'add_enabled_equivalencies', 'dimensionless_unscaled']
+    'add_enabled_equivalencies', 'dimensionless_unscaled', 'one']
 
 
 def _flatten_units_collection(items):
