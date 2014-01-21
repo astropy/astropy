@@ -2224,3 +2224,5 @@ def _condition_arg(value):
 
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
+# Abbreviation of the above, see #1980
+one = dimensionless_unscaled
