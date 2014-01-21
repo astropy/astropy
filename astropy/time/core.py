@@ -1436,7 +1436,6 @@ class TimeFormat(object):
         """
         raise NotImplementedError
 
-
 class TimeJD(TimeFormat):
     """
     Julian Date time format.
@@ -1727,6 +1726,67 @@ class TimeDatetime(TimeUnique):
 
         return out
 
+
+class TimeDecimalYear(TimeUnique):
+    """Decimal year time format
+
+    This is a copy of the TimeDatetime implementation that instead calculates 
+    the decimal year of the datetime object.  
+
+    """
+    
+    name = 'decimalyear'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class
+        try:
+            assert all(isinstance(val, datetime) for val in val1)
+        except:
+            raise TypeError('Input values for {0} class must be '
+                            'datetime objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        """Convert datetime object contained in val1 to jd1, jd2"""
+        n_times = len(val1)
+        iy = np.empty(n_times, dtype=np.intc)
+        im = np.empty(n_times, dtype=np.intc)
+        id = np.empty(n_times, dtype=np.intc)
+        ihr = np.empty(n_times, dtype=np.intc)
+        imin = np.empty(n_times, dtype=np.intc)
+        dsec = np.empty(n_times, dtype=np.double)
+
+        # Iterate through the datetime objects
+        for i, val in enumerate(val1):
+            iy[i] = val.year
+            im[i] = val.month
+            id[i] = val.day
+            ihr[i] = val.hour
+            imin[i] = val.minute
+            dsec[i] = val.second + val.microsecond / 1e6
+
+        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
+                                              iy, im, id, ihr, imin, dsec)
+
+    @property
+    def value(self):
+        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
+                                                 6,  # precision = 6 for microseconds
+                                                 self.jd1, self.jd2)
+
+        out = np.empty(len(self), dtype=np.object)
+        idxs = itertools.count()
+        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids, ihmsfs):
+            ihr, imin, isec, ifracsec = ihmsf
+            current = datetime(int(iy), int(im), int(id),
+                               int(ihr), int(imin), int(isec), int(ifracsec))
+            year_begin = datetime(int(iy), 01, 01)
+            year_end = datetime(int(iy) + 1, 01, 01)
+            decyear = (current - year_begin).total_seconds() / (year_end - year_begin).total_seconds()
+            out[idx] = int(iy) + float(decyear)
+
+        return out
 
 class TimeString(TimeUnique):
     """
