@@ -876,24 +876,28 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
     # that doesn't match anything use difflib to find close matches in
     # original, lower and upper case.
 
-    matches = []
-    if s.endswith('s'):
-        if s[:-1] in candidates:
-            matches = [s[:-1]]
+    if isinstance(s, six.text_type):
+        s = strip_accents(s)
+    s_lower = s.lower()
+    candidates_lower = set(x.lower() for x in candidates)
 
-    if not len(matches):
-        if isinstance(s, six.text_type):
-            s = strip_accents(s)
-        matches = list(set(
-            difflib.get_close_matches(
-                s, candidates, n=n, cutoff=cutoff) +
-            difflib.get_close_matches(
-                s.lower(), candidates, n=n, cutoff=cutoff) +
-            difflib.get_close_matches(
-                s.upper(), candidates, n=n, cutoff=cutoff)))
+    matches = []
+    if s_lower.endswith('s') and s_lower[:-1] in candidates_lower:
+        matches = [s_lower[:-1]]
+    else:
+        matches = difflib.get_close_matches(
+            s_lower, candidates_lower, n=n, cutoff=cutoff)
 
     if len(matches):
-        matches.sort()
+        capitalized_matches = set()
+        for candidate in candidates:
+            for match in matches:
+                if candidate.lower() == match:
+                    capitalized_matches.add(candidate)
+                    break
+
+        matches = sorted(capitalized_matches)
+
         if len(matches) == 1:
             matches = matches[0]
         else:
