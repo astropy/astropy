@@ -807,7 +807,10 @@ class SAMPHubServer(object):
                 prev_mtypes = self._id2mtypes[private_key]
 
                 for mtype in prev_mtypes:
-                    self._mtype2ids[mtype].remove(private_key)
+                    try:
+                        self._mtype2ids[mtype].remove(private_key)
+                    except ValueError:  # private_key is not in list
+                        pass
 
             self._id2mtypes[private_key] = copy.deepcopy(mtypes)
 
