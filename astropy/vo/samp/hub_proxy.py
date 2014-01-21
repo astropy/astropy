@@ -138,17 +138,6 @@ class SAMPHubProxy(object):
                 raise SAMPHubError("Unauthorized access. Basic Authentication required or failed.")
             else:
                 raise SAMPHubError("Protocol Error %d: %s" % (p.errcode, p.errmsg))
-        except:
-            err = StringIO()
-            traceback.print_exc(file=err)
-            txt = err.getvalue()
-            if SSL_SUPPORT:
-                if sys.exc_info()[0] == ssl.SSLError:
-                    raise SAMPHubError("SSL Error: %s" % sys.exc_info()[1])
-                else:
-                    raise SAMPHubError("SAMP Hub connection refused.\n " + txt)
-            else:
-                raise SAMPHubError("SAMP Hub connection refused.\n" + txt)
 
     def disconnect(self):
         """

@@ -208,15 +208,13 @@ def main(timeout=0):
                 hub.stop()
 
     except KeyboardInterrupt:
-        hub.stop()
+        try:
+            hub.stop()
+        except NameError:
+            pass
     except IOError as e:
         print("[SAMP] Error: I/O error({0}): {1}".format(e.errno, e.strerror))
     except SAMPHubError:
         pass
     except SystemExit:
         pass
-    except:
-        err = StringIO()
-        traceback.print_exc(file=err)
-        txt = err.getvalue()
-        print("[SAMP] Error: Unexpected error:\n" + txt)

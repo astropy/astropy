@@ -1,8 +1,11 @@
+import warnings
+
 from ...extern.six.moves.urllib.parse import parse_qs
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import input
 
 from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
+from .errors import SAMPWarning
 
 __all__ = []
 
@@ -119,7 +122,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
                 self.end_headers()
                 self.wfile.write(proxyfile.read())
                 proxyfile.close()
-            except:
+            except IOError:
                 self.report_404()
                 return
 
@@ -150,8 +153,10 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
     def remove_client(self, client_id):
         try:
             self.clients.remove(client_id)
-        except:
-            pass
+        except ValueError:
+            warnings.warn("Could not remove client {client_id}, client not "
+                          "currently registered.".format(client_id=client_id),
+                          SAMPWarning)
 
 
 def web_profile_text_dialog(request, queue):

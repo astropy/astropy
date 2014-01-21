@@ -9,10 +9,12 @@ import traceback
 from ...extern.six.moves import queue
 from ...extern.six.moves.urllib.error import URLError
 from ...extern.six.moves.urllib.request import urlopen
+from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO
 from ...config import ConfigurationItem
 
 from .constants import SAMP_STATUS_ERROR
+from .errors import SAMPProxyError
 
 ALLOW_INTERNET = ConfigurationItem('use_internet', True,
                                    "Whether to allow astropy.vo.samp to use the internet, if available")
@@ -62,6 +64,8 @@ class _ServerProxyPoolMethod(object):
         function = getattr_recursive(proxy, self.__name)
         try:
             response = function(*args, **kwrds)
+        except xmlrpc.Fault as exc:
+            raise SAMPProxyError(exc.faultCode, exc.faultString)
         finally:
             self.__proxies.put(proxy)
         return response

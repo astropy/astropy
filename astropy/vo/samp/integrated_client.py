@@ -120,8 +120,6 @@ class SAMPIntegratedClient(object):
         """
         Connect with the current or specified SAMP Hub, start and register the client.
 
-        If a SAMP Hub is not running or refuses the connection, a :class:`~astropy.vo.samp.errors.SAMPHubError` is raised.
-
         Parameters
         ----------
         hub : :class:`~astropy.vo.samp.SAMPHubServer`
@@ -398,8 +396,6 @@ class SAMPIntegratedClient(object):
     def call_and_wait(self, recipient_id, message, timeout):
         """
         Proxy to ``callAndWait`` SAMP Hub method.
-
-        If timeout expires a :class:`~astropy.vo.samp.errors.SAMPProxyError` instance is raised.
         """
         return self.hub.call_and_wait(self.get_private_key(), recipient_id, message, timeout)
 

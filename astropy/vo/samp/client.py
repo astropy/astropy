@@ -6,13 +6,14 @@ import os
 import select
 import socket
 import threading
+import warnings
 
 from ... import log
 from ...extern.six.moves.urllib.parse import urlunparse
 
 from .constants import SAMP_STATUS_OK, SAMP_STATUS_WARNING
 from .hub import SAMPHubServer
-from .errors import SAMPClientError, SAMPProxyError
+from .errors import SAMPClientError, SAMPProxyError, SAMPWarning
 from .utils import internet_on, get_num_args
 
 from .constants import SSL_SUPPORT
@@ -222,12 +223,12 @@ class SAMPClient(object):
     def _serve_forever(self):
         while self._is_running:
             try:
-                r = w = e = None
-                r, w, e = select.select([self.client.socket], [], [], 0.1)
-            except select.error:
-                pass
-            if r:
-                self.client.handle_request()
+                read_ready = select.select([self.client.socket], [], [], 0.1)[0]
+            except select.error as exc:
+                warnings.warn("Call to select in SAMPClient failed: {0}".format(exc), SAMPWarning)
+            else:
+                if read_ready:
+                    self.client.handle_request()
 
     def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):
         self.hub.reply(private_key, msg_id, {"samp.status": SAMP_STATUS_OK, "samp.result": {}})
@@ -616,30 +617,30 @@ class SAMPClient(object):
     def register(self):
         """
         Register the client to the SAMP Hub.
-
-        If the registration fails, a `~astropy.vo.samp.errors.SAMPClientError` is raised.
         """
         if self.hub.is_connected:
 
             if self._private_key is not None:
                 raise SAMPClientError("Client already registered")
 
-            try:
-                result = self.hub.register(self.hub.lockfile["samp.secret"])
-                if result["samp.self-id"] == "" or result["samp.private-key"] == "":
-                    raise SAMPClientError("Registation failed. Probably the secret code is wrong.")
-                self._public_id = result["samp.self-id"]
-                self._private_key = result["samp.private-key"]
-                self._hub_id = result["samp.hub-id"]
-                if self._callable:
-                    self._set_xmlrpc_callback()
-                    self._declare_subscriptions()
-                if self._metadata != {}:
-                    self.declare_metadata()
-            except SAMPProxyError as err:
-                raise SAMPClientError(err.faultString)
-            except:
-                raise SAMPClientError("Unexpected error: registration failed")
+            result = self.hub.register(self.hub.lockfile["samp.secret"])
+
+            if result["samp.self-id"] == "":
+                raise SAMPClientError("Registation failed - samp.self-id was not set by the hub.")
+
+            if result["samp.private-key"] == "":
+                raise SAMPClientError("Registation failed - samp.private-key was not set by the hub.")
+
+            self._public_id = result["samp.self-id"]
+            self._private_key = result["samp.private-key"]
+            self._hub_id = result["samp.hub-id"]
+
+            if self._callable:
+                self._set_xmlrpc_callback()
+                self._declare_subscriptions()
+
+            if self._metadata != {}:
+                self.declare_metadata()
 
         else:
             raise SAMPClientError("Unable to register to the SAMP Hub. Hub proxy not connected.")
@@ -647,51 +648,38 @@ class SAMPClient(object):
     def unregister(self):
         """
         Unregister the client from the SAMP Hub.
-
-        If the unregistration fails a `~astropy.vo.samp.errors.SAMPClientError` is raised.
         """
         if self.hub.is_connected:
-
-            try:
-                self.hub.unregister(self._private_key)
-                self._hub_id = None
-                self._public_id = None
-                self._private_key = None
-            except:
-                raise SAMPClientError("Unable to unregister from the SAMP Hub.")
+            self.hub.unregister(self._private_key)
+            self._hub_id = None
+            self._public_id = None
+            self._private_key = None
         else:
             raise SAMPClientError("Unable to unregister from the SAMP Hub. Hub proxy not connected.")
 
     def _set_xmlrpc_callback(self):
         if self.hub.is_connected and self._private_key is not None:
-
-            try:
-                self.hub.set_xmlrpc_callback(self._private_key,
-                                             self._xmlrpcAddr)
-            except:
-                pass
+            self.hub.set_xmlrpc_callback(self._private_key,
+                                         self._xmlrpcAddr)
 
     def _declare_subscriptions(self, subscriptions=None):
         if self.hub.is_connected and self._private_key is not None:
 
-            try:
-                mtypes_dict = {}
-                # Collect notification mtypes and metadata
-                for mtype in self._notification_bindings.keys():
-                    mtypes_dict[mtype] = copy.deepcopy(self._notification_bindings[mtype][1])
+            mtypes_dict = {}
+            # Collect notification mtypes and metadata
+            for mtype in self._notification_bindings.keys():
+                mtypes_dict[mtype] = copy.deepcopy(self._notification_bindings[mtype][1])
 
-                # Collect notification mtypes and metadata
-                for mtype in self._call_bindings.keys():
-                    mtypes_dict[mtype] = copy.deepcopy(self._call_bindings[mtype][1])
+            # Collect notification mtypes and metadata
+            for mtype in self._call_bindings.keys():
+                mtypes_dict[mtype] = copy.deepcopy(self._call_bindings[mtype][1])
 
-                # Add optional subscription map
-                if subscriptions:
-                    mtypes_dict.update(copy.deepcopy(subscriptions))
+            # Add optional subscription map
+            if subscriptions:
+                mtypes_dict.update(copy.deepcopy(subscriptions))
 
-                self.hub.declare_subscriptions(self._private_key, mtypes_dict)
+            self.hub.declare_subscriptions(self._private_key, mtypes_dict)
 
-            except Exception as ex:
-                raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered (%s)." % str(ex))
         else:
             raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
 
@@ -707,14 +695,9 @@ class SAMPClient(object):
             declared.
         """
         if self.hub.is_connected and self._private_key is not None:
-
-            try:
-                if metadata is not None:
-                    self._metadata.update(metadata)
-
-                self.hub.declare_metadata(self._private_key, self._metadata)
-            except:
-                raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
+            if metadata is not None:
+                self._metadata.update(metadata)
+            self.hub.declare_metadata(self._private_key, self._metadata)
         else:
             raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
 
