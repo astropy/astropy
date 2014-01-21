@@ -43,8 +43,8 @@ if six.PY2:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((self.host, self.port))
             sslconn = ssl.wrap_socket(sock, server_side=False,
-                                      cert_file=self.cert_file,
-                                      key_file=self.key_file,
+                                      certfile=self.cert_file,
+                                      keyfile=self.key_file,
                                       cert_reqs=self.cert_reqs,
                                       ca_certs=self.ca_certs,
                                       ssl_version=self.ssl_version)

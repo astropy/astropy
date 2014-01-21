@@ -1,8 +1,10 @@
 import os
+import ssl
 import time
 import tempfile
 
 from ....tests.helper import pytest
+from ....utils.data import get_pkg_data_filename
 
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
@@ -12,6 +14,13 @@ from ..errors import SAMPClientError
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
 ALLOW_INTERNET.set(False)
+
+TEST_CERT1 = get_pkg_data_filename('data/test1.crt')
+TEST_KEY1 = get_pkg_data_filename('data/test1.key')
+
+TEST_CERT2 = get_pkg_data_filename('data/test2.crt')
+TEST_KEY2 = get_pkg_data_filename('data/test2.key')
+
 
 # TODO:
 # - reply/ereply
@@ -38,17 +47,31 @@ class Receiver(object):
 
 class TestIntegratedClient(object):
 
+    conf = 'no_https'
+
+    @property
+    def hub_init_kwargs(self):
+        return {}
+
+    @property
+    def client_init_kwargs(self):
+        return {}
+
+    @property
+    def client_connect_kwargs(self):
+        return {}
+
     def setup_method(self, method):
 
-        self.hub = SAMPHubServer(web_profile=False, mode='multiple')
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple', **self.hub_init_kwargs)
         self.hub.start()
 
-        self.client1 = SAMPIntegratedClient()
-        self.client1.connect(hub=self.hub)
+        self.client1 = SAMPIntegratedClient(**self.client_init_kwargs)
+        self.client1.connect(hub=self.hub, **self.client_connect_kwargs)
         self.client1_id = self.client1.get_public_id()
 
-        self.client2 = SAMPIntegratedClient()
-        self.client2.connect(hub=self.hub)
+        self.client2 = SAMPIntegratedClient(**self.client_init_kwargs)
+        self.client2.connect(hub=self.hub, **self.client_connect_kwargs)
         self.client2_id = self.client2.get_public_id()
 
         self.metadata1 = {"samp.name": "Client 1",
@@ -195,6 +218,11 @@ class TestIntegratedClient(object):
 
     def test_bind_receive_notification(self):
 
+        # When both the server and client use HTTPS, client 1 does not
+        # disconnect correctly.
+        if self.conf == 'https_hub_client':
+            pytest.xfail()
+
         class TestReceiver(object):
 
             def test_receive_notification(self, private_key, sender_id, mtype,
@@ -229,6 +257,11 @@ class TestIntegratedClient(object):
 
     def test_bind_receive_call(self):
 
+        # When both the server and client use HTTPS, client 1 does not
+        # disconnect correctly.
+        if self.conf == 'https_hub_client':
+            pytest.xfail()
+
         class TestReceiver(object):
 
             def test_receive_call(self, private_key, sender_id, msg_id, mtype,
@@ -239,8 +272,11 @@ class TestIntegratedClient(object):
                 self.mtype = mtype
                 self.params = params
                 self.extra = extra
+                self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
+                                  "samp.result": {"txt": "test"}})
 
         rec = TestReceiver()
+        rec.client = self.client2
 
         self.client2.bind_receive_call('test.call', rec.test_receive_call)
 
@@ -264,6 +300,11 @@ class TestIntegratedClient(object):
         assert rec.params == {'a': 1, 'b': 'a'}
 
     def test_ecall_and_wait(self):
+
+        # When both the server and client use HTTPS, client 1 does not
+        # disconnect correctly.
+        if self.conf == 'https_hub_client':
+            pytest.xfail()
 
         class TestReceiver(object):
 
@@ -307,3 +348,53 @@ class TestIntegratedClient(object):
     def test_del(self):
         self.client1.__del__()
         self.client2.__del__()
+
+
+
+class TestIntegratedClientHTTPSHub(TestIntegratedClient):
+
+    conf = 'https_hub'
+
+    @property
+    def hub_init_kwargs(self):
+        return {
+                'https': True,
+                'cert_file': TEST_CERT1,
+                'key_file': TEST_KEY1,
+                'ssl_version':ssl.PROTOCOL_TLSv1
+               }
+
+    @property
+    def client_connect_kwargs(self):
+        return {
+               'ssl_version':ssl.PROTOCOL_TLSv1
+              }
+
+
+class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
+
+    conf = 'https_hub_client'
+
+    @property
+    def hub_init_kwargs(self):
+        return {
+                'https': True,
+                'cert_file': TEST_CERT1,
+                'key_file': TEST_KEY1,
+                'ssl_version':ssl.PROTOCOL_TLSv1
+               }
+
+    @property
+    def client_init_kwargs(self):
+        return {
+                'https': True,
+                'cert_file': TEST_CERT2,
+                'key_file': TEST_KEY2,
+                'ssl_version':ssl.PROTOCOL_TLSv1
+               }
+
+    @property
+    def client_connect_kwargs(self):
+        return {
+               'ssl_version':ssl.PROTOCOL_TLSv1
+              }
