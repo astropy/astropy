@@ -192,7 +192,7 @@ class SAMPClient(object):
         Parameters
         ----------
         timeout : float
-            Timeout after which the client terminates even if the threading is still alive.
+            Timeout after which to give up if the client cannot be cleanly shut down.
         """
         # Setting _is_running to False causes the loop in _serve_forever to
         # exit. The thread should then stop running. We wait for the thread to
