@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import math
+from collections import namedtuple
 
 import numpy as np
 
@@ -22,6 +23,10 @@ __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
+
+# these are used by the `hms` and `dms` attributes
+HMS_tuple = namedtuple('HMS_tuple', ('h', 'm', 's'))
+DMS_tuple = namedtuple('DMS_tuple', ('d', 'm', 's'))
 
 
 class Angle(u.Quantity):
@@ -217,7 +222,7 @@ class Angle(u.Quantity):
         The angle's value in hours, as a ``(h, m, s)`` tuple
         (read-only property).
         """
-        return util.hours_to_hms(self.hourangle)
+        return HMS_tuple(*util.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
@@ -225,7 +230,7 @@ class Angle(u.Quantity):
         The angle's value in degrees, as a ``(d, m, s)`` tuple
         (read-only property).
         """
-        return util.degrees_to_dms(self.degree)
+        return DMS_tuple(*util.degrees_to_dms(self.degree))
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,
