@@ -13,13 +13,20 @@ from ..errors import SAMPClientError, SAMPHubError
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
 
+    def __init__(self):
+        self.polling = True
+        WebProfileDialog.__init__(self)
+
     def show_dialog(self, *args):
         self.consent()
 
     def poll(self):
-        while True:
+        while self.polling:
             self.handle_queue()
             time.sleep(0.1)
+
+    def stop(self):
+        self.polling = False
 
 
 class SAMPWebHubProxy(SAMPHubProxy):
@@ -154,7 +161,6 @@ class SAMPWebClient(SAMPClient):
             if self._is_registered:
                 result = self.hub.pull_callbacks(self.get_private_key(), 0.1)
                 if result:
-                    print result[0]
                     if result[0]['samp.methodName'] == 'receiveNotification':
                         self.receive_notification(self._private_key,
                                                   *result[0]['samp.params'])

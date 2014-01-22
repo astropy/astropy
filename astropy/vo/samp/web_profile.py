@@ -154,10 +154,10 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
         try:
             self.clients.remove(client_id)
         except ValueError:
-            warnings.warn("Could not remove client {client_id}, client not "
-                          "currently registered.".format(client_id=client_id),
-                          SAMPWarning)
-
+            # No warning here because this method gets called for all clients,
+            # not just web clients, and we expect it to fail for non-web
+            # clients.
+            pass
 
 def web_profile_text_dialog(request, queue):
 

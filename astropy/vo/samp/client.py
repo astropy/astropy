@@ -659,8 +659,8 @@ class SAMPClient(object):
         Unregister the client from the SAMP Hub.
         """
         if self.hub.is_connected:
-            self.hub.unregister(self._private_key)
             self._is_registered = False
+            self.hub.unregister(self._private_key)
             self._hub_id = None
             self._public_id = None
             self._private_key = None
