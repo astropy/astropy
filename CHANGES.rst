@@ -232,6 +232,9 @@ Bug Fixes
   - Fixed pickling of ``Longitude``, ensuring ``wrap_angle`` is
     preserved [#1961]
 
+  - Allow `sep` argument in `Angle.to_string` to be empty (resulting in no
+    separators) [#1989]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
