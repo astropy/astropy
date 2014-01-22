@@ -222,8 +222,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
-                 min_wt=0.0, normalize_kernel=False, fftn=np.fft.fftn,
-                 ifftn=np.fft.ifftn, complex_dtype=np.complex):
+                 min_wt=0.0, normalize_kernel=False, allow_huge=False,
+                 fftn=np.fft.fftn, ifftn=np.fft.ifftn,
+                 complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -304,6 +305,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         256.
     quiet : bool
         Silence warning message about NaN interpolation
+    allow_huge : bool
+        Allow huge arrays in the FFT?  If False, will raise an exception if the
+        array or kernel size is >1 GB
+
+    Raises
+    ------
+    Exception("Size Error")
+        If the array is bigger than 1 GB after padding, will raise this exception
+        unless allow_huge is True
 
     See Also
     --------
@@ -435,6 +445,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if array.ndim != kernel.ndim:
         raise ValueError("Image and kernel must have same number of "
                          "dimensions")
+
+    array_size_GB = np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024**3
+    if array_size_GB > 1:
+        raise Exception("Size Error: Arrays will be %g GB.  Use allow_huge=True to override this exception." % array_size_GB)
+
     # find ideal size (power of 2) for fft.
     # Can add shapes because they are tuples
     if fft_pad: # default=True
