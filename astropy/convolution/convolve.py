@@ -447,7 +447,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                          "dimensions")
 
     array_size_GB = np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024**3
-    if array_size_GB > 1:
+    if array_size_GB > 1 and not allow_huge:
         raise Exception("Size Error: Arrays will be %g GB.  Use allow_huge=True to override this exception." % array_size_GB)
 
     # find ideal size (power of 2) for fft.
