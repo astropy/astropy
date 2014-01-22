@@ -295,9 +295,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     return_fft : bool
         Return the fft(image)*fft(kernel) instead of the convolution (which is
         ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
-    nthreads : int
-        if fftw3 is installed, can specify the number of threads to allow FFTs
-        to use.  Probably only helpful for large arrays
     fftn, ifftn : functions
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
@@ -305,6 +302,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     complex_dtype : np.complex
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
+    quiet : bool
+        Silence warning message about NaN interpolation
 
     See Also
     --------
@@ -438,8 +437,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                          "dimensions")
     # find ideal size (power of 2) for fft.
     # Can add shapes because they are tuples
-    if fft_pad:
-        if psf_pad:
+    if fft_pad: # default=True
+        if psf_pad: # default=False
             # add the dimensions and then take the max (bigger)
             fsize = 2 ** np.ceil(np.log2(
                 np.max(np.array(arrayshape) + np.array(kernshape))))
