@@ -232,6 +232,19 @@ class Angle(u.Quantity):
         """
         return DMS_tuple(*util.degrees_to_dms(self.degree))
 
+    @property
+    def absdms(self):
+        """
+        The angle's value in degrees, as a ``(d, m, s)`` tuple (read-only
+        property), but with the *absolute value* of each of the `d`, `m`, `s`
+        elements.
+
+        This is primarily intented for use with `dms` to generate string
+        representations of coordinates that are correct for negative angles.
+        """
+        d, m, s = util.degrees_to_dms(self.degree)
+        return DMS_tuple(np.abs(d), np.abs(m), np.abs(s))
+
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,
                   fields=3, format=None):

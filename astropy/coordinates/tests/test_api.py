@@ -212,6 +212,16 @@ def test_angle_convert():
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
 
+    #now make sure dms and absdms work right for negative angles
+    negangle = Angle("-54.12412", unit=u.degree)
+
+    assert negangle.dms.d == -54
+    assert negangle.dms.m == -7
+    npt.assert_allclose(negangle.dms.s, -26.831999999992036)
+    assert negangle.absdms.d == 54
+    assert negangle.absdms.m == 7
+    npt.assert_allclose(negangle.absdms.s, 26.831999999992036)
+
 
 def test_angle_formatting():
     """
