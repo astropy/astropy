@@ -527,7 +527,9 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     if not isinstance(sep, tuple):
         sep = tuple(sep)
 
-    if len(sep) == 1:
+    if not sep:  # empty string, False, or None, etc.
+        sep = ('', '', '')
+    elif len(sep) == 1:
         sep = sep + (sep[0], '')
     elif len(sep) == 2:
         sep = sep + ('',)
