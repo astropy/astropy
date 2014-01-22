@@ -1316,17 +1316,27 @@ class WebProfileDialog(object):
 
     The concrete class must:
 
-        1) Poll `handle_queue` periodically, using the timer services of the
-           GUI's event loop.  The function passed to `handle_queue` will be
-           called when a request requires authorization.  This function will
-           be given the arguments `samp_name` (the name of the request), and
-           `request` (the
+        1) Poll `handle_queue` periodically, using the timer services
+           of the GUI's event loop.  This function will call
+           `self.show_dialog` when a request requires authorization.
+           `self.show_dialog` will be given the arguments:
+
+              - ``samp_name``: The name of the application making the request.
+
+              - ``details``: A dictionary of details about the client
+                making the request.
+
+              - ``client``: A hostname, port pair containing the client
+                address.
+
+              - ``origin``: A string containing the origin of the
+                request.
 
         2) Call `consent` or `reject` based on the user's response to
            the dialog.
     """
 
-    def handle_queue(self, show_dialog):
+    def handle_queue(self):
         try:
             request = self.queue_request.get_nowait()
         except queue.Empty:  # queue is set but empty

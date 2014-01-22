@@ -88,7 +88,7 @@ for web SAMP connections and opens the appropriate dialog::
             self.wait_for_dialog()
 
         def wait_for_dialog(self):
-            self.handle_queue(self.show_dialog)
+            self.handle_queue()
             self.root.after(100, self.wait_for_dialog)
 
         def show_dialog(self, samp_name, details, client, origin):
