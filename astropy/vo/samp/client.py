@@ -102,6 +102,7 @@ class SAMPClient(object):
 
         # GENERAL
         self._is_running = False
+        self._is_registered = False
 
         if metadata is None:
             metadata = {}
@@ -211,14 +212,16 @@ class SAMPClient(object):
     @property
     def is_running(self):
         """
-        Return an information concerning the client running status.
-
-        Returns
-        -------
-        running : bool
-            `True` if the client is running, `False` otherwise.
+        Whether the client is currently running.
         """
-        return self._is_running is not None
+        return self._is_running
+
+    @property
+    def is_registered(self):
+        """
+        Whether the client is currently registered.
+        """
+        return self._is_registered
 
     def _run_client(self):
         if self._callable:
@@ -646,6 +649,8 @@ class SAMPClient(object):
             if self._metadata != {}:
                 self.declare_metadata()
 
+            self._is_registered = True
+
         else:
             raise SAMPClientError("Unable to register to the SAMP Hub. Hub proxy not connected.")
 
@@ -655,6 +660,7 @@ class SAMPClient(object):
         """
         if self.hub.is_connected:
             self.hub.unregister(self._private_key)
+            self._is_registered = False
             self._hub_id = None
             self._public_id = None
             self._private_key = None
