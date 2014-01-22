@@ -848,7 +848,7 @@ class Model2DKernel(Kernel2D):
             self._model = model
         else:
             raise TypeError("Must be Parametric2DModel")
-
+        super(Model2DKernel, self).__init__(**kwargs)
 
 class PSFKernel(Kernel2D):
     """
