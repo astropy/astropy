@@ -133,11 +133,12 @@ class SAMPClient(object):
         self._response_bindings = {}
 
         self._host_name = "127.0.0.1"
-        try:
-            if internet_on():
+        if internet_on():
+            try:
                 self._host_name = socket.getfqdn()
-        except socket.error:
-            pass
+                socket.getaddrinfo(self._addr or self._host_name, self._port or 0)
+            except socket.error:
+                self._host_name = "127.0.0.1"
 
         self.hub = hub
 
