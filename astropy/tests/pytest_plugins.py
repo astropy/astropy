@@ -617,15 +617,16 @@ class Pair(pytest.File):
         with io.open(six.text_type(self.fspath), 'rb') as fd:
             content = fd.read()
 
-        # If the file contains the special marker, only test it as-is.
-        if b'SKIP_UNICODE_LITERAL_CHECK' in content:
+        # If the file contains the special marker, only test it both ways.
+        if b'TEST_UNICODE_LITERALS' in content:
+            # Return the file in both unicode_literal-enabled and disabled forms
+            return [
+                UnicodeLiteralsModule(mod.__name__, content, self.fspath, self),
+                NoUnicodeLiteralsModule(mod.__name__, content, self.fspath, self)
+            ]
+        else:
             return [pytest.Module(self.fspath, self)]
 
-        # Return the file in both unicode_literal-enabled and disabled forms
-        return [
-            UnicodeLiteralsModule(mod.__name__, content, self.fspath, self),
-            NoUnicodeLiteralsModule(mod.__name__, content, self.fspath, self)
-        ]
 
 
 class ModifiedModule(pytest.Module):
@@ -693,6 +694,10 @@ class NoUnicodeLiteralsModule(ModifiedModule):
         # byte string containing non-ascii characters into a Unicode string.
         # If it doesn't decode as utf-8, we assume it's some other kind
         # of byte string and just ultimately leave it alone.
+
+        # Note that once we drop support for Python 3.2, we should be
+        # able to remove this transformation and just put explicit u''
+        # prefixes in the test source code.
 
         class NonAsciiLiteral(ast.NodeTransformer):
             def visit_Str(self, node):

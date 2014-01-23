@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# SKIP_UNICODE_LITERAL_CHECK
-
 import os
 
 import numpy as np

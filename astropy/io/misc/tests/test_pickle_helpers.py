@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .. import fnpickle, fnunpickle
 
-# SKIP_UNICODE_LITERAL_CHECK
-
-
 def test_fnpickling_simple(tmpdir):
     """
     Tests the `fnpickle` and `fnupickle` functions' basic operation by
