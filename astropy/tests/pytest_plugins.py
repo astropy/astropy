@@ -248,8 +248,6 @@ class DoctestPlus(object):
         self._run_rst_doctests = run_rst_doctests
 
         if run_rst_doctests and six.PY3:
-            warnings.warn(
-                "Running doctests in .rst files is not yet supported on Python 3")
             self._run_rst_doctests = False
 
     def pytest_ignore_collect(self, path, config):
@@ -520,6 +518,9 @@ def pytest_report_header(config):
             opts.append(op)
     if opts:
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
+
+    if six.PY3 and (config.getini('doctest_rst') or config.option.doctest_rst):
+        s += "Running doctests in .rst files is not supported on Python 3.x\n"
 
     if not six.PY3:
         s = s.encode(stdoutencoding, 'replace')
