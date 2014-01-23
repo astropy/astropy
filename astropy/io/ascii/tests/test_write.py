@@ -2,6 +2,8 @@
 
 # TEST_UNICODE_LITERALS
 
+import copy
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -272,7 +274,7 @@ def check_write_table(test_def, table):
 def check_write_table_via_table(test_def, table):
     out = StringIO()
 
-    test_def = test_def.copy()
+    test_def = copy.deepcopy(test_def)
     if 'Writer' in test_def['kwargs']:
         format = 'ascii.{0}'.format(test_def['kwargs']['Writer']._format_name)
         del test_def['kwargs']['Writer']
