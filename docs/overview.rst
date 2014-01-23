@@ -42,21 +42,27 @@ may be a candidate for eventual inclusion in the main `astropy` package
 (although this is not required). Until then, however, it is a separate
 package, and may not be in the `astropy` namespace.
 
+The authoritative list of current affiliated packages is available at
+http://affiliated.astropy.org, including a machine-readable `JSON file
+<http://affiliated.astropy.org/registry.json>`_
+
 If you are interested in starting an affiliated package, or have a
 package you are interested in making more compatible with astropy, the
-`astropy` core package includes a variety of features that simplify and
-homogenize package management. Astropy provides a `package template
+`astropy` core package includes a features to simplify and homogenize
+package management. Astropy provides a `package template
 <http://github.com/astropy/package-template>`_ that provides a common
-way to organize packages, to make your life simpler. You can use this
+way to organize a package, to make your life simpler. You can use this
 template either with a new package you are starting or an existing
-package to make it more compatible with Astropy and the affiliated
-package installer. See the `usage instructions in the template
-<https://github.com/astropy/package-template/blob/master/README.rst>`_
-for further details.
+package to give it most of the organizational tools Astropy provides,
+including the documentation, testing, and Cython-building tools.  See
+the `usage instructions in the template <https://github.com/astropy
+/package-template/blob/master/README.rst>`_ for further details.
 
-Further information about affiliated packages is available at
-http://affiliated.astropy.org along with the current list of
-endorsed packages.
+To then get your package listed on the registry, take a look at the
+guidelines at http://affiliated.astropy.org#affiliated-instructions,
+and then either post your intent on the `astropy-dev mailing list`_ or
+issue a Pull Request to the `website's github  repository
+<http://github.com/astropy/astropy.github.com>`_
 
 
 Community
