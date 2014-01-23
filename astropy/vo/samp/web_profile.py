@@ -3,11 +3,15 @@ import warnings
 from ...extern.six.moves.urllib.parse import parse_qs
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import input
+from ...utils.data import get_pkg_data_contents
 
 from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
 from .errors import SAMPWarning
 
 __all__ = []
+
+CROSS_DOMAIN = get_pkg_data_contents('data/crossdomain.xml')
+CLIENT_ACCESS_POLICY = get_pkg_data_contents('data/clientaccesspolicy.xml')
 
 
 class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
@@ -17,7 +21,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
     def _send_CORS_header(self):
 
-        if not self.headers.get('Origin') is None:
+        if self.headers.get('Origin') is not None:
 
             method = self.headers.get('Access-Control-Request-Method')
             if method and self.command == "OPTIONS":
@@ -42,14 +46,9 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
         cross_domain = False
 
         if self.path == "/crossdomain.xml":
+
             # Adobe standard
-            response = """<?xml version='1.0'?>
-<!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
-<cross-domain-policy>
-  <site-control permitted-cross-domain-policies="all"/>
-  <allow-access-from domain="*"/>
-  <allow-http-request-headers-from domain="*" headers="*"/>
-</cross-domain-policy>"""
+            response = CROSS_DOMAIN
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/x-cross-domain-policy')
@@ -60,20 +59,9 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
             cross_domain = True
 
         elif self.path == "/clientaccesspolicy.xml":
+
             # Microsoft standard
-            response = """<?xml version='1.0'?>
-<access-policy>
-  <cross-domain-access>
-    <policy>
-      <allow-from>
-        <domain uri="*"/>
-      </allow-from>
-      <grant-to>
-        <resource path="/" include-subpaths="true"/>
-      </grant-to>
-    </policy>
-  </cross-domain-access>
-</access-policy>"""
+            response = CLIENT_ACCESS_POLICY
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/xml')

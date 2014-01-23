@@ -10,9 +10,14 @@ import threading
 import pickle
 import tempfile
 
+from ....extern.six.moves.urllib.request import Request, urlopen
+from ....utils.data import get_readable_fileobj
+
 from .. import SAMPIntegratedClient, SAMPHubServer, SAMP_STATUS_OK
 from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
                                        SAMPIntegratedWebClient)
+from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
+from ..errors import SAMPHubError
 
 
 def write_output(mtype, params):
@@ -39,7 +44,7 @@ def check_output(mtype, params, timeout=None):
 
     assert rec_mtype == mtype
     assert rec_params == params
-    
+
 
 class Receiver(object):
 
@@ -54,11 +59,11 @@ class Receiver(object):
         self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
                                    "samp.result": {"txt": "test"}})
 
-    
+
 def temporary_filename():
     return tempfile.mkstemp()[1]
-    
-    
+
+
 def test_web_profile():
 
     d = AlwaysApproveWebProfileDialog()
@@ -67,41 +72,57 @@ def test_web_profile():
 
     lockfile = temporary_filename()
 
-    h = SAMPHubServer(web_profile_dialog=d, lockfile=lockfile)
-    h.start()
+    with SAMPHubServer(web_profile_dialog=d, lockfile=lockfile) as h:
 
-    c1 = SAMPIntegratedClient()
-    c1.connect(hub=h)
+        h.start()
 
-    c2 = SAMPIntegratedWebClient()
-    c2.connect()
+        c1 = SAMPIntegratedClient()
+        c1.connect(hub=h)
 
-    rec2 = Receiver(c1)
-    c2.bind_receive_notification('samp.load.votable', rec2.receive_notification)
-    c2.bind_receive_call('samp.load.votable', rec2.receive_call)
+        c2 = SAMPIntegratedWebClient()
+        c2.connect()
 
-    # Test Notify
+        rec2 = Receiver(c1)
+        c2.bind_receive_notification('samp.load.votable', rec2.receive_notification)
+        c2.bind_receive_call('samp.load.votable', rec2.receive_call)
 
-    params = {'verification_file':temporary_filename(),
-              'parameter1':'abcde',
-              'parameter2':1331}
+        # Test Notify
 
-    c1.notify(c2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        params = {'verification_file':temporary_filename(),
+                  'parameter1':'abcde',
+                  'parameter2':1331}
 
-    check_output('samp.load.votable', params)
+        c1.notify(c2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
-    # Test Call
+        check_output('samp.load.votable', params)
 
-    params = {'verification_file':temporary_filename(),
-              'parameter1':'abcde',
-              'parameter2':1331}
+        # Test Call
 
-    c1.call(c2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        params = {'verification_file':temporary_filename(),
+                  'parameter1':'abcde',
+                  'parameter2':1331}
 
-    check_output('samp.load.votable', params)
+        c1.call(c2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
-    c1.disconnect()
-    c2.disconnect()
+        check_output('samp.load.votable', params)
 
-    h.stop()
-    d.stop()
+        c1.disconnect()
+        c2.disconnect()
+        d.stop()
+
+        # Now check some additional queries to the server
+
+        with get_readable_fileobj('http://localhost:21012/crossdomain.xml') as f:
+            assert f.read() == CROSS_DOMAIN
+
+        with get_readable_fileobj('http://localhost:21012/clientaccesspolicy.xml') as f:
+            assert f.read() == CLIENT_ACCESS_POLICY
+
+        # Check headers
+
+        req = Request('http://127.0.0.1:21012/crossdomain.xml')
+        req.add_header('Origin', 'test_web_profile')
+        resp = urlopen(req)
+        assert resp.info().getheader('Access-Control-Allow-Origin') == 'test_web_profile'
+        assert resp.info().getheader('Access-Control-Allow-Headers') == 'Content-Type'
+        assert resp.info().getheader('Access-Control-Allow-Credentials') == 'true'
