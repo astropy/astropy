@@ -37,9 +37,9 @@ Affiliated Packages
 The Astropy project includes the concept of "affiliated packages." An
 affiliated package is an astronomy-related python package that is not
 part of the `astropy` core source code, but has requested to be included
-in the general community effort of the Astropy project. Such a package 
-may be a candidate for eventual inclusion in the main `astropy` package 
-(although this is not required). Until then, however, it is a separate 
+in the general community effort of the Astropy project. Such a package
+may be a candidate for eventual inclusion in the main `astropy` package
+(although this is not required). Until then, however, it is a separate
 package, and may not be in the `astropy` namespace.
 
 If you are interested in starting an affiliated package, or have a
@@ -52,9 +52,9 @@ template either with a new package you are starting or an existing
 package to make it more compatible with Astropy and the affiliated
 package installer. See the `usage instructions in the template
 <https://github.com/astropy/package-template/blob/master/README.rst>`_
-for further details. 
+for further details.
 
-Further information about affiliated packages is available at 
+Further information about affiliated packages is available at
 http://affiliated.astropy.org along with the current list of
 endorsed packages.
 
@@ -65,7 +65,7 @@ Community
 Aside from the actual code, Astropy is also a community of
 astronomy-associated users and developers that agree that sharing utilities
 is healthy for the community and the science it produces. This community
-is of course central to accomplishing anything with the code itself. 
+is of course central to accomplishing anything with the code itself.
 We follow the `Python Software Foundation Code of Conduct
 <http://www.python.org/psf/codeofconduct/>`_ and welcome anyone
 who wishes to contribute to the project.
