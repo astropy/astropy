@@ -665,3 +665,12 @@ def get_testfiles(name=None):
         return [x for x in testfiles if x['name'] == name][0]
     else:
         return testfiles
+
+
+def test_overlapping_names():
+    """
+    Check that the names argument list can overlap with the existing column names.
+    This tests the issue in #1991.
+    """
+    t = ascii.read(['a b', '1 2'], names=['b', 'a'])
+    assert t.colnames == ['b', 'a']
