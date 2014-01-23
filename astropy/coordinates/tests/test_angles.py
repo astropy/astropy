@@ -296,3 +296,9 @@ def test_regression_formatting_negative():
     assert Angle(-1., unit='deg').to_string() == '-1d00m00s'
     assert Angle(-0., unit='hour').to_string() == '-0h00m00s'
     assert Angle(-1., unit='hour').to_string() == '-1h00m00s'
+
+def test_empty_sep():
+    a = Angle('05h04m31.93830s')
+
+    assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
+
