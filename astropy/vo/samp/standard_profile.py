@@ -14,7 +14,8 @@ from ...extern import six
 if six.PY3:
     from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 else:
-    from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
+    from SimpleXMLRPCServer import (SimpleXMLRPCRequestHandler,
+                                    SimpleXMLRPCServer)
 
 from .constants import SAMP_ICON
 from .errors import SAMPWarning
@@ -42,7 +43,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
-            which are forwarded to the server's `_dispatch` method for handling.
+            which are forwarded to the server's `_dispatch` method for
+            handling.
             """
 
             # Check that the path is legal
@@ -103,7 +105,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 response = self.server._marshaled_dispatch(
                     data, getattr(self, '_dispatch', None), self.path
                 )
-            except Exception as e:  # This should only happen if the module is buggy
+            except Exception as e:
+                # This should only happen if the module is buggy
                 # internal error, report as HTTP server error
                 self.send_response(500)
 
@@ -141,7 +144,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
-            which are forwarded to the server's `_dispatch` method for handling.
+            which are forwarded to the server's `_dispatch` method for
+            handling.
             """
 
             # Check that the path is legal
@@ -227,7 +231,8 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
     Asynchronous multithreaded XMLRPC server.
     """
 
-    def __init__(self, addr, log=None, requestHandler=SAMPSimpleXMLRPCRequestHandler,
+    def __init__(self, addr, log=None,
+                 requestHandler=SAMPSimpleXMLRPCRequestHandler,
                  logRequests=True, allow_none=True, encoding=None):
         self.log = log
         SimpleXMLRPCServer.__init__(self, addr, requestHandler,
@@ -237,4 +242,6 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
         if self.log is None:
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
-            warnings.warn("Exception happened during processing of request from %s: %s" % (client_address, sys.exc_info()[1]), SAMPWarning)
+            warnings.warn("Exception happened during processing of request "
+                          "from %s: %s" % (client_address, sys.exc_info()[1]),
+                          SAMPWarning)

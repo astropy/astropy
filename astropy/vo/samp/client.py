@@ -30,8 +30,8 @@ __all__ = ['SAMPClient']
 
 class SAMPClient(object):
     """
-    Utility class which provides facilities to create and manage a SAMP compliant
-    XML-RPC server that acts as SAMP callable client application.
+    Utility class which provides facilities to create and manage a SAMP
+    compliant XML-RPC server that acts as SAMP callable client application.
 
     Parameters
     ----------
@@ -71,9 +71,9 @@ class SAMPClient(object):
         the local side of the secure connection.
 
     cert_reqs : int, optional
-        Whether a certificate is required from the server side of the connection,
-        and whether it will be validated if provided. It must be one of the
-        three values `ssl.CERT_NONE` (certificates ignored),
+        Whether a certificate is required from the server side of the
+        connection, and whether it will be validated if provided. It must be
+        one of the three values `ssl.CERT_NONE` (certificates ignored),
         `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
         `ssl.CERT_REQUIRED` (required and validated). If the value of this
         parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
@@ -85,10 +85,10 @@ class SAMPClient(object):
         passed from the Hub end of the connection.
 
     ssl_version : int, optional
-        Which version of the SSL protocol to use. Typically, the server chooses
-        a particular protocol version, and the client must adapt to the
-        server's choice. Most of the versions are not interoperable with the
-        other versions. If not specified the default SSL version is
+        Which version of the SSL protocol to use. Typically, the server
+        chooses a particular protocol version, and the client must adapt to
+        the server's choice. Most of the versions are not interoperable with
+        the other versions. If not specified the default SSL version is
         `ssl.PROTOCOL_SSLv23`. This version provides the most compatibility
         with other versions Hub side. Other SSL protocol versions are:
         `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
@@ -201,7 +201,8 @@ class SAMPClient(object):
         Parameters
         ----------
         timeout : float
-            Timeout after which to give up if the client cannot be cleanly shut down.
+            Timeout after which to give up if the client cannot be cleanly
+            shut down.
         """
         # Setting _is_running to False causes the loop in _serve_forever to
         # exit. The thread should then stop running. We wait for the thread to
@@ -210,7 +211,8 @@ class SAMPClient(object):
         if self._callable and self._thread.is_alive():
             self._thread.join(timeout)
         if self._thread.is_alive():
-            raise SAMPClientError("Client was not shut down successfully (timeout={0}s)".format(timeout))
+            raise SAMPClientError("Client was not shut down successfully "
+                                  "(timeout={0}s)".format(timeout))
 
     @property
     def is_running(self):
@@ -235,23 +237,32 @@ class SAMPClient(object):
             try:
                 read_ready = select.select([self.client.socket], [], [], 0.1)[0]
             except select.error as exc:
-                warnings.warn("Call to select in SAMPClient failed: {0}".format(exc), SAMPWarning)
+                warnings.warn("Call to select in SAMPClient failed: {0}".format(exc),
+                              SAMPWarning)
             else:
                 if read_ready:
                     self.client.handle_request()
 
-    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):
-        self.hub.reply(private_key, msg_id, {"samp.status": SAMP_STATUS_OK, "samp.result": {}})
+    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params,
+              message):
 
-    def _client_env_get(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):
+        reply = {"samp.status": SAMP_STATUS_OK, "samp.result": {}}
+
+        self.hub.reply(private_key, msg_id, reply)
+
+    def _client_env_get(self, private_key, sender_id, msg_id, msg_mtype,
+                        msg_params, message):
+
         if msg_params["name"] in os.environ:
-            self.hub.reply(private_key, msg_id, {"samp.status": SAMP_STATUS_OK,
-                                                 "samp.result": {"value": os.environ[msg_params["name"]]}})
+            reply = {"samp.status": SAMP_STATUS_OK,
+                     "samp.result": {"value": os.environ[msg_params["name"]]}}
         else:
-            self.hub.reply(private_key, msg_id, {"samp.status": SAMP_STATUS_WARNING,
-                                                 "samp.result": {"value": ""},
-                                                 "samp.error": {"samp.errortxt":
-                                                                "Environment variable not defined."}})
+            reply = {"samp.status": SAMP_STATUS_WARNING,
+                     "samp.result": {"value": ""},
+                     "samp.error": {"samp.errortxt":
+                                    "Environment variable not defined."}}
+
+        self.hub.reply(private_key, msg_id, reply)
 
     def _handle_notification(self, private_key, sender_id, message):
 
@@ -267,9 +278,11 @@ class SAMPClient(object):
                 if mtype in self._notification_bindings:
                     bound_func = self._notification_bindings[mtype][0]
                     if get_num_args(bound_func) == 5:
-                        bound_func(private_key, sender_id, msg_mtype, msg_params, message)
+                        bound_func(private_key, sender_id, msg_mtype,
+                                   msg_params, message)
                     else:
-                        bound_func(private_key, sender_id, None, msg_mtype, msg_params, message)
+                        bound_func(private_key, sender_id, None, msg_mtype,
+                                   msg_params, message)
 
         return ""
 
@@ -318,8 +331,9 @@ class SAMPClient(object):
 
             for mtype in msubs:
                 if mtype in self._call_bindings:
-                    self._call_bindings[mtype][0](private_key, sender_id, msg_id,
-                                                  msg_mtype, msg_params, message)
+                    self._call_bindings[mtype][0](private_key, sender_id,
+                                                  msg_id, msg_mtype,
+                                                  msg_params, message)
 
         return ""
 
@@ -359,8 +373,10 @@ class SAMPClient(object):
         return self._handle_call(private_key, sender_id, msg_id, message)
 
     def _handle_response(self, private_key, responder_id, msg_tag, response):
-        if private_key == self.get_private_key() and msg_tag in self._response_bindings:
-            self._response_bindings[msg_tag](private_key, responder_id, msg_tag, response)
+        if (private_key == self.get_private_key() and
+            msg_tag in self._response_bindings):
+            self._response_bindings[msg_tag](private_key, responder_id,
+                                    msg_tag, response)
         return ""
 
     def receive_response(self, private_key, responder_id, msg_tag, response):
@@ -396,16 +412,19 @@ class SAMPClient(object):
         confirmation : str
             Any confirmation string.
         """
-        return self._handle_response(private_key, responder_id, msg_tag, response)
+        return self._handle_response(private_key, responder_id, msg_tag,
+                                     response)
 
-    def bind_receive_message(self, mtype, function, declare=True, metadata=None):
+    def bind_receive_message(self, mtype, function, declare=True,
+                             metadata=None):
         """
         Bind a specific MType to a function or class method, being intended for
         a call or a notification.
 
         The function must be of the form::
 
-            def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)
+            def my_function_or_method(<self,> private_key, sender_id, msg_id,
+                                      mtype, params, extra)
 
         where ``private_key`` is the client private-key, ``sender_id`` is the
         notification sender ID, ``msg_id`` is the Hub message-id (calls only,
@@ -432,8 +451,12 @@ class SAMPClient(object):
             with the MType subscribed to (see also
             :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
-        self.bind_receive_call(mtype, function, declare=declare, metadata=metadata)
-        self.bind_receive_notification(mtype, function, declare=declare, metadata=metadata)
+
+        self.bind_receive_call(mtype, function, declare=declare,
+                               metadata=metadata)
+
+        self.bind_receive_notification(mtype, function, declare=declare,
+                                       metadata=metadata)
 
     def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
         """
@@ -441,7 +464,8 @@ class SAMPClient(object):
 
         The function must be of the form::
 
-            def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)
+            def my_function_or_method(<self,> private_key, sender_id, mtype,
+                                      params, extra)
 
         where ``private_key`` is the client private-key, ``sender_id`` is the
         notification sender ID, ``mtype`` is the message MType, ``params`` is
@@ -459,7 +483,8 @@ class SAMPClient(object):
 
         declare : bool, optional
             Specify whether the client must be automatically declared as
-            subscribed to the MType (see also :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
+            subscribed to the MType (see also
+            :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
 
         metadata : dict, optional
             Dictionary containing additional metadata to declare associated
@@ -481,7 +506,8 @@ class SAMPClient(object):
 
         The function must be of the form::
 
-            def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)
+            def my_function_or_method(<self,> private_key, sender_id, msg_id,
+                                      mtype, params, extra)
 
         where ``private_key`` is the client private-key, ``sender_id`` is the
         notification sender ID, ``msg_id`` is the Hub message-id, ``mtype`` is
@@ -523,7 +549,8 @@ class SAMPClient(object):
 
         The function must be of the form::
 
-            def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)
+            def my_function_or_method(<self,> private_key, responder_id,
+                                      msg_tag, response)
 
         where ``private_key`` is the client private-key, ``responder_id`` is
         the message responder ID, ``msg_tag`` is the message-tag provided at
@@ -544,8 +571,8 @@ class SAMPClient(object):
 
     def unbind_receive_notification(self, mtype, declare=True):
         """
-        Remove from the notifications binding table the specified MType and unsubscribe
-        the client from it (if required).
+        Remove from the notifications binding table the specified MType and
+        unsubscribe the client from it (if required).
 
         Parameters
         ----------
@@ -602,8 +629,8 @@ class SAMPClient(object):
 
     def declare_subscriptions(self, subscriptions=None):
         """
-        Declares the MTypes the client wishes to subscribe to, implicitly defined
-        with the MType binding methods
+        Declares the MTypes the client wishes to subscribe to, implicitly
+        defined with the MType binding methods
         :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
         and :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call`.
 
@@ -616,8 +643,8 @@ class SAMPClient(object):
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to, with the
             same format of the ``subscriptions`` map passed to the
-            :meth:`~astropy.vo.samp.hub_proxySAMPHubProxy.declare_subscriptions`
-            method.
+            :meth:`~astropy.vo.samp.hub_proxySAMPHubProxy.declare_subscriptions
+            ` method.
         """
         if self._callable:
             self._declare_subscriptions(subscriptions)
@@ -636,10 +663,12 @@ class SAMPClient(object):
             result = self.hub.register(self.hub.lockfile["samp.secret"])
 
             if result["samp.self-id"] == "":
-                raise SAMPClientError("Registation failed - samp.self-id was not set by the hub.")
+                raise SAMPClientError("Registation failed - "
+                                      "samp.self-id was not set by the hub.")
 
             if result["samp.private-key"] == "":
-                raise SAMPClientError("Registation failed - samp.private-key was not set by the hub.")
+                raise SAMPClientError("Registation failed - "
+                                      "samp.private-key was not set by the hub.")
 
             self._public_id = result["samp.self-id"]
             self._private_key = result["samp.private-key"]
@@ -655,7 +684,8 @@ class SAMPClient(object):
             self._is_registered = True
 
         else:
-            raise SAMPClientError("Unable to register to the SAMP Hub. Hub proxy not connected.")
+            raise SAMPClientError("Unable to register to the SAMP Hub. "
+                                  "Hub proxy not connected.")
 
     def unregister(self):
         """
@@ -668,7 +698,8 @@ class SAMPClient(object):
             self._public_id = None
             self._private_key = None
         else:
-            raise SAMPClientError("Unable to unregister from the SAMP Hub. Hub proxy not connected.")
+            raise SAMPClientError("Unable to unregister from the SAMP Hub. "
+                                  "Hub proxy not connected.")
 
     def _set_xmlrpc_callback(self):
         if self.hub.is_connected and self._private_key is not None:
@@ -694,7 +725,9 @@ class SAMPClient(object):
             self.hub.declare_subscriptions(self._private_key, mtypes_dict)
 
         else:
-            raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
+            raise SAMPClientError("Unable to declare subscriptions. Hub "
+                                  "unreachable or not connected or client "
+                                  "not registered.")
 
     def declare_metadata(self, metadata=None):
         """
@@ -712,12 +745,14 @@ class SAMPClient(object):
                 self._metadata.update(metadata)
             self.hub.declare_metadata(self._private_key, self._metadata)
         else:
-            raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
+            raise SAMPClientError("Unable to declare metadata. Hub "
+                                  "unreachable or not connected or client "
+                                  "not registered.")
 
     def get_private_key(self):
         """
-        Return the client private key used for the Standard Profile communications
-        obtained at registration time (``samp.private-key``).
+        Return the client private key used for the Standard Profile
+        communications obtained at registration time (``samp.private-key``).
 
         Returns
         -------
@@ -728,7 +763,8 @@ class SAMPClient(object):
 
     def get_public_id(self):
         """
-        Return public client ID obtained at registration time (``samp.self-id``).
+        Return public client ID obtained at registration time
+        (``samp.self-id``).
 
         Returns
         -------

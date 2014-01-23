@@ -10,7 +10,8 @@ from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import input
 from ...utils.data import get_pkg_data_contents
 
-from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
+from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
+                               ThreadingXMLRPCServer)
 from .errors import SAMPWarning
 
 __all__ = []
@@ -32,13 +33,15 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
             if method and self.command == "OPTIONS":
                 # Preflight method
                 self.send_header('Content-Length', '0')
-                self.send_header('Access-Control-Allow-Origin', self.headers.get('Origin'))
+                self.send_header('Access-Control-Allow-Origin',
+                                 self.headers.get('Origin'))
                 self.send_header('Access-Control-Allow-Methods', method)
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
                 self.send_header('Access-Control-Allow-Credentials', 'true')
             else:
                 # Simple method
-                self.send_header('Access-Control-Allow-Origin', self.headers.get('Origin'))
+                self.send_header('Access-Control-Allow-Origin',
+                                 self.headers.get('Origin'))
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
                 self.send_header('Access-Control-Allow-Credentials', 'true')
 
@@ -124,7 +127,8 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
     def is_http_path_valid(self):
 
-        valid_paths = ["/clientaccesspolicy.xml", "/crossdomain.xml"] + ['/translator/%s' % clid for clid in self.server.clients]
+        valid_paths = (["/clientaccesspolicy.xml", "/crossdomain.xml"] +
+                       ['/translator/%s' % clid for clid in self.server.clients])
         return self.path.split('?')[0] in valid_paths
 
 

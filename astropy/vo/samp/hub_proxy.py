@@ -51,43 +51,45 @@ class SAMPHubProxy(object):
 
         hub_params : dict, optional
             Optional dictionary containing the lock-file content of the Hub
-            with which to connect. This dictionary has the form ``{<token-name>:
-            <token-string>, ...}``.
+            with which to connect. This dictionary has the form
+            ``{<token-name>: <token-string>, ...}``.
 
         key_file : str, optional
-            The path to a file containing the private key for SSL connections. If
-            the certificate file (``cert_file``) contains the private key, then
-            ``key_file`` can be omitted.
+            The path to a file containing the private key for SSL connections.
+            If the certificate file (``cert_file``) contains the private key,
+            then ``key_file`` can be omitted.
 
         cert_file : str, optional
-            The path to a file which contains a certificate to be used to identify
-            the local side of the secure connection.
+            The path to a file which contains a certificate to be used to
+            identify the local side of the secure connection.
 
         cert_reqs : int, optional
-            Whether a certificate is required from the server side of the connection,
-            and whether it will be validated if provided. It must be one of the
-            three values `ssl.CERT_NONE` (certificates ignored),
+            Whether a certificate is required from the server side of the
+            connection, and whether it will be validated if provided. It must
+            be one of the three values `ssl.CERT_NONE` (certificates ignored),
             `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
             `ssl.CERT_REQUIRED` (required and validated). If the value of this
-            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
-            point to a file of CA certificates.
+            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter
+            must point to a file of CA certificates.
 
         ca_certs : str, optional
             The path to a file containing a set of concatenated "Certification
-            Authority" certificates, which are used to validate the certificate
-            passed from the Hub end of the connection.
+            Authority" certificates, which are used to validate the
+            certificate passed from the Hub end of the connection.
 
         ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the server chooses
-            a particular protocol version, and the client must adapt to the
-            server's choice. Most of the versions are not interoperable with the
-            other versions. If not specified the default SSL version is
-            `ssl.PROTOCOL_SSLv3`. This version provides the most compatibility
-            with other versions server side. Other SSL protocol versions are:
-            `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+            Which version of the SSL protocol to use. Typically, the server
+            chooses a particular protocol version, and the client must adapt
+            to the server's choice. Most of the versions are not interoperable
+            with the other versions. If not specified the default SSL version
+            is `ssl.PROTOCOL_SSLv3`. This version provides the most
+            compatibility with other versions server side. Other SSL protocol
+            versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
+            `ssl.PROTOCOL_TLSv1`.
 
         pool_size : int, optional
-            The number of socket connections opened to communicate with the Hub.
+            The number of socket connections opened to communicate with the
+            Hub.
         """
 
         self._connected = False
@@ -114,12 +116,18 @@ class SAMPHubProxy(object):
             url = hub_params["samp.hub.xmlrpc.url"].replace("\\", "")
 
             if SSL_SUPPORT and url[0:5] == "https":
+
+                transport = SafeTransport(key_file, cert_file, cert_reqs,
+                                          ca_certs, ssl_version)
+
                 self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                             url, transport=SafeTransport(key_file, cert_file, cert_reqs,
-                                                                          ca_certs, ssl_version),
+                                             url, transport=transport,
                                              allow_none=1)
+
             else:
-                self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy, url, allow_none=1)
+
+                self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
+                                             url, allow_none=1)
 
             self.ping()
 
@@ -129,9 +137,11 @@ class SAMPHubProxy(object):
         except xmlrpc.ProtocolError as p:
             # 401 Unauthorized
             if p.errcode == 401:
-                raise SAMPHubError("Unauthorized access. Basic Authentication required or failed.")
+                raise SAMPHubError("Unauthorized access. Basic Authentication "
+                                   "required or failed.")
             else:
-                raise SAMPHubError("Protocol Error %d: %s" % (p.errcode, p.errmsg))
+                raise SAMPHubError("Protocol Error %d: %s" % (p.errcode,
+                                                              p.errmsg))
 
     def disconnect(self):
         """
@@ -236,10 +246,9 @@ class SAMPHubProxy(object):
     def call_and_wait(self, private_key, recipient_id, message, timeout):
         """
         Proxy to ``callAndWait`` SAMP Hub method.
-
-        If timeout expires a :class:`~astropy.vo.samp.errors.SAMPProxyError` instance is raised.
         """
-        return self._samp_hub.callAndWait(private_key, recipient_id, message, timeout)
+        return self._samp_hub.callAndWait(private_key, recipient_id, message,
+                                          timeout)
 
     def reply(self, private_key, msg_id, response):
         """

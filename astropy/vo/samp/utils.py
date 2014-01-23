@@ -20,7 +20,8 @@ from .constants import SAMP_STATUS_ERROR
 from .errors import SAMPProxyError
 
 ALLOW_INTERNET = ConfigurationItem('use_internet', True,
-                                   "Whether to allow astropy.vo.samp to use the internet, if available")
+                                   "Whether to allow astropy.vo.samp to use "
+                                   "the internet, if available")
 
 
 def internet_on():

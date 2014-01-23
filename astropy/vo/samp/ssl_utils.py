@@ -135,7 +135,8 @@ class SecureXMLRPCServer(ThreadingXMLRPCServer):
         """
         Secure XML-RPC server.
 
-        It it very similar to SimpleXMLRPCServer but it uses HTTPS for transporting XML data.
+        It it very similar to SimpleXMLRPCServer but it uses HTTPS for
+        transporting XML data.
         """
         self.key_file = key_file
         self.cert_file = cert_file

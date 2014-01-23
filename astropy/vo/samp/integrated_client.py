@@ -54,9 +54,9 @@ class SAMPIntegratedClient(object):
         the local side of the secure connection.
 
     cert_reqs : int, optional
-        Whether a certificate is required from the server side of the connection,
-        and whether it will be validated if provided. It must be one of the
-        three values `ssl.CERT_NONE` (certificates ignored),
+        Whether a certificate is required from the server side of the
+        connection, and whether it will be validated if provided. It must be
+        one of the three values `ssl.CERT_NONE` (certificates ignored),
         `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
         `ssl.CERT_REQUIRED` (required and validated). If the value of this
         parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
@@ -86,9 +86,10 @@ class SAMPIntegratedClient(object):
 
         self.hub = SAMPHubProxy()
 
-        self.client = SAMPClient(self.hub, name, description, metadata, addr, port,
-                                 https, key_file, cert_file, cert_reqs,
+        self.client = SAMPClient(self.hub, name, description, metadata, addr,
+                                 port, https, key_file, cert_file, cert_reqs,
                                  ca_certs, ssl_version, callable)
+
 
     def __del__(self):
         self.disconnect()
@@ -117,7 +118,8 @@ class SAMPIntegratedClient(object):
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=None, pool_size=20):
         """
-        Connect with the current or specified SAMP Hub, start and register the client.
+        Connect with the current or specified SAMP Hub, start and register the
+        client.
 
         Parameters
         ----------
@@ -126,46 +128,48 @@ class SAMPIntegratedClient(object):
 
         hub_params : dict, optional
             Optional dictionary containing the lock-file content of the Hub
-            with which to connect. This dictionary has the form ``{<token-name>:
-            <token-string>, ...}``.
+            with which to connect. This dictionary has the form
+            ``{<token-name>: <token-string>, ...}``.
 
         key_file : str, optional
-            The path to a file containing the private key for SSL connections. If
-            the certificate file (``cert_file``) contains the private key, then
-            ``key_file`` can be omitted.
+            The path to a file containing the private key for SSL connections.
+            If the certificate file (``cert_file``) contains the private key,
+            then ``key_file`` can be omitted.
 
         cert_file : str, optional
-            The path to a file which contains a certificate to be used to identify
-            the local side of the secure connection.
+            The path to a file which contains a certificate to be used to
+            identify the local side of the secure connection.
 
         cert_reqs : int, optional
-            Whether a certificate is required from the server side of the connection,
-            and whether it will be validated if provided. It must be one of the
-            three values `ssl.CERT_NONE` (certificates ignored),
+            Whether a certificate is required from the server side of the
+            connection, and whether it will be validated if provided. It must
+            be one of the three values `ssl.CERT_NONE` (certificates ignored),
             `ssl.CERT_OPTIONAL` (not required, but validated if provided), or
             `ssl.CERT_REQUIRED` (required and validated). If the value of this
-            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter must
-            point to a file of CA certificates.
+            parameter is not `ssl.CERT_NONE`, then the ``ca_certs`` parameter
+            must point to a file of CA certificates.
 
         ca_certs : str, optional
             The path to a file containing a set of concatenated "Certification
-            Authority" certificates, which are used to validate the certificate
-            passed from the Hub end of the connection.
+            Authority" certificates, which are used to validate the
+            certificate passed from the Hub end of the connection.
 
         ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the server chooses
-            a particular protocol version, and the client must adapt to the
-            server's choice. Most of the versions are not interoperable with the
-            other versions. If not specified the default SSL version is
-            `ssl.PROTOCOL_SSLv3`. This version provides the most compatibility
-            with other versions server side. Other SSL protocol versions are:
-            `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+            Which version of the SSL protocol to use. Typically, the server
+            chooses a particular protocol version, and the client must adapt
+            to the server's choice. Most of the versions are not interoperable
+            with the other versions. If not specified the default SSL version
+            is `ssl.PROTOCOL_SSLv3`. This version provides the most
+            compatibility with other versions server side. Other SSL protocol
+            versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
+            `ssl.PROTOCOL_TLSv1`.
 
         pool_size : int, optional
-            The number of socket connections opened to communicate with the Hub.
+            The number of socket connections opened to communicate with the
+            Hub.
         """
-        self.hub.connect(hub, hub_params, user, password, key_file, cert_file, cert_reqs,
-                         ca_certs, ssl_version, pool_size)
+        self.hub.connect(hub, hub_params, user, password, key_file, cert_file,
+                         cert_reqs, ca_certs, ssl_version, pool_size)
         self.client.start()
         self.client.register()
 
@@ -243,12 +247,12 @@ class SAMPIntegratedClient(object):
         """
         Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify`.
 
-        This is a proxy to ``notify`` method that allows to
-        send the notification message in a simplified way.
+        This is a proxy to ``notify`` method that allows to send the
+        notification message in a simplified way.
 
-        Note that reserved ``extra_kws`` keyword is a dictionary with the special meaning of
-        being used to add extra keywords, in addition to the standard ``samp.mtype``
-        and ``samp.params``, to the message sent.
+        Note that reserved ``extra_kws`` keyword is a dictionary with the
+        special meaning of being used to add extra keywords, in addition to
+        the standard ``samp.mtype`` and ``samp.params``, to the message sent.
 
         Parameters
         ----------
@@ -259,8 +263,8 @@ class SAMPIntegratedClient(object):
             the MType to be notified
 
         params : dict or set of keywords
-            Variable keyword set which contains the list of parameters for
-            the specified MType.
+            Variable keyword set which contains the list of parameters for the
+            specified MType.
 
         Examples
         --------
@@ -282,12 +286,12 @@ class SAMPIntegratedClient(object):
         """
         Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`.
 
-        This is a proxy to `notifyAll` method that allows to
-        send the notification message in a simplified way.
+        This is a proxy to `notifyAll` method that allows to send the
+        notification message in a simplified way.
 
-        Note that reserved ``extra_kws`` keyword is a dictionary with the special meaning of
-        being used to add extra keywords, in addition to the standard ``samp.mtype``
-        and ``samp.params``, to the message sent.
+        Note that reserved ``extra_kws`` keyword is a dictionary with the
+        special meaning of being used to add extra keywords, in addition to
+        the standard ``samp.mtype`` and ``samp.params``, to the message sent.
 
         Parameters
         ----------
@@ -304,7 +308,8 @@ class SAMPIntegratedClient(object):
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify_all("samp.msg.progress", txt = "initialization",
-        ...                percent = "10", extra_kws = {"my.extra.info": "just an example"})
+        ...                 percent = "10",
+        ...                 extra_kws = {"my.extra.info": "just an example"})
         """
         return self.notify_all(self._format_easy_msg(mtype, params))
 
@@ -318,12 +323,12 @@ class SAMPIntegratedClient(object):
         """
         Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.call`.
 
-        This is a proxy to ``call`` method that allows to
-        send a call message in a simplified way.
+        This is a proxy to ``call`` method that allows to send a call message
+        in a simplified way.
 
-        Note that reserved ``extra_kws`` keyword is a dictionary with the special meaning of
-        being used to add extra keywords, in addition to the standard ``samp.mtype``
-        and ``samp.params``, to the message sent.
+        Note that reserved ``extra_kws`` keyword is a dictionary with the
+        special meaning of being used to add extra keywords, in addition to
+        the standard ``samp.mtype`` and ``samp.params``, to the message sent.
 
         Parameters
         ----------
@@ -345,8 +350,9 @@ class SAMPIntegratedClient(object):
         >>> from astropy.vo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
-        >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization",
-        ...                   percent = "10", extra_kws = {"my.extra.info": "just an example"})
+        >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress",
+        ...                   txt = "initialization", percent = "10",
+        ...                   extra_kws = {"my.extra.info": "just an example"})
         """
 
         return self.call(recipient_id, msg_tag, self._format_easy_msg(mtype, params))
@@ -365,8 +371,8 @@ class SAMPIntegratedClient(object):
         message in a simplified way.
 
         Note that reserved ``extra_kws`` keyword is a dictionary with the
-        special meaning of being used to add extra keywords, in addition to the
-        standard ``samp.mtype`` and ``samp.params``, to the message sent.
+        special meaning of being used to add extra keywords, in addition to
+        the standard ``samp.mtype`` and ``samp.params``, to the message sent.
 
         Parameters
         ----------
@@ -385,8 +391,9 @@ class SAMPIntegratedClient(object):
         >>> from astropy.vo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
-        >>> msgid = cli.ecall_all("xyz", "samp.msg.progress", txt = "initialization",
-        ...                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
+        >>> msgid = cli.ecall_all("xyz", "samp.msg.progress",
+        ...                       txt = "initialization", percent = "10",
+        ...                       extra_kws = {"my.extra.info": "just an example"})
         """
         self.call_all(msg_tag, self._format_easy_msg(mtype, params))
 
@@ -404,8 +411,8 @@ class SAMPIntegratedClient(object):
         message in a simplified way.
 
         Note that reserved ``extra_kws`` keyword is a dictionary with the
-        special meaning of being used to add extra keywords, in addition to the
-        standard ``samp.mtype`` and ``samp.params``, to the message sent.
+        special meaning of being used to add extra keywords, in addition to
+        the standard ``samp.mtype`` and ``samp.params``, to the message sent.
 
         Parameters
         ----------
@@ -427,8 +434,9 @@ class SAMPIntegratedClient(object):
         >>> from astropy.vo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
-        >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5", txt = "initialization",
-        ...                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
+        >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5",
+        ...                    txt = "initialization", percent = "10",
+        ...                    extra_kws = {"my.extra.info": "just an example"})
         """
         return self.call_and_wait(recipient_id, self._format_easy_msg(mtype, params), timeout)
 
@@ -452,8 +460,8 @@ class SAMPIntegratedClient(object):
         """
         Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.reply`.
 
-        This is a proxy to ``reply`` method that allows to send a reply message
-        in a simplified way.
+        This is a proxy to ``reply`` method that allows to send a reply
+        message in a simplified way.
 
         Parameters
         ----------

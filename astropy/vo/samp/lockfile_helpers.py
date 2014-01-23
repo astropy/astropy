@@ -54,14 +54,16 @@ def write_lockfile(lockfilename, lockfiledict):
     os.chmod(lockfilename, stat.S_IREAD + stat.S_IWRITE)
 
     lockfile = open(lockfilename, "w")
-    lockfile.write("# SAMP lockfile written on %s\n" % datetime.datetime.now().isoformat())
+    now_iso = datetime.datetime.now().isoformat()
+    lockfile.write("# SAMP lockfile written on %s\n" % now_iso)
     lockfile.write("# Standard Profile required keys\n")
     for key, value in six.iteritems(lockfiledict):
         lockfile.write("{0}={1}\n".format(key, value))
     lockfile.close()
 
 
-def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None):
+def create_lock_file(lockfilename=None, mode=None, hub_id=None,
+                     hub_params=None):
 
     # Remove lock-files of dead hubs
     remove_garbage_lock_files()
@@ -77,7 +79,9 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
             lockfile_parsed = urlparse(lockfilename)
 
             if lockfile_parsed[0] != 'file':
-                warnings.warn("Unable to start a Hub with lockfile %s. Start-up process aborted." % lockfilename, SAMPWarning)
+                warnings.warn("Unable to start a Hub with lockfile %s. "
+                              "Start-up process aborted." % lockfilename,
+                              SAMPWarning)
                 return False
             else:
                 lockfilename = lockfile_parsed[2]
@@ -100,9 +104,11 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
                 except OSError:
                     pass  # directory already exists
                 finally:
-                    os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
+                    os.chmod(lockfiledir,
+                             stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
-                lockfilename = os.path.join(lockfiledir, "samp-hub-%s" % hub_id)
+                lockfilename = os.path.join(lockfiledir,
+                                            "samp-hub-%s" % hub_id)
 
         else:
             log.debug("Running mode: multiple")
@@ -110,7 +116,8 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
     hub_is_running, lockfiledict = check_running_hub(lockfilename)
 
     if hub_is_running:
-        warnings.warn("Another SAMP Hub is already running. Start-up process aborted.", SAMPWarning)
+        warnings.warn("Another SAMP Hub is already running. Start-up process "
+                      "aborted.", SAMPWarning)
         return False
 
     log.debug("Lock-file: " + lockfilename)
