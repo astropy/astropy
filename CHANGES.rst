@@ -128,8 +128,6 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
-
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -201,6 +199,8 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+
+  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
 
   - Fixed a bug where sexagesimal notation would sometimes include
     exponential notation in the last field. [#1908, #1913]
