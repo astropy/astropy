@@ -316,7 +316,8 @@ class Time(object):
             try:
                 return FormatClass(val, val2, scale, self.precision,
                                    self.in_subfmt, self.out_subfmt)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as exception:
+                print(exception)
                 pass
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
@@ -1680,11 +1681,11 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        try:
-            assert all(isinstance(val, datetime) for val in val1)
-        except:
-            raise TypeError('Input values for {0} class must be '
-                            'datetime objects'.format(self.name))
+        #try:
+            #assert all(isinstance(val, datetime) for val in val1)
+        #except:
+            #raise TypeError('Input values for {0} class must be '
+                            #'datetime objects'.format(self.name))
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -1727,7 +1728,7 @@ class TimeDatetime(TimeUnique):
         return out
 
 
-class TimeDecimalYear(TimeUnique):
+class TimeDecimalYear(TimeFormat):
     """Decimal year time format
 
     This is a copy of the TimeDatetime implementation that instead calculates 
@@ -1756,14 +1757,32 @@ class TimeDecimalYear(TimeUnique):
         imin = np.empty(n_times, dtype=np.intc)
         dsec = np.empty(n_times, dtype=np.double)
 
-        # Iterate through the datetime objects
+        # Iterate through the fractional year objects
         for i, val in enumerate(val1):
-            iy[i] = val.year
-            im[i] = val.month
-            id[i] = val.day
-            ihr[i] = val.hour
-            imin[i] = val.minute
-            dsec[i] = val.second + val.microsecond / 1e6
+            iy[i] = int(val)
+            year_begin = datetime(iy[i], 01, 01)
+            year_end = datetime(iy[i] + 1, 01, 01)
+            ndays_per_year = (year_end - year_begin).total_seconds() /(60.0*60.0*24.0)
+            idoy = (val - iy[i])* ndays_per_year
+            tot_days = 0.0
+            for month in xrange(1, 12, 1):
+                new_tot_days = tot_days + (datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)).total_seconds() / (60.0*60.0*24.0)
+                if new_tot_days > idoy:
+                    im[i] = month
+                    id[i] = int(idoy - tot_days)+1
+                    time_remainder = idoy - tot_days - (id[i]-1)
+                    break
+                tot_days = new_tot_days
+            if idoy > new_tot_days:  #For dates in December
+                im[i] = 12
+                id[i] = int(idoy - tot_days)+1
+                time_remainder = idoy - tot_days - (id[i]-1)
+            time_remainder_hrs = time_remainder * 24.0
+            ihr[i] = int(time_remainder_hrs)
+            time_remainder_min= (time_remainder_hrs - ihr[i]) * 60.0
+            imin[i] = int(time_remainder_min)
+            dsec[i] = (time_remainder_min - imin[i]) * 60.0
+            print(iy[i], im[i], id[i], ihr[i], imin[i], dsec[i])
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
