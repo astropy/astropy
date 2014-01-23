@@ -116,7 +116,9 @@ class SAMPWebClient(SAMPClient):
         Client application metadata in the standard SAMP format.
 
     callable : bool, optional
-        Whether the client is callable.
+        Whether the client can receive calls and notifications. If set to
+        `False`, then the client can send notifications and calls, but can not
+        receive any.
     """
 
     def __init__(self, hub, name=None, description=None, metadata=None,
@@ -233,7 +235,9 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
         Client application metadata in the standard SAMP format.
 
     callable : bool, optional
-        Whether the client is callable.
+        Whether the client can receive calls and notifications. If set to
+        `False`, then the client can send notifications and calls, but can not
+        receive any.
     """
 
     def __init__(self, name=None, description=None, metadata=None,

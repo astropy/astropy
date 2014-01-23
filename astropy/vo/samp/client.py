@@ -94,7 +94,9 @@ class SAMPClient(object):
         `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
     callable : bool, optional
-        Whether the client is callable.
+        Whether the client can receive calls and notifications. If set to
+        `False`, then the client can send notifications and calls, but can not
+        receive any.
     """
 
     # TODO: define what is meant by callable

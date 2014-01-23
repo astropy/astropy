@@ -77,7 +77,9 @@ class SAMPIntegratedClient(object):
         `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
 
     callable : bool, optional
-        Whether the client is callable.
+        Whether the client can receive calls and notifications. If set to
+        `False`, then the client can send notifications and calls, but can not
+        receive any.
     """
 
     def __init__(self, name=None, description=None, metadata=None,
