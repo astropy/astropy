@@ -10,6 +10,7 @@ import threading
 import pickle
 import tempfile
 
+from ....extern import six
 from ....extern.six.moves.urllib.request import Request, urlopen
 from ....utils.data import get_readable_fileobj
 
@@ -123,6 +124,12 @@ def test_web_profile():
         req = Request('http://127.0.0.1:21012/crossdomain.xml')
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
-        assert resp.info().getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-        assert resp.info().getheader('Access-Control-Allow-Headers') == 'Content-Type'
-        assert resp.info().getheader('Access-Control-Allow-Credentials') == 'true'
+
+        if six.PY2:
+            assert resp.info().getheader('Access-Control-Allow-Origin') == 'test_web_profile'
+            assert resp.info().getheader('Access-Control-Allow-Headers') == 'Content-Type'
+            assert resp.info().getheader('Access-Control-Allow-Credentials') == 'true'
+        else:
+            assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
+            assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
+            assert resp.getheader('Access-Control-Allow-Credentials') == 'true'

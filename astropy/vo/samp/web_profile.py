@@ -1,3 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import warnings
 
 from ...extern.six.moves.urllib.parse import parse_qs
@@ -52,9 +57,9 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/x-cross-domain-policy')
-            self.send_header("Content-Length", str(len(response)))
+            self.send_header("Content-Length", "{0}".format(len(response)))
             self.end_headers()
-            self.wfile.write(response)
+            self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
             cross_domain = True
 
@@ -65,9 +70,9 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/xml')
-            self.send_header("Content-Length", str(len(response)))
+            self.send_header("Content-Length", "{0}".format(len(response)))
             self.end_headers()
-            self.wfile.write(response)
+            self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
             cross_domain = True
 

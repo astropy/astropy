@@ -3,6 +3,9 @@
 Defines custom errors and exceptions used in `astropy.vo.samp`.
 """
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...utils.exceptions import AstropyUserWarning
 
