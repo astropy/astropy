@@ -10,7 +10,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import ParametricModel
+from ..core import (ParametricModel, SerialCompositeModel)
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -308,13 +308,13 @@ class TestMultipleParameterSets(object):
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
-        utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
-        utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
+        utils.assert_allclose(self.gmodel.amplitude.value, [13., 10.])
+        utils.assert_allclose(self.gmodel.mean.value, [9., 5.2])
 
     def test_object_params(self):
         l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
-        utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
-        #utils.assert_almost_equal(l2.param_sets, np.array([[[1, 2.],[3., 4.]],
+        utils.assert_allclose(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
+        #utils.assert_allclose(l2.param_sets, np.array([[[1, 2.],[3., 4.]],
         #                                                   [2., 3.]], dtype=np.object))
 
     def test_wrong_number_of_params(self):
@@ -326,3 +326,47 @@ class TestMultipleParameterSets(object):
         # is given as a scalar, repeat that value across all param sets
         m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
         utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
+
+
+"""
+Test parameters of composite models
+"""
+
+class TestCompositeModelParameters(object):
+
+    def setup_class(self):
+        """
+        Unit tests for parameters of composite models
+        """
+        g1 = models.Gaussian1D(10, 5, 1)
+        g2 = models.Gaussian1D(4, 1, 2)
+        self.g = SerialCompositeModel([g1,g2], None, None)
+        p1 = models.Polynomial1D(4)
+        self.gg = SerialCompositeModel([self.g, p1])
+
+    def test_single_param_1(self):
+        assert(self.g._mean_Gaussian1D_1 == 1)
+        assert(self.g.mean_Gaussian1D_1.value == 1)
+        assert(self.gg._mean_Gaussian1D_1_SerialCompositeModel_0 == 1)
+        assert(self.gg.mean_Gaussian1D_1_SerialCompositeModel_0.value == 1)
+
+    def test_single_param_2(self):
+        gg = self.gg.copy()
+        gg.mean_Gaussian1D_1_SerialCompositeModel_0 = 100
+        assert(gg._mean_Gaussian1D_1_SerialCompositeModel_0 == 100)
+        assert(gg.mean_Gaussian1D_1_SerialCompositeModel_0.value == 100)
+        
+    def test_parameters_1(self):
+        utils.assert_allclose(self.g.parameters, [10, 5, 1, 4, 1, 2])
+        utils.assert_allclose(self.gg.parameters, [10, 5, 1, 4, 1, 2, 0, 0, 0, 0, 0])
+
+    def test_parameters_2(self):
+        self.gg.mean_Gaussian1D_1_SerialCompositeModel_0 = 100
+        utils.assert_allclose(self.gg.parameters, [10, 5, 1, 4, 100, 2, 0, 0, 0, 0, 0])
+
+    def test_parameters_3(self):
+        self.gg.parameters = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        utils.assert_allclose(self.gg.parameters, [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+        assert(self.gg.mean_Gaussian1D_1_SerialCompositeModel_0.value == 14)
+        assert(self.gg._mean_Gaussian1D_1_SerialCompositeModel_0 == 14)
+        
