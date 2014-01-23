@@ -95,7 +95,7 @@ def test_web_profile():
 
         c1.notify(c2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
-        check_output('samp.load.votable', params)
+        check_output('samp.load.votable', params, timeout=60)
 
         # Test Call
 
@@ -105,7 +105,7 @@ def test_web_profile():
 
         c1.call(c2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
-        check_output('samp.load.votable', params)
+        check_output('samp.load.votable', params, timeout=60)
 
         c1.disconnect()
         c2.disconnect()

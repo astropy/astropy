@@ -32,7 +32,8 @@ def wait_until_attribute_exists(object, attribute, timeout=None, step=1.):
     while not hasattr(object, attribute):
         time.sleep(step)
         if time.time() - start_time > timeout:
-            raise AttributeError("Timeout while waiting for attribute {0} to exist on {1}".format(attribute, object))
+            raise AttributeError("Timeout while waiting for attribute {0} to "
+                                 "exist on {1}".format(attribute, object))
 
 
 class Receiver(object):
@@ -40,7 +41,8 @@ class Receiver(object):
     def __init__(self):
         self.received = False
 
-    def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
+    def receive_call(self, private_key, sender_id, msg_id, mtype, params,
+                     extra):
         self.params = params
         self.received = True
 
@@ -63,7 +65,8 @@ class TestIntegratedClient(object):
 
     def setup_method(self, method):
 
-        self.hub = SAMPHubServer(web_profile=False, mode='multiple', **self.hub_init_kwargs)
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple',
+                                 **self.hub_init_kwargs)
         self.hub.start()
 
         self.client1 = SAMPIntegratedClient(**self.client_init_kwargs)
@@ -161,7 +164,8 @@ class TestIntegratedClient(object):
 
     def test_notify_extra(self):
         """
-        Ensures that passing extra_kws works correctly when passed to _format_easy_msg
+        Ensures that passing extra_kws works correctly when passed to
+        _format_easy_msg
         """
         self.client2.declare_subscriptions({'table.load.votable': Receiver()})
         self.client1.enotify(self.client2_id, "table.load.votable",
@@ -214,7 +218,8 @@ class TestIntegratedClient(object):
         self.client1.call_and_wait(self.client2_id, 'test_tag', message)
 
         # Easy call_and_wait
-        self.client1.ecall_and_wait(self.client2_id, 'test_tag', "table.load.votable")
+        self.client1.ecall_and_wait(self.client2_id, 'test_tag',
+                                    "table.load.votable")
 
     def test_bind_receive_notification(self):
 
@@ -235,7 +240,8 @@ class TestIntegratedClient(object):
 
         rec = TestReceiver()
 
-        self.client2.bind_receive_notification('test.message', rec.test_receive_notification)
+        self.client2.bind_receive_notification('test.message',
+                                               rec.test_receive_notification)
 
         self.client1.enotify(self.client2_id, "test.message", a=1, b='a')
 
@@ -280,7 +286,8 @@ class TestIntegratedClient(object):
 
         self.client2.bind_receive_call('test.call', rec.test_receive_call)
 
-        self.client1.ecall(self.client2_id, "message.id", "test.call", a=1, b='a')
+        self.client1.ecall(self.client2_id, "message.id", "test.call", a=1,
+                           b='a')
 
         private_key = self.client2.get_private_key()
 
@@ -324,7 +331,8 @@ class TestIntegratedClient(object):
 
         self.client2.bind_receive_call('test.call', rec.test_receive_call)
 
-        result = self.client1.ecall_and_wait(self.client2_id, "test.call", timeout=5., a=1, b='a')
+        result = self.client1.ecall_and_wait(self.client2_id, "test.call",
+                                             timeout=5., a=1, b='a')
 
         private_key = self.client2.get_private_key()
 
