@@ -3,6 +3,7 @@ from __future__ import division
 import types
 from .. import models
 from .. import fitting
+from .. core import SerialCompositeModel
 import numpy as np
 from numpy.testing import utils
 from numpy.random import RandomState
@@ -285,3 +286,134 @@ def test_unset_bounds():
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (None, None)}
+
+"""
+Test constraints of composite model parameters
+"""
+
+def create_composite_model():
+    gauss1 = models.Gaussian1D(amplitude=20, mean=2, stddev=1)
+    gauss2 = models.Gaussian1D(amplitude=20, mean=2, stddev=1)
+    poly = models.Polynomial1D(2)
+    g_ser = SerialCompositeModel([gauss1, gauss2])
+    model = SerialCompositeModel([g_ser, poly])
+    return model
+
+def test_set_fixed_1():
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.fixed = True
+    assert model.fixed == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': True,
+                           'amplitude_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'c0_Polynomial1D_1': False,
+                           'c1_Polynomial1D_1': False,
+                           'c2_Polynomial1D_1': False,
+                           'mean_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'mean_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_1_SerialCompositeModel_0': False}
+
+    fitparams, _ = model._model_to_fit_params()
+    assert np.all(fitparams == [2., 1.,  20.,   2.,   1.,   0.,   0.,   0.])
+
+'''
+def test_set_fixed_2():
+    model = SerialCompositeModel([g_ser, poly], fixed={'stddev_Gaussian1D_0_SerialCompositeModel_0':True})
+    assert model.stddev_Gaussian1D_0_SerialCompositeModel_0 == True
+    fitparams, _ = model._model_to_fit_params()
+    assert np.all(fitparams ==  [20., 2.,  20.,   2.,   1.,   0.,   0.,   0.])
+'''
+
+def test_set_tied_1():
+    def tie_amplitude(model):
+        return 50 * model.stddev_Gaussian1D_0_SerialCompositeModel_0
+
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.tied = tie_amplitude
+    assert model.amplitude_Gaussian1D_0_SerialCompositeModel_0.tied != False
+    
+'''
+def test_set_tied_2():
+    def tie_amplitude(model):
+        return 50 * model.stddev_Gaussian1D_0_SerialCompositeModel_0
+    model = create_composite_model(
+        tied={'amplitude_Gaussian1D_0_SerialCompositeModel_0': tie_amplitude})
+    assert model.amplitude_Gaussian1D_0_SerialCompositeModel_0.tied != False
+'''
+
+def test_unset_fixed():
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.fixed = True
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.fixed = False
+    assert model.fixed == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'amplitude_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'c0_Polynomial1D_1': False,
+                           'c1_Polynomial1D_1': False,
+                           'c2_Polynomial1D_1': False,
+                           'mean_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'mean_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_1_SerialCompositeModel_0': False}
+
+    fitparams, _ = model._model_to_fit_params()
+    assert np.all(fitparams == [20, 2., 1.,  20.,   2.,   1.,   0.,   0.,   0.])
+
+
+def test_unset_tied():
+    def tie_amplitude(model):
+        return 50 * model.stddev_Gaussian1D_0_SerialCompositeModel_0
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.tied = tie_amplitude
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.tied = False
+    assert model.tied == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'amplitude_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'c0_Polynomial1D_1': False,
+                           'c1_Polynomial1D_1': False,
+                           'c2_Polynomial1D_1': False,
+                           'mean_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'mean_Gaussian1D_1_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_0_SerialCompositeModel_0': False,
+                           'stddev_Gaussian1D_1_SerialCompositeModel_0': False}
+
+    fitparams, _ = model._model_to_fit_params()
+    assert np.all(fitparams == [20, 2., 1.,  20.,   2.,   1.,   0.,   0.,   0.])
+
+
+def test_set_bounds_1():
+    model = create_composite_model()
+    assert model.bounds == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'amplitude_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'c0_Polynomial1D_1': (None, None),
+                            'c1_Polynomial1D_1': (None, None),
+                            'c2_Polynomial1D_1': (None, None),
+                            'mean_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'mean_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_1_SerialCompositeModel_0': (None, None)}
+
+def test_set_bounds_2():
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.min = -1.2
+    assert model.bounds == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': (-1.2, None),
+                            'amplitude_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'c0_Polynomial1D_1': (None, None),
+                            'c1_Polynomial1D_1': (None, None),
+                            'c2_Polynomial1D_1': (None, None),
+                            'mean_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'mean_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_1_SerialCompositeModel_0': (None, None)}
+
+
+def test_unset_bounds():
+    model = create_composite_model()
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.min = -1.2
+    model.amplitude_Gaussian1D_0_SerialCompositeModel_0.min = None
+    assert model.bounds == {'amplitude_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'amplitude_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'c0_Polynomial1D_1': (None, None),
+                            'c1_Polynomial1D_1': (None, None),
+                            'c2_Polynomial1D_1': (None, None),
+                            'mean_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'mean_Gaussian1D_1_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_0_SerialCompositeModel_0': (None, None),
+                            'stddev_Gaussian1D_1_SerialCompositeModel_0': (None, None)}
