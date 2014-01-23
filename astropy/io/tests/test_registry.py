@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
+
 from copy import copy
 
 import numpy as np

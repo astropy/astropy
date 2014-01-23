@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# TEST_UNICODE_LITERALS
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -117,7 +119,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
         kwargs=dict(Writer=asciitable.Latex, caption='Mag values \\label{tab1}', latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}', 'data_end': [
                     '\\hline', '\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
                     'tabletype': 'table*',
-                    'tablealign': 'h'}, 
+                    'tablealign': 'h'},
                     col_align='|lcccccccccc|'),
         out="""\
 \\begin{table*}[h]
@@ -192,8 +194,8 @@ tablefoot
 |     long|    double|    double|      double|        double|         double|  long|                 double|      double|  long|         char|
 |         |    pixels|    pixels|  magnitudes|    magnitudes|         counts|      |                       |            |      |      perrors|
 |     null|      null|      null|        null|          null|           null|  null|                   null|        null|  null|         null|
- 14        138.538    256.405    15.461       0.003          34.85955        4      -0.032                  0.802        0      No_error      
- 18        18.114     280.170    22.329       0.206          30.12784        4      -2.544                  1.104        0      No_error      
+ 14        138.538    256.405    15.461       0.003          34.85955        4      -0.032                  0.802        0      No_error
+ 18        18.114     280.170    22.329       0.206          30.12784        4      -2.544                  1.104        0      No_error
 """
          ),
 ]
@@ -263,7 +265,8 @@ def check_write_table(test_def, table):
     asciitable.write(table, out, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
-    assert out.getvalue().splitlines() == test_def['out'].splitlines()
+    assert [x.strip() for x in out.getvalue().splitlines()] == [
+        x.strip() for x in test_def['out'].strip().splitlines()]
 
 
 def check_write_table_via_table(test_def, table):
@@ -279,7 +282,8 @@ def check_write_table_via_table(test_def, table):
     table.write(out, format=format, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
-    assert out.getvalue().splitlines() == test_def['out'].splitlines()
+    assert [x.strip() for x in out.getvalue().splitlines()] == [
+        x.strip() for x in test_def['out'].strip().splitlines()]
 
 
 def test_write_table():

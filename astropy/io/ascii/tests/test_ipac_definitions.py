@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# TEST_UNICODE_LITERALS
+
 import os
 
 from ..ui import read
