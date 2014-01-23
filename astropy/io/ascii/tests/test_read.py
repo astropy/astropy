@@ -709,3 +709,11 @@ def test_csv_table_read():
              '3, 4']
     t = ascii.read(lines)
     assert t.colnames == ['a', 'b']
+
+def test_overlapping_names():
+    """
+    Check that the names argument list can overlap with the existing column names.
+    This tests the issue in #1991.
+    """
+    t = ascii.read(['a b', '1 2'], names=['b', 'a'])
+    assert t.colnames == ['b', 'a']

@@ -744,11 +744,19 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names, str
                                  .format(name))
 
     if names is not None:
+        # Rename table column names to those passed by user
         if len(names) != len(table.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
                              ' of table columns ({1})'.format(len(names), len(table.colnames)))
-        for name, colname in zip(names, table.colnames):
-            table.rename_column(colname, name)
+
+        # Temporarily rename with names that are not in `names` or `table.colnames`.
+        # This ensures that rename succeeds regardless of existing names.
+        xxxs = 'x' * max(len(name) for name in list(names) + list(table.colnames))
+        for ii, colname in enumerate(table.colnames):
+            table.rename_column(colname, xxxs + str(ii))
+
+        for ii, name in enumerate(names):
+            table.rename_column(xxxs + str(ii), name)
 
     names = set(table.colnames)
     if include_names is not None:
