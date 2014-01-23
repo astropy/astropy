@@ -121,8 +121,16 @@ class TestConeSearchResults(object):
             func(fout=fout, *args, **kwargs)
 
         with open(dat_file) as f1:
-            with open(out_file) as f2:
-                assert f1.read() == f2.read()
+            contents_1 = f1.readlines()
+        with open(out_file) as f2:
+            contents_2 = f2.readlines()
+
+        assert len(contents_1) == len(contents_2)
+
+        # json.dumps() might or might not add trailing whitespace
+        # http://bugs.python.org/issue16333
+        for line1, line2 in zip(contents_1, contents_2):
+            assert line1.rstrip() == line2.rstrip()
 
     def test_tally(self):
         self.gen_cmp(self.r.tally, 'tally.out')
