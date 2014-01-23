@@ -1007,8 +1007,9 @@ class SAMPHubServer(object):
                                     recipient_private_key in self._web_profile_callbacks):
 
                                     # Web Profile
-                                    self._web_profile_callbacks[recipient_private_key].put({"samp.methodName": "receiveNotification",
-                                                                                            "samp.params": [sender_public_id, message]})
+                                    callback = {"samp.methodName": "receiveNotification",
+                                                "samp.params": [sender_public_id, message]}
+                                    self._web_profile_callbacks[recipient_private_key].put(callback)
 
                                 else:
 
@@ -1099,8 +1100,9 @@ class SAMPHubServer(object):
                                     recipient_private_key in self._web_profile_callbacks):
 
                                     # Web Profile
-                                    self._web_profile_callbacks[recipient_private_key].put({"samp.methodName": "receiveCall",
-                                                                                            "samp.params": [sender_public_id, msg_id, message]})
+                                    callback = {"samp.methodName": "receiveCall",
+                                                "samp.params": [sender_public_id, msg_id, message]}
+                                    self._web_profile_callbacks[recipient_private_key].put(callback)
 
                                 else:
 
@@ -1221,9 +1223,10 @@ class SAMPHubServer(object):
                                         recipient_private_key in self._web_profile_callbacks):
 
                                         # Web Profile
-                                        self._web_profile_callbacks[recipient_private_key].put({"samp.methodName": "receiveResponse",
-                                                                                                "samp.params": [responder_public_id,
-                                                                                                                recipient_msg_tag, response]})
+                                        callback = {"samp.methodName": "receiveResponse",
+                                                    "samp.params": [responder_public_id,
+                                                                    recipient_msg_tag, response]}
+                                        self._web_profile_callbacks[recipient_private_key].put(callback)
 
                                     else:
 
