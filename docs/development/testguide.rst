@@ -520,6 +520,22 @@ has been found to be problematic in at least one case (`pull request
 so the `astropy.tests.helper.catch_warnings` context manager is
 preferred.
 
+Testing with Unicode literals
+-----------------------------
+
+Python 2 can run code in two modes: by default, string literals are
+8-bit `bytes` objects.  However, when ``from __future__ import
+unicode_literals`` is used, string literals are `unicode` objects.  In
+order to ensure that astropy supports user code written in both
+styles, the testing framework has a special feature to run a module
+containing tests in both modes.  Simply add the comment::
+
+    # TEST_UNICODE_LITERALS
+
+anywhere in the file, and all tests in that file will be tested twice:
+once in the default mode where string literals are `bytes`, and again
+where string literals are `unicode`.
+
 .. _doctests:
 
 Writing doctests
