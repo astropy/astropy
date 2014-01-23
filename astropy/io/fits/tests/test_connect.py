@@ -9,7 +9,7 @@ from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
 from .... import units as u
 from .... import log
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 
 PY3 = sys.version_info[0] >= 3
 DATA = os.path.join(os.path.dirname(__file__), 'data')
@@ -59,10 +59,11 @@ class TestSingleTable(object):
         filename = str(tmpdir.join('test_simple.fits'))
         t1 = Table(self.data)
         t1.meta['ttype1'] = 'spam'
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t1.write(filename, overwrite=True)
         assert len(l) == 1
-        assert l[0].message.startswith('Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword')
+        assert str(l[0].message).startswith(
+            'Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword')
 
     def test_simple_noextension(self, tmpdir):
         """
@@ -141,10 +142,11 @@ class TestMultipleHDU(object):
     def test_read(self, tmpdir):
         filename = str(tmpdir.join('test_read.fits'))
         self.hdus.writeto(filename)
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(filename)
         assert len(l) == 1
-        assert l[0].message.startswith('hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
+        assert str(l[0].message).startswith(
+            'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
 
     def test_read_with_hdu_0(self, tmpdir):
@@ -158,7 +160,7 @@ class TestMultipleHDU(object):
     def test_read_with_hdu_1(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_1.fits'))
         self.hdus.writeto(filename)
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(filename, hdu=hdu)
         assert len(l) == 0
         assert equal_data(t, self.data1)
@@ -167,16 +169,17 @@ class TestMultipleHDU(object):
     def test_read_with_hdu_2(self, tmpdir, hdu):
         filename = str(tmpdir.join('test_read_with_hdu_2.fits'))
         self.hdus.writeto(filename)
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(filename, hdu=hdu)
         assert len(l) == 0
         assert equal_data(t, self.data2)
 
     def test_read_from_hdulist(self):
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(self.hdus)
         assert len(l) == 1
-        assert l[0].message.startswith('hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
+        assert str(l[0].message).startswith(
+            'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
 
     def test_read_from_hdulist_with_hdu_0(self, tmpdir):
@@ -186,20 +189,20 @@ class TestMultipleHDU(object):
 
     @pytest.mark.parametrize('hdu', [1, 'first'])
     def test_read_from_hdulist_with_hdu_1(self, tmpdir, hdu):
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(self.hdus, hdu=hdu)
         assert len(l) == 0
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
     def test_read_from_hdulist_with_hdu_2(self, tmpdir, hdu):
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(self.hdus, hdu=hdu)
         assert len(l) == 0
         assert equal_data(t, self.data2)
 
     def test_read_from_single_hdu(self):
-        with log.log_to_list() as l:
+        with catch_warnings() as l:
             t = Table.read(self.hdus[1])
         assert len(l) == 0
         assert equal_data(t, self.data1)
