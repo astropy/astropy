@@ -242,6 +242,9 @@ Bug Fixes
   - Allow passing unicode delimiters when reading or writing tables.
     The delimiter must be convertible to pure ASCII.  [#1949]
 
+  - Fix a problem when reading a table and renaming the columns to names
+    that already exist. [#1991]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
