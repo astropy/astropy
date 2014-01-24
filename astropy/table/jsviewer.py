@@ -70,11 +70,11 @@ class JSViewer(object):
 
     def _jquery_file(self):
         # downloaded from http://ajax.googleapis.com/ajax/libs/jquery/1/
-        return '<script src="file://{data_path}/jquery-1.10.2.min.js"></script>'.format(data_path=data_path)
+        return '<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>'
 
     def _jstable_file(self):
         # downloaded from http://datatables.net/download/build/
-        return '<script class="jsbin" src="file://{data_path}/jquery.dataTables.min.js"></script>'.format(data_path=data_path)
+        return '<script class="jsbin" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>'
 
     def _css_files(self):
         return ['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in self.css_urls]
