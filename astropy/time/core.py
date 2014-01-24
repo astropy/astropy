@@ -316,8 +316,7 @@ class Time(object):
             try:
                 return FormatClass(val, val2, scale, self.precision,
                                    self.in_subfmt, self.out_subfmt)
-            except (ValueError, TypeError) as exception:
-                print(exception)
+            except (ValueError, TypeError):
                 pass
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
@@ -1681,11 +1680,11 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        #try:
-            #assert all(isinstance(val, datetime) for val in val1)
-        #except:
-            #raise TypeError('Input values for {0} class must be '
-                            #'datetime objects'.format(self.name))
+        try:
+            assert(all(type(val) == np.float64 for val in val1))
+        except:
+            raise TypeError('Input values for {0} class must be '
+                            'datetime objects'.format(self.name))
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -1782,7 +1781,6 @@ class TimeDecimalYear(TimeFormat):
             time_remainder_min= (time_remainder_hrs - ihr[i]) * 60.0
             imin[i] = int(time_remainder_min)
             dsec[i] = (time_remainder_min - imin[i]) * 60.0
-            print(iy[i], im[i], id[i], ihr[i], imin[i], dsec[i])
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
