@@ -15,7 +15,7 @@ arrays loaded from some file ::
     >>> catalog = ICRS(ra2, dec2, unit=(u.degree, u.degree))
     >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)
     >>> from astropy.coordinates import match_coordinates_sky
-    >>> idx, d2d, d3d = match_coordinates_sky(c1, catalog)  # same thing
+    >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # same thing
 
 You can also find the nearest 3d matches, different from the above when
 the coordinates have distances ::
