@@ -278,3 +278,19 @@ def test_array_indexing():
     assert c2.equinox == c1.equinox
     assert c3.equinox == c1.equinox
     assert c4.equinox == c1.equinox
+
+def test_array_len():
+    from .. import ICRS
+
+    input_length = [1, 5]
+    for length in input_length:
+        ra = np.linspace(0, 360, length)
+        dec = np.linspace(0, 90, length)
+
+        c = ICRS(ra, dec, unit=(u.degree, u.degree))
+
+        assert len(c) == length
+
+    with pytest.raises(TypeError):
+        c = ICRS(0, 0, unit=(u.degree, u.degree))
+        len(c)

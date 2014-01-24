@@ -309,6 +309,10 @@ class SphericalCoordinatesBase(object):
             self._distance = olddist
 
 
+    def __len__(self):
+        return len(self.lonangle)
+
+
     @property
     def latangle(self):
         """
