@@ -17,7 +17,6 @@ from .util import pairwise, _is_int, _convert_array, encode_ascii, cmp
 from .verify import VerifyError
 
 from ...extern.six import string_types, iteritems
-from ...extern.six.moves import map, zip
 from ...utils import lazyproperty
 
 
@@ -874,7 +873,7 @@ class ColDefs(object):
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
         col_attributes = [{} for i in range(nfields)]
-        for keyword, value in hdr.iteritems():
+        for keyword, value in iteritems(hdr):
             key = TDEF_RE.match(keyword)
             try:
                 keyword = key.group('label')

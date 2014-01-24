@@ -1214,7 +1214,7 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype=BinTableHDU):
 
     # tbtype defaults to classes now, but in all prior version of PyFITS it was
     # a string, so we still support that use case as well
-    if not isinstance(tbtype, basestring):
+    if not isinstance(tbtype, string_types):
         cls = tbtype
         tbtype = cls.__name__
     else:

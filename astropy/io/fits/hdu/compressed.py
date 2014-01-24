@@ -18,7 +18,8 @@ from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ....extern.six import string_types
 from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
-from ....utils.exceptions import AstropyPendingDeprecationWarning, AstropyUserWarning
+from ....utils.exceptions import (AstropyPendingDeprecationWarning,
+                                  AstropyUserWarning)
 
 try:
     from .. import compression
@@ -957,7 +958,7 @@ class CompImageHDU(BinTableHDU):
                 # no dithering, rather than whatever DEFAULT_QUANTIZE_METHOD
                 # is set to
                 quantize_method = self._header.get('ZQUANTIZ', NO_DITHER)
-                if isinstance(quantize_method, basestring):
+                if isinstance(quantize_method, string_types):
                     for k, v in QUANTIZE_METHOD_NAMES:
                         if v.upper() == quantize_method:
                             quantize_method = k
