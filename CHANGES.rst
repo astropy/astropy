@@ -56,6 +56,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Raise a `NotImplementedError` when fitting composite models. [#1915]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
