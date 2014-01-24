@@ -177,8 +177,11 @@ class BaseColumn(np.ndarray):
         # Create the new instance with all available kwargs.
         kwargs = dict(name=self.name, data=data, unit=self.unit, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
+        # Use `kwargs.update` instead of `kwargs['fill_value'] =` since some
+        # versions of Python 2.6.x will blow up on unicode keyword arguments
         if hasattr(self, 'fill_value'):
-            kwargs['fill_value'] = self.fill_value
+            kwargs.update(fill_value=self.fill_value)
+
         out = self.__class__(**kwargs)
 
         self._copy_groups(out)
