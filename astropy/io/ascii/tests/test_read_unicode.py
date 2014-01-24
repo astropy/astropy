@@ -6,6 +6,7 @@ import re
 import numpy as np
 
 from ....utils import OrderedDict
+from ....utils.compat import normalize_kwargs
 from ....tests.helper import pytest
 from ... import ascii as asciitable  # TODO: delete this line, use ascii.*
 from ... import ascii
@@ -89,7 +90,8 @@ def test_read_all_files():
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            table = asciitable.read(testfile['name'], **test_opts)
+            table = asciitable.read(testfile['name'],
+                                    **normalize_kwargs(test_opts))
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
@@ -110,7 +112,8 @@ def test_read_all_files_via_table():
                 del test_opts['Reader']
             else:
                 format = 'ascii'
-            table = Table.read(testfile['name'], format=format, **test_opts)
+            table = Table.read(testfile['name'], format=format,
+                               **normalize_kwargs(test_opts))
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
@@ -128,7 +131,8 @@ def test_guess_all_files():
             # Copy read options except for those in filter_read_opts
             guess_opts = dict((k, v) for k, v in testfile['opts'].items()
                               if k not in filter_read_opts)
-            table = asciitable.read(testfile['name'], guess=True, **guess_opts)
+            table = asciitable.read(testfile['name'], guess=True,
+                                    **normalize_kwargs(guess_opts))
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
@@ -290,7 +294,7 @@ def test_from_string():
     with open(f) as fd:
         table = fd.read()
     testfile = get_testfiles(f)
-    data = asciitable.read(table, **testfile['opts'])
+    data = asciitable.read(table, **normalize_kwargs(testfile['opts']))
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
@@ -299,7 +303,7 @@ def test_from_filelike():
     f = 't/simple.txt'
     testfile = get_testfiles(f)
     with open(f, 'rb') as fd:
-        data = asciitable.read(fd, **testfile['opts'])
+        data = asciitable.read(fd, **normalize_kwargs(testfile['opts']))
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
@@ -309,7 +313,7 @@ def test_from_lines():
     with open(f) as fd:
         table = fd.readlines()
     testfile = get_testfiles(f)
-    data = asciitable.read(table, **testfile['opts'])
+    data = asciitable.read(table, **normalize_kwargs(testfile['opts']))
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
@@ -323,7 +327,8 @@ def test_comment_lines():
 def test_fill_values():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a', '1'), **testfile['opts'])
+    data = asciitable.read(f, fill_values=('a', '1'),
+                           **normalize_kwargs(testfile['opts']))
     assert_true((data['a'].mask == [False, True]).all())
     assert_true((data['a'] == [1, 1]).all())
     assert_true((data['b'].mask == [False, True]).all())
@@ -333,7 +338,8 @@ def test_fill_values():
 def test_fill_values_col():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a', '1', 'b'), **testfile['opts'])
+    data = asciitable.read(f, fill_values=('a', '1', 'b'),
+                           **normalize_kwargs(testfile['opts']))
     check_fill_values(data)
 
 
@@ -341,7 +347,8 @@ def test_fill_values_include_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = asciitable.read(f, fill_values=('a', '1'),
-                           fill_include_names = ['b'], **testfile['opts'])
+                           fill_include_names = ['b'],
+                           **normalize_kwargs(testfile['opts']))
     check_fill_values(data)
 
 
@@ -349,7 +356,8 @@ def test_fill_values_exclude_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = asciitable.read(f, fill_values=('a', '1'),
-                           fill_exclude_names = ['a'], **testfile['opts'])
+                           fill_exclude_names = ['a'],
+                           **normalize_kwargs(testfile['opts']))
     check_fill_values(data)
 
 
@@ -368,7 +376,7 @@ def test_fill_values_list():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = asciitable.read(f, fill_values=[('a', '42'), ('1', '42', 'a')],
-                           **testfile['opts'])
+                           **normalize_kwargs(testfile['opts']))
     data['a'].mask = False  # explicitly unmask for comparison
     assert_true((data['a'] == [42, 42]).all())
 
@@ -376,8 +384,7 @@ def test_fill_values_list():
 def test_masking_Cds():
     f = 't/cds.dat'
     testfile = get_testfiles(f)
-    data = asciitable.read(f,
-                           **testfile['opts'])
+    data = asciitable.read(f, **normalize_kwargs(testfile['opts']))
     assert_true(data['AK'].mask[0])
     assert_true(not data['Fit'].mask[0])
 
@@ -385,7 +392,7 @@ def test_masking_Cds():
 def test_null_Ipac():
     f = 't/ipac.dat'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, **testfile['opts'])
+    data = asciitable.read(f, **normalize_kwargs(testfile['opts']))
     dtype= [(str(x), str(y)) for x, y in [('ra', '|b1'), ('dec', '|b1'), ('sai', '|b1'),
                                           ('v2', '|b1'), ('sptype', '|b1')]]
     mask = np.array([(True, False, True, False, True),
@@ -402,7 +409,7 @@ def test_Ipac_meta():
     comments = ['This is an example of a valid comment']
     f = 't/ipac.dat'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, **testfile['opts'])
+    data = asciitable.read(f, **normalize_kwargs(testfile['opts']))
     assert data.meta['keywords'].keys() == keywords.keys()
     for data_kv, kv in zip(data.meta['keywords'].values(), keywords.values()):
         assert data_kv['value'] == kv
@@ -687,7 +694,7 @@ def get_testfiles(name=None):
 
 def test_header_start_exception():
     '''Check certain Readers throw an exception if ``header_start`` is set
-    
+
     For certain Readers it does not make sense to set the ``header_start``, they
     throw an exception if you try.
     This was implemented in response to issue #885.
