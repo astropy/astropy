@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
-try:
+import sys
+
+if sys.version_info[:2] <= (2, 6):
+    from ._argparse_py2 import *
+else:
     from argparse import *
-except ImportError:
-    from .argparse_py2 import *
