@@ -13,7 +13,7 @@ import numpy as np
 from numpy import char as chararray
 
 from .card import Card
-from .util import pairwise, _is_int, _convert_array, encode_ascii
+from .util import pairwise, _is_int, _convert_array, encode_ascii, cmp
 from .verify import VerifyError
 
 from ...extern.six import string_types, iteritems

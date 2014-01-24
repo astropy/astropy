@@ -4,10 +4,6 @@ from ...extern.six import PY3
 
 if PY3:  # pragma: py3
     # Stuff to do if Python 3
-    import builtins
-
-    # Bring back the cmp() function
-    builtins.cmp = lambda a, b: (a > b) - (a < b)
 
     # Make the decode_ascii utility function actually work
     from . import util

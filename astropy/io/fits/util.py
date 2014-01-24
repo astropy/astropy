@@ -24,6 +24,12 @@ from ...extern.six.moves import zip
 from ...utils.exceptions import AstropyUserWarning
 
 
+if PY3:
+    cmp = lambda a, b: (a > b) - (a < b)
+else:
+    cmp = cmp
+
+
 def itersubclasses(cls, _seen=None):
     """
     itersubclasses(cls)
