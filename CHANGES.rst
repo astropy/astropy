@@ -12,6 +12,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
+
   - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
     no longer attempts to reference the undefined variable
     ``self.matrix`` during instantiation. [#1944]
