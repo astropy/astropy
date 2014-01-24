@@ -1,5 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""
+All of the py.test fixtures used by astropy.table are defined here.
+
+The fixtures can not be defined in the modules that use them, because
+those modules are imported twice: once with `from __future__ import
+unicode_literals` and once without.  py.test complains when the same
+fixtures are defined more than once.
+
+`conftest.py` is a "special" module name for py.test that is always
+imported, but is not looked in for tests, and it is the recommended
+place to put fixtures that are shared between modules.  These fixtures
+can not be defined in a module by a different name and still be shared
+between modules.
+"""
+
 from ...tests.helper import pytest
 from ... import table
 
@@ -26,13 +41,6 @@ def table_types(request):
             self.Table = MaskedTable if request.param else table.Table
             self.Column = table.MaskedColumn if request.param else table.Column
     return TableTypes(request)
-
-
-# Fixture to run all the Column tests for both an unmasked (ndarray)
-# and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
-def table_type(request):
-    return MaskedTable if request.param else table.Table
 
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
