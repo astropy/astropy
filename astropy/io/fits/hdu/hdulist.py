@@ -17,7 +17,6 @@ from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
-
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 

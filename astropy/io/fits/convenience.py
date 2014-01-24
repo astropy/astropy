@@ -67,6 +67,7 @@ from .hdu.table import BinTableHDU
 from .header import Header
 from .util import (fileobj_closed, fileobj_name, fileobj_mode,
                    fileobj_closed, _is_int)
+from ...extern.six import string_types
 from ...utils import deprecated
 
 
@@ -705,7 +706,7 @@ def _getext(filename, mode, *args, **kwargs):
             if ext is not None or extname is not None or extver is not None:
                 raise TypeError(err_msg)
             ext = args[0]
-        elif isinstance(args[0], basestring):
+        elif isinstance(args[0], string_types):
             # The first arg is an extension name; it could still be valid
             # to provide an extver kwarg
             if ext is not None or extname is not None:
@@ -727,11 +728,11 @@ def _getext(filename, mode, *args, **kwargs):
     if (ext is not None and
             not (_is_int(ext) or
                  (isinstance(ext, tuple) and len(ext) == 2 and
-                  isinstance(ext[0], basestring) and _is_int(ext[1])))):
+                  isinstance(ext[0], string_types) and _is_int(ext[1])))):
         raise ValueError(
             'The ext keyword must be either an extension number '
             '(zero-indexed) or a (extname, extver) tuple.')
-    if extname is not None and not isinstance(extname, basestring):
+    if extname is not None and not isinstance(extname, string_types):
         raise ValueError('The extname argument must be a string.')
     if extver is not None and not _is_int(extver):
         raise ValueError('The extver argument must be an integer.')

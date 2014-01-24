@@ -8,15 +8,17 @@ import warnings
 
 import numpy as np
 
-from ...utils import OrderedDict
-from ...utils.exceptions import AstropyUserWarning
 from .. import registry as io_registry
-from ...table import Table
 from ... import log
 from ... import units as u
+from ...extern.six import string_types
+from ...table import Table
+from ...utils import OrderedDict
+from ...utils.exceptions import AstropyUserWarning
 
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .hdu.hdulist import fitsopen as fits_open
+from .util import first
 
 
 # FITS file signature as per RFC 4047
@@ -103,13 +105,12 @@ def read_table_fits(input, hdu=None):
                 tables[ihdu] = hdu_item
 
         if len(tables) > 1:
-
             if hdu is None:
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (hdu={0})".format(tables.keys()[0]),
+                              " table (hdu={0})".format(first(tables)),
                               AstropyUserWarning)
-                hdu = tables.keys()[0]
+                hdu = first(tables)
 
             # hdu might not be an integer, so we first need to convert it
             # to the correct HDU index
@@ -121,7 +122,7 @@ def read_table_fits(input, hdu=None):
                 raise ValueError("No table found in hdu={0}".format(hdu))
 
         elif len(tables) == 1:
-            table = tables[tables.keys()[0]]
+            table = tables[first(tables)]
         else:
             raise ValueError("No table found")
 
@@ -207,7 +208,7 @@ def write_table_fits(input, output, overwrite=False):
     """
 
     # Check if output file already exists
-    if isinstance(output, basestring) and os.path.exists(output):
+    if isinstance(output, string_types) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:
@@ -243,23 +244,27 @@ def write_table_fits(input, output, overwrite=False):
 
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
 
-            warnings.warn("Meta-data keyword {0} will be ignored since it "
-                          "conflicts with a FITS reserved keyword".format(key), AstropyUserWarning)
+            warnings.warn(
+                "Meta-data keyword {0} will be ignored since it conflicts "
+                "with a FITS reserved keyword".format(key), AstropyUserWarning)
 
         if isinstance(value, list):
             for item in value:
                 try:
                     table_hdu.header.append((key, item))
                 except ValueError:
-                    warnings.warn("Attribute `{0}` of type {1} cannot be written "
-                                  "to FITS files - skipping".format(key,
-                                                               type(value)), AstropyUserWarning)
+                    warnings.warn(
+                        "Attribute `{0}` of type {1} cannot be written to "
+                        "FITS files - skipping".format(key, type(value)),
+                        AstropyUserWarning)
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
-                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                              "FITS files - skipping".format(key, type(value)), AstropyUserWarning)
+                warnings.warn(
+                    "Attribute `{0}` of type {1} cannot be written to FITS "
+                    "files - skipping".format(key, type(value)),
+                    AstropyUserWarning)
 
     # Write out file
     table_hdu.writeto(output)

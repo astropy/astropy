@@ -6,16 +6,20 @@ import gzip
 import mmap
 import os
 import tempfile
-import urllib
 import warnings
 import zipfile
+
+from functools import reduce
 
 import numpy as np
 from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string, b)
+                   _array_to_file, _write_string)
+from ...extern.six import PY3, b, string_types
+from ...extern.six.moves import urllib
+from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -103,7 +107,7 @@ class _File(object):
         if mode not in PYFITS_MODES:
             raise ValueError("Mode '%s' not recognized" % mode)
 
-        if (isinstance(fileobj, basestring) and
+        if (isinstance(fileobj, string_types) and
                 mode not in ('ostream', 'append') and
                 not os.path.exists(fileobj)):
 
@@ -114,7 +118,7 @@ class _File(object):
                 if not os.path.splitdrive(fileobj)[0]:
                     # Basically if the filename (on Windows anyways) doesn't
                     # have a drive letter try to open it as a URL
-                    self.name, _ = urllib.urlretrieve(fileobj)
+                    self.name, _ = urllib.request.urlretrieve(fileobj)
                 else:
                     # Otherwise the file was already not found so just raise
                     # a ValueError
@@ -122,7 +126,7 @@ class _File(object):
             except (TypeError, ValueError, IOError):
                 # A couple different exceptions can occur here when passing a
                 # filename into urlretrieve in Python 3
-                raise IOError('File does not exist: %r' % fileobj)
+                raise IOError('File does not exist: {0!r}'.format(fileobj))
         else:
             self.name = fileobj_name(fileobj)
 
@@ -142,10 +146,12 @@ class _File(object):
         # Initialize the internal self.__file object
         if _is_random_access_file_backed(fileobj):
             self._open_fileobj(fileobj, mode, clobber)
-        elif isinstance(fileobj, basestring):
+        elif isinstance(fileobj, string_types):
             self._open_filename(fileobj, mode, clobber)
         else:
             self._open_filelike(fileobj, mode, clobber)
+
+        self.fileobj_mode = fileobj_mode(self.__file)
 
         if isinstance(fileobj, gzip.GzipFile):
             self.compression = 'gzip'

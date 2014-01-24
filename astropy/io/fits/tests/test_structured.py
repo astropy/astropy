@@ -66,8 +66,6 @@ def get_test_data(verbose=False):
     st['f1'] = [1, 3, 5]
     st['f2'] = ['hello', 'world', 'byebye']
     st['f3'] = np.random.random(st['f3'].shape)
-    print st.dtype.descr
-    print st
 
     return st
 

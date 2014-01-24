@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import print_function
 
 import numpy as np
 from numpy import char as chararray
@@ -52,7 +53,7 @@ def comparerecords(a, b):
     nfieldsa = len(a.dtype.names)
     nfieldsb = len(b.dtype.names)
     if nfieldsa != nfieldsb:
-        print "number of fields don't match"
+        print("number of fields don't match")
         return False
     for i in range(nfieldsa):
         fielda = a.field(i)
@@ -64,28 +65,28 @@ def comparerecords(a, b):
         if (type(fielda) != type(fieldb) and not
             (issubclass(type(fielda), type(fieldb)) or
              issubclass(type(fieldb), type(fielda)))):
-            print "type(fielda): ", type(fielda), " fielda: ", fielda
-            print "type(fieldb): ", type(fieldb), " fieldb: ", fieldb
-            print 'field %d type differs' % i
+            print("type(fielda): ", type(fielda), " fielda: ", fielda)
+            print("type(fieldb): ", type(fieldb), " fieldb: ", fieldb)
+            print('field {0} type differs'.format(i))
             return False
         if isinstance(fielda[0], np.floating):
             if not comparefloats(fielda, fieldb):
-                print "fielda: ", fielda
-                print "fieldb: ", fieldb
-                print 'field %d differs' % i
+                print("fielda: ", fielda)
+                print("fieldb: ", fieldb)
+                print('field {0} differs'.format(i))
                 return False
         elif (isinstance(fielda, fits.column._VLF) or
               isinstance(fieldb, fits.column._VLF)):
             for row in range(len(fielda)):
                 if np.any(fielda[row] != fieldb[row]):
-                    print 'fielda[%d]: %s' % (row, fielda[row])
-                    print 'fieldb[%d]: %s' % (row, fieldb[row])
-                    print 'field %d differs in row %d' % (i, row)
+                    print('fielda[{0}]: {1}'.format(row, fielda[row]))
+                    print('fieldb[{0}]: {1}'.format(row, fieldb[row]))
+                    print('field {0} differs in row {1}'.format(i, row))
         else:
             if np.any(fielda != fieldb):
-                print "fielda: ", fielda
-                print "fieldb: ", fieldb
-                print 'field %d differs' % i
+                print("fielda: ", fielda)
+                print("fieldb: ", fieldb)
+                print('field {0} differs'.format(i))
                 return False
     return True
 
@@ -1425,7 +1426,7 @@ class TestTableFunctions(FitsTestCase):
 
         i = 0
         for row in tbhdu1.data:
-            for j in xrange(len(row)):
+            for j in range(len(row)):
                 if isinstance(row[j], np.ndarray):
                     assert (row[j] == tbhdu.data[i][j]).all()
                 else:

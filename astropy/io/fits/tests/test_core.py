@@ -453,7 +453,7 @@ class TestFileFunctions(FitsTestCase):
 
         try:
             fits.open(self.temp('foobar.fits'))
-        except IOError, e:
+        except IOError as e:
             assert 'File does not exist' in str(e)
         except:
             raise

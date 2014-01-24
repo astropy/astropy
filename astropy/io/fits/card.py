@@ -10,7 +10,8 @@ from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
-
+from ...extern.six import string_types, integer_types, text_type
+from ...extern.six.moves import xrange
 from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
@@ -261,7 +262,7 @@ class CardList(list):
 
         # Backward is just ignored now, since the search is not linear anyways
 
-        if _is_int(key) or isinstance(key, basestring):
+        if _is_int(key) or isinstance(key, string_types):
             return self._header._cardindex(key)
         else:
             raise KeyError('Illegal key data type %s' % type(key))
@@ -478,7 +479,7 @@ class Card(_Verify):
         if self._keyword is not None:
             raise AttributeError(
                 'Once set, the Card keyword may not be modified')
-        elif isinstance(keyword, basestring):
+        elif isinstance(keyword, string_types):
             # Be nice and remove trailing whitespace--some FITS code always
             # pads keywords out with spaces; leading whitespace, however,
             # should be strictly disallowed.
@@ -537,7 +538,7 @@ class Card(_Verify):
         else:
             self._value = value = ''
 
-        if STRIP_HEADER_WHITESPACE() and isinstance(value, basestring):
+        if STRIP_HEADER_WHITESPACE() and isinstance(value, string_types):
             value = value.rstrip()
 
         return value
@@ -555,8 +556,8 @@ class Card(_Verify):
         if oldvalue is None:
             oldvalue = ''
 
-        if not isinstance(value, (basestring, int, long, float, complex, bool,
-                                  Undefined, np.floating, np.integer,
+        if not isinstance(value, (string_types, integer_types, float, complex,
+                                  bool, Undefined, np.floating, np.integer,
                                   np.complexfloating, np.bool_)):
             raise ValueError('Illegal value: %r.' % value)
 
@@ -565,7 +566,7 @@ class Card(_Verify):
                 "Floating point %r values are not allowed in FITS headers." %
                 value)
 
-        if isinstance(value, unicode):
+        if isinstance(value, text_type):
             try:
                 # Any string value must be encodable as ASCII
                 value.encode('ascii')
@@ -576,8 +577,8 @@ class Card(_Verify):
                     'ASCII.' % value)
 
         if (STRIP_HEADER_WHITESPACE() and
-            (isinstance(oldvalue, basestring) and
-             isinstance(value, basestring))):
+            (isinstance(oldvalue, string_types) and
+             isinstance(value, string_types))):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
         else:
@@ -637,7 +638,7 @@ class Card(_Verify):
         if comment is None:
             comment = ''
 
-        if isinstance(comment, unicode):
+        if isinstance(comment, text_type):
             try:
                 # Any string value must be encodable as ASCII
                 comment.encode('ascii')
@@ -807,7 +808,7 @@ class Card(_Verify):
                 return True
         elif len(args) == 2:
             keyword, value = args
-            if not isinstance(keyword, basestring):
+            if not isinstance(keyword, string_types):
                 return False
             if keyword in self._commentary_keywords:
                 return False
@@ -819,7 +820,7 @@ class Card(_Verify):
                 self._field_specifier = field_specifier
                 self._value = value
                 return True
-            if isinstance(value, basestring):
+            if isinstance(value, string_types):
                 match = self._rvkc_field_specifier_val_RE.match(value)
                 if match and self._keywd_FSC_RE.match(keyword):
                     field_specifier = match.group('keyword')
@@ -1124,7 +1125,7 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if (isinstance(self.value, basestring) and
+            if (isinstance(self.value, string_types) and
                 len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
@@ -1334,7 +1335,7 @@ def _format_value(value):
 
     # string value should occupies at least 8 columns, unless it is
     # a null string
-    if isinstance(value, basestring):
+    if isinstance(value, string_types):
         if value == '':
             return "''"
         else:

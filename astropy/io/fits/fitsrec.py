@@ -5,6 +5,8 @@ import operator
 import warnings
 import weakref
 
+from functools import reduce
+
 import numpy as np
 
 from numpy import char as chararray
@@ -12,8 +14,9 @@ from numpy import char as chararray
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
-
 from .util import decode_ascii
+from ...extern.six import string_types
+from ...extern.six.moves import xrange, map
 from ...utils import lazyproperty
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -70,7 +73,7 @@ class FITS_record(object):
         self.base = base
 
     def __getitem__(self, key):
-        if isinstance(key, basestring):
+        if isinstance(key, string_types):
             indx = _get_index(self.array.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -87,7 +90,7 @@ class FITS_record(object):
         return self.array.field(indx)[self.row]
 
     def __setitem__(self, key, value):
-        if isinstance(key, basestring):
+        if isinstance(key, string_types):
             indx = _get_index(self.array._coldefs.names, key)
 
             if indx < self.start or indx > self.end - 1:
@@ -433,7 +436,7 @@ class FITS_rec(np.recarray):
             return super(FITS_rec, self).__setattr__(attr, value)
 
     def __getitem__(self, key):
-        if isinstance(key, basestring):
+        if isinstance(key, string_types):
             return self.field(key)
         elif isinstance(key, (slice, np.ndarray, tuple, list)):
             # Have to view as a recarray then back as a FITS_rec, otherwise the
@@ -480,7 +483,7 @@ class FITS_rec(np.recarray):
             start = max(0, row.start or 0)
             end = min(end, start + len(value))
 
-            for idx in range(start, end):
+            for idx in xrange(start, end):
                 self.__setitem__(idx, value[idx - start])
             return
 
@@ -929,7 +932,7 @@ class FITS_rec(np.recarray):
 
                     # not using numarray.strings's num2char because the
                     # result is not allowed to expand (as C/Python does).
-                    for jdx in range(len(dummy)):
+                    for jdx in xrange(len(dummy)):
                         x = fmt % dummy[jdx]
                         if len(x) > starts[indx + 1] - starts[indx]:
                             raise ValueError(
