@@ -317,7 +317,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     See Also
     --------
-    convolve : Convolve is a non-fft version of this code.
+    convolve : Convolve is a non-fft version of this code.  It is more
+               memory efficient and for small kernels can be faster.
 
     Returns
     -------
