@@ -251,30 +251,30 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     kernel : `numpy.ndarray`
           Will be normalized if `normalize_kernel` is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
-    boundary : {'fill', 'wrap'}
+    boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
 
             * 'fill': set values outside the array boundary to fill_value
               (default)
             * 'wrap': periodic boundary
 
-    interpolate_nan : bool
+    interpolate_nan : bool, optional
         The convolution will be re-weighted assuming ``NaN`` values are meant to be
         ignored, not treated as zero.  If this is off, all ``NaN`` values will be
         treated as zero.
-    ignore_edge_zeros : bool
+    ignore_edge_zeros : bool, optional
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
         This parameter may result in 'edge-brightening' effects if you're using
         a normalized kernel
-    min_wt : float
+    min_wt : float, optional
         If ignoring ``NaN`` / zeros, force all grid points with a weight less than
         this value to ``NaN`` (the weight of a grid point with *no* ignored
         neighbors is 1.0).
         If `min_wt` == 0.0, then all zero-weight points will be set to zero
         instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
         See the examples below
-    normalize_kernel : function or boolean
+    normalize_kernel : function or boolean, optional
         If specified, this is the function to divide kernel by to normalize it.
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
@@ -282,30 +282,30 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     Other Parameters
     ----------------
-    fft_pad : bool
+    fft_pad : bool, optional
         Default on.  Zero-pad image to the nearest 2^n
-    psf_pad : bool
+    psf_pad : bool, optional
         Default off.  Zero-pad image to be at least the sum of the image sizes
         (in order to avoid edge-wrapping when smoothing)
-    crop : bool
+    crop : bool, optional
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
         largest image in both directions.
         For example, if an input image has shape [100,3] but a kernel with shape
         [6,6] is used, the output will be [100,6].
-    return_fft : bool
+    return_fft : bool, optional
         Return the fft(image)*fft(kernel) instead of the convolution (which is
         ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
-    fftn, ifftn : functions
+    fftn, ifftn : functions, optional
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
         `fftn=scipy.fftpack.fftn`
-    complex_dtype : np.complex
+    complex_dtype : np.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
-    quiet : bool
+    quiet : bool, optional
         Silence warning message about NaN interpolation
-    allow_huge : bool
+    allow_huge : bool, optional
         Allow huge arrays in the FFT?  If False, will raise an exception if the
         array or kernel size is >1 GB
 
