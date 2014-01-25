@@ -52,7 +52,7 @@ import numpy as np
 
 from .parameters import Parameter, InputParameterError
 from ..utils import indent, isiterable
-
+from .. import units as u
 
 __all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
@@ -74,7 +74,6 @@ def format_input(func):
     @functools.wraps(func)
     def wrapped_call(self, *args):
         converted = []
-
         for arg in args:
             # Reset these flags; their value only matters for the last
             # argument
@@ -104,15 +103,14 @@ def format_input(func):
                 converted.append(arg.T)
 
         result = func(self, *converted)
-
         if transposed:
             return result.T
         elif scalar:
             try:
                 return result[0]
             except IndexError:
-                return result
-
+                pass
+        
         return result
 
     return wrapped_call
@@ -172,6 +170,7 @@ class Model(object):
     __metaclass__ = _ModelMeta
 
     param_names = []
+    output_units = None
     n_inputs = 1
     n_outputs = 1
     fittable = False
@@ -476,7 +475,6 @@ class ParametricModel(Model):
         Assigning to this attribute updates the parameters array rather than
         replacing it.
         """
-
         try:
             value = np.array(value).reshape(self._parameters.shape)
         except ValueError as e:
@@ -506,7 +504,9 @@ class ParametricModel(Model):
         if (len(attr) > 1 and attr[0] == '_' and
                 hasattr(self, '_param_metrics')):
             param_name = attr[1:]
+            
             if param_name in self._param_metrics:
+               
                 # TODO: Maybe handle exception on invalid input shape
                 param_slice = self._param_metrics[param_name][0]
                 self._parameters[param_slice] = np.array(value).ravel()
@@ -631,7 +631,6 @@ class ParametricModel(Model):
                 params[name] = getattr(self, name).default
 
             value = params[name]
-
             param_size = np.size(value)
             param_shape = np.shape(value)
 
@@ -1081,7 +1080,17 @@ class Parametric1DModel(ParametricModel):
             input
         """
 
-        return self.eval(x, *self.param_sets)
+        result = self.eval(x, *self.param_sets)
+        if self.output_units is not None:
+            if self.n_outputs == 1:
+                return u.Quantity(result, self.output_units[0])
+            else:
+                res = []
+                for i in range(self.n_outputs):
+                    res.append(u.Quantity(result[i], self.output_units[1]))
+                return res
+        else:
+            return result
 
 
 class Parametric2DModel(ParametricModel):
@@ -1112,4 +1121,14 @@ class Parametric2DModel(ParametricModel):
             input
         """
 
-        return self.eval(x, y, *self.param_sets)
+        result = self.eval(x, y, *self.param_sets)
+        if self.output_units is not None:
+            if self.n_outputs == 1:
+                return u.Quantity(result, self.output_units[0])
+            else:
+                res = []
+                for i in range(self.n_outputs):
+                    res.append(u.Quantity(result[i], self.output_units[1]))
+                return res
+        else:
+            return result

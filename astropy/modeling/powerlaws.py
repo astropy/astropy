@@ -16,7 +16,8 @@ __all__ = sorted(['PowerLaw1D', 'BrokenPowerLaw1D',
                   'ExponentialCutoffPowerLaw1D', 'LogParabola1D'])
 
 
-class PowerLaw1D(Parametric1DModel):
+class PowerLaw1D(
+Parametric1DModel):
     """
     One dimensional power law model.
 
@@ -34,6 +35,7 @@ class PowerLaw1D(Parametric1DModel):
     BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D
 
     Notes
+
     -----
     Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha``):
 
@@ -50,7 +52,7 @@ class PowerLaw1D(Parametric1DModel):
                                          alpha=alpha, **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_0, alpha):
+    def eval(cls, x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
 
         xx = x / x_0
@@ -114,7 +116,7 @@ class BrokenPowerLaw1D(Parametric1DModel):
             alpha_2=alpha_2, **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_break, alpha_1, alpha_2):
+    def eval(cls, x, amplitude, x_break, alpha_1, alpha_2):
         """One dimensional broken power law model function"""
 
         alpha = np.where(x < x_break, alpha_1, alpha_2)
@@ -175,7 +177,7 @@ class ExponentialCutoffPowerLaw1D(Parametric1DModel):
             **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_0, alpha, x_cutoff):
+    def eval(cls, x, amplitude, x_0, alpha, x_cutoff):
         """One dimensional exponential cutoff power law model function"""
 
         xx = x / x_0

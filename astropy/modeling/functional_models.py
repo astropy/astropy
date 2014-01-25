@@ -88,10 +88,11 @@ class Gaussian1D(Parametric1DModel):
     --------
     Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
-
-    amplitude = Parameter('amplitude')
+    from .. import units as u
+    amplitude = Parameter('amplitude', default_unit='m')
     mean = Parameter('mean')
     stddev = Parameter('stddev')
+    output_units = ('km',)
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:
@@ -740,8 +741,8 @@ class Box1D(Parametric1DModel):
                                          x <= x_0 + width / 2.)],
                                         [amplitude], 0)
 
-    @classmethod
-    def deriv(cls, x, amplitude, x_0, width):
+    @staticmethod
+    def deriv(  x, amplitude, x_0, width):
         """One dimensional Box model derivative"""
 
         d_amplitude = cls.eval(x, 1, x_0, width)
@@ -1054,8 +1055,8 @@ class AiryDisk2D(Parametric2DModel):
                                    self.y_0.value, self.width.value)
         return new_model
 
-    @classmethod
-    def eval(cls, x, y, amplitude, x_0, y_0, width):
+    @staticmethod
+    def eval(x, y, amplitude, x_0, y_0, width):
         """Two dimensional Airy model function"""
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width

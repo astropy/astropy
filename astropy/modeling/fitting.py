@@ -379,10 +379,12 @@ class NonLinearLSQFitter(Fitter):
         model = args[0]
         self._fitter_to_model_params(model, fps)
         meas = args[-1]
+        margs = list(args[1:-1])
+        margs.extend(model.parameters)
         if self._weights is None:
-            return np.ravel(model(*args[1 : -1]) - meas)
+            return np.ravel(model.eval(*margs)-meas)#*args[1 : -1]) - meas)
         else:
-            return np.ravel(self._weights * (model(*args[1 : -1]) - meas))
+            return np.ravel(self._weights * (model.eval(*margs)-meas))#(*args[1 : -1]) - meas))
 
     # @property
     # def covar(self):
@@ -563,7 +565,9 @@ class SLSQPFitter(Fitter):
         model = args[0]
         meas = args[-1]
         self._fitter_to_model_params(model, fps)
-        res = model(*args[1:-1]) - meas
+        margs = list(args[1:-1])
+        margs.extend(model.parameters)
+        res = model.eval(*margs) - meas#*args[1:-1]) - meas
 
         if self._weights is None:
             return np.sum(res ** 2)

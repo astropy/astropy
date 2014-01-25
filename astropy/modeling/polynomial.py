@@ -321,7 +321,11 @@ class OrthoPolynomialBase(PolynomialBase):
             alpha[-3, nx] = 1
         return alpha
 
-    def imhorner(self, x, y, coeff):
+    def eval(self, x, y, *param):
+        """
+        Evaluates the polynomial using a multivariate Horner sceheme.
+        """
+        coeff = self.invlex_coeff()
         _coeff = list(coeff)
         _coeff.extend([0, 0, 0])
         alpha = self._alpha()
@@ -381,9 +385,9 @@ class OrthoPolynomialBase(PolynomialBase):
             x = poly_map_domain(x, self.x_domain, self.x_window)
         if self.y_domain is not None:
             y = poly_map_domain(y, self.y_domain, self.y_window)
-        invcoeff = self.invlex_coeff()
+        #invcoeff = self.invlex_coeff()
 
-        return self.imhorner(x, y, invcoeff)
+        return self.eval(x, y)#, invcoeff)
 
 
 class Chebyshev1D(PolynomialModel):
@@ -412,7 +416,7 @@ class Chebyshev1D(PolynomialModel):
                                           param_dim=param_dim,
                                           **params)
 
-    def clenshaw(self, x, coeff):
+    def eval(self, x, coeff):
         """
         Evaluates the polynomial using Clenshaw's algorithm.
         """
@@ -474,7 +478,7 @@ class Chebyshev1D(PolynomialModel):
 
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
-        return self.clenshaw(x, self.param_sets)
+        return self.eval(x, self.param_sets)
 
 
 class Legendre1D(PolynomialModel):
@@ -503,7 +507,10 @@ class Legendre1D(PolynomialModel):
                                          param_dim=param_dim,
                                          **params)
 
-    def clenshaw(self, x, coeff):
+    def eval(self, x, coeff):
+        """
+        Evaluates the polynomial using Clenshaw's algorithm.
+        """
         if isinstance(x, tuple) or isinstance(x, list):
             x = np.asarray(x)
         if len(coeff) == 1:
@@ -561,7 +568,7 @@ class Legendre1D(PolynomialModel):
 
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
-        return self.clenshaw(x, self.param_sets)
+        return self.eval(x, self.param_sets)
 
 
 class Polynomial1D(PolynomialModel):
@@ -614,7 +621,10 @@ class Polynomial1D(PolynomialModel):
             v[i] = v[i - 1] * x
         return np.rollaxis(v, 0, v.ndim)
 
-    def horner(self, x, coef):
+    def eval(self, x, coef):
+        """
+        Evaluates the polynomial using Horner's algorithm.
+        """
         c0 = coef[-1] + x * 0
         for i in range(2, len(coef) + 1):
             c0 = coef[-i] + c0 * x
@@ -631,7 +641,7 @@ class Polynomial1D(PolynomialModel):
             input
         """
 
-        return self.horner(x, self.param_sets)
+        return self.eval(x, self.param_sets)
 
 
 class Polynomial2D(PolynomialModel):
@@ -674,7 +684,7 @@ class Polynomial2D(PolynomialModel):
         self.x_window = x_window
         self.y_window = y_window
 
-    def mhorner(self, x, y, coeff):
+    def eval(self, x, y, *param):#coeff):
         """
         Multivariate Horner's scheme
 
@@ -683,6 +693,7 @@ class Polynomial2D(PolynomialModel):
         x, y : array
         coeff : array of coefficients in inverse lexical order
         """
+        coeff = self.invlex_coeff()
         alpha = np.array(self._invlex())
         r0 = coeff[0]
         r1 = r0 * 0.0
@@ -761,11 +772,11 @@ class Polynomial2D(PolynomialModel):
             input
         """
 
-        invcoeff = self.invlex_coeff()
+        #invcoeff = self.invlex_coeff()
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
 
-        return self.mhorner(x, y, invcoeff)
+        return self.eval(x, y)#, invcoeff)
 
 
 class Chebyshev2D(OrthoPolynomialBase):
