@@ -11,6 +11,7 @@ import numpy as np
 from .. import registry as io_registry
 from ... import log
 from ... import units as u
+from ...units.format.fits import FitsScaleError
 from ...extern.six import string_types
 from ...table import Table
 from ...utils import OrderedDict
@@ -238,7 +239,10 @@ def write_table_fits(input, output, overwrite=False):
     # Set units for output HDU
     for col in table_hdu.columns:
         if input[col.name].unit is not None:
-            col.unit = input[col.name].unit.to_string(format='fits')
+            try:
+                col.unit = input[col.name].unit.to_string(format='fits')
+            except FitsScaleError as error:
+                raise FitsScaleError("\nThere seems to be an error in the column\n %s, probably because of the unit, which is %s,\nplease refer to the link http://astropy.readthedocs.org/en/latest/units/standard_units.html#the-dimensionless-unit"%(input[col.name],input[col.name].unit))
 
     for key, value in input.meta.items():
 
