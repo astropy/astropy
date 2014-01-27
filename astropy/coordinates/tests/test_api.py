@@ -218,9 +218,10 @@ def test_angle_convert():
     assert negangle.dms.d == -54
     assert negangle.dms.m == -7
     npt.assert_allclose(negangle.dms.s, -26.831999999992036)
-    assert negangle.absdms.d == 54
-    assert negangle.absdms.m == 7
-    npt.assert_allclose(negangle.absdms.s, 26.831999999992036)
+    assert negangle.signed_dms.sign == -1
+    assert negangle.signed_dms.d == 54
+    assert negangle.signed_dms.m == 7
+    npt.assert_allclose(negangle.signed_dms.s, 26.831999999992036)
 
 
 def test_angle_formatting():
