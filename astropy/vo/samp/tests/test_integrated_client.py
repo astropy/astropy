@@ -223,11 +223,6 @@ class TestIntegratedClient(object):
 
     def test_bind_receive_notification(self):
 
-        # When both the server and client use HTTPS, client 1 does not
-        # disconnect correctly.
-        if self.conf == 'https_hub_client':
-            pytest.xfail()
-
         class TestReceiver(object):
 
             def test_receive_notification(self, private_key, sender_id, mtype,
@@ -261,12 +256,8 @@ class TestIntegratedClient(object):
         assert rec.mtype == 'test.message'
         assert rec.params == {'a': 1, 'b': 'a'}
 
-    def test_bind_receive_call(self):
 
-        # When both the server and client use HTTPS, client 1 does not
-        # disconnect correctly.
-        if self.conf == 'https_hub_client':
-            pytest.xfail()
+    def test_bind_receive_call(self):
 
         class TestReceiver(object):
 
@@ -307,11 +298,6 @@ class TestIntegratedClient(object):
         assert rec.params == {'a': 1, 'b': 'a'}
 
     def test_ecall_and_wait(self):
-
-        # When both the server and client use HTTPS, client 1 does not
-        # disconnect correctly.
-        if self.conf == 'https_hub_client':
-            pytest.xfail()
 
         class TestReceiver(object):
 
@@ -369,14 +355,7 @@ class TestIntegratedClientHTTPSHub(TestIntegratedClient):
                 'https': True,
                 'cert_file': TEST_CERT1,
                 'key_file': TEST_KEY1,
-                'ssl_version':ssl.PROTOCOL_TLSv1
                }
-
-    @property
-    def client_connect_kwargs(self):
-        return {
-               'ssl_version':ssl.PROTOCOL_TLSv1
-              }
 
 
 class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
@@ -389,7 +368,6 @@ class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
                 'https': True,
                 'cert_file': TEST_CERT1,
                 'key_file': TEST_KEY1,
-                'ssl_version':ssl.PROTOCOL_TLSv1
                }
 
     @property
@@ -398,11 +376,4 @@ class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
                 'https': True,
                 'cert_file': TEST_CERT2,
                 'key_file': TEST_KEY2,
-                'ssl_version':ssl.PROTOCOL_TLSv1
                }
-
-    @property
-    def client_connect_kwargs(self):
-        return {
-               'ssl_version':ssl.PROTOCOL_TLSv1
-              }

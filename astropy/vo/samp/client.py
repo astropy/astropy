@@ -171,7 +171,12 @@ class SAMPClient(object):
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
 
-            self._xmlrpcAddr = urlunparse(('http',
+            if SSL_SUPPORT and https:
+                protocol = 'https'
+            else:
+                protocol = 'http'
+
+            self._xmlrpcAddr = urlunparse((protocol,
                                            '{0}:{1}'.format(self._addr or self._host_name,
                                                             self._port),
                                            '', '', '', ''))

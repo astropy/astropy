@@ -202,7 +202,7 @@ class SAMPHubServer(object):
         self._key_file = key_file
         self._cert_file = cert_file
         self._cert_reqs = cert_reqs
-        self._ca_certs = cert_reqs
+        self._ca_certs = ca_certs
         self._ssl_version = ssl_version
 
         self._host_name = "127.0.0.1"
@@ -718,7 +718,7 @@ class SAMPHubServer(object):
                                           cert_file=self._cert_file,
                                           cert_reqs=self._cert_reqs,
                                           ca_certs=self._ca_certs,
-                                          ssl_version=ssl.PROTOCOL_SSLv3)
+                                          ssl_version=self._ssl_version)
 
                 server_proxy_pool = ServerProxyPool(self._pool_size,
                                                     xmlrpc.ServerProxy,
