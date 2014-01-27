@@ -840,6 +840,11 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     if file is None:
         file = stdio.stdout
 
+    if UNICODE_OUTPUT():
+        ellipsis = '…'
+    else:
+        ellipsis = '...'
+
     write = file.write
 
     if col is not None:
@@ -853,15 +858,15 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     if col is not None and col > width:
         new_col = min(width // 2, len(line) - col)
         offset = col - new_col
-        line = line[offset + 1:]
+        line = line[offset + len(ellipsis):]
+        width -= len(ellipsis)
         new_col = col
         col -= offset
-        width = width - 3
-        color_print('…', 'darkgrey', file=file, end='')
+        color_print(ellipsis, 'darkgrey', file=file, end='')
 
     if len(line) > width:
-        write(line[:width - 1])
-        color_print('…', 'darkgrey', file=file)
+        write(line[:width - len(ellipsis)])
+        color_print(ellipsis, 'darkgrey', file=file)
     else:
         write(line)
         write('\n')
