@@ -51,33 +51,33 @@ Representation
 The |Angle| object also supports a variety of ways of representing the value of the angle,
 both as a floating point number as a string::
 
-    >>> a = Angle(1, u.radian)
+    >>> a = Angle(-1, u.radian)
     >>> a
-    <Angle 1.0 rad>
+    <Angle -1.0 rad>
     >>> a.radian
-    1.0
+    -1.0
     >>> a.degree
-    57.295779513082...
+    -57.295779513082...
     >>> a.hour
-    3.819718634205...
+    -3.819718634205...
     >>> a.hms
-    HMS_tuple(h=3.0, m=49.0, s=10.987083139758766)
+    HMS_tuple(h=-3.0, m=-49.0, s=-10.987083139758766)
     >>> a.dms
-    DMS_tuple(d=57.0, m=17.0, s=44.806247...)
+    DMS_tuple(d=-57.0, m=-17.0, s=-44.806247...)
     >>> a.arcminute
-    3437.746770...
+    -3437.746770...
     >>> a.to_string()
-    u'1rad'
+    u'-1rad'
     >>> a.to_string(unit=u.degree)
-    u'57d17m44.8062s'
+    u'-57d17m44.8062s'
     >>> a.to_string(unit=u.degree, sep=':')
-    u'57:17:44.8062'
+    u'-57:17:44.8062'
     >>> a.to_string(unit=u.degree, sep=('deg', 'm', 's'))
-    u'57deg17m44.8062s'
+    u'-57deg17m44.8062s'
     >>> a.to_string(unit=u.hour)
-    u'3h49m10.9871s'
+    u'-3h49m10.9871s'
     >>> a.to_string(unit=u.hour, decimal=True)
-    u'3.81972'
+    u'-3.81972'
 
 
 Usage
