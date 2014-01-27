@@ -140,7 +140,7 @@ class TestRunner(object):
                 warnings.warn(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
-            else:
+            elif not test_path:  # don't do  doctests if specific file is requested
                 all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
