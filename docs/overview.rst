@@ -59,7 +59,7 @@ the `usage instructions in the template <https://github.com/astropy
 /package-template/blob/master/README.rst>`_ for further details.
 
 To then get your package listed on the registry, take a look at the
-`guidelines <http://affiliated.astropy.org#affiliated-instructions>`_`,
+`guidelines for becoming an affiliated package <http://affiliated.astropy.org#affiliated-instructions>`_,
 and then post your intent on the `astropy-dev mailing list`_.  The Astropy
 coordination committee, in consultation with the community, will provide
 you feedback on the package, and will add it to the registry when it is
