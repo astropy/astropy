@@ -32,7 +32,7 @@ if SSL_SUPPORT:
     import ssl
     from .ssl_utils import SafeTransport, SecureXMLRPCServer
 
-__all__ = ['SAMPHubServer']
+__all__ = ['SAMPHubServer', 'WebProfileDialog']
 
 __doctest_skip__ = ['.', 'SAMPHubServer.*']
 

@@ -128,8 +128,8 @@ and we instantiate it:
     >>> r = Receiver(client)
 
 We can now use the
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_call` and
-:meth:`~astropy.vo.samp.SAMPIntegratedClient.bind_receive_notification` methods
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.bind_receive_call` and
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.bind_receive_notification` methods
 to tell our receiver to listed to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
@@ -253,7 +253,9 @@ Finally, we can broadcast this to all clients that are listening for
 As for `Sending a table to TOPCAT and Ds9`_, the
 :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`
 method will broadcast the image to all listening clients, and as for tables it
-is possible to instead use the `notify` method to send it to a specific client.
+is possible to instead use the
+:meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify` method
+to send it to a specific client.
 
 Once finished, we should make sure we disconnect from the hub::
 
