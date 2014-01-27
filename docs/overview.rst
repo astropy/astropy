@@ -44,11 +44,11 @@ package, and may not be in the `astropy` namespace.
 
 The authoritative list of current affiliated packages is available at
 http://affiliated.astropy.org, including a machine-readable `JSON file
-<http://affiliated.astropy.org/registry.json>`_
+<http://affiliated.astropy.org/registry.json>`_.
 
 If you are interested in starting an affiliated package, or have a
 package you are interested in making more compatible with astropy, the
-`astropy` core package includes a features to simplify and homogenize
+`astropy` core package includes features that simplify and homogenize
 package management. Astropy provides a `package template
 <http://github.com/astropy/package-template>`_ that provides a common
 way to organize a package, to make your life simpler. You can use this
@@ -59,10 +59,10 @@ the `usage instructions in the template <https://github.com/astropy
 /package-template/blob/master/README.rst>`_ for further details.
 
 To then get your package listed on the registry, take a look at the
-guidelines at http://affiliated.astropy.org#affiliated-instructions,
+`guidelines <http://affiliated.astropy.org#affiliated-instructions>`_`,
 and then either post your intent on the `astropy-dev mailing list`_ or
-issue a Pull Request to the `website's github  repository
-<http://github.com/astropy/astropy.github.com>`_
+issue a Pull Request to the `website's github repository
+<http://github.com/astropy/astropy.github.com>`_.
 
 
 Community
