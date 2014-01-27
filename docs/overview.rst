@@ -10,8 +10,8 @@ Astropy Project Concept
 The "Astropy Project" is distinct from the `astropy` package. The
 Astropy Project is a process intended to facilitate communication and
 interoperability of python packages/codes in astronomy and astrophysics.
-The project thus encompasses the `astropy` core package (which provides a
-common framework), all "affiliated packages" (described below in
+The project thus encompasses the `astropy` core package (which provides
+a common framework), all "affiliated packages" (described below in
 `Affiliated Packages`), and a general community aimed at bringing
 resources together and not duplicating efforts.
 
@@ -21,9 +21,10 @@ resources together and not duplicating efforts.
 
 The `astropy` package (alternatively known as the "core" package)
 contains various classes, utilities, and a packaging framework intended
-to provide commonly-used astronomy tools. It is divided into a variety of
-sub-packages, which are documented in the remainder of this
-documentation (see :ref:`user-docs` for documentation of these components).
+to provide commonly-used astronomy tools. It is divided into a variety
+of sub-packages, which are documented in the remainder of this
+documentation (see :ref:`user-docs` for documentation of these
+components).
 
 The core also provides this documentation, and a variety of utilities
 that simplify starting other python astronomy/astrophysics packages. As
@@ -59,8 +60,9 @@ the `usage instructions in the template <https://github.com/astropy
 /package-template/blob/master/README.rst>`_ for further details.
 
 To then get your package listed on the registry, take a look at the
-`guidelines for becoming an affiliated package <http://affiliated.astropy.org#affiliated-instructions>`_,
-and then post your intent on the `astropy-dev mailing list`_.  The Astropy
+`guidelines for becoming an affiliated package
+<http://affiliated.astropy.org#affiliated-instructions>`_, and then post
+your intent on the `astropy-dev mailing list`_.  The Astropy
 coordination committee, in consultation with the community, will provide
 you feedback on the package, and will add it to the registry when it is
 approved.
@@ -69,10 +71,10 @@ approved.
 Community
 =========
 
-Aside from the actual code, Astropy is also a community of
-astronomy-associated users and developers that agree that sharing utilities
-is healthy for the community and the science it produces. This community
-is of course central to accomplishing anything with the code itself.
-We follow the `Python Software Foundation Code of Conduct
-<http://www.python.org/psf/codeofconduct/>`_ and welcome anyone
-who wishes to contribute to the project.
+Aside from the actual code, Astropy is also a community of astronomy-
+associated users and developers that agree that sharing utilities is
+healthy for the community and the science it produces. This community is
+of course central to accomplishing anything with the code itself. We
+follow the `Python Software Foundation Code of Conduct
+<http://www.python.org/psf/codeofconduct/>`_ and welcome anyone who
+wishes to contribute to the project.
