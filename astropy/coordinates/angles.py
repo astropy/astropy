@@ -242,8 +242,7 @@ class Angle(u.Quantity):
         This is primarily intented for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
         """
-        d, m, s = util.degrees_to_dms(self.degree)
-        return DMS_tuple(np.abs(d), np.abs(m), np.abs(s))
+        return DMS_tuple(*util.degrees_to_dms(np.abs(self.degree)))
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,
