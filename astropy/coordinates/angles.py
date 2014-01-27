@@ -219,25 +219,25 @@ class Angle(u.Quantity):
     @property
     def hms(self):
         """
-        The angle's value in hours, as a ``(h, m, s)`` tuple
-        (read-only property).
+        The angle's value in hours, as a named tuple with ``(h, m, s)``
+        members.  (This is a read-only property.)
         """
         return HMS_tuple(*util.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
         """
-        The angle's value in degrees, as a ``(d, m, s)`` tuple
-        (read-only property).
+        The angle's value in degrees, as a named tuple with ``(d, m, s)``
+        members.  (This is a read-only property.)
         """
         return DMS_tuple(*util.degrees_to_dms(self.degree))
 
     @property
     def absdms(self):
         """
-        The angle's value in degrees, as a ``(d, m, s)`` tuple (read-only
-        property), but with the *absolute value* of each of the `d`, `m`, `s`
-        elements.
+        The angle's value in degrees, as a named tuple with ``(d, m, s)``
+        members, but with the *absolute value* of each of the `d`, `m`, `s`
+        elements. (This is a read-only property.)
 
         This is primarily intented for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
