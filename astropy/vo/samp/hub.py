@@ -420,9 +420,6 @@ class SAMPHubServer(object):
             return self._receive_response(*args)
         elif method == 'samp.app.ping':
             return self._ping(*args)
-        else:
-            # TODO: check whether the following is correct
-            return self._hub_as_client_request_handler
 
     def _setup_hub_as_client(self):
 
