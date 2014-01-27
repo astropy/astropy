@@ -60,9 +60,10 @@ the `usage instructions in the template <https://github.com/astropy
 
 To then get your package listed on the registry, take a look at the
 `guidelines <http://affiliated.astropy.org#affiliated-instructions>`_`,
-and then either post your intent on the `astropy-dev mailing list`_ or
-issue a Pull Request to the `website's github repository
-<http://github.com/astropy/astropy.github.com>`_.
+and then post your intent on the `astropy-dev mailing list`_.  The Astropy
+coordination committee, in consultation with the community, will provide
+you feedback on the package, and will add it to the registry when it is
+approved.
 
 
 Community
