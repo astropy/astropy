@@ -278,7 +278,7 @@ class SphericalCoordinatesBase(object):
     def __getitem__(self, key):
         from copy import deepcopy
 
-        oldlat = self._latangle 
+        oldlat = self._latangle
         oldlon = self._lonangle
         olddist = self._distance
 
@@ -486,32 +486,32 @@ class SphericalCoordinatesBase(object):
         of catalog coordinates.
 
         This finds the 3-dimensional closest neighbor, which is only different
-        from the on-sky distance if `distance` is set in this object or the 
+        from the on-sky distance if `distance` is set in this object or the
         `catalogcoord` object.
-        
+
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
-            The base catalog in which to search for matches. Typically this 
-            will be a coordinate object that is an array (i.e., 
+            The base catalog in which to search for matches. Typically this
+            will be a coordinate object that is an array (i.e.,
             ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
             Which closest neighbor to search for.  Typically ``1`` is desired here,
             as that is correct for matching one set of coordinates to another.
             The next likely use case is ``2``, for matching a coordinate catalog
-            against *itself* (``1`` is inappropriate because each point will find 
+            against *itself* (``1`` is inappropriate because each point will find
             itself as the closest match).
 
         Returns
         -------
         idx : integer array
-            Indecies into `catalogcoord` to get the matched points for each 
+            Indecies into `catalogcoord` to get the matched points for each
             `matchcoord`. Shape matches this coordinate.
-        sep2d : `~astropy.units.quantity.Angle` 
-            The on-sky separation between the closest match for each `matchcoord` and 
+        sep2d : `~astropy.units.quantity.Angle`
+            The on-sky separation between the closest match for each `matchcoord` and
             the `matchcoord`. Shape matches `matchcoord`.
-        dist3d : `~astropy.units.quantity.Quantity` 
-            The 3D distance between the closest match for each `matchcoord` and 
+        dist3d : `~astropy.units.quantity.Quantity`
+            The 3D distance between the closest match for each `matchcoord` and
             the `matchcoord`. Shape matches this coordinate.
 
         Notes
@@ -528,38 +528,38 @@ class SphericalCoordinatesBase(object):
 
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
-        Finds the nearest on-sky matches of this coordinate in a set of 
+        Finds the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
-        
+
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
-            The base catalog in which to search for matches. Typically this 
-            will be a coordinate object that is an array (i.e., 
+            The base catalog in which to search for matches. Typically this
+            will be a coordinate object that is an array (i.e.,
             ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
             Which closest neighbor to search for.  Typically ``1`` is desired here,
             as that is correct for matching one set of coordinates to another.
             The next likely use case is ``2``, for matching a coordinate catalog
-            against *itself* (``1`` is inappropriate because each point will find 
+            against *itself* (``1`` is inappropriate because each point will find
             itself as the closest match).
 
         Returns
         -------
         idx : integer array
-            Indecies into `catalogcoord` to get the matched points for each 
+            Indecies into `catalogcoord` to get the matched points for each
             `matchcoord`. Shape matches this coordinate.
-        sep2d : `~astropy.units.quantity.Angle` 
-            The on-sky separation between the closest match for each `matchcoord` and 
+        sep2d : `~astropy.units.quantity.Angle`
+            The on-sky separation between the closest match for each `matchcoord` and
             the `matchcoord`. Shape matches `matchcoord`.
-        dist3d : `~astropy.units.quantity.Quantity` 
-            The 3D distance between the closest match for each `matchcoord` and 
+        dist3d : `~astropy.units.quantity.Quantity`
+            The 3D distance between the closest match for each `matchcoord` and
             the `matchcoord`. Shape matches this coordinate.
 
         Notes
         -----
         This method requires `scipy` to be installed or it will fail.
-        
+
         See Also
         --------
         astropy.coordinates.matching.match_coordinates_sky
