@@ -850,6 +850,7 @@ class Model2DKernel(Kernel2D):
             raise TypeError("Must be Parametric2DModel")
         super(Model2DKernel, self).__init__(**kwargs)
 
+
 class PSFKernel(Kernel2D):
     """
     Initialize filter kernel from astropy PSF instance.
@@ -916,9 +917,9 @@ class CustomKernel(Kernel):
         Filter kernel array setter
         """
         if isinstance(array, np.ndarray):
-            self._array = array
+            self._array = array.astype(np.float64)
         elif isinstance(array, list):
-            self._array = np.array(array)
+            self._array = np.array(array, dtype=np.float64)
         else:
             raise TypeError("Must be list or array.")
 
