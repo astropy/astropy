@@ -5,6 +5,7 @@ with the web profile active, and the user might want to run the tests in
 parallel.
 """
 
+import os
 import time
 import threading
 import pickle
@@ -18,7 +19,6 @@ from .. import SAMPIntegratedClient, SAMPHubServer, SAMP_STATUS_OK
 from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
                                        SAMPIntegratedWebClient)
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
-from ..errors import SAMPHubError
 
 
 def write_output(mtype, params):
@@ -61,10 +61,6 @@ class Receiver(object):
                                    "samp.result": {"txt": "test"}})
 
 
-def temporary_filename():
-    return tempfile.mkstemp()[1]
-
-
 class TestWebProfile(object):
 
     def setup_method(self, method):
@@ -73,9 +69,12 @@ class TestWebProfile(object):
         t = threading.Thread(target=self.dialog.poll)
         t.start()
 
-        lockfile = temporary_filename()
+        self.tmpdir = tempfile.mkdtemp()
+        lockfile = os.path.join(self.tmpdir, '.samp')
 
-        self.hub = SAMPHubServer(web_profile_dialog=self.dialog, lockfile=lockfile, web_port=0)
+        self.hub = SAMPHubServer(web_profile_dialog=self.dialog,
+                                 lockfile=lockfile,
+                                 web_port=0)
         self.hub.start()
 
         self.client1 = SAMPIntegratedClient()
@@ -102,7 +101,7 @@ class TestWebProfile(object):
 
         # Test Notify
 
-        params = {'verification_file':temporary_filename(),
+        params = {'verification_file': os.path.join(self.tmpdir, 'test_notify'),
                   'parameter1':'abcde',
                   'parameter2':1331}
 
@@ -112,7 +111,7 @@ class TestWebProfile(object):
 
         # Test Call
 
-        params = {'verification_file':temporary_filename(),
+        params = {'verification_file': os.path.join(self.tmpdir, 'test_call'),
                   'parameter1':'abcde',
                   'parameter2':1331}
 
@@ -134,7 +133,7 @@ class TestWebProfile(object):
 
         # Check headers
 
-        req = Request('http://127.0.0.1:{0}/crossdomain.xml'.format(self.hub._web_port))
+        req = Request('http://localhost:{0}/crossdomain.xml'.format(self.hub._web_port))
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
 

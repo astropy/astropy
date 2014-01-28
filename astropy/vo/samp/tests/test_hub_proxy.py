@@ -1,9 +1,5 @@
-import os
-import tempfile
-
 from ..hub_proxy import SAMPHubProxy
 from ..hub import SAMPHubServer
-from ..client import SAMPClient
 
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET

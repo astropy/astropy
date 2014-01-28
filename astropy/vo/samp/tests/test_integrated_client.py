@@ -1,7 +1,4 @@
-import os
-import ssl
 import time
-import tempfile
 
 from ....tests.helper import pytest
 from ....utils.data import get_pkg_data_filename

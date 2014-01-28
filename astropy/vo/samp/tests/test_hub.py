@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import time
-import tempfile
-
-from ....tests.helper import remote_data
 
 from ..hub import SAMPHubServer
 
