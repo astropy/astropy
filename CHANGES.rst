@@ -208,6 +208,8 @@ Other Changes and Additions
 
 - The included version of py.test has been upgraded to 2.5.1.
 
+- The included version of six.py has been upgraded to 1.5.2
+
 0.3.1 (unreleased)
 ------------------
 
