@@ -27,6 +27,9 @@ class AlwaysApproveWebProfileDialog(WebProfileDialog):
 
     def stop(self):
         self.polling = False
+        
+    def __del__(self):
+        self.stop()
 
 
 class SAMPWebHubProxy(SAMPHubProxy):
@@ -38,9 +41,9 @@ class SAMPWebHubProxy(SAMPHubProxy):
     a means of testing a hub's support for the web profile from Python.
     """
 
-    def connect(self, pool_size=20):
+    def connect(self, pool_size=20, web_port=21012):
         """
-        Connect to the current SAMP Hub on localhost:21012
+        Connect to the current SAMP Hub on localhost:web_port
 
         Parameters
         ----------
@@ -53,7 +56,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
 
         try:
             self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                         'http://127.0.0.1:21012',
+                                         'http://127.0.0.1:{0}'.format(web_port),
                                          allow_none=1)
             self.ping()
             self._connected = True
@@ -248,7 +251,7 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
         self.client = SAMPWebClient(self.hub, name, description, metadata,
                                     callable)
 
-    def connect(self, pool_size=20):
+    def connect(self, pool_size=20, web_port=21012):
         """
         Connect with the current or specified SAMP Hub, start and register the
         client.
@@ -259,6 +262,6 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
             The number of socket connections opened to communicate with the
             Hub.
         """
-        self.hub.connect(pool_size)
+        self.hub.connect(pool_size, web_port=web_port)
         self.client.start()
         self.client.register()

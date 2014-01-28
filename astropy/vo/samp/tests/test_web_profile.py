@@ -65,27 +65,40 @@ def temporary_filename():
     return tempfile.mkstemp()[1]
 
 
-def test_web_profile():
+class TestWebProfile(object):
 
-    d = AlwaysApproveWebProfileDialog()
-    t = threading.Thread(target=d.poll)
-    t.start()
+    def setup_method(self, method):
 
-    lockfile = temporary_filename()
+        self.dialog = AlwaysApproveWebProfileDialog()
+        t = threading.Thread(target=self.dialog.poll)
+        t.start()
 
-    with SAMPHubServer(web_profile_dialog=d, lockfile=lockfile) as h:
+        lockfile = temporary_filename()
 
-        h.start()
+        self.hub = SAMPHubServer(web_profile_dialog=self.dialog, lockfile=lockfile, web_port=0)
+        self.hub.start()
 
-        c1 = SAMPIntegratedClient()
-        c1.connect(hub=h)
+        self.client1 = SAMPIntegratedClient()
+        self.client1.connect(hub=self.hub)
 
-        c2 = SAMPIntegratedWebClient()
-        c2.connect()
+        self.client2 = SAMPIntegratedWebClient()
+        self.client2.connect(web_port=self.hub._web_port)
 
-        rec2 = Receiver(c1)
-        c2.bind_receive_notification('samp.load.votable', rec2.receive_notification)
-        c2.bind_receive_call('samp.load.votable', rec2.receive_call)
+    def teardown_method(self, method):
+
+        if self.client1.is_connected:
+            self.client1.disconnect()
+        if self.client2.is_connected:
+            self.client2.disconnect()
+
+        self.hub.stop()
+        self.dialog.stop()
+
+    def test_web_profile(self):
+
+        rec2 = Receiver(self.client1)
+        self.client2.bind_receive_notification('samp.load.votable', rec2.receive_notification)
+        self.client2.bind_receive_call('samp.load.votable', rec2.receive_call)
 
         # Test Notify
 
@@ -93,7 +106,7 @@ def test_web_profile():
                   'parameter1':'abcde',
                   'parameter2':1331}
 
-        c1.notify(c2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        self.client1.notify(self.client2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
         check_output('samp.load.votable', params, timeout=60)
 
@@ -103,25 +116,25 @@ def test_web_profile():
                   'parameter1':'abcde',
                   'parameter2':1331}
 
-        c1.call(c2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        self.client1.call(self.client2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
 
         check_output('samp.load.votable', params, timeout=60)
 
-        c1.disconnect()
-        c2.disconnect()
-        d.stop()
+        self.client1.disconnect()
+        self.client2.disconnect()
+        self.dialog.stop()
 
         # Now check some additional queries to the server
 
-        with get_readable_fileobj('http://localhost:21012/crossdomain.xml') as f:
+        with get_readable_fileobj('http://localhost:{0}/crossdomain.xml'.format(self.hub._web_port)) as f:
             assert f.read() == CROSS_DOMAIN
 
-        with get_readable_fileobj('http://localhost:21012/clientaccesspolicy.xml') as f:
+        with get_readable_fileobj('http://localhost:{0}/clientaccesspolicy.xml'.format(self.hub._web_port)) as f:
             assert f.read() == CLIENT_ACCESS_POLICY
 
         # Check headers
 
-        req = Request('http://127.0.0.1:21012/crossdomain.xml')
+        req = Request('http://127.0.0.1:{0}/crossdomain.xml'.format(self.hub._web_port))
         req.add_header('Origin', 'test_web_profile')
         resp = urlopen(req)
 

@@ -143,6 +143,10 @@ class SAMPHubServer(object):
         value of `True` or `False` should be added to ``queue_result``
         depending on whether the user accepted or refused the connection.
 
+    web_port : int, optional
+        The port to use for web SAMP. This should not be changed except for
+        testing purposes, since web SAMP should always use port 21012.
+
     pool_size : int, optional
         The number of socket connections opened to communicate with the
         clients.
@@ -152,7 +156,7 @@ class SAMPHubServer(object):
                  timeout=0, client_timeout=0, mode='single', label="",
                  https=False, key_file=None, cert_file=None, cert_reqs=0,
                  ca_certs=None, ssl_version=None, web_profile=True,
-                 web_profile_dialog=None, pool_size=20):
+                 web_profile_dialog=None, web_port=21012, pool_size=20):
 
         # Generate random ID for the hub
         self._id = str(uuid.uuid1())
@@ -184,17 +188,20 @@ class SAMPHubServer(object):
             # TODO: Some sort of duck-typing on the web_profile_dialog object
             self._web_profile_dialog.queue_request = self._web_profile_requests_queue
             self._web_profile_dialog.queue_result = self._web_profile_requests_result
+        self._web_port = web_port
 
         if web_profile:
             try:
-                self._web_profile_server = WebProfileXMLRPCServer(('localhost', 21012), log,
+                self._web_profile_server = WebProfileXMLRPCServer(('localhost', self._web_port), log,
                                                                   logRequests=False,
                                                                   allow_none=True)
+                self._web_port = self._web_profile_server.socket.getsockname()[1]
                 self._web_profile_server.register_introspection_functions()
                 log.info("Hub set to run with Web Profile support enabled.")
             except socket.error:
-                log.warn("Port 21012 already in use. Impossible to run the "
-                         "Hub with Web Profile support.", SAMPWarning)
+                log.warn("Port {0} already in use. Impossible to run the "
+                         "Hub with Web Profile support.".format(self._web_port),
+                         SAMPWarning)
                 self._web_profile = web_profile = False
 
         # SSL general settings
@@ -1419,8 +1426,8 @@ class SAMPHubServer(object):
 
         if response:
             register_map = self._perform_standard_register()
-            translator_url = ("http://localhost:21012/translator/%s?ref="
-                              % register_map["samp.private-key"])
+            translator_url = ("http://localhost:%d/translator/%s?ref="
+                              % (self._web_port, register_map["samp.private-key"]))
             register_map["samp.url-translator"] = translator_url
             self._web_profile_server.add_client(register_map["samp.private-key"])
             return register_map
