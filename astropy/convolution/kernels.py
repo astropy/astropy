@@ -590,7 +590,6 @@ class MexicanHat1DKernel(Kernel1D):
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
-        self._normalization = 0
 
 
 class MexicanHat2DKernel(Kernel2D):
@@ -663,7 +662,6 @@ class MexicanHat2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
-        self._normalization = 0
 
 
 class AiryDisk2DKernel(Kernel2D):

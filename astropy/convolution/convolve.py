@@ -7,7 +7,7 @@ import warnings
 
 import numpy as np
 
-from .core import Kernel, Kernel1D, Kernel2D
+from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 
 
@@ -148,6 +148,11 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
+
+    if kernel_sum < 1. / MAX_NORMALIZATION and normalize_kernel:
+        raise Exception("The kernel can't be normalized, because its sum is "
+                        "close to zero. The sum of the given kernel is < {0}"
+                        .format(1. / MAX_NORMALIZATION))
     kernel_internal /= kernel_sum
 
     if array_internal.ndim == 0:
@@ -388,6 +393,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                       " (they are treated as 0)", AstropyUserWarning)
 
     if normalize_kernel is True:
+        if kernel.sum() < 1. / MAX_NORMALIZATION:
+            raise Exception("The kernel can't be normalized, because its sum is "
+                            "close to zero. The sum of the given kernel is < {0}"
+                            .format(1. / MAX_NORMALIZATION))
         kernel = kernel / kernel.sum()
         kernel_is_normalized = True
     elif normalize_kernel:
