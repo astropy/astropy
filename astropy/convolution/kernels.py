@@ -530,8 +530,13 @@ class MexicanHat1DKernel(Kernel1D):
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smoothes the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
-    multi-scale detection.  This kernel is derived from a normalized
-    Gaussian.
+    multi-scale detection.
+
+    This kernel is derived from a normalized Gaussian function, by
+    computing the second derivative. This results in an amplitude
+    at the kernels center of 1. / (sqrt(2 * pi) * width ** 3). The
+    normalization is the same as for `scipy.ndimage.filters.gaussian_laplace`,
+    except for a minus sign.
 
     Parameters
     ----------
@@ -595,8 +600,13 @@ class MexicanHat2DKernel(Kernel2D):
     The Mexican Hat, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smoothes the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
-    multi-scale detection.  This kernel is derived from a normalized
-    Gaussian.
+    multi-scale detection.
+
+    This kernel is derived from a normalized Gaussian function, by
+    computing the second derivative. This results in an amplitude
+    at the kernels center of 1. / (pi * width ** 4). The normalization
+    is the same as for `scipy.ndimage.filters.gaussian_laplace`, except
+    for a minus sign.
 
     Parameters
     ----------
