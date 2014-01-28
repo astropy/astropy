@@ -181,7 +181,6 @@ def test_angle_convert():
     """
     Test unit conversion of Angle objects
     """
-
     from .. import Angle
 
     angle = Angle("54.12412", unit=u.degree)
@@ -195,15 +194,34 @@ def test_angle_convert():
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
     npt.assert_allclose(angle.hms[2], 29.78879999999947)
+    #also check that the namedtuple attribute-style access works:
+    assert angle.hms.h == 3
+    assert angle.hms.m == 36
+    npt.assert_allclose(angle.hms.s, 29.78879999999947)
 
     assert len(angle.dms) == 3
     assert isinstance(angle.dms, tuple)
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
     npt.assert_allclose(angle.dms[2], 26.831999999992036)
+    #also check that the namedtuple attribute-style access works:
+    assert angle.dms.d == 54
+    assert angle.dms.m == 7
+    npt.assert_allclose(angle.dms.s, 26.831999999992036)
 
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
+
+    #now make sure dms and signed_dms work right for negative angles
+    negangle = Angle("-54.12412", unit=u.degree)
+
+    assert negangle.dms.d == -54
+    assert negangle.dms.m == -7
+    npt.assert_allclose(negangle.dms.s, -26.831999999992036)
+    assert negangle.signed_dms.sign == -1
+    assert negangle.signed_dms.d == 54
+    assert negangle.signed_dms.m == 7
+    npt.assert_allclose(negangle.signed_dms.s, 26.831999999992036)
 
 
 def test_angle_formatting():

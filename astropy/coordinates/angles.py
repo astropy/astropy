@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import math
+from collections import namedtuple
 
 import numpy as np
 
@@ -22,6 +23,11 @@ __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
+
+# these are used by the `hms` and `dms` attributes
+hms_tuple = namedtuple('hms_tuple', ('h', 'm', 's'))
+dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
+signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 
 class Angle(u.Quantity):
@@ -214,18 +220,31 @@ class Angle(u.Quantity):
     @property
     def hms(self):
         """
-        The angle's value in hours, as a ``(h, m, s)`` tuple
-        (read-only property).
+        The angle's value in hours, as a named tuple with ``(h, m, s)``
+        members.  (This is a read-only property.)
         """
-        return util.hours_to_hms(self.hourangle)
+        return hms_tuple(*util.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
         """
-        The angle's value in degrees, as a ``(d, m, s)`` tuple
-        (read-only property).
+        The angle's value in degrees, as a named tuple with ``(d, m, s)``
+        members.  (This is a read-only property.)
         """
-        return util.degrees_to_dms(self.degree)
+        return dms_tuple(*util.degrees_to_dms(self.degree))
+
+    @property
+    def signed_dms(self):
+        """
+        The angle's value in degrees, as a named tuple with ``(sign, d, m, s)``
+        members.  The `d`, `m`, `s` are thus always positive, and the sign of
+        the angle is given by `sign`. (This is a read-only property.)
+
+        This is primarily intented for use with `dms` to generate string
+        representations of coordinates that are correct for negative angles.
+        """
+        return signed_dms_tuple(np.sign(self.degree),
+                                *util.degrees_to_dms(np.abs(self.degree)))
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,

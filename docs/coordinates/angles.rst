@@ -61,9 +61,15 @@ both as a floating point number as a string::
     >>> a.hour
     3.819718634205...
     >>> a.hms
-    (3.0, 49.0, 10.987083...)
+    hms_tuple(h=3.0, m=49.0, s=10.987083...)
     >>> a.dms
-    (57.0, 17.0, 44.806247...)
+    dms_tuple(d=57.0, m=17.0, s=44.806247...)
+    >>> a.signed_dms
+    signed_dms_tuple(sign=1.0, d=57.0, m=17.0, s=44.806247...)
+    >>> (-a).dms
+    dms_tuple(d=-57.0, m=-17.0, s=-44.806247...)
+    >>> (-a).signed_dms
+    signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247...)
     >>> a.arcminute
     3437.746770...
     >>> a.to_string()

@@ -12,6 +12,10 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Updated `Angle.dms` and `Angle.hms` to return `namedtuple`s instead of
+    regular tuples, and added `Angle.signed_dms` attribute that gives the
+    absolute value of the `d`, `m`, and `s` along with the sign.  [#1988]
+
 - ``astropy.cosmology``
 
   - `age` and `comoving_volume` convenience functions have been added to
