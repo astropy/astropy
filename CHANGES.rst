@@ -13,8 +13,8 @@ New Features
 - ``astropy.coordinates``
 
   - Updated `Angle.dms` and `Angle.hms` to return `namedtuple`s instead of
-    regular tuples, and added `Angle.absdms` attribute that gives the absolute
-    value of the `d`, `m`, and `s`.  [#1988]
+    regular tuples, and added `Angle.signed_dms` attribute that gives the
+    absolute value of the `d`, `m`, and `s` along with the sign.  [#1988]
 
 - ``astropy.cosmology``
 

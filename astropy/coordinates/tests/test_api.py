@@ -212,7 +212,7 @@ def test_angle_convert():
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
 
-    #now make sure dms and absdms work right for negative angles
+    #now make sure dms and signed_dms work right for negative angles
     negangle = Angle("-54.12412", unit=u.degree)
 
     assert negangle.dms.d == -54
