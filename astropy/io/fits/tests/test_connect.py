@@ -10,7 +10,7 @@ from ....table import Table
 from .... import units as u
 from .... import log
 from ....tests.helper import pytest
-
+from astropy.tests.helper import catch_warnings
 PY3 = sys.version_info[0] >= 3
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -204,6 +204,7 @@ class TestMultipleHDU(object):
         assert len(l) == 0
         assert equal_data(t, self.data1)
 
+
 def test_masking_regression_1795():
     """
     Regression test for #1795 - this bug originally caused columns where TNULL
@@ -218,3 +219,19 @@ def test_masking_regression_1795():
     assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
+
+def test_scale_error():
+	with catch_warnings(FitsScaleError) as warning_lines:
+		from astropy.table import Table
+		infile='data/sample.tbl'
+		table=Table.read(infile, format='ipac')
+		table.write('table.fits',format='fits', overwrite=True)
+		out = table.vstack([t1, t2, t4], join_type='outer')
+	
+	assert warning_lines[0].category == metadata.FitsScaleError
+	assert ("There seems to be an error in the column \
+   V  \
+----- \
+11.27, probably because of the unit, which is %, \
+please refer to the link http://astropy.readthedocs.org/en/latest/units/standard_units.html#the-dimensionless-unit"
+            in str(warning_lines[0].message))
