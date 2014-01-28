@@ -291,6 +291,10 @@ def test_array_len():
 
         assert len(c) == length
 
+        assert c.shape == (length,)
+
     with pytest.raises(TypeError):
         c = ICRS(0, 0, unit=(u.degree, u.degree))
         len(c)
+
+    assert c.shape == tuple()
