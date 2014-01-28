@@ -139,7 +139,8 @@ class TestRunner(object):
                 raise ValueError(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
-            all_args += ' ' + docs_path + ' --doctest-rst '
+            elif not test_path:  # don't do  doctests if specific file is requested
+                all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
         if args is not None:
