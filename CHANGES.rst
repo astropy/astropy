@@ -141,6 +141,9 @@ Bug Fixes
 
 - ``astropy.cosmology``
 
+  - The distance modulus function in ``astropy.cosmology`` can now handle
+    negative distances, which can occur in certain closed cosmologies. [#2008]
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
