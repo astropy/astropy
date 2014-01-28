@@ -315,6 +315,9 @@ class SphericalCoordinatesBase(object):
         else:
             return len(self.lonangle)
 
+    @property
+    def shape(self):
+        return self.lonangle.shape
 
     @property
     def latangle(self):
