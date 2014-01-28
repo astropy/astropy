@@ -146,8 +146,9 @@ def parse_single_table(source, **kwargs):
     -------
     votable : `astropy.io.votable.tree.Table` object
     """
+
     if kwargs.get('table_number') is None:
-        kwargs['table_number'] = 0
+        kwargs.update(table_number=0)
 
     votable = parse(source, **kwargs)
 

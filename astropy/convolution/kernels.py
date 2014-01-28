@@ -214,7 +214,7 @@ class Box1DKernel(Kernel1D):
     def __init__(self, width, **kwargs):
         self._model = models.Box1D(1. / width, 0, width)
         self._default_size = _round_up_to_odd_integer(width)
-        kwargs['mode'] = 'linear_interp'
+        kwargs.update(mode='linear_interp')
         super(Box1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -284,7 +284,7 @@ class Box2DKernel(Kernel2D):
     def __init__(self, width, **kwargs):
         self._model = models.Box2D(1. / width ** 2, 0, 0, width, width)
         self._default_size = _round_up_to_odd_integer(width)
-        kwargs['mode'] = 'linear_interp'
+        kwargs.update(mode='linear_interp')
         super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()

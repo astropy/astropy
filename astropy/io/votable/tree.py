@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # TODO: Test FITS parsing
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 from ...extern import six
 from ...extern.six.moves import xrange, urllib
 
@@ -21,6 +22,7 @@ from numpy import ma
 from .. import fits
 from ... import __version__ as astropy_version
 from ...utils.collections import HomogeneousList
+from ...utils.compat import normalize_kwargs
 from ...utils.xml.writer import XMLWriter
 from ...utils.exceptions import AstropyDeprecationWarning
 
@@ -31,8 +33,8 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     W21, W22, W26, W27, W28, W29, W32, W33, W35, W36, W37, W38, W40,
     W41, W42, W43, W44, W45, W50, W52, W53, E06, E08, E09, E10, E11,
     E12, E13, E14, E15, E16, E17, E18, E19, E20, E21)
+from .util import convert_to_writable_filelike, version_compare
 from . import ucd as ucd_mod
-from . import util
 from . import xmlutil
 
 try:
@@ -583,7 +585,7 @@ class Link(SimpleElement, _IDProperty):
 
     @classmethod
     def from_table_column(cls, d):
-        return cls(**d)
+        return cls(**normalize_kwargs(d))
 
 
 class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
@@ -1468,9 +1470,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         Restores a `Field` instance from a given
         `astropy.table.Column` instance.
         """
+
         kwargs = {}
         for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
-            val = column.meta.get(key, None)
+            val = column.meta.get(key)
             if val is not None:
                 kwargs[key] = val
         # TODO: Use the unit framework when available
@@ -1480,7 +1483,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         result = converters.table_column_to_votable_datatype(column)
         kwargs.update(result)
 
-        field = cls(votable, **kwargs)
+        field = cls(votable, **normalize_kwargs(kwargs))
 
         if column.description is not None:
             field.description = column.description
@@ -2808,7 +2811,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             val = table.meta.get(key)
             if val is not None:
                 kwargs[key] = val
-        new_table = cls(votable, **kwargs)
+        new_table = cls(votable, **normalize_kwargs(kwargs))
         if 'description' in table.meta:
             new_table.description = table.meta['description']
 
@@ -3241,11 +3244,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 else:
                     vo_raise(E19, (), config, pos)
         config['version_1_1_or_later'] = \
-            util.version_compare(config['version'], '1.1') >= 0
+            version_compare(config['version'], '1.1') >= 0
         config['version_1_2_or_later'] = \
-            util.version_compare(config['version'], '1.2') >= 0
+            version_compare(config['version'], '1.2') >= 0
         config['version_1_3_or_later'] = \
-            util.version_compare(config['version'], '1.3') >= 0
+            version_compare(config['version'], '1.3') >= 0
 
         tag_mapping = {
             'PARAM'       : self._add_param,
@@ -3298,18 +3301,15 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 AstropyDeprecationWarning)
 
 
-        kwargs = {
-            'version': self.version,
-            'version_1_1_or_later':
-                util.version_compare(self.version, '1.1') >= 0,
-            'version_1_2_or_later':
-                util.version_compare(self.version, '1.2') >= 0,
-            'version_1_3_or_later':
-                util.version_compare(self.version, '1.3') >= 0,
-            '_debug_python_based_parser': _debug_python_based_parser,
-            '_group_number': 1}
+        kwargs = dict(
+            version=self.version,
+            version_1_1_or_later=version_compare(self.version, '1.1') >= 0,
+            version_1_2_or_later=version_compare(self.version, '1.2') >= 0,
+            version_1_3_or_later=version_compare(self.version, '1.3') >= 0,
+            _debug_python_based_parser=_debug_python_based_parser,
+            _group_number=1)
 
-        with util.convert_to_writable_filelike(
+        with convert_to_writable_filelike(
             fd, compressed=compressed) as fd:
             w = XMLWriter(fd)
             version = self.version

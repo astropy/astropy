@@ -680,7 +680,7 @@ class Longitude(Angle):
         if unit is not None and unit.is_equivalent(u.radian):
             # by default, wrap_angle remains the same
             if 'wrap_angle' not in kwargs:
-                kwargs['wrap_angle'] = getattr(self, 'wrap_angle')
+                kwargs.update(wrap_angle=getattr(self, 'wrap_angle'))
             return Longitude(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 

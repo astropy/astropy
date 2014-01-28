@@ -1607,9 +1607,9 @@ class Table(object):
             keys = [keys]
         kwargs = {}
         if keys:
-            kwargs['order'] = keys
+            kwargs.update(order=keys)
         if kind:
-            kwargs['kind'] = kind
+            kwargs.update(kind=kind)
 
         data = self._data
 

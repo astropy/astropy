@@ -7,8 +7,7 @@ OrderedDict and slightly customized (and renamed) the modules
 test_support.py and mapping_tests.py that provide support for those
 tests.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 from ...extern import six
 
@@ -228,7 +227,7 @@ class TestOrderedDict(unittest.TestCase):
     def test_repr(self):
         od = OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])
         self.assertEqual(repr(od),
-            "OrderedDict([(u'c', 1), (u'b', 2), (u'a', 3), (u'd', 4), (u'e', 5), (u'f', 6)])")
+            "OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])")
         self.assertEqual(eval(repr(od)), od)
         self.assertEqual(repr(OrderedDict()), "OrderedDict()")
 

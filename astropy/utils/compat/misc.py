@@ -24,8 +24,8 @@ import sys
 from functools import wraps
 
 
-__all__ = [
-    'inspect_getmodule', 'invalidate_caches', 'override__dir__']
+__all__ = ['inspect_getmodule', 'invalidate_caches', 'override__dir__',
+           'normalize_kwargs']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -105,6 +105,26 @@ if sys.version_info[:2] >= (3, 3):
     from importlib import invalidate_caches
 else:
     invalidate_caches = lambda: None
+
+
+if sys.version_info < (2, 6, 5):
+    # See http://bugs.python.org/issue2646; on older versions of Python 2.6.x,
+    # unicode strings as keyword arguments to functions are disallowed, so
+    # dicts passed in with the **kwargs syntax need to be normalized to ensure
+    # that no unicode strings are used as keywords; this is fine so long as all
+    # the keywords are ascii-encodable (true, currently, for the few places
+    # where this hack is used).
+    # TODO: Remove this once Python 2.6 support is dropped
+    def normalize_kwargs(d):
+        new = {}
+        for key, value in six.iteritems(d):
+            if isinstance(key, six.text_type):
+                new[key.encode('ascii')] = value
+            else:
+                new[key] = value
+        return new
+else:
+    normalize_kwargs = lambda s: s
 
 
 def override__dir__(f):
