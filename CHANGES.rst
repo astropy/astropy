@@ -224,7 +224,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
+  - Fixed bug which caused `len()` not to work for coordinate objects
+    and added a `shape` property to get appropriately array-like
+    behavior. [#1761, #2014]
 
   - Fixed a bug where sexagesimal notation would sometimes include
     exponential notation in the last field. [#1908, #1913]
