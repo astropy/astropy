@@ -9,7 +9,7 @@ from ....utils.data import get_pkg_data_filename
 from ..hub import SAMPHubServer
 from ..integrated_client import SAMPIntegratedClient
 from ..constants import SAMP_STATUS_OK
-from ..errors import SAMPClientError
+from ..errors import SAMPClientError, SAMPProxyError
 
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
@@ -202,12 +202,12 @@ class TestIntegratedClient(object):
         # Standard call
         message = {}
         message['samp.mtype'] = "table.load.votable"
+        message['samp.params'] = {}
         self.client1.call_all('test_tag', message)
 
         # Easy call
         self.client1.ecall_all('test_tag', "table.load.votable")
 
-    @pytest.mark.xfail
     def test_call_and_wait(self):
 
         self.client2.declare_subscriptions({'table.load.votable': Receiver()})
@@ -215,11 +215,17 @@ class TestIntegratedClient(object):
         # Standard call_and_wait
         message = {}
         message['samp.mtype'] = "table.load.votable"
-        self.client1.call_and_wait(self.client2_id, 'test_tag', message)
+        message['samp.params'] = {}
+        try:
+            self.client1.call_and_wait(self.client2_id, message, 2.)
+        except SAMPProxyError as exc:
+            assert exc.faultString == "Timeout expired!"
 
         # Easy call_and_wait
-        self.client1.ecall_and_wait(self.client2_id, 'test_tag',
-                                    "table.load.votable")
+        try:
+            self.client1.ecall_and_wait(self.client2_id, "table.load.votable", 2.)
+        except SAMPProxyError as exc:
+            assert exc.faultString == "Timeout expired!"
 
     def test_bind_receive_notification(self):
 
