@@ -49,7 +49,7 @@ accessed using aptly named attributes::
     >>> c.ra.hour
     0.712305333...
     >>> c.ra.hms
-    HMS_tuple(h=0.0, m=42.0, s=44.299199999996262)
+    hms_tuple(h=0.0, m=42.0, s=44.299199999996262)
     >>> c.dec
     <Latitude 41.26917... deg>
     >>> c.dec.radian

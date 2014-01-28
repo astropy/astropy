@@ -25,9 +25,9 @@ __all__ = ['Angle', 'Latitude', 'Longitude']
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 # these are used by the `hms` and `dms` attributes
-HMS_tuple = namedtuple('HMS_tuple', ('h', 'm', 's'))
-DMS_tuple = namedtuple('DMS_tuple', ('d', 'm', 's'))
-SDMS_tuple = namedtuple('signed_DMS_tuple', ('sign', 'd', 'm', 's'))
+hms_tuple = namedtuple('hms_tuple', ('h', 'm', 's'))
+dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
+signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 
 class Angle(u.Quantity):
@@ -223,7 +223,7 @@ class Angle(u.Quantity):
         The angle's value in hours, as a named tuple with ``(h, m, s)``
         members.  (This is a read-only property.)
         """
-        return HMS_tuple(*util.hours_to_hms(self.hourangle))
+        return hms_tuple(*util.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
@@ -231,7 +231,7 @@ class Angle(u.Quantity):
         The angle's value in degrees, as a named tuple with ``(d, m, s)``
         members.  (This is a read-only property.)
         """
-        return DMS_tuple(*util.degrees_to_dms(self.degree))
+        return dms_tuple(*util.degrees_to_dms(self.degree))
 
     @property
     def signed_dms(self):
@@ -243,8 +243,8 @@ class Angle(u.Quantity):
         This is primarily intented for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
         """
-        return SDMS_tuple(np.sign(self.degree),
-                          *util.degrees_to_dms(np.abs(self.degree)))
+        return signed_dms_tuple(np.sign(self.degree),
+                                *util.degrees_to_dms(np.abs(self.degree)))
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,
