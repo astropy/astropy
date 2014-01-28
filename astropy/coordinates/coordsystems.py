@@ -310,7 +310,10 @@ class SphericalCoordinatesBase(object):
 
 
     def __len__(self):
-        return len(self.lonangle)
+        if self.isscalar:
+            raise TypeError("len() cannot be done on a scalar coordinate")
+        else:
+            return len(self.lonangle)
 
 
     @property
