@@ -112,7 +112,7 @@ class Kernel(object):
         if mode == 'integral':
             self._array *= self._normalization
         if mode == 'peak':
-            np.divide(self._array, self._array.max(), self._array)
+            np.divide(self._array, self._array.max(), self.array)
             self._normalization = 1. / self._array.sum()
 
     @property
