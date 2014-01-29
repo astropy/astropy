@@ -2,6 +2,8 @@
 
 .. _whatsnew-0.2:
 
+.. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
+
 =========================
 What's New in Astropy 0.2
 =========================
@@ -22,7 +24,7 @@ Missing value support is now provided using :ref:`masked tables <astropy-table>`
 instead of NumPy masked arrays.
 
 There is an important change in way that input data are parsed in the
-:func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of `astropy`, a
+:func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of ``astropy``, a
 list of lists was interpreted to be a *list of data rows*, corresponding to the
 behavior in `asciitable <https://asciitable.readthedocs.org/>`_.  Starting from
 version 0.2, a list of lists is interpreted as a *list of data columns*.  This corresponds
@@ -93,14 +95,14 @@ parameter ``w`` using the popular parameterisations by `Linder 2003
 There are two API changes:
 
   * Previously the ``Om``, ``Ol`` and ``Ok`` attributes of a
-    `Cosmology` class referred to densities at z = 0. These have been
+    `~astropy.cosmology.core.Cosmology` class referred to densities at z = 0. These have been
     renamed to ``Om0``, ``Ol0``, and ``Ok0``. ``Om``, ``Ol`` and
     ``Ok`` are now methods that give the relevant density as a
     function of redshift. This change makes their behaviour consistent
     with that of the Hubble parameter attribute and method (``H0`` and
     ``H``).
 
-  * The `FLRWCosmology` class has been renamed to
+  * The ``FLRWCosmology`` class has been renamed to
     :class:`~astropy.cosmology.core.FLRW`.
 
 So while in version 0.1 you could define a flat cosmology in following way::
@@ -118,7 +120,7 @@ The convenience functions
 :func:`~astropy.cosmology.funcs.kpc_comoving_per_arcmin`,
 :func:`~astropy.cosmology.funcs.arcsec_per_kpc_proper` and
 :func:`~astropy.cosmology.funcs.arcsec_per_kpc_comoving` are now all
-available as methods of the :class:`~astropy.cosmology.Cosmology`
+available as methods of the :class:`~astropy.cosmology.core.Cosmology`
 object.
 
 Finally, a new set of cosmological parameters from the 9 year WMAP
@@ -252,38 +254,38 @@ VOTable XML support
 -------------------
 
 The name of the VOTable XML handling package has changed from
-`astropy.io.vo` to `astropy.io.votable`.
+``astropy.io.vo`` to `astropy.io.votable`.
 
-The `unit` attribute is now an `astropy.units.Unit` object, so unit
+The ``unit`` attribute is now an `~astropy.units.core.Unit` object, so unit
 conversions can easily be supported.  The CDS unit format used by
 VOTable XML is now fully supported as a result.
 
 Masked values are now handled by a single array, rather than a pair of
 arrays.
 
-The `precision` and `width` attributes of each field are now handled
+The ``precision`` and ``width`` attributes of each field are now handled
 correctly as per the VOTable XML specification.  This may result in
 the output changing.
 
-Each `TABLE` section of a `VOTable` XML file can be converted to/from
-an `astropy.table.Table` object, which allows much easier editing of
+Each ``TABLE`` section of a ``VOTable`` XML file can be converted to/from
+an `~astropy.table.table.Table` object, which allows much easier editing of
 the columns than a regular Numpy structured array.
 
 A standalone `volint` script is available to validate the contents of
 VOTable XML files.
 
 The default setting for `pedantic` mode can be set using a
-configuration parameter (`astropy.io.vo.PEDANTIC`).
+configuration parameter (`astropy.io.votable.table.PEDANTIC`).
 
 
 WCS
 ---
 
 When reading FITS headers, the default value of `relax` is `True`, in
-order to accept all non-standard keywords that `wcslib` understands.
+order to accept all non-standard keywords that `wcslib`_ understands.
 This should make `astropy.wcs` handle more FITS files by default, but
 may introduce a change in behavior in some edge cases.  Likewise for
-writing FITS headers, the default value of `relax` is `WCSHDO_safe`,
+writing FITS headers, the default value of `relax` is ``WCSHDO_safe``,
 meaning it will write all non-standard exceptions that are considered
 safe and unambiguous.  This should make the FITS files produced by
 `astropy.wcs` supported by a larger range of third-party tools, but
@@ -294,7 +296,7 @@ for each input axis, will now broadcast the arrays correctly and
 return the output in the broadcasted shape.  This makes using a
 constant for one of the axes possible.
 
-The units in a WCS object (`CUNITij`) are now `astropy.units.Unit`
+The units in a WCS object (`CUNITij`) are now `~astropy.units.core.Unit`
 objects, so operations on those units may be performed.
 
-The included version of `wcslib` has been upgraded to version 4.16.
+The included version of `wcslib`_ has been upgraded to version 4.16.

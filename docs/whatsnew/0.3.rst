@@ -2,6 +2,8 @@
 
 .. _whatsnew-0.3:
 
+.. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
+
 ==========================
 What's New in Astropy 0.3?
 ==========================
@@ -240,7 +242,7 @@ return Numpy arrays.
 
 As shown above, all the coordinate classes have now been renamed to drop the
 ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``). In
-addition, `HorizontalCoordinates` has now been renamed to `AltAz`.
+addition, ``HorizontalCoordinates`` has now been renamed to `astropy.coordinates.builtin_systems.AltAz`.
 
 Coordinate objects now support matching one set of coordinates to another
 using the array coordinates functionality described above.  See
@@ -454,7 +456,7 @@ For users who have `Scipy <http://www.scipy.org>`_ installed, the
 coordinates to pixel space including the inversion of astrometric distortion
 corrections.
 
-The included version of `wcslib` has been upgraded to version 4.19. The
+The included version of `wcslib`_ has been upgraded to version 4.19. The
 relevant changes for astropy users are:
 
   * Implemented the butterfly projection (``XPH``), being the polar
