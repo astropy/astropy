@@ -3,10 +3,29 @@
 # images/ui-icons_888888_256x240.png
 import os
 
-data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data')
+from ..config.configuration import ConfigurationItem
+from .. import extern
+
+JQUERY_URL = ConfigurationItem(
+    'jquery_url',
+    'file://' + os.path.abspath(
+        os.path.join(
+            os.path.dirname(extern.__file__), 'js', 'jquery-1.11.0.js')),
+    'URL to jquery.js')
+
+
+DATATABLES_URL = ConfigurationItem(
+    'datatables_url',
+    'file://' + os.path.abspath(
+        os.path.join(
+            os.path.dirname(extern.__file__), 'js', 'jquery.dataTables.js')),
+    'datatables_url', None, 'URL to jquery.datatables.js')
+
+
+data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
+
 
 ipynb_js_script = """
-<script class="jsbin" src="{data_path}/jquery.dataTables.min.js"></script>
 <script>
     function html_repr_full() {{
         var kernel = IPython.notebook.kernel;
@@ -42,6 +61,7 @@ ipynb_js_script = """
 <button id='MakeTableBrowseable{tid}' onclick="make_table_browseable()">Make Table Browseable</button>
 """
 
+
 commandline_js_script = """
 <script>
     $(document).ready(function() {{
@@ -55,37 +75,39 @@ commandline_js_script = """
 </script>
 """
 
-class JSViewer(object):
 
+class JSViewer(object):
     def __init__(self,
-                 css_files=['jquery-ui.css','demo_page.css','demo_table.css'],
+                 css_files=['jquery-ui.css', 'demo_page.css', 'demo_table.css'],
                  display_length=50):
-        self.css_urls = ["file://"+os.path.join(data_path,c) for c in css_files]
+        self.css_urls = ["file://" + os.path.join(data_path, c) for c in css_files]
         self.display_length_menu = [[10, 25, 50, 100, 500, 1000, -1],
                                     [10, 25, 50, 100, 500, 1000, "All"]]
         self.display_length = display_length
         for L in self.display_length_menu:
             if display_length not in L:
-                L.insert(0,display_length)
+                L.insert(0, display_length)
 
     def _jquery_file(self):
-        # downloaded from http://ajax.googleapis.com/ajax/libs/jquery/1/
-        return '<script src="file://{data_path}/jquery-1.10.2.min.js"></script>'.format(data_path=data_path)
+        return '<script src="{0}"></script>'.format(JQUERY_URL())
 
     def _jstable_file(self):
         # downloaded from http://datatables.net/download/build/
-        return '<script class="jsbin" src="file://{data_path}/jquery.dataTables.min.js"></script>'.format(data_path=data_path)
+        return '<script class="jsbin" src="{0}"></script>'.format(DATATABLES_URL())
 
     def _css_files(self):
-        return ['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in self.css_urls]
+        return [
+            '<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css)
+            for css in self.css_urls]
 
     def ipynb(self, tableid):
         js = self._css_files()
         js.append(self._jstable_file())
-        js.append(ipynb_js_script.format(display_length=self.display_length,
-                                         display_length_menu=self.display_length_menu,
-                                         tid=tableid,
-                                         data_path="file://"+data_path))
+        js.append(ipynb_js_script.format(
+            display_length=self.display_length,
+            display_length_menu=self.display_length_menu,
+            tid=tableid,
+            data_path="file://"+data_path))
         return js
 
     def command_line(self, tableid='table0'):
@@ -93,7 +115,8 @@ class JSViewer(object):
         js.append(self._jquery_file())
         js.append(self._jstable_file())
 
-        js.append(commandline_js_script.format(display_length=self.display_length,
-                                               display_length_menu=self.display_length_menu,
-                                               tid=tableid))
+        js.append(commandline_js_script.format(
+            display_length=self.display_length,
+            display_length_menu=self.display_length_menu,
+            tid=tableid))
         return js

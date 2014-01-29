@@ -19,9 +19,7 @@ def get_extensions():
     return [table_ext]
 
 def get_package_data():
-    paths = [os.path.join('data', '*.js'),
-             os.path.join('data', '*.css'),
-             ]
+    paths = [os.path.join('data', '*.css')]
     return {'astropy.table': paths}
 
 def requires_2to3():
