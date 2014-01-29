@@ -1103,7 +1103,10 @@ class FLRW(Cosmology):
         """
 
         # Remember that the luminosity distance is in Mpc
-        val = 5. * np.log10(self.luminosity_distance(z).value * 1.e5)
+        # Abs is necessary because in certain obscure closed cosmologies 
+        #  the distance modulus can be negative -- which is okay because
+        #  it enters as the square.
+        val = 5. * np.log10(abs(self.luminosity_distance(z).value)) + 25.0
         return u.Quantity(val, u.mag)
 
     def comoving_volume(self, z):
