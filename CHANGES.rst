@@ -368,6 +368,9 @@ Bug Fixes
   - Fix a memory corruption bug when using `astropy.wcs.Wcs.sub` with
     `~astropy.wcs.WCSSUB_CELESTIAL`. [#1960]
 
+  - Fixed the AttributeError exception which was raised when using
+    :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
+
 - Misc
 
   - There are a number of improvements to make `astropy` work better
