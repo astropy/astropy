@@ -43,7 +43,10 @@ class Kernel(object):
 
     def __init__(self, array):
         self._array = array
-        self._normalization = 1. / self._array.sum()
+        if self._array.sum() == 0:
+            self._normalization = np.inf
+        else:
+            self._normalization = 1. / self._array.sum()
 
     @property
     def truncation(self):
