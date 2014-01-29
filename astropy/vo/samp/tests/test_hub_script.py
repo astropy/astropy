@@ -3,7 +3,9 @@ import sys
 from ..hub_script import hub_script
 
 from ..utils import ALLOW_INTERNET
-ALLOW_INTERNET.set(False)
+
+def setup_module(module):
+    ALLOW_INTERNET.set(False)
 
 
 def test_hub_script():

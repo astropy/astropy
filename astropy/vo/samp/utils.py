@@ -29,11 +29,10 @@ def internet_on():
         return False
     else:
         try:
-            urlopen('http://google.com', timeout=1)
+            urlopen('http://google.com', timeout=1.)
             return True
-        except URLError:
-            pass
-        return False
+        except:
+            return False
 
 __all__ = ["SAMPMsgReplierWrapper"]
 

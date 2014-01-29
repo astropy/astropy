@@ -20,6 +20,12 @@ from .web_profile_test_helpers import (AlwaysApproveWebProfileDialog,
                                        SAMPIntegratedWebClient)
 from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
 
+# By default, tests should not use the internet.
+from ..utils import ALLOW_INTERNET
+
+def setup_module(module):
+    ALLOW_INTERNET.set(False)
+
 
 def write_output(mtype, params):
     filename = params['verification_file']

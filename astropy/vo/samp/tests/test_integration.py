@@ -13,7 +13,9 @@ from ..utils import SAMPMsgReplierWrapper
 
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
-ALLOW_INTERNET.set(False)
+
+def setup_module(module):
+    ALLOW_INTERNET.set(False)
 
 
 def test_SAMPMsgReplierWrapper():
