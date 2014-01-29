@@ -317,6 +317,11 @@ class SphericalCoordinatesBase(object):
 
     @property
     def shape(self):
+        """
+        A tuple with the dimensions of the array that stores this object's
+        coordinates. If this is a single coordinate, this will be an empty
+        tuple. (See `numpy.ndarray.shape`)
+        """
         return self.lonangle.shape
 
     @property
