@@ -1707,7 +1707,7 @@ naxis kwarg.
         f.write(comments)
         f.write('linear\n')
         f.write('polygon(')
-        self.footprint.tofile(f, sep=',')
+        self.calcFootprint().tofile(f, sep=',')
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
