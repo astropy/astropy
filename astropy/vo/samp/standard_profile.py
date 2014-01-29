@@ -36,7 +36,8 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             self.end_headers()
             self.wfile.write(SAMP_ICON)
 
-    if sys.version_info[:2] >= (2,7):
+    if ((six.PY2 and sys.version_info[:2] >= (2,7))
+        or (six.PY3 and sys.version_info[:2] >= (3,2))):
 
         def do_POST(self):
             """
@@ -165,7 +166,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                     chunk_size = min(size_remaining, max_chunk_size)
                     L.append(self.rfile.read(chunk_size))
                     size_remaining -= len(L[-1])
-                data = ''.join(L)
+                data = b''.join(L)
 
                 params, method = xmlrpc.loads(data)
 
