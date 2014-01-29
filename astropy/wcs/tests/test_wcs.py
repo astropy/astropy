@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import sys
 import warnings
+import tempfile
 
 import numpy as np
 from numpy.testing import (
@@ -540,3 +541,19 @@ def test_unit_normalization():
         'data/unit.hdr', encoding='binary')
     w = wcs.WCS(header)
     assert w.wcs.cunit[2] == 'm/s'
+
+
+def test_footprint_to_file():
+    """
+    From github issue #1912
+    """
+    # Arbtirary keywords from real data
+    w = wcs.WCS({'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
+                 'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02, 
+                 'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
+                 'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
+                 'PV2_1': 1., 'PV2_3': 220.})
+    tmp = tempfile.NamedTemporaryFile()
+    # Just check that this doesn't raise an exception:
+    w.footprint_to_file(tmp.name)
+    tmp.close()
