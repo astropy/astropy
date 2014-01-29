@@ -228,12 +228,12 @@ Install your branch
 ===================
 
 Ideally you should set up a python virtual environment just for this fix;
-instructions for doing to are at :ref:`virtual-pythons`. Doing so ensures you
+instructions for doing to are at :ref:`virtual_pythons`. Doing so ensures you
 will not corrupt your main astropy install and makes it very easy to recover
 from mistakes.
 
 Once you have activated that environment you need to install the version of
-Astropy you are working on. DO that with::
+Astropy you are working on. Do that with::
 
     python setup.py develop  # python 2.x, not python 3
 
@@ -311,7 +311,7 @@ In more detail
 
    .. note::
         Make your `git` commit messages short and descriptive. If a commit
-        fixes an issue, include, on the second or later lin of the commit
+        fixes an issue, include, on the second or later line of the commit
         message, the issue number in the commit message, like this: 
         ``Closes #123``. Doing so will automatically close the issue when the
         pull request is accepted.
@@ -327,7 +327,7 @@ Add a changelog entry
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
 made. Include the pull request number if the change fixes an issue. An
-example entry, which fixed 
+example entry, for the changes which fixed 
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is

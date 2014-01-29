@@ -119,7 +119,7 @@ There are several files with tests in them, though::
 
 `Issue 1761`_ affects arrays of coordinates, so it seems sensible to put the
 new test in ``test_arrays.py``. As with all of the steps, if you are not
-sure, ask on the astropy-dev mailing list.
+sure, ask on the `astropy-dev mailing list`_.
 
 The goal at this point may be a little counter-intuitive: write a test that we
 know will fail with the current code. This test allows Astropy to check,
@@ -133,8 +133,8 @@ that.
 
 Give the test a reasonably clear name; I chose: ``test_array_len``. The
 easiest way to figure out what you need to import and how to set up the test
-is to look at other tests. If you want to see the full test take a look at
-TODO: INSERT LINK TO COMMIT
+is to look at other tests. The full test is in the traceback below and in
+`pull request 1917`_
 
 Write the test, then see if it works as expected--remember, in this case we
 expect to *fail*. Running ``py.test test_arrays.py`` gives the expected
@@ -167,7 +167,7 @@ we just wrote is one logical change, so we will commit it. You could, if you
 prefer, wait and commit this test along with your fix.
 
 For this tutorial I'll commit the test separately. If you aren't sure what to
-do, ask on `astropy-dev`_.
+do, ask on `astropy-dev mailing list`_.
 
 Check what was changed
 ++++++++++++++++++++++
@@ -186,7 +186,8 @@ We can see what has changed with ``git status``::
 
     no changes added to commit (use "git add" and/or "git commit -a")
 
-There are two bits of information here: 
+There are two bits of information here:
+
 + one file changed, ``test_arrays.py``
 + We have not added our changes to git yet, so it is listed under ``Changes
   not staged for commit``.
@@ -294,8 +295,7 @@ the fix is beyond the scope of this tutorial, but the fix is to add a
 this base class and it is this base class that implements the
 ``__getitem__`` method that allows indexing of coordinate arrays.
 
-See the commit for this change the see the change itself at
-TODO: INSERT LINK TO COMMIT
+See `pull request 1917`_ to view the changes to the code.
 
 .. _test_changes:
 
@@ -317,7 +317,7 @@ There are a few levels at which you want to test:
 
 .. note::
     Tests that are skipped or xfailed are fine. A fail or an error is not 
-    fine. If you get stuck, ask on `astropy-dev`_ for help!
+    fine. If you get stuck, ask on `astropy-dev mailing list`_ for help!
 
 Stage and commit your change
 ++++++++++++++++++++++++++++
@@ -368,7 +368,7 @@ However you do it, the message after committing should look like this::
     Closes #1761
 
 You can check the commit messages by running ``git log``. If the commit 
-message doesn't look right, ask about fixing it at `astropy-dev`_.
+message doesn't look right, ask about fixing it at `astropy-dev mailing list`_.
 
 Push your changes to your GitHub fork of astropy
 ------------------------------------------------
@@ -438,7 +438,7 @@ easy; you put the code you expect to fail in a ``with`` block::
         len(c)
 
 I added this to ``test_array_len`` in ``test_arrays.py`` and re-ran the test
-to make sure it works as desired. See TODO: INSERT COMMIT LINK 
+to make sure it works as desired.
 
 Aside: Python lesson--let others do your work
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -486,7 +486,7 @@ the milestone (aka release) that is set for the issue in GitHub. If you are
 proposing a new feature in a pull request you may need to wait on this change
 until the pull request is discussed.
 
-This issue was tagged for 0.3.1, as shown in the image below, so the changlog
+This issue was tagged for 0.3.1, as shown in the image below, so the changelog
 entry went there. 
 
     .. image:: milestone.png
@@ -556,3 +556,4 @@ to GitHub. GitHub will automatically update your pull request.
 .. _Issue 1761: https://github.com/astropy/astropy/issues/1917
 .. _pull request 1917: https://github.com/astropy/astropy/issues/1917
 .. _Sphinx primer: http://sphinx-doc.org/rest.html
+.. _test commit: https://github.com/mwcraig/astropy/commit/cf7d5ac15d7c63ae28dac638c6484339bac5f8de
