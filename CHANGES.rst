@@ -350,6 +350,8 @@ Bug Fixes
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
+  - Fixed `astropy.utils.compat.argparse` for Python 3.1. [#2017]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
