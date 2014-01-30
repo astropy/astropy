@@ -28,7 +28,7 @@ TEST_KEY2 = get_pkg_data_filename('data/test2.key')
 PY31 = sys.version_info[:2] == (3, 1)
 
 
-class TestIntegratedClient(object):
+class TestStandardProfile(object):
 
     conf = 'no_https'
 
@@ -54,19 +54,9 @@ class TestIntegratedClient(object):
 
         self.client1 = SAMPIntegratedClient(**self.client_init_kwargs)
         self.client1.connect(hub=self.hub, **self.client_connect_kwargs)
-        self.client1_id = self.client1.get_public_id()
 
         self.client2 = SAMPIntegratedClient(**self.client_init_kwargs)
         self.client2.connect(hub=self.hub, **self.client_connect_kwargs)
-        self.client2_id = self.client2.get_public_id()
-
-        self.metadata1 = {"samp.name": "Client 1",
-                          "samp.description.text": "Client 1 Description",
-                          "client.version": "1.1"}
-
-        self.metadata2 = {"samp.name": "Client 2",
-                          "samp.description.text": "Client 2 Description",
-                          "client.version": "1.2"}
 
     def teardown_method(self, method):
 
@@ -78,6 +68,17 @@ class TestIntegratedClient(object):
         self.hub.stop()
 
     def test_main(self):
+
+        self.client1_id = self.client1.get_public_id()
+        self.client2_id = self.client2.get_public_id()
+
+        self.metadata1 = {"samp.name": "Client 1",
+                          "samp.description.text": "Client 1 Description",
+                          "client.version": "1.1"}
+
+        self.metadata2 = {"samp.name": "Client 2",
+                          "samp.description.text": "Client 2 Description",
+                          "client.version": "1.2"}
 
         # Check that the clients are connected
 
@@ -246,7 +247,7 @@ class TestIntegratedClient(object):
 
 
 @pytest.mark.xfail("PY31")
-class TestIntegratedClientHTTPSHub(TestIntegratedClient):
+class TestStandardProfileHTTPSHub(TestStandardProfile):
 
     conf = 'https_hub'
 
@@ -260,7 +261,7 @@ class TestIntegratedClientHTTPSHub(TestIntegratedClient):
 
 
 @pytest.mark.xfail("PY31")
-class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
+class TestStandardProfileHTTPSHubClient(TestStandardProfile):
 
     conf = 'https_hub_client'
 

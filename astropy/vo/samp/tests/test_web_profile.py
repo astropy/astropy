@@ -25,11 +25,13 @@ from ..utils import ALLOW_INTERNET
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
+from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
+
 def setup_module(module):
     ALLOW_INTERNET.set(False)
 
 
-class TestWebProfile(object):
+class TestWebProfile(BaseTestStandardProfile):
 
     def setup_method(self, method):
 
@@ -65,56 +67,12 @@ class TestWebProfile(object):
         self.hub.stop()
         self.dialog.stop()
 
+    # The full communication tests are run since TestWebProfile inherits
+    # test_main from TestStandardProfile
+
     def test_web_profile(self):
 
-        rec2 = Receiver(self.client2)
-        self.client2.bind_receive_notification('table.load.votable', rec2.receive_notification)
-        self.client2.bind_receive_call('table.load.votable', rec2.receive_call)
-
-        # Once we have finished with the calls and notifications, we will
-        # check the data got across correctly.
-
-        # Test Notify
-
-        params = random_params(self.tmpdir)
-        self.client1.notify(self.client2_id,
-                            {'samp.mtype':'table.load.votable',
-                             'samp.params':params})
-
-        assert_output('table.load.votable', self.client2_key,
-                      self.client1_id, params, timeout=60)
-
-        params = random_params(self.tmpdir)
-        self.client1.enotify(self.client2_id,
-                             "table.load.votable", **params)
-
-        assert_output('table.load.votable', self.client2_key,
-                      self.client1_id, params, timeout=60)
-
-        # Test call
-
-        params = random_params(self.tmpdir)
-        self.client1.call(self.client2_id, 'test-tag',
-                            {'samp.mtype':'table.load.votable',
-                             'samp.params':params})
-
-        assert_output('table.load.votable', self.client2_key,
-                      self.client1_id, params, timeout=60)
-
-        params = random_params(self.tmpdir)
-        self.client1.ecall(self.client2_id, 'test-tag',
-                           "table.load.votable", **params)
-
-        assert_output('table.load.votable', self.client2_key,
-                      self.client1_id, params, timeout=60)
-
-        # Now we check that all the messages got across
-
-        self.client1.disconnect()
-        self.client2.disconnect()
-        self.dialog.stop()
-
-        # Now check some additional queries to the server
+        # Check some additional queries to the server
 
         with get_readable_fileobj('http://localhost:{0}/crossdomain.xml'.format(self.hub._web_port)) as f:
             assert f.read() == CROSS_DOMAIN
