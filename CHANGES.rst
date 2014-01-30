@@ -59,7 +59,7 @@ New Features
 
   - The `automodapi` and `automodsumm` extensions now include sphinx
     configuration options to write out what `automidapi` and
-    `automodsumm` generate, mainly for debugging purposes. [#1975, #xxxx]
+    `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
 - ``astropy.table``
 
