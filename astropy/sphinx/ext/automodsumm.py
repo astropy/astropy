@@ -39,6 +39,15 @@ options:
         and not have their documentation generated, nor be includded in
         the summary table.
 
+This extension also adds one sphinx configuration option:
+
+* `automodsumm_writereprocessed`
+    Should be a bool, and if True, will cause `automodsumm` to write files with
+    any ``automodsumm``  sections replaced with the content Sphinx processes
+    after ``automodsumm`` has run.   The output files are not actually used by
+    sphinx, so this option is only for figuring out the cause of sphinx warnings
+    or other debugging.   Defaults to `False`.
+
 
 ===========================
 `automod-diagram` directive
@@ -177,8 +186,16 @@ def process_automodsumm_generation(app):
     filestosearch = [x + ext for x in env.found_docs
                      if os.path.isfile(env.doc2path(x))]\
 
-    liness = [automodsumm_to_autosummary_lines(sfn, app) for
-              sfn in filestosearch]
+    liness = []
+    for sfn in filestosearch:
+        lines = automodsumm_to_autosummary_lines(sfn, app)
+        liness.append(lines)
+        if app.config.automodsumm_writereprocessed:
+            if lines:  # empty list means no automodsumm entry is in the file
+                outfn = os.path.join(app.srcdir, sfn) + '.automodsumm'
+                with open(outfn, 'w') as f:
+                    for l in lines:
+                        f.write(l)
 
     for sfn, lines in zip(filestosearch, liness):
         if len(lines) > 0:
@@ -513,3 +530,5 @@ def setup(app):
     app.add_directive('automod-diagram', Automoddiagram)
     app.add_directive('automodsumm', Automodsumm)
     app.connect('builder-inited', process_automodsumm_generation)
+
+    app.add_config_value('automodsumm_writereprocessed', False, True)
