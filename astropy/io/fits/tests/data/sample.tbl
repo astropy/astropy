@@ -1,0 +1,7 @@
+\catalog = 'Sample Catalog'
+\ A sample table comment
+|   ra      |    dec    |  n_obs  |    V     |    SpType  |
+|   double  |    double |  int    |   real   |    char    |
+|   deg     |    deg    |         |   percent|            |
+|   null    |    null   |  null   |   null   |    null    |
+  165.466279  -34.704730     5       11.27        K6Ve 
