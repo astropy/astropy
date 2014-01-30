@@ -95,8 +95,8 @@ parameter ``w`` using the popular parameterisations by `Linder 2003
 There are two API changes:
 
   * Previously the ``Om``, ``Ol`` and ``Ok`` attributes of a
-    `~astropy.cosmology.core.Cosmology` class referred to densities at z = 0. These have been
-    renamed to ``Om0``, ``Ol0``, and ``Ok0``. ``Om``, ``Ol`` and
+    `~astropy.cosmology.core.Cosmology` class referred to densities at z = 0. 
+    These have been renamed to ``Om0``, ``Ol0``, and ``Ok0``. ``Om``, ``Ol`` and
     ``Ok`` are now methods that give the relevant density as a
     function of redshift. This change makes their behaviour consistent
     with that of the Hubble parameter attribute and method (``H0`` and

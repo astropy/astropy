@@ -242,7 +242,7 @@ return Numpy arrays.
 
 As shown above, all the coordinate classes have now been renamed to drop the
 ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``). In
-addition, ``HorizontalCoordinates`` has now been renamed to `astropy.coordinates.builtin_systems.AltAz`.
+addition, ``HorizontalCoordinates`` has now been renamed to `~astropy.coordinates.builtin_systems.AltAz`.
 
 Coordinate objects now support matching one set of coordinates to another
 using the array coordinates functionality described above.  See
