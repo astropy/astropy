@@ -196,6 +196,7 @@ def process_automodsumm_generation(app):
                 with open(outfn, 'w') as f:
                     for l in lines:
                         f.write(l)
+                        f.write('\n')
 
     for sfn, lines in zip(filestosearch, liness):
         if len(lines) > 0:
