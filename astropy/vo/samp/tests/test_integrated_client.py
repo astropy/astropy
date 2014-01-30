@@ -1,5 +1,6 @@
 import sys
 import time
+import tempfile
 
 from ....tests.helper import pytest
 from ....utils.data import get_pkg_data_filename
@@ -12,6 +13,8 @@ from ..errors import SAMPClientError, SAMPProxyError
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
 
+from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
+
 def setup_module(module):
     ALLOW_INTERNET.set(False)
 
@@ -22,30 +25,6 @@ TEST_CERT2 = get_pkg_data_filename('data/test2.crt')
 TEST_KEY2 = get_pkg_data_filename('data/test2.key')
 
 PY31 = sys.version_info[:2] == (3, 1)
-
-# TODO:
-# - reply/ereply
-# - bind_receive_response
-
-
-def wait_until_attribute_exists(object, attribute, timeout=None, step=1.):
-    start_time = time.time()
-    while not hasattr(object, attribute):
-        time.sleep(step)
-        if time.time() - start_time > timeout:
-            raise AttributeError("Timeout while waiting for attribute {0} to "
-                                 "exist on {1}".format(attribute, object))
-
-
-class Receiver(object):
-
-    def __init__(self):
-        self.received = False
-
-    def receive_call(self, private_key, sender_id, msg_id, mtype, params,
-                     extra):
-        self.params = params
-        self.received = True
 
 
 class TestIntegratedClient(object):
@@ -65,6 +44,8 @@ class TestIntegratedClient(object):
         return {}
 
     def setup_method(self, method):
+
+        self.tmpdir = tempfile.mkdtemp()
 
         self.hub = SAMPHubServer(web_profile=False, mode='multiple',
                                  **self.hub_init_kwargs)
@@ -95,19 +76,26 @@ class TestIntegratedClient(object):
 
         self.hub.stop()
 
-    def test_ping(self):
+    def test_main(self):
+
+        # Check that the clients are connected
+
+        assert self.client1.is_connected
+        assert self.client2.is_connected
+
+        # Check that ping works
+
         self.client1.ping()
         self.client2.ping()
 
-    def test_registered(self):
+        # Check that get_registered_clients works as expected.
 
-        assert self.client1_id not in self.client1.get_registered_clients()  # ensure docstring makes this clear
+        assert self.client1_id not in self.client1.get_registered_clients()
         assert self.client2_id in self.client1.get_registered_clients()
-
         assert self.client1_id in self.client2.get_registered_clients()
-        assert self.client2_id not in self.client2.get_registered_clients()  # ensure docstring makes this clear
+        assert self.client2_id not in self.client2.get_registered_clients()
 
-    def test_metadata(self):
+        # Check that get_metadata works as expected
 
         assert self.client1.get_metadata(self.client1_id) == {}
         assert self.client1.get_metadata(self.client2_id) == {}
@@ -128,227 +116,122 @@ class TestIntegratedClient(object):
         assert self.client1.get_metadata(self.client2_id) == self.metadata2
         assert self.client2.get_metadata(self.client2_id) == self.metadata2
 
-    def test_subscriptions(self):
+        # Check that, without subscriptions, sending a notification from one
+        # client to another raises an error.
 
-        assert self.client1.get_subscribed_clients('table.load.votable') == {}
-
-        rec = Receiver()
-        self.client1.declare_subscriptions({'table.load.votable': rec})
-
-        assert self.client2.get_subscribed_clients('table.load.votable') == {self.client1_id: {}}
-        assert self.client1.get_subscribed_clients('table.load.votable') == {}  # a bit strange, make sure this is clear in docstring
-
-        assert 'table.load.votable' in self.client1.get_subscriptions(self.client1_id)
-        assert 'table.load.votable' in self.client2.get_subscriptions(self.client1_id)
-
-    def test_is_connected(self):
-        assert self.client1.is_connected
-        assert self.client2.is_connected
-
-    @pytest.mark.xfail("True")  # need a better exception than current 'Fault'
-    def test_no_mtype(self):
         message = {}
-        with pytest.raises(SAMPClientError):
+        message['samp.mtype'] = "table.load.votable"
+        message['samp.params'] = {}
+
+        with pytest.raises(SAMPProxyError):
             self.client1.notify(self.client2_id, message)
 
-    def test_notify(self):
+        # Check that there are no currently active subscriptions
 
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
+        assert self.client1.get_subscribed_clients('table.load.votable') == {}
+        assert self.client2.get_subscribed_clients('table.load.votable') == {}
 
-        # Standard notify
-        message = {}
-        message['samp.mtype'] = "table.load.votable"
-        self.client1.notify(self.client2_id, message)
+        # We now test notifications and calls
 
-        # Easy notify
-        self.client1.enotify(self.client2_id, "table.load.votable")
+        rec2 = Receiver(self.client1)
+        rec1 = Receiver(self.client2)
 
-    def test_notify_extra(self):
-        """
-        Ensures that passing extra_kws works correctly when passed to
-        _format_easy_msg
-        """
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
-        self.client1.enotify(self.client2_id, "table.load.votable",
-                             extra_kws={'simple.example': 'test'})
+        self.client2.bind_receive_notification('table.load.votable',
+                                               rec2.receive_notification)
 
-    def test_notify_all(self):
+        self.client2.bind_receive_call('table.load.votable',
+                                       rec2.receive_call)
 
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
+        self.client1.bind_receive_response('test-tag', rec1.receive_response)
 
-        # Standard notify
-        message = {}
-        message['samp.mtype'] = "table.load.votable"
-        self.client1.notify_all(message)
+        # Check resulting subscriptions
 
-        # Easy notify
-        self.client1.enotify_all("table.load.votable")
+        assert self.client1.get_subscribed_clients('table.load.votable') == {self.client2_id: {}}
+        assert self.client2.get_subscribed_clients('table.load.votable') == {}
 
-    def test_call(self):
+        assert 'table.load.votable' in self.client1.get_subscriptions(self.client2_id)
+        assert 'table.load.votable' in self.client2.get_subscriptions(self.client2_id)
 
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
+        # Once we have finished with the calls and notifications, we will
+        # check the data got across correctly.
 
-        # Standard call
-        message = {}
-        message['samp.mtype'] = "table.load.votable"
-        self.client1.call(self.client2_id, 'test_tag', message)
+        check = []
 
-        # Easy call
-        self.client1.ecall(self.client2_id, 'test_tag', "table.load.votable")
+        # Test notify
 
-    def test_call_all(self):
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.notify(self.client2.get_public_id(),
+                            {'samp.mtype':'table.load.votable',
+                             'samp.params':params})
 
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.enotify(self.client2.get_public_id(),
+                             "table.load.votable", **params)
 
-        # Standard call
-        message = {}
-        message['samp.mtype'] = "table.load.votable"
-        message['samp.params'] = {}
-        self.client1.call_all('test_tag', message)
+        # Test notify_all
 
-        # Easy call
-        self.client1.ecall_all('test_tag', "table.load.votable")
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.notify_all({'samp.mtype':'table.load.votable',
+                                 'samp.params':params})
 
-    def test_call_and_wait(self):
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.enotify_all("table.load.votable", **params)
 
-        self.client2.declare_subscriptions({'table.load.votable': Receiver()})
+        # Test call
 
-        # Standard call_and_wait
-        message = {}
-        message['samp.mtype'] = "table.load.votable"
-        message['samp.params'] = {}
-        try:
-            self.client1.call_and_wait(self.client2_id, message, 2.)
-        except SAMPProxyError as exc:
-            assert exc.faultString == "Timeout expired!"
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.call(self.client2.get_public_id(), 'test-tag',
+                            {'samp.mtype':'table.load.votable',
+                             'samp.params':params})
 
-        # Easy call_and_wait
-        try:
-            self.client1.ecall_and_wait(self.client2_id, "table.load.votable", 2.)
-        except SAMPProxyError as exc:
-            assert exc.faultString == "Timeout expired!"
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.ecall(self.client2.get_public_id(), 'test-tag',
+                           "table.load.votable", **params)
 
-    def test_bind_receive_notification(self):
+        # Test call_all
 
-        class TestReceiver(object):
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.call_all('tag1',
+                              {'samp.mtype':'table.load.votable',
+                               'samp.params':params})
 
-            def test_receive_notification(self, private_key, sender_id, mtype,
-                                          params, extra):
-                self.private_key = private_key
-                self.sender_id = sender_id
-                self.mtype = mtype
-                self.params = params
-                self.extra = extra
+        params = random_params(self.tmpdir)
+        check.append(params)
+        self.client1.ecall_all('tag2',
+                               "table.load.votable", **params)
 
-        rec = TestReceiver()
+        # Test call_and_wait
 
-        self.client2.bind_receive_notification('test.message',
-                                               rec.test_receive_notification)
+        params = random_params(self.tmpdir)
+        check.append(params)
+        result = self.client1.call_and_wait(self.client2.get_public_id(),
+                                            {'samp.mtype':'table.load.votable',
+                                             'samp.params':params}, timeout=5)
 
-        self.client1.enotify(self.client2_id, "test.message", a=1, b='a')
+        assert result == TEST_REPLY
 
-        private_key = self.client2.get_private_key()
+        params = random_params(self.tmpdir)
+        check.append(params)
+        result = self.client1.ecall_and_wait(self.client2.get_public_id(),
+                                             "table.load.votable", timeout=5, **params)
 
-        # self.client2.unbind_receive_notification("test.message")  # TODO: fix
+        assert result == TEST_REPLY
 
-        self.client1.disconnect()
-        self.client2.disconnect()  # TODO: should not be needed
+        # Now we check that all the messages got across
 
-        self.hub._join_launched_threads()
+        for params in check:
+            assert_output('table.load.votable',
+                          self.client2.get_private_key(),
+                          self.client1_id, params, timeout=60)
 
-        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
-
-        assert rec.private_key == private_key
-        assert rec.sender_id == self.client1_id
-        assert rec.mtype == 'test.message'
-        assert rec.params == {'a': 1, 'b': 'a'}
-
-
-    def test_bind_receive_call(self):
-
-        class TestReceiver(object):
-
-            def test_receive_call(self, private_key, sender_id, msg_id, mtype,
-                                  params, extra):
-                self.private_key = private_key
-                self.sender_id = sender_id
-                self.msg_id = msg_id
-                self.mtype = mtype
-                self.params = params
-                self.extra = extra
-                self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
-                                  "samp.result": {"txt": "test"}})
-
-        rec = TestReceiver()
-        rec.client = self.client2
-
-        self.client2.bind_receive_call('test.call', rec.test_receive_call)
-
-        self.client1.ecall(self.client2_id, "message.id", "test.call", a=1,
-                           b='a')
-
-        private_key = self.client2.get_private_key()
-
-        # self.client2.unbind_receive_call("test.call")  # TODO: fix
-
-        self.client1.disconnect()
-        self.client2.disconnect()  # TODO: should not be needed
-
-        self.hub._join_launched_threads()
-
-        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
-
-        assert rec.private_key == private_key
-        assert rec.sender_id == self.client1_id
-        assert rec.msg_id.endswith('message.id')
-        assert rec.mtype == 'test.call'
-        assert rec.params == {'a': 1, 'b': 'a'}
-
-    def test_ecall_and_wait(self):
-
-        class TestReceiver(object):
-
-            def test_receive_call(self, private_key, sender_id, msg_id, mtype,
-                                  params, extra):
-                self.private_key = private_key
-                self.sender_id = sender_id
-                self.msg_id = msg_id
-                self.mtype = mtype
-                self.params = params
-                self.extra = extra
-                self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
-                                  "samp.result": {"txt": "test"}})
-
-        rec = TestReceiver()
-        rec.client = self.client2
-
-        self.client2.bind_receive_call('test.call', rec.test_receive_call)
-
-        result = self.client1.ecall_and_wait(self.client2_id, "test.call",
-                                             timeout=5., a=1, b='a')
-
-        private_key = self.client2.get_private_key()
-
-        # self.client2.unbind_receive_call("test.call")  # TODO: fix
-
-        self.client1.disconnect()
-        self.client2.disconnect()  # TODO: should not be needed
-
-        self.hub._join_launched_threads()
-
-        wait_until_attribute_exists(rec, 'private_key', timeout=60.)
-
-        assert rec.private_key == private_key
-        assert rec.sender_id == self.client1_id
-        assert rec.mtype == 'test.call'
-        assert rec.params == {'a': 1, 'b': 'a'}
-
-        assert result['samp.status'] == SAMP_STATUS_OK
-        assert result['samp.result'] == {'txt': 'test'}
-
-    def test_del(self):
-        self.client1.__del__()
-        self.client2.__del__()
+        # TODO: check that receive_response received the right data
 
 
 @pytest.mark.xfail("PY31")

@@ -216,6 +216,8 @@ class SAMPIntegratedClient(object):
     def get_registered_clients(self):
         """
         Proxy to ``getRegisteredClients`` SAMP Hub method.
+
+        This returns all the registered clients, excluding the current client.
         """
         return self.hub.get_registered_clients(self.get_private_key())
 
