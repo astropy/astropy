@@ -77,6 +77,8 @@ New Features
   - :func:`astropy.units.equivalencies.spectral` can now handle angular
     wave number. [#1306 and #1899]
 
+  - Added `one` as a shortcut to `dimensionless_unscaled`. [#1980]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`

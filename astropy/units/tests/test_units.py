@@ -48,6 +48,7 @@ def test_initialisation():
 
     assert u.Unit('m') == u.m
     assert u.Unit('') == u.dimensionless_unscaled
+    assert u.one == u.dimensionless_unscaled
     assert u.Unit('10 m') == ten_meter
     assert u.Unit(10.) == u.CompositeUnit(10., [], [])
 
