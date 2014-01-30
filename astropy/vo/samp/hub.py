@@ -262,10 +262,19 @@ class SAMPHubServer(object):
         self._thread_lock = threading.Lock()
         self._thread_run = threading.Thread(target=self._serve_forever)
         self._thread_run.setDaemon(True)
-        self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
-                                                    name="Hub timeout test")
-        self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
-                                                       name="Client timeout test")
+
+        if self._timeout > 0:
+            self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
+                                                            name="Hub timeout test")
+        else:
+            self._thread_hub_timeout = None
+
+        if self._client_timeout > 0:
+            self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
+                                                               name="Client timeout test")
+        else:
+            self._thread_client_timeout = None
+
         self._launched_threads = []
 
         # Variables for timeout testing:
@@ -390,25 +399,36 @@ class SAMPHubServer(object):
 
     def _timeout_test_hub(self):
 
+        if self._timeout == 0:
+            return
+
+        last = time.time()
         while self._is_running:
-            time.sleep(1)
-            self._thread_lock.acquire()
-            if self._timeout > 0 and self._last_activity_time is not None:
-                if time.time() - self._last_activity_time >= self._timeout:
+            time.sleep(0.05)  # keep this small to check _is_running often
+            now = time.time()
+            if now - last > 1.:
+                self._thread_lock.acquire()
+                if self._last_activity_time is not None:
+                    if now - self._last_activity_time >= self._timeout:
+                        self._thread_lock.release()
+                        warnings.warn("Timeout expired, Hub is shutting down!",
+                                      SAMPWarning)
+                        self.stop()
+                        return
+                if self._thread_lock.locked():
                     self._thread_lock.release()
-                    warnings.warn("Timeout expired, Hub is shutting down!",
-                                  SAMPWarning)
-                    self.stop()
-                    break
-            if self._thread_lock.locked():
-                self._thread_lock.release()
+                last = now
 
     def _timeout_test_client(self):
 
+        if self._client_timeout == 0:
+            return
+
+        last = time.time()
         while self._is_running:
-            time.sleep(1)
-            if self._client_timeout > 0:
-                now = time.time()
+            time.sleep(0.05)  # keep this small to check _is_running often
+            now = time.time()
+            if now - last > 1.:
                 for private_key in self._client_activity_time.keys():
                     if (now - self._client_activity_time[private_key] > self._client_timeout
                         and private_key != self._hub_private_key):
@@ -417,6 +437,7 @@ class SAMPHubServer(object):
                                       SAMPWarning)
                         self._notify_disconnection(private_key)
                         self._unregister(private_key)
+                last = now
 
     def _hub_as_client_request_handler(self, method, args):
         if method == 'samp.client.receiveCall':
@@ -514,8 +535,10 @@ class SAMPHubServer(object):
 
     def _start_threads(self):
         self._thread_run.start()
-        self._thread_hub_timeout.start()
-        self._thread_client_timeout.start()
+        if self._thread_hub_timeout is not None:
+            self._thread_hub_timeout.start()
+        if self._thread_client_timeout is not None:
+            self._thread_client_timeout.start()
 
     def _create_secret_code(self):
         if self._hub_secret_code_customized is not None:
@@ -559,9 +582,16 @@ class SAMPHubServer(object):
         log.info("Hub stopped.")
 
     def _join_all_threads(self, timeout=None):
-        self._thread_run.join(timeout=timeout)
-        self._thread_hub_timeout.join(timeout=timeout)
-        self._thread_client_timeout.join(timeout=timeout)
+        # In some cases, ``stop`` may be called from some of the sub-threads,
+        # so we just need to make sure that we don't try and shut down the
+        # calling thread.
+        current_thread = threading.current_thread()
+        if self._thread_run is not current_thread:
+            self._thread_run.join(timeout=timeout)
+        if self._thread_hub_timeout is not None and self._thread_hub_timeout is not current_thread:
+            self._thread_hub_timeout.join(timeout=timeout)
+        if self._thread_client_timeout is not None and self._thread_client_timeout is not current_thread:
+            self._thread_client_timeout.join(timeout=timeout)
         self._join_launched_threads(timeout=timeout)
 
     @property
