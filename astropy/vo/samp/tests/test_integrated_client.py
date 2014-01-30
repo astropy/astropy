@@ -15,6 +15,7 @@ from ..utils import ALLOW_INTERNET
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
+
 def setup_module(module):
     ALLOW_INTERNET.set(False)
 
@@ -133,8 +134,8 @@ class TestIntegratedClient(object):
 
         # We now test notifications and calls
 
-        rec2 = Receiver(self.client1)
-        rec1 = Receiver(self.client2)
+        rec1 = Receiver(self.client1)
+        rec2 = Receiver(self.client2)
 
         self.client2.bind_receive_notification('table.load.votable',
                                                rec2.receive_notification)
@@ -155,81 +156,91 @@ class TestIntegratedClient(object):
         # Once we have finished with the calls and notifications, we will
         # check the data got across correctly.
 
-        check = []
-
         # Test notify
 
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.notify(self.client2.get_public_id(),
                             {'samp.mtype':'table.load.votable',
                              'samp.params':params})
 
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
+
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.enotify(self.client2.get_public_id(),
                              "table.load.votable", **params)
+
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
 
         # Test notify_all
 
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.notify_all({'samp.mtype':'table.load.votable',
                                  'samp.params':params})
 
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
+
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.enotify_all("table.load.votable", **params)
+
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
 
         # Test call
 
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.call(self.client2.get_public_id(), 'test-tag',
                             {'samp.mtype':'table.load.votable',
                              'samp.params':params})
 
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
+
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.ecall(self.client2.get_public_id(), 'test-tag',
                            "table.load.votable", **params)
+
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
 
         # Test call_all
 
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.call_all('tag1',
                               {'samp.mtype':'table.load.votable',
                                'samp.params':params})
 
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
+
         params = random_params(self.tmpdir)
-        check.append(params)
         self.client1.ecall_all('tag2',
                                "table.load.votable", **params)
+
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
 
         # Test call_and_wait
 
         params = random_params(self.tmpdir)
-        check.append(params)
         result = self.client1.call_and_wait(self.client2.get_public_id(),
                                             {'samp.mtype':'table.load.votable',
                                              'samp.params':params}, timeout=5)
 
         assert result == TEST_REPLY
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
+
 
         params = random_params(self.tmpdir)
-        check.append(params)
         result = self.client1.ecall_and_wait(self.client2.get_public_id(),
                                              "table.load.votable", timeout=5, **params)
 
         assert result == TEST_REPLY
-
-        # Now we check that all the messages got across
-
-        for params in check:
-            assert_output('table.load.votable',
-                          self.client2.get_private_key(),
-                          self.client1_id, params, timeout=60)
+        assert_output('table.load.votable', self.client2.get_private_key(),
+                      self.client1_id, params, timeout=60)
 
         # TODO: check that receive_response received the right data
 

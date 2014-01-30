@@ -23,47 +23,10 @@ from ..web_profile import CROSS_DOMAIN, CLIENT_ACCESS_POLICY
 # By default, tests should not use the internet.
 from ..utils import ALLOW_INTERNET
 
+from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
+
 def setup_module(module):
     ALLOW_INTERNET.set(False)
-
-
-def write_output(mtype, params):
-    filename = params['verification_file']
-    f = open(filename, 'wb')
-    pickle.dump(mtype, f)
-    pickle.dump(params, f)
-    f.close()
-
-
-def check_output(mtype, params, timeout=None):
-    filename = params['verification_file']
-    start = time.time()
-    while True:
-        try:
-            with open(filename, 'rb') as f:
-                rec_mtype = pickle.load(f)
-                rec_params = pickle.load(f)
-            return
-        except (IOError, EOFError):
-            if timeout is not None and time.time() - start > timeout:
-                raise Exception("Timeout while waiting for file: {0}".format(filename))
-
-    assert rec_mtype == mtype
-    assert rec_params == params
-
-
-class Receiver(object):
-
-    def __init__(self, client):
-        self.client = client
-
-    def receive_notification(self, private_key, sender_id, mtype, params, extra):
-        write_output(mtype, params)
-
-    def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
-        self.receive_notification(private_key, sender_id, mtype, params, extra)
-        self.client.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
-                                   "samp.result": {"txt": "test"}})
 
 
 class TestWebProfile(object):
@@ -84,9 +47,13 @@ class TestWebProfile(object):
 
         self.client1 = SAMPIntegratedClient()
         self.client1.connect(hub=self.hub)
+        self.client1_id = self.client1.get_public_id()
+        self.client1_key = self.client1.get_private_key()
 
         self.client2 = SAMPIntegratedWebClient()
         self.client2.connect(web_port=self.hub._web_port)
+        self.client2_id = self.client2.get_public_id()
+        self.client2_key = self.client2.get_private_key()
 
     def teardown_method(self, method):
 
@@ -100,29 +67,48 @@ class TestWebProfile(object):
 
     def test_web_profile(self):
 
-        rec2 = Receiver(self.client1)
-        self.client2.bind_receive_notification('samp.load.votable', rec2.receive_notification)
-        self.client2.bind_receive_call('samp.load.votable', rec2.receive_call)
+        rec2 = Receiver(self.client2)
+        self.client2.bind_receive_notification('table.load.votable', rec2.receive_notification)
+        self.client2.bind_receive_call('table.load.votable', rec2.receive_call)
+
+        # Once we have finished with the calls and notifications, we will
+        # check the data got across correctly.
 
         # Test Notify
 
-        params = {'verification_file': os.path.join(self.tmpdir, 'test_notify'),
-                  'parameter1':'abcde',
-                  'parameter2':1331}
+        params = random_params(self.tmpdir)
+        self.client1.notify(self.client2_id,
+                            {'samp.mtype':'table.load.votable',
+                             'samp.params':params})
 
-        self.client1.notify(self.client2.get_public_id(), {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        assert_output('table.load.votable', self.client2_key,
+                      self.client1_id, params, timeout=60)
 
-        check_output('samp.load.votable', params, timeout=60)
+        params = random_params(self.tmpdir)
+        self.client1.enotify(self.client2_id,
+                             "table.load.votable", **params)
 
-        # Test Call
+        assert_output('table.load.votable', self.client2_key,
+                      self.client1_id, params, timeout=60)
 
-        params = {'verification_file': os.path.join(self.tmpdir, 'test_call'),
-                  'parameter1':'abcde',
-                  'parameter2':1331}
+        # Test call
 
-        self.client1.call(self.client2.get_public_id(), 'tag', {'samp.mtype':'samp.load.votable', 'samp.params':params})
+        params = random_params(self.tmpdir)
+        self.client1.call(self.client2_id, 'test-tag',
+                            {'samp.mtype':'table.load.votable',
+                             'samp.params':params})
 
-        check_output('samp.load.votable', params, timeout=60)
+        assert_output('table.load.votable', self.client2_key,
+                      self.client1_id, params, timeout=60)
+
+        params = random_params(self.tmpdir)
+        self.client1.ecall(self.client2_id, 'test-tag',
+                           "table.load.votable", **params)
+
+        assert_output('table.load.votable', self.client2_key,
+                      self.client1_id, params, timeout=60)
+
+        # Now we check that all the messages got across
 
         self.client1.disconnect()
         self.client2.disconnect()
