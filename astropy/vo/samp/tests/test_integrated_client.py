@@ -1,3 +1,4 @@
+import sys
 import time
 
 from ....tests.helper import pytest
@@ -20,6 +21,7 @@ TEST_KEY1 = get_pkg_data_filename('data/test1.key')
 TEST_CERT2 = get_pkg_data_filename('data/test2.crt')
 TEST_KEY2 = get_pkg_data_filename('data/test2.key')
 
+PY31 = sys.version_info[:2] == (3, 1)
 
 # TODO:
 # - reply/ereply
@@ -143,7 +145,7 @@ class TestIntegratedClient(object):
         assert self.client1.is_connected
         assert self.client2.is_connected
 
-    @pytest.mark.xfail  # need a better exception than current 'Fault'
+    @pytest.mark.xfail("True")  # need a better exception than current 'Fault'
     def test_no_mtype(self):
         message = {}
         with pytest.raises(SAMPClientError):
@@ -349,7 +351,7 @@ class TestIntegratedClient(object):
         self.client2.__del__()
 
 
-
+@pytest.mark.xfail("PY31")
 class TestIntegratedClientHTTPSHub(TestIntegratedClient):
 
     conf = 'https_hub'
@@ -363,6 +365,7 @@ class TestIntegratedClientHTTPSHub(TestIntegratedClient):
                }
 
 
+@pytest.mark.xfail("PY31")
 class TestIntegratedClientHTTPSHubClient(TestIntegratedClient):
 
     conf = 'https_hub_client'

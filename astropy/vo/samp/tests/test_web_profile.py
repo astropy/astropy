@@ -40,10 +40,9 @@ def check_output(mtype, params, timeout=None):
     start = time.time()
     while True:
         try:
-            f = open(filename, 'rb')
-            rec_mtype = pickle.load(f)
-            rec_params = pickle.load(f)
-            f.close()
+            with open(filename, 'rb') as f:
+                rec_mtype = pickle.load(f)
+                rec_params = pickle.load(f)
             return
         except (IOError, EOFError):
             if timeout is not None and time.time() - start > timeout:
