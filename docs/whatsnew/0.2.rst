@@ -271,21 +271,21 @@ Each ``TABLE`` section of a ``VOTable`` XML file can be converted to/from
 an `~astropy.table.table.Table` object, which allows much easier editing of
 the columns than a regular Numpy structured array.
 
-A standalone `volint` script is available to validate the contents of
+A standalone ``volint`` script is available to validate the contents of
 VOTable XML files.
 
-The default setting for `pedantic` mode can be set using a
+The default setting for ``pedantic`` mode can be set using a
 configuration parameter (`astropy.io.votable.table.PEDANTIC`).
 
 
 WCS
 ---
 
-When reading FITS headers, the default value of `relax` is `True`, in
+When reading FITS headers, the default value of ``relax`` is ``True``, in
 order to accept all non-standard keywords that `wcslib`_ understands.
 This should make `astropy.wcs` handle more FITS files by default, but
 may introduce a change in behavior in some edge cases.  Likewise for
-writing FITS headers, the default value of `relax` is ``WCSHDO_safe``,
+writing FITS headers, the default value of ``relax`` is ``WCSHDO_safe``,
 meaning it will write all non-standard exceptions that are considered
 safe and unambiguous.  This should make the FITS files produced by
 `astropy.wcs` supported by a larger range of third-party tools, but
@@ -296,7 +296,7 @@ for each input axis, will now broadcast the arrays correctly and
 return the output in the broadcasted shape.  This makes using a
 constant for one of the axes possible.
 
-The units in a WCS object (`CUNITij`) are now `~astropy.units.core.Unit`
+The units in a WCS object (``CUNITij``) are now `~astropy.units.core.Unit`
 objects, so operations on those units may be performed.
 
 The included version of `wcslib`_ has been upgraded to version 4.16.
