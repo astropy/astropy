@@ -12,7 +12,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
+  - Fixed bug which caused `len()` not to work for coordinate objects
+    and added a `shape` property to get appropriately array-like
+    behavior. [#1761, #2014]
 
   - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
     no longer attempts to reference the undefined variable
