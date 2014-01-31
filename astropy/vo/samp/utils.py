@@ -97,8 +97,7 @@ class SAMPMsgReplierWrapper(object):
 
     Parameters
     ----------
-    cli : :class:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient` or
-          :class:`~astropy.vo.samp.client.SAMPClient`
+    cli : :class:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient` or :class:`~astropy.vo.samp.client.SAMPClient`
         SAMP client instance. Decorator initialization, accepting the instance
         of the client that receives the call or notification.
     """
