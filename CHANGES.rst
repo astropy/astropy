@@ -287,6 +287,10 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+- ``astropy.sphinx``
+
+  - Added slightly more useful debug info for AstropyAutosummart. [#2024]
+
 - ``astropy.stats``
 
 - ``astropy.table``
