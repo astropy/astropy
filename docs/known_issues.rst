@@ -160,3 +160,27 @@ fix the issue, though an immediate workaround is to edit the file::
 
 and search for the line that adds the option ``-Wl,--no-undefined`` to the
 ``LDFLAGS`` variable and remove that option.
+
+
+Remote data utilities in `astropy.utils.data` fail on some Python distributions
+-------------------------------------------------------------------------------
+
+The remote data utilities in `astropy.utils.data` depend on the Python
+standard library `shelve` module, which in some cases depends on the
+standard library `bsddb` module. Some Python distributions, including but
+not limited to
+
+* OS X, Python 2.7.5 via homebrew
+* Linux, Python 2.7.6 via conda [#]_
+* Linux, Python 2.6.9 via conda
+
+are built without support for the ``bsddb`` module, resulting in an error
+such as::
+
+    ImportError: No module named _bsddb
+
+One workaround is to install the ``bsddb3`` module.
+
+.. [#] Continuum `says
+       <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
+       this will be fixed in their next Python build.
