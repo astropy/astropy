@@ -23,7 +23,7 @@ __all__ = ['main']
 
 def hub_script(timeout=0):
     """
-    This main function is executed by the `samp_hub` command line tool.
+    This main function is executed by the ``samp_hub`` command line tool.
     """
 
     parser = argparse.ArgumentParser(prog="samp_hub " + __version__)

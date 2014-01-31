@@ -446,7 +446,7 @@ class SAMPClient(object):
             MType to be catched.
 
         function : callable
-            Application function to be used when `mtype` is received.
+            Application function to be used when ``mtype`` is received.
 
         declare : bool, optional
             Specify whether the client must be automatically declared as
@@ -486,7 +486,7 @@ class SAMPClient(object):
             MType to be catched.
 
         function : callable
-            Application function to be used when `mtype` is received.
+            Application function to be used when ``mtype`` is received.
 
         declare : bool, optional
             Specify whether the client must be automatically declared as

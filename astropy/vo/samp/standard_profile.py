@@ -44,7 +44,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
-            which are forwarded to the server's `_dispatch` method for
+            which are forwarded to the server's ``_dispatch`` method for
             handling.
             """
 
@@ -145,7 +145,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             Handles the HTTP POST request.
 
             Attempts to interpret all HTTP POST requests as XML-RPC calls,
-            which are forwarded to the server's `_dispatch` method for
+            which are forwarded to the server's ``_dispatch`` method for
             handling.
             """
 

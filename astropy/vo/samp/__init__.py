@@ -3,7 +3,7 @@
 This subpackage provides classes to communicate with other applications via the
 `Simple Application Messaging Protocal (SAMP) <www.ivoa.net/samp>`_.
 
-Before integration into `astropy` it was known as
+Before integration into Astropy it was known as
 `SAMPy <https://pypi.python.org/pypi/sampy/>`_, and was developed by Luigi Paioro
 (INAF - Istituto Nazionale di Astrofisica).
 """

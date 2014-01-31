@@ -70,28 +70,28 @@ class SAMPHubServer(object):
     client_timeout : int, optional
         Client inactivity timeout. If ``client_timeout > 0`` then the Hub
         automatically unregisters the clients which result inactive for a
-        period longer than `client_timeout` seconds. By default
+        period longer than ``client_timeout`` seconds. By default
         ``client_timeout`` is set to 0 (clients never expire).
 
     mode : str, optional
         Defines the Hub running mode. If ``mode`` is ``'single'`` then the Hub
-        runs using the standard `.samp` lock-file, having a single instance
-        for user desktop session. Otherwise, if `mode` is 'multiple', then the
-        Hub runs using a non-standard lock-file, placed in `.samp-1`
-        directory, of the form `samp-hub-<PID>-<ID>`, where `<PID>` is the
-        process id and `<ID>` is a general sub-id (integer number).
+        runs using the standard ``.samp`` lock-file, having a single instance
+        for user desktop session. Otherwise, if ``mode`` is ``'multiple'``,
+        then the Hub runs using a non-standard lock-file, placed in
+        ``.samp-1`` directory, of the form ``samp-hub-<UUID>``, where
+        ``<UUID>`` is a unique UUID assigned to the hub.
 
     label : str, optional
         A string used to label the Hub with a human readable name. This string
-        is written in the lock-file assigned to the `hub.label` token.
+        is written in the lock-file assigned to the ``hub.label`` token.
 
     owner : str, optional
         General purpose Hub owner name. This value is written in the lock-file
-        and assigned to the `hub.owner.name` token.
+        and assigned to the ``hub.owner.name`` token.
 
     owner_group : str, optional
         General purpose Hub owner group name. This value is written in the
-        lock-file and assigned to the `hub.owner.group` token.
+        lock-file and assigned to the ``hub.owner.group`` token.
 
     https : bool, optional
         Set the Hub running on a Secure Sockets Layer connection (HTTPS). By
@@ -132,7 +132,7 @@ class SAMPHubServer(object):
         `ssl.PROTOCOL_TLSv1`.
 
     web_profile : bool, optional
-        The `web_profile` option enables/disables the Web Profile support.
+        Enables or disables the Web Profile support.
 
     web_profile_dialog : class, optional
         Allows a class instance to be specified using ``web_profile_dialog``
@@ -469,7 +469,7 @@ class SAMPHubServer(object):
     def start(self, wait=False):
         """
         Start the current SAMP Hub instance and create the lock file. Hub
-        start-up can be blocking or non blocking depending on the `wait`
+        start-up can be blocking or non blocking depending on the ``wait``
         parameter.
 
         Parameters
@@ -1221,9 +1221,9 @@ class SAMPHubServer(object):
             raise SAMPHubError("call failed after 10 attempts")
 
         except Exception as exc:
-            warnings.warn("%s call %s from client %s to client %s failed [%s]"
+            warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
                           % (message["samp.mtype"], msg_id.split(";;")[0],
-                             sender_public_id, recipient_public_id, exc),
+                             sender_public_id, recipient_public_id, type(exc), exc),
                           SAMPWarning)
 
     def _call_all(self, private_key, msg_tag, message):
@@ -1505,10 +1505,10 @@ class WebProfileDialog(object):
 
     The concrete class must:
 
-        1) Poll `handle_queue` periodically, using the timer services
+        1) Poll ``handle_queue`` periodically, using the timer services
            of the GUI's event loop.  This function will call
-           `self.show_dialog` when a request requires authorization.
-           `self.show_dialog` will be given the arguments:
+           ``self.show_dialog`` when a request requires authorization.
+           ``self.show_dialog`` will be given the arguments:
 
               - ``samp_name``: The name of the application making the request.
 
@@ -1521,7 +1521,7 @@ class WebProfileDialog(object):
               - ``origin``: A string containing the origin of the
                 request.
 
-        2) Call `consent` or `reject` based on the user's response to
+        2) Call ``consent`` or ``reject`` based on the user's response to
            the dialog.
     """
 

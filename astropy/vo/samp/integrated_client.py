@@ -197,7 +197,7 @@ class SAMPIntegratedClient(object):
 
     def declare_metadata(self, metadata):
         """
-        Proxy to ```declareMetadata`` SAMP Hub method.
+        Proxy to ``declareMetadata`` SAMP Hub method.
         """
         return self.client.declare_metadata(metadata)
 
@@ -290,7 +290,7 @@ class SAMPIntegratedClient(object):
         """
         Easy to use version of :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.notify_all`.
 
-        This is a proxy to `notifyAll` method that allows to send the
+        This is a proxy to ``notifyAll`` method that allows to send the
         notification message in a simplified way.
 
         Note that reserved ``extra_kws`` keyword is a dictionary with the
@@ -446,7 +446,7 @@ class SAMPIntegratedClient(object):
 
     def reply(self, msg_id, response):
         """
-        Proxy to `reply` SAMP Hub method.
+        Proxy to ``reply`` SAMP Hub method.
         """
         return self.hub.reply(self.get_private_key(), msg_id, response)
 
