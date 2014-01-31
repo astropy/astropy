@@ -50,6 +50,9 @@ class Receiver(object):
         write_output(mtype, private_key, sender_id, params)
 
     def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
+        # Here we need to make sure that we first reply, *then* write out the
+        # file, otherwise the tests see the file and move to the next call
+        # before waiting for the reply to be received.
         self.client.reply(msg_id, TEST_REPLY)
         self.receive_notification(private_key, sender_id, mtype, params, extra)
 
