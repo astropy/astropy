@@ -289,7 +289,7 @@ Bug Fixes
 
 - ``astropy.sphinx``
 
-  - Added slightly more useful debug info for AstropyAutosummart. [#2024]
+  - Added slightly more useful debug info for AstropyAutosummary. [#2024]
 
 - ``astropy.stats``
 
