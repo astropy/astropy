@@ -50,8 +50,8 @@ class Receiver(object):
         write_output(mtype, private_key, sender_id, params)
 
     def receive_call(self, private_key, sender_id, msg_id, mtype, params, extra):
-        self.receive_notification(private_key, sender_id, mtype, params, extra)
         self.client.reply(msg_id, TEST_REPLY)
+        self.receive_notification(private_key, sender_id, mtype, params, extra)
 
     def receive_response(self, private_key, sender_id, msg_id, response):
         pass
