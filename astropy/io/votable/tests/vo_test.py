@@ -982,3 +982,9 @@ def test_no_resource_check():
                 replace('\\n', '\n'))
 
     assert truth == output
+
+
+def test_instantiate_vowarning():
+    # This used to raise a deprecation exception on Python 2.6.
+    # See https://github.com/astropy/astroquery/pull/276
+    VOWarning(())
