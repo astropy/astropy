@@ -151,7 +151,7 @@ class SAMPClient(object):
         if self._callable:
 
             self._thread = threading.Thread(target=self._serve_forever)
-            self._thread.setDaemon(True)
+            self._thread.daemon = True
 
             if SSL_SUPPORT and https:
                 self.client = SecureXMLRPCServer((self._addr or self._host_name, self._port),
