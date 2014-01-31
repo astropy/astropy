@@ -779,7 +779,7 @@ class Table(object):
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-             show_unit=False):
+             show_unit=True):
         """Interactively browse table with a paging interface.
 
         Supported keys::

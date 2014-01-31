@@ -191,6 +191,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
         Must be a dict which is used to pass back additional values
         defined within the iterator.
     """
+    show_unit=True
     max_lines, _ = _get_pprint_size(max_lines, -1)
 
     multidims = col.shape[1:]
