@@ -12,7 +12,14 @@ from .core import get_current as _get_current
 from .core import CosmologyError
 from ..units import Quantity
 
+__all__ = ['H',  'age',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
+           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume',
+           'critical_density', 'distmod', 'kpc_comoving_per_arcmin',
+           'kpc_proper_per_arcmin', 'lookback_time', 'luminosity_distance',
+           'scale_factor', 'z_at_value']
+
 __doctest_requires__ = {'*': ['scipy.integrate']}
+
 
 def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     """ Find the redshift `z` at which `func(z) = fval`.
