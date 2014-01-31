@@ -11,7 +11,7 @@ import re
 
 from sphinx.ext.autosummary import Autosummary
 
-# used in Automodsumm.get_items
+# used in AstropyAutosummary.get_items
 _itemsummrex = re.compile(r'^([A-Z].*?\.(?:\s|$))')
 
 
@@ -40,7 +40,7 @@ class AstropyAutosummary(Autosummary):
             try:
                 real_name, obj, parent = import_by_name(name, prefixes=prefixes)
             except ImportError:
-                self.warn('failed to import %s' % name)
+                self.warn('[astropyautosummary] failed to import %s' % name)
                 items.append((name, '', '', name))
                 continue
 
@@ -48,11 +48,11 @@ class AstropyAutosummary(Autosummary):
             #     handle module prefixes slightly differently
             documenter = get_documenter(obj, parent)(self, real_name)
             if not documenter.parse_name():
-                self.warn('failed to parse name %s' % real_name)
+                self.warn('[astropyautosummary] failed to parse name %s' % real_name)
                 items.append((display_name, '', '', real_name))
                 continue
             if not documenter.import_object():
-                self.warn('failed to import object %s' % real_name)
+                self.warn('[astropyautosummary] failed to import object %s' % real_name)
                 items.append((display_name, '', '', real_name))
                 continue
 
