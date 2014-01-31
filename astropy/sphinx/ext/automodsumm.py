@@ -99,14 +99,17 @@ class Automodsumm(AstropyAutosummary):
     option_spec['skip'] = _str_list_converter
 
     def run(self):
+        env = self.state.document.settings.env
+        modname = self.arguments[0]
+
         self.warnings = []
         nodelist = []
 
         try:
-            localnames, fqns, objs = find_mod_objs(self.arguments[0])
+            localnames, fqns, objs = find_mod_objs(modname)
         except ImportError:
             self.warnings = []
-            self.warn("Couldn't import module " + self.arguments[0])
+            self.warn("Couldn't import module " + modname)
             return self.warnings
 
         try:
@@ -125,7 +128,7 @@ class Automodsumm(AstropyAutosummary):
                 if len(option_skipnames) > 0:
                     self.warn('Tried to skip objects {objs} in module {mod}, '
                               'but they were not present.  Ignoring.'.format(
-                              objs=option_skipnames, mod=self.arguments[0]))
+                              objs=option_skipnames, mod=modname))
 
             if funconly and not clsonly:
                 cont = []
@@ -144,6 +147,11 @@ class Automodsumm(AstropyAutosummary):
                 cont = [nm for nm in localnames if nm not in skipnames]
 
             self.content = cont
+
+            #for some reason, even though ``currentmodule`` is substituted in, sphinx
+            #doesn't necessarily recognize this fact.  So we just force it
+            #internally, and that seems to fix things
+            env.temp_data['py:module'] = modname
 
             #can't use super because Sphinx/docutils has trouble
             #return super(Autosummary,self).run()
@@ -292,7 +300,9 @@ def automodsumm_to_autosummary_lines(fn, app):
             continue
 
         # Use the currentmodule directive so we can just put the local names
-        # in the autosummary table.
+        # in the autosummary table.  Note that this doesn't always seem to
+        # actually "take" in Sphinx's eyes, so in `Automodsumm.run`, we have to
+        # force it internally, as well.
         newlines.extend([i1 + '.. currentmodule:: ' + modnm,
                          '',
                          '.. autosummary::'])
