@@ -134,7 +134,7 @@ def get_main_running_hub():
     """
     hubs = get_running_hubs()
 
-    if len(hubs.keys()) == 0:
+    if not hubs:
         raise SAMPHubError("Unable to find a running SAMP Hub.")
 
     # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE

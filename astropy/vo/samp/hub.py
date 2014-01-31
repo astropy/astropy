@@ -261,17 +261,19 @@ class SAMPHubServer(object):
         # Threading stuff
         self._thread_lock = threading.Lock()
         self._thread_run = threading.Thread(target=self._serve_forever)
-        self._thread_run.setDaemon(True)
+        self._thread_run.daemon = True
 
         if self._timeout > 0:
             self._thread_hub_timeout = threading.Thread(target=self._timeout_test_hub,
-                                                            name="Hub timeout test")
+                                                        name="Hub timeout test")
+            self._thread_hub_timeout.daemon = True
         else:
             self._thread_hub_timeout = None
 
         if self._client_timeout > 0:
             self._thread_client_timeout = threading.Thread(target=self._timeout_test_client,
                                                                name="Client timeout test")
+            self._thread_client_timeout.daemon = True
         else:
             self._thread_client_timeout = None
 
@@ -309,7 +311,7 @@ class SAMPHubServer(object):
 
         # List of XML-RPC addresses per client
         # {public_id: (XML-RPC address, ServerProxyPool instance)}
-        self._xmlrpcEndpoints = {}
+        self._xmlrpc_endpoints = {}
 
         # Synchronous message id heap
         self._sync_msg_ids_heap = {}
@@ -407,16 +409,13 @@ class SAMPHubServer(object):
             time.sleep(0.05)  # keep this small to check _is_running often
             now = time.time()
             if now - last > 1.:
-                self._thread_lock.acquire()
-                if self._last_activity_time is not None:
-                    if now - self._last_activity_time >= self._timeout:
-                        self._thread_lock.release()
-                        warnings.warn("Timeout expired, Hub is shutting down!",
-                                      SAMPWarning)
-                        self.stop()
-                        return
-                if self._thread_lock.locked():
-                    self._thread_lock.release()
+                with self._thread_lock:
+                    if self._last_activity_time is not None:
+                        if now - self._last_activity_time >= self._timeout:
+                            warnings.warn("Timeout expired, Hub is shutting down!",
+                                          SAMPWarning)
+                            self.stop()
+                            return
                 last = now
 
     def _timeout_test_client(self):
@@ -576,7 +575,7 @@ class SAMPHubServer(object):
         self._private_keys = {}
         self._mtype2ids = {}
         self._id2mtypes = {}
-        self._xmlrpcEndpoints = {}
+        self._xmlrpc_endpoints = {}
         self._last_activity_time = None
 
         log.info("Hub stopped.")
@@ -709,7 +708,7 @@ class SAMPHubServer(object):
 
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.disconnect")
         public_id = self._private_keys[private_key][0]
-        endpoint = self._xmlrpcEndpoints[public_id][1]
+        endpoint = self._xmlrpc_endpoints[public_id][1]
 
         for mtype in msubs:
             if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
@@ -739,7 +738,7 @@ class SAMPHubServer(object):
         if private_key in self._private_keys:
             if private_key == self._hub_private_key:
                 public_id = self._private_keys[private_key][0]
-                self._xmlrpcEndpoints[public_id] = \
+                self._xmlrpc_endpoints[public_id] = \
                     (xmlrpc_addr, _HubAsClient(self._hub_as_client_request_handler))
                 return ""
 
@@ -769,7 +768,7 @@ class SAMPHubServer(object):
                                                     xmlrpc_addr, allow_none=1)
 
             public_id = self._private_keys[private_key][0]
-            self._xmlrpcEndpoints[public_id] = (xmlrpc_addr,
+            self._xmlrpc_endpoints[public_id] = (xmlrpc_addr,
                                                 server_proxy_pool)
         else:
             raise SAMPProxyError(5, "Private-key %s expired or invalid."
@@ -779,9 +778,8 @@ class SAMPHubServer(object):
 
     def _perform_standard_register(self):
 
-        self._thread_lock.acquire()
-        private_key, public_id = self._get_new_ids()
-        self._thread_lock.release()
+        with self._thread_lock:
+            private_key, public_id = self._get_new_ids()
         self._private_keys[private_key] = (public_id, time.time())
         self._update_last_activity_time(private_key)
         self._notify_register(private_key)
@@ -816,37 +814,34 @@ class SAMPHubServer(object):
 
         self._notify_unregister(private_key)
 
-        self._thread_lock.acquire()
+        with self._thread_lock:
 
-        if private_key in self._private_keys:
-            public_key = self._private_keys[private_key][0]
-            del self._private_keys[private_key]
-        else:
-            self._thread_lock.release()
-            return ""
+            if private_key in self._private_keys:
+                public_key = self._private_keys[private_key][0]
+                del self._private_keys[private_key]
+            else:
+                return ""
 
-        if private_key in self._metadata:
-            del self._metadata[private_key]
+            if private_key in self._metadata:
+                del self._metadata[private_key]
 
-        if private_key in self._id2mtypes:
-            del self._id2mtypes[private_key]
+            if private_key in self._id2mtypes:
+                del self._id2mtypes[private_key]
 
-        for mtype in self._mtype2ids.keys():
-            if private_key in self._mtype2ids[mtype]:
-                self._mtype2ids[mtype].remove(private_key)
+            for mtype in self._mtype2ids.keys():
+                if private_key in self._mtype2ids[mtype]:
+                    self._mtype2ids[mtype].remove(private_key)
 
-        if public_key in self._xmlrpcEndpoints:
-            del self._xmlrpcEndpoints[public_key]
+            if public_key in self._xmlrpc_endpoints:
+                del self._xmlrpc_endpoints[public_key]
 
-        if private_key in self._client_activity_time:
-            del self._client_activity_time[private_key]
+            if private_key in self._client_activity_time:
+                del self._client_activity_time[private_key]
 
-        if self._web_profile:
-            if private_key in self._web_profile_callbacks:
-                del self._web_profile_callbacks[private_key]
-            self._web_profile_server.remove_client(private_key)
-
-        self._thread_lock.release()
+            if self._web_profile:
+                if private_key in self._web_profile_callbacks:
+                    del self._web_profile_callbacks[private_key]
+                self._web_profile_server.remove_client(private_key)
 
         log.debug("unregister %s (%s)" % (public_key, private_key))
 
@@ -1098,7 +1093,7 @@ class SAMPHubServer(object):
                     else:
 
                         # Standard Profile
-                        hub = self._xmlrpcEndpoints[recipient_public_id][1]
+                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
                         hub.samp.client.receiveNotification(recipient_private_key,
                                                             sender_public_id,
                                                             message)
@@ -1204,7 +1199,7 @@ class SAMPHubServer(object):
                     else:
 
                         # Standard Profile
-                        hub = self._xmlrpcEndpoints[recipient_public_id][1]
+                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
                         hub.samp.client.receiveCall(recipient_private_key,
                                                     sender_public_id, msg_id,
                                                     message)
@@ -1352,7 +1347,7 @@ class SAMPHubServer(object):
                         else:
 
                             # Standard Profile
-                            hub = self._xmlrpcEndpoints[recipient_public_id][1]
+                            hub = self._xmlrpc_endpoints[recipient_public_id][1]
                             hub.samp.client.receiveResponse(recipient_private_key,
                                                             responder_public_id,
                                                             recipient_msg_tag,
@@ -1383,19 +1378,17 @@ class SAMPHubServer(object):
         return None
 
     def _get_new_hub_msg_id(self, sender_public_id, sender_msg_id):
-        self._thread_lock.acquire()
-        self._hub_msg_id_counter += 1
-        self._thread_lock.release()
+        with self._thread_lock:
+            self._hub_msg_id_counter += 1
         return "msg#%d;;%s;;%s;;%s" % \
                (self._hub_msg_id_counter, self._hub_public_id,
                 sender_public_id, sender_msg_id)
 
     def _update_last_activity_time(self, private_key=None):
-        self._thread_lock.acquire()
-        self._last_activity_time = time.time()
-        if private_key is not None:
-            self._client_activity_time[private_key] = time.time()
-        self._thread_lock.release()
+        with self._thread_lock:
+            self._last_activity_time = time.time()
+            if private_key is not None:
+                self._client_activity_time[private_key] = time.time()
 
     def _receive_notification(self, private_key, sender_id, message):
         return ""
@@ -1488,7 +1481,7 @@ class SAMPHubServer(object):
                     item_queued = callback_queue.get(block=True,
                                                      timeout=int(timeout_secs))
                     callback.append(item_queued)
-                    if self._web_profile_callbacks[private_key].empty():
+                    if callback_queue.empty():
                         break
             except queue.Empty:
                 pass

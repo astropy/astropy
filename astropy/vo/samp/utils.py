@@ -92,9 +92,8 @@ class ServerProxyPool(object):
 
 class SAMPMsgReplierWrapper(object):
     """
-    Decorator class/function that allows to automatically grab
-    errors and returned maps (if any) from a function bound
-    to a SAMP call (or notify).
+    Function decorator that allows to automatically grab errors and returned
+    maps (if any) from a function bound to a SAMP call (or notify).
 
     Parameters
     ----------

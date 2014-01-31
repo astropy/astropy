@@ -130,7 +130,7 @@ and we instantiate it:
 We can now use the
 :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.bind_receive_call` and
 :meth:`~astropy.vo.samp.integrated_client.SAMPIntegratedClient.bind_receive_notification` methods
-to tell our receiver to listed to all ``table.load.votable`` messages::
+to tell our receiver to listen to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
     >>> client.bind_receive_notification("table.load.votable", r.receive_notification)

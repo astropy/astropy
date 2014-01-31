@@ -17,7 +17,6 @@ class SAMPWarning(AstropyUserWarning):
     """
     SAMP-specific Astropy warning class
     """
-    pass
 
 
 class SAMPHubError(Exception):
@@ -25,23 +24,11 @@ class SAMPHubError(Exception):
     SAMP Hub exception.
     """
 
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
 
 class SAMPClientError(Exception):
     """
     SAMP Client exceptions.
     """
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
 
 
 class SAMPProxyError(xmlrpc.Fault):
