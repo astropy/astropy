@@ -44,7 +44,9 @@ from `astropy.vo.samp.hub.WebProfileDialog` and add the following:
            - ``samp_name``: The name of the application making the request.
 
            - ``details``: A dictionary of details about the client
-             making the request.
+             making the request. The only key in this dictionary required by
+             the SAMP standard is ``samp.name`` which gives the name of the
+             client making the request.
 
            - ``client``: A hostname, port pair containing the client
              address.
