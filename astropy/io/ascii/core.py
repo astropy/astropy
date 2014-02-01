@@ -30,12 +30,18 @@ core.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
 import os
 import re
 import csv
 import itertools
 import functools
 import numpy
+
+from ...extern import six
+from ...extern.six.moves import zip
+from ...extern.six.moves import cStringIO as StringIO
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -48,32 +54,6 @@ FORMAT_CLASSES = {}
 
 class InconsistentTableError(ValueError):
     pass
-
-# Python 3 compatibility tweaks.  Should work back through 2.4.
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-try:
-    next = next
-except NameError:
-    next = lambda x: x.next()
-
-try:
-    izip = itertools.izip
-except AttributeError:
-    izip = zip
-
-try:
-    long = long
-except NameError:
-    long = int
-
-try:
-    unicode = unicode
-except NameError:
-    unicode = str
 
 
 class NoType(object):
@@ -415,8 +395,8 @@ class BaseHeader(object):
 
     def write(self, lines):
         if self.start_line is not None:
-            for i, spacer_line in izip(range(self.start_line),
-                                       itertools.cycle(self.write_spacer_lines)):
+            for i, spacer_line in zip(range(self.start_line),
+                                      itertools.cycle(self.write_spacer_lines)):
                 lines.append(spacer_line)
             lines.append(self.splitter.join([x.name for x in self.cols]))
 
@@ -768,6 +748,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names, str
         table.remove_columns(remove_names)
 
 
+@six.add_metaclass(MetaBaseReader)
 class BaseReader(object):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
@@ -781,7 +762,6 @@ class BaseReader(object):
     The default behavior is to raise an InconsistentTableError.
 
     """
-    __metaclass__ = MetaBaseReader
 
     names = None
     include_names = None
@@ -921,8 +901,8 @@ class BaseReader(object):
                                      self.strict_names)
 
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.columns.values()
-        self.data.cols = table.columns.values()
+        self.header.cols = list(six.itervalues(table.columns))
+        self.data.cols = list(six.itervalues(table.columns))
 
         # Write header and data to lines list
         lines = []
