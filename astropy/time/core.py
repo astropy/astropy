@@ -1248,6 +1248,7 @@ class TimeFromEpoch(TimeFormat):
     """
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
+      try: 
         self.scale = scale
         # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
@@ -1257,7 +1258,8 @@ class TimeFromEpoch(TimeFormat):
         # Now create the TimeFormat object as normal
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
-
+      except:
+         raise Exception("scale should be none or same as epoch_scale")
     def set_jds(self, val1, val2):
         """
         Initialize the internal jd1 and jd2 attributes given val1 and val2.  For an
