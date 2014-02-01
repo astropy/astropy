@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -19,7 +22,7 @@ def test_negative_zero_dms():
     assert_allclose(a.degree, -10. / 3600.)
 
     # Unicode minus
-    a = Angle('\u221200:00:10', u.deg)
+    a = Angle('−00:00:10', u.deg)
     assert_allclose(a.degree, -10. / 3600.)
 
 
@@ -301,4 +304,3 @@ def test_empty_sep():
     a = Angle('05h04m31.93830s')
 
     assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
-

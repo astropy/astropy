@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+
+# TEST_UNICODE_LITERALS
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -52,15 +55,15 @@ def test_fake_tty():
     # arbitrary unicode strings
     f1 = FakeTTY()
     assert f1.isatty()
-    f1.write('\N{SNOWMAN}')
-    assert f1.getvalue() == '\N{SNOWMAN}'
+    f1.write('☃')
+    assert f1.getvalue() == '☃'
 
     # Now test an ASCII-only TTY--it should raise a UnicodeEncodeError when
     # trying to write a string containing non-ASCII characters
     f2 = FakeTTY('ascii')
     assert f2.isatty()
     assert f2.__class__.__name__ == 'AsciiFakeTTY'
-    assert pytest.raises(UnicodeEncodeError, f2.write, '\N{SNOWMAN}')
+    assert pytest.raises(UnicodeEncodeError, f2.write, '☃')
     assert f2.getvalue() == ''
 
 

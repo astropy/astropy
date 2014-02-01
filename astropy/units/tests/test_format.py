@@ -5,6 +5,8 @@
 Regression tests for the units.format package
 """
 
+# TEST_UNICODE_LITERALS
+
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 

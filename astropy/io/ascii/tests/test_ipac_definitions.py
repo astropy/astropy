@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# TEST_UNICODE_LITERALS
+
 import os
 
 from ..ui import read
 from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 from ... import ascii
 from ....table import Table
 
@@ -97,12 +99,13 @@ def test_reserved_colname_strict(colname):
         ascii.write(table, out, Writer=Ipac, DBMS=True)
 
 
-def test_too_long_comment(recwarn):
-    table = Table([[3]])
-    table.meta['comments'] = ['a' * 79]
-    out = StringIO()
-    ascii.write(table, out, Writer=Ipac)
-    w = recwarn.pop(UserWarning)
+def test_too_long_comment():
+    with catch_warnings(UserWarning) as w:
+        table = Table([[3]])
+        table.meta['comments'] = ['a' * 79]
+        out = StringIO()
+        ascii.write(table, out, Writer=Ipac)
+    w = w[0]
     assert 'Comment string > 78 characters was automatically wrapped.' == str(w.message)
     expected_out = """\
 \\ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -111,9 +114,9 @@ def test_too_long_comment(recwarn):
 |long|
 |    |
 |null|
-    3 
+    3
 """
-    assert out.getvalue().splitlines() == expected_out.splitlines()
+    assert out.getvalue().strip().splitlines() == expected_out.splitlines()
 
 def test_out_with_nonstring_null():
     # unmasked tables don't have fill_values
@@ -126,6 +129,6 @@ def test_out_with_nonstring_null():
 |  long|
 |      |
 |-99999|
-      3 
+      3
 """
-    assert out.getvalue().splitlines() == expected_out.splitlines()
+    assert out.getvalue().strip().splitlines() == expected_out.splitlines()

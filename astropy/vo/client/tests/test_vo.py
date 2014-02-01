@@ -18,6 +18,9 @@ Running from ``astropy/vo/client/tests`` directory::
     $ py.test test_vo.py --remote-data
 
 """
+
+# TEST_UNICODE_LITERALS
+
 # STDLIB
 import os
 

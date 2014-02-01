@@ -4,6 +4,8 @@
 Regression tests for the physical_type support in the units package
 """
 
+# TEST_UNICODE_LITERALS
+
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 

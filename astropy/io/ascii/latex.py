@@ -200,7 +200,7 @@ class Latex(core.BaseReader):
 
                 ascii.write(data, sys.stdout, Writer = ascii.Latex,
                             latexdict = {'tabletype': 'table*'})
-                            
+
         * tablealign : positioning of table in text.
             The default is not to specifiy a position preference in the text.
             If, e.g. the alignment is ``ht``, then the LaTeX will be ``\\begin{table}[ht]``.
