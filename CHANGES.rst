@@ -218,9 +218,12 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- The included version of py.test has been upgraded to 2.5.1.
+- The included version of py.test has been upgraded to 2.5.1. [#1970]
 
 - The included version of six.py has been upgraded to 1.5.2. [#2006]
+
+- Where appropriate, tests are now run both with and without the
+  ``unicode_literals`` option to ensure that we support both cases. [#1962]
 
 0.3.1 (unreleased)
 ------------------
