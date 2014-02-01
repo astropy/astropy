@@ -7,7 +7,7 @@ import numpy as np
 
 from ..utils import OrderedDict
 from ..extern import six
-
+from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
