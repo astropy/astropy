@@ -5,7 +5,8 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import types
 
@@ -489,4 +490,3 @@ def test_parametric_model_repr():
             "<Gaussian1D(amplitude=Parameter('amplitude', value=1.0), "
             "mean=Parameter('mean', value=2.0), stddev=Parameter('stddev', "
             "value=3.0), param_dim=1)>")
-

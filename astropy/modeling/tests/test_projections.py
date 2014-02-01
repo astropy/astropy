@@ -2,7 +2,9 @@
 """
 Test sky projections defined in WCS Paper II
 """
-from __future__ import division
+
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 import os.path
 import numpy as np
 from numpy.testing import utils

@@ -4,6 +4,9 @@
 Tests for polynomial models.
 """
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 
 from numpy.testing import utils
@@ -24,7 +27,7 @@ linear1d = {
                   'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2,
                              'domain': [1, 10]}},
     Legendre1D: {'parameters': [3],
-                 'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2, 
+                 'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2,
                             'domain': [1, 10]}},
     Polynomial1D: {'parameters': [3],
                    'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2}},
@@ -46,7 +49,7 @@ linear2d = {
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting(object):
     """
-    Test linear fitter 
+    Test linear fitter
     """
 
     def setup_class(self):
@@ -70,17 +73,17 @@ class TestFitting(object):
         y1 = model(self.x1)
         model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
         utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
-    
+
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_non_linear_fitter_1D(self, model_class):
-        """ Test fitting with NonLinearLSQFitter"""        
+        """ Test fitting with NonLinearLSQFitter"""
         parameters = linear1d[model_class]['parameters']
         kwargs = linear1d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
         y1 = model(self.x1)
         model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
-    
+
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_linear_fitter_2D(self, model_class):
         """ Test fitting with LinearLSQFitter"""
@@ -90,7 +93,7 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
-    
+
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
         """ Test fitting with NonLinearLSQFitter"""
@@ -100,4 +103,3 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
-    

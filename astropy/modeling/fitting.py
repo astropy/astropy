@@ -12,7 +12,8 @@ There are currently two non-linear fitters which use `~scipy.optimize.leastsq` a
 `~scipy.optimize.slsqp` functions in scipy.optimize.\
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import abc
 import numbers

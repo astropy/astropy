@@ -40,7 +40,8 @@ In all these cases the output has the same shape as the input.
   of the output is (M, N)
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import abc
 import functools
