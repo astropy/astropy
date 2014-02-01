@@ -372,19 +372,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if isinstance(kernel, Kernel):
         kernel = kernel.array
         if isinstance(array, Kernel):
-            raise Exception("Can't convolve two kernels. Use convolve() instead.")
-
-    # mask catching - masks must be turned into NaNs for use later
-    if np.ma.is_masked(array):
-        mask = array.mask
-        array = np.array(array)
-        array[mask] = np.nan
-    if np.ma.is_masked(kernel):
-        mask = kernel.mask
-        kernel = np.array(kernel)
-        kernel[mask] = np.nan
+            raise TypeError("Can't convolve two kernels. Use convolve() instead.")
 
     # Convert array dtype to complex
+    # and ensure that list inputs become arrays
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 
@@ -402,6 +393,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                          "allow_huge=True to override this exception."
                          % array_size_GB)
 
+    # mask catching - masks must be turned into NaNs for use later
+    if np.ma.is_masked(array):
+        mask = array.mask
+        array = np.array(array)
+        array[mask] = np.nan
+    if np.ma.is_masked(kernel):
+        mask = kernel.mask
+        kernel = np.array(kernel)
+        kernel[mask] = np.nan
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) + np.isinf(array)
@@ -488,23 +488,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     # separate each dimension by the padding size...  this is to determine the
     # appropriate slice size to get back to the input dimensions
-    if (kernshape != newshape) or (arrayshape != newshape):
-        arrayslices = []
-        kernslices = []
-        for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
-            center = newdimsize - (newdimsize + 1) // 2
-            arrayslices += [slice(center - arraydimsize // 2,
-                                  center + (arraydimsize + 1) // 2)]
-            kernslices += [slice(center - kerndimsize // 2,
-                                 center + (kerndimsize + 1) // 2)]
+    arrayslices = []
+    kernslices = []
+    for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
+        center = newdimsize - (newdimsize + 1) // 2
+        arrayslices += [slice(center - arraydimsize // 2,
+                              center + (arraydimsize + 1) // 2)]
+        kernslices += [slice(center - kerndimsize // 2,
+                             center + (kerndimsize + 1) // 2)]
 
-    if newshape != arrayshape:
+    if not np.all(newshape == arrayshape):
         bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
         bigarray[arrayslices] = array
     else:
         bigarray = array
 
-    if newshape != kernshape:
+    if not np.all(newshape == kernshape):
         bigkernel = np.zeros(newshape, dtype=complex_dtype)
         bigkernel[kernslices] = kernel
     else:

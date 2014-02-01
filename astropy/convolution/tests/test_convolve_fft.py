@@ -459,9 +459,13 @@ class TestConvolve2D(object):
         # component that is EXACTLY 10*np.spacing
         assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
 
-    def test_big_fail():
+    def test_big_fail(self):
         """ Test that convolve_fft raises an exception if a too-large array is passed in """
 
         with pytest.raises(ValueError) as ex:
-            arr = np.memmap('file.np',mode='w+',shape=[2048,2048])
+            # while a good idea, this approach did not work; it actually writes to disk
+            #arr = np.memmap('file.np',mode='w+',shape=(512,512,512),dtype=np.complex)
+            # this just allocates the memory but never touches it; it's better:
+            arr = np.empty([512,512,512],dtype=np.complex)
+            # note 512**3 * 16 bytes = 2.0 GB
             convolve_fft(arr, arr)
