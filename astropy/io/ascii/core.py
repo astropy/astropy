@@ -30,12 +30,18 @@ core.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import re
 import csv
 import itertools
 import functools
 import numpy
+
+from ...extern import six
+from ...extern.six.moves import zip
+from ...extern.six.moves import cStringIO as StringIO
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -48,32 +54,6 @@ FORMAT_CLASSES = {}
 
 class InconsistentTableError(ValueError):
     pass
-
-# Python 3 compatibility tweaks.  Should work back through 2.4.
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-try:
-    next = next
-except NameError:
-    next = lambda x: x.next()
-
-try:
-    izip = itertools.izip
-except AttributeError:
-    izip = zip
-
-try:
-    long = long
-except NameError:
-    long = int
-
-try:
-    unicode = unicode
-except NameError:
-    unicode = str
 
 
 class NoType(object):
@@ -207,7 +187,7 @@ class BaseSplitter(object):
 
     def join(self, vals):
         if self.delimiter is None:
-            delimiter = ' '
+            delimiter = str(' ')
         else:
             delimiter = self.delimiter
         return delimiter.join(str(x) for x in vals)
@@ -232,8 +212,8 @@ class DefaultSplitter(BaseSplitter):
     :param quoting: control when quotes are recognised by the reader
     :param skipinitialspace: ignore whitespace immediately following the delimiter
     """
-    delimiter = ' '
-    quotechar = '"'
+    delimiter = str(' ')
+    quotechar = str('"')
     doublequote = True
     escapechar = None
     quoting = csv.QUOTE_MINIMAL
@@ -268,7 +248,7 @@ class DefaultSplitter(BaseSplitter):
         delimiter = None if self.delimiter is None else str(self.delimiter)
 
         if delimiter == '\s':
-            delimiter = ' '
+            delimiter = str(' ')
 
         csv_reader = csv.reader(lines,
                                 delimiter=delimiter,
@@ -289,7 +269,7 @@ class DefaultSplitter(BaseSplitter):
         # In Python 2.x the inputs to csv cannot be unicode
         escapechar = None if self.escapechar is None else str(self.escapechar)
         quotechar = None if self.quotechar is None else str(self.quotechar)
-        delimiter = ' ' if self.delimiter is None else str(self.delimiter)
+        delimiter = str(' ') if self.delimiter is None else str(self.delimiter)
 
         if self.csv_writer is None:
             self.csv_writer = csv.writer(self.csv_writer_out,
@@ -298,7 +278,7 @@ class DefaultSplitter(BaseSplitter):
                                          escapechar=escapechar,
                                          quotechar=quotechar,
                                          quoting=self.quoting,
-                                         lineterminator='',
+                                         lineterminator=str(''),
                                          )
         self.csv_writer_out.seek(0)
         self.csv_writer_out.truncate()
@@ -313,15 +293,15 @@ def _replace_tab_with_space(line, escapechar, quotechar):
     """Replace tab with space within ``line`` while respecting quoted substrings"""
     newline = []
     in_quote = False
-    lastchar = 'NONE'
+    lastchar = str('NONE')
     for char in line:
         if char == quotechar and lastchar != escapechar:
             in_quote = not in_quote
         if char == '\t' and not in_quote:
-            char = ' '
+            char = str(' ')
         lastchar = char
         newline.append(char)
-    return ''.join(newline)
+    return str('').join(newline)
 
 
 def _get_line_index(line_or_func, lines):
@@ -350,12 +330,12 @@ class BaseHeader(object):
     :param splitter_class: Splitter class for splitting data lines into columns
     :param names: list of names corresponding to each data column
     """
-    auto_format = 'col%d'
+    auto_format = str('col%d')
     start_line = None
     comment = None
     splitter_class = DefaultSplitter
     names = None
-    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = [str('ASCII_TABLE_WRITE_SPACER_LINE')]
 
     def __init__(self):
         self.splitter = self.__class__.splitter_class()
@@ -415,8 +395,8 @@ class BaseHeader(object):
 
     def write(self, lines):
         if self.start_line is not None:
-            for i, spacer_line in izip(range(self.start_line),
-                                       itertools.cycle(self.write_spacer_lines)):
+            for i, spacer_line in zip(range(self.start_line),
+                                      itertools.cycle(self.write_spacer_lines)):
                 lines.append(spacer_line)
             lines.append(self.splitter.join([x.name for x in self.cols]))
 
@@ -449,7 +429,7 @@ class BaseData(object):
     end_line = None
     comment = None
     splitter_class = DefaultSplitter
-    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = [str('ASCII_TABLE_WRITE_SPACER_LINE')]
     formats = {}
     fill_values = []
     fill_include_names = None
@@ -768,6 +748,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names, str
         table.remove_columns(remove_names)
 
 
+@six.add_metaclass(MetaBaseReader)
 class BaseReader(object):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
@@ -781,7 +762,6 @@ class BaseReader(object):
     The default behavior is to raise an InconsistentTableError.
 
     """
-    __metaclass__ = MetaBaseReader
 
     names = None
     include_names = None
@@ -921,8 +901,8 @@ class BaseReader(object):
                                      self.strict_names)
 
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.columns.values()
-        self.data.cols = table.columns.values()
+        self.header.cols = list(six.itervalues(table.columns))
+        self.data.cols = list(six.itervalues(table.columns))
 
         # Write header and data to lines list
         lines = []
@@ -943,8 +923,8 @@ class ContinuationLinesInputter(BaseInputter):
       6
     """
 
-    continuation_char = '\\'
-    replace_char = ' '
+    continuation_char = str('\\')
+    replace_char = str(' ')
     # If no_continue is not None then lines matching this regex are not subject
     # to line continuation.  The initial use case here is Daophot.  In this
     # case the continuation character is just replaced with replace_char.
@@ -962,7 +942,7 @@ class ContinuationLinesInputter(BaseInputter):
                 parts.append(line.replace(self.continuation_char, self.replace_char))
             else:
                 parts.append(line)
-                outlines.append(''.join(parts))
+                outlines.append(str('').join(parts))
                 parts = []
 
         return outlines
@@ -979,11 +959,11 @@ class WhitespaceSplitter(DefaultSplitter):
                                            lastchar != self.escapechar):
                 in_quote = not in_quote
             if char == '\t' and not in_quote:
-                char = ' '
+                char = str(' ')
             lastchar = char
             newline.append(char)
 
-        return ''.join(newline)
+        return str('').join(newline)
 
 extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'delimiter', 'comment', 'quotechar', 'header_start',

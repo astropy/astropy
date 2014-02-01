@@ -31,6 +31,8 @@ daophot.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import re
 import numpy as np
 from . import core
@@ -67,7 +69,7 @@ class Daophot(core.BaseReader):
       >>> filename = os.path.join(ascii.__path__[0], 'tests/t/daophot.dat')
       >>> data = ascii.read(filename)
       >>> for name, keyword in data.meta['keywords'].items():
-      ...     print name, keyword['value'], keyword['units'], keyword['format']
+      ...     print(name, keyword['value'], keyword['units'], keyword['format'])
       ...
       MERGERAD INDEF scaleunit %-23.7g
       IRAF NOAO/IRAFV2.10EXPORT version %-23s
@@ -78,7 +80,7 @@ class Daophot(core.BaseReader):
 
       >>> for colname in data.colnames:
       ...     col = data[colname]
-      ...     print colname, col.unit, col.format
+      ...     print(colname, col.unit, col.format)
       ...
       ID None %-9d
       XCENTER pixels %-10.3f
@@ -126,15 +128,15 @@ class DaophotHeader(core.BaseHeader):
                                            r'\s* = (?P<stuff> .+) $',
                                            re.VERBOSE)
 
-            table_meta['keywords'] = OrderedDict()
+            table_meta[str('keywords')] = OrderedDict()
             for line in comment_lines:
                 m = re_header_keyword.match(line)
                 if m:
                     vals = m.group('stuff').strip().rsplit(None, 2)
-                    keyword_dict = {'units': vals[-2],
-                                    'format': vals[-1]}
-                    keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
-                    table_meta['keywords'][m.group('name')] = keyword_dict
+                    keyword_dict = {str('units'): vals[-2],
+                                    str('format'): vals[-1]}
+                    keyword_dict[str('value')] = (vals[0] if len(vals) > 2 else str(""))
+                    table_meta[str('keywords')][m.group('name')] = keyword_dict
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -189,7 +191,7 @@ class DaophotHeader(core.BaseHeader):
         # the DAOphot "no unit" tag.
         for i, coldef_line in enumerate(coldef_lines):
             if not coldef_line:
-                coldef_lines[i] = '## ' * len(self.names)
+                coldef_lines[i] = str('## ') * len(self.names)
 
         # Read the three lines as a basic table.
         reader = core._get_reader(Reader=basic.Basic, comment=None)
