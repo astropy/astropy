@@ -16,7 +16,7 @@ import numbers
 import numpy as np
 
 from ..utils import isiterable
-
+from ..extern import six
 
 __all__ = ['Parameter', 'InputParameterError']
 
@@ -321,7 +321,7 @@ class Parameter(object):
         """Tie a parameter"""
 
         if self._model is not None:
-            assert callable(value) or value in (False, None), \
+            assert six.callable(value) or value in (False, None), \
                     "Tied must be a callable"
             tied = self._model._constraints.setdefault('tied', {})
             tied[self._name] = value

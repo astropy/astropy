@@ -8,6 +8,7 @@ from __future__ import division
 
 import numpy as np
 
+from ..extern.six.moves import xrange
 
 __all__ = ['poly_map_domain', 'comb']
 

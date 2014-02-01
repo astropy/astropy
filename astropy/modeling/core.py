@@ -45,14 +45,15 @@ from __future__ import division
 import abc
 import functools
 import copy
-from itertools import izip
 from textwrap import dedent
 
 import numpy as np
 
-from .parameters import Parameter, InputParameterError
 from ..utils import indent, isiterable
+from ..extern import six
+from ..extern.six.moves import zip as izip
 
+from .parameters import Parameter, InputParameterError
 
 __all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
@@ -155,6 +156,7 @@ class _ModelMeta(abc.ABCMeta):
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
 
+@six.add_metaclass(_ModelMeta)
 class Model(object):
     """
     Base class for all models.
@@ -168,8 +170,6 @@ class Model(object):
     This class sets the properties for all individual parameters and performs
     parameter validation.
     """
-
-    __metaclass__ = _ModelMeta
 
     param_names = []
     n_inputs = 1
@@ -694,7 +694,7 @@ class ParametricModel(Model):
         example.
         """
 
-        fitparam_indices = range(len(self.param_names))
+        fitparam_indices = list(range(len(self.param_names)))
         if any(self.fixed.values()) or any(self.tied.values()):
             params = list(self.parameters)
             for idx, name in list(enumerate(self.param_names))[::-1]:
