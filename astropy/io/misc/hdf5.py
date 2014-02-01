@@ -12,6 +12,7 @@ import warnings
 
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning
+from ...extern import six
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
@@ -187,7 +188,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         else:
             output_group = output
 
-    elif isinstance(output, basestring):
+    elif isinstance(output, six.string_types):
 
         if os.path.exists(output) and not append:
             if overwrite:

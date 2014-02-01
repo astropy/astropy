@@ -6,6 +6,8 @@ part of a larger framework or standard.
 
 import sys
 
+from ...extern import six
+
 
 __all__ = ['fnpickle', 'fnunpickle']
 
@@ -48,7 +50,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     else:
         import pickle
 
-    if isinstance(fileorname, basestring):
+    if isinstance(fileorname, six.string_types):
         f = open(fileorname, 'rb')
         close = True
     else:
@@ -108,7 +110,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL
 
-    if isinstance(fileorname, basestring):
+    if isinstance(fileorname, six.string_types):
         f = open(fileorname, 'ab' if append else 'wb')
         close = True
     else:

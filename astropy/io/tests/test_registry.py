@@ -268,7 +268,7 @@ def test_read_invalid_return():
 
 
 def test_read_basic_table():
-    data = np.array(zip([1, 2, 3], ['a', 'b', 'c']),
+    data = np.array(list(zip([1, 2, 3], ['a', 'b', 'c'])),
                     dtype=[(str('A'), int), (str('B'), '|S1')])
     io_registry.register_reader('test', Table, lambda x: Table(x))
     t = Table.read(data, format='test')
