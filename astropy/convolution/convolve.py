@@ -478,10 +478,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     #         (kernel*array)fft + 
     #         optional(weight image + weight_fft + weight_ifft) + 
     #         optional(returned_fft))
-    #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize / 1024.**3
+    #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
     #                        * (5 + 3*((interpolate_nan or ignore_edge_zeros) and kernel_is_normalized))
     #                        + (1 + (not return_fft)) *
-    #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024.**3)
+    #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize
+    #                        + np.product(arrayshape)*np.dtype(bool).itemsize
+    #                        + np.product(kernshape)*np.dtype(bool).itemsize)
+    #                        ) / 1024.**3
 
     # separate each dimension by the padding size...  this is to determine the
     # appropriate slice size to get back to the input dimensions
