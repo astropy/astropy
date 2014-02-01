@@ -458,3 +458,10 @@ class TestConvolve2D(object):
         # for reasons unknown, the Windows FFT returns an answer for the [0,0]
         # component that is EXACTLY 10*np.spacing
         assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
+
+    def test_big_fail():
+        """ Test that convolve_fft raises an exception if a too-large array is passed in """
+
+        with pytest.raises(ValueError) as ex:
+            arr = np.memmap('file.np',mode='w+',shape=[2048,2048])
+            convolve_fft(arr, arr)

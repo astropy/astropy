@@ -390,7 +390,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
-        raise Exception('array and kernel have differing number of dimensions')
+        raise ValueError("Image and kernel must have same number of "
+                         "dimensions")
+
+    arrayshape = array.shape
+    kernshape = kernel.shape
+
+    array_size_GB = np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024.**3
+    if array_size_GB > 1 and not allow_huge:
+        raise ValueError("Size Error: Arrays will be %g GB.  Use "
+                         "allow_huge=True to override this exception."
+                         % array_size_GB)
+
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) + np.isinf(array)
@@ -441,16 +452,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    arrayshape = array.shape
-    kernshape = kernel.shape
-    if array.ndim != kernel.ndim:
-        raise ValueError("Image and kernel must have same number of "
-                         "dimensions")
-
-    array_size_GB = np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024**3
-    if array_size_GB > 1 and not allow_huge:
-        raise ValueError("Size Error: Arrays will be %g GB.  Use allow_huge=True to override this exception." % array_size_GB)
-
     # find ideal size (power of 2) for fft.
     # Can add shapes because they are tuples
     if fft_pad: # default=True
@@ -471,25 +472,46 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             newshape = np.array([np.max([imsh, kernsh])
                                  for imsh, kernsh in zip(arrayshape, kernshape)])
 
+    # For future reference, this can be used to predict "almost exactly" 
+    # how much *additional* memory will be used.
+    # size * (array + kernel + kernelfft + arrayfft + 
+    #         (kernel*array)fft + 
+    #         optional(weight image + weight_fft + weight_ifft) + 
+    #         optional(returned_fft))
+    #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize / 1024.**3
+    #                        * (5 + 3*((interpolate_nan or ignore_edge_zeros) and kernel_is_normalized))
+    #                        + (1 + (not return_fft)) *
+    #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024.**3)
+
     # separate each dimension by the padding size...  this is to determine the
     # appropriate slice size to get back to the input dimensions
-    arrayslices = []
-    kernslices = []
-    for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
-        center = newdimsize - (newdimsize + 1) // 2
-        arrayslices += [slice(center - arraydimsize // 2,
-                              center + (arraydimsize + 1) // 2)]
-        kernslices += [slice(center - kerndimsize // 2,
-                             center + (kerndimsize + 1) // 2)]
+    if (kernshape != newshape) or (arrayshape != newshape):
+        arrayslices = []
+        kernslices = []
+        for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
+            center = newdimsize - (newdimsize + 1) // 2
+            arrayslices += [slice(center - arraydimsize // 2,
+                                  center + (arraydimsize + 1) // 2)]
+            kernslices += [slice(center - kerndimsize // 2,
+                                 center + (kerndimsize + 1) // 2)]
 
-    bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
-    bigkernel = np.zeros(newshape, dtype=complex_dtype)
-    bigarray[arrayslices] = array
-    bigkernel[kernslices] = kernel
+    if newshape != arrayshape:
+        bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+        bigarray[arrayslices] = array
+    else:
+        bigarray = array
+
+    if newshape != kernshape:
+        bigkernel = np.zeros(newshape, dtype=complex_dtype)
+        bigkernel[kernslices] = kernel
+    else:
+        bigkernel = kernel
+
     arrayfft = fftn(bigarray)
     # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
+
     if (interpolate_nan or ignore_edge_zeros) and kernel_is_normalized:
         if ignore_edge_zeros:
             bigimwt = np.zeros(newshape, dtype=complex_dtype)
