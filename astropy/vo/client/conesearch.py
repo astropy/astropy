@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Support VO Simple Cone Search capabilities."""
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+# STDLIB
 import warnings
 
 # THIRD-PARTY
@@ -230,7 +231,7 @@ class AsyncSearchAll(AsyncBase):
     If no ``timeout`` keyword given, it waits until completion:
 
     >>> async_allresults = async_search.get(timeout=30)
-    >>> all_catalogs = async_allresults.keys()
+    >>> all_catalogs = list(async_allresults)
     >>> first_cone_arr = async_allresults[all_catalogs[0]].array.data
     >>> first_cone_arr.size
     36184
