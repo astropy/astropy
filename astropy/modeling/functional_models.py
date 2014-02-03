@@ -211,56 +211,61 @@ class Gaussian2D(Parametric2DModel):
     def eval(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function"""
 
-        a = 0.5 * ((np.cos(theta) / x_stddev)**2 +
-                   (np.sin(theta) / y_stddev)**2)
-        b = 0.5 * (-(np.sin(2.*theta) / x_stddev**2) +
-                   (np.sin(2.*theta) / y_stddev**2))
-        c = 0.5 * ((np.sin(theta) / x_stddev)**2 +
-                   (np.cos(theta) / y_stddev)**2)
-        return amplitude * np.exp(-(a * (x - x_mean)**2 +
-                                    b * (x - x_mean) * (y - y_mean) +
-                                    c * (y - y_mean)**2))
+        cost2 = np.cos(theta)**2
+        sint2 = np.sin(theta)**2
+        sin2t = np.sin(2.*theta)
+        xstd2 = x_stddev**2
+        ystd2 = y_stddev**2
+        xdiff = x - x_mean
+        ydiff = y - y_mean
+        a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
+        b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
+        c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
+        return amplitude * np.exp(-(a*xdiff**2 + b*xdiff*ydiff + c*ydiff**2))
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function derivative with respect to parameters"""
 
-        # Helper quantities
-        a = 0.5 * ((np.cos(theta) / x_stddev)**2 +
-                   (np.sin(theta) / y_stddev)**2)
-        b = 0.5 * (-(np.sin(2.*theta) / x_stddev**2) +
-                   (np.sin(2.*theta) / y_stddev**2))
-        c = 0.5 * ((np.sin(theta) / x_stddev)**2 +
-                   (np.cos(theta) / y_stddev)**2)
-        g = amplitude * np.exp(-(a * (x - x_mean)**2 +
-                                 b * (x - x_mean) * (y - y_mean) +
-                                 c * (y - y_mean)**2))
-
-        da_dtheta = (np.sin(theta) * np.cos(theta) *
-                    ((1. / y_stddev**2) - (1. / x_stddev**2)))
-        da_dx_stddev = -np.cos(theta)**2 / x_stddev**3
-        da_dy_stddev = -np.sin(theta)**2 / y_stddev**3
-        db_dtheta = ((-np.cos(2. * theta) / x_stddev**2) +
-                     (np.cos(2. * theta) / y_stddev**2))
-        db_dx_stddev = np.sin(2. * theta) / x_stddev**3
-        db_dy_stddev = -np.sin(2. * theta) / y_stddev**3
-        dc_dtheta = (np.sin(theta) * np.cos(theta) *
-                     ((1. / x_stddev**2) - (1. / y_stddev**2)))
-        dc_dx_stddev = -np.sin(theta)**2 / x_stddev**3
-        dc_dy_stddev = -np.cos(theta)**2 / y_stddev**3
-
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+        cost2 = np.cos(theta)**2
+        sint2 = np.sin(theta)**2
+        cos2t = np.cos(2.*theta)
+        sin2t = np.sin(2.*theta)
+        xstd2 = x_stddev**2
+        ystd2 = y_stddev**2
+        xstd3 = x_stddev**3
+        ystd3 = y_stddev**3
+        xdiff = x - x_mean
+        ydiff = y - y_mean
+        xdiff2 = xdiff**2
+        ydiff2 = ydiff**2
+        a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
+        b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
+        c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
+        g = amplitude * np.exp(-(a*xdiff2 + b*xdiff*ydiff + c*ydiff2))
+        da_dtheta = (sint * cost * ((1./ystd2) - (1./xstd2)))
+        da_dx_stddev = -cost2 / xstd3
+        da_dy_stddev = -sint2 / ystd3
+        db_dtheta = (-cos2t / xstd2) + (cos2t / ystd2)
+        db_dx_stddev = sin2t / xstd3
+        db_dy_stddev = -sin2t / ystd3
+        dc_dtheta = -da_dtheta
+        dc_dx_stddev = -sint2 / xstd3
+        dc_dy_stddev = -cost2 / ystd3
         dg_dA = g / amplitude
-        dg_dx_mean = g * (2.*a*(x - x_mean) + b*(y - y_mean))
-        dg_dy_mean = g * (b*(x - x_mean) + 2.*c*(y - y_mean))
-        dg_dx_stddev = g * (-(da_dx_stddev * (x - x_mean)**2 +
-                              db_dx_stddev * (x - x_mean) * (y - y_mean) +
-                              dc_dx_stddev * (y - y_mean)**2))
-        dg_dy_stddev = g * (-(da_dy_stddev * (x - x_mean)**2 +
-                              db_dy_stddev * (x - x_mean) * (y - y_mean) +
-                              dc_dy_stddev * (y - y_mean)**2))
-        dg_dtheta = g * (-(da_dtheta * (x - x_mean)**2 +
-                           db_dtheta * (x - x_mean) * (y - y_mean) +
-                           dc_dtheta * (y - y_mean)**2))
+        dg_dx_mean = g * (2.*a*xdiff + b*ydiff)
+        dg_dy_mean = g * (b*xdiff + 2.*c*ydiff)
+        dg_dx_stddev = g * (-(da_dx_stddev * xdiff2 +
+                              db_dx_stddev * xdiff * ydiff +
+                              dc_dx_stddev * ydiff2))
+        dg_dy_stddev = g * (-(da_dy_stddev * xdiff2 +
+                              db_dy_stddev * xdiff * ydiff +
+                              dc_dy_stddev * ydiff2))
+        dg_dtheta = g * (-(da_dtheta * xdiff2 +
+                           db_dtheta * xdiff * ydiff +
+                           dc_dtheta * ydiff2))
         return [dg_dA, dg_dx_mean, dg_dy_mean, dg_dx_stddev, dg_dy_stddev,
                 dg_dtheta]
 
