@@ -946,6 +946,31 @@ class TestSort():
         t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
         assert np.all(t.argsort(['name', 'firstname']) == np.array([2, 1, 0]))
 
+    def test_rebuild_column_view_then_rename(self, table_types):
+        """
+        Issue #2039 where renaming fails after any method that calls
+        _rebuild_table_column_view (this includes sort and add_row).
+        """
+        t = table_types.Table([[1]], names=('a',))
+        assert t.colnames == ['a']
+        assert t._data.dtype.names == ('a',)
+
+        t.add_row((2,))
+        assert t.colnames == ['a']
+        assert t._data.dtype.names == ('a',)
+
+        t.rename_column('a', 'b')
+        assert t.colnames == ['b']
+        assert t._data.dtype.names == ('b',)
+
+        t.sort('b')
+        assert t.colnames == ['b']
+        assert t._data.dtype.names == ('b',)
+
+        t.rename_column('b', 'c')
+        assert t.colnames == ['c']
+        assert t._data.dtype.names == ('c',)
+
 
 @pytest.mark.usefixtures('table_types')
 class TestIterator():
