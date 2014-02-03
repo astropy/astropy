@@ -321,6 +321,9 @@ Bug Fixes
 
   - Allow pickling of ``Table``, ``Column``, and ``MaskedColumn`` objects. [#792]
 
+  - Fix a problem where it was not possible to rename columns after sorting or
+    adding a row. [#2039]
+
 - ``astropy.time``
 
   - Fix a problem when converting to one of the formats `unix`,
