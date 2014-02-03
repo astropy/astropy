@@ -108,6 +108,11 @@ class Kernel(object):
         """
         # There are kernel that sum to zero and
         # the user should be warned in this case
+        if np.abs(self._normalization) == np.inf:
+            warnings.warn('Kernel cannot be normalized because the '
+                          'normalization factor is infinite.',
+                          AstropyUserWarning)
+            return
         if np.abs(self._normalization) > MAX_NORMALIZATION:
             warnings.warn("Normalization factor of kernel is "
                           "exceptionally large > {0}.".format(MAX_NORMALIZATION),
