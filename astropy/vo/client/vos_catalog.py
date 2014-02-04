@@ -52,6 +52,10 @@ class VOSCatalog(object):
         """Expose dictionary key look-up."""
         return self._tree[what]
 
+    def __iter__(self):
+        """Expose dictionary iteration."""
+        return iter(self._tree)
+
     def __str__(self):  # pragma: no cover
         """Show the most important and unique things about a catalog."""
         keys = ('title', 'url')
