@@ -1,25 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Tests for `astropy.vo.client`
-
-Examples
---------
-Running inside Python::
-
-    >>> import astropy
-    >>> astropy.test('vo.client', remote_data=True)
-
-Running from top level via command line::
-
-    $ python setup.py test -P vo.client --remote-data
-
-Running from ``astropy/vo/client/tests`` directory::
-
-    $ setenv ASTROPY_USE_SYSTEM_PYTEST 1
-    $ py.test test_vo.py --remote-data
-
-"""
+"""Tests for `astropy.vo.client.conesearch` and `astropy.vo.client.async`."""
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ....extern import six
 
 # STDLIB
 import os
@@ -29,6 +10,7 @@ import numpy as np
 
 # LOCAL
 from .. import conesearch, vos_catalog
+from ..exceptions import VOSError, ConeSearchError
 from .... import units as u
 from ....coordinates import ICRS
 from ....tests.helper import pytest, remote_data
@@ -80,6 +62,12 @@ class TestConeSearch(object):
                 ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1'])
         assert (conesearch.list_catalogs(pattern='usno*a') ==
                 ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
+
+    def test_no_result(self):
+        with pytest.raises(VOSError):
+            tab_1 = conesearch.conesearch(
+                SCS_CENTER, 0.001, catalog_db=self.url,
+                pedantic=self.pedantic, verbose=self.verbose)
 
     @pytest.mark.parametrize(('center', 'radius'),
                              [((SCS_RA, SCS_DEC), SCS_SR),
@@ -169,6 +157,12 @@ class TestConeSearch(object):
         assert n_2 > 0 and n_2 <= n_1 * 1.5
         assert t_2 > 0 and t_2 <= t_1 * 1.5
 
+    def test_prediction_neg_radius(self):
+        with pytest.raises(ConeSearchError):
+            t, n = conesearch.predict_search(
+                self.url, SCS_CENTER, -1, pedantic=self.pedantic,
+                verbose=self.verbose)
+
     def teardown_class(self):
         conesearch.CONESEARCH_DBNAME.set(
             conesearch.CONESEARCH_DBNAME.defaultvalue)
@@ -206,7 +200,7 @@ class TestErrorResponse(object):
         url = get_pkg_data_filename(os.path.join(self.datadir, xmlfile))
         try:
             r = vos_catalog._vo_service_request(url, self.pedantic, {})
-        except vos_catalog.VOSError as e:
+        except VOSError as e:
             assert msg in str(e)
 
     @pytest.mark.parametrize(('id'), [1, 2, 3, 4])

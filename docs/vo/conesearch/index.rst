@@ -51,8 +51,8 @@ Caching
 -------
 
 Caching of downloaded contents is controlled by `astropy.utils.data`.
-To *not* use cached data, some functions in this package have a ``cache``
-keyword that can be set to ``False``.
+To use cached data, some functions in this package have a ``cache``
+keyword that can be set to ``True``.
 
 
 Getting Started
@@ -101,7 +101,7 @@ WARNING: W06: ... UCD has invalid character '?' in '??' [...]
 WARNING: W50: ... Invalid unit string 'yyyy-mm-dd' [...]
 WARNING: W50: ... Invalid unit string 'Julian days' [...]
 >>> result
-<astropy.io.votable.tree.Table at 0x41e8610>
+<Table rows=2008 names=('cx','cy', ...>
 >>> result.url
 u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
 
@@ -176,8 +176,12 @@ Reference/API
 .. automodapi:: astropy.vo.client.async
    :no-inheritance-diagram:
 
+.. automodapi:: astropy.vo.client.exceptions
+
 .. automodapi:: astropy.vo.validator.validate
    :no-inheritance-diagram:
 
 .. automodapi:: astropy.vo.validator.inspect
    :no-inheritance-diagram:
+
+.. automodapi:: astropy.vo.validator.exceptions

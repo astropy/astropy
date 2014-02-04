@@ -21,7 +21,7 @@ class ConeSearchResults(object):
         Cone Search database identifiers.
 
     dbs : dict
-        Stores `astropy.vo.client.vos_catalog.VOSDatabase`
+        Stores `~astropy.vo.client.vos_catalog.VOSDatabase`
         for each ``dbtypes``.
 
     catkeys : dict
@@ -54,10 +54,10 @@ class ConeSearchResults(object):
         Parameters
         ----------
         fout : output stream
-            Default is sys.stdout.
+            Default is screen output.
 
         """
-        if fout is None:
+        if fout is None:  # pragma: no cover
             fout = sys.stdout
 
         str_list = []
@@ -97,7 +97,7 @@ class ConeSearchResults(object):
             This is useful to see why a catalog failed validation.
 
         """
-        if fout is None:
+        if fout is None:  # pragma: no cover
             fout = sys.stdout
 
         assert typ in self.dbtypes
@@ -144,7 +144,7 @@ class ConeSearchResults(object):
             Default is screen output.
 
         """
-        if fout is None:
+        if fout is None:  # pragma: no cover
             fout = sys.stdout
 
         str_list = []

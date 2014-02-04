@@ -13,12 +13,13 @@ In case USVO service is unstable, it does the following:
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 # STDLIB
+import warnings
 from xml.dom import minidom
 
 # LOCAL
-from ...logger import log
 from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils.data import get_readable_fileobj
+from ...utils.exceptions import AstropyUserWarning
 
 
 def parse_cs(id):
@@ -45,8 +46,8 @@ def parse_cs(id):
             dom = minidom.parse(fd)
     except Exception as e: # pragma: no cover
         try:
-            log.warning('{0} raised {1}, trying {2}'.format(
-                    url, str(e), backup_url))
+            warnings.warn('{0} raised {1}, trying {2}'.format(
+                url, str(e), backup_url), AstropyUserWarning)
             with get_readable_fileobj(backup_url, encoding='binary',
                                       show_progress=False) as fd:
                 dom = minidom.parse(fd)
@@ -68,6 +69,6 @@ def parse_cs(id):
     # If no testQuery found, use RA=0 DEC=0 SR=1
     if urls_failed:  # pragma: no cover
         d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '1'})
-        log.warning(urls_errmsg)
+        warnings.warn(urls_errmsg, AstropyUserWarning)
 
     return d
