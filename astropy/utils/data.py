@@ -1146,9 +1146,9 @@ def _open_shelve(shelffn, withclosing=False):
     """
     import shelve
 
-    if not PY3K:  # pragma: py3
+    if not PY3K:  # pragma: py2
         shelf = shelve.open(shelffn, protocol=2)
-    else:  # pragma: py2
+    else:  # pragma: py3
         shelf = shelve.open(shelffn + '.db', protocol=2)
 
     if withclosing:
