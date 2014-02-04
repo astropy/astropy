@@ -53,6 +53,7 @@ import numpy as np
 from ..utils import indent, isiterable
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..extern.six.moves import range
 
 from .parameters import Parameter, InputParameterError
 
