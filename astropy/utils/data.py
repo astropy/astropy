@@ -1037,10 +1037,11 @@ def _deltemps():
 
     global _tempfilestodel
 
-    while len(_tempfilestodel) > 0:
-        fn = _tempfilestodel.pop()
-        if os.path.isfile(fn):
-            os.remove(fn)
+    if _tempfilestodel is not None:
+        while len(_tempfilestodel) > 0:
+            fn = _tempfilestodel.pop()
+            if os.path.isfile(fn):
+                os.remove(fn)
 
 
 def clear_download_cache(hashorurl=None):
