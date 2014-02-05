@@ -39,17 +39,9 @@ def turn_off_internet(verbose=False):
                 return return_fn(*args, **kwargs)
         return blocker
 
-    socket_functions = {'bind':socket_bind,
-                        'connect':socket_connect,
-                        'create_connection':socket_create_connection}
-    parents = {'bind':socket.socket,
-               'connect':socket.socket,
-               'create_connection':socket}
-    guard_functions = dict([(fnc,blocker_creator(oldfnc, hasattr(parents[fnc],'bind')))
-                            for fnc,oldfnc in socket_functions.iteritems()])
-
-    for fnc, guard in guard_functions.iteritems():
-        setattr(parents[fnc], fnc, guard)
+    setattr(socket.socket, 'bind', blocker_creator(socket_bind, isclass=True))
+    setattr(socket.socket, 'connect', blocker_creator(socket_connect, isclass=True))
+    setattr(socket, 'create_connection', blocker_creator(socket_create_connect, isclass=False))
 
     return socket
 
