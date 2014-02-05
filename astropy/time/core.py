@@ -1248,17 +1248,15 @@ class TimeFromEpoch(TimeFormat):
     """
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
-      
         self.scale = scale
-        
-        # Initialize the reference epoch which is a single time defined in subclasses
+         # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
         self.epoch = epoch
+
         # Now create the TimeFormat object as normal
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
-      
       
     def set_jds(self, val1, val2):
         """
@@ -1289,7 +1287,7 @@ class TimeFromEpoch(TimeFormat):
         # A known limitation is that the transform from self.epoch_scale to self.scale
         # cannot involve any metadata like lat or lon.
         try:
-           tm=getattr(Time(jd1, jd2, scale=self.epoch_scale,format='jd'),self.scale)
+           tm=getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
         except Exception as err:
            raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
                                  "scale '{2}', got error:\n{3}"
