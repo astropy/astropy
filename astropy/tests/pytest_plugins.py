@@ -628,6 +628,9 @@ class Pair(pytest.File):
             return [pytest.Module(self.fspath, self)]
 
 
+_RE_FUTURE_IMPORTS = re.compile(br'from __future__ import ((\(.*?\))|([^\n]+))',
+                                flags=re.DOTALL)
+
 
 class ModifiedModule(pytest.Module):
     def __init__(self, mod_name, content, path, parent):
@@ -638,9 +641,7 @@ class ModifiedModule(pytest.Module):
     def _importtestmodule(self):
         # We have to remove the __future__ statements *before* parsing
         # with compile, otherwise the flags are ignored.
-        content = re.sub(
-            br'from __future__ import ((\(.*?\))|([^\n]+))', b'',
-            self.content, flags=re.DOTALL)
+        content = re.sub(_RE_FUTURE_IMPORTS, b'', self.content)
 
         new_mod = types.ModuleType(self.mod_name)
         new_mod.__file__ = six.text_type(self.fspath)
