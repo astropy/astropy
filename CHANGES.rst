@@ -311,7 +311,7 @@ Bug Fixes
 - ``astropy.time``
 
   - Fix a problem where scale conversion problem in TimeFromEpoch 
-    where it was not showing a useful error. 
+    was not showing a useful error. 
 
   - Fix a problem when converting to one of the formats `unix`,
     `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
