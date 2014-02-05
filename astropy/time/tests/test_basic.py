@@ -554,3 +554,10 @@ def test_TimeFormat_scale():
     t.delta_ut1_utc = 0.0
     t.unix
     assert t.unix == t.utc.unix
+
+def test_scale_conversion():
+     
+   with pytest.raises(ScaleValueError) as exc:
+        t = Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
+        assert str(exc) == ScaleValueError
+
