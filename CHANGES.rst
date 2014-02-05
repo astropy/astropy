@@ -57,8 +57,9 @@ New Features
 
 - ``astropy.sphinx``
 
-  - The `automodapi` extension now includes a configuration option to write out
-    what `automidapi` generates for debugging purposes.
+  - The `automodapi` and `automodsumm` extensions now include sphinx
+    configuration options to write out what `automidapi` and
+    `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
 - ``astropy.table``
 
