@@ -12,7 +12,8 @@ There are currently two non-linear fitters which use `~scipy.optimize.leastsq` a
 `~scipy.optimize.slsqp` functions in scipy.optimize.\
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import abc
 import numbers
@@ -26,6 +27,7 @@ from ..logger import log
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
 from .core import _CompositeModel
+from ..extern import six
 
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
@@ -70,14 +72,13 @@ class UnsupportedConstraintError(ModelsError, ValueError):
     """
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Fitter(object):
     """
     Base class for all fitters.
 
     The purpose of this class is to manage constraints.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     # The base Fitter does not support any constraints by default; individual
     # fitters should explicitly set this list to the specific constraints

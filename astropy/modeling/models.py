@@ -4,6 +4,9 @@
 Creates a common namespace for all pre-defined models.
 """
 
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
+
 from .projections import *
 from .rotations import *
 from .polynomial import *

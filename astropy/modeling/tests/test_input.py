@@ -2,7 +2,10 @@
 """
 This module tests fitting and model evaluation with various inputs
 """
-from __future__ import division
+
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
+
 import numpy as np
 from .. import models
 from .. import fitting

@@ -4,7 +4,8 @@
 This module contains predefined polynomial models.
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import collections
 
@@ -1196,7 +1197,7 @@ class _SIPModel(SerialCompositeModel):
 
         super(_SIPModel, self).__init__([self.shift_a, self.shift_b,
                                          self.sip1d_a, self.sip1d_b])
-        
+
 
 class SIP(_SIPModel):
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
