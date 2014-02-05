@@ -14,4 +14,3 @@ from __future__ import (absolute_import, division, print_function,
 
 from .compat.odict import OrderedDict
 from .misc import *
-from .testing_tools import turn_off_internet,turn_on_internet
