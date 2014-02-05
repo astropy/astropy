@@ -1,9 +1,11 @@
 import urllib
-from ...tests.helper import pytest
+from ..helper import pytest
+
 
 def test_outgoing_fails():
     with pytest.raises(IOError):
         urllib.urlopen('http://www.astropy.org')
+
 
 def test_localconnect_succeeds():
     """
