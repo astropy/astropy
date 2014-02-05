@@ -459,6 +459,14 @@ def test_pickling():
     assert new_unit_copy.get_format_name('baz') == 'bar'
 
 
+def test_pickle_unrecognized_unit():
+    """
+    Issue #2047
+    """
+    a = u.Unit('asdf', parse_strict='silent')
+    pickle.loads(pickle.dumps(a))
+
+
 @raises(ValueError)
 def test_duplicate_define():
     u.def_unit('m', namespace=u.__dict__)
