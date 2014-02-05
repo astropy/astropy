@@ -28,6 +28,7 @@ import types
 import warnings
 
 from .helper import pytest, treat_deprecations_as_exceptions
+from ..utils import turn_off_internet,turn_on_internet
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -125,6 +126,15 @@ def pytest_configure(config):
     opts = (doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE |
             FIX)
+
+    # Monkeypatch to deny access to remote resources unless explicitly told
+    # otherwise
+    if config.getoption('remote_data'):
+        pass
+        # This isn't needed; just don't turn off the internet if remote_data is on
+        #turn_on_internet(verbose=config.option.verbose)
+    else:
+        turn_off_internet(verbose=config.option.verbose)
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
