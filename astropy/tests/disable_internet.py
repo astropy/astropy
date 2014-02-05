@@ -9,6 +9,24 @@ socket_create_connection = socket.create_connection
 socket_bind = socket.socket.bind
 socket_connect = socket.socket.connect
 
+
+# ::1 is apparently another valid name for localhost?
+# it is returned by getaddrinfo when that function is given localhost
+
+
+def check_internet_off(original_function):
+    def new_function(*args, **kwargs):
+        if isinstance(args[0], socket.socket):
+            host = args[1][0]
+        else:
+            host = args[0][0]
+        if '127.0.0.1' in host or 'localhost' in host or '::1' in host:
+            return original_function(*args, **kwargs)
+        else:
+            raise IOError("An attempt was made to connect to the internet")
+    return new_function
+
+
 def turn_off_internet(verbose=False):
     """
     Disable internet access via python by preventing connections from being
@@ -45,14 +63,14 @@ def turn_off_internet(verbose=False):
 
     return socket
 
+
 def turn_on_internet(verbose=False):
     """
     Restore internet access.  Not used, but kept in case it is needed.
     """
     if verbose:
         print("Internet access enabled")
-    #setattr(socket, 'socket', socket_original)
-    setattr(socket, 'create_connection', socket_create_connection)
-    setattr(socket.socket, 'bind', socket_bind)
-    setattr(socket.socket, 'connect', socket_connect)
+    socket.create_connection = socket_create_connection
+    socket.socket.bind = socket_bind
+    socket.socket.connect = socket_connect
     return socket
