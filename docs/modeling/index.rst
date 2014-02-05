@@ -55,7 +55,7 @@ The `astropy.modeling` package defines a number of models that live inside
     Parameter sets: 1
     Parameters:
                amplitude: Parameter('amplitude', value=1.2)
-               mean: Parameter('mean', value=0.9000...)
+               mean: Parameter('mean', value=0.9)
                stddev: Parameter('stddev', value=0.5)
 
 Model parameters can be accessed as attributes:
@@ -63,7 +63,7 @@ Model parameters can be accessed as attributes:
     >>> g.amplitude
     Parameter('amplitude', value=1.2)
     >>> g.mean
-    Parameter('mean', value=0.9000...)
+    Parameter('mean', value=0.9)
     >>> g.stddev
     Parameter('stddev', value=0.5)
 
@@ -71,7 +71,7 @@ and can also be set using the attributes::
 
     >>> g.amplitude = 0.8
     >>> g.amplitude
-    Parameter('amplitude', value=0.8000...)
+    Parameter('amplitude', value=0.8)
 
 Models can be evaluated by calling them as functions::
 
