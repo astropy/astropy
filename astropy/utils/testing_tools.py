@@ -56,5 +56,8 @@ def turn_on_internet(verbose=False):
     """
     if verbose:
         print("Internet access enabled")
-    setattr(socket, 'socket', socket_original)
+    #setattr(socket, 'socket', socket_original)
+    setattr(socket, 'create_connection', socket_create_connection)
+    setattr(socket.socket, 'bind', socket_bind)
+    setattr(socket.socket, 'connect', socket_connect)
     return socket
