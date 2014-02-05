@@ -314,8 +314,7 @@ def test_invalid_location_download():
 
 def test_invalid_location_download_noconnect():
     """
-    checks that download_file gives a URLError and not an AttributeError,
-    as its code pathway involves some fiddling with the exception.
+    checks that download_file gives an IOError if the socket is blocked
     """
     from ..data import download_file
 
