@@ -24,6 +24,8 @@ Running from ``astropy/vo/validator/tests`` directory::
     $ py.test test_validate.py --remote-data
 
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 # STDLIB
 import json
 import os

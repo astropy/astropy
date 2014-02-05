@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Asynchronous VO service requests."""
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # LOCAL
 from ...utils.compat.futures import ThreadPoolExecutor

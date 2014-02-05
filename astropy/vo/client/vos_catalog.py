@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Common utilities for accessing VO simple services."""
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
+from ...extern.six.moves import urllib
 
 # STDLIB
 import fnmatch
 import json
 import re
-import urllib
 
 # LOCAL
 from ...config.configuration import ConfigurationItem
@@ -50,6 +51,10 @@ class VOSCatalog(object):
     def __getitem__(self, what):
         """Expose dictionary key look-up."""
         return self._tree[what]
+
+    def __iter__(self):
+        """Expose dictionary iteration."""
+        return iter(self._tree)
 
     def __str__(self):  # pragma: no cover
         """Show the most important and unique things about a catalog."""
@@ -96,7 +101,7 @@ class VOSDatabase(VOSCatalog):
 
     def __str__(self):  # pragma: no cover
         """Show the most important and unique things about a database."""
-        return '\n'.join(sorted(self._catalogs.keys()))
+        return '\n'.join(sorted(self._catalogs))
 
     def get_catalogs(self):
         """Iterator to get all catalogs."""
@@ -165,7 +170,7 @@ class VOSDatabase(VOSCatalog):
             List of catalog names.
 
         """
-        all_catalogs = self._catalogs.keys()
+        all_catalogs = list(self._catalogs)
 
         if pattern is None or len(all_catalogs) == 0:
             out_arr = all_catalogs
@@ -234,11 +239,11 @@ def _get_catalogs(service_type, catalog_db, **kwargs):
         catalogs = catalog_db.get_catalogs()
     elif isinstance(catalog_db, VOSDatabase):
         catalogs = catalog_db.get_catalogs()
-    elif isinstance(catalog_db, (VOSCatalog, basestring)):
+    elif isinstance(catalog_db, (VOSCatalog, six.string_types)):
         catalogs = [(None, catalog_db)]
     elif isinstance(catalog_db, list):
         for x in catalog_db:
-            assert (isinstance(x, (VOSCatalog, basestring)) and
+            assert (isinstance(x, (VOSCatalog, six.string_types)) and
                     not isinstance(x, VOSDatabase))
         catalogs = [(None, x) for x in catalog_db]
     else:  # pragma: no cover
@@ -253,9 +258,9 @@ def _vo_service_request(url, pedantic, kwargs, verbose=False):
         raise VOSError("url should already end with '?' or '&'")
 
     query = []
-    for key, value in kwargs.iteritems():
+    for key, value in six.iteritems(kwargs):
         query.append('{}={}'.format(
-            urllib.quote(key), urllib.quote_plus(str(value))))
+            urllib.parse.quote(key), urllib.parse.quote_plus(str(value))))
 
     parsed_url = url + '&'.join(query)
     with get_readable_fileobj(parsed_url, encoding='binary',
@@ -406,7 +411,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         pedantic = VO_PEDANTIC
 
     for name, catalog in catalogs:
-        if isinstance(catalog, basestring):
+        if isinstance(catalog, six.string_types):
             if catalog.startswith("http"):
                 url = catalog
             else:
