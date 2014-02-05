@@ -24,7 +24,7 @@ Missing value support is now provided using :ref:`masked tables <astropy-table>`
 instead of NumPy masked arrays.
 
 There is an important change in way that input data are parsed in the
-:func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of ``astropy``, a
+:func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of Astropy, a
 list of lists was interpreted to be a *list of data rows*, corresponding to the
 behavior in `asciitable <https://asciitable.readthedocs.org/>`_.  Starting from
 version 0.2, a list of lists is interpreted as a *list of data columns*.  This corresponds
@@ -124,7 +124,7 @@ available as methods of the :class:`~astropy.cosmology.core.Cosmology`
 object.
 
 Finally, a new set of cosmological parameters from the 9 year WMAP
-results (`astropy.cosmology.WMAP9`) has been added from the recently
+results (``astropy.cosmology.WMAP9``) has been added from the recently
 submitted paper by `Hinshaw et
 al. <http://arxiv.org/abs/1212.5226>`_. Since this paper has not yet
 been refereed, convenience functions still use the 7 year WMAP results
@@ -275,7 +275,7 @@ A standalone ``volint`` script is available to validate the contents of
 VOTable XML files.
 
 The default setting for ``pedantic`` mode can be set using a
-configuration parameter (`astropy.io.votable.table.PEDANTIC`).
+configuration parameter (``astropy.io.votable.table.PEDANTIC``).
 
 
 WCS
