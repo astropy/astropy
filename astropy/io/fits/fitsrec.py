@@ -648,9 +648,15 @@ class FITS_rec(np.recarray):
         nullval = str(self._coldefs.nulls[indx]).strip().encode('ascii')
         if len(nullval) > format.width:
             nullval = nullval[:format.width]
-        dummy = field.replace(encode_ascii('D'), encode_ascii('E'))
-        dummy = np.where(dummy.strip() == nullval,
-                         encode_ascii(str(ASCIITNULL)), dummy)
+
+        # Before using .replace make sure that any trailing bytes in each
+        # column are filled with spaces, and *not*, say, nulls; this causes
+        # functions like replace to potentially leave gibberish bytes in the
+        # array buffer.
+        dummy = np.char.ljust(field, format.width)
+        dummy = np.char.replace(dummy, encode_ascii('D'), encode_ascii('E'))
+        null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
+        dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
