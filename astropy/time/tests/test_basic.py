@@ -557,8 +557,7 @@ def test_TimeFormat_scale():
 
 def test_scale_conversion():
      
-   with pytest.raises(ScaleValueError) as exc:
+   with pytest.raises(ScaleValueError):
         t = Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
-   assert str(exc).startswith("Cannot convert from 'cxcsec' epoch"
-                              "scale 'tt' to specified scale 'ut1', got error:")
+   
 
