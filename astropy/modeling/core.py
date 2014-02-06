@@ -47,6 +47,7 @@ import abc
 import functools
 import copy
 from textwrap import dedent
+import collections
 
 import numpy as np
 
@@ -582,6 +583,8 @@ class ParametricModel(Model):
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
         # parameter, and the param_dim
+
+        # Multi-valued parameters are passed as list or tuples 
         self._param_metrics = {}
         total_size = 0
         for name in self.param_names:
@@ -615,7 +618,7 @@ class ParametricModel(Model):
 
             #if (param_size > 1 and param_size != self.param_dim and
             #        len(value) != self.param_dim):
-            if isinstance(params[name], list) and param_len != self.param_dim:
+            if isinstance(params[name], collections.Sequence) and param_len != self.param_dim:
                 # The len(value) == self.param_dim case is a special case
                 # (see #1680) where the parameter has compound values (like [1,
                 # 2]) but we're passing in two (or more) param sets, so we want

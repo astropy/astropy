@@ -162,7 +162,6 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
-        print('value, shape', value, shape, self._shape)
         # Compare the shape against the previous value's shape, if it exists
         if hasattr(obj, self._attr) and self._shape is not None:
             current_shape = getattr(obj, self.name).shape
