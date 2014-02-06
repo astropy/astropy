@@ -394,6 +394,9 @@ Bug Fixes
   - Fixed the AttributeError exception which was raised when using
     :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
 
+  - Fixed a NameError exception which was raised when using
+    :func:`astropy.wcs.validate`. [#2053]
+
 - Misc
 
   - There are a number of improvements to make `astropy` work better
