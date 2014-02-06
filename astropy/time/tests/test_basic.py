@@ -556,8 +556,5 @@ def test_TimeFormat_scale():
     assert t.unix == t.utc.unix
 
 def test_scale_conversion():
-     
-   with pytest.raises(ScaleValueError):
+    with pytest.raises(ScaleValueError):
         t = Time(Time.now().cxcsec, format='cxcsec', scale='ut1')
-   
-
