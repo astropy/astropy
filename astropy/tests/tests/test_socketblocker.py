@@ -1,14 +1,13 @@
-import urllib
 from ..helper import pytest
-import BaseHTTPServer
-import SimpleHTTPServer
+from astropy.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
+from astropy.extern.six.moves.urllib.request import urlopen
 from threading import Thread
 import time
 
 
 def test_outgoing_fails():
     with pytest.raises(IOError):
-        urllib.urlopen('http://www.astropy.org')
+        urlopen('http://www.astropy.org')
 
 
 def run_while_true(server_class=BaseHTTPServer.HTTPServer,
@@ -35,5 +34,5 @@ def test_localconnect_succeeds():
     server.start()
     time.sleep(0.1)
 
-    urllib.urlopen('http://localhost:8000').close()
-    urllib.urlopen('http://127.0.0.1:8000').close()
+    urlopen('http://localhost:8000').close()
+    urlopen('http://127.0.0.1:8000').close()

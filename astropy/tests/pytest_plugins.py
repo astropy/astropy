@@ -28,7 +28,7 @@ import types
 import warnings
 
 from .helper import pytest, treat_deprecations_as_exceptions
-from .disable_internet import turn_off_internet
+from .disable_internet import turn_off_internet,turn_on_internet
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -720,3 +720,12 @@ class NoUnicodeLiteralsModule(ModifiedModule):
                             return ast.copy_location(ast.Str(s=s), node)
                 return node
         return NonAsciiLiteral().visit(tree)
+
+def pytest_unconfigure():
+    """
+    Cleanup post-testing
+    """
+    # restore internet connectivity (only lost if remote_data=False and
+    # turn_off_internet previously called)
+    # this is harmless / does nothing if socket connections were never disabled
+    turn_on_internet()
