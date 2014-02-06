@@ -55,7 +55,7 @@ intersphinx_mapping = {
     'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
     'matplotlib': ('http://matplotlib.sourceforge.net/', None),
     'astropy': ('http://docs.astropy.org/en/stable/', None),
-    'h5py': ('http://h5py.alfven.org/docs-2.1/', None)
+    'h5py': ('http://docs.h5py.org/en/latest/', None)
     }
 
 # List of patterns, relative to source directory, that match files and
