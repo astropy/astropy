@@ -120,7 +120,10 @@ class Parameter(object):
         self._default_max = max
 
         self._order = None
-        self._shape = None
+        if self._default is not None:
+            _, self._shape = _tofloat(self._default)
+        else:
+            self._shape = None
         self._model = model
 
         # The getter/setter functions take one or two arguments: The first
@@ -159,13 +162,16 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
+        print('value, shape', value, shape, self._shape)
         # Compare the shape against the previous value's shape, if it exists
-        if hasattr(obj, self._attr):
+        if hasattr(obj, self._attr) and self._shape is not None:
             current_shape = getattr(obj, self.name).shape
             if shape != current_shape:
                 raise InputParameterError(
                     "Input value for parameter '{0}' does not have the "
                     "required shape {1}".format(self.name, current_shape))
+        if self._shape is None:
+            self._shape = shape
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)

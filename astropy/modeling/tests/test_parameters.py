@@ -327,3 +327,17 @@ class TestMultipleParameterSets(object):
         # is given as a scalar, repeat that value across all param sets
         m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
         utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
+    
+    def test_array_parameter1(self):
+        t=TestParModel(np.array([[1,2], [3,4]]), 1, param_dim=2)
+        utils.assert_almost_equal(t.parameters, [ 1.,  2.,  3.,  4.,  1.,  1.])
+
+    def test_array_parameter2(self):
+        t=TestParModel(np.array([[1,2], [3,4]]), 1, param_dim=1)
+        utils.assert_almost_equal(t.parameters, [ 1.,  2.,  3.,  4.,  1.])
+        
+    def test_array_parameter3(self):
+        with pytest.raises(InputParameterError):
+            TestParModel(np.array([[1,2], [3,4]]), (1,1,11), param_dim=2)
+
+

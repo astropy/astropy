@@ -55,7 +55,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 
-from .parameters import Parameter, InputParameterError
+from .parameters import (Parameter, InputParameterError, _tofloat)
 
 __all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
@@ -592,10 +592,14 @@ class ParametricModel(Model):
                 # by their Parameter descriptor
                 params[name] = getattr(self, name).default
 
-            value = params[name]
+            value, shape = _tofloat(params[name])
 
+            if shape == ():
+                param_len = 1
+            else:
+                param_len = len(value)
             param_size = np.size(value)
-            param_shape = np.shape(value)
+            param_shape = shape
 
             if self.param_dim == 1:
                 pass
@@ -609,8 +613,9 @@ class ParametricModel(Model):
             else:
                 raise ValueError("Model param_dim must be 1 or greater.")
 
-            if (param_size > 1 and param_size != self.param_dim and
-                    len(value) != self.param_dim):
+            #if (param_size > 1 and param_size != self.param_dim and
+            #        len(value) != self.param_dim):
+            if isinstance(params[name], list) and param_len != self.param_dim:
                 # The len(value) == self.param_dim case is a special case
                 # (see #1680) where the parameter has compound values (like [1,
                 # 2]) but we're passing in two (or more) param sets, so we want
