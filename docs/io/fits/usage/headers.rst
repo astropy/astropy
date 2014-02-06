@@ -46,9 +46,9 @@ The Header Attribute
 Value Access, Updating, and Creating
 """"""""""""""""""""""""""""""""""""
 
-As shown in the :ref:`Quick Tutorial <tutorial>`, keyword values can be
-accessed via keyword name or index of an HDU's header attribute. Here is a
-quick summary:
+As shown in the :ref:`Getting Started <tutorial>` tutorial, keyword values can
+be accessed via keyword name or index of an HDU's header attribute. Here is a
+quick summary::
 
     >>> hdulist = fits.open('input.fits')  # open a FITS file
     >>> prihdr = hdulist[0].header  # the primary HDU header
