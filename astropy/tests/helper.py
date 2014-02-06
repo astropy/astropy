@@ -23,6 +23,8 @@ import tempfile
 import types
 import warnings
 
+from .disable_internet import turn_on_internet
+
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
@@ -254,6 +256,10 @@ class TestRunner(object):
                 if not tmp.closed:
                     tmp.close()
                 os.remove(tmp.name)
+
+        # restore internet access if it was turned off
+        # this is harmless / does nothing if socket connections were never disabled
+        turn_on_internet()
 
         return result
 

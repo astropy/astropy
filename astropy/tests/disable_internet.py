@@ -23,7 +23,8 @@ def check_internet_off(original_function):
         if '127.0.0.1' in host or 'localhost' in host or '::1' in host:
             return original_function(*args, **kwargs)
         else:
-            raise IOError("An attempt was made to connect to the internet")
+            raise IOError("An attempt was made to connect to the internet "
+                          "by a test that was not marked `remote_data`.")
     return new_function
 
 
