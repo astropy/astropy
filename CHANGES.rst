@@ -272,6 +272,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Ported all bug fixes from PyFITS 3.2.1.  See the PyFITS changelog at
+    http://pyfits.readthedocs.org/en/v3.2.1/ [#2056]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
