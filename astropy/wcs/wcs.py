@@ -2074,8 +2074,10 @@ def validate(source):
             wcs_results = _WcsValidateWcsResult(wcs.wcs.name)
             hdu_results.append(wcs_results)
 
-            if '__warningregistry__' in globals():
+            try:
                 del __warningregistry__
+            except NameError:
+                pass
 
             with warnings.catch_warnings(record=True) as warning_lines:
                 warnings.resetwarnings()
