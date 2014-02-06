@@ -194,7 +194,7 @@ class _BaseHDU(object):
         return self._data_loaded and self.data is not None
 
     @property
-    @deprecated('3.2', alternative='the `._header_offset` attribute',
+    @deprecated('0.3', alternative='the `._header_offset` attribute',
                 pending=True)
     def _hdrLoc(self):
         """The byte offset of this HDU's header in the file it came from;
@@ -204,13 +204,13 @@ class _BaseHDU(object):
         return self._header_offset
 
     @_hdrLoc.setter
-    @deprecated('3.2', alternative='the `._header_offset` attribute',
+    @deprecated('0.3', alternative='the `._header_offset` attribute',
                 pending=True)
     def _hdrLoc(self, value):
         self._header_offset = value
 
     @property
-    @deprecated('3.2', alternative='the `._data_offset` attribute',
+    @deprecated('0.3', alternative='the `._data_offset` attribute',
                 pending=True)
     def _datLoc(self):
         """The byte offset of this HDU's data portion in the file it came from;
@@ -220,13 +220,13 @@ class _BaseHDU(object):
         return self._data_offset
 
     @_datLoc.setter
-    @deprecated('3.2', alternative='the `._data_offset` attribute',
+    @deprecated('0.3', alternative='the `._data_offset` attribute',
                 pending=True)
     def _datLoc(self, value):
         self._data_offset = value
 
     @property
-    @deprecated('3.2', alternative='the `._data_size` attribute',
+    @deprecated('0.3', alternative='the `._data_size` attribute',
                 pending=True)
     def _datSpan(self):
         """The byte size of this HDU's data portion in the file it came from;
@@ -236,13 +236,13 @@ class _BaseHDU(object):
         return self._data_size
 
     @_datSpan.setter
-    @deprecated('3.2', alternative='the `._data_size` attribute',
+    @deprecated('0.3', alternative='the `._data_size` attribute',
                 pending=True)
     def _datSpan(self, value):
         self._data_size = value
 
     @property
-    @deprecated('3.2', alternative='the `._header_offset` attribute',
+    @deprecated('0.3', alternative='the `._header_offset` attribute',
                 pending=True)
     def _hdrLoc(self):
         """The byte offset of this HDU's header in the file it came from;
@@ -252,13 +252,13 @@ class _BaseHDU(object):
         return self._header_offset
 
     @_hdrLoc.setter
-    @deprecated('3.2', alternative='the `._header_offset` attribute',
+    @deprecated('0.3', alternative='the `._header_offset` attribute',
                 pending=True)
     def _hdrLoc(self, value):
         self._header_offset = value
 
     @property
-    @deprecated('3.2', alternative='the `._data_offset` attribute',
+    @deprecated('0.3', alternative='the `._data_offset` attribute',
                 pending=True)
     def _datLoc(self):
         """The byte offset of this HDU's data portion in the file it came from;
@@ -268,13 +268,13 @@ class _BaseHDU(object):
         return self._data_offset
 
     @_datLoc.setter
-    @deprecated('3.2', alternative='the `._data_offset` attribute',
+    @deprecated('0.3', alternative='the `._data_offset` attribute',
                 pending=True)
     def _datLoc(self, value):
         self._data_offset = value
 
     @property
-    @deprecated('3.2', alternative='the `._data_size` attribute',
+    @deprecated('0.3', alternative='the `._data_size` attribute',
                 pending=True)
     def _datSpan(self):
         """The byte size of this HDU's data portion in the file it came from;
@@ -284,7 +284,7 @@ class _BaseHDU(object):
         return self._data_size
 
     @_datSpan.setter
-    @deprecated('3.2', alternative='the `._data_size` attribute',
+    @deprecated('0.3', alternative='the `._data_size` attribute',
                 pending=True)
     def _datSpan(self, value):
         self._data_size = value
@@ -993,7 +993,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data = None
         return self.__class__(data=data, header=self._header.copy())
 
-    @deprecated('3.2', alternative='the ``.name`` attribute or `Header.set`',
+    @deprecated('0.3', alternative='the ``.name`` attribute or `Header.set`',
                 pending=True)
     def update_ext_name(self, value, comment=None, before=None,
                         after=None, savecomment=False):
@@ -1042,7 +1042,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         # EXTENSION_NAME_CASE_SENSITIVE
         self.name = value
 
-    @deprecated('3.2', alternative='the ``.ver`` attribute or `Header.set`',
+    @deprecated('0.3', alternative='the ``.ver`` attribute or `Header.set`',
                 pending=True)
     def update_ext_version(self, value, comment=None, before=None,
                            after=None, savecomment=False):

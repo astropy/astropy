@@ -632,7 +632,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
-@deprecated('3.1', alternative=':func:`tabledump`')
+@deprecated('0.1', alternative=':func:`tabledump`')
 def tdump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
           clobber=False):
     tabledump(filename, datafile, cdfile, hfile, ext, clobber)
@@ -674,7 +674,7 @@ def tableload(datafile, cdfile, hfile=None):
 tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
 
 
-@deprecated('3.1', alternative=':func:`tableload`')
+@deprecated('0.1', alternative=':func:`tableload`')
 def tcreate(datafile, cdfile, hfile=None):
     return tableload(datafile, cdfile, hfile)
 

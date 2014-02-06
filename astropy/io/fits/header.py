@@ -1954,7 +1954,7 @@ class Header(object):
     # compatibility
 
     @property
-    @deprecated('3.1', alternative='the `.cards` attribute')
+    @deprecated('0.1', alternative='the `.cards` attribute')
     def ascard(self):
         """
         Returns a ``CardList`` object wrapping this Header; provided for
@@ -1964,11 +1964,11 @@ class Header(object):
 
         return CardList(self)
 
-    @deprecated('3.1', alternative=':meth:`Header.rename_keyword`')
+    @deprecated('0.1', alternative=':meth:`Header.rename_keyword`')
     def rename_key(self, oldkey, newkey, force=False):
         self.rename_keyword(oldkey, newkey, force)
 
-    @deprecated('3.1', alternative="``header['HISTORY']``")
+    @deprecated('0.1', alternative="``header['HISTORY']``")
     def get_history(self):
         """
         Get all history cards as a list of string texts.
@@ -1979,7 +1979,7 @@ class Header(object):
         else:
             return []
 
-    @deprecated('3.1', alternative="``header['COMMENT']``")
+    @deprecated('0.1', alternative="``header['COMMENT']``")
     def get_comment(self):
         """
         Get all comment cards as a list of string texts.
@@ -1990,7 +1990,7 @@ class Header(object):
         else:
             return []
 
-    @deprecated('3.1', alternative=':meth:`Header.totextfile`')
+    @deprecated('0.1', alternative=':meth:`Header.totextfile`')
     def toTxtFile(self, fileobj, clobber=False):
         """
         Output the header parameters to a file in ASCII format.
@@ -2007,7 +2007,7 @@ class Header(object):
         self.tofile(fileobj, sep='\n', endcard=False, padding=False,
                     clobber=clobber)
 
-    @deprecated('3.1',
+    @deprecated('0.1',
                 message='This is equivalent to '
                         '``self.extend(Header.fromtextfile(fileobj), '
                         'update=True, update_first=True)``.  Note that there '

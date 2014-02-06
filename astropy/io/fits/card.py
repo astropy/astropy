@@ -43,7 +43,7 @@ UNDEFINED = Undefined()
 
 class CardList(list):
     """
-    .. deprecated:: 3.1
+    .. deprecated:: 0.1
         `CardList` used to provide the list-like functionality for manipulating
         a header as a list of cards.  This functionality is now subsumed into
         the `Header` class itself, so it is no longer necessary to create or
@@ -141,13 +141,13 @@ class CardList(list):
 
         return '\n'.join(str(card) for card in self)
 
-    @deprecated('3.1', alternative=':meth:`Header.copy`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.copy`', pending=False)
     def copy(self):
         """Make a (deep)copy of the `CardList`."""
 
         return CardList(self._header.copy())
 
-    @deprecated('3.1', alternative=':meth:`Header.keys`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.keys`', pending=False)
     def keys(self):
         """
         Return a list of all keywords from the `CardList`.
@@ -155,7 +155,7 @@ class CardList(list):
 
         return self._header.keys()
 
-    @deprecated('3.1', alternative=':meth:`Header.values`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.values`', pending=False)
     def values(self):
         """
         Return a list of the values of all cards in the `CardList`.
@@ -167,7 +167,7 @@ class CardList(list):
 
         return self._header.values()
 
-    @deprecated('3.1', alternative=':meth:`Header.append`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.append`', pending=False)
     def append(self, card, useblanks=True, bottom=False):
         """
         Append a `Card` to the `CardList`.
@@ -194,11 +194,11 @@ class CardList(list):
 
         self._header.append(card, useblanks=useblanks, bottom=bottom)
 
-    @deprecated('3.1', alternative=':meth:`Header.extend`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.extend`', pending=False)
     def extend(self, cards):
         self._header.extend(cards)
 
-    @deprecated('3.1', alternative=':meth:`Header.insert`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.insert`', pending=False)
     def insert(self, idx, card, useblanks=True):
         """
         Insert a `Card` to the `CardList`.
@@ -222,23 +222,23 @@ class CardList(list):
 
         self._header.insert(idx, card, useblanks=useblanks)
 
-    @deprecated('3.1', alternative=':meth:`Header.remove`')
+    @deprecated('0.1', alternative=':meth:`Header.remove`')
     def remove(self, card):
         del self._header[self.index(card)]
 
-    @deprecated('3.1', alternative=':meth:`Header.pop`')
+    @deprecated('0.1', alternative=':meth:`Header.pop`')
     def pop(self, index=-1):
         return self._header.pop(index)
 
-    @deprecated('3.1', alternative=':meth:`Header.index`')
+    @deprecated('0.1', alternative=':meth:`Header.index`')
     def index(self, card):
         return self._header._cards.index(card)
 
-    @deprecated('3.1', alternative=':meth:`Header.count`')
+    @deprecated('0.1', alternative=':meth:`Header.count`')
     def count(self, card):
         return self._header._cards.count(card)
 
-    @deprecated('3.1', alternative=':meth:`Header.index`', pending=False)
+    @deprecated('0.1', alternative=':meth:`Header.index`', pending=False)
     def index_of(self, key, backward=False):
         """
         Get the index of a keyword in the `CardList`.
@@ -265,7 +265,7 @@ class CardList(list):
         else:
             raise KeyError('Illegal key data type %s' % type(key))
 
-    @deprecated('3.1', alternative='``header[<wildcard_pattern>]``')
+    @deprecated('0.1', alternative='``header[<wildcard_pattern>]``')
     def filter_list(self, key):
         """
         Construct a `CardList` that contains references to all of the cards in
@@ -286,7 +286,7 @@ class CardList(list):
 
         return CardList(self._header[key])
 
-    @deprecated('3.1', pending=False)
+    @deprecated('0.1', pending=False)
     def count_blanks(self):
         """
         Returns how many blank cards are *directly* before the ``END``
@@ -526,7 +526,7 @@ class Card(_Verify):
             raise ValueError('Keyword name %r is not a string.' % keyword)
 
     @property
-    @deprecated('3.1', alternative='the `.keyword` attribute')
+    @deprecated('0.1', alternative='the `.keyword` attribute')
     def key(self):
         return self.keyword
 
@@ -744,11 +744,11 @@ class Card(_Verify):
         return self._image
 
     @property
-    @deprecated('3.1', alternative='the `.image` attribute')
+    @deprecated('0.1', alternative='the `.image` attribute')
     def cardimage(self):
         return self.image
 
-    @deprecated('3.1', alternative='the `.image` attribute')
+    @deprecated('0.1', alternative='the `.image` attribute')
     def ascardimage(self, option='silentfix'):
         if not self._verified:
             self.verify(option)
@@ -1361,7 +1361,7 @@ def create_card(key='', value='', comment=''):
     return Card(key, value, comment)
 create_card.__doc__ = Card.__init__.__doc__
 # For API backwards-compatibility
-create_card = deprecated('3.1', name='create_card',
+create_card = deprecated('0.1', name='create_card',
                          alternative='``Card.__init__``',
                          pending=False)(create_card)
 
@@ -1370,7 +1370,7 @@ def create_card_from_string(input):
     return Card.fromstring(input)
 create_card_from_string.__doc__ = Card.fromstring.__doc__
 # For API backwards-compat
-create_card_from_string = deprecated('3.1', name='create_card_from_string',
+create_card_from_string = deprecated('0.1', name='create_card_from_string',
                                      alternative=':meth:`Card.fromstring`',
                                      pending=False)(create_card_from_string)
 
@@ -1379,7 +1379,7 @@ def upper_key(key):
     return Card.normalize_keyword(key)
 upper_key.__doc__ = Card.normalize_keyword.__doc__
 # For API backwards-compat
-upper_key = deprecated('3.1', name='upper_key',
+upper_key = deprecated('0.1', name='upper_key',
                        alternative=':meth:`Card.normalize_keyword`',
                        pending=False)(upper_key)
 

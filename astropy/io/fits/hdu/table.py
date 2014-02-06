@@ -832,7 +832,7 @@ class BinTableHDU(_TableBaseHDU):
 
     dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
-    @deprecated('3.1', alternative=':meth:`dump`')
+    @deprecated('0.1', alternative=':meth:`dump`')
     def tdump(self, datafile=None, cdfile=None, hfile=None, clobber=False):
         self.dump(datafile, cdfile, hfile, clobber)
 
@@ -918,7 +918,7 @@ class BinTableHDU(_TableBaseHDU):
     # Have to create a classmethod from this here instead of as a decorator;
     # otherwise we can't update __doc__
 
-    @deprecated('3.1', alternative=':meth:`load`')
+    @deprecated('0.1', alternative=':meth:`load`')
     @classmethod
     def tcreate(cls, datafile, cdfile=None, hfile=None, replace=False,
                 header=None):
@@ -1172,7 +1172,7 @@ class BinTableHDU(_TableBaseHDU):
         return ColDefs(columns)
 
 
-@deprecated('3.2',
+@deprecated('0.3',
             alternative=':meth:`FITS_rec.from_columns` to create a new '
                         ':class:`FITS_rec` data object from the input '
                         'columns to pass into the constructor for '

@@ -19,7 +19,6 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    _array_to_file, _write_string, encode_ascii)
 from ...extern.six import PY3, b, string_types
 from ...extern.six.moves import urllib
-from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning
 
 

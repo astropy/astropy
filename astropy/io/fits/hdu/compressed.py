@@ -1333,7 +1333,7 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateHeaderData(self, image_header,
                          name=None,
                          compressionType=None,
@@ -1409,7 +1409,7 @@ class CompImageHDU(BinTableHDU):
         return self.compressed_data
 
     @lazyproperty
-    @deprecated('3.2', alternative='the `.compressed_data attribute`',
+    @deprecated('0.3', alternative='the `.compressed_data attribute`',
                 pending=True)
     def compData(self):
         return self.compressed_data
@@ -1637,7 +1637,7 @@ class CompImageHDU(BinTableHDU):
         # Update the table header cards to match the compressed data.
         self._update_header()
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateCompressedData(self):
         self._update_compressed_data()
 
@@ -1694,7 +1694,7 @@ class CompImageHDU(BinTableHDU):
                              'bytes per pixel (1, 2, 4, or 8)',
                              after='ZNAME2')
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateHeader(self):
         self._update_header()
 
