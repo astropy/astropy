@@ -560,3 +560,18 @@ def test_footprint_to_file():
     # Just check that this doesn't raise an exception:
     w.footprint_to_file(tmp.name)
     tmp.close()
+
+
+def test_validate_faulty_wcs():
+    """
+    From github issue #2053
+    """
+    from ...io import fits
+    h = fits.Header()
+    # Illegal WCS:
+    h['RADESYSA'] = 'ICRS'
+    h['PV2_1'] = 1.0
+    hdu = fits.PrimaryHDU([[0]], header=h)
+    hdulist = fits.HDUList([hdu])
+    # Check that this doesn't raise a NameError exception:
+    wcs.validate(hdulist)
