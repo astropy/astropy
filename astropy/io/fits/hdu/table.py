@@ -65,6 +65,10 @@ class _TableLikeHDU(_ValidHDU):
 
     @lazyproperty
     def columns(self):
+        """
+        The :class:`ColDefs` objects describing the columns in this table.
+        """
+
         # The base class doesn't make any assumptions about where the column
         # definitions come from, so just return an empty ColDefs
         return ColDefs([])
@@ -139,7 +143,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             name to be populated in ``EXTNAME`` keyword
 
         uint : bool, optional
-            set to ``True`` if the table contains unsigned integer columns.
+            set to `True` if the table contains unsigned integer columns.
         """
 
         super(_TableBaseHDU, self).__init__(data=data, header=header,
@@ -269,6 +273,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     @lazyproperty
     def columns(self):
+        """
+        The :class:`ColDefs` objects describing the columns in this table.
+        """
+
         if self._has_data and hasattr(self.data, '_coldefs'):
             return self.data._coldefs
         return self._columns_type(self)
@@ -589,43 +597,34 @@ class BinTableHDU(_TableBaseHDU):
         return (card.keyword == 'XTENSION' and
                 xtension in (cls._extension, 'A3DTABLE'))
 
-    def _calculate_datasum_from_data(self, data, blocking):
+    def _calculate_datasum_with_heap(self, blocking):
         """
         Calculate the value for the ``DATASUM`` card given the input data
         """
 
-        # Check the byte order of the data.  If it is little endian we
-        # must swap it before calculating the datasum.
-        for i in range(data._nfields):
-            coldata = data.field(i)
+        swapped = self._binary_table_byte_swap()
+        try:
+            dout = self.data.view(dtype='ubyte')
+            csum = self._compute_checksum(dout, blocking=blocking)
 
-            if not isinstance(coldata, chararray.chararray):
-                if isinstance(coldata, _VLF):
-                    for j, d in enumerate(coldata):
-                        if not isinstance(d, chararray.chararray):
-                            if d.itemsize > 1:
-                                if d.dtype.str[0] != '>':
-                                    d[:] = d.byteswap()
-                                    d.dtype = d.dtype.newbyteorder('>')
-                        field = np.rec.recarray.field(data, i)[j:j + 1]
-                        if field.dtype.str[0] != '>':
-                            field.byteswap(True)
-                else:
-                    if coldata.itemsize > 1:
-                        if data.field(i).dtype.str[0] != '>':
-                            data.field(i)[:] = data.field(i).byteswap()
-        data.dtype = data.dtype.newbyteorder('>')
+            # Now add in the heap data to the checksum (we can skip any gap
+            # between the table and the heap since it's all zeros and doesn't
+            # contribute to the checksum
+            for idx in range(self.data._nfields):
+                if isinstance(self.data.columns._recformats[idx], _FormatP):
+                    for coldata in self.data.field(idx):
+                        # coldata should already be byteswapped from the call
+                        # to _binary_table_byte_swap
+                        if not len(coldata):
+                            continue
 
-        dout = data.view(dtype='ubyte')
+                        csum = self._compute_checksum(coldata, csum,
+                                                      blocking=blocking)
 
-        for i in range(data._nfields):
-            if isinstance(data._coldefs._recformats[i], _FormatP):
-                for coldata in data.field(i):
-                    if len(coldata) > 0:
-                        dout = np.append(dout, coldata.view(dtype='ubyte'))
-
-        cs = self._compute_checksum(dout, blocking=blocking)
-        return cs
+            return csum
+        finally:
+            for arr in swapped:
+                arr.byteswap(True)
 
     def _calculate_datasum(self, blocking):
         """
@@ -633,8 +632,10 @@ class BinTableHDU(_TableBaseHDU):
         """
 
         if self._has_data:
-            # We have the data to be used.
-            return self._calculate_datasum_from_data(self.data, blocking)
+            # This method calculates the datasum while incorporating any
+            # heap data, which is obviously not handled from the base
+            # _calculate_datasum
+            return self._calculate_datasum_with_heap(blocking)
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
@@ -646,12 +647,37 @@ class BinTableHDU(_TableBaseHDU):
         size = 0
 
         if self.data is not None:
-            size += self._binary_table_byte_swap(fileobj)
+            swapped = self._binary_table_byte_swap()
+            try:
+                fileobj.writearray(self.data)
+                # write out the heap of variable length array columns this has
+                # to be done after the "regular" data is written (above)
+                fileobj.write((self.data._gap * '\0').encode('ascii'))
+
+                nbytes = self.data._gap
+
+                for idx in range(self.data._nfields):
+                    if not isinstance(self.data.columns._recformats[idx],
+                                      _FormatP):
+                        continue
+
+                    field = self.data.field(idx)
+                    for row in field:
+                        if len(row) > 0:
+                            nbytes += row.nbytes
+                            if not fileobj.simulateonly:
+                                fileobj.writearray(row)
+
+                self.data._heapsize = nbytes - self.data._gap
+                size += nbytes
+            finally:
+                for arr in swapped:
+                    arr.byteswap(True)
             size += self.data.size * self.data.itemsize
 
         return size
 
-    def _binary_table_byte_swap(self, fileobj):
+    def _binary_table_byte_swap(self):
         """Prepares data in the native FITS format and writes the raw bytes
         out to the given file object.  This handles byte swapping from native
         to big endian (if necessary).  In addition, however, this also handles
@@ -660,60 +686,34 @@ class BinTableHDU(_TableBaseHDU):
         """
 
         to_swap = []
-        swapped = []
-        nbytes = 0
+
         if sys.byteorder == 'little':
             swap_types = ('<', '=')
         else:
             swap_types = ('<',)
-        try:
-            if not fileobj.simulateonly:
-                for idx in range(self.data._nfields):
-                    field = np.rec.recarray.field(self.data, idx)
-                    if isinstance(field, chararray.chararray):
-                        continue
-                    recformat = self.data.columns._recformats[idx]
-                    # only swap unswapped
-                    if field.itemsize > 1 and field.dtype.str[0] in swap_types:
-                        to_swap.append(field)
-                    # deal with var length table
-                    if isinstance(recformat, _FormatP):
-                        coldata = self.data.field(idx)
-                        for c in coldata:
-                            if (not isinstance(c, chararray.chararray) and
-                                c.itemsize > 1 and
-                                    c.dtype.str[0] in swap_types):
-                                to_swap.append(c)
 
-                while to_swap:
-                    obj = to_swap.pop()
-                    obj.byteswap(True)
-                    swapped.append(obj)
+        for idx in range(self.data._nfields):
+            field = np.rec.recarray.field(self.data, idx)
+            if isinstance(field, chararray.chararray):
+                continue
 
-                fileobj.writearray(self.data)
+            # only swap unswapped
+            if field.itemsize > 1 and field.dtype.str[0] in swap_types:
+                to_swap.append(field)
 
-                # write out the heap of variable length array
-                # columns this has to be done after the
-                # "regular" data is written (above)
-                fileobj.write((self.data._gap * '\0').encode('ascii'))
+            # deal with var length table
+            recformat = self.data.columns._recformats[idx]
+            if isinstance(recformat, _FormatP):
+                coldata = self.data.field(idx)
+                for c in coldata:
+                    if (not isinstance(c, chararray.chararray) and
+                            c.itemsize > 1 and c.dtype.str[0] in swap_types):
+                        to_swap.append(c)
 
-            nbytes = self.data._gap
+        for arr in reversed(to_swap):
+            arr.byteswap(True)
 
-            for idx in range(self.data._nfields):
-                if isinstance(self.data.columns._recformats[idx], _FormatP):
-                    field = self.data.field(idx)
-                    for row in field:
-                        if len(row) > 0:
-                            nbytes += row.nbytes
-                            if not fileobj.simulateonly:
-                                fileobj.writearray(row)
-
-            self.data._heapsize = nbytes - self.data._gap
-        finally:
-            for obj in swapped:
-                obj.byteswap(True)
-
-        return nbytes
+        return to_swap
 
     _tdump_file_format = textwrap.dedent("""
 
@@ -742,9 +742,9 @@ class BinTableHDU(_TableBaseHDU):
           .. note::
 
               This format does *not* support variable length arrays using the
-              ('Q' format) due difficult to overcome ambiguities. What
-              this means is that this file format cannot support VLA columns
-              in tables stored in files that are over 2 GB in size.
+              ('Q' format) due to difficult to overcome ambiguities. What this
+              means is that this file format cannot support VLA columns in
+              tables stored in files that are over 2 GB in size.
 
           For column data representing a bit field ('X' format), each bit
           value in the field is output right-justified in a 21-character field
@@ -876,7 +876,7 @@ class BinTableHDU(_TableBaseHDU):
             When the cdfile and hfile are missing, use this Header object in
             the creation of the new table and HDU.  Otherwise this Header
             supercedes the keywords from hfile, which is only used to update
-            values not present in this Header, unless replace=True in which
+            values not present in this Header, unless ``replace=True`` in which
             this Header's values are completely replaced with the values from
             hfile.
 
@@ -1187,28 +1187,28 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype=BinTableHDU):
     separate arrays they must be combined into a single contiguous array.
 
     If the column data is already in a single contiguous array (such as an
-    existing record array) it may be better to create a BinTableHDU instance
+    existing record array) it may be better to create a `BinTableHDU` instance
     directly.  See the Astropy documentation for more details.
 
     Parameters
     ----------
-    input : sequence of Column or ColDefs objects
-        The data to create a table from.
+    input : sequence of `Column` or a `ColDefs`
+        The data to create a table from
 
-    header : Header instance
-        Header to be used to populate the non-required keywords.
+    header : `Header` instance
+        Header to be used to populate the non-required keywords
 
     nrows : int
-        Number of rows in the new table.
+        Number of rows in the new table
 
     fill : bool
         If `True`, will fill all cells with zeros or blanks.  If
         `False`, copy the data from input, undefined cells will still
         be filled with zeros/blanks.
 
-    tbtype : str or class
-        Table type to be created (BinTableHDU or TableHDU) or the class
-        name as a string.  Currently only BinTableHDU and TableHDU (ASCII
+    tbtype : str or type
+        Table type to be created (`BinTableHDU` or `TableHDU`) or the class
+        name as a string.  Currently only `BinTableHDU` and `TableHDU` (ASCII
         tables) are supported.
     """
 

@@ -160,7 +160,7 @@ class CardList(list):
         """
         Return a list of the values of all cards in the `CardList`.
 
-        For `RecordValuedKeywordCard` objects, the value returned is
+        For ``RecordValuedKeywordCard`` objects, the value returned is
         the floating point value, exclusive of the
         ``field_specifier``.
         """
@@ -180,17 +180,16 @@ class CardList(list):
         useblanks : bool, optional
             Use any *extra* blank cards?
 
-            If `useblanks` is `True`, and if there are blank cards
-            directly before ``END``, it will use this space first,
-            instead of appending after these blank cards, so the total
-            space will not increase.  When `useblanks` is `False`, the
-            card will be appended at the end, even if there are blank
-            cards in front of ``END``.
+            If ``useblanks`` is `True`, and if there are blank cards directly
+            before ``END``, it will use this space first, instead of appending
+            after these blank cards, so the total space will not increase.
+            When ``useblanks`` is `False`, the card will be appended at the
+            end, even if there are blank cards in front of ``END``.
 
         bottom : bool, optional
-           If `False` the card will be appended after the last
-           non-commentary card.  If `True` the card will be appended
-           after the last non-blank card.
+           If `False` the card will be appended after the last non-commentary
+           card.  If `True` the card will be appended after the last non-blank
+           card.
         """
 
         self._header.append(card, useblanks=useblanks, bottom=bottom)
@@ -214,12 +213,11 @@ class CardList(list):
             The card to be inserted.
 
         useblanks : bool, optional
-            If `useblanks` is `True`, and if there are blank cards
-            directly before ``END``, it will use this space first,
-            instead of appending after these blank cards, so the total
-            space will not increase.  When `useblanks` is `False`, the
-            card will be appended at the end, even if there are blank
-            cards in front of ``END``.
+            If ``useblanks`` is `True`, and if there are blank cards directly
+            before ``END``, it will use this space first, instead of appending
+            after these blank cards, so the total space will not increase.
+            When `useblanks` is `False`, the card will be appended at the end,
+            even if there are blank cards in front of ``END``.
         """
 
         self._header.insert(idx, card, useblanks=useblanks)
@@ -250,7 +248,7 @@ class CardList(list):
         key : str or int
             The keyword name (a string) or the index (an integer).
 
-        backward : bool, (optional)
+        backward : bool, optional
             When `True`, search the index from the ``END``, i.e.,
             backward.
 
@@ -267,7 +265,7 @@ class CardList(list):
         else:
             raise KeyError('Illegal key data type %s' % type(key))
 
-    @deprecated('3.1', alternative='`header[<wildcard_pattern>]`')
+    @deprecated('3.1', alternative='``header[<wildcard_pattern>]``')
     def filter_list(self, key):
         """
         Construct a `CardList` that contains references to all of the cards in
@@ -281,7 +279,7 @@ class CardList(list):
 
         Returns
         -------
-        cardlist :
+        cardlist
             A `CardList` object containing references to all the
             requested cards.
         """
@@ -299,7 +297,9 @@ class CardList(list):
 
 
 class Card(_Verify):
+
     length = CARD_LENGTH
+    """The length of a Card image; should always be 80 for valid FITS files."""
 
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)
@@ -386,7 +386,7 @@ class Card(_Verify):
     _rvkc_field_specifier_val = (r'(?P<keyword>%s): (?P<val>%s)' %
                                  (_rvkc_field_specifier_s, _numr_FSC))
     _rvkc_keyword_val = r'\'(?P<rawval>%s)\'' % _rvkc_field_specifier_val
-    _rvkc_keyword_val_comm = (r' +%s *(/ *(?P<comm>[ -~]*))?$' %
+    _rvkc_keyword_val_comm = (r' *%s *(/ *(?P<comm>[ -~]*))?$' %
                               _rvkc_keyword_val)
 
     _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val + '$')
@@ -403,7 +403,7 @@ class Card(_Verify):
     # (ex "'AXIS.1: 1' / a comment")
     _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-    _commentary_keywords = ['', 'COMMENT', 'HISTORY', 'END']
+    _commentary_keywords = set(['', 'COMMENT', 'HISTORY', 'END'])
 
     # The default value indicator; may be changed if required by a convention
     # (namely HIERARCH cards)
@@ -417,7 +417,7 @@ class Card(_Verify):
         self._keyword = None
         self._value = None
         self._comment = None
-        self._rawvalue = None
+
         self._image = None
 
         # This attribute is set to False when creating the card from a card
@@ -434,7 +434,12 @@ class Card(_Verify):
         self._invalid = False
 
         self._field_specifier = None
-        if not self._check_if_rvkc(keyword, value):
+        # These are used primarily only by RVKCs
+        self._rawkeyword = None
+        self._rawvalue = None
+
+        if not (keyword is not None and value is not None and
+                self._check_if_rvkc(keyword, value)):
             # If _check_if_rvkc passes, it will handle setting the keyword and
             # value
             if keyword is not None:
@@ -527,6 +532,8 @@ class Card(_Verify):
 
     @property
     def value(self):
+        """The value associated with the keyword stored in this card."""
+
         if self.field_specifier:
             return float(self._value)
 
@@ -575,14 +582,32 @@ class Card(_Verify):
                     'FITS header values must contain standard ASCII '
                     'characters; %r contains characters not representable in '
                     'ASCII.' % value)
+        elif isinstance(value, bytes):
+            # Allow str, but only if they can be decoded to ASCII text; note
+            # this is not even allowed on Python 3 since the `bytes` type is
+            # not included in `six.string_types`.  Presently we simply don't
+            # allow bytes to be assigned to headers, as doing so would too
+            # easily mask potential user error
+            try:
+                value.decode('ascii')
+            except UnicodeDecodeError:
+                raise ValueError(
+                    'FITS header values must contain standard ASCII '
+                    'characters; %r contains characters/bytes that do not '
+                    'represent characters in ASCII.' % value)
+        elif isinstance(value, np.bool_):
+            value = bool(value)
 
         if (STRIP_HEADER_WHITESPACE() and
             (isinstance(oldvalue, string_types) and
              isinstance(value, string_types))):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
+        elif isinstance(oldvalue, bool) or isinstance(value, bool):
+            different = oldvalue is not value
         else:
-            different = oldvalue != value
+            different = (oldvalue != value or
+                         not isinstance(value, type(oldvalue)))
 
         if different:
             self._value = value
@@ -608,6 +633,12 @@ class Card(_Verify):
         else:
             raise AttributeError('Values cannot be deleted from record-valued '
                                  'keyword cards')
+
+    @property
+    def rawkeyword(self):
+        if self._rawkeyword is None and self.keyword:
+            self._rawkeyword = self.keyword
+        return self._rawkeyword
 
     @property
     def rawvalue(self):
@@ -701,6 +732,11 @@ class Card(_Verify):
 
     @property
     def image(self):
+        """
+        The card "image", that is, the 80 byte character string that represents
+        this card in an actual FITS header.
+        """
+
         if self._image and not self._verified:
             self.verify('fix')
         if self._image is None or self._modified:
@@ -743,12 +779,15 @@ class Card(_Verify):
         ----------
         key : or str
             A keyword value or a ``keyword.field-specifier`` value
-
-        Returns
-        -------
-            The converted string
         """
 
+        # Test first for the most common case: a standard FITS keyword provided
+        # in standard all-caps
+        if (len(keyword) <= KEYWORD_LENGTH and
+                cls._keywd_FSC_RE.match(keyword)):
+            return keyword
+
+        # Test if this is a record-valued keyword
         match = cls._rvkc_keyword_name_RE.match(keyword)
 
         if match:
@@ -760,6 +799,7 @@ class Card(_Verify):
             # "HIERARCH HIERARCH", but shame on you if you do that.
             return keyword[9:].strip()
         else:
+            # A normal FITS keyword, but provided in non-standard case
             return keyword.strip().upper()
 
     def _check_if_rvkc(self, *args):
@@ -790,22 +830,7 @@ class Card(_Verify):
             return False
 
         if len(args) == 1:
-            image = args[0]
-            eq_idx = image.find('=')
-            if eq_idx < 0 or eq_idx > 9:
-                return False
-            keyword, rest = image.split('=', 1)
-            if keyword in self._commentary_keywords:
-                return False
-            match = self._rvkc_keyword_val_comm_RE.match(rest)
-            if match:
-                field_specifier = match.group('keyword')
-                self._keyword = '.'.join((keyword.strip().upper(),
-                                          field_specifier))
-                self._field_specifier = field_specifier
-                self._value = _int_or_float(match.group('val'))
-                self._rawvalue = match.group('rawval')
-                return True
+            self._check_if_rvkc_image(*args)
         elif len(args) == 2:
             keyword, value = args
             if not isinstance(keyword, string_types):
@@ -820,36 +845,88 @@ class Card(_Verify):
                 self._field_specifier = field_specifier
                 self._value = value
                 return True
-            if isinstance(value, string_types):
+
+            # Testing for ': ' is a quick way to avoid running the full regular
+            # expression, speeding this up for the majority of cases
+            if isinstance(value, string_types) and value.find(': ') > 0:
                 match = self._rvkc_field_specifier_val_RE.match(value)
                 if match and self._keywd_FSC_RE.match(keyword):
-                    field_specifier = match.group('keyword')
-                    self._keyword = '.'.join((keyword.upper(),
-                                              field_specifier))
-                    self._field_specifier = field_specifier
-                    self._value = _int_or_float(match.group('val'))
-                    self._rawvalue = value
+                    self._init_rvkc(keyword, match.group('keyword'), value,
+                                    match.group('val'))
                     return True
 
-    def _parse_keyword(self):
-        if self._check_if_rvkc(self._image):
-            return self._keyword
+    def _check_if_rvkc_image(self, *args):
+        """
+        Implements `Card._check_if_rvkc` for the case of an unparsed card
+        image.  If given one argment this is the full intact image.  If given
+        two arguments the card has already been split between keyword and
+        value+comment at the standard value indicator '= '.
+        """
 
+        if len(args) == 1:
+            image = args[0]
+            eq_idx = image.find(VALUE_INDICATOR)
+            if eq_idx < 0 or eq_idx > 9:
+                return False
+            keyword = image[:eq_idx]
+            rest = image[eq_idx + len(VALUE_INDICATOR):]
+        else:
+            keyword, rest = args
+
+        rest = rest.lstrip()
+
+        # This test allows us to skip running the full regular expression for
+        # the majority of cards that do not contain strings or that definitely
+        # do not contain RVKC field-specifiers; it's very much a
+        # micro-optimization but it does make a measurable difference
+        if not rest or rest[0] != "'" or rest.find(': ') < 2:
+            return False
+
+        match = self._rvkc_keyword_val_comm_RE.match(rest)
+        if match:
+            self._init_rvkc(keyword, match.group('keyword'),
+                            match.group('rawval'), match.group('val'))
+            return True
+
+    def _init_rvkc(self, keyword, field_specifier, field, value):
+        """
+        Sort of addendum to Card.__init__ to set the appropriate internal
+        attributes if the card was determined to be a RVKC.
+        """
+
+        keyword_upper = keyword.upper()
+        self._keyword = '.'.join((keyword_upper, field_specifier))
+        self._rawkeyword = keyword_upper
+        self._field_specifier = field_specifier
+        self._value = _int_or_float(value)
+        self._rawvalue = field
+
+    def _parse_keyword(self):
         keyword = self._image[:KEYWORD_LENGTH].strip()
         keyword_upper = keyword.upper()
-        value_indicator = self._image.find(VALUE_INDICATOR)
+        val_ind_idx = self._image.find(VALUE_INDICATOR)
 
-        special = self._commentary_keywords + ['CONTINUE']
+        special = self._commentary_keywords
 
-        if keyword_upper in special or 0 <= value_indicator <= KEYWORD_LENGTH:
+        if (0 <= val_ind_idx <= KEYWORD_LENGTH or keyword_upper in special or
+                keyword_upper == 'CONTINUE'):
             # The value indicator should appear in byte 8, but we are flexible
             # and allow this to be fixed
-            if value_indicator >= 0:
-                keyword = keyword[:value_indicator]
-                keyword_upper = keyword_upper[:value_indicator]
+            if val_ind_idx >= 0:
+                keyword = keyword[:val_ind_idx]
+                rest = self._image[val_ind_idx + len(VALUE_INDICATOR):]
+
+                # So far this looks like a standard FITS keyword; check whether
+                # the value represents a RVKC; if so then we pass things off to
+                # the RVKC parser
+                if self._check_if_rvkc_image(keyword, rest):
+                    return self._keyword
+
+                keyword_upper = keyword_upper[:val_ind_idx]
 
             if keyword_upper != keyword:
                 self._modified = True
+
             return keyword_upper
         elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
               HIERARCH_VALUE_INDICATOR in self._image):
@@ -970,7 +1047,7 @@ class Card(_Verify):
         else:
             image = self.image
 
-        if self.keyword in self._commentary_keywords + ['CONTINUE']:
+        if self.keyword in self._commentary_keywords.union(['CONTINUE']):
             keyword, valuecomment = image.split(' ', 1)
         else:
             try:
@@ -1285,7 +1362,7 @@ def create_card(key='', value='', comment=''):
 create_card.__doc__ = Card.__init__.__doc__
 # For API backwards-compatibility
 create_card = deprecated('3.1', name='create_card',
-                         alternative=':meth:`Card.__init__`',
+                         alternative='``Card.__init__``',
                          pending=False)(create_card)
 
 

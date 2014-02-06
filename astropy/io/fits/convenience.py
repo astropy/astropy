@@ -150,17 +150,17 @@ def getdata(filename, *args, **kwargs):
 
             getdata('in.fits', ext=('sci',1), extname='err', extver=2)
 
-    header : bool (optional)
+    header : bool, optional
         If `True`, return the data and the header of the specified HDU as a
         tuple.
 
-    lower, upper : bool (optional)
+    lower, upper : bool, optional
         If `lower` or `upper` are `True`, the field names in the
         returned data object will be converted to lower or upper case,
         respectively.
 
-    view : ndarray (optional)
-        When given, the data will be turned wrapped in the given ndarray
+    view : ndarray, optional
+        When given, the data will be returned wrapped in the given ndarray
         subclass by calling::
 
            data.view(view)
@@ -174,8 +174,8 @@ def getdata(filename, *args, **kwargs):
     array : array, record array or groups data object
         Type depends on the type of the extension being referenced.
 
-        If the optional keyword `header` is set to `True`, this
-        function will return a (`data`, `header`) tuple.
+        If the optional keyword ``header`` is set to `True`, this
+        function will return a (``data``, ``header``) tuple.
     """
 
     mode, closed = _get_file_mode(filename)
@@ -267,8 +267,8 @@ def setval(filename, keyword, *args, **kwargs):
 
     If the keyword already exists, it's value/comment will be updated.
     If it does not exist, a new card will be created and it will be
-    placed before or after the specified location.  If no `before` or
-    `after` is specified, it will be appended at the end.
+    placed before or after the specified location.  If no ``before`` or
+    ``after`` is specified, it will be appended at the end.
 
     When updating more than one keyword in a file, this convenience
     function is a much less efficient approach compared with opening
@@ -277,33 +277,33 @@ def setval(filename, keyword, *args, **kwargs):
     Parameters
     ----------
     filename : file path, file object, or file like object
-        Name of the FITS file, or file object If opened, mode must be
-        update (rb+).  An opened file object or `GzipFile` object will
-        be closed upon return.
+        Name of the FITS file, or file object If opened, mode must be update
+        (rb+).  An opened file object or `~gzip.GzipFile` object will be closed
+        upon return.
 
     keyword : str
         Keyword name
 
-    value : str, int, float (optional)
+    value : str, int, float, optional
         Keyword value (default: `None`, meaning don't modify)
 
-    comment : str (optional)
+    comment : str, optional
         Keyword comment, (default: `None`, meaning don't modify)
 
-    before : str, int (optional)
+    before : str, int, optional
         Name of the keyword, or index of the card before which the new card
-        will be placed.  The argument `before` takes precedence over `after` if
-        both are specified (default: `None`).
+        will be placed.  The argument ``before`` takes precedence over
+        ``after`` if both are specified (default: `None`).
 
-    after : str, int (optional)
+    after : str, int, optional
         Name of the keyword, or index of the card after which the new card will
         be placed. (default: `None`).
 
-    savecomment : bool (optional)
+    savecomment : bool, optional
         When `True`, preserve the current comment for an existing keyword.  The
-        argument `savecomment` takes precedence over `comment` if both
-        specified.  If `comment` is not specified then the current comment will
-        automatically be preserved  (default: `False`).
+        argument ``savecomment`` takes precedence over ``comment`` if both
+        specified.  If ``comment`` is not specified then the current comment
+        will automatically be preserved  (default: `False`).
 
     ext, extname, extver
         The rest of the arguments are for extension specification.
@@ -341,9 +341,9 @@ def delval(filename, keyword, *args, **kwargs):
     ----------
 
     filename : file path, file object, or file like object
-        Name of the FITS file, or file object If opened, mode must be
-        update (rb+).  An opened file object or `GzipFile` object will
-        be closed upon return.
+        Name of the FITS file, or file object If opened, mode must be update
+        (rb+).  An opened file object or `~gzip.GzipFile` object will be closed
+        upon return.
 
     keyword : str, int
         Keyword name or index
@@ -376,12 +376,13 @@ def writeto(filename, data, header=None, output_verify='exception',
     Parameters
     ----------
     filename : file path, file object, or file like object
-        File to write to.  If opened, must be opened for append (ab+).
+        File to write to.  If opened, must be opened in a writeable binary
+        mode such as 'wb' or 'ab+'.
 
     data : array, record array, or groups data object
         data to write to the new file
 
-    header : `Header` object (optional)
+    header : `Header` object, optional
         the header associated with `data`. If `None`, a header
         of the appropriate type is created for the supplied data. This
         argument is optional.
@@ -391,11 +392,11 @@ def writeto(filename, data, header=None, output_verify='exception',
         ``"silentfix"``, ``"ignore"``, ``"warn"``, or
         ``"exception"``.  See :ref:`verify` for more info.
 
-    clobber : bool (optional)
+    clobber : bool, optional
         If `True`, and if filename already exists, it will overwrite
         the file.  Default is `False`.
 
-    checksum : bool (optional)
+    checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
     """
@@ -416,27 +417,26 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
     Parameters
     ----------
     filename : file path, file object, or file like object
-        File to write to.  If opened, must be opened for update (rb+)
-        unless it is a new file, then it must be opened for append
-        (ab+).  A file or `GzipFile` object opened for update will be
-        closed after return.
+        File to write to.  If opened, must be opened for update (rb+) unless it
+        is a new file, then it must be opened for append (ab+).  A file or
+        `~gzip.GzipFile` object opened for update will be closed after return.
 
     data : array, table, or group data object
         the new data used for appending
 
-    header : `Header` object (optional)
-        The header associated with `data`.  If `None`, an appropriate
-        header will be created for the data object supplied.
+    header : `Header` object, optional
+        The header associated with ``data``.  If `None`, an appropriate header
+        will be created for the data object supplied.
 
-    checksum : bool (optional)
-        When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to
-        the header of the HDU when written to the file.
+    checksum : bool, optional
+        When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to the header
+        of the HDU when written to the file.
 
-    verify : bool (optional)
-        When `True`, the existing FITS file will be read in to verify
-        it for correctness before appending.  When `False`, content is
-        simply appended to the end of the file.  Setting *verify* to
-        `False` can be much faster.
+    verify: bool, optional
+        When `True`, the existing FITS file will be read in to verify it for
+        correctness before appending.  When `False`, content is simply appended
+        to the end of the file.  Setting ``verify`` to `False` can be much
+        faster.
 
     kwargs
         Any additional keyword arguments to be passed to
@@ -480,23 +480,22 @@ def update(filename, data, *args, **kwargs):
     Parameters
     ----------
     filename : file path, file object, or file like object
-        File to update.  If opened, mode must be update (rb+).  An
-        opened file object or `GzipFile` object will be closed upon
-        return.
+        File to update.  If opened, mode must be update (rb+).  An opened file
+        object or `~gzip.GzipFile` object will be closed upon return.
 
     data : array, table, or group data object
         the new data used for updating
 
-    header : `Header` object (optional)
-        The header associated with `data`.  If `None`, an appropriate
-        header will be created for the data object supplied.
+    header : `Header` object, optional
+        The header associated with ``data``.  If `None`, an appropriate header
+        will be created for the data object supplied.
 
     ext, extname, extver
-        The rest of the arguments are flexible: the 3rd argument can
-        be the header associated with the data.  If the 3rd argument
-        is not a `Header`, it (and other positional arguments) are
-        assumed to be the extension specification(s).  Header and
-        extension specs can also be keyword arguments.  For example::
+        The rest of the arguments are flexible: the 3rd argument can be the
+        header associated with the data.  If the 3rd argument is not a
+        `Header`, it (and other positional arguments) are assumed to be the
+        extension specification(s).  Header and extension specs can also be
+        keyword arguments.  For example::
 
             update(file, dat, hdr, 'sci')  # update the 'sci' extension
             update(file, dat, 3)  # update the 3rd extension
@@ -543,9 +542,9 @@ def info(filename, output=None, **kwargs):
     ----------
     filename : file path, file object, or file like object
         FITS file to obtain info from.  If opened, mode must be one of
-        the following: rb, rb+, or ab+.
+        the following: rb, rb+, or ab+ (i.e. the file must be readable).
 
-    output : file, bool (optional)
+    output : file, bool, optional
         A file-like object to write the output to.  If ``False``, does not
         output to a file and instead returns a list of tuples representing the
         HDU info.  Writes to ``sys.stdout`` by default.
@@ -582,16 +581,16 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     filename : file path, file object or file-like object
         Input fits file.
 
-    datafile : file path, file object or file-like object (optional)
+    datafile : file path, file object or file-like object, optional
         Output data file.  The default is the root name of the input
         fits file appended with an underscore, followed by the
         extension number (ext), followed by the extension ``.txt``.
 
-    cdfile : file path, file object or file-like object (optional)
+    cdfile : file path, file object or file-like object, optional
         Output column definitions file.  The default is `None`,
         no column definitions output is produced.
 
-    hfile : file path, file object or file-like object (optional)
+    hfile : file path, file object or file-like object, optional
         Output header parameters file.  The default is `None`,
         no header parameters output is produced.
 
@@ -658,7 +657,7 @@ def tableload(datafile, cdfile, hfile=None):
         dimensions, undefined values, scale factors, and offsets
         associated with the columns in the table.
 
-    hfile : file path, file object or file-like object (optional)
+    hfile : file path, file object or file-like object, optional
         Input parameter definition file containing the header
         parameter definitions to be associated with the table.
         If `None`, a minimal header is constructed.

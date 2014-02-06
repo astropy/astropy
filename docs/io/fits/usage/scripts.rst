@@ -16,7 +16,7 @@ fitsdiff
 
 .. currentmodule:: astropy.io.fits
 
-fitsdiff provides a thin command-line wrapper around the :class:`FITSDiff`
+``fitsdiff`` provides a thin command-line wrapper around the :class:`FITSDiff`
 interface--it outputs the report from a :class:`FITSDiff` of two FITS files,
 and like common diff-like commands returns a 0 status code if no differences
 were found, and 1 if differences were found:

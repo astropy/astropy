@@ -81,6 +81,7 @@ KEYWORD_NAMES = ['TTYPE', 'TFORM', 'TUNIT', 'TNULL', 'TSCAL', 'TZERO',
                  'TDISP', 'TBCOL', 'TDIM']
 KEYWORD_ATTRIBUTES = ['name', 'format', 'unit', 'null', 'bscale', 'bzero',
                       'disp', 'start', 'dim']
+"""This is a list of the attributes that can be set on `Column` objects."""
 
 # TFORMn regular expression
 TFORMAT_RE = re.compile(r'(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])'
@@ -352,9 +353,8 @@ class _FormatQ(_FormatP):
 
 class Column(object):
     """
-    Class which contains the definition of one column, e.g.  `ttype`,
-    `tform`, etc. and the array containing values for the column.
-    Does not support `theap` yet.
+    Class which contains the definition of one column, e.g.  ``ttype``,
+    ``tform``, etc. and the array containing values for the column.
     """
 
     def __init__(self, name=None, format=None, unit=None, null=None,
@@ -787,7 +787,7 @@ class ColDefs(object):
         input :
             An existing table HDU, an existing ColDefs, or recarray
 
-        **(Deprecated)** tbtype : str (optional)
+        **(Deprecated)** tbtype : str, optional
             which table HDU, ``"BinTableHDU"`` (default) or
             ``"TableHDU"`` (text table).
             Now ColDefs for a normal (binary) table by default, but converted
@@ -827,7 +827,7 @@ class ColDefs(object):
             if not isinstance(col, Column):
                 raise TypeError(
                     'Element {0} in the ColDefs input is not a '
-                    'Column.'.format(input.index(col)))
+                    'Column.'.format(columns.index(col)))
 
         self._init_from_coldefs(columns)
 
@@ -1105,8 +1105,10 @@ class ColDefs(object):
 
     def change_attrib(self, col_name, attrib, new_value):
         """
-        Change an attribute (in the commonName list) of a `Column`.
+        Change an attribute (in the ``KEYWORD_ATTRIBUTES`` list) of a `Column`.
 
+        Parameters
+        ----------
         col_name : str or int
             The column name or index to change
 
@@ -1128,6 +1130,8 @@ class ColDefs(object):
         """
         Change a `Column`'s name.
 
+        Parameters
+        ----------
         col_name : str
             The current name of the column
 
@@ -1148,6 +1152,8 @@ class ColDefs(object):
         """
         Change a `Column`'s unit.
 
+        Parameters
+        ----------
         col_name : str or int
             The column name or index
 
@@ -1169,14 +1175,14 @@ class ColDefs(object):
         ----------
         attrib : str
             Can be one or more of the attributes listed in
-            `KEYWORD_ATTRIBUTES`.  The default is ``"all"`` which will print
-            out all attributes.  It forgives plurals and blanks.  If
-            there are two or more attribute names, they must be
+            ``pyfits.column.KEYWORD_ATTRIBUTES``.  The default is ``"all"``
+            which will print out all attributes.  It forgives plurals and
+            blanks.  If there are two or more attribute names, they must be
             separated by comma(s).
 
         output : file, optional
             File-like object to output to.  Outputs to stdout by default.
-            If False, returns the attributes as a dict instead.
+            If `False`, returns the attributes as a `dict` instead.
 
         Notes
         -----

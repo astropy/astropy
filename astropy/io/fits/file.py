@@ -16,7 +16,7 @@ from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string)
+                   _array_to_file, _write_string, encode_ascii)
 from ...extern.six import PY3, b, string_types
 from ...extern.six.moves import urllib
 from ...utils import deprecated
@@ -527,6 +527,46 @@ class _File(object):
         if close:
             zfile.close()
         self.compression = 'zip'
+
+    def _test_mmap(self):
+        """Tests that mmap, and specifically mmap.flush works.  This may
+        be the case on some uncommon platforms (see
+        https://github.com/astropy/astropy/issues/968).
+
+        If mmap.flush is found not to work, ``self.memmap = False`` is
+        set and a warning is issued.
+        """
+
+        if self._mmap_available is not None:
+            return self._mmap_available
+
+        tmpfd, tmpname = tempfile.mkstemp()
+        try:
+            # Windows does not allow mappings on empty files
+            os.write(tmpfd, encode_ascii(' '))
+            os.fsync(tmpfd)
+            try:
+                mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
+            except mmap.error as e:
+                warnings.warn('Failed to create mmap: %s; mmap use will be '
+                              'disabled' % str(e))
+                _File._mmap_available = False
+                return False
+            try:
+                mm.flush()
+            except mmap.error:
+                warnings.warn('mmap.flush is unavailable on this platform; '
+                              'using mmap in writeable mode will be disabled')
+                _File._mmap_available = False
+                return False
+            finally:
+                mm.close()
+        finally:
+            os.close(tmpfd)
+            os.remove(tmpname)
+
+        _File._mmap_available = True
+        return True
 
 
 def _is_random_access_file_backed(fileobj):
