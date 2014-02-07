@@ -350,6 +350,9 @@ Bug Fixes
     it is not officially part of the FITS standard, a warning will be
     issued when it is encountered.  [#1911]
 
+  - Pickling unrecognized units will not raise a
+    `AttributeError`. [#2047]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
