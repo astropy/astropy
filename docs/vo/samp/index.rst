@@ -116,7 +116,10 @@ function to receive data from another SAMP client. Simply do::
 
 then send the data from the other SAMP client. The above call to
 :func:`~astropy.vo.samp.high_level.receive` will hang until the data is
-received.
+received. The function will either return an
+:class:`~astropy.table.table.Table` instance or a
+:class:`~astropy.nddata.nddata.NDData` instance, depending on the data sent by
+the other client.
 
 .. _using-samp:
 

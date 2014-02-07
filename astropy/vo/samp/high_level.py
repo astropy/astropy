@@ -7,7 +7,6 @@ from ...table import Table
 from ...nddata import NDData
 from ...io import fits
 
-from .constants import SAMP_ICON
 from . import SAMPIntegratedClient
 from ... import __version__
 from ...extern.six.moves.urllib.parse import urljoin
@@ -49,7 +48,7 @@ def wait_until_received(object, timeout=None, step=0.1):
     while not (hasattr(object, 'received') and object.received):
         time.sleep(step)
         if timeout is not None and time.time() - start_time > timeout:
-            raise AttributeError("Timeout while waiting for message to be received".format(attribute, object))
+            raise AttributeError("Timeout while waiting for message to be received")
 
 
 def list_clients():
@@ -83,7 +82,7 @@ def list_clients():
     return table_clients
 
 
-def receive(timeout=None):
+def receive(timeout=None, hub=None):
     """
     Receive data from SAMP clients.
 
@@ -91,6 +90,8 @@ def receive(timeout=None):
     ----------
     timeout : int, optional
         How long to wait for before giving up
+    hub : `~astropy.vo.samp.hub.SAMPHubServer`, optional
+        The hub to receive the data through
 
     Returns
     -------
@@ -99,7 +100,7 @@ def receive(timeout=None):
     """
 
     client = SAMPIntegratedClient()
-    client.connect()
+    client.connect(hub=hub)
     declare_metadata(client)
     r = Receiver(client)
 
@@ -112,14 +113,14 @@ def receive(timeout=None):
         if r.mtype.startswith('table'):
             data = Table.read(r.params['url'])
         else:
-            data = fits.open(r.params['url'])
+            data = NDData.read(r.params['url'])
     finally:
         client.disconnect()
 
     return data
 
 
-def send(data, name, destination='all', timeout=10):
+def send(data, name, destination='all', timeout=10, hub=None):
     """
     Send data to SAMP clients.
 
@@ -138,6 +139,8 @@ def send(data, name, destination='all', timeout=10):
         correct client.
     timeout : int, optional
         The timeout for the request.
+    hub : `~astropy.vo.samp.hub.SAMPHubServer`, optional
+        The hub to send the data through
     """
 
     message = {}
@@ -181,7 +184,7 @@ def send(data, name, destination='all', timeout=10):
                               "name": name}
 
     client = SAMPIntegratedClient()
-    client.connect()
+    client.connect(hub=hub)
     declare_metadata(client)
 
     if destination == 'all':
