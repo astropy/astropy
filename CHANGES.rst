@@ -397,6 +397,10 @@ Bug Fixes
   - Fixed a NameError exception which was raised when using
     :func:`astropy.wcs.validate` or the `wcslint` script. [#2053]
 
+  - Fixed a bug where named WCSes may be erroneously reported as ``'
+    '`` when using :func:`astropy.wcs.validate` or the `wcslint`
+    script. [#2053]
+
 - Misc
 
   - There are a number of improvements to make `astropy` work better
