@@ -2,11 +2,12 @@
 
 import re
 import sys
+import functools
 
 import numpy as np
 
 from ..utils import OrderedDict
-
+from ..extern import six
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
@@ -382,3 +383,45 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                 ', '.join(sorted(valid_formats))))
 
     return valid_formats[0]
+
+
+class MetaRegisterBaseIO(type):
+
+    def __init__(cls, name, bases, dct):
+
+        super(MetaRegisterBaseIO, cls).__init__(name, bases, dct)
+
+        format_abbreviation = dct.get('_format_name')
+        if format_abbreviation is None:
+            if cls.__name__ == 'BaseIO':
+                return
+            else:
+                raise ValueError("_format_name is not defined")
+
+        supported_class = dct.get('_supported_class')
+        if supported_class is None:
+            raise ValueError("_supported_class is not defined")
+
+        reader = dct.get('read')
+        if reader is not None:
+            reader = functools.partial(reader, format_abbreviation)
+            register_reader(format_abbreviation,
+                            supported_class, reader)
+
+        writer = dct.get('write')
+        if writer is not None:
+            writer = functools.partial(writer, format_abbreviation)
+            register_writer(format_abbreviation,
+                            supported_class, writer)
+
+        identifier = dct.get('identify')
+        if dct.get('identify') is not None:
+            identifier = functools.partial(identifier, format_abbreviation)
+            register_identifier(format_abbreviation,
+                                supported_class, identifier)
+
+
+@six.add_metaclass(MetaRegisterBaseIO)
+class BaseIO(object):
+    _format_name = None
+    _supported_class = None
