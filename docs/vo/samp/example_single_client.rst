@@ -4,8 +4,8 @@
 
 .. _vo-samp-example-table-image:
 
-Sending/receiving tables and images over SAMP
----------------------------------------------
+Using a SAMP client to communicate with other clients
+-----------------------------------------------------
 
 In the following examples, we make use of:
 
@@ -22,6 +22,15 @@ start up the `astropy.vo.samp` hub. You can start this using the following
 command::
 
     $ samp_hub
+
+
+.. note:: As described in :ref:`getting-started-samp`, users can easily send
+          and receive tables using the
+          :func:`~astropy.vo.samp.high_level.send` and
+          :func:`~astropy.vo.samp.high_level.receive` functions in
+          `astropy.vo.samp`, but the following sections describe in detail how
+          to do with using the various classes from the object-oriented API.
+
 
 Sending a table to TOPCAT and Ds9
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

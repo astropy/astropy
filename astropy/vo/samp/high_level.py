@@ -55,14 +55,31 @@ def wait_until_received(object, timeout=None, step=0.1):
 def list_clients():
     """
     List all SAMP clients that can read in tables
+
+    Returns
+    -------
+    client_table : `~astropy.table.table.Table`
+        Table of clients and summary of what they support
     """
     client = SAMPIntegratedClient()
     client.connect()
     declare_metadata(client)
-    table_clients = {}
+    table_clients = []
     for c in client.get_subscribed_clients('table.load.votable'):
-        table_clients[c] = client.get_metadata(c)
+        meta = client.get_metadata(c)
+        subs = client.get_subscriptions(c)
+        alias = 'none'
+        for a in ['ds9', 'topcat', 'aladin']:
+            if a in meta['samp.name'].lower():
+                alias = a
+        supports_table = 'Yes' if any(s.startswith('table.load') for s in subs) else 'No'
+        supports_image = 'Yes' if any(s.startswith('image.load') for s in subs) else 'No'
+        table_clients.append((c, alias, meta['samp.name'], supports_table, supports_image))
     client.disconnect()
+    table_clients = Table(zip(*table_clients),
+                          names=['id', 'alias', 'name', 'table', 'image'], masked=True)
+    table_clients['alias'].mask = table_clients['alias'] == 'none'
+    table_clients.sort('id')
     return table_clients
 
 
@@ -74,6 +91,11 @@ def receive(timeout=None):
     ----------
     timeout : int, optional
         How long to wait for before giving up
+
+    Returns
+    -------
+    data : `~astropy.table.table.Table` or `~astropy.nddata.nddata.NDData`
+        The data received over SAMP.
     """
 
     client = SAMPIntegratedClient()
@@ -141,12 +163,12 @@ def send(data, name, destination='all', timeout=10):
             data.write(output_file, format='votable')
             message['samp.mtype'] = "table.load.votable"
 
-    elif isinstance(data, (ImageHDU, PrimaryHDU)):
+    elif isinstance(data, (fits.ImageHDU, fits.PrimaryHDU)):
 
         data.writeto(output_file)
         message['samp.mtype'] = "image.load.fits"
 
-    elif isinstance(data, (BinTableHDU, TableHDU)):
+    elif isinstance(data, (fits.BinTableHDU, fits.TableHDU)):
 
         data.writeto(output_file)
         message['samp.mtype'] = "table.load.fits"
