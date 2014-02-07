@@ -56,7 +56,9 @@ __all__ = [
 MAX_WARNINGS = 10
 
 
-def _format_message(message, name, config={}, pos=None):
+def _format_message(message, name, config=None, pos=None):
+    if config is None:
+        config = {}
     if pos is None:
         pos = ('?', '?')
     filename = config.get('filename', '?')
@@ -65,7 +67,7 @@ def _format_message(message, name, config={}, pos=None):
 
 def _suppressed_warning(warning, config, stacklevel=2):
     warning_class = type(warning)
-    config.setdefault('_warning_counts', {}).setdefault(warning_class, 0)
+    config.setdefault('_warning_counts', dict()).setdefault(warning_class, 0)
     config['_warning_counts'][warning_class] += 1
     message_count = config['_warning_counts'][warning_class]
     if message_count <= MAX_WARNINGS:
@@ -75,11 +77,13 @@ def _suppressed_warning(warning, config, stacklevel=2):
         warn(warning, stacklevel=stacklevel+1)
 
 
-def warn_or_raise(warning_class, exception_class=None, args=(), config={},
+def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
                   pos=None, stacklevel=1):
     """
     Warn or raise an exception, depending on the pedantic setting.
     """
+    if config is None:
+        config = {}
     if config.get('pedantic'):
         if exception_class is None:
             exception_class = warning_class
@@ -88,20 +92,24 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config={},
         vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
-def vo_raise(exception_class, args=(), config={}, pos=None):
+def vo_raise(exception_class, args=(), config=None, pos=None):
     """
     Raise an exception, with proper position information if available.
     """
+    if config is None:
+        config = {}
     raise exception_class(args, config, pos)
 
 
-def vo_reraise(exc, config={}, pos=None, additional=''):
+def vo_reraise(exc, config=None, pos=None, additional=''):
     """
     Raise an exception, with proper position information if available.
 
     Restores the original traceback of the exception, and should only
     be called within an "except:" block of code.
     """
+    if config is None:
+        config = {}
     message = _format_message(str(exc), exc.__class__.__name__, config, pos)
     if message.split()[0] == str(exc).split()[0]:
         message = str(exc)
@@ -111,10 +119,12 @@ def vo_reraise(exc, config={}, pos=None, additional=''):
     raise exc
 
 
-def vo_warn(warning_class, args=(), config={}, pos=None, stacklevel=1):
+def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     """
     Warn, with proper position information if available.
     """
+    if config is None:
+        config = {}
     warning = warning_class(args, config, pos)
     _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
@@ -183,7 +193,9 @@ class VOWarning(AstropyWarning):
     default_args = ()
     message_template = ''
 
-    def __init__(self, args, config={}, pos=None):
+    def __init__(self, args, config=None, pos=None):
+        if config is None:
+            config = {}
         msg = self.message_template % args
         self.formatted_message = _format_message(
             msg, self.__class__.__name__, config, pos)

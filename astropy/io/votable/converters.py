@@ -170,7 +170,7 @@ class Converter(object):
         found.  Used for error messages.
 
     """
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
         pass
 
     @staticmethod
@@ -187,7 +187,7 @@ class Converter(object):
         """
         return config.get('version_1_3_or_later')
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         """
         Convert the string *value* from the TABLEDATA_ format into an
         object with the correct native in-memory datatype and mask flag.
@@ -206,7 +206,7 @@ class Converter(object):
         raise NotImplementedError(
             "This datatype must implement a 'parse' method.")
 
-    def parse_scalar(self, value, config={}, pos=None):
+    def parse_scalar(self, value, config=None, pos=None):
         """
         Parse a single scalar of the underlying type of the converter.
         For non-array converters, this is equivalent to parse.  For
@@ -303,7 +303,10 @@ class Char(Converter):
     """
     default = _empty_bytes
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
+
         Converter.__init__(self, field, config, pos)
 
         if field.arraysize is None:
@@ -335,12 +338,12 @@ class Char(Converter):
     def supports_empty_values(self, config):
         return True
 
-    def _ascii_parse(self, value, config={}, pos=None):
+    def _ascii_parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
             vo_warn(W46, ('char', self.arraysize), config, pos)
         return value.encode('ascii'), False
 
-    def _str_parse(self, value, config={}, pos=None):
+    def _str_parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
             vo_warn(W46, ('char', self.arraysize), config, pos)
         return value.encode('utf-8'), False
@@ -382,7 +385,7 @@ class UnicodeChar(Converter):
     """
     default = ''
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
         Converter.__init__(self, field, config, pos)
 
         if field.arraysize is None:
@@ -404,7 +407,7 @@ class UnicodeChar(Converter):
             self.binoutput = self._binoutput_fixed
             self._struct_format = ">%ds" % (self.arraysize * 2)
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if self.arraysize != '*' and len(value) > self.arraysize:
             vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
         return value, False
@@ -442,23 +445,24 @@ class Array(Converter):
     """
     Handles both fixed and variable-lengths arrays.
     """
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
         Converter.__init__(self, field, config, pos)
-
         if config.get('pedantic'):
             self._splitter = self._splitter_pedantic
         else:
             self._splitter = self._splitter_lax
 
-    def parse_scalar(self, value, config={}, pos=0):
+    def parse_scalar(self, value, config=None, pos=0):
         return self._base.parse_scalar(value, config, pos)
 
     @staticmethod
-    def _splitter_pedantic(value, config={}, pos=None):
+    def _splitter_pedantic(value, config=None, pos=None):
         return pedantic_array_splitter.split(value)
 
     @staticmethod
-    def _splitter_lax(value, config={}, pos=None):
+    def _splitter_lax(value, config=None, pos=None):
         if ',' in value:
             vo_warn(W01, (), config, pos)
         return array_splitter.split(value)
@@ -470,7 +474,7 @@ class VarArray(Array):
     """
     format = 'O'
 
-    def __init__(self, field, base, arraysize, config={}, pos=None):
+    def __init__(self, field, base, arraysize, config=None, pos=None):
         Array.__init__(self, field, config)
 
         self._base = base
@@ -511,7 +515,7 @@ class ArrayVarArray(VarArray):
     Handles an array of variable-length arrays, i.e. where *arraysize*
     ends in '*'.
     """
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
 
@@ -534,7 +538,7 @@ class ScalarVarArray(VarArray):
     """
     Handles a variable-length array of numeric scalars.
     """
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), False
 
@@ -557,7 +561,7 @@ class NumericArray(Array):
     """
     vararray_type = ArrayVarArray
 
-    def __init__(self, field, base, arraysize, config={}, pos=None):
+    def __init__(self, field, base, arraysize, config=None, pos=None):
         Array.__init__(self, field, config, pos)
 
         self._base = base
@@ -574,7 +578,9 @@ class NumericArray(Array):
         self.default = np.empty(arraysize, dtype=self._base.format)
         self.default[...] = self._base.default
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
+        if config is None:
+            config = {}
         if config['version_1_3_or_later'] and value == '':
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
@@ -592,7 +598,7 @@ class NumericArray(Array):
                          ([self._base.default] * (self._items - len(parts))))
             return self.parse_parts(parts, config, pos)
 
-    def parse_parts(self, parts, config={}, pos=None):
+    def parse_parts(self, parts, config=None, pos=None):
         base_parse = self._base.parse
         result = []
         result_mask = []
@@ -633,7 +639,7 @@ class Numeric(Converter):
     vararray_type = ScalarVarArray
     null = None
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
         Converter.__init__(self, field, config, pos)
 
         self._memsize = np.dtype(self.format).itemsize
@@ -660,7 +666,10 @@ class FloatingPoint(Numeric):
     """
     default = np.nan
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
+
         Numeric.__init__(self, field, config, pos)
 
         precision = field.precision
@@ -700,13 +709,13 @@ class FloatingPoint(Numeric):
     def supports_empty_values(self, config):
         return True
 
-    def _parse_pedantic(self, value, config={}, pos=None):
+    def _parse_pedantic(self, value, config=None, pos=None):
         if value.strip() == '':
             return self.null, True
         f = float(value)
         return f, self.is_null(f)
 
-    def _parse_permissive(self, value, config={}, pos=None):
+    def _parse_permissive(self, value, config=None, pos=None):
         try:
             f = float(value)
             return f, self.is_null(f)
@@ -774,10 +783,12 @@ class Integer(Numeric):
     """
     default = 0
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
         Numeric.__init__(self, field, config, pos)
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
+        if config is None:
+            config = {}
         mask = False
         if isinstance(value, six.string_types):
             value = value.lower()
@@ -882,10 +893,7 @@ class ComplexArrayVarArray(VarArray):
     """
     Handles an array of variable-length arrays of complex numbers.
     """
-    def __init__(self, field, base, arraysize, config={}, pos=None):
-        VarArray.__init__(self, field, base, arraysize, config, pos)
-
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
 
@@ -908,10 +916,7 @@ class ComplexVarArray(VarArray):
     """
     Handles a variable-length array of complex numbers.
     """
-    def __init__(self, field, base, arraysize, config={}, pos=None):
-        VarArray.__init__(self, field, base, arraysize, config, pos)
-
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if value.strip() == '':
             return ma.array([]), True
 
@@ -935,17 +940,17 @@ class ComplexArray(NumericArray):
     """
     vararray_type = ComplexArrayVarArray
 
-    def __init__(self, field, base, arraysize, config={}, pos=None):
+    def __init__(self, field, base, arraysize, config=None, pos=None):
         NumericArray.__init__(self, field, base, arraysize, config, pos)
         self._items *= 2
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         parts = self._splitter(value, config, pos)
         if parts == ['']:
             parts = []
         return self.parse_parts(parts, config, pos)
 
-    def parse_parts(self, parts, config={}, pos=None):
+    def parse_parts(self, parts, config=None, pos=None):
         if len(parts) != self._items:
             vo_raise(E02, (self._items, len(parts)), config, pos)
         base_parse = self._base.parse_parts
@@ -971,11 +976,11 @@ class Complex(FloatingPoint, Array):
     vararray_type = ComplexVarArray
     default = np.nan
 
-    def __init__(self, field, config={}, pos=None):
+    def __init__(self, field, config=None, pos=None):
         FloatingPoint.__init__(self, field, config, pos)
         Array.__init__(self, field, config, pos)
 
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         stripped = value.strip()
         if stripped == '' or stripped.lower() == 'nan':
             return np.nan, True
@@ -987,7 +992,7 @@ class Complex(FloatingPoint, Array):
     _parse_permissive = parse
     _parse_pedantic = parse
 
-    def parse_parts(self, parts, config={}, pos=None):
+    def parse_parts(self, parts, config=None, pos=None):
         value = complex(*parts)
         return value, self.is_null(value)
 
@@ -1029,17 +1034,17 @@ class BitArray(NumericArray):
     """
     vararray_type = ArrayVarArray
 
-    def __init__(self, field, base, arraysize, config={}, pos=None):
+    def __init__(self, field, base, arraysize, config=None, pos=None):
         NumericArray.__init__(self, field, base, arraysize, config, pos)
 
         self._bytes = ((self._items - 1) // 8) + 1
 
     @staticmethod
-    def _splitter_pedantic(value, config={}, pos=None):
+    def _splitter_pedantic(value, config=None, pos=None):
         return list(re.sub('\s', '', value))
 
     @staticmethod
-    def _splitter_lax(value, config={}, pos=None):
+    def _splitter_lax(value, config=None, pos=None):
         if ',' in value:
             vo_warn(W01, (), config, pos)
         return list(re.sub('\s|,', '', value))
@@ -1076,10 +1081,9 @@ class Bit(Converter):
     binary_one = b'\x08'
     binary_zero = b'\0'
 
-    def __init__(self, field, config={}, pos=None):
-        Converter.__init__(self, field, config, pos)
-
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
+        if config is None:
+            config = {}
         mapping = {'1': True, '0': False}
         if value is False or value.strip() == '':
             if not config['version_1_3_or_later']:
@@ -1119,9 +1123,6 @@ class BooleanArray(NumericArray):
     """
     vararray_type = ArrayVarArray
 
-    def __init__(self, field, base, arraysize, config={}, pos=None):
-        NumericArray.__init__(self, field, base, arraysize, config, pos)
-
     def binparse(self, read):
         data = read(self._items)
         binparse = self._base.binparse_value
@@ -1160,10 +1161,7 @@ class Boolean(Converter):
     binary_true = b'T'
     binary_false = b'F'
 
-    def __init__(self, field, config={}, pos=None):
-        Converter.__init__(self, field, config, pos)
-
-    def parse(self, value, config={}, pos=None):
+    def parse(self, value, config=None, pos=None):
         if value == '':
             return False, True
         if value is False:
@@ -1234,7 +1232,7 @@ converter_mapping = {
     'unicodeChar'   : UnicodeChar }
 
 
-def get_converter(field, config={}, pos=None):
+def get_converter(field, config=None, pos=None):
     """
     Get an appropriate converter instance for a given field.
 
@@ -1252,6 +1250,9 @@ def get_converter(field, config={}, pos=None):
     -------
     converter : astropy.io.votable.converters.Converter
     """
+    if config is None:
+        config = {}
+
     if field.datatype not in converter_mapping:
         vo_raise(E06, (field.datatype, field.ID), config)
 
