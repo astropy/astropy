@@ -82,13 +82,14 @@ For all the following examples it is assumed that the table has been created as 
   >>> t['a'].unit = 'm sec^-1'
   >>> t['a'].description = 'unladen swallow velocity'
   >>> print t
-    a     b   c
-  ------ --- ---
-   0.000   1   2
-   3.000   4   5
-   6.000   7   8
-   9.000  10  11
-  12.000  13  14
+       a      b   c
+    m sec^-1
+    -------- --- ---
+       0.000   1   2
+       3.000   4   5
+       6.000   7   8
+       9.000  10  11
+      12.000  13  14
 
 Accessing properties
 """"""""""""""""""""
@@ -170,28 +171,33 @@ multiple column names.  This returns a copy of the original table for the
 selected rows or columns.  ::
 
   >>> print t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
-    a     b   c
-  ------ --- ---
-   3.000   4   5
-   9.000  10  11
-  12.000  13  14
+       a      b   c
+    m sec^-1
+    -------- --- ---
+       3.000   4   5
+       9.000  10  11
+      12.000  13  14
+
 
   >>> print t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
-    a     b   c
-  ------ --- ---
-   3.000   4   5
-   9.000  10  11
-  12.000  13  14
+       a      b   c
+    m sec^-1
+    -------- --- ---
+       3.000   4   5
+       9.000  10  11
+      12.000  13  14
+
 
   >>> print t['a', 'c']  # or t[['a', 'c']] or t[('a', 'c')]
   ...                    # Table with cols 'a', 'c' (copy)
-    a     c
-  ------ ---
-   0.000   2
-   3.000   5
-   6.000   8
-   9.000  11
-  12.000  14
+       a      c
+    m sec^-1
+    -------- ---
+       0.000   2
+       3.000   5
+       6.000   8
+       9.000  11
+      12.000  14
 
 Finally, one can access the underlying table data as a native `numpy`
 structured array by creating a copy or reference with ``np.array``::
@@ -286,14 +292,15 @@ meaning as shown below::
   >>> t['col29'].unit = 'kg sec m**-2'
 
   >>> t.pprint(max_lines=8, max_width=40)
-      col0         col1    ... col29
-  ------------ ----------- ... ------
-  0.000000e+00    1.000000 ...   29.0
-  3.000000e+01   31.000000 ...   59.0
-  6.000000e+01   61.000000 ...   89.0
-           ...         ... ...    ...
-  2.940000e+03 2941.000000 ... 2969.0
-  2.970000e+03 2971.000000 ... 2999.0
+        col0     ...    col29
+        km2      ... kg sec m**-2
+    ------------ ... ------------
+    0.000000e+00 ...         29.0
+    3.000000e+01 ...         59.0
+             ... ...          ...
+    2.940000e+03 ...       2969.0
+    2.970000e+03 ...       2999.0
+
 
   >>> t.pprint(max_lines=8, max_width=40, show_unit=True)
       col0     ...    col29
@@ -306,14 +313,14 @@ meaning as shown below::
   2.970000e+03 ...       2999.0
 
   >>> t.pprint(max_lines=8, max_width=40, show_name=False)
-  0.000000e+00    1.000000 ...   29.0
-  3.000000e+01   31.000000 ...   59.0
-  6.000000e+01   61.000000 ...   89.0
-  9.000000e+01   91.000000 ...  119.0
-           ...         ... ...    ...
-  2.910000e+03 2911.000000 ... 2939.0
-  2.940000e+03 2941.000000 ... 2969.0
-  2.970000e+03 2971.000000 ... 2999.0
+        km2      ... kg sec m**-2
+    ------------ ... ------------
+    0.000000e+00 ...         29.0
+    3.000000e+01 ...         59.0
+    6.000000e+01 ...         89.0
+             ... ...          ...
+    2.940000e+03 ...       2969.0
+    2.970000e+03 ...       2999.0
 
 In order to force printing all values regardless of the output length or width
 set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
