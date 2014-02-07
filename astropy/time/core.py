@@ -1292,7 +1292,7 @@ class TimeFromEpoch(TimeFormat):
            raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
                                  "scale '{2}', got error:\n{3}"
                                   .format(self.name, self.epoch_scale, self.scale, err))
-  
+
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
 
