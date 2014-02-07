@@ -15,3 +15,4 @@ from .hub import *
 from .client import *
 from .integrated_client import *
 from .hub_proxy import *
+from .high_level import *

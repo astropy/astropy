@@ -61,14 +61,14 @@ def list_clients():
     declare_metadata(client)
     table_clients = {}
     for c in client.get_subscribed_clients('table.load.votable'):
-        table_clients[c] = client.get_metadata(c)['samp.name']
+        table_clients[c] = client.get_metadata(c)
     client.disconnect()
     return table_clients
 
 
 def receive(timeout=None):
     """
-    Receive data from SAMP clients
+    Receive data from SAMP clients.
 
     Parameters
     ----------
@@ -97,20 +97,20 @@ def receive(timeout=None):
     return data
 
 
-def send(data, name='Data from Astropy', destination='all', timeout=10):
+def send(data, name, destination='all', timeout=10):
     """
-    Send data to SAMP clients
+    Send data to SAMP clients.
 
     Parameters
     ----------
-    data : `~astropy.table.table.Table` or `~astropy.nddata.nddata.NDData` or `~numpy.ndarray` or `~astropy.io.fits.PrimaryHDU`
+    data : `~astropy.table.table.Table` or `~astropy.nddata.nddata.NDData` or `~numpy.ndarray` or `~astropy.io.fits.PrimaryHDU` or `~astropy.io.fits.ImageHDU` or `~astropy.io.fits.BinTableHDU` or `~astropy.io.fits.TableHDU`
         The data to send over SAMP
     name : str, optional
-        THe name of the dataset to use in other SAMP clients
+        The name of the dataset to use in other SAMP clients
     destination : str, optional
         The client to send the data to. By default, the data is broadcast to
         all SAMP clients. You can find the full list of available clients, use
-        the `~astropy.vo.samp.high_level.list_clients` function. As a
+        the :func:`~astropy.vo.samp.high_level.list_clients` function. As a
         convenience, you can also use ``'ds9'``, ``'topcat'``, and ``aladin'``
         and :func:`~astropy.vo.samp.high_level.send` will try and identify the
         correct client.
@@ -123,27 +123,26 @@ def send(data, name='Data from Astropy', destination='all', timeout=10):
 
     if isinstance(data, Table):
 
-        # Write the table out to a temporary VO table file
         data.write(output_file, format='votable')
         message['samp.mtype'] = "table.load.votable"
 
     elif isinstance(data, NDData):
 
-        # Write the table out to a temporary FITS file
         data.write(output_file, format='fits')
         message['samp.mtype'] = "image.load.fits"
 
     elif isinstance(data, np.ndarray):
 
-        # TODO: structured arrays
-
-        # Write the table out to a temporary FITS file
-        fits.writeto(output_file, data)
-        message['samp.mtype'] = "image.load.fits"
+        if data.dtype.fields is None:
+            fits.writeto(output_file, data)
+            message['samp.mtype'] = "image.load.fits"
+        else:
+            data = Table(data)
+            data.write(output_file, format='votable')
+            message['samp.mtype'] = "table.load.votable"
 
     elif isinstance(data, (ImageHDU, PrimaryHDU)):
 
-        # Write the table out to a temporary FITS file
         data.writeto(output_file)
         message['samp.mtype'] = "image.load.fits"
 
@@ -166,6 +165,12 @@ def send(data, name='Data from Astropy', destination='all', timeout=10):
     if destination == 'all':
         for c in client.get_subscribed_clients(message['samp.mtype']):
             client.call_and_wait(c, message, timeout=str(timeout))
+    elif destination in ['ds9', 'topcat', 'aladin']:
+        clients = list_clients()
+        for client_id in clients:
+            name = clients[client_id]['samp.name']
+            if destination in name.lower():
+                client.call_and_wait(client_id, message, timeout=str(timeout))
     else:
         client.call_and_wait(destination, message, timeout=str(timeout))
 
