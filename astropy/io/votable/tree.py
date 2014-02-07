@@ -188,7 +188,7 @@ def _get_unit_format(config):
 
 ######################################################################
 # ATTRIBUTE CHECKERS
-def check_astroyear(year, field, config={}, pos=None):
+def check_astroyear(year, field, config=None, pos=None):
     """
     Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
     *year* is not a valid astronomical year as defined by the VOTABLE
@@ -213,7 +213,7 @@ def check_astroyear(year, field, config={}, pos=None):
     return True
 
 
-def check_string(string, attr_name, config={}, pos=None):
+def check_string(string, attr_name, config=None, pos=None):
     """
     Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
     *string* is not a string or Unicode string.
@@ -236,14 +236,14 @@ def check_string(string, attr_name, config={}, pos=None):
     return True
 
 
-def resolve_id(ID, id, config={}, pos=None):
+def resolve_id(ID, id, config=None, pos=None):
     if ID is None and id is not None:
         warn_or_raise(W09, W09, (), config, pos)
         return id
     return ID
 
 
-def check_ucd(ucd, config={}, pos=None):
+def check_ucd(ucd, config=None, pos=None):
     """
     Warns or raises a
     `~astropy.io.votable.exceptions.VOTableSpecError` if *ucd* is not
@@ -258,6 +258,8 @@ def check_ucd(ucd, config={}, pos=None):
     config, pos : optional
         Information about the source of the value
     """
+    if config is None:
+        config = {}
     if config.get('version_1_1_or_later'):
         try:
             ucd_mod.parse_ucd(
@@ -493,7 +495,9 @@ class Link(SimpleElement, _IDProperty):
     _element_name = 'LINK'
 
     def __init__(self, ID=None, title=None, value=None, href=None, action=None,
-                 id=None, config={}, pos=None, **kwargs):
+                 id=None, config=None, pos=None, **kwargs):
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
 
@@ -601,7 +605,9 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
     def __init__(self, ID=None, name=None, value=None, id=None, xtype=None,
                  ref=None, unit=None, ucd=None, utype=None,
-                 config={}, pos=None, **extra):
+                 config=None, pos=None, **extra):
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
 
@@ -763,7 +769,9 @@ class Values(Element, _IDProperty):
     name, documented below.
     """
     def __init__(self, votable, field, ID=None, null=None, ref=None,
-                 type="legal", id=None, config={}, pos=None, **extras):
+                 type="legal", id=None, config=None, pos=None, **extras):
+        if config is None:
+            config = {}
         self._config  = config
         self._pos = pos
 
@@ -1085,7 +1093,9 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                  arraysize=None, ucd=None, unit=None, width=None,
                  precision=None, utype=None, ref=None, type=None, id=None,
                  xtype=None,
-                 config={}, pos=None, **extra):
+                 config=None, pos=None, **extra):
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
 
@@ -1506,7 +1516,7 @@ class Param(Field):
 
     def __init__(self, votable, ID=None, name=None, value=None, datatype=None,
                  arraysize=None, ucd=None, unit=None, width=None,
-                 precision=None, utype=None, type=None, id=None, config={},
+                 precision=None, utype=None, type=None, id=None, config=None,
                  pos=None, **extra):
         self._value = value
         Field.__init__(self, votable, ID=ID, name=name, datatype=datatype,
@@ -1558,7 +1568,9 @@ class CooSys(SimpleElement):
     _element_name = 'COOSYS'
 
     def __init__(self, ID=None, equinox=None, epoch=None, system=None, id=None,
-                 config={}, pos=None, **extra):
+                 config=None, pos=None, **extra):
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
 
@@ -1659,7 +1671,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None,
+    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None,
                  **extra):
         """
         *table* is the :class:`Table` object that this :class:`FieldRef`
@@ -1668,6 +1680,8 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         *ref* is the ID to reference a :class:`Field` object defined
         elsewhere.
         """
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
 
@@ -1730,7 +1744,10 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None):
+    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None):
+        if config is None:
+            config = {}
+
         self._config = config
         self._pos = pos
 
@@ -1791,7 +1808,9 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
     """
 
     def __init__(self, table, ID=None, name=None, ref=None, ucd=None,
-                 utype=None, id=None, config={}, pos=None, **extra):
+                 utype=None, id=None, config=None, pos=None, **extra):
+        if config is None:
+            config = {}
         self._config     = config
         self._pos        = pos
 
@@ -1937,8 +1956,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     name, documented below.
     """
     def __init__(self, votable, ID=None, name=None, ref=None, ucd=None,
-                 utype=None, nrows=None, id=None, config={}, pos=None,
+                 utype=None, nrows=None, id=None, config=None, pos=None,
                  **extra):
+        if config is None:
+            config = {}
         self._config = config
         self._pos = pos
         self._empty = False
@@ -2110,7 +2131,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """
         return self._empty
 
-    def create_arrays(self, nrows=0, config={}):
+    def create_arrays(self, nrows=0, config=None):
         """
         Create a new array to hold the data based on the current set
         of fields, and store them in the *array* and member variable.
@@ -2888,7 +2909,9 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
     name, documented below.
     """
     def __init__(self, name=None, ID=None, utype=None, type='results',
-                 id=None, config={}, pos=None, **kwargs):
+                 id=None, config=None, pos=None, **kwargs):
+        if config is None:
+            config = {}
         self._config           = config
         self._pos              = pos
 
@@ -3105,7 +3128,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     tests for building the rest of the structure depend on it.
     """
 
-    def __init__(self, ID=None, id=None, config={}, pos=None, version="1.2"):
+    def __init__(self, ID=None, id=None, config=None, pos=None, version="1.2"):
+        if config is None:
+            config = {}
         self._config             = config
         self._pos                = pos
 
