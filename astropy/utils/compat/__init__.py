@@ -9,3 +9,6 @@ imported here for easier access.
 """
 
 from .misc import *
+
+if not _ASTROPY_SETUP_:
+    from . import numpycompat as _numpycompat
