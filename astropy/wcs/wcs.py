@@ -45,7 +45,10 @@ from . import _docutil as __
 try:
     from . import _wcs
 except ImportError:
-    _wcs = None
+    if not _ASTROPY_SETUP_:
+        raise
+    else:
+        _wcs = None
 
 from ..utils import deprecated, deprecated_attribute
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
