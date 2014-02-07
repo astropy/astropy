@@ -11,6 +11,3 @@ be easily provided by a single array.
 from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
-
-# Import routines that connect readers/writers to astropy.nddata
-from ..io.fits import connect

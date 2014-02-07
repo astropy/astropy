@@ -22,6 +22,14 @@ _writers = OrderedDict()
 _identifiers = OrderedDict()
 
 
+def import_connectors():
+    # TODO: there must be a more elegant way to do this
+    from ..io.ascii import connect
+    from ..io.fits import connect
+    from ..io.misc import connect
+    from ..io.votable import connect
+
+
 def get_formats(data_class=None):
     """
     Get the list of registered I/O formats as a Table.
@@ -287,6 +295,8 @@ def read(cls, *args, **kwargs):
     The arguments passed to this method depend on the format
     """
 
+    import_connectors()
+
     if 'format' in kwargs:
         format = kwargs.pop('format')
     else:
@@ -335,6 +345,8 @@ def write(data, *args, **kwargs):
 
     The arguments passed to this method depend on the format
     """
+
+    import_connectors()
 
     if 'format' in kwargs:
         format = kwargs.pop('format')
