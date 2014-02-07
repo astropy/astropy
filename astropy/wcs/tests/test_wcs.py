@@ -559,7 +559,7 @@ def test_footprint_to_file():
     """
     From github issue #1912
     """
-    # Arbtirary keywords from real data
+    # Arbitrary keywords from real data
     w = wcs.WCS({'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
                  'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
                  'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
