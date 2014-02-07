@@ -9,3 +9,5 @@ imported here for easier access.
 """
 
 from .misc import *
+
+from . import numpycompat as _numpycompat
