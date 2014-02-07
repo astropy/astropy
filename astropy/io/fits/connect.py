@@ -13,10 +13,12 @@ from ... import log
 from ... import units as u
 from ...extern.six import string_types
 from ...table import Table
+from ...nddata import NDData
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 
-from . import HDUList, TableHDU, BinTableHDU, GroupsHDU, Header
+from . import (HDUList, TableHDU, BinTableHDU, GroupsHDU, PrimaryHDU,
+               ImageHDU, Header)
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -114,38 +116,41 @@ def meta_to_header(meta):
     return header
 
 
+def _is_fits(origin, filepath, fileobj, *args, **kwargs):
+    """
+    Determine whether `origin` is a FITS file.
+
+    Parameters
+    ----------
+    origin : str or readable file-like object
+        Path or file object containing a potential FITS file.
+
+    Returns
+    -------
+    is_fits : bool
+        Returns `True` if the given file is a FITS file.
+    """
+    if fileobj is not None:
+        pos = fileobj.tell()
+        sig = fileobj.read(30)
+        fileobj.seek(pos)
+        return sig == FITS_SIGNATURE
+    elif filepath is not None:
+        if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
+            return True
+    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU, PrimaryHDU, ImageHDU)):
+        return True
+    else:
+        return False
+
+
 class FITSTableIO(BaseIO):
 
     _format_name = 'fits'
     _supported_class = Table
 
     def identify(self, origin, filepath, fileobj, *args, **kwargs):
-        """
-        Determine whether `origin` is a FITS file.
-
-        Parameters
-        ----------
-        origin : str or readable file-like object
-            Path or file object containing a potential FITS file.
-
-        Returns
-        -------
-        is_fits : bool
-            Returns `True` if the given file is a FITS file.
-        """
-        print("IDENTIFY")
-        if fileobj is not None:
-            pos = fileobj.tell()
-            sig = fileobj.read(30)
-            fileobj.seek(pos)
-            return sig == FITS_SIGNATURE
-        elif filepath is not None:
-            if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
-                return True
-        elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
-            return True
-        else:
-            return False
+        return _is_fits(origin, filepath, fileobj, *args, **kwargs)
 
     def read(self, input, hdu=None):
         """
@@ -288,3 +293,108 @@ class FITSTableIO(BaseIO):
 
         # Write out file
         table_hdu.writeto(output)
+
+
+class FITSNDDataIO(BaseIO):
+
+    _format_name = 'fits'
+    _supported_class = NDData
+
+    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+        return _identify_fits(origin, filepath, fileobj, *args, **kwargs)
+
+    def read(self, input, hdu=None):
+        """
+        Read an :class:`~astropy.nddata.nddata.NDData` object from a FITS file.
+
+        Parameters
+        ----------
+        input : str or file-like object or compatible `astropy.io.fits` HDU object
+            If a string, the filename to read the data from. If a file object, or
+            a compatible HDU object, the object to extract the table from. The
+            following `astropy.io.fits` HDU objects can be used as input:
+            - :class:`~astropy.io.fits.hdu.table.PrimaryHDU`
+            - :class:`~astropy.io.fits.hdu.table.ImageHDU`
+            - :class:`~astropy.io.fits.hdu.hdulist.HDUList`
+        hdu : int or str, optional
+            The HDU to read the data from.
+        """
+
+        if isinstance(input, HDUList):
+
+            # Parse all table objects
+            images = OrderedDict()
+            for ihdu, hdu_item in enumerate(input):
+                if isinstance(hdu_item, (PrimaryHDU, ImageHDU)):
+                    images[ihdu] = hdu_item
+
+            if len(images) > 1:
+                if hdu is None:
+                    warnings.warn("hdu= was not specified but multiple n-dimensional images"
+                                  " are present, reading in first available"
+                                  " image (hdu={0})".format(first(images)),
+                                  AstropyUserWarning)
+                    hdu = first(images)
+
+                # hdu might not be an integer, so we first need to convert it
+                # to the correct HDU index
+                hdu = input.index_of(hdu)
+
+                if hdu in tables:
+                    images = images[hdu]
+                else:
+                    raise ValueError("No image found in hdu={0}".format(hdu))
+
+            elif len(images) == 1:
+                image = images[first(images)]
+            else:
+                raise ValueError("No table found")
+
+        elif isinstance(input, (PrimaryHDU, ImageHDU)):
+
+            image = input
+
+        else:
+
+            hdulist = fits_open(input)
+
+            try:
+                return NDData.read(hdulist, hdu=hdu, format='fits')
+            finally:
+                hdulist.close()
+
+        # Convert to an astropy.table.Table object
+        d = NDData(image.data)
+        if 'BUNIT' in image.header:
+            d.unit = image.header['BUNIT']
+        d.meta.update(header_to_meta(image.header))
+
+        return d
+
+    def write(self, input, output, overwrite=False):
+        """
+        Write an :class:`~astropy.nddata.nddata.NDData` object to a FITS file.
+
+        Parameters
+        ----------
+        input : Table
+            The table to write out.
+        output : str
+            The filename to write the table to.
+        overwrite : bool
+            Whether to overwrite any existing file without warning.
+        """
+
+        # Check if output file already exists
+        if isinstance(output, string_types) and os.path.exists(output):
+            if overwrite:
+                os.remove(output)
+            else:
+                raise IOError("File exists: {0}".format(output))
+
+        # Create a new HDU object
+        image_hdu = PrimaryHDU(np.array(input))
+        if input.unit is not None:
+            image_hdu.header['BUNIT'] = input.unit.to_string(format='fits')
+        image_hdu.header.update(meta_to_header(input.meta))
+        image_hdu.writeto(output)
