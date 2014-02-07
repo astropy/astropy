@@ -395,7 +395,7 @@ Bug Fixes
     :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
 
   - Fixed a NameError exception which was raised when using
-    :func:`astropy.wcs.validate`. [#2053]
+    :func:`astropy.wcs.validate` or the `wcslint` script. [#2053]
 
 - Misc
 
