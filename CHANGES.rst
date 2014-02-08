@@ -310,7 +310,7 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Fix a problem where scale conversion problem in TimeFromEpoch 
+  - Fix a problem where scale conversion problem in TimeFromEpoch
     was not showing a useful error. [#2046]
 
   - Fix a problem when converting to one of the formats `unix`,
