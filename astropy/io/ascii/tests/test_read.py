@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
+
 import re
 
 import numpy as np
@@ -386,8 +389,11 @@ def test_null_Ipac():
     data = asciitable.read(f, **testfile['opts'])
     mask = np.array([(True, False, True, False, True),
                      (False, False, False, False, False)],
-                    dtype=[('ra', '|b1'), ('dec', '|b1'), ('sai', '|b1'),
-                           ('v2', '|b1'), ('sptype', '|b1')])
+                    dtype=[(str('ra'), '|b1'),
+                           (str('dec'), '|b1'),
+                           (str('sai'), '|b1'),
+                           (str('v2'), '|b1'),
+                           (str('sptype'), '|b1')])
     assert np.all(data.mask == mask)
 
 
@@ -688,7 +694,7 @@ def get_testfiles(name=None):
 
 def test_header_start_exception():
     '''Check certain Readers throw an exception if ``header_start`` is set
-    
+
     For certain Readers it does not make sense to set the ``header_start``, they
     throw an exception if you try.
     This was implemented in response to issue #885.

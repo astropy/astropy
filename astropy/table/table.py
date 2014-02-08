@@ -430,6 +430,10 @@ class Table(object):
             # Somewhat confusingly in this case copy() refers to copying the
             # column attributes, but the data are used by reference.
             newcol = newcol.copy(data=self._data[col.name])
+
+            # Make column aware of the parent table
+            newcol.parent_table = self
+
             cols.append(newcol)
 
         self.columns = TableColumns(cols)

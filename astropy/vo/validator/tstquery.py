@@ -10,7 +10,7 @@ In case USVO service is unstable, it does the following:
     #. If fails, use RA=0 DEC=0 SR=1.
 
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # STDLIB
 from xml.dom import minidom
@@ -45,7 +45,7 @@ def parse_cs(id):
             dom = minidom.parse(fd)
     except Exception as e: # pragma: no cover
         try:
-            log.warn('{0} raised {1}, trying {2}'.format(
+            log.warning('{0} raised {1}, trying {2}'.format(
                     url, str(e), backup_url))
             with get_readable_fileobj(backup_url, encoding='binary',
                                       show_progress=False) as fd:
@@ -68,6 +68,6 @@ def parse_cs(id):
     # If no testQuery found, use RA=0 DEC=0 SR=1
     if urls_failed:  # pragma: no cover
         d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '1'})
-        log.warn(urls_errmsg)
+        log.warning(urls_errmsg)
 
     return d

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Validate VO Services."""
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
 
 # STDLIB
 import json
@@ -111,7 +112,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     # Start timer
     t_beg = time.time()
 
-    if (not isinstance(destdir, basestring) or len(destdir) == 0 or
+    if (not isinstance(destdir, six.string_types) or len(destdir) == 0 or
             os.path.exists(destdir) and not os.path.isdir(destdir)):
         raise IOError('Invalid destination directory')  # pragma: no cover
 
@@ -220,7 +221,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     # Validate URLs
 
-    all_urls = key_lookup_by_url.keys()
+    all_urls = list(key_lookup_by_url)
 
     if parallel:
         mp_list = []

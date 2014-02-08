@@ -5,9 +5,9 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-import copy_reg
 import types
 
 try:
@@ -26,6 +26,9 @@ from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
                     Parametric1DModel, Parametric2DModel)
 from ..polynomial import PolynomialModel
 from ...tests.helper import pytest
+
+from ...extern import six
+from ...extern.six.moves import copyreg as copy_reg
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -331,7 +334,7 @@ class TestParametricModels(object):
         model = create_model(model_class, parameters)
         if isinstance(parameters, dict):
             parameters.pop('degree')
-            parameters = parameters.values()
+            parameters = list(six.itervalues(parameters))
 
         if "log_fit" in models_2D[model_class]:
             if models_2D[model_class]['log_fit']:
@@ -487,4 +490,3 @@ def test_parametric_model_repr():
             "<Gaussian1D(amplitude=Parameter('amplitude', value=1.0), "
             "mean=Parameter('mean', value=2.0), stddev=Parameter('stddev', "
             "value=3.0), param_dim=1)>")
-

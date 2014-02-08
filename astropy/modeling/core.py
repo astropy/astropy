@@ -40,19 +40,22 @@ In all these cases the output has the same shape as the input.
   of the output is (M, N)
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import abc
 import functools
 import copy
-from itertools import izip
 from textwrap import dedent
 
 import numpy as np
 
-from .parameters import Parameter, InputParameterError
 from ..utils import indent, isiterable
+from ..extern import six
+from ..extern.six.moves import zip as izip
+from ..extern.six.moves import range
 
+from .parameters import Parameter, InputParameterError
 
 __all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
@@ -155,6 +158,7 @@ class _ModelMeta(abc.ABCMeta):
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
 
+@six.add_metaclass(_ModelMeta)
 class Model(object):
     """
     Base class for all models.
@@ -168,8 +172,6 @@ class Model(object):
     This class sets the properties for all individual parameters and performs
     parameter validation.
     """
-
-    __metaclass__ = _ModelMeta
 
     param_names = []
     n_inputs = 1
@@ -569,46 +571,6 @@ class ParametricModel(Model):
 
         self.joint = jparams
 
-    def _model_to_fit_params(self):
-        """
-        Create a set of parameters to be fitted.
-
-        These may be a subset of the model parameters, if some of them are held
-        constant or tied.
-        """
-        fitparam_indices = range(len(self.param_names))
-        if any(self.fixed.values()) or any(self.tied.values()):
-            params = list(self.parameters)
-            for idx, name in list(enumerate(self.param_names))[::-1]:
-                if self.fixed[name] or self.tied[name]:
-                    sl = self._param_metrics[name][0]
-                    del params[sl]
-                    del fitparam_indices[idx]
-            return (np.array(params), fitparam_indices)
-        else:
-            return (self.parameters, fitparam_indices)
-
-    def _fitter_to_model_params(self, fps):
-        _fit_params, _fit_param_indices = self._model_to_fit_params()
-        if any(self.fixed.values()) or any(self.tied.values()):
-            self.parameters[_fit_param_indices] = fps
-            for idx, name in enumerate(self.param_names):
-                if self.tied[name] != False:
-                    value = self.tied[name](self)
-                    slice_ = self._param_metrics[name][0]
-                    self.parameters[slice_] = value
-        elif any([tuple(b) != (None, None) for b in self.bounds.values()]):
-            for name, par in zip(self.param_names, _fit_params):
-                if self.bounds[name] != (None, None):
-                    b = self.bounds[name]
-                    if b[0] is not None:
-                        par = max(par, self.bounds[name][0])
-                    if b[1] is not None:
-                        par = min(par, self.bounds[name][1])
-                    setattr(self, name, par)
-        else:
-            self.parameters = fps
-
     def _initialize_parameters(self, params):
         """
         Initialize the _parameters array that stores raw parameter values for
@@ -694,7 +656,7 @@ class ParametricModel(Model):
         example.
         """
 
-        fitparam_indices = range(len(self.param_names))
+        fitparam_indices = list(range(len(self.param_names)))
         if any(self.fixed.values()) or any(self.tied.values()):
             params = list(self.parameters)
             for idx, name in list(enumerate(self.param_names))[::-1]:

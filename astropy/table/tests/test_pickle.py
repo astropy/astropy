@@ -6,14 +6,6 @@ import pytest
 from ...table import Table, Column, MaskedColumn
 
 
-@pytest.fixture(params=[0, 1, -1])
-def protocol(request):
-    """
-    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
-    """
-    return request.param
-
-
 def test_pickle_column(protocol):
     c = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})
     cs = pickle.dumps(c)

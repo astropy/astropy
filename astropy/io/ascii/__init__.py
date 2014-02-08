@@ -28,7 +28,7 @@
 ## Copyright: Smithsonian Astrophysical Observatory (2010)
 ## Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 from .core import (InconsistentTableError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,

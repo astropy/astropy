@@ -31,7 +31,9 @@ fixedwidth.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import itertools
+from __future__ import absolute_import, division, print_function
+
+from ...extern.six.moves import zip
 
 from . import core
 from .core import InconsistentTableError
@@ -230,7 +232,7 @@ class FixedWidthData(core.BaseData):
         vals_list = []
         # Col iterator does the formatting defined above so each val is a string
         # and vals is a tuple of strings for all columns of each row
-        for vals in itertools.izip(*col_str_iters):
+        for vals in zip(*col_str_iters):
             vals_list.append(vals)
 
         for i, col in enumerate(self.cols):

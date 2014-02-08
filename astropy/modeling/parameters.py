@@ -7,7 +7,8 @@ It is unlikely users will need to work with these classes directly, unless they
 define their own models.
 """
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import inspect
 import functools
@@ -16,7 +17,7 @@ import numbers
 import numpy as np
 
 from ..utils import isiterable
-
+from ..extern import six
 
 __all__ = ['Parameter', 'InputParameterError']
 
@@ -163,7 +164,7 @@ class Parameter(object):
             current_shape = getattr(obj, self.name).shape
             if shape != current_shape:
                 raise InputParameterError(
-                    "Input value for parameter {0!r} does not have the "
+                    "Input value for parameter '{0}' does not have the "
                     "required shape {1}".format(self.name, current_shape))
 
         if self._setter is not None:
@@ -200,7 +201,7 @@ class Parameter(object):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
                     "Slice assignment outside the parameter dimensions for "
-                    "{0!r}".format(self.name))
+                    "'{0}'".format(self.name))
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
@@ -210,14 +211,14 @@ class Parameter(object):
                     self.value = value
             except IndexError:
                 raise InputParameterError(
-                    "Input dimension {0} invalid for {1!r} parameter with "
+                    "Input dimension {0} invalid for '{1}' parameter with "
                     "dimension {2}".format(key, self.name, param_dim))
 
     def __repr__(self):
         if self._model is None:
-            return 'Parameter({0!r})'.format(self._name)
+            return "Parameter('{0}')".format(self._name)
         else:
-            return 'Parameter({0!r}, value={1!r})'.format(
+            return "Parameter('{0}', value={1})".format(
                 self._name, self.value)
 
     @property
@@ -248,7 +249,7 @@ class Parameter(object):
                     value = self.default
                 else:
                     raise AttributeError(
-                        'Parameter value for {0!r} not set'.format(self._name))
+                        "Parameter value for '{0}' not set".format(self._name))
             else:
                 value = getattr(self._model, self._attr)
             if self._getter is None:
@@ -321,7 +322,7 @@ class Parameter(object):
         """Tie a parameter"""
 
         if self._model is not None:
-            assert callable(value) or value in (False, None), \
+            assert six.callable(value) or value in (False, None), \
                     "Tied must be a callable"
             tied = self._model._constraints.setdefault('tied', {})
             tied[self._name] = value
@@ -425,7 +426,7 @@ class Parameter(object):
             except (TypeError, IndexError):
                 raise InputParameterError(
                     "Expected a multivalued input of dimension {0} "
-                    "for parameter {1!r}".format(param_dim, self.name))
+                    "for parameter '{1}'".format(param_dim, self.name))
 
             return value, shape
 

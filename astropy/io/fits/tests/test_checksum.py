@@ -66,7 +66,7 @@ class TestChecksumFunctions(FitsTestCase):
         imdata.shape = (10, 1, 1, 2, 5)
         pdata1 = np.arange(10) + 0.1
         pdata2 = 42
-        x = fits.hdu.groups.GroupData(imdata, parnames=['abc', 'xyz'],
+        x = fits.hdu.groups.GroupData(imdata, parnames=[str('abc'), str('xyz')],
                                       pardata=[pdata1, pdata2], bitpix=-32)
         hdu = fits.GroupsHDU(x)
         hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)

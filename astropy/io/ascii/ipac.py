@@ -31,10 +31,15 @@ ipac.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
 import re
 from collections import defaultdict
 from textwrap import wrap
 from warnings import warn
+
+from ...extern import six
+from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth
@@ -81,10 +86,10 @@ class Ipac(fixedwidth.FixedWidth):
       >>> from astropy.io import ascii
       >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
       >>> data = ascii.read(filename)
-      >>> print data.meta['comments']
+      >>> print(data.meta['comments'])
       ['This is an example of a valid comment']
       >>> for name, keyword in data.meta['keywords'].items():
-      ...     print name, keyword['value']
+      ...     print(name, keyword['value'])
       ...
       intval 1
       floatval 2300.0
@@ -162,8 +167,8 @@ class Ipac(fixedwidth.FixedWidth):
                                           self.exclude_names, self.strict_names)
 
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.columns.values()
-        self.data.cols = table.columns.values()
+        self.header.cols = list(six.itervalues(table.columns))
+        self.data.cols = list(six.itervalues(table.columns))
 
         # Write header and data to lines list
         lines = []
@@ -310,12 +315,12 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # IPAC allows for continuation keywords, e.g.
                 # \SQL     = 'WHERE '
                 # \SQL     = 'SELECT (25 column names follow in next row.)'
-                if name in keywords and isinstance(val, basestring):
+                if name in keywords and isinstance(val, six.string_types):
                     prev_val = keywords[name]['value']
-                    if isinstance(prev_val, basestring):
+                    if isinstance(prev_val, six.string_types):
                         val = prev_val + val
 
-                table_meta['keywords'][name] = {'value': val}
+                keywords[name] = {'value': val}
             else:
                 # Comment is required to start with "\ "
                 if line.startswith('\\ '):
@@ -463,7 +468,7 @@ class IpacData(fixedwidth.FixedWidthData):
         # just to make sure
         self._set_col_formats()
         col_str_iters = [col.iter_str_vals() for col in self.cols]
-        for vals in core.izip(*col_str_iters):
+        for vals in zip(*col_str_iters):
             vals_list.append(vals)
 
         return vals_list

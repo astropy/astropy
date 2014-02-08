@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# TEST_UNICODE_LITERALS
+
 """
 Regression tests for the units package
 """
@@ -48,6 +50,7 @@ def test_initialisation():
 
     assert u.Unit('m') == u.m
     assert u.Unit('') == u.dimensionless_unscaled
+    assert u.one == u.dimensionless_unscaled
     assert u.Unit('10 m') == ten_meter
     assert u.Unit(10.) == u.CompositeUnit(10., [], [])
 
@@ -451,11 +454,11 @@ def test_pickling():
     assert other is u.m
 
     new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
-    u.add_enabled_units([new_unit])
-    p = pickle.dumps(new_unit)
-    new_unit_copy = pickle.loads(p)
-    assert new_unit_copy.names == ['foo']
-    assert new_unit_copy.get_format_name('baz') == 'bar'
+    with u.add_enabled_units([new_unit]):
+        p = pickle.dumps(new_unit)
+        new_unit_copy = pickle.loads(p)
+        assert new_unit_copy.names == ['foo']
+        assert new_unit_copy.get_format_name('baz') == 'bar'
 
 
 @raises(ValueError)

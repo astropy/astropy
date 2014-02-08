@@ -18,6 +18,9 @@ Running from ``astropy/vo/client/tests`` directory::
     $ py.test test_vo.py --remote-data
 
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ....extern import six
+
 # STDLIB
 import os
 
@@ -37,8 +40,8 @@ __doctest_skip__ = ['*']
 
 
 # Global variables for TestConeSearch
-SCS_RA = 0
-SCS_DEC = 0
+SCS_RA = 0.01
+SCS_DEC = 0.01
 SCS_SR = 0.1
 SCS_CENTER = ICRS(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
 SCS_RADIUS = SCS_SR * u.degree
@@ -51,7 +54,7 @@ def test_basic_db():
 
     """
     basic_db = vos_catalog.get_remote_catalog_db('basic')
-    assert sorted(basic_db.keys()) == ['__version__', 'catalogs', 'content']
+    assert sorted(basic_db) == ['__version__', 'catalogs', 'content']
     assert basic_db['content'] == ['A', 'B', 'C']
 
     assert basic_db.list_catalogs() == ['foo']
@@ -96,6 +99,9 @@ class TestConeSearch(object):
 
         # Avoid downloading the full database
         conesearch.CONESEARCH_DBNAME.set('conesearch_simple')
+
+        # Sometimes 3s is not enough
+        REMOTE_TIMEOUT.set(10)
 
         self.verbose = False
         self.pedantic = False
@@ -171,7 +177,7 @@ class TestConeSearch(object):
         async_search_all = conesearch.AsyncSearchAll(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
-        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 10))
+        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 3))
 
         assert async_search_all.done()
         for tab in all_results.values():
@@ -197,6 +203,7 @@ class TestConeSearch(object):
     def teardown_class(self):
         conesearch.CONESEARCH_DBNAME.set(
             conesearch.CONESEARCH_DBNAME.defaultvalue)
+        REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
 
 
 class TestErrorResponse(object):

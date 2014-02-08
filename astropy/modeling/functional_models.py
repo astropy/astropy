@@ -2,7 +2,8 @@
 
 """Mathematical models."""
 
-from __future__ import division
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import collections
 
@@ -14,7 +15,7 @@ from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
                    Model, format_input, ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from ..utils import find_current_module
-
+from ..extern import six
 
 __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
@@ -1241,24 +1242,25 @@ def custom_model_1d(func, func_deriv=None):
     This model instance can now be used like a usual astropy model.
     """
 
-    if not callable(func):
+    if not six.callable(func):
         raise ModelDefinitionError("Not callable. Must be function")
 
-    if func_deriv is not None and not callable(func_deriv):
+    if func_deriv is not None and not six.callable(func_deriv):
         raise ModelDefinitionError("func_deriv not callable. Must be function")
 
     model_name = func.__name__
-    param_values = func.func_defaults
+    param_values = six.get_function_defaults(func)
 
     # Check if all parameters are keyword arguments
     nparams = len(param_values)
 
-    if func_deriv is not None and len(func_deriv.func_defaults) != nparams:
+    if func_deriv is not None and len(six.get_function_defaults(func_deriv)) != nparams:
         raise ModelDefinitionError("derivative function should accept"
                                    " same number of parameters as func.")
 
-    if func.func_code.co_argcount == nparams + 1:
-        param_names = func.func_code.co_varnames[1:nparams + 1]
+    func_code = six.get_function_code(func)
+    if func_code.co_argcount == nparams + 1:
+        param_names = func_code.co_varnames[1:nparams + 1]
     else:
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")

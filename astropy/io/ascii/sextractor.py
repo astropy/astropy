@@ -30,7 +30,11 @@ Built on daophot.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
 import re
+
+from ...extern import six
 from . import core
 
 
@@ -107,7 +111,7 @@ class SExtractorHeader(core.BaseHeader):
                     colname = words[1]   # second string is the column name
                     columns[colnumber] = colname
         # Handle skipped column numbers
-        colnumbers = sorted(columns.iterkeys())
+        colnumbers = sorted(columns)
         previous_column = 0
         for n in colnumbers:
             if n != previous_column + 1:
@@ -117,7 +121,7 @@ class SExtractorHeader(core.BaseHeader):
             previous_column = n
 
         # Add the columns in order to self.names
-        colnumbers = sorted(columns.iterkeys())
+        colnumbers = sorted(columns)
         self.names = []
         for n in colnumbers:
             self.names.append(columns[n])

@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
+
 from copy import copy
 
 import numpy as np
@@ -265,7 +268,8 @@ def test_read_invalid_return():
 
 
 def test_read_basic_table():
-    data = np.array(zip([1, 2, 3], ['a', 'b', 'c']), dtype=[('A', int), ('B', '|S1')])
+    data = np.array(zip([1, 2, 3], ['a', 'b', 'c']),
+                    dtype=[(str('A'), int), (str('B'), '|S1')])
     io_registry.register_reader('test', Table, lambda x: Table(x))
     t = Table.read(data, format='test')
     assert t.keys() == ['A', 'B']

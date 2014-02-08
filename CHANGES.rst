@@ -57,8 +57,9 @@ New Features
 
 - ``astropy.sphinx``
 
-  - The `automodapi` extension now includes a configuration option to write out
-    what `automidapi` generates for debugging purposes.
+  - The `automodapi` and `automodsumm` extensions now include sphinx
+    configuration options to write out what `automidapi` and
+    `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
 - ``astropy.table``
 
@@ -77,12 +78,17 @@ New Features
   - :func:`astropy.units.equivalencies.spectral` can now handle angular
     wave number. [#1306 and #1899]
 
+  - Added `one` as a shortcut to `dimensionless_unscaled`. [#1980]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
     in its ``do_fit()`` method. [#1896]
 
 - ``astropy.vo``
+
+  - A new sub-package, `astropy.vo.samp`, is now available (this was previously
+    the SAMPy package, which has been refactored for use in Astropy). [#1907]
 
 - ``astropy.wcs``
 
@@ -147,6 +153,9 @@ Bug Fixes
 
   - The distance modulus function in ``astropy.cosmology`` can now handle
     negative distances, which can occur in certain closed cosmologies. [#2008]
+
+  - Removed accidental imports of some extraneous variables in
+    `astropy.cosmology` [#2025]
 
 - ``astropy.io.ascii``
 
@@ -213,9 +222,12 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- The included version of py.test has been upgraded to 2.5.1.
+- The included version of py.test has been upgraded to 2.5.1. [#1970]
 
 - The included version of six.py has been upgraded to 1.5.2. [#2006]
+
+- Where appropriate, tests are now run both with and without the
+  ``unicode_literals`` option to ensure that we support both cases. [#1962]
 
 0.3.1 (unreleased)
 ------------------
@@ -231,7 +243,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Fixed bug which caused `len()` not to work for coordinate objects. [#1761]
+  - Fixed bug which caused `len()` not to work for coordinate objects
+    and added a `shape` property to get appropriately array-like
+    behavior. [#1761, #2014]
 
   - Fixed a bug where sexagesimal notation would sometimes include
     exponential notation in the last field. [#1908, #1913]
@@ -285,6 +299,10 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+- ``astropy.sphinx``
+
+  - Added slightly more useful debug info for AstropyAutosummary. [#2024]
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -303,6 +321,9 @@ Bug Fixes
     `from __future__ import unicode_literals` is used. [#1864]
 
   - Allow pickling of ``Table``, ``Column``, and ``MaskedColumn`` objects. [#792]
+
+  - Fix a problem where it was not possible to rename columns after sorting or
+    adding a row. [#2039]
 
 - ``astropy.time``
 
@@ -350,6 +371,8 @@ Bug Fixes
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
 
+  - Fixed `astropy.utils.compat.argparse` for Python 3.1. [#2017]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -367,6 +390,9 @@ Bug Fixes
 
   - Fix a memory corruption bug when using `astropy.wcs.Wcs.sub` with
     `~astropy.wcs.WCSSUB_CELESTIAL`. [#1960]
+
+  - Fixed the AttributeError exception which was raised when using
+    :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
 
 - Misc
 

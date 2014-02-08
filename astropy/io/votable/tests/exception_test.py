@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # LOCAL
+from ....tests.helper import catch_warnings
+
 from .. import converters
 from .. import exceptions
 from .. import tree
@@ -21,17 +23,17 @@ def test_reraise():
         assert False
 
 
-def test_parse_vowarning(recwarn):
+def test_parse_vowarning():
     config = {'pedantic': True,
               'filename': 'foo.xml'}
     pos = (42, 64)
-    field = tree.Field(
-        None, name='c', datatype='char',
-        config=config, pos=pos)
-    c = converters.get_converter(field, config=config, pos=pos)
-    w = recwarn.pop(exceptions.W47)
+    with catch_warnings(exceptions.W47) as w:
+        field = tree.Field(
+            None, name='c', datatype='char',
+            config=config, pos=pos)
+        c = converters.get_converter(field, config=config, pos=pos)
 
-    parts = exceptions.parse_vowarning(str(w.message))
+    parts = exceptions.parse_vowarning(str(w[0].message))
 
     match = {
         'number'       : 47,

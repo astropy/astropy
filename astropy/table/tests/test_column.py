@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# TEST_UNICODE_LITERALS
+
 import operator
 
 from distutils import version
@@ -12,13 +14,6 @@ from ... import table
 from ... import units as u
 
 NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
-
-
-@pytest.fixture(params=[table.Column, table.MaskedColumn])
-def Column(request):
-    # Fixture to run all the Column tests for both an unmasked (ndarray)
-    # and masked (MaskedArray) column.
-    return request.param
 
 
 class TestColumn():

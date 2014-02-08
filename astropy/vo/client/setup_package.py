@@ -4,3 +4,7 @@
 def get_package_data():
     return {
         'astropy.vo.client.tests': ['data/*.xml']}
+
+
+def requires_2to3():
+    return False

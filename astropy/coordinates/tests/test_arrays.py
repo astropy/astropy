@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -291,6 +294,10 @@ def test_array_len():
 
         assert len(c) == length
 
+        assert c.shape == (length,)
+
     with pytest.raises(TypeError):
         c = ICRS(0, 0, unit=(u.degree, u.degree))
         len(c)
+
+    assert c.shape == tuple()

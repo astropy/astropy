@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# TEST_UNICODE_LITERALS
+
 """Test behavior related to masked tables"""
 
 from distutils import version
@@ -8,12 +11,6 @@ import numpy.ma as ma
 from ...tests.helper import pytest
 from ...table import Column, MaskedColumn, Table
 
-class SubclassTable(Table):
-    pass
-
-@pytest.fixture(params = [True, False])
-def tableclass(request):
-    return Table if request.param else SubclassTable
 
 class SetupData(object):
     def setup_method(self, method):

@@ -83,10 +83,10 @@ Parameter examples
 - It is possible to change a single parameter::
 
     >>> ch2.c0_0
-    Parameter('c0_0', value=array([  0.,  10.]))
+    Parameter('c0_0', value=[  0.  10.])
     >>> ch2.c0_0[0] = -34.2
     >>> ch2.c0_0
-    Parameter('c0_0', value=array([-34.2,  10. ]))
+    Parameter('c0_0', value=[-34.2  10. ])
 
 - The number of parameter sets is stored in an attribute
   `~astropy.modeling.core.Model.param_dim`::

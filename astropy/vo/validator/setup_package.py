@@ -6,3 +6,7 @@ def get_package_data():
         'astropy.vo.validator': ['data/*.txt'],
         'astropy.vo.validator.tests': ['data/*.json', 'data/*.xml',
                                        'data/*.out']}
+
+
+def requires_2to3():
+    return False
