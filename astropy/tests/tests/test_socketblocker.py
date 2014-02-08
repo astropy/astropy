@@ -11,8 +11,7 @@ def test_outgoing_fails():
     with pytest.raises(IOError):
         urlopen('http://www.astropy.org')
 
-
-class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
+class StoppableHTTPServer(BaseHTTPServer.HTTPServer,object):
     def __init__(self, *args):
         super(StoppableHTTPServer, self).__init__(*args)
         self.stop = False
@@ -28,31 +27,25 @@ class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
         while not self.stop:
             self.handle_request()
 
-def run_while_true(server_class=BaseHTTPServer.HTTPServer,
-                   handler_class=SimpleHTTPServer.SimpleHTTPRequestHandler):
-    """
-    This assumes that keep_running() is a function of no arguments which
-    is tested initially and after each request.  If its return value
-    is true, the server continues.
-    """
-    server_address = ('localhost', 8000)
-    httpd = server_class(server_address, handler_class)
 
-    # "serve forever" really means "serve until first request"
-    httpd.serve_forever()
-
-
-@pytest.mark.parametrize(('localhost'),('localhost','127.0.0.1'))
+@pytest.mark.parametrize(('localhost'), ('localhost', '127.0.0.1'))
 def test_localconnect_succeeds(localhost):
     """
     Ensure that connections to localhost are allowed, since these are genuinely
     not remotedata.
     """
 
-    server = Thread(target=run_while_true)
+    # port "0" means find open port
+    # see http://stackoverflow.com/questions/1365265/on-localhost-how-to-pick-a-free-port-number
+    httpd = StoppableHTTPServer(('localhost', 0),
+                                SimpleHTTPServer.SimpleHTTPRequestHandler)
+
+    port = httpd.socket.getsockname()[1]
+
+    server = Thread(target=httpd.serve_forever)
     server.setDaemon(True)
 
     server.start()
     time.sleep(0.1)
 
-    urlopen('http://{}:8000'.format(localhost)).close()
+    urlopen('http://{localhost:s}:{port:d}'.format(localhost=localhost,port=port)).close()
