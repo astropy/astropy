@@ -93,9 +93,6 @@ class SAMPIntegratedClient(object):
                                  ca_certs, ssl_version, callable)
 
 
-    def __del__(self):
-        self.disconnect()
-
     def __enter__(self):
         return self
 

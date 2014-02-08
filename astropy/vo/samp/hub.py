@@ -375,9 +375,6 @@ class SAMPHubServer(object):
     def __exit__(self, type, value, tb):
         self.stop()
 
-    def __del__(self):
-        self.stop()
-
     def _launch_thread(self, group=None, target=None, name=None, args=None):
 
         # Remove inactive threads

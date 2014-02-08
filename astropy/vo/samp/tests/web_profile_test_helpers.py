@@ -27,9 +27,6 @@ class AlwaysApproveWebProfileDialog(WebProfileDialog):
 
     def stop(self):
         self.polling = False
-        
-    def __del__(self):
-        self.stop()
 
 
 class SAMPWebHubProxy(SAMPHubProxy):
