@@ -1,7 +1,7 @@
 astropy.wcs History
 ===================
 
-`astropy.wcs` began life as `pywcs`.  Earlier version numbers refer to
+`astropy.wcs` began life as ``pywcs``.  Earlier version numbers refer to
 that package.
 
 pywcs Version 1.11

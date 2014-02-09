@@ -379,12 +379,12 @@ class WCS(WCSBase):
                 (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
                 raise ValueError(
                     """
-Paper IV lookup tables and SIP distortions only work in 2 dimensions.
-However, WCSLIB has detected {0} dimensions in the core WCS keywords.
-To use core WCS in conjunction with Paper IV lookup tables or SIP
-distortion, you must select or reduce these to 2 dimensions using the
-naxis kwarg.
-""".format(wcsprm.naxis))
+                    Paper IV lookup tables and SIP distortions only work 
+                    in 2 dimensions.However, WCSLIB has detected {0} dimensions
+                    in the core WCS keywords. To use core WCS in conjunction 
+                    with Paper IV lookup tables or SIP distortion, you must 
+                    select or reduce these to 2 dimensions using the naxis kwarg.
+                    """.format(wcsprm.naxis))
 
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:

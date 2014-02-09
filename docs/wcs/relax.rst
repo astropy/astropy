@@ -5,10 +5,10 @@
 Relax constants
 ===============
 
-The `relax` keyword argument controls the handling of non-standard
+The ``relax`` keyword argument controls the handling of non-standard
 FITS WCS keywords.
 
-Note that the default value of `relax` is `True` for reading (to
+Note that the default value of ``relax`` is `True` for reading (to
 accept all non standard keywords), and `False` for writing (to write
 out only standard keywords), in accordance with `Postel's prescription
 <http://catb.org/jargon/html/P/Postels-Prescription.html>`_:
@@ -20,8 +20,8 @@ out only standard keywords), in accordance with `Postel's prescription
 Header-reading relaxation constants
 -----------------------------------
 
-`~astropy.wcs.WCS`, `~astropy.wcs.Wcsprm` and
-`~astropy.wcs.find_all_wcs` have a *relax* argument, which may be
+`~astropy.wcs.wcs.WCS`, `~astropy.wcs.Wcsprm` and
+`~astropy.wcs.wcs.find_all_wcs` have a *relax* argument, which may be
 either `True`, `False` or an `int`.
 
 - If `True`, (default), all non-standard WCS extensions recognized by the parser
@@ -50,17 +50,17 @@ either `True`, `False` or an `int`.
 
 The flag bits are:
 
-- `WCSHDR_none`: Don't accept any extensions (not even those in the
+- ``WCSHDR_none``: Don't accept any extensions (not even those in the
   errata).  Treat non-conformant keywords in the same way as non-WCS
   keywords in the header, i.e. simply ignore them.  (This is
   equivalent to passing `False`)
 
-- `WCSHDR_all`: Accept all extensions recognized by the parser.  (This
+- ``WCSHDR_all``: Accept all extensions recognized by the parser.  (This
   is equivalent to the default behavior or passing `True`).
 
-- `WCSHDR_CROTAia`: Accept ``CROTAia``, ``iCROTna``, ``TCROTna``
-- `WCSHDR_EPOCHa`:  Accept ``EPOCHa``.
-- `WCSHDR_VELREFa`: Accept ``VELREFa``.
+- ``WCSHDR_CROTAia``: Accept ``CROTAia``, ``iCROTna``, ``TCROTna``
+- ``WCSHDR_EPOCHa``:  Accept ``EPOCHa``.
+- ``WCSHDR_VELREFa``: Accept ``VELREFa``.
 
         The constructor always recognizes the AIPS-convention
         keywords, ``CROTAn``, ``EPOCH``, and ``VELREF`` for the
@@ -68,11 +68,11 @@ The flag bits are:
         non-standard.
 
         The constructor accepts ``EPOCHa`` and ``VELREFa`` only if
-        `WCSHDR_AUXIMG` is also enabled.
+        ``WCSHDR_AUXIMG`` is also enabled.
 
-- `WCSHDR_CD00i00j`: Accept ``CD00i00j``.
-- `WCSHDR_PC00i00j`: Accept ``PC00i00j``.
-- `WCSHDR_PROJPn`: Accept ``PROJPn``.
+- ``WCSHDR_CD00i00j``: Accept ``CD00i00j``.
+- ``WCSHDR_PC00i00j``: Accept ``PC00i00j``.
+- ``WCSHDR_PROJPn``: Accept ``PROJPn``.
 
         These appeared in early drafts of WCS Paper I+II (before they
         were split) and are equivalent to ``CDi_ja``, ``PCi_ja``, and
@@ -80,21 +80,21 @@ The flag bits are:
         ``PROJPn`` is equivalent to ``PVi_ma`` with ``m`` = ``n`` <=
         9, and is associated exclusively with the latitude axis.
 
-- `WCSHDR_RADECSYS`: Accept ``RADECSYS``.  This appeared in early
+- ``WCSHDR_RADECSYS``: Accept ``RADECSYS``.  This appeared in early
   drafts of WCS Paper I+II and was subsequently replaced by
   ``RADESYSa``.  The construtor accepts ``RADECSYS`` only if
-  `WCSHDR_AUXIMG` is also enabled.
+  ``WCSHDR_AUXIMG`` is also enabled.
 
-- `WCSHDR_VSOURCE`: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared
+- ``WCSHDR_VSOURCE``: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared
   in early drafts of WCS Paper III and was subsequently dropped in
   favour of ``ZSOURCEa`` and ``ZSOUna``.  The constructor accepts
-  ``VSOURCEa`` only if `WCSHDR_AUXIMG` is also enabled.
+  ``VSOURCEa`` only if ``WCSHDR_AUXIMG`` is also enabled.
 
-- `WCSHDR_DOBSn`: Allow ``DOBSn``, the column-specific analogue of
+- ``WCSHDR_DOBSn``: Allow ``DOBSn``, the column-specific analogue of
   ``DATE-OBS``.  By an oversight this was never formally defined in
   the standard.
 
-- `WCSHDR_LONGKEY`: Accept long forms of the alternate binary table
+- ``WCSHDR_LONGKEY``: Accept long forms of the alternate binary table
   and pixel list WCS keywords, i.e. with "a" non- blank.
   Specifically::
 
@@ -133,12 +133,12 @@ The flag bits are:
   Note that ``CNAMEia``, ``CRDERia``, ``CSYERia``, and their variants
   are not used by `astropy.wcs` but are stored as auxiliary information.
 
-- `WCSHDR_CNAMn`: Accept ``iCNAMn``, ``iCRDEn``, ``iCSYEn``,
+- ``WCSHDR_CNAMn``: Accept ``iCNAMn``, ``iCRDEn``, ``iCSYEn``,
   ``TCNAMn``, ``TCRDEn``, and ``TCSYEn``, i.e. with ``a`` blank.
   While non-standard, these are the obvious analogues of ``iCTYPn``,
   ``TCTYPn``, etc.
 
-- `WCSHDR_AUXIMG`: Allow the image-header form of an auxiliary WCS
+- ``WCSHDR_AUXIMG``: Allow the image-header form of an auxiliary WCS
   keyword with representation-wide scope to provide a default value
   for all images.  This default may be overridden by the
   column-specific form of the keyword.
@@ -195,10 +195,10 @@ The flag bits are:
   default value, the exceptions being ``LONPOLEa`` and ``LATPOLEa``,
   and also ``RADESYSa`` and ``EQUINOXa`` which provide defaults for
   each other.  Thus the only potential difficulty in using
-  `WCSHDR_AUXIMG` is that of erroneously inheriting one of these four
+  ``WCSHDR_AUXIMG`` is that of erroneously inheriting one of these four
   keywords.
 
-  Unlike `WCSHDR_ALLIMG`, the existence of one (or all) of these
+  Unlike ``WCSHDR_ALLIMG``, the existence of one (or all) of these
   auxiliary WCS image header keywords will not by itself cause a
   `~astropy.wcs.Wcsprm` object to be created for alternate
   representation ``a``.  This is because they do not provide
@@ -207,7 +207,7 @@ The flag bits are:
   those keywords, such as ``CTYPEia``, that are parameterized by axis
   number.
 
-- `WCSHDR_ALLIMG`: Allow the image-header form of *all* image header
+- ``WCSHDR_ALLIMG``: Allow the image-header form of *all* image header
   WCS keywords to provide a default value for all image arrays in a
   binary table (n.b. not pixel list).  This default may be overridden
   by the column-specific form of the keyword.
@@ -216,7 +216,7 @@ The flag bits are:
   arrays in a binary table with alternate representation ``a``
   unless overridden by ``jCRPna``.
 
-  Specifically the keywords are those listed above for `WCSHDR_AUXIMG`
+  Specifically the keywords are those listed above for ``WCSHDR_AUXIMG``
   plus::
 
         WCSAXESa  for WCAXna
@@ -271,14 +271,14 @@ The flag bits are:
 Header-writing relaxation constants
 -----------------------------------
 
-`~astropy.wcs.WCS.to_header` and `~astropy.wcs.WCS.to_header_string`
+`~astropy.wcs.wcs.WCS.to_header` and `~astropy.wcs.wcs.WCS.to_header_string`
 has a *relax* argument which may be either `True`, `False` or an
 `int`.
 
 - If `True`, write all recognized extensions.
 
 - If `False` (default), write all extensions that are considered to be
-  safe and recommended, equivalent to `WCSHDO_safe` (described below).
+  safe and recommended, equivalent to ``WCSHDO_safe`` (described below).
 
 - If an `int`, is is a bit field to provide fine-grained control over
   what non-standard WCS keywords to accept.  The flag bits are subject
@@ -287,15 +287,15 @@ has a *relax* argument which may be either `True`, `False` or an
 
 The flag bits are:
 
-- `WCSHDO_none`: Don't use any extensions.
+- ``WCSHDO_none``: Don't use any extensions.
 
-- `WCSHDO_all`: Write all recognized extensions, equivalent to setting
+- ``WCSHDO_all``: Write all recognized extensions, equivalent to setting
   each flag bit.
 
-- `WCSHDO_safe`: Write all extensions that are considered to be safe
+- ``WCSHDO_safe``: Write all extensions that are considered to be safe
   and recommended.
 
-- `WCSHDO_DOBSn`: Write ``DOBSn``, the column-specific analogue of
+- ``WCSHDO_DOBSn``: Write ``DOBSn``, the column-specific analogue of
   ``DATE-OBS`` for use in binary tables and pixel lists.  WCS Paper
   III introduced ``DATE-AVG`` and ``DAVGn`` but by an oversight
   ``DOBSn`` (the obvious analogy) was never formally defined by the
@@ -303,7 +303,7 @@ The flag bits are:
   ``DATE-OBS`` which applies to the whole table.  This usage is
   considered to be safe and is recommended.
 
-- `WCSHDO_TPCn_ka`: WCS Paper I defined
+- ``WCSHDO_TPCn_ka``: WCS Paper I defined
 
   - ``TPn_ka`` and ``TCn_ka`` for pixel lists
 
@@ -316,7 +316,7 @@ The flag bits are:
     usage is considered to be safe and is recommended because of the
     non-mnemonic terseness of the shorter forms.
 
-- `WCSHDO_PVn_ma`: WCS Paper I defined
+- ``WCSHDO_PVn_ma``: WCS Paper I defined
 
   - ``iVn_ma`` and ``iSn_ma`` for bintables and
   - ``TVn_ma`` and ``TSn_ma`` for pixel lists
@@ -332,7 +332,7 @@ The flag bits are:
     usage is considered to be safe and is recommended because of the
     non-mnemonic terseness of the shorter forms.
 
-- `WCSHDO_CRPXna`: For historical reasons WCS Paper I defined
+- ``WCSHDO_CRPXna``: For historical reasons WCS Paper I defined
 
   - ``jCRPXn``, ``iCDLTn``, ``iCUNIn``, ``iCTYPn``, and ``iCRVLn`` for
     bintables and
@@ -355,7 +355,7 @@ The flag bits are:
     first set with a non-blank alternate version specifier so this
     usage is considered to be safe and is recommended.
 
-- `WCSHDO_CNAMna`: WCS Papers I and III defined
+- ``WCSHDO_CNAMna``: WCS Papers I and III defined
 
   - ``iCNAna``,  ``iCRDna``,  and ``iCSYna``  for bintables and
   - ``TCNAna``,  ``TCRDna``,  and ``TCSYna``  for pixel lists
@@ -369,9 +369,9 @@ The flag bits are:
     of them are needed to compute world coordinates.  This usage is
     potentially unsafe and is not recommended at this time.
 
-- `WCSHDO_WCSNna`: Write ``WCSNna`` instead of ``TWCSna`` for pixel
+- ``WCSHDO_WCSNna``: Write ``WCSNna`` instead of ``TWCSna`` for pixel
   lists.  While the constructor treats ``WCSNna`` and ``TWCSna`` as
   equivalent, other parsers may not.  Consequently, this usage is
   potentially unsafe and is not recommended at this time.
 
-- `WCSHDO_SIP`: Write out Simple Imaging Polynomial (SIP) keywords.
+- ``WCSHDO_SIP``: Write out Simple Imaging Polynomial (SIP) keywords.
