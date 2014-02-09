@@ -606,7 +606,7 @@ class SAMPHubServer(object):
         while self._is_running:
 
             try:
-                read_ready = select.select([self._server.socket], [], [], 0.1)[0]
+                read_ready = select.select([self._server.socket], [], [], 0.01)[0]
             except select.error as exc:
                 warnings.warn("Call to select() in SAMPHubServer failed: {0}".format(exc),
                               SAMPWarning)
@@ -1475,11 +1475,8 @@ class SAMPHubServer(object):
             callback_queue = self._web_profile_callbacks[private_key]
             try:
                 while self._is_running:
-                    item_queued = callback_queue.get(block=True,
-                                                     timeout=int(timeout_secs))
+                    item_queued = callback_queue.get_nowait()
                     callback.append(item_queued)
-                    if callback_queue.empty():
-                        break
             except queue.Empty:
                 pass
             return callback
