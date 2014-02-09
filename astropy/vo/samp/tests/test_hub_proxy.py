@@ -12,11 +12,11 @@ class TestHubProxy(object):
 
     def setup_method(self, method):
 
-        self.hub = SAMPHubServer(web_profile=False, mode='multiple')
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple', pool_size=1)
         self.hub.start()
 
         self.proxy = SAMPHubProxy()
-        self.proxy.connect(hub=self.hub)
+        self.proxy.connect(hub=self.hub, pool_size=1)
 
     def teardown_method(self, method):
 
@@ -43,10 +43,10 @@ def test_custom_lockfile(tmpdir):
 
     lockfile = tmpdir.join('.samptest').realpath().strpath
 
-    hub = SAMPHubServer(web_profile=False, lockfile=lockfile)
+    hub = SAMPHubServer(web_profile=False, lockfile=lockfile, pool_size=1)
     hub.start()
 
     proxy = SAMPHubProxy()
-    proxy.connect(hub=hub)
+    proxy.connect(hub=hub, pool_size=1)
 
     hub.stop()

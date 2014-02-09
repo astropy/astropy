@@ -44,16 +44,16 @@ class TestWebProfile(BaseTestStandardProfile):
 
         self.hub = SAMPHubServer(web_profile_dialog=self.dialog,
                                  lockfile=lockfile,
-                                 web_port=0)
+                                 web_port=0, pool_size=2)
         self.hub.start()
 
         self.client1 = SAMPIntegratedClient()
-        self.client1.connect(hub=self.hub)
+        self.client1.connect(hub=self.hub, pool_size=2)
         self.client1_id = self.client1.get_public_id()
         self.client1_key = self.client1.get_private_key()
 
         self.client2 = SAMPIntegratedWebClient()
-        self.client2.connect(web_port=self.hub._web_port)
+        self.client2.connect(web_port=self.hub._web_port, pool_size=2)
         self.client2_id = self.client2.get_public_id()
         self.client2_key = self.client2.get_private_key()
 

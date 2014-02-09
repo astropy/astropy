@@ -13,12 +13,12 @@ def setup_module(module):
 
 def test_SAMPHubServer():
     """Test that SAMPHub can be instantiated"""
-    SAMPHubServer(web_profile=False, mode='multiple')
+    SAMPHubServer(web_profile=False, mode='multiple', pool_size=1)
 
 
 def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
-    hub = SAMPHubServer(web_profile=False, mode='multiple')
+    hub = SAMPHubServer(web_profile=False, mode='multiple', pool_size=1)
     hub.start()
     time.sleep(1)
     hub.stop()

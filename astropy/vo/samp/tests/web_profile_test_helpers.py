@@ -155,7 +155,7 @@ class SAMPWebClient(SAMPClient):
 
         if self._callable:
             self._thread = threading.Thread(target=self._serve_forever)
-            self._thread.setDaemon(True)
+            self._thread.daemon = True
 
     def _serve_forever(self):
         while self.is_running:
