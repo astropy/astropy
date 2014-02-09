@@ -53,7 +53,7 @@ class TestWebProfile(BaseTestStandardProfile):
         self.client1_key = self.client1.get_private_key()
 
         self.client2 = SAMPIntegratedWebClient()
-        self.client2.connect(web_port=self.hub._web_port, pool_size=1)
+        self.client2.connect(web_port=self.hub._web_port, pool_size=2)
         self.client2_id = self.client2.get_public_id()
         self.client2_key = self.client2.get_private_key()
 
