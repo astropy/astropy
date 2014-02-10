@@ -14,14 +14,15 @@ socket_connect = socket.socket.connect
 # ::1 is apparently another valid name for localhost?
 # it is returned by getaddrinfo when that function is given localhost
 
-
 def check_internet_off(original_function):
     def new_function(*args, **kwargs):
         if isinstance(args[0], socket.socket):
             host = args[1][0]
+            valid_hosts = ('localhost', '127.0.0.1', '::1')
         else:
             host = args[0][0]
-        if '127.0.0.1' in host or 'localhost' in host or '::1' in host:
+            valid_hosts = ('localhost', '127.0.0.1')
+        if any([h in host for h in valid_hosts]):
             return original_function(*args, **kwargs)
         else:
             raise IOError("An attempt was made to connect to the internet "
@@ -40,28 +41,9 @@ def turn_off_internet(verbose=False):
     if verbose:
         print("Internet access disabled")
 
-    # ::1 is apparently another valid name for localhost?
-    # it is returned by getaddrinfo when that function is given localhost
-
-    def blocker_creator(return_fn, isclass=False):
-        __tracebackhide__ = True
-        def blocker(*args, **kwargs):
-            if isclass:
-                address = args[1]
-            else:
-                address = args[0]
-            host,port = address[:2]
-            if not ('127.0.0.1' in host or
-                    'localhost' in host or
-                    '::1' in host): 
-                raise IOError("An attempt was made to connect to the internet")
-            else:
-                return return_fn(*args, **kwargs)
-        return blocker
-
-    setattr(socket.socket, 'bind', blocker_creator(socket_bind, isclass=True))
-    setattr(socket.socket, 'connect', blocker_creator(socket_connect, isclass=True))
-    setattr(socket, 'create_connection', blocker_creator(socket_create_connect, isclass=False))
+    socket.create_connection = check_internet_off(socket_create_connection)
+    socket.socket.bind = check_internet_off(socket_bind)
+    socket.socket.connect = check_internet_off(socket_connect)
 
     return socket
 
