@@ -123,7 +123,7 @@ API Changes
 
 - ``astropy.table``
 
-  - The default table printing function now shows a table header row 
+  - The default table printing function now shows a table header row
     for units if any columns have the unit attribute set.  [#1282]
 
 - ``astropy.time``
@@ -377,6 +377,8 @@ Bug Fixes
 
   - Pickling unrecognized units will not raise a
     `AttributeError`. [#2047]
+
+  - `astropy.units` now correctly handles fractional powers. [#2070]
 
 - ``astropy.utils``
 
