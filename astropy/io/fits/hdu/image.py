@@ -102,6 +102,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._header = header
 
         self._do_not_scale_image_data = do_not_scale_image_data
+
         self._uint = uint
         self._scale_back = scale_back
 
@@ -197,6 +198,19 @@ class _ImageBaseHDU(_ValidHDU):
 
     @lazyproperty
     def data(self):
+        """
+        Image/array data as a `~numpy.ndarray`.
+
+        Please remember that the order of axes on an Numpy array are opposite
+        of the order specified in the FITS file.  For example for a 2D image
+        the "rows" or y-axis are the first dimension, and the "columns" or
+        x-axis are the second dimension.
+
+        If the data is scaled using the BZERO and BSCALE parameters, this
+        attribute returns the data scaled to its physical values unless the
+        file was opened with ``do_not_scale_image_data=True``.
+        """
+
         if len(self._axes) < 1:
             return
 
@@ -309,6 +323,17 @@ class _ImageBaseHDU(_ValidHDU):
     def _update_header_scale_info(self, dtype=None):
         if (not self._do_not_scale_image_data and
                 not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+
+            if dtype is None:
+                dtype = self._dtype_for_bitpix()
+
+            if (dtype is not None and dtype.kind == 'u' and
+                    (self._scale_back or self._scale_back is None)):
+                # Data is pseudo-unsigned integers, and the scale_back option
+                # was not explicitly set to False, so preserve all the scale
+                # factors
+                return
+
             for keyword in ['BSCALE', 'BZERO']:
                 try:
                     del self._header[keyword]
@@ -332,11 +357,10 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Scale image data by using ``BSCALE``/``BZERO``.
 
-        Call to this method will scale `data` and update the keywords
-        of ``BSCALE`` and ``BZERO`` in `_header`.  This method should
-        only be used right before writing to the output file, as the
-        data will be scaled and is therefore not very usable after the
-        call.
+        Call to this method will scale `data` and update the keywords of
+        ``BSCALE`` and ``BZERO`` in the HDU's header.  This method should only
+        be used right before writing to the output file, as the data will be
+        scaled and is therefore not very usable after the call.
 
         Parameters
         ----------
@@ -350,10 +374,10 @@ class _ImageBaseHDU(_ValidHDU):
             ``BSCALE`` and ``BZERO`` values when the data was
             read/created. If ``"minmax"``, use the minimum and maximum
             of the data to scale.  The option will be overwritten by
-            any user specified `bscale`/`bzero` values.
+            any user specified ``bscale``/``bzero`` values.
 
         bscale, bzero : int, optional
-            User-specified ``BSCALE`` and ``BZERO`` values.
+            User-specified ``BSCALE`` and ``BZERO`` values
         """
 
         if self.data is None:
@@ -522,6 +546,7 @@ class _ImageBaseHDU(_ValidHDU):
             bits = dtype.itemsize * 8
             data = np.array(data, dtype=dtype)
             data -= np.uint64(1 << (bits - 1))
+
             return data
 
     def _get_scaled_image_data(self, offset, shape):
@@ -783,7 +808,7 @@ class PrimaryHDU(_ImageBaseHDU):
     _default_name = 'PRIMARY'
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
-                 uint=False, scale_back=False):
+                 uint=False, scale_back=None):
         """
         Construct a primary HDU.
 
@@ -793,8 +818,8 @@ class PrimaryHDU(_ImageBaseHDU):
             The data in the HDU.
 
         header : Header instance, optional
-            The header to be used (as a template).  If `header` is
-            `None`, a minimal header will be provided.
+            The header to be used (as a template).  If ``header`` is `None`, a
+            minimal header will be provided.
 
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
@@ -866,7 +891,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     _extension = 'IMAGE'
 
     def __init__(self, data=None, header=None, name=None,
-                 do_not_scale_image_data=False, uint=False, scale_back=False):
+                 do_not_scale_image_data=False, uint=False, scale_back=None):
         """
         Construct an image HDU.
 

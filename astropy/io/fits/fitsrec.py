@@ -14,7 +14,7 @@ from numpy import char as chararray
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
-from .util import decode_ascii
+from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
 from ...extern.six.moves import xrange, map
 from ...utils import lazyproperty
@@ -44,11 +44,11 @@ class FITS_record(object):
 
         start : int, optional
            The starting column in the row associated with this object.
-           Used for subsetting the columns of the FITS_rec object.
+           Used for subsetting the columns of the `FITS_rec` object.
 
         end : int, optional
            The ending column in the row associated with this object.
-           Used for subsetting the columns of the FITS_rec object.
+           Used for subsetting the columns of the `FITS_rec` object.
         """
 
         # For backward compatibility...
@@ -160,8 +160,8 @@ class FITS_rec(np.recarray):
     """
     FITS record array class.
 
-    `FITS_rec` is the data part of a table HDU's data part.  This is a
-    layer over the `recarray`, so we can deal with scaled columns.
+    `FITS_rec` is the data part of a table HDU's data part.  This is a layer
+    over the `~numpy.recarray`, so we can deal with scaled columns.
 
     It inherits all of the standard methods from `numpy.ndarray`.
     """
@@ -238,17 +238,20 @@ class FITS_rec(np.recarray):
     @classmethod
     def from_columns(cls, columns, nrows=0, fill=False):
         """
-        Given a ColDefs object of unknown origin, initialize a new FITS_rec
+        Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
 
-        This was originally part of the new_table function in the table module
-        but was moved into a class method since most of its functionality
-        always had more to do with initializing a FITS_rec object than anything
-        else, and much of it also overlapped with FITS_rec._scale_back.
+        .. note::
+
+            This was originally part of the `new_table` function in the table
+            module but was moved into a class method since most of its
+            functionality always had more to do with initializing a `FITS_rec
+            object` than anything else, and much of it also overlapped with
+            ``FITS_rec._scale_back``.
 
         Parameters
         ----------
-        columns : sequence of Columns or a ColDefs
+        columns : sequence of `Column` or a `ColDefs`
             The columns from which to create the table data.  If these
             columns have data arrays attached that data may be used in
             initializing the new table.  Otherwise the input columns
@@ -265,6 +268,9 @@ class FITS_rec(np.recarray):
             `False`, copy the data from input, undefined cells will still
             be filled with zeros/blanks.
         """
+
+        if not isinstance(columns, ColDefs):
+            columns = ColDefs(columns)
 
         # read the delayed data
         for idx in range(len(columns)):
@@ -476,11 +482,15 @@ class FITS_rec(np.recarray):
             newrecord = self._record_type(self, key)
             return newrecord
 
-    def __setitem__(self, row, value):
-        if isinstance(row, slice):
-            end = min(len(self), row.stop or len(self))
+    def __setitem__(self, key, value):
+        if isinstance(key, string_types):
+            self[key][:] = value
+            return
+
+        if isinstance(key, slice):
+            end = min(len(self), key.stop or len(self))
             end = max(0, end)
-            start = max(0, row.start or 0)
+            start = max(0, key.start or 0)
             end = min(end, start + len(value))
 
             for idx in xrange(start, end):
@@ -489,11 +499,11 @@ class FITS_rec(np.recarray):
 
         if isinstance(value, FITS_record):
             for idx in range(self._nfields):
-                self.field(self.names[idx])[row] = value.field(self.names[idx])
+                self.field(self.names[idx])[key] = value.field(self.names[idx])
         elif isinstance(value, (tuple, list, np.void)):
             if self._nfields == len(value):
                 for idx in range(self._nfields):
-                    self.field(idx)[row] = value[idx]
+                    self.field(idx)[key] = value[idx]
             else:
                 raise ValueError('Input tuple or list required to have %s '
                                  'elements.' % self._nfields)
@@ -509,13 +519,13 @@ class FITS_rec(np.recarray):
 
     def copy(self, order='C'):
         """
-        The Numpy documentation lies; ndarray.copy is not equivalent to
-        np.copy.  Differences include that it re-views the copied array
-        as self's ndarray subclass, as though it were taking a slice;
-        this means __array_finalize__ is called and the copy shares all
-        the array attributes (including ._convert!).  So we need to make
-        a deep copy of all those attributes so that the two arrays truly do
-        not share any data.
+        The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
+        `numpy.copy`.  Differences include that it re-views the copied array as
+        self's ndarray subclass, as though it were taking a slice; this means
+        ``__array_finalize__`` is called and the copy shares all the array
+        attributes (including ``._convert``!).  So we need to make a deep copy
+        of all those attributes so that the two arrays truly do not share any
+        data.
 
         Note: The ``order`` argument is unsupported in Numpy 1.5 and will be
         ignored when used with that version.
@@ -535,7 +545,9 @@ class FITS_rec(np.recarray):
     @property
     def columns(self):
         """
-        A user-visible accessor for the coldefs.  See ticket #44.
+        A user-visible accessor for the coldefs.
+
+        See https://trac.assembla.com/pyfits/ticket/44
         """
 
         return self._coldefs
@@ -636,8 +648,15 @@ class FITS_rec(np.recarray):
         nullval = str(self._coldefs.nulls[indx]).strip().encode('ascii')
         if len(nullval) > format.width:
             nullval = nullval[:format.width]
-        dummy = field.replace('D'.encode('ascii'), 'E'.encode('ascii'))
-        dummy = np.where(dummy.strip() == nullval, str(ASCIITNULL), dummy)
+
+        # Before using .replace make sure that any trailing bytes in each
+        # column are filled with spaces, and *not*, say, nulls; this causes
+        # functions like replace to potentially leave gibberish bytes in the
+        # array buffer.
+        dummy = np.char.ljust(field, format.width)
+        dummy = np.char.replace(dummy, encode_ascii('D'), encode_ascii('E'))
+        null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
+        dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
@@ -834,9 +853,36 @@ class FITS_rec(np.recarray):
         Update the parent array, using the (latest) scaled array.
         """
 
+        # Running total for the new heap size
+        heapsize = 0
+
         for indx in range(len(self.dtype.names)):
             recformat = self._coldefs._recformats[indx]
             field = super(FITS_rec, self).field(indx)
+
+            # add the location offset of the heap area for each
+            # variable length column
+            if isinstance(recformat, _FormatP):
+                # Irritatingly, this can return a different dtype than just
+                # doing np.dtype(recformat.dtype); but this returns the results
+                # that we want.  For example if recformat.dtype is 'a' we want
+                # an array of characters.
+                dtype = np.array([], dtype=recformat.dtype).dtype
+
+                if self._convert[indx] is not None:
+                    # The VLA has potentially been updated, so we need to
+                    # update the array descriptors
+                    field[:] = 0  # reset
+                    npts = [len(arr) for arr in self._convert[indx]]
+
+                    field[:len(npts), 0] = npts
+                    field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
+                                    dtype.itemsize)
+                    field[:, 1][:] += heapsize
+
+                heapsize += field[:, 0].sum() * dtype.itemsize
+                # Even if this VLA has not been read, we need to include
+                # the size of its constituent arrays in the heap size total
 
             if self._convert[indx] is None:
                 continue
@@ -847,28 +893,6 @@ class FITS_rec(np.recarray):
 
             _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
                 self._get_scale_factors(indx)
-
-            # add the location offset of the heap area for each
-            # variable length column
-            if isinstance(recformat, _FormatP):
-                # Reset the heapsize and recompute it starting from the first P
-                # column
-                if indx == 0:
-                    self._heapsize = 0
-
-                field[:] = 0  # reset
-                npts = [len(arr) for arr in self._convert[indx]]
-
-                # Irritatingly, this can return a different dtype than just
-                # doing np.dtype(recformat.dtype); but this returns the results
-                # that we want.  For example if recformat.dtype is 'a' we want
-                # an array of characters.
-                dtype = np.array([], dtype=recformat.dtype).dtype
-                field[:len(npts), 0] = npts
-                field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
-                                dtype.itemsize)
-                field[:, 1][:] += self._heapsize
-                self._heapsize += field[:, 0].sum() * dtype.itemsize
 
             # conversion for both ASCII and binary tables
             if _number or _str:
@@ -942,7 +966,7 @@ class FITS_rec(np.recarray):
                             field[jdx] = x
                     # Replace exponent separator in floating point numbers
                     if 'D' in format:
-                        field.replace('E', 'D')
+                        field.replace(encode_ascii('E'), encode_ascii('D'))
                 # binary table
                 else:
                     if len(field) and isinstance(field[0], np.integer):
@@ -982,3 +1006,6 @@ class FITS_rec(np.recarray):
                 field[:] = np.choose(self._convert[indx],
                                      (np.array([ord('F')], dtype=np.int8)[0],
                                       np.array([ord('T')], dtype=np.int8)[0]))
+
+        # Store the updated heapsize
+        self._heapsize = heapsize

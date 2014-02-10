@@ -1051,3 +1051,168 @@ class TestImageFunctions(FitsTestCase):
             assert h[1].header['NAXIS'] == 0
             assert 'NAXIS1' not in h[1].header
             assert 'NAXIS2' not in h[1].header
+
+    def test_compression_update_header(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/23
+        """
+
+        self.copy_file('comp.fits')
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            assert isinstance(hdul[1], fits.CompImageHDU)
+            hdul[1].header['test1'] = 'test'
+            hdul[1]._header['test2'] = 'test2'
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert 'test1' in hdul[1].header
+            assert hdul[1].header['test1'] == 'test'
+            assert 'test2' in hdul[1].header
+            assert  hdul[1].header['test2'] == 'test2'
+
+        # Test update via index now:
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            hdr = hdul[1].header
+            hdr[hdr.index('TEST1')] = 'foo'
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert hdul[1].header['TEST1'] == 'foo'
+
+        # Test slice updates
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            hdul[1].header['TEST*'] = 'qux'
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert list(hdul[1].header['TEST*'].values()) == ['qux', 'qux']
+
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            hdr = hdul[1].header
+            idx = hdr.index('TEST1')
+            hdr[idx:idx + 2] = 'bar'
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert list(hdul[1].header['TEST*'].values()) == ['bar', 'bar']
+
+        # Test updating a specific COMMENT card duplicate
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            hdul[1].header[('COMMENT', 1)] = 'I am fire. I am death!'
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert hdul[1].header['COMMENT'][1] == 'I am fire. I am death!'
+            assert hdul[1]._header['COMMENT'][1] == 'I am fire. I am death!'
+
+        # Test deleting by keyword and by slice
+        with fits.open(self.temp('comp.fits'), mode='update') as hdul:
+            hdr = hdul[1].header
+            del hdr['COMMENT']
+            idx = hdr.index('TEST1')
+            del hdr[idx:idx + 2]
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert 'COMMENT' not in hdul[1].header
+            assert 'COMMENT' not in hdul[1]._header
+            assert 'TEST1' not in hdul[1].header
+            assert 'TEST1' not in hdul[1]._header
+            assert 'TEST2' not in hdul[1].header
+            assert 'TEST2' not in hdul[1]._header
+
+    def test_compression_update_header_with_reserved(self):
+        """
+        Ensure that setting reserved keywords related to the table data
+        structure on CompImageHDU image headers fails.
+        """
+
+        def test_set_keyword(hdr, keyword, value):
+            with catch_warnings() as w:
+                hdr[keyword] = value
+                assert len(w) == 1
+                assert str(w[0].message).startswith(
+                        "Keyword %r is reserved" % keyword)
+                assert keyword not in hdr
+
+        with fits.open(self.data('comp.fits')) as hdul:
+            hdr = hdul[1].header
+            test_set_keyword(hdr, 'TFIELDS', 8)
+            test_set_keyword(hdr, 'TTYPE1', 'Foo')
+            test_set_keyword(hdr, 'ZCMPTYPE', 'ASDF')
+            test_set_keyword(hdr, 'ZVAL1', 'Foo')
+
+    def test_compression_header_append(self):
+        with fits.open(self.data('comp.fits')) as hdul:
+            imghdr = hdul[1].header
+            tblhdr = hdul[1]._header
+            with catch_warnings() as w:
+                imghdr.append('TFIELDS')
+                assert len(w) == 1
+                assert 'TFIELDS' not in imghdr
+
+            imghdr.append(('FOO', 'bar', 'qux'), end=True)
+            assert 'FOO' in imghdr
+            assert imghdr[-1] == 'bar'
+            assert 'FOO' in tblhdr
+            assert tblhdr[-1] == 'bar'
+
+            imghdr.append(('CHECKSUM', 'abcd1234'))
+            assert 'CHECKSUM' in imghdr
+            assert imghdr['CHECKSUM'] == 'abcd1234'
+            assert 'CHECKSUM' not in tblhdr
+            assert 'ZHECKSUM' in tblhdr
+            assert tblhdr['ZHECKSUM'] == 'abcd1234'
+
+    def test_compression_header_insert(self):
+        with fits.open(self.data('comp.fits')) as hdul:
+            imghdr = hdul[1].header
+            tblhdr = hdul[1]._header
+            # First try inserting a restricted keyword
+            with catch_warnings() as w:
+                imghdr.insert(1000, 'TFIELDS')
+                assert len(w) == 1
+                assert 'TFIELDS' not in imghdr
+                assert tblhdr.count('TFIELDS') == 1
+
+            # First try keyword-relative insert
+            imghdr.insert('TELESCOP', ('OBSERVER', 'Phil Plait'))
+            assert 'OBSERVER' in imghdr
+            assert imghdr.index('OBSERVER') == imghdr.index('TELESCOP') - 1
+            assert 'OBSERVER' in tblhdr
+            assert tblhdr.index('OBSERVER') == tblhdr.index('TELESCOP') - 1
+
+            # Next let's see if an index-relative insert winds up being
+            # sensible
+            idx = imghdr.index('OBSERVER')
+            imghdr.insert('OBSERVER', ('FOO',))
+            assert 'FOO' in imghdr
+            assert imghdr.index('FOO') == idx
+            assert 'FOO' in tblhdr
+            assert tblhdr.index('FOO') == tblhdr.index('OBSERVER') - 1
+
+    def test_compression_header_set_before_after(self):
+        with fits.open(self.data('comp.fits')) as hdul:
+            imghdr = hdul[1].header
+            tblhdr = hdul[1]._header
+
+            with catch_warnings() as w:
+                imghdr.set('ZBITPIX', 77, 'asdf', after='XTENSION')
+                assert len(w) == 1
+                assert 'ZBITPIX' not in imghdr
+                assert tblhdr.count('ZBITPIX') == 1
+                assert tblhdr['ZBITPIX'] != 77
+
+            # Move GCOUNT before PCOUNT (not that there's any reason you'd
+            # *want* to do that, but it's just a test...)
+            imghdr.set('GCOUNT', 99, before='PCOUNT')
+            assert imghdr.index('GCOUNT') == imghdr.index('PCOUNT') - 1
+            assert imghdr['GCOUNT'] == 99
+            assert tblhdr.index('ZGCOUNT') == tblhdr.index('ZPCOUNT') - 1
+            assert tblhdr['ZGCOUNT'] == 99
+            assert tblhdr.index('PCOUNT') == 5
+            assert tblhdr.index('GCOUNT') == 6
+            assert tblhdr['GCOUNT'] == 1
+
+            imghdr.set('GCOUNT', 2, after='PCOUNT')
+            assert imghdr.index('GCOUNT') == imghdr.index('PCOUNT') + 1
+            assert imghdr['GCOUNT'] == 2
+            assert tblhdr.index('ZGCOUNT') == tblhdr.index('ZPCOUNT') + 1
+            assert tblhdr['ZGCOUNT'] == 2
+            assert tblhdr.index('PCOUNT') == 5
+            assert tblhdr.index('GCOUNT') == 6
+            assert tblhdr['GCOUNT'] == 1

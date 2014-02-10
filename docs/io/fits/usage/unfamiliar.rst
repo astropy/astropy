@@ -22,6 +22,8 @@ same, i.e. the data is in the ``.data`` attribute and the ``field()`` method
 is used to refer to the columns and returns a numpy array. When reading the
 table, Astropy will automatically detect what kind of table it is.
 
+::
+
     >>> from astropy.io import fits
     >>> hdus = fits.open('ascii_table.fits')
     >>> hdus[1].data[:1]
@@ -174,6 +176,8 @@ is regular and the other variable length array.
     TTYPE2  = 'xyz '
     TFORM2  = '2I '
 
+
+.. _random-groups:
 
 Random Access Groups
 ^^^^^^^^^^^^^^^^^^^^

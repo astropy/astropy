@@ -2,6 +2,7 @@
 
 import ctypes
 import math
+import re
 import time
 import warnings
 
@@ -10,12 +11,14 @@ import numpy as np
 from .base import DELAYED, ExtensionHDU
 from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
-from ..column import Column, ColDefs, _FormatP
+from ..card import Card
+from ..column import Column, ColDefs, _FormatP, TDEF_RE
+from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from ..fitsrec import FITS_rec
 from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
-from ....extern.six import string_types
+from ....extern.six import string_types, iteritems
 from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
@@ -64,6 +67,10 @@ if COMPRESSION_SUPPORTED:
         CFITSIO_SUPPORTS_Q_FORMAT = True
 
 
+COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
+                            'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
+
+
 class CompImageHeader(Header):
     """
     Header object for compressed image HDUs designed to keep the compression
@@ -74,40 +81,279 @@ class CompImageHeader(Header):
     also update the table header where appropriate.
     """
 
+    # TODO: The difficulty of implementing this screams a need to rewrite this
+    # module
+
+    _keyword_remaps = {
+        'SIMPLE': 'ZSIMPLE', 'XTENSION': 'ZTENSION', 'BITPIX': 'ZBITPIX',
+        'NAXIS': 'ZNAXIS', 'EXTEND': 'ZEXTEND', 'BLOCKED': 'ZBLOCKED',
+        'PCOUNT': 'ZPCOUNT', 'GCOUNT': 'ZGCOUNT', 'CHECKSUM': 'ZHECKSUM',
+        'DATASUM': 'ZDATASUM'
+    }
+
+    _zdef_re = re.compile(r'(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?')
+    _compression_keywords = set(_keyword_remaps.values()).union(
+        ['ZIMAGE', 'ZCMPTYPE', 'ZMASKCMP', 'ZQUANTIZ', 'ZDITHER0'])
+    _indexed_compression_keywords = set(['ZNAXIS', 'ZTILE', 'ZNAME', 'ZVAL'])
+    # TODO: Once it place it should be possible to manage some of this through
+    # the schema system, but it's not quite ready for that yet.  Also it still
+    # makes more sense to change CompImageHDU to subclass ImageHDU :/
+
     def __init__(self, table_header, image_header=None):
         if image_header is None:
             image_header = Header()
         self._cards = image_header._cards
         self._keyword_indices = image_header._keyword_indices
+        self._rvkc_indices = image_header._rvkc_indices
         self._modified = image_header._modified
         self._table_header = table_header
 
-    def set(self, keyword, value=None, comment=None, before=None, after=None):
-        super(CompImageHeader, self).set(keyword, value, comment, before,
-                                         after)
+    # We need to override and Header methods that can modify the header, and
+    # ensure that they sync with the underlying _table_header
 
-        # update the underlying header (_table_header) unless the update
-        # was made to a card that describes the data.
+    def __setitem__(self, key, value):
+        # This isn't pretty, but if the `key` is either an int or a tuple we
+        # need to figure out what keyword name that maps to before doing
+        # anything else; these checks will be repeated later in the
+        # super().__setitem__ call but I don't see another way around it
+        # without some major refactoring
+        if self._set_slice(key, value, self):
+            return
 
-        if (keyword not in ('SIMPLE', 'XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
-                            'TFIELDS', 'EXTEND', 'ZIMAGE', 'ZBITPIX',
-                            'ZCMPTYPE') and
-            keyword[:4] not in ('ZVAL') and
-            keyword[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
-                and keyword[:6] not in ('ZNAXIS')):
-            self._table_header.set(keyword, value, comment, before, after)
+        if isinstance(key, int):
+            keyword, index = self._keyword_from_index(key)
+        elif isinstance(key, tuple):
+            keyword, index = key
+        else:
+            # We don't want to specify and index otherwise, because that will
+            # break the behavior for new keywords and for commentary keywords
+            keyword, index = key, None
 
-    def add_history(self, value, before=None, after=None):
-        super(CompImageHeader, self).add_history(value, before, after)
-        self._table_header.add_history(value, before, after)
+        if self._is_reserved_keyword(keyword):
+            return
 
-    def add_comment(self, value, before=None, after=None):
-        super(CompImageHeader, self).add_comment(value, before, after)
-        self._table_header.add_comment(value, before, after)
+        super(CompImageHeader, self).__setitem__(key, value)
 
-    def add_blank(self, value='', before=None, after=None):
-        super(CompImageHeader, self).add_blank(value, before, after)
-        self._table_header.add_blank(value, before, after)
+
+        if index is not None:
+            remapped_keyword = self._remap_keyword(keyword)
+            self._table_header[remapped_keyword, index] = value
+        # Else this will pass through to ._update
+
+    def __delitem__(self, key):
+        if isinstance(key, slice) or self._haswildcard(key):
+            # If given a slice pass that on to the superclass and bail out
+            # early; we only want to make updates to _table_header when given
+            # a key specifying a single keyword
+            return super(CompImageHeader, self).__delitem__(key)
+
+        if isinstance(key, int):
+            keyword, index = self._keyword_from_index(key)
+        elif isinstance(key, tuple):
+            keyword, index = key
+        else:
+            keyword, index = key, None
+
+        if key not in self:
+            raise KeyError("Keyword %r not found." % key)
+
+        super(CompImageHeader, self).__delitem__(key)
+
+        remapped_keyword = self._remap_keyword(keyword)
+
+        if remapped_keyword in self._table_header:
+            if index is not None:
+                del self._table_header[(remapped_keyword, index)]
+            else:
+                del self._table_header[remapped_keyword]
+
+    def append(self, card=None, useblanks=True, bottom=False, end=False):
+        # This logic unfortunately needs to be duplicated from the base class
+        # in order to determine the keyword
+        if isinstance(card, string_types):
+            card = Card(card)
+        elif isinstance(card, tuple):
+            card = Card(*card)
+        elif card is None:
+            card = Card()
+        elif not isinstance(card, Card):
+            raise ValueError(
+                'The value appended to a Header must be either a keyword or '
+                '(keyword, value, [comment]) tuple; got: %r' % card)
+
+        if self._is_reserved_keyword(card.keyword):
+            return
+
+        super(CompImageHeader, self).append(card=card, useblanks=useblanks,
+                                            bottom=bottom, end=end)
+
+        remapped_keyword = self._remap_keyword(card.keyword)
+        card = Card(remapped_keyword, card.value, card.comment)
+        self._table_header.append(card=card, useblanks=useblanks,
+                                  bottom=bottom, end=end)
+
+    def insert(self, key, card, useblanks=True, after=False):
+        if isinstance(key, int):
+            # Determine condition to pass through to append
+            if after:
+                if key == -1:
+                    key = len(self._cards)
+                else:
+                    key += 1
+
+            if key >= len(self._cards):
+                self.append(card, end=True)
+                return
+
+        if isinstance(card, string_types):
+            card = Card(card)
+        elif isinstance(card, tuple):
+            card = Card(*card)
+        elif not isinstance(card, Card):
+            raise ValueError(
+                'The value inserted into a Header must be either a keyword or '
+                '(keyword, value, [comment]) tuple; got: %r' % card)
+
+        if self._is_reserved_keyword(card.keyword):
+            return
+
+        # Now the tricky part is to determine where to insert in the table
+        # header.  If given a numerical index we need to map that to the
+        # corresponding index in the table header.  Although rare, there may be
+        # cases where there is no mapping in which case we just try the same
+        # index
+        # NOTE: It is crucial that remapped_index in particular is figured out
+        # before the image header is modified
+        remapped_index = self._remap_index(key)
+        remapped_keyword = self._remap_keyword(card.keyword)
+
+        super(CompImageHeader, self).insert(key, card, useblanks=useblanks,
+                                            after=after)
+
+        card = Card(remapped_keyword, card.value, card.comment)
+
+        self._table_header.insert(remapped_index, card, useblanks=useblanks,
+                                  after=after)
+
+    def _update(self, card):
+        keyword = card[0]
+
+        if self._is_reserved_keyword(keyword):
+            return
+
+        super(CompImageHeader, self)._update(card)
+
+        remapped_keyword = self._remap_keyword(keyword)
+        self._table_header._update((remapped_keyword,) + card[1:])
+
+    # Last piece needed (I think) for synchronizing with the real header
+    # This one is tricky since _relativeinsert calls insert
+    def _relativeinsert(self, card, before=None, after=None, replace=False):
+        keyword = card[0]
+
+        if self._is_reserved_keyword(keyword):
+            return
+
+        # Now we have to figure out how to remap 'before' and 'after'
+        if before is None:
+            if isinstance(after, int):
+                remapped_after = self._remap_index(after)
+            else:
+                remapped_after = self._remap_keyword(after)
+            remapped_before = None
+        else:
+            if isinstance(before, int):
+                remapped_before = self._remap_index(before)
+            else:
+                remapped_before = self._remap_keyword(before)
+            remapped_after = None
+
+        super(CompImageHeader, self)._relativeinsert(card, before=before,
+                                                     after=after,
+                                                     replace=replace)
+
+        remapped_keyword = self._remap_keyword(keyword)
+
+        card = Card(remapped_keyword, card[1], card[2])
+        self._table_header._relativeinsert(card, before=remapped_before,
+                                           after=remapped_after,
+                                           replace=replace)
+
+    @classmethod
+    def _is_reserved_keyword(cls, keyword, warn=True):
+        msg = ('Keyword %r is reserved for use by the FITS Tiled Image '
+               'Convention and will not be stored in the header for the '
+               'image being compressed.' % keyword)
+
+        if keyword == 'TFIELDS':
+            if warn:
+                warnings.warn(msg)
+            return True
+
+        m = TDEF_RE.match(keyword)
+
+        if m and m.group('label').upper() in TABLE_KEYWORD_NAMES:
+            if warn:
+                warnings.warn(msg)
+            return True
+
+        m = cls._zdef_re.match(keyword)
+
+        if m:
+            label = m.group('label').upper()
+            num = m.group('num')
+            if num is not None and label in cls._indexed_compression_keywords:
+                if warn:
+                    warnings.warn(msg)
+                return True
+            elif label in cls._compression_keywords:
+                if warn:
+                    warnings.warn(msg)
+                return True
+
+        return False
+
+    @classmethod
+    def _remap_keyword(cls, keyword):
+        # Given a keyword that one might set on an image, remap that keyword to
+        # the name used for it in the COMPRESSED HDU header
+        # This is mostly just a lookup in _keyword_remaps, but needs handling
+        # for NAXISn keywords
+
+        is_naxisn = False
+        if keyword[:5] == 'NAXIS':
+            try:
+                index = int(keyword[5:])
+                is_naxisn = index > 0
+            except ValueError:
+                pass
+
+        if is_naxisn:
+            return 'ZNAXIS%d' % index
+
+        # If the keyword does not need to be remapped then just return the
+        # original keyword
+        return cls._keyword_remaps.get(keyword, keyword)
+
+    def _remap_index(self, idx):
+        # Given an integer index into this header, map that to the index in the
+        # table header for the same card.  If the card doesn't exist in the
+        # table header (generally should *not* be the case) this will just
+        # return the same index
+        # This *does* also accept a keyword or (keyword, repeat) tuple and
+        # obtains the associated numerical index with self._cardindex
+        if not isinstance(idx, int):
+            idx = self._cardindex(idx)
+
+        keyword, repeat = self._keyword_from_index(idx)
+        remapped_insert_keyword = self._remap_keyword(keyword)
+        try:
+            idx = self._table_header._cardindex((remapped_insert_keyword,
+                                                 repeat))
+        except (IndexError, KeyError):
+            pass
+
+        return idx
 
 
 class CompImageHDU(BinTableHDU):
@@ -136,23 +382,25 @@ class CompImageHDU(BinTableHDU):
         Parameters
         ----------
         data : array, optional
-            data of the image
+            Uncompressed image data
 
         header : Header instance, optional
-            header to be associated with the image; when reading the HDU from a
+            Header to be associated with the image; when reading the HDU from a
             file (data=DELAYED), the header read from the file
 
         name : str, optional
-            the ``EXTNAME`` value; if this value is `None`, then the name from
+            The ``EXTNAME`` value; if this value is `None`, then the name from
             the input image header will be used; if there is no name in the
             input image header then the default name ``COMPRESSED_IMAGE`` is
             used.
 
         compression_type : str, optional
-            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'HCOMPRESS_1'
+            Compression algorithm: one of
+            ``'RICE_1'``, ``'RICE_ONE'``, ``'PLIO_1'``, ``'GZIP_1'``,
+            ``'GZIP_2'``, ``'HCOMPRESS_1'``
 
         tile_size : int, optional
-            compression tile sizes.  Default treats each row of image as a
+            Compression tile sizes.  Default treats each row of image as a
             tile.
 
         hcomp_scale : float, optional
@@ -162,17 +410,17 @@ class CompImageHDU(BinTableHDU):
             HCOMPRESS smooth parameter
 
         quantize_level : float, optional
-            floating point quantization level; see note below
+            Floating point quantization level; see note below
 
         quantize_method : int, optional
-            floating point quantization dithering method; can be either
-            NO_DITHER (-1), SUBTRACTIVE_DITHER_1 (1; default), or
-            SUBTRACTIVE_DITHER_2 (2); see note below
+            Floating point quantization dithering method; can be either
+            ``NO_DITHER`` (-1), ``SUBTRACTIVE_DITHER_1`` (1; default), or
+            ``SUBTRACTIVE_DITHER_2`` (2); see note below
 
         dither_seed : int, optional
-            random seed to use for dithering; can be either an integer in the
-            range 1 to 1000 (inclusive), DITHER_SEED_CLOCK (0; default), or
-            DITHER_SEED_CHECKSUM (-1); see note below
+            Random seed to use for dithering; can be either an integer in the
+            range 1 to 1000 (inclusive), ``DITHER_SEED_CLOCK`` (0; default), or
+            ``DITHER_SEED_CHECKSUM`` (-1); see note below
 
         Notes
         -----
@@ -209,7 +457,7 @@ class CompImageHDU(BinTableHDU):
         designed for data masks with positive integer pixel values.  The 3
         general purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
         special-purpose technique is the IRAF pixel list compression technique
-        (PLIO).  The `compression_type` parameter defines the compression
+        (PLIO).  The ``compression_type`` parameter defines the compression
         algorithm to be used.
 
         The FITS image can be subdivided into any desired rectangular grid of
@@ -583,6 +831,7 @@ class CompImageHDU(BinTableHDU):
         # data and calculate the width of the output table.
 
         zbitpix = self._image_header['BITPIX']
+
         if zbitpix < 0 and quantize_level != 0.0:
             # floating point image has 'COMPRESSED_DATA',
             # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
@@ -958,8 +1207,9 @@ class CompImageHDU(BinTableHDU):
                 # no dithering, rather than whatever DEFAULT_QUANTIZE_METHOD
                 # is set to
                 quantize_method = self._header.get('ZQUANTIZ', NO_DITHER)
+
                 if isinstance(quantize_method, string_types):
-                    for k, v in QUANTIZE_METHOD_NAMES:
+                    for k, v in iteritems(QUANTIZE_METHOD_NAMES):
                         if v.upper() == quantize_method:
                             quantize_method = k
                             break
@@ -1083,7 +1333,7 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateHeaderData(self, image_header,
                          name=None,
                          compressionType=None,
@@ -1159,7 +1409,7 @@ class CompImageHDU(BinTableHDU):
         return self.compressed_data
 
     @lazyproperty
-    @deprecated('3.2', alternative='the `.compressed_data attribute`',
+    @deprecated('0.3', alternative='the `.compressed_data attribute`',
                 pending=True)
     def compData(self):
         return self.compressed_data
@@ -1184,188 +1434,110 @@ class CompImageHDU(BinTableHDU):
             return self._image_header
 
         # Start with a copy of the table header.
-        self._image_header = CompImageHeader(self._header, self._header.copy())
-
-        if 'XTENSION' in self._image_header:
-            self._image_header['XTENSION'] = ('IMAGE', 'extension type')
+        image_header = self._header.copy()
 
         # Delete cards that are related to the table.  And move
         # the values of those cards that relate to the image from
         # their corresponding table cards.  These include
-        # nnnZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
-        try:
-            del self._image_header['ZIMAGE']
-        except KeyError:
-            pass
+        # ZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
+        for keyword in list(image_header):
+            if CompImageHeader._is_reserved_keyword(keyword, warn=False):
+                del image_header[keyword]
 
-        try:
-            del self._image_header['ZCMPTYPE']
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZBITPIX']
-            _bitpix = self._header['ZBITPIX']
-            self._image_header['BITPIX'] = (_bitpix,
-                                            self._header.comments['ZBITPIX'])
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZNAXIS']
-            self._image_header['NAXIS'] = (self._header['ZNAXIS'],
-                                           self._header.comments['ZNAXIS'])
-
-            last_naxis = 'NAXIS'
-            for idx in range(self._image_header['NAXIS']):
-                znaxis = 'ZNAXIS' + str(idx + 1)
-                naxis = znaxis[1:]
-                del self._image_header[znaxis]
-                self._image_header.set(naxis, self._header[znaxis],
-                                       self._header.comments[znaxis],
-                                       after=last_naxis)
-                last_naxis = naxis
-
-            if last_naxis == 'NAXIS1':
-                # There is only one axis in the image data so we
-                # need to delete the extra NAXIS2 card.
-                del self._image_header['NAXIS2']
-        except KeyError:
-            pass
-
-        try:
-            for idx in range(self._header['ZNAXIS']):
-                del self._image_header['ZTILE' + str(idx + 1)]
-
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZPCOUNT']
-            self._image_header.set('PCOUNT', self._header['ZPCOUNT'],
-                                   self._header.comments['ZPCOUNT'])
-        except KeyError:
-            try:
-                del self._image_header['PCOUNT']
-            except KeyError:
-                pass
-
-        try:
-            del self._image_header['ZGCOUNT']
-            self._image_header.set('GCOUNT', self._header['ZGCOUNT'],
-                                   self._header.comments['ZGCOUNT'])
-        except KeyError:
-            try:
-                del self._image_header['GCOUNT']
-            except KeyError:
-                pass
-
-        # Add the appropriate BSCALE and BZERO keywords if the data is scaled;
-        # though these will be removed again as soon as the data is read
-        # (unless do_not_scale_image_data=True)
-        if 'GCOUNT' in self._image_header:
-            after = 'GCOUNT'
-        else:
-            after = None
-        if 'BSCALE' in self._header:
-            self._image_header.set('BSCALE', self._header['BSCALE'],
-                                   self._header.comments['BSCALE'],
-                                   after=after)
-            after = 'BSCALE'
-
-        if 'BZERO' in self._header:
-            self._image_header.set('BZERO', self._header['BZERO'],
-                                   self._header.comments['BZERO'],
-                                   after=after)
-
-        try:
-            del self._image_header['ZEXTEND']
-            self._image_header.set('EXTEND', self._header['ZEXTEND'],
-                                   self._header.comments['ZEXTEND'],
-                                   after=last_naxis)
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZBLOCKED']
-            self._image_header.set('BLOCKED', self._header['ZBLOCKED'],
-                                   self._header.comments['ZBLOCKED'])
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['TFIELDS']
-
-            for idx in range(self._header['TFIELDS']):
-                del self._image_header['TFORM' + str(idx + 1)]
-                ttype = 'TTYPE' + str(idx + 1)
-                if ttype in self._image_header:
-                    del self._image_header[ttype]
-
-        except KeyError:
-            pass
-
-        idx = 1
-
-        while True:
-            try:
-                del self._image_header['ZNAME' + str(idx)]
-                del self._image_header['ZVAL' + str(idx)]
-                idx += 1
-            except KeyError:
-                break
-
-        # Move the ZHECKSUM and ZDATASUM cards to the image header
-        # as CHECKSUM and DATASUM
-        try:
-            del self._image_header['ZHECKSUM']
-            self._image_header.set('CHECKSUM', self._header['ZHECKSUM'],
-                                   self._header.comments['ZHECKSUM'])
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZDATASUM']
-            self._image_header.set('DATASUM', self._header['ZDATASUM'],
-                                   self._header.comments['ZDATASUM'])
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZSIMPLE']
-            self._image_header.set('SIMPLE', self._header['ZSIMPLE'],
-                                   self._header.comments['ZSIMPLE'],
-                                   before=1)
-            del self._image_header['XTENSION']
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['ZTENSION']
+        if 'ZSIMPLE' in self._header:
+            image_header.set('SIMPLE', self._header['ZSIMPLE'],
+                             self._header.comments['ZSIMPLE'], before=0)
+        elif 'ZTENSION' in self._header:
             if self._header['ZTENSION'] != 'IMAGE':
                 warnings.warn("ZTENSION keyword in compressed "
                               "extension != 'IMAGE'", AstropyUserWarning)
-            self._image_header.set('XTENSION', 'IMAGE',
-                                   self._header.comments['ZTENSION'])
-        except KeyError:
-            pass
+            image_header.set('XTENSION', 'IMAGE',
+                             self._header.comments['ZTENSION'], before=0)
+        else:
+            image_header.set('XTENSION', 'IMAGE', before=0)
+
+
+        image_header.set('BITPIX', self._header['ZBITPIX'],
+                         self._header.comments['ZBITPIX'], before=1)
+
+        image_header.set('NAXIS', self._header['ZNAXIS'],
+                         self._header.comments['ZNAXIS'], before=2)
+
+        last_naxis = 'NAXIS'
+        for idx in range(image_header['NAXIS']):
+            znaxis = 'ZNAXIS' + str(idx + 1)
+            naxis = znaxis[1:]
+            image_header.set(naxis, self._header[znaxis],
+                             self._header.comments[znaxis],
+                             after=last_naxis)
+            last_naxis = naxis
+
+        # Delete any other spurious NAXISn keywords:
+        naxis = image_header['NAXIS']
+        for keyword in list(image_header['NAXIS?*']):
+            try:
+                n = int(keyword[5:])
+            except:
+                continue
+
+            if n > naxis:
+                del image_header[keyword]
+
+        # Although PCOUNT and GCOUNT are considered mandatory for IMAGE HDUs,
+        # ZPCOUNT and ZGCOUNT are optional, probably because for IMAGE HDUs
+        # their values are always 0 and 1 respectively
+        if 'ZPCOUNT' in self._header:
+            image_header.set('PCOUNT', self._header['ZPCOUNT'],
+                             self._header.comments['ZPCOUNT'],
+                             after=last_naxis)
+        else:
+            image_header.set('PCOUNT', 0, after=last_naxis)
+
+        if 'ZGCOUNT' in self._header:
+            image_header.set('GCOUNT', self._header['ZGCOUNT'],
+                             self._header.comments['ZGCOUNT'],
+                             after='PCOUNT')
+        else:
+            image_header.set('GCOUNT', 1, after='PCOUNT')
+
+        if 'ZEXTEND' in self._header:
+            image_header.set('EXTEND', self._header['ZEXTEND'],
+                             self._header.comments['ZEXTEND'])
+
+        if 'ZBLOCKED' in self._header:
+            image_header.set('BLOCKED', self._header['ZBLOCKED'],
+                             self._header.comments['ZBLOCKED'])
+
+        # Move the ZHECKSUM and ZDATASUM cards to the image header
+        # as CHECKSUM and DATASUM
+        if 'ZHECKSUM' in self._header:
+            image_header.set('CHECKSUM', self._header['ZHECKSUM'],
+                             self._header.comments['ZHECKSUM'])
+
+        if 'ZDATASUM' in self._header:
+            image_header.set('DATASUM', self._header['ZDATASUM'],
+                             self._header.comments['ZDATASUM'])
 
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.
-
         if ('EXTNAME' in self._header and
                 self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
-            del self._image_header['EXTNAME']
+            del image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
         # header.  If there are, there should be the same number
         # of blank cards in the image header.  Add blank cards to
         # the image header to make it so.
         table_blanks = self._header._countblanks()
-        image_blanks = self._image_header._countblanks()
+        image_blanks = image_header._countblanks()
 
         for _ in range(table_blanks - image_blanks):
-            self._image_header.append()
+            image_header.append()
+
+        # Create the CompImageHeader that syncs with the table header, and save
+        # it off to self._image_header so it can be referenced later
+        # unambiguously
+        self._image_header = CompImageHeader(self._header, image_header)
 
         return self._image_header
 
@@ -1409,11 +1581,7 @@ class CompImageHDU(BinTableHDU):
         # Check to see that the image_header matches the image data
         image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
-        if (self.header.get('NAXIS', 0) != len(self.data.shape) or
-                self.header.get('BITPIX', 0) != image_bitpix or
-                self._header.get('ZNAXIS', 0) != len(self.data.shape) or
-                self._header.get('ZBITPIX', 0) != image_bitpix or
-                self.shape != self.data.shape):
+        if image_bitpix != self._orig_bitpix or self.data.shape != self.shape:
             self._update_header_data(self.header)
 
         # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
@@ -1469,7 +1637,7 @@ class CompImageHDU(BinTableHDU):
         # Update the table header cards to match the compressed data.
         self._update_header()
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateCompressedData(self):
         self._update_compressed_data()
 
@@ -1526,7 +1694,7 @@ class CompImageHDU(BinTableHDU):
                              'bytes per pixel (1, 2, 4, or 8)',
                              after='ZNAME2')
 
-    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)', pending=True)
     def updateHeader(self):
         self._update_header()
 
@@ -1650,9 +1818,20 @@ class CompImageHDU(BinTableHDU):
             # Use methods in the superclass to update the header with
             # scale/checksum keywords based on the data type of the image data
             self._update_uint_scale_keywords()
-            self._update_checksum(checksum, checksum_keyword='ZHECKSUM',
-                                  datasum_keyword='ZDATASUM')
 
+            # Shove the image header and data into a new ImageHDU and use that
+            # to compute the image checksum
+            image_hdu = ImageHDU(data=self.data, header=self.header)
+            image_hdu._update_checksum(checksum)
+            if 'CHECKSUM' in image_hdu.header:
+                # This will also pass through to the ZHECKSUM keyword and
+                # ZDATASUM keyword
+                self._image_header.set('CHECKSUM',
+                                       image_hdu.header['CHECKSUM'],
+                                       image_hdu.header.comments['CHECKSUM'])
+            if 'DATASUM' in image_hdu.header:
+                self._image_header.set('DATASUM', image_hdu.header['DATASUM'],
+                                       image_hdu.header.comments['DATASUM'])
             # Store a temporary backup of self.data in a different attribute;
             # see below
             self._imagedata = self.data
@@ -1740,23 +1919,6 @@ class CompImageHDU(BinTableHDU):
             self._bzero = 0
             self._bscale = 1
             self._bitpix = self.header['BITPIX']
-
-    def _calculate_datasum(self, blocking):
-        """
-        Calculate the value for the ``DATASUM`` card in the HDU.
-        """
-
-        if self._has_data:
-            # We have the data to be used.
-            return self._calculate_datasum_from_data(self.compressed_data,
-                                                     blocking)
-        else:
-            # This is the case where the data has not been read from the
-            # file yet.  We can handle that in a generic manner so we do
-            # it in the base class.  The other possibility is that there
-            # is no data at all.  This can also be handled in a generic
-            # manner.
-            return super(CompImageHDU, self)._calculate_datasum(blocking)
 
     def _generate_dither_seed(self, seed):
         if not _is_int(seed):

@@ -150,7 +150,7 @@ following keywords:
     NAXIS  =                     0
 
 If any of the mandatory keywords are missing or in the wrong order, the fix
-option will fix them:
+option will fix them::
 
     >>> hdu.header               # has a 'bad' header
     SIMPLE =                     T /
@@ -195,8 +195,7 @@ Here are some examples of fixable cards:
     FIX4 2
     FIX5 = 2.4 e 03
     FIX6 = '2 10 '
-    # can still access the values before the fix
-    >>> hdu.header[5]
+    >>> hdu.header[5]  # can still access the values before the fix
     2
     >>> hdu.header['fix4']
     2
@@ -215,21 +214,20 @@ Unfixable Cards:
 
 1. illegal characters in keyword name
 
-We'll summarize the verification with a "life-cycle" example:
+We'll summarize the verification with a "life-cycle" example::
 
-    >>> h = fits.PrimaryHDU() # create a PrimaryHDU
-    # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow '.'
-    # in the keyword), if using the update() method - doesn't work!
+    >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
+    >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
+    >>> '.' in the keyword), if using the update() method - doesn't work!
     >>> h['P.I.'] = 'Hubble'
     ValueError: Illegal keyword name 'P.I.'
-    # Have to do it the hard way (so a user will not do this by accident)
-    # First, create a card image and give verbatim card content (including
-    # the proper spacing, but no need to add the trailing blanks)
+    >>> # Have to do it the hard way (so a user will not do this by accident)
+    >>> # First, create a card image and give verbatim card content (including
+    >>> # the proper spacing, but no need to add the trailing blanks)
     >>> c = fits.Card.fromstring("P.I. = 'Hubble'")
-    # then append it to the header
-    >>> h.header.append(c)
-    # Now if we try to write to a FITS file, the default output verification
-    # will not take it.
+    >>> h.header.append(c)  # then append it to the header
+    >>> # Now if we try to write to a FITS file, the default output
+    >>> # verification will not take it.
     >>> h.writeto('pi.fits')
     Output verification result:
     HDU 0:
@@ -250,7 +248,8 @@ We'll summarize the verification with a "life-cycle" example:
     NAXIS  =            0 / number of array dimensions
     EXTEND =            T
     P.I.   = 'Hubble'
-    # even when you try to access the offending keyword, it does NOT complain
+    >>> # even when you try to access the offending keyword, it does NOT
+    >>> # complain
     >>> hdus[0].header['p.i.']
     'Hubble'
     # But if you want to make sure if there is anything wrong/non-standard,
@@ -295,28 +294,38 @@ must supply the checksum keyword argument with a value of True in the call to
 the writeto function.  It is possible to write only the DATASUM card to the
 header by supplying the checksum keyword argument with a value of 'datasum'.
 
-Here are some examples:
+Here are some examples::
 
      >>> # Open the file pix.fits verifying the checksum values for all HDUs
      >>> hdul = fits.open('pix.fits', checksum=True)
-     >>>
+
+::
+
      >>> # Open the file in.fits where checksum verification fails for the
      >>> # primary HDU
      >>> hdul = fits.open('in.fits', checksum=True)
      Warning:  Checksum verification failed for HDU #0.
-     >>>
+
+::
+
      >>> # Create file out.fits containing an HDU constructed from data and
      >>> # header containing both CHECKSUM and DATASUM cards.
      >>> fits.writeto('out.fits', data, header, checksum=True)
-     >>>
+
+::
+
      >>> # Create file out.fits containing all the HDUs in the HDULIST
      >>> # hdul with each HDU header containing only the DATASUM card
      >>> hdul.writeto('out.fits', checksum='datasum')
-     >>>
+
+::
+
      >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
      >>> # and DATASUM cards in the header
      >>> hdu.writeto('out.fits', checksum=True)
-     >>>
+
+::
+
      >>> # Append a new HDU constructed from array data to the end of
      >>> # the file existingfile.fits with only the appended HDU
      >>> # containing both CHECKSUM and DATASUM cards.
