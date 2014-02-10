@@ -13,7 +13,9 @@ Introduction
 
 `astropy.units` handles defining and converting between physical
 units, and performing arithmetic with physical quantities (numbers
-with associated units).
+with associated units). There are two ways of handling conversions 
+between coordinate units. If you are working with celestial coordinates, 
+see the `astropy.coordinates` package.
 
 Getting Started
 ===============
