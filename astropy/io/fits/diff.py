@@ -50,21 +50,21 @@ class _BaseDiff(object):
 
     When instantiating a FITS diff object, the first two arguments are always
     the two objects to diff (two FITS files, two FITS headers, etc.).
-    Instantiating a `_BaseDiff` also causes the diff itself to be executed.
-    The returned `_BaseDiff` instance has a number of attribute that describe
+    Instantiating a ``_BaseDiff`` also causes the diff itself to be executed.
+    The returned ``_BaseDiff`` instance has a number of attribute that describe
     the results of the diff operation.
 
-    The most basic attribute, present on all `_BaseDiff` instances, is
-    `.identical` which is `True` if the two objects being compared are
+    The most basic attribute, present on all ``_BaseDiff`` instances, is
+    ``.identical`` which is `True` if the two objects being compared are
     identical according to the diff method for objects of that type.
     """
 
     def __init__(self, a, b):
         """
-        The `_BaseDiff` class does not implement a `_diff` method and should
-        not be instantiated directly. Instead instantiate the appropriate
-        subclass of `_BaseDiff` for the objects being compared (for example,
-        use `HeaderDiff` to compare two `Header` objects.
+        The ``_BaseDiff`` class does not implement a ``_diff`` method and
+        should not be instantiated directly. Instead instantiate the
+        appropriate subclass of ``_BaseDiff`` for the objects being compared
+        (for example, use `HeaderDiff` to compare two `Header` objects.
         """
 
         self.a = a
@@ -78,7 +78,7 @@ class _BaseDiff(object):
 
     def __nonzero__(self):
         """
-        A `_BaseDiff` object acts as `True` in a boolean context if the two
+        A ``_BaseDiff`` object acts as `True` in a boolean context if the two
         objects compared are identical.  Otherwise it acts as `False`.
         """
 
@@ -113,12 +113,12 @@ class _BaseDiff(object):
     @property
     def identical(self):
         """
-        `True` if all the `.diff_*` attributes on this diff instance are empty,
-        implying that no differences were found.
+        `True` if all the ``.diff_*`` attributes on this diff instance are
+        empty, implying that no differences were found.
 
-        Any subclass of `_BaseDiff` must have at least one `.diff_*` attribute,
-        which contains a non-empty value if and only if some difference was
-        found between the two objects being compared.
+        Any subclass of ``_BaseDiff`` must have at least one ``.diff_*``
+        attribute, which contains a non-empty value if and only if some
+        difference was found between the two objects being compared.
         """
 
         return not any(getattr(self, attr) for attr in self.__dict__
@@ -132,7 +132,7 @@ class _BaseDiff(object):
 
         Parameters
         ----------
-        fileobj : file-like object or None (optional)
+        fileobj : file-like object or None, optional
             If `None`, this method returns the report as a string. Otherwise it
             returns `None` and writes the report to the given file-like object
             (which must have a ``.write()`` method at a minimum).
@@ -173,12 +173,13 @@ class FITSDiff(_BaseDiff):
 
     `FITSDiff` objects have the following diff attributes:
 
-    - `diff_hdu_count`: If the FITS files being compared have different numbers
-      of HDUs, this contains a 2-tuple of the number of HDUs in each file.
+    - ``diff_hdu_count``: If the FITS files being compared have different
+      numbers of HDUs, this contains a 2-tuple of the number of HDUs in each
+      file.
 
-    - `diff_hdus`: If any HDUs with the same index are different, this contains
-      a list of 2-tuples of the HDU index and the `HDUDiff` object representing
-      the differences between the two HDUs.
+    - ``diff_hdus``: If any HDUs with the same index are different, this
+      contains a list of 2-tuples of the HDU index and the `HDUDiff` object
+      representing the differences between the two HDUs.
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
@@ -194,32 +195,32 @@ class FITSDiff(_BaseDiff):
             The filename of a FITS file on disk, or an `HDUList` object to
             compare to the first file.
 
-        ignore_keywords : sequence (optional)
+        ignore_keywords : sequence, optional
             Header keywords to ignore when comparing two headers; the presence
             of these keywords and their values are ignored.  Wildcard strings
             may also be included in the list.
 
-        ignore_comments : sequence (optional)
+        ignore_comments : sequence, optional
             A list of header keywords whose comments should be ignored in the
             comparison.  May contain wildcard strings as with ignore_keywords.
 
-        ignore_fields : sequence (optional)
+        ignore_fields : sequence, optional
             The (case-insensitive) names of any table columns to ignore if any
             table data is to be compared.
 
-        numdiffs : int (optional)
+        numdiffs : int, optional
             The number of pixel/table values to output when reporting HDU data
             differences.  Though the count of differences is the same either
             way, this allows controlling the number of different values that
             are kept in memory or output.  If a negative value is given, then
             numdifs is treated as unlimited (default: 10).
 
-        tolerance : float (optional)
+        tolerance : float, optional
             The relative difference to allow when comparing two float values
             either in header values, image arrays, or table columns
             (default: 0.0).
 
-        ignore_blanks : bool (optional)
+        ignore_blanks : bool, optional
             Ignore extra whitespace at the end of string values either in
             headers or data. Extra leading whitespace is not ignored
             (default: True).
@@ -347,23 +348,23 @@ class HDUDiff(_BaseDiff):
 
     `HDUDiff` objects have the following diff attributes:
 
-    - `diff_extnames`: If the two HDUs have different EXTNAME values, this
+    - ``diff_extnames``: If the two HDUs have different EXTNAME values, this
       contains a 2-tuple of the different extension names.
 
-    - `diff_extvers`: If the two HDUS have different EXTVER values, this
+    - ``diff_extvers``: If the two HDUS have different EXTVER values, this
       contains a 2-tuple of the different extension versions.
 
-    - `diff_extlevels`: If the two HDUs have different EXTLEVEL values, this
+    - ``diff_extlevels``: If the two HDUs have different EXTLEVEL values, this
       contains a 2-tuple of the different extension levels.
 
-    - `diff_extension_types`: If the two HDUs have different XTENSION values,
+    - ``diff_extension_types``: If the two HDUs have different XTENSION values,
       this contains a 2-tuple of the different extension types.
 
-    - `diff_headers`: Contains a `HeaderDiff` object for the headers of the two
-      HDUs. This will always contain an object--it may be determined whether
-      the headers are different through `diff_headers.identical`.
+    - ``diff_headers``: Contains a `HeaderDiff` object for the headers of the
+      two HDUs. This will always contain an object--it may be determined
+      whether the headers are different through ``diff_headers.identical``.
 
-    - `diff_data`: Contains either a `ImageDataDiff`, `TableDataDiff`, or
+    - ``diff_data``: Contains either a `ImageDataDiff`, `TableDataDiff`, or
       `RawDataDiff` as appropriate for the data in the HDUs, and only if the
       two HDUs have non-empty data of the same type (`RawDataDiff` is used for
       HDUs containing non-empty data of an indeterminate type).
@@ -461,16 +462,16 @@ class HeaderDiff(_BaseDiff):
 
     `HeaderDiff` objects have the following diff attributes:
 
-    - `diff_keyword_count`: If the two headers contain a different number of
+    - ``diff_keyword_count``: If the two headers contain a different number of
       keywords, this contains a 2-tuple of the keyword count for each header.
 
-    - `diff_keywords`: If either header contains one or more keywords that
+    - ``diff_keywords``: If either header contains one or more keywords that
       don't appear at all in the other header, this contains a 2-tuple
       consisting of a list of the keywords only appearing in header a, and a
       list of the keywords only appearing in header b.
 
-    - `diff_duplicate_keywords`: If a keyword appears in both headers at least
-      once, but contains a different number of duplicates (for example, a
+    - ``diff_duplicate_keywords``: If a keyword appears in both headers at
+      least once, but contains a different number of duplicates (for example, a
       different number of HISTORY cards in each header), an item is added to
       this dict with the keyword as the key, and a 2-tuple of the different
       counts of that keyword as the value.  For example::
@@ -480,7 +481,7 @@ class HeaderDiff(_BaseDiff):
       means that header a contains 20 HISTORY cards, while header b contains
       only 19 HISTORY cards.
 
-    - `diff_keyword_values`: If any of the common keyword between the two
+    - ``diff_keyword_values``: If any of the common keyword between the two
       headers have different values, they appear in this dict.  It has a
       structure similar to `diff_duplicate_keywords`, with the keyword as the
       key, and a 2-tuple of the different values as the value.  For example::
@@ -491,11 +492,11 @@ class HeaderDiff(_BaseDiff):
       3 in header b.  This excludes any keywords matched by the
       `ignore_keywords` list.
 
-    - `diff_keyword_comments`: Like `diff_keyword_values`, but contains
+    - ``diff_keyword_comments``: Like ``diff_keyword_values``, but contains
       differences between keyword comments.
 
-    `HeaderDiff` objects also have a `common_keywords` attribute that lists all
-    keywords that appear in both headers.
+    `HeaderDiff` objects also have a ``common_keywords`` attribute that lists
+    all keywords that appear in both headers.
     """
 
     def __init__(self, a, b, ignore_keywords=[], ignore_comments=[],
@@ -719,12 +720,12 @@ class ImageDataDiff(_BaseDiff):
 
     `ImageDataDiff` objects have the following diff attributes:
 
-    - `diff_dimensions`: If the two arrays contain either a different number of
-      dimensions or different sizes in any dimension, this contains a 2-tuple
-      of the shapes of each array.  Currently no further comparison is
+    - ``diff_dimensions``: If the two arrays contain either a different number
+      of dimensions or different sizes in any dimension, this contains a
+      2-tuple of the shapes of each array.  Currently no further comparison is
       performed on images that don't have the exact same dimensions.
 
-    - `diff_pixels`: If the two images contain any different pixels, this
+    - ``diff_pixels``: If the two images contain any different pixels, this
       contains a list of 2-tuples of the array index where the difference was
       found, and another 2-tuple containing the different values.  For example,
       if the pixel at (0, 0) contains different values this would look like::
@@ -732,16 +733,16 @@ class ImageDataDiff(_BaseDiff):
           [(0, 0), (1.1, 2.2)]
 
       where 1.1 and 2.2 are the values of that pixel in each array.  This
-      array only contains up to `self.numdiffs` differences, for storage
+      array only contains up to ``self.numdiffs`` differences, for storage
       efficiency.
 
-    - `diff_total`: The total number of different pixels found between the
-      arrays.  Although `diff_pixels` does not necessarily contain all the
+    - ``diff_total``: The total number of different pixels found between the
+      arrays.  Although ``diff_pixels`` does not necessarily contain all the
       different pixel values, this can be used to get a count of the total
       number of differences found.
 
-    - `diff_ratio`: Contains the ratio of `diff_total` to the total number of
-      pixels in the arrays.
+    - ``diff_ratio``: Contains the ratio of ``diff_total`` to the total number
+      of pixels in the arrays.
     """
 
     def __init__(self, a, b, numdiffs=10, tolerance=0.0):
@@ -838,16 +839,16 @@ class RawDataDiff(ImageDataDiff):
 
     `ImageDataDiff` objects have the following diff attributes:
 
-    - `diff_dimensions`: Same as the `diff_dimensions` attribute of
+    - ``diff_dimensions``: Same as the ``diff_dimensions`` attribute of
       `ImageDataDiff` objects. Though the "dimension" of each array is just an
       integer representing the number of bytes in the data.
 
-    - `diff_bytes`: Like the `diff_pixels` attribute of `ImageDataDiff`
+    - ``diff_bytes``: Like the ``diff_pixels`` attribute of `ImageDataDiff`
       objects, but renamed to reflect the minor semantic difference that these
       are raw bytes and not pixel values.  Also the indices are integers
       instead of tuples.
 
-    - `diff_total` and `diff_ratio`: Same as `ImageDataDiff`.
+    - ``diff_total`` and ``diff_ratio``: Same as `ImageDataDiff`.
     """
 
     def __init__(self, a, b, numdiffs=10):
@@ -901,30 +902,30 @@ class TableDataDiff(_BaseDiff):
 
     `TableDataDiff` objects have the following diff attributes:
 
-    - `diff_column_count`: If the tables being compared have different numbers
-      of columns, this contains a 2-tuple of the column count in each table.
-      Even if the tables have different column counts, an attempt is still made
-      to compare any columns they have in common.
+    - ``diff_column_count``: If the tables being compared have different
+      numbers of columns, this contains a 2-tuple of the column count in each
+      table.  Even if the tables have different column counts, an attempt is
+      still made to compare any columns they have in common.
 
-    - `diff_columns`: If either table contains columns unique to that table,
+    - ``diff_columns``: If either table contains columns unique to that table,
       either in name or format, this contains a 2-tuple of lists. The first
       element is a list of columns (these are full `Column` objects) that
       appear only in table a.  The second element is a list of tables that
       appear only in table b.  This only lists columns with different column
       definitions, and has nothing to do with the data in those columns.
 
-    - `diff_column_names`: This is like `diff_columns`, but lists only the
+    - ``diff_column_names``: This is like ``diff_columns``, but lists only the
       names of columns unique to either table, rather than the full `Column`
       objects.
 
-    - `diff_column_attributes`: Lists columns that are in both tables but have
-      different secondard attributes, such as TUNIT or TDISP.  The format is a
-      list of 2-tuples: The first a tuple of the column name and the attribute,
-      the second a tuple of the different values.
+    - ``diff_column_attributes``: Lists columns that are in both tables but
+      have different secondard attributes, such as TUNIT or TDISP.  The format
+      is a list of 2-tuples: The first a tuple of the column name and the
+      attribute, the second a tuple of the different values.
 
-    - `diff_values`: `TableDataDiff` compares the data in each table on a
+    - ``diff_values``: `TableDataDiff` compares the data in each table on a
       column-by-column basis.  If any different data is found, it is added to
-      this list.  The format of this list is similar to the `diff_pixels`
+      this list.  The format of this list is similar to the ``diff_pixels``
       attribute on `ImageDataDiff` objects, though the "index" consists of a
       (column_name, row) tuple.  For example::
 
@@ -933,12 +934,12 @@ class TableDataDiff(_BaseDiff):
       shows that the tables contain different values in the 0-th row of the
       'TARGET' column.
 
-    - `diff_total` and `diff_ratio`: Same as `ImageDataDiff`.
+    - ``diff_total`` and ``diff_ratio``: Same as `ImageDataDiff`.
 
-    `TableDataDiff` objects also have a `common_columns` attribute that lists
+    `TableDataDiff` objects also have a ``common_columns`` attribute that lists
     the `Column` objects for columns that are identical in both tables, and a
-    `common_column_names` attribute which contains a set of the names of those
-    columns.
+    ``common_column_names`` attribute which contains a set of the names of
+    those columns.
     """
 
     def __init__(self, a, b, ignore_fields=[], numdiffs=10, tolerance=0.0):
@@ -1184,10 +1185,10 @@ def diff_values(a, b, tolerance=0.0):
 def report_diff_values(fileobj, a, b, ind=0):
     """Write a diff between two values to the specified file-like object."""
 
-    if isinstance(a, float):
+    if isinstance(a, (int, float, complex, np.number)):
         a = repr(a)
 
-    if isinstance(b, float):
+    if isinstance(b, (int, float, complex, np.number)):
         b = repr(b)
 
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):

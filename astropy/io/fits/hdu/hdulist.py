@@ -130,7 +130,7 @@ class HDUList(list, _Verify):
         ----------
         hdus : sequence of HDU objects or single HDU, optional
             The HDU object(s) to comprise the `HDUList`.  Should be
-            instances of `_BaseHDU`.
+            instances of HDU classes like `ImageHDU` or `BinTableHDU`.
 
         file : file object, optional
             The opened physical file associated with the `HDUList`.
@@ -237,7 +237,7 @@ class HDUList(list, _Verify):
     def fromfile(cls, fileobj, mode=None, memmap=False,
                  save_backup=False, **kwargs):
         """
-        Creates an HDUList instance from a file-like object.
+        Creates an `HDUList` instance from a file-like object.
 
         The actual implementation of :func:`fitsopen`, and generally shouldn't
         be used directly.  Use :func:`open` instead (and see its
@@ -250,7 +250,7 @@ class HDUList(list, _Verify):
     @classmethod
     def fromstring(cls, data, **kwargs):
         """
-        Creates an HDUList instance from a string or other in-memory data
+        Creates an `HDUList` instance from a string or other in-memory data
         buffer containing an entire FITS file.  Similar to
         :meth:`HDUList.fromfile`, but does not accept the mode or memmap
         arguments, as they are only relevant to reading from a file on disk.
@@ -347,14 +347,14 @@ class HDUList(list, _Verify):
 
     def insert(self, index, hdu):
         """
-        Insert an HDU into the `HDUList` at the given `index`.
+        Insert an HDU into the `HDUList` at the given ``index``.
 
         Parameters
         ----------
         index : int
             Index before which to insert the new HDU.
 
-        hdu : _BaseHDU instance
+        hdu : HDU object
             The HDU object to insert
         """
 
@@ -416,7 +416,7 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        hdu : instance of _BaseHDU
+        hdu : HDU object
             HDU to add to the `HDUList`.
         """
 
@@ -464,9 +464,9 @@ class HDUList(list, _Verify):
         Parameters
         ----------
         key : int, str or tuple of (string, int)
-           The key identifying the HDU.  If `key` is a tuple, it is of
-           the form (`key`, `ver`) where `ver` is an ``EXTVER`` value
-           that must match the HDU being searched for.
+           The key identifying the HDU.  If ``key`` is a tuple, it is of the
+           form ``(key, ver)`` where ``ver`` is an ``EXTVER`` value that must
+           match the HDU being searched for.
 
         Returns
         -------
@@ -580,8 +580,8 @@ class HDUList(list, _Verify):
 
     def update_extend(self):
         """
-        Make sure that if the primary header needs the keyword
-        ``EXTEND`` that it has it and it is correct.
+        Make sure that if the primary header needs the keyword ``EXTEND`` that
+        it has it and it is correct.
         """
 
         if not len(self):
@@ -692,8 +692,8 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        output : file, bool (optional)
-            A file-like object to write the output to.  If ``False``, does not
+        output : file, bool, optional
+            A file-like object to write the output to.  If `False`, does not
             output to a file and instead returns a list of tuples representing
             the HDU info.  Writes to ``sys.stdout`` by default.
         """

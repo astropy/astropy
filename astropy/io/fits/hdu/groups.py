@@ -235,16 +235,15 @@ class GroupData(FITS_rec):
 class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     """
     FITS Random Groups HDU class.
+
+    See the :ref:`random-groups` section in the PyFITS documentation for more
+    details on working with this type of HDU.
     """
 
     _width2format = {8: 'B', 16: 'I', 32: 'J', 64: 'K', -32: 'E', -64: 'D'}
     _data_type = GroupData
 
     def __init__(self, data=None, header=None):
-        """
-        TODO: Write me
-        """
-
         super(GroupsHDU, self).__init__(data=data, header=header)
 
         # The name of the table record array field that will contain the group

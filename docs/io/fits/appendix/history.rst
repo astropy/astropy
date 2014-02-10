@@ -14,7 +14,154 @@ Astropy.
    :local:
 
 
-3.2 (unreleased)
+3.2.1 (unreleased)
+------------------
+
+- Nominal support for the upcoming Python 3.4.
+
+- Added missing features from the ``Header.insert()`` method that were
+  intended for inclusion in the original 3.1 release:  In addition to
+  accepting an integer index as the first argument, it also supports supplying
+  a keyword name as the first argument for insertion relative to a specific
+  keyword.  It also now supports an optional ``after`` argument.  If
+  ``after=True`` the the insertion is made below the insertion point instead
+  of above it. (spacetelescope/PyFITS#12)
+
+- Fixed support for broadcasting of values assigned to table columns.
+  (spacetelescope/PyFITS#48)
+
+- A grab bag of minor performance improvements in headers.
+  (spacetelescope/PyFITS#46)
+
+- Fix an unrelated error that occurred when instantiating a ``ColDefs`` object
+  with invalid input.
+
+- Fixed an issue where opening an image containing pseudo-unsigned integers
+  and immediately writing it to a new file using the ``writeto`` method would
+  drop the scale factors that identified the data as unsigned.
+
+- Fixed a bug where writing a file with ``checksum=True`` did not add the
+  checksum on new files. (spacetelescope/PyFITS#8)
+
+- Fixed an issue where validating an HDU's checksums removed the checksum from
+  that HDU's header entirely (even if it was valid.)
+
+- Fixed checksums on compressed images, so that the ``ZHECKSUM`` and
+  ``ZDATASUM`` contain a checksum of the original image HDU, while
+  ``CHECKSUM`` and ``DATASUM`` contain checksums of the compressed image HDU.
+  This feature was supposed to be supported in 3.2, but the support was buggy.
+
+- Fixed an issue where the size of the heap was sometimes not computed
+  properly when writing an existing table containing variable-length array
+  columns to a new FITS file.  This could result in corruption in the new FITS
+  file. (spacetelescope/PyFITS#47)
+
+- Fixed issue with updates to the header of ``CompImageHDU`` objects not being
+  preserved on save. (spacetelescope/PyFITS#23)
+
+- Fixed a bug where a boolean value of ``True`` in a header could not be
+  replaced with the integer 1, and likewise for ``False`` and 0 and vice
+  versa.
+
+- Fixed an issue similar to the above one but for numeric values--now
+  replacing a header value with an equivalent numeric value will up/downcast
+  that value.  For example replacing '0' with '0.0' will write '0.0' to the
+  header so that it is returned as a floating point value.  Likewise a float
+  can be downcast to an integer. (spacetelescope/PyFITS#49)
+
+- A handful of Python 3 compatibility fixes, especially for compatibility
+  with the upcoming Python 3.4.
+
+- Fixed unrelated crash when a header contains an invalid END card (for
+  example "END = ").  This resulted in a cryptic traceback.  Now headers like
+  this will detect "clearly intended" END cards and produce a warning about
+  their invalidity and fix them. (#217)
+
+- Allowed a sequence of ``Column`` objects to be passed in as the main
+  argument to ``FITS_rec.from_columns`` as the documentation suggests should
+  be possible.
+
+- Fixed a display formatting issue with fitsdiff where sometimes it did not
+  show the difference between two floating point numbers if they were the same
+  up to some low number of digits. (spacetelescope/PyFITS#21)
+
+- Fixed an issue where Python 2 sometimes allowed non-ASCII strings to be
+  assigned as header values if they were assigned as old-style ``str`` objects
+  and not ``unicode`` objects. (spacetelescope/PyFITS#37)
+
+
+3.1.4 (unreleased)
+------------------
+
+- Added missing features from the ``Header.insert()`` method that were
+  intended for inclusion in the original 3.1 release:  In addition to
+  accepting an integer index as the first argument, it also supports supplying
+  a keyword name as the first argument for insertion relative to a specific
+  keyword.  It also now supports an optional ``after`` argument.  If
+  ``after=True`` the the insertion is made below the insertion point instead
+  of above it. (Backported from 3.2.1)
+
+- A grab bag of minor performance improvements in headers.
+  (Backported from 3.2.1)
+
+- Fixed an issue where opening an image containing pseudo-unsigned integers
+  and immediately writing it to a new file using the ``writeto`` method would
+  drop the scale factors that identified the data as unsigned.
+  (Backported from 3.2.1)
+
+- Fixed a bug where writing a file with ``checksum=True`` did not add the
+  checksum on new files. (Backported from 3.2.1)
+
+- Fixed an issue where validating an HDU's checksums removed the checksum from
+  that HDU's header entirely (even if it was valid.)
+  (Backported from 3.2.1)
+
+- Fixed an issue where the size of the heap was sometimes not computed
+  properly when writing an existing table containing variable-length array
+  columns to a new FITS file.  This could result in corruption in the new FITS
+  file. (Backported from 3.2.1)
+
+- Fixed a bug where a boolean value of ``True`` in a header could not be
+  replaced with the integer 1, and likewise for ``False`` and 0 and vice
+  versa. (Backported from 3.2.1)
+
+- Fixed an issue similar to the above one but for numeric values--now
+  replacing a header value with an equivalent numeric value will up/downcast
+  that value.  For example replacing '0' with '0.0' will write '0.0' to the
+  header so that it is returned as a floating point value.  Likewise a float
+  can be downcast to an integer. (Backported from 3.2.1)
+
+- Fixed unrelated crash when a header contains an invalid END card (for
+  example "END = ").  This resulted in a cryptic traceback.  Now headers like
+  this will detect "clearly intended" END cards and produce a warning about
+  their invalidity and fix them. (Backported from 3.2.1)
+
+- Fixed a display formatting issue with fitsdiff where sometimes it did not
+  show the difference between two floating point numbers if they were the same
+  up to some low number of digits. (Backported from 3.2.1)
+
+- Fixed an issue where Python 2 sometimes allowed non-ASCII strings to be
+  assigned as header values if they were assigned as old-style ``str`` objects
+  and not ``unicode`` objects. (Backported from 3.2.1)
+
+
+3.0.13 (unreleased)
+-------------------
+
+- Fixed a bug where writing a file with ``checksum=True`` did not add the
+  checksum on new files. (Backported from 3.2.1)
+
+- Fixed an issue where validating an HDU's checksums removed the checksum from
+  that HDU's header entirely (even if it was valid.)
+  (Backported from 3.2.1)
+
+- Fixed an issue where the size of the heap was sometimes not computed
+  properly when writing an existing table containing variable-length array
+  columns to a new FITS file.  This could result in corruption in the new FITS
+  file. (Backported from 3.2.1)
+
+
+3.2 (2013-11-26)
 ----------------
 
 Highlights
@@ -46,6 +193,13 @@ Highlights
 
 API Changes
 ^^^^^^^^^^^
+
+- Assigning to values in ``ColDefs.names``, ``ColDefs.formats``,
+  ``ColDefs.nulls`` and other attributes of ``ColDefs`` instances that return
+  lists of column properties is no longer supported.  Assigning to those lists
+  will no longer update the corresponding columns.  Instead, please just
+  modify the ``Column`` instances directly (``Column.name``, ``Column.null``,
+  etc.)
 
 - The ``pyfits.new_table`` function is marked "pending deprecation".  This
   does not mean it will be removed outright or that its functionality has
@@ -135,6 +289,10 @@ Other Changes and Additions
   by default--this seems a less surprising default, but it may cause
   differences with tables created with older versions of PyFITS.
 
+- Improved round-tripping and preservation of manually assigned column
+  attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers.
+  (astropy/astropy#996)
+
 
 Bug Fixes
 ^^^^^^^^^
@@ -151,8 +309,11 @@ Bug Fixes
   capabilities (read/write/etc.)  Also works around bugs in the Python io
   module in 2.6+ with regard to file modes. (spacetelescope/PyFITS#33)
 
+- Fixed an obscure issue that can occur on systems that don't have flush to
+  memory-mapped files implemented (namely GNU Hurd). (astropy/astropy#968)
 
-3.1.3 (unreleased)
+
+3.1.3 (2013-11-26)
 ------------------
 
 - Disallowed assigning NaN and Inf floating point values as header values,
@@ -169,8 +330,11 @@ Bug Fixes
   v3.1.2, but it was only fixed there for compressed image HDUs and not for
   binary tables in general.
 
+- Fixed an obscure issue that can occur on systems that don't have flush to
+  memory-mapped files implemented (namely GNU Hurd). (Backported from 3.2)
 
-3.0.12 (unreleased)
+
+3.0.12 (2013-11-26)
 -------------------
 
 - Disallowed assigning NaN and Inf floating point values as header values,
@@ -186,6 +350,9 @@ Bug Fixes
   the max array length parameter of the format).  This was thought fixed in
   v3.1.2, but it was only fixed there for compressed image HDUs and not for
   binary tables in general. (Backported from 3.1.3)
+
+- Fixed an obscure issue that can occur on systems that don't have flush to
+  memory-mapped files implemented (namely GNU Hurd). (Backported from 3.2)
 
 
 3.1.3 (unreleased)

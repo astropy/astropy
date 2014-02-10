@@ -6,7 +6,7 @@ FITS Headers
 ------------
 
 In the next three chapters, more detailed information as well as examples will
-be explained for manipulating the header, the image data, and the table data
+be explained for manipulating FITS headers, image/array data, and table data
 respectively.
 
 
@@ -15,28 +15,29 @@ Header of an HDU
 
 Every HDU normally has two components: header and data. In Astropy these two
 components are accessed through the two attributes of the HDU,
-:attr:`~_BaseHDU.header` and :attr:`~_BaseHDU.data`.
+``hdu.header`` and ``hdu.data``.
 
-While an HDU may have empty data, i.e. the .data attribute is None, any HDU
-will always have a header. When an HDU is created with a constructor, e.g.
+While an HDU may have empty data, i.e. the ``.data`` attribute is `None`, any
+HDU will always have a header. When an HDU is created with a constructor, e.g.
 ``hdu = PrimaryHDU(data, header)``, the user may supply the header value from
 an existing HDU's header and the data value from  a numpy array. If the
-defaults (``None``) are used, the new HDU will have the minimal required
-keywords for an HDU of that type:
+defaults (None) are used, the new HDU will have the minimal required keywords
+for an HDU of that type::
 
     >>> hdu = fits.PrimaryHDU()
-    >>> hdu.header # show the all of the header cards
+    >>> hdu.header  # show the all of the header cards
     SIMPLE = T / conforms to FITS standard
     BITPIX = 8 / array data type
     NAXIS  = 0 / number of array dimensions
     EXTEND = T
 
 A user can use any header and any data to construct a new HDU. Astropy will
-strip the required keywords from the input header first and then add back the
-required keywords compatible to the new HDU.  So, a user can use a table HDU's
-header to construct an image HDU and vice versa. The constructor will also
-ensure the data type and dimension information in the header agree with the
-data.
+strip any keywords that describe the data structure leaving only your
+informational keywords.  Later it will add back in the required structural
+keywords for compatibility with the new HDU and any data added to it.  So, a
+user can use a table HDU's header to construct an image HDU and vice versa. The
+constructor will also ensure the data type and dimension information in the
+header agree with the data.
 
 
 The Header Attribute
@@ -45,14 +46,15 @@ The Header Attribute
 Value Access, Updating, and Creating
 """"""""""""""""""""""""""""""""""""
 
-As shown in the Quick Tutorial, keyword values can be accessed via keyword name
-or index of an HDU's header attribute. Here is a quick summary:
+As shown in the :ref:`Getting Started <tutorial>` tutorial, keyword values can
+be accessed via keyword name or index of an HDU's header attribute. Here is a
+quick summary::
 
-    >>> hdulist = fits.open('input.fits') # open a FITS file
-    >>> prihdr = hdulist[0].header # the primary HDU header
-    >>> print prihdr[3] # get the 4th keyword's value
+    >>> hdulist = fits.open('input.fits')  # open a FITS file
+    >>> prihdr = hdulist[0].header  # the primary HDU header
+    >>> print prihdr[3]             # get the 4th keyword's value
     10
-    >>> prihdr[3] = 20 # change its value
+    >>> prihdr[3] = 20  # change its value
     >>> prihdr['DARKCORR']  # get the value of the keyword 'darkcorr'
     'OMIT'
     >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
@@ -61,14 +63,14 @@ Keyword names are case-insensitive except in a few special cases (see the
 sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
 ``prihdr['ABC']``, or ``prihdr['aBc']`` are all equivalent.
 
-Like with python :class:`dict`\s, new keywords can also be added to the header
-using assignment syntax:
+Like with Python's :class:`dict` type, new keywords can also be added to the
+header using assignment syntax::
 
     >>> 'DARKCORR' in header  # Check for existence
     False
     >>> header['DARKCORR'] = 'OMIT'  # Add a new DARKCORR keyword
 
-You can also add a new value *and* comment by assigning them as a tuple:
+You can also add a new value *and* comment by assigning them as a tuple::
 
     >>> header['DARKCORR'] = ('OMIT', 'Dark Image Subtraction')
 
@@ -100,17 +102,17 @@ You can also add a new value *and* comment by assigning them as a tuple:
       no matter what it is.
 
 A keyword (and its corresponding card) can be deleted using the same index/name
-syntax:
+syntax::
 
-    >>> del prihdr[3] # delete the 2nd keyword
-    >>> del prihdr['abc'] # get the value of the keyword 'abc'
+    >>> del prihdr[3]      # delete the 2nd keyword
+    >>> del prihdr['abc']  # get the value of the keyword 'abc'
 
 Note that, like a regular Python list, the indexing updates after each delete,
 so if ``del prihdr[3]`` is done two times in a row, the 4th and 5th keywords
 are removed from the original header.  Likewise, ``del prihdr[-1]`` will delete
 the last card in the header.
 
-It is also possible to delete an entire range of cards using the slice syntax:
+It is also possible to delete an entire range of cards using the slice syntax::
 
     >>> del prihdr[3:5]
 
@@ -119,17 +121,17 @@ associated with an existing keyword, or to create a new keyword.  Most of its
 functionality can be duplicated with the dict-like syntax shown above.  But in
 some cases it might be more clear.  It also has the advantage of allowing one
 to either move cards within the header, or specify the location of a new card
-relative to existing cards:
+relative to existing cards::
 
     >>> prihdr.set('target', 'NGC1234', 'target name')
-    >>> # place the next new keyword before the 'target' keyword
-    >>> prihdr.set('newkey', 666, before='target') # comment is optional
+    >>> # place the next new keyword before the 'TARGET' keyword
+    >>> prihdr.set('newkey', 666, before='TARGET')  # comment is optional
     >>> # place the next new keyword after the 21st keyword
     >>> prihdr.set('newkey2', 42.0, 'another new key', after=20)
 
 In FITS headers, each keyword may also have a comment associated with it
 explaining its purpose.  The comments associated with each keyword are accessed
-through the :attr:`~Header.comments` attribute:
+through the :attr:`~Header.comments` attribute::
 
     >>> header['NAXIS']
     2
@@ -153,7 +155,7 @@ name. The duplicates can only be accessed by numeric indexing.
 There are three special keywords (their associated cards are sometimes referred
 to as commentary cards), which commonly appear in FITS headers more than once.
 They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Unlike other
-keywords, when accessing these keywords they are returned as a list:
+keywords, when accessing these keywords they are returned as a list::
 
     >>> prihdr['HISTORY']
     I updated this file on 02/03/2011
@@ -168,7 +170,7 @@ New commentary cards can be added like any other card by using the dict-like
 keyword assignment syntax, or by using the :meth:`Header.set` method.  However,
 unlike with other keywords, a new commentary card is always added and appended
 to the last commentary card with the same keyword, rather than to the end of
-the header. Here is an example:
+the header. Here is an example::
 
     >>> hdu.header['HISTORY'] = 'history 1'
     >>> hdu.header[''] = 'blank 1'
@@ -221,7 +223,7 @@ cards in a header.  But there's usually nothing gained by manually using a
 before actually adding it to the header.
 
 A new Card object is created with the :class:`Card` constructor:
-``Card(key, value, comment)``. For example:
+``Card(key, value, comment)``. For example::
 
     >>> c1 = fits.Card('TEMP', 80.0, 'temperature, floating value')
     >>> c2 = fits.Card('DETECTOR', 1)  # comment is optional
@@ -230,7 +232,7 @@ A new Card object is created with the :class:`Card` constructor:
     >>> c4 = fits.Card('ABC', 2+3j, 'complex value')
     >>> c5 = fits.Card('OBSERVER', 'Hubble', 'string value')
 
-    >>> print c1; print c2; print c3; print c4; print c5 # show the card images
+    >>> print c1; print c2; print c3; print c4; print c5  # show the cards
     TEMP = 80.0 / temperature, floating value
     DETECTOR= 1 /
     MIR_REVR= T / mirror reversed? Boolean value
@@ -239,6 +241,8 @@ A new Card object is created with the :class:`Card` constructor:
 
 Cards have the attributes ``.keyword``, ``.value``, and ``.comment``. Both
 ``.value`` and ``.comment`` can be changed but not the ``.keyword`` attribute.
+In other words, once a card is created, it is created for a specific, immutable
+keyword.
 
 The :meth:`Card` constructor will check if the arguments given are conforming
 to the FITS standard and has a fixed card image format. If the user wants to
@@ -249,6 +253,8 @@ class method can be used.
 Cards can be verified with :meth:`Card.verify`. The non-standard card ``c2`` in
 the example below is flagged by such verification. More about verification in
 Astropy will be discussed in a later chapter.
+
+::
 
     >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
     >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
@@ -279,7 +285,7 @@ a proposal was made in:
 by using the CONTINUE keyword after the regular 80-column containing the
 keyword. Astropy does support this convention, even though it is not a FITS
 standard. The examples below show the use of CONTINUE is automatic for long
-string values.
+string values::
 
     >>> header = fits.Header()
     >>> header['abc'] = 'abcdefg' * 20
@@ -325,7 +331,7 @@ other: ``header['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
 HIEARARCH keywords also differ from normal FITS keywords in that they are
 case-sensitive.
 
-Examples follow:
+Examples follow::
 
     >>> c = fits.Card('abcdefghi', 10)
     Keyword name 'abcdefghi' is greater than 8 characters; a HIERARCH card will

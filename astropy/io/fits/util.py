@@ -4,6 +4,7 @@ from __future__ import division
 
 import functools
 import gzip
+import io
 import itertools
 import mmap
 import os
@@ -444,8 +445,9 @@ def fileobj_is_binary(f):
     if hasattr(f, 'binary'):
         return f.binary
 
-    # TODO: In Python 3 it might be more reliable to check if the fileobj is a
-    # text reader or a binary reader
+    if io is not None and isinstance(f, io.TextIOBase):
+        return False
+
     mode = fileobj_mode(f)
     if mode:
         return 'b' in mode

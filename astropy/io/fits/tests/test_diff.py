@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
+
 import numpy as np
 
 from ..column import Column
 from ..diff import *
+from ..diff import report_diff_values
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
 from ..hdu.table import new_table
 from ..header import Header
@@ -575,3 +578,21 @@ class TestDiff(FitsTestCase):
         assert diff.diff_values[1][0] == ('colb', 1)
         assert np.isnan(diff.diff_values[1][1][0])
         assert diff.diff_values[1][1][1] == 2.0
+
+    def test_float_comparison(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/21
+        """
+
+        f = io.StringIO()
+
+        a = np.float32(0.029751372)
+        b = np.float32(0.029751368)
+
+        report_diff_values(f, a, b)
+        out = f.getvalue()
+
+        # This test doesn't care about what the exact output is, just that it
+        # did show a difference in their text representations
+        assert 'a>' in out
+        assert 'b>' in out
