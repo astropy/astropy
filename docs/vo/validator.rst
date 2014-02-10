@@ -1,6 +1,6 @@
 .. doctest-skip-all
 
-Using ``astropy.vo.validator``
+Using `astropy.vo.validator`
 ============================
 
 VO services validator is used by STScI to support :ref:`vo-sec-client-scs`.
