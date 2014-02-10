@@ -890,7 +890,8 @@ class UnitBase(object):
         # `is_equivalent`, because it doesn't generate the entire
         # physical type list of both units.  In other words it "fails
         # fast".
-        if(np.allclose(self_decomposed.powers, other_decomposed.powers) and
+        if((len(self_decomposed.powers) == len(other_decomposed.powers) and
+            np.allclose(self_decomposed.powers, other_decomposed.powers)) and
            all(self_base is other_base for (self_base, other_base)
                in zip(self_decomposed.bases, other_decomposed.bases))):
             return self_decomposed.scale / other_decomposed.scale

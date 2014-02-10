@@ -564,3 +564,18 @@ def test_fits_hst_unit():
     """See #1911."""
     x = u.Unit("erg /s /cm**2 /angstrom")
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
+    
+
+def test_conversion_with_close_powers():
+    """
+    Regression test for a case where floating point error would
+    cause unit conversion to fail.
+    """
+    m = 1. * u.Msun
+    tH =  1./(1. * u.km/u.s/u.Mpc)
+    vc = 1. * u.km/u.s
+    G = 1. * u.m**3/(u.kg*u.s**2)
+
+    x = (G**2 * m**2 * tH)**(1./3) / vc  # Should have units of length
+    x.to('pc') # This will fail with a UnitsError if a regression occurs
+
