@@ -2063,10 +2063,13 @@ def validate(source):
                 hdu.header, relax=True, fix=False, _do_set=False)
 
         for wcs in wcses:
-            wcs_results = _WcsValidateWcsResult(wcs.wcs.name)
+            wcs_results = _WcsValidateWcsResult(wcs.wcs.alt)
             hdu_results.append(wcs_results)
 
-            del __warningregistry__
+            try:
+                del __warningregistry__
+            except NameError:
+                pass
 
             with warnings.catch_warnings(record=True) as warning_lines:
                 warnings.resetwarnings()
@@ -2075,7 +2078,7 @@ def validate(source):
 
                 try:
                     WCS(hdu.header,
-                        key=wcs.wcs.name or ' ',
+                        key=wcs.wcs.alt or ' ',
                         relax=True, fix=True)
                 except WcsError as e:
                     wcs_results.append(str(e))
