@@ -20,6 +20,7 @@ from ...tests.helper import pytest, raises, catch_warnings
 from ...utils.compat.fractions import Fraction
 
 from ... import units as u
+from ... import constants as c
 
 
 def test_getting_started():
@@ -572,3 +573,18 @@ def test_fits_hst_unit():
     """See #1911."""
     x = u.Unit("erg /s /cm**2 /angstrom")
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
+
+
+def test_fractional_powers():
+    """See #2069"""
+    m = 1e9 * u.Msun
+    tH = 1. / (70. * u.km / u.s / u.Mpc)
+    vc = 200 * u.km/u.s
+
+    x = (c.G ** 2 * m ** 2 * tH.cgs) ** Fraction(1, 3) / vc
+    v1 = x.to('pc')
+
+    x = (c.G ** 2 * m ** 2 * tH) ** Fraction(1, 3) / vc
+    v2 = x.to('pc')
+
+    assert_allclose(v1, v2)

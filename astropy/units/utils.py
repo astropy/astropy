@@ -10,12 +10,16 @@ package.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numbers
 import io
 import re
 
+import numpy as np
 from numpy import finfo
 
 from ..extern import six
+from ..utils.compat.fractions import Fraction
+
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -119,3 +123,37 @@ def generate_unit_summary(namespace):
 
 def is_effectively_unity(value):
     return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
+
+
+def validate_power(p):
+    """
+    Handles the conversion of a power to a floating point or a
+    rational number.
+    """
+    # For convenience, treat tuples as Fractions
+    if isinstance(p, tuple) and len(p) == 2:
+        p = Fraction(p[0], p[1])
+
+    if isinstance(p, numbers.Rational) or isinstance(p, Fraction):
+        # If the fractional power can be represented *exactly* as a
+        # floating point number, we convert it to a float, to make the
+        # math much faster, otherwise, we retain it as a
+        # `fractions.Fraction` object to avoid losing precision.
+        denom = p.denominator
+        if denom == 1:
+            p = int(p.numerator)
+        # This is bit-twiddling hack to see if the integer is a
+        # power of two
+        elif (denom & (denom - 1)) == 0:
+            p = float(p)
+    else:
+        if not np.isscalar(p):
+            raise ValueError(
+                "Quantities and Units may only be raised to a scalar power")
+
+        p = float(p)
+
+        if p % 1.0 == 0.0:
+            p = int(p)
+
+    return p
