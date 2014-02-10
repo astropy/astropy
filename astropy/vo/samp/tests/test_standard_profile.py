@@ -48,15 +48,15 @@ class TestStandardProfile(object):
 
         self.tmpdir = tempfile.mkdtemp()
 
-        self.hub = SAMPHubServer(web_profile=False, mode='multiple',
+        self.hub = SAMPHubServer(web_profile=False, mode='multiple', pool_size=1,
                                  **self.hub_init_kwargs)
         self.hub.start()
 
         self.client1 = SAMPIntegratedClient(**self.client_init_kwargs)
-        self.client1.connect(hub=self.hub, **self.client_connect_kwargs)
+        self.client1.connect(hub=self.hub, pool_size=1, **self.client_connect_kwargs)
 
         self.client2 = SAMPIntegratedClient(**self.client_init_kwargs)
-        self.client2.connect(hub=self.hub, **self.client_connect_kwargs)
+        self.client2.connect(hub=self.hub, pool_size=1, **self.client_connect_kwargs)
 
     def teardown_method(self, method):
 

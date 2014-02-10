@@ -181,9 +181,6 @@ class SAMPClient(object):
                                                             self._port),
                                            '', '', '', ''))
 
-    def __del__(self):
-        self.stop()
-
     def __enter__(self):
         return self
 

@@ -27,9 +27,6 @@ class AlwaysApproveWebProfileDialog(WebProfileDialog):
 
     def stop(self):
         self.polling = False
-        
-    def __del__(self):
-        self.stop()
 
 
 class SAMPWebHubProxy(SAMPHubProxy):
@@ -158,23 +155,23 @@ class SAMPWebClient(SAMPClient):
 
         if self._callable:
             self._thread = threading.Thread(target=self._serve_forever)
-            self._thread.setDaemon(True)
+            self._thread.daemon = True
 
     def _serve_forever(self):
         while self.is_running:
             # Watch for callbacks here
             if self._is_registered:
-                result = self.hub.pull_callbacks(self.get_private_key(), 0.1)
-                if result:
-                    if result[0]['samp.methodName'] == 'receiveNotification':
+                results = self.hub.pull_callbacks(self.get_private_key(), 0)
+                for result in results:
+                    if result['samp.methodName'] == 'receiveNotification':
                         self.receive_notification(self._private_key,
-                                                  *result[0]['samp.params'])
-                    elif result[0]['samp.methodName'] == 'receiveCall':
+                                                  *result['samp.params'])
+                    elif result['samp.methodName'] == 'receiveCall':
                         self.receive_call(self._private_key,
-                                          *result[0]['samp.params'])
-                    elif result[0]['samp.methodName'] == 'receiveResponse':
+                                          *result['samp.params'])
+                    elif result['samp.methodName'] == 'receiveResponse':
                         self.receive_response(self._private_key,
-                                              *result[0]['samp.params'])
+                                              *result['samp.params'])
 
     def register(self):
         """
