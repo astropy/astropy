@@ -124,9 +124,28 @@ database.
 
 All the existing catalog tags will be copied over as dictionary
 keys, except ``'accessURL'`` that is renamed to ``'url'`` for simplicity.
-In addition, new keys named ``'validate_xxx'`` are added; ``'xxx'`` will
-be the original attribute names of
-`astropy.io.votable.validator.result.Result`.
+In addition, new keys from validation are added:
+
+* ``validate_expected``
+    Expected validation result category, e.g., "good".
+* ``validate_network_error``
+    Indication for connection error.
+* ``validate_nexceptions``
+    Number of exceptions found.
+* ``validate_nwarnings``
+    Number of warnings found.
+* ``validate_out_db_name``
+    Cone Search database name this entry belongs to.
+* ``validate_version``
+    Version of validation software.
+* ``validate_warning_types``
+    List of warning codes.
+* ``validate_warnings``
+    Descriptions of the warnings.
+* ``validate_xmllint``
+    Indication of whether ``xmllint`` passed.
+* ``validate_xmllint_content``
+    Output from ``xmllint``.
 
 Configurable Items
 ^^^^^^^^^^^^^^^^^^
