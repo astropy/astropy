@@ -196,25 +196,6 @@ Bug Fixes
     wcslib's ``wcsbchk``) has been added to control what bounds
     checking is performed by wcslib.
 
-  - `astropy.wcs.WCS`, `astropy.wcs.WCS.fix` and
-    `astropy.wcs.find_all_wcs` now have a `translate_units` keyword
-    argument that is passed down to `astropy.wcs.Wcsprm.fix`.  This
-    can be used to specify any unsafe translations of units from
-    rarely used ones to more commonly used ones.
-
-    Although ``"S"`` is commonly used to represent seconds,
-    its translation to ``"s"`` is potentially unsafe since the
-    standard recognizes ``"S"`` formally as Siemens, however
-    rarely that may be used.  The same applies to ``"H"`` for
-    hours (Henry), and ``"D"`` for days (Debye).
-
-    When these sorts of changes are performed, a warning is emitted.
-    [#1854]
-
-  - When a unit is "fixed" by `astropy.wcs.WCS.fix` or
-    `astropy.wcs.Wcsprm.unitfix`, it now correctly reports the
-    ``CUNIT`` field that was changed. [#1854]
-
   - `astropy.wcs.WCS.to_header` will now raise a more meaningful
     exception when the WCS information is inavlid or inconsistent in
     some way. [#1854]
@@ -382,6 +363,25 @@ Bug Fixes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - `astropy.wcs.WCS`, `astropy.wcs.WCS.fix` and
+    `astropy.wcs.find_all_wcs` now have a `translate_units` keyword
+    argument that is passed down to `astropy.wcs.Wcsprm.fix`.  This
+    can be used to specify any unsafe translations of units from
+    rarely used ones to more commonly used ones.
+
+    Although ``"S"`` is commonly used to represent seconds,
+    its translation to ``"s"`` is potentially unsafe since the
+    standard recognizes ``"S"`` formally as Siemens, however
+    rarely that may be used.  The same applies to ``"H"`` for
+    hours (Henry), and ``"D"`` for days (Debye).
+
+    When these sorts of changes are performed, a warning is emitted.
+    [#1854]
+
+  - When a unit is "fixed" by `astropy.wcs.WCS.fix` or
+    `astropy.wcs.Wcsprm.unitfix`, it now correctly reports the
+    ``CUNIT`` field that was changed. [#1854]
 
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
     being ignored when none was present in the FITS file. [#1845]
