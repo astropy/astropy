@@ -664,6 +664,7 @@ Other Information
 .. toctree::
     :maxdepth: 1
 
+    appendix/header_transition
     appendix/faq
     appendix/history
 
