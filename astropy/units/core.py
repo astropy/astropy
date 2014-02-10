@@ -1543,7 +1543,7 @@ class NamedUnit(UnitBase):
             namespace[name] = self
 
 
-def _recreate_irreducible_unit(names, registered):
+def _recreate_irreducible_unit(cls, names, registered):
     """
     This is used to reconstruct units when passed around by
     multiprocessing.
@@ -1552,7 +1552,7 @@ def _recreate_irreducible_unit(names, registered):
     if names[0] in registry:
         return registry[names[0]]
     else:
-        unit = IrreducibleUnit(names)
+        unit = cls(names)
         if registered:
             get_current_unit_registry().add_enabled_units([unit])
 
@@ -1574,7 +1574,7 @@ class IrreducibleUnit(NamedUnit):
         # understands how to recreate the Unit on the other side.
         registry = get_current_unit_registry().registry
         return (_recreate_irreducible_unit,
-                (list(self.names), self.name in registry),
+                (self.__class__, list(self.names), self.name in registry),
                 self.__dict__)
 
     def decompose(self, bases=set()):
@@ -1610,8 +1610,10 @@ class UnrecognizedUnit(IrreducibleUnit):
     st : str
         The name of the unit.
     """
-    def __init__(self, st):
-        IrreducibleUnit.__init__(self, st)
+    # For UnrecognizedUnits, we want to use "standard" Python
+    # pickling, not the special case that is used for
+    # IrreducibleUnits.
+    __reduce__ = object.__reduce__
 
     def __repr__(self):
         return "UnrecognizedUnit({0})".format(str(self))
