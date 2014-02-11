@@ -240,7 +240,7 @@ def luminosity_distance(z, cosmo=None):
     Returns
     -------
     lumdist : astropy.units.Quantity
-      Angular diameter distance at each input redshift.
+      Luminosity distance at each input redshift.
     """
     if cosmo is None:
         cosmo = _get_current()
