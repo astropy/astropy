@@ -446,7 +446,7 @@ class HDUDiff(_BaseDiff):
                           self.diff_extvers)
 
         if self.diff_extlevels:
-            self._writeln(" Extension levels differ:\n  a: %s\n  b: %s" %
+            self._writeln(u(" Extension levels differ:\n  a: %s\n  b: %s") %
                           self.diff_extlevels)
 
         if not self.diff_headers.identical:
@@ -1200,7 +1200,7 @@ def report_diff_values(fileobj, a, b, ind=0):
         num_diffs = reduce(lambda x, y: x * y,
                            (len(d) for d in diff_indices), 1)
         for idx in islice(zip(*diff_indices), 3):
-            fileobj.write(indent('  at %r:\n' % list(idx), ind))
+            fileobj.write(indent(u('  at %r:\n') % list(idx), ind))
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
 
         if num_diffs:
