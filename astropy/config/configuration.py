@@ -531,7 +531,10 @@ def is_unedited_config_file(filename):
     buffer = io.BytesIO(content)
     buffer.seek(0)
     raw_cfg = configobj.ConfigObj(buffer, interpolation=True)
-    if len(raw_cfg.items()) == 0:
+    for v in six.itervalues(raw_cfg):
+        if len(v):
+            break
+    else:
         return True
 
     # Now determine if it matches the md5sum of a known, unedited

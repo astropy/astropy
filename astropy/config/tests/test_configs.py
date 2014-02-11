@@ -8,7 +8,8 @@ from ...tests.helper import catch_warnings
 import io
 import os
 import shutil
-import sys
+
+from ...utils.data import get_pkg_data_filename
 
 
 def test_paths():
@@ -236,3 +237,16 @@ def test_configitem_setters():
         pass
 
     assert ci() == 43
+
+
+def test_empty_config_file():
+    from ..configuration import is_unedited_config_file
+
+    fn = get_pkg_data_filename('data/empty.cfg')
+    assert is_unedited_config_file(fn)
+
+    fn = get_pkg_data_filename('data/not_empty.cfg')
+    assert not is_unedited_config_file(fn)
+
+    fn = get_pkg_data_filename('data/astropy.0.3.cfg')
+    assert is_unedited_config_file(fn)
