@@ -334,6 +334,9 @@ Bug Fixes
   - Increase ``__array_priority__`` so that ``TimeDelta`` can convert itself
     to a ``Quantity`` also in reverse operations [#1940]
 
+  - Correct hop list from TCG to TDB to ensure that conversion is
+    possible [#2074]
+
 - ``astropy.units``
 
   - ``Quantity`` initialisation rewritten for speed [#1775]
