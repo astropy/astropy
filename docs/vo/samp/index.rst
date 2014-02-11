@@ -16,9 +16,9 @@ messaging system implementation in Python. It provides functions and classes
 to easily:
 
 1. seamlessly send and receive data over SAMP
-2. instantiate one or multiple Hubs;
-3. interface an application or script to a running Hub;
-4. create and manage a SAMP client.
+2. instantiate one or multiple Hubs
+3. interface an application or script to a running Hub
+4. create and manage a SAMP client
 
 `astropy.vo.samp` provides also a stand-alone program ``samp_hub`` capable to
 instantiate a persistent hub.

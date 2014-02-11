@@ -24,12 +24,12 @@ command::
     $ samp_hub
 
 
-.. note:: As described in :ref:`getting-started-samp`, users can easily send
-          and receive tables using the
-          :func:`~astropy.vo.samp.high_level.send` and
-          :func:`~astropy.vo.samp.high_level.receive` functions in
-          `astropy.vo.samp`, but the following sections describe in detail how
-          to do with using the various classes from the object-oriented API.
+.. note::
+    As described in :ref:`getting-started-samp`, users can easily send and
+    receive tables using the :func:`~astropy.vo.samp.high_level.send` and
+    :func:`~astropy.vo.samp.high_level.receive` functions in
+    `astropy.vo.samp`, but the following sections describe in detail how to do
+    with using the various classes from the object-oriented API.
 
 
 Sending a table to TOPCAT and Ds9
