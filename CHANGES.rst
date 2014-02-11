@@ -210,6 +210,13 @@ Other Changes and Additions
 - Where appropriate, tests are now run both with and without the
   ``unicode_literals`` option to ensure that we support both cases. [#1962]
 
+- A monkey patch is performed to fix a bug in Numpy version 1.7 and
+  earlier where unicode fill values on masked arrays are not
+  supported.  This may cause unintended side effects if your
+  application also monkey patches ``numpy.ma`` or relies on the broken
+  behavior.  If unicode support of masked arrays is important to your
+  application, upgrade to Numpy 1.8 or later for best results. [#2059]
+
 0.3.1 (unreleased)
 ------------------
 

@@ -83,8 +83,8 @@ install:
     # source build
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "Cython==0.19.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest==2.4.0"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist==1.8"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest==2.5.1"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist==1.10"; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "scipy==0.13.1"; fi
@@ -106,4 +106,3 @@ script:
 
 after_success:
   - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
-
