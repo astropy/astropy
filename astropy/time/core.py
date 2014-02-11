@@ -1286,7 +1286,12 @@ class TimeFromEpoch(TimeFormat):
         #
         # A known limitation is that the transform from self.epoch_scale to self.scale
         # cannot involve any metadata like lat or lon.
-        tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
+        try:
+           tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
+        except Exception as err:
+           raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
+                                 "scale '{2}', got error:\n{3}"
+                                  .format(self.name, self.epoch_scale, self.scale, err))
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
