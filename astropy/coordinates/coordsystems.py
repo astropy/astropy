@@ -49,9 +49,9 @@ class SphericalCoordinatesBase(object):
 
     def __eq__(self, other):
         try:
-            return (self.latangle == other.latangle and
-                    self.lonangle == other.lonangle and
-                    self.distance == other.distance and
+            return (np.all(self.latangle == other.latangle) and
+                    np.all(self.lonangle == other.lonangle) and
+                    np.all(self.distance == other.distance) and
                     self.equinox == other.equinox)
         except AttributeError:
             return False
