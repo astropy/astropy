@@ -175,7 +175,7 @@ class TestBasic():
 
     def test_all_transforms(self):
         """Test that all transforms work.  Does not test correctness,
-        except reversibility"""
+        except reversibility [#2074]"""
         lat = 19.48125
         lon = -155.933222
         for scale1 in TIME_SCALES:
