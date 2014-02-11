@@ -486,17 +486,28 @@ def _local_conversion(func, x):
 
 
 def _validate_coord(center):
+    """Validate coordinates."""
     if isinstance(center, SphericalCoordinatesBase):
         icrscoord = center.transform_to(ICRS)
     else:
         icrscoord = ICRS(*center, unit=(u.degree, u.degree))
 
-    return icrscoord.ra.degree, icrscoord.dec.degree
+    ra = icrscoord.ra.degree
+    dec = icrscoord.dec.degree
+
+    # RA has tendency to go negative in Longitude class.
+    ra_sign = '{0:+}'.format(ra)[0]
+    if ra_sign == '-' and ra == 0:  # -0 is okay
+        ra = 0
+    else:  # pragma: no cover
+        raise ConeSearchError('Cone Search cannot accept negative RA value '
+                              '({0} deg)'.format(ra))
+
+    return ra, dec
 
 
 def _validate_sr(radius):
     """Validate search radius."""
-        # Validate search radius
     if isinstance(radius, Angle):
         sr_angle = radius
     else:
