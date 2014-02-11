@@ -898,14 +898,9 @@ class Time(object):
         # we need a constant scale to calculate, which is guaranteed for
         # TimeDelta, but not for Time; for two times, ensure scale is OK
         if self_is_time:
-            if other_is_time:
-                if self.scale in TimeDelta.SCALES:
-                    scale = self.scale
-                elif other.scale in TimeDelta.SCALES:
-                    scale = other.scale
-                else:
-                    scale = 'tai'
-            else:
+            if other_is_time:  # T - T
+                scale = self.scale if self.scale in TimeDelta.SCALES else 'tai'
+            else:  # T - Tdelta
                 scale = (self.scale if self.scale in other.SCALES
                          else other.scale)
         else:

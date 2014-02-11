@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
-
+import itertools
 import numpy as np
 import operator
 
 from ...tests.helper import pytest
-from .. import Time, TimeDelta, OperandTypeError
+from .. import (Time, TimeDelta, OperandTypeError,
+                TIME_SCALES, TIME_DELTA_SCALES)
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -225,3 +226,106 @@ class TestTimeDelta():
             t3 = op(t_tdb_ut1_utc, dt)
             assert not hasattr(t3, '_delta_tdb_tt')
             assert not hasattr(t3, '_delta_ut1_utc')
+
+
+class TestTimeDeltaScales():
+    """Test scale conversion for Time Delta.
+    Go through @taldcroft's list of expected behaviour from #1932"""
+
+    def setup(self):
+        # pick a date that includes a leap second for better testing
+        self.iso_times = ['2012-06-30 12:00:00', '2012-06-30 23:59:59',
+                          '2012-07-01 00:00:00', '2012-07-01 12:00:00']
+        self.t = dict((scale, Time(self.iso_times, scale=scale, precision=9))
+                      for scale in TIME_SCALES)
+        self.dt = dict((scale, self.t[scale]-self.t[scale][0])
+                       for scale in TIME_SCALES)
+
+    @pytest.mark.parametrize(('scale1', 'scale2'),
+                             list(itertools.product(TIME_SCALES, TIME_SCALES)))
+    def test_scales_for_time_minus_time(self, scale1, scale2):
+        """T(X) - T2(Y)  -- does T(X) - T2(Y).X and return dT(X)
+        and T(X) +/- dT(Y)  -- does (in essence) (T(X).Y +/- dT(Y)).X
+
+        I.e., time differences of two times should have the scale of the
+        first time.  The one exception is UTC, which returns TAI.
+
+        There are no timescales for which this does not work.
+        """
+        t1 = self.t[scale1]
+        t2 = self.t[scale2]
+        dt = t1 - t2
+        if scale1 in TIME_DELTA_SCALES:
+            assert dt.scale == scale1
+        else:
+            assert scale1 == 'utc'
+            assert dt.scale == 'tai'
+
+        # now check with delta time; also check reversibility
+        t1_recover_t2_scale = t2 + dt
+        assert t1_recover_t2_scale.scale == scale2
+        t1_recover = getattr(t1_recover_t2_scale, scale1)
+        assert allclose_jd(t1_recover.jd, t1.jd)
+        t2_recover_t1_scale = t1 - dt
+        assert t2_recover_t1_scale.scale == scale1
+        t2_recover = getattr(t2_recover_t1_scale, scale2)
+        assert allclose_jd(t2_recover.jd, t2.jd)
+
+    def test_scales_for_delta_minus_delta(self):
+        """dT(X) +/- dT2(Y) -- Add/substract JDs for dT(X) and dT(Y).X
+
+        I.e. this will succeed if dT(Y) can be converted to scale X.
+        Returns delta time in scale X
+        """
+        # geocentric timescales
+        dt_tai = self.dt['tai']
+        dt_tt = self.dt['tt']
+        dt0 = dt_tai - dt_tt
+        assert dt0.scale == 'tai'
+        assert allclose_sec(dt0.sec, 0.)
+
+        dt_tcg = self.dt['tcg']
+        dt1 = dt_tai - dt_tcg
+        assert dt1.scale == 'tai'
+        assert not allclose_sec(dt1.sec, 0.)
+
+        t_tai_tcg = self.t['tai'].tcg
+        dt_tai_tcg = t_tai_tcg - t_tai_tcg[0]
+        dt2 = dt_tai - dt_tai_tcg
+        assert dt2.scale == 'tai'
+        assert allclose_sec(dt2.sec, 0.)
+        # check that if we put TCG first, we get a TCG scale back
+        dt3 = dt_tai_tcg - dt_tai
+        assert dt3.scale == 'tcg'
+        assert allclose_sec(dt3.sec, 0.)
+
+        for scale in 'tdb', 'tcb', 'ut1':
+            with pytest.raises(TypeError):
+                dt_tai - self.dt[scale]
+
+        # barycentric timescales
+        dt_tcb = self.dt['tcb']
+        dt_tdb = self.dt['tdb']
+        dt4 = dt_tcb - dt_tdb
+        assert dt4.scale == 'tcb'
+        assert not allclose_sec(dt1.sec, 0.)
+
+        t_tcb_tdb = self.t['tcb'].tdb
+        dt_tcb_tdb = t_tcb_tdb - t_tcb_tdb[0]
+        dt5 = dt_tcb - dt_tcb_tdb
+        assert dt5.scale == 'tcb'
+        assert allclose_sec(dt5.sec, 0.)
+
+        for scale in 'utc', 'tai', 'tt', 'tcg', 'ut1':
+            with pytest.raises(TypeError):
+                dt_tcb - self.dt[scale]
+
+        # rotational timescale
+        dt_ut1 = self.dt['ut1']
+        dt5 = dt_ut1 - dt_ut1[-1]
+        assert dt5.scale == 'ut1'
+        assert dt5[-1].sec == 0.
+
+        for scale in 'utc', 'tai', 'tt', 'tcg', 'tcb', 'tdb':
+            with pytest.raises(TypeError):
+                dt_ut1 - self.dt[scale]
