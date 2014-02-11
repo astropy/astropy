@@ -10,16 +10,6 @@ import os
 import shutil
 import sys
 
-try:
-    # used by test_get_config_items
-    from ..configuration import ConfigurationItem
-
-    TESTCONF1 = ConfigurationItem('test1', 1, 'descr')
-    TESTCONF2 = ConfigurationItem('test2', 2, 'descr')
-except:
-    # if this fails on import, don't worry - the tests will catch it.
-    pass
-
 
 def test_paths():
     from ..paths import get_config_dir, get_cache_dir
@@ -220,24 +210,6 @@ def test_config_noastropy_fallback(monkeypatch):
     assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
     assert 'and configuration cannot be saved due to' in str(w.message)
-
-
-def test_get_config_items():
-    """ Checks if the get_config_items function is working correctly, using
-    `ConfigurationItem` objects from this module.
-    """
-
-    from ..configuration import get_config_items
-
-    itemslocal = get_config_items(sys.modules['astropy.config.tests.test_configs'])
-    itemslocalnone = get_config_items(None)
-    itemsname = get_config_items('astropy.config.tests.test_configs')
-
-    assert itemslocal == itemsname
-    assert itemslocal == itemslocalnone
-
-    assert 'TESTCONF1' in itemslocal.keys()
-    assert 'TESTCONF2' in itemslocal.keys()
 
 
 def test_configitem_setters():

@@ -217,7 +217,6 @@ def _initialize_astropy():
             raise
 
     # add these here so we only need to cleanup the namespace at the end
-    config_dir = None
     config_dir = os.path.dirname(__file__)
 
     try:

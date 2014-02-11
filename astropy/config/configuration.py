@@ -12,20 +12,17 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
-import inspect
-import pkgutil
-import re
-import sys
+import hashlib
+import io
 import textwrap
-import types
 
 from contextlib import contextmanager
 from os import path
 from warnings import warn
 
-from ..extern import six
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning
+from .paths import get_config_dir
 
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
@@ -59,6 +56,12 @@ class ConfigurationDefaultMissingError(ValueError):
 class ConfigurationDefaultMissingWarning(AstropyWarning):
     """ A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
+    """
+
+
+class ConfigurationChangedWarning(AstropyWarning):
+    """
+    A warning that the configuration options have changed.
     """
 
 
@@ -406,8 +409,6 @@ def get_config(packageormod=None, reload=False):
         be determined.
 
     """
-
-    from .paths import get_config_dir
     from ..utils import find_current_module
 
     if packageormod is None:
@@ -510,165 +511,53 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
-def get_config_items(packageormod=None):
-    """ Returns the `ConfigurationItem` objects associated with a particular
-    module.
-
-    Parameters
-    ----------
-    packageormod : str or None
-        The package or module name or None to get the current module's items.
-
-    Returns
-    -------
-    configitems : dict
-        A dictionary where the keys are the name of the items as the are named
-        in the module, and the values are the associated `ConfigurationItem`
-        objects.
-
+def is_unedited_config_file(filename):
     """
+    Determines if a config file can be safely replaced because it doesn't
+    actually contain any meaningful content.
 
-    from ..utils import find_current_module
+    To meet this criteria, the config file must be either:
 
-    if packageormod is None:
-        packageormod = find_current_module(2)
-        if packageormod is None:
-            msg1 = 'Cannot automatically determine get_config module, '
-            msg2 = 'because it is not called from inside a valid module'
-            raise RuntimeError(msg1 + msg2)
-    elif isinstance(packageormod, six.string_types):
-        __import__(packageormod)
-        packageormod = sys.modules[packageormod]
-    elif inspect.ismodule(packageormod):
-        pass
-    else:
-        raise TypeError('packageormod in get_config_items is invalid')
+    - All comments or completely empty
 
-    configitems = {}
-    for n, obj in six.iteritems(packageormod.__dict__):
-        # if it's not a new-style object, it's certainly not a ConfigurationItem
-        if hasattr(obj, '__class__'):
-            fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
-            if fqn == 'astropy.config.configuration.ConfigurationItem':
-                configitems[n] = obj
-
-    return configitems
-
-
-def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
+    - An exact match to a "legacy" version of the config file prior to
+      Astropy 0.4, when APE3 was implemented and the config file
+      contained commented-out values by default.
     """
-    Adds a blank line to the comments of any sections in the requested sections,
-    recursing into subsections if `recurse` is True. If `gotoroot` is True,
-    this first goes to the root of the requested section, just like
-    `save_config` and `reload_config` - this does nothing if `sec` is a
-    configobj already.
-    """
+    with open(filename, 'rb') as fd:
+        content = fd.read()
 
-    if not hasattr(sec, 'sections'):
-        sec = get_config(sec)
+    # First determine if the config file has any effective content
+    buffer = io.BytesIO(content)
+    buffer.seek(0)
+    raw_cfg = configobj.ConfigObj(buffer, interpolation=True)
+    if len(raw_cfg.items()) == 0:
+        return True
 
-        # look for the section that is its own parent - that's the base object
-        if gotoroot:
-            while sec.parent is not sec:
-                sec = sec.parent
+    # Now determine if it matches the md5sum of a known, unedited
+    # config file.
+    # TODO: How does this work with Windows line endings...?  Probably
+    # doesn't...
+    known_configs = set([
+        '5df7e409425e5bfe7ed041513fda3288',  # v0.3
+        '8355f99a01b3bdfd8761ef45d5d8b7e5',  # v0.2
+        '4ea5a84de146dc3fcea2a5b93735e634'   # v0.2.1, v0.2.2, v0.2.3, v0.2.4, v0.2.5
+    ])
 
-    for isec, snm in enumerate(sec.sections):
-        comm = sec.comments[snm]
-        if len(comm) == 0 or comm[-1] != '':
-            if sec.parent is sec and isec == 0:
-                pass  # don't do it for first section
-            else:
-                comm.append('')
-        if recurse:
-            _fix_section_blank_lines(sec[snm], True, False)
-
-_unsafe_import_regex = [r'astropy\.sphinx\.ext.*',
-                        r'astropy\.utils\.compat\._gzip_32',
-                        r'astropy\.utils\.compat\._fractions_27',
-                        r'.*.setup_package',
-                        r'astropy\.version_helpers',
-                        r'astropy\.setup_helpers'
-                        ]
-_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
-_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
-
-
-def generate_all_config_items(pkgornm=None, reset_to_default=False,
-                              filename=None):
-    """ Given a root package name or package, this function walks
-    through all the subpackages and modules, which should populate any
-    ConfigurationItem objects defined at the module level. If
-    `reset_to_default` is True, it also sets all of the items to their default
-    values, regardless of what the file's value currently is. It then saves the
-    `ConfigObj`.
-
-    Parameters
-    ----------
-    pkgname : str, module, or None
-        The package for which to generate configuration items.  If None,
-        the package of the function that calls this one will be used.
-
-    reset_to_default : bool
-        If True, the configuration items will all be set to their defaults.
-
-    filename : str, optional
-        Save the generated config items to the given filename instead of to
-        the default config file path.
-
-    Returns
-    -------
-    cfgfn : str
-        The filename of the generated configuration item.
-
-    """
-
-    from ..utils import find_current_module
-
-    if pkgornm is None:
-        pkgornm = find_current_module(1).__name__.split('.')[0]
-
-    if isinstance(pkgornm, six.string_types):
-        package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
-    elif (isinstance(pkgornm, types.ModuleType) and
-            '__init__' in pkgornm.__file__):
-        package = pkgornm
-    else:
-        msg = 'generate_all_config_items was not given a package/package name'
-        raise TypeError(msg)
-
-    if hasattr(package, '__path__'):
-        pkgpath = package.__path__
-    elif hasattr(package, '__file__'):
-        pkgpath = path.split(package.__file__)[0]
-    else:
-        raise AttributeError('package to generate config items for does not '
-                             'have __file__ or __path__')
-
-    prefix = package.__name__ + '.'
-    for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
-        if nm == 'astropy.config.tests.test_configs':
-            continue
-        if not _unsafe_import_regex.match(nm):
-            imper.find_module(nm)
-            if reset_to_default:
-                for cfgitem in six.itervalues(get_config_items(nm)):
-                    cfgitem.set(cfgitem.defaultvalue)
-
-    _fix_section_blank_lines(package.__name__, True, True)
-
-    save_config(package.__name__, filename=filename)
-
-    if filename is None:
-        return get_config(package.__name__).filename
-    else:
-        return filename
+    md5 = hashlib.md5()
+    md5.update(content)
+    digest = md5.hexdigest()
+    return digest in known_configs
 
 
 # this is not in __all__ because it's not intended that a user uses it
-def update_default_config(pkg, default_cfg_dir_or_fn):
+def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     """
-    Checks if the configuration file for the specified package exists, and if
-    not, copy over the default configuration.
+    Checks if the configuration file for the specified package exists,
+    and if not, copy over the default configuration.  If the
+    configuration file looks like it has already been edited, we do
+    not write over it, but instead write a file alongside it named
+    ``pkg.version.cfg`` as a "template" for the user.
 
     Parameters
     ----------
@@ -677,11 +566,14 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
     default_cfg_dir_or_fn : str
         The filename or directory name where the default configuration file is.
         If a directory name, `pkg`.cfg will be used in that directory.
+    version : str, optional
+        The current version of the given package.  If not provided, it will
+        be obtained from ``pkg.__version__``.
 
     Returns
     -------
     updated : bool
-        If the profile needed to be updated, True, otherwise False.
+        If the profile was updated, True, otherwise False.
 
     Raises
     ------
@@ -689,30 +581,63 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
         If the default configuration could not be found.
 
     """
-
     cfgfn = get_config(pkg).filename
 
     if path.exists(cfgfn):
-        with open(cfgfn) as f:
-            doupdate = f.read() == ''
+        doupdate = is_unedited_config_file(cfgfn)
     else:
         doupdate = True
 
-    if doupdate:
+    if version is None:
+        mod = __import__(pkg)
+        if not hasattr(mod, '__version__'):
+            raise ConfigurationDefaultMissingError(
+                'Could not determine version of package {0}'.format(pkg))
+        version = mod.__version__
+
+    # Don't install template files for dev versions, or we'll end up
+    # spamming `~/.astropy/config`.
+    if not 'dev' in version:
+        template_path = path.join(
+            get_config_dir(), '{0}.{1}.cfg'.format(pkg, version))
+        needs_template = not path.exists(template_path)
+    else:
+        needs_template = False
+
+    if doupdate or needs_template:
         if path.isdir(default_cfg_dir_or_fn):
             default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
         else:
             default_cfgfn = default_cfg_dir_or_fn
 
         if not path.isfile(default_cfgfn):
+            # TODO: Since this file is in the repository now, it seems very
+            # unlikely it would be missing...  Remove this?
             raise ConfigurationDefaultMissingError(
                 'Requested default configuration file {0} is '
                 'not a file.'.format(default_cfgfn))
 
-        with open(cfgfn, 'w') as fw:
-            with open(default_cfgfn) as fr:
-                fw.write(fr.read())
-        return True
+        with open(default_cfgfn, 'r') as fr:
+            content = fr.read()
 
-    else:
-        return False
+        if needs_template:
+            with open(template_path, 'w') as fw:
+                fw.write(content)
+            # If we just installed a new template file and we can't
+            # update the main configuration file because it has user
+            # changes, display a warning.
+            if not doupdate:
+                warn(
+                    "The configuration options in {0} {1} may have changed, "
+                    "your configuration file was not updated in order to "
+                    "preserve local changes.  A new configuration template "
+                    "has been saved to '{2}'.".format(
+                        pkg, version, template_path),
+                    ConfigurationChangedWarning)
+
+        if doupdate:
+            with open(cfgfn, 'w') as fw:
+                fw.write(content)
+            return True
+
+    return False
