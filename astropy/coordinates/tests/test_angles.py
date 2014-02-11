@@ -249,6 +249,11 @@ def test_longitude():
     lon.wrap_angle = '90d'
     assert lon == Angle('-260d')
 
+    #check for problem reported in #2037 about Longitude initializing to -0
+    lon = Longitude(0, u.deg)
+    lonstr = lon.to_string()
+    assert not lonstr.startswith('-')
+
 
 def test_wrap_at():
     a = Angle([-20, 150, 350, 360] * u.deg)
