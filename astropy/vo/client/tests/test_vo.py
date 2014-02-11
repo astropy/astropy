@@ -40,8 +40,8 @@ __doctest_skip__ = ['*']
 
 
 # Global variables for TestConeSearch
-SCS_RA = 0.01
-SCS_DEC = 0.01
+SCS_RA = 0
+SCS_DEC = 0
 SCS_SR = 0.1
 SCS_CENTER = ICRS(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
 SCS_RADIUS = SCS_SR * u.degree
