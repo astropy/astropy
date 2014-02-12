@@ -275,7 +275,7 @@ Since |quantity| objects are Numpy arrays, we are not able to ensure
 that only dimensionless quantities are converted to Numpy arrays::
 
     >>> np.array([1, 2, 3] * u.m)
-    array([ 1., 2., 3.])
+    array([1, 2, 3])
 
 Similarly, while most numpy functions work properly, a few have
 :ref:`known issues <quantity_issues>`, either ignoring the unit (e.g.,
