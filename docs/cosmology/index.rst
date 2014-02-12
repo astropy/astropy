@@ -59,7 +59,7 @@ the 5-year WMAP parameters:
 
   >>> from astropy.cosmology import WMAP5
   >>> WMAP5.comoving_distance(4)
-  <Quantity 7329.328093495547 Mpc>
+  <Quantity 7329.3280934955... Mpc>
 
 An important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
