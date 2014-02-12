@@ -1176,11 +1176,6 @@ naxis kwarg.
 
         {1}
 
-        tolerance : float, optional
-            Tolerance of solution. Iteration terminates when the iterative
-            solver estimates that the true solution is within this many pixels
-            current estimate. Default value is 1e-6 (pixels).
-
         Returns
         -------
 
@@ -1273,6 +1268,11 @@ naxis kwarg.
             two-argument form must be used.
 
         {1}
+
+        tolerance : float, optional
+            Tolerance of solution. Iteration terminates when the iterative
+            solver estimates that the true solution is within this many pixels
+            current estimate. Default value is 1e-6 (pixels).
 
         Returns
         -------
