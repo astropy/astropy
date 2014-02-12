@@ -11,10 +11,10 @@ from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
 
-_READERS_ORIGINAL = copy(_readers)
-_WRITERS_ORIGINAL = copy(_writers)
-_IDENTIFIERS_ORIGINAL = copy(_identifiers)
-
+def setup_module(module):
+    module._READERS_ORIGINAL = copy(_readers)
+    module._WRITERS_ORIGINAL = copy(_writers)
+    module._IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
 class TestData(object):
     read = classmethod(io_registry.read)
@@ -282,3 +282,8 @@ def teardown_function(function):
     _readers.update(_READERS_ORIGINAL)
     _writers.update(_WRITERS_ORIGINAL)
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
+
+def teardown_module(module):
+    _readers.update(module._READERS_ORIGINAL)
+    _writers.update(module._WRITERS_ORIGINAL)
+    _identifiers.update(module._IDENTIFIERS_ORIGINAL)
