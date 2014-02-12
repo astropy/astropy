@@ -123,6 +123,9 @@ API Changes
 
 - ``astropy.table``
 
+  - The default table printing function now shows a table header row 
+    for units if any columns have the unit attribute set.  [#1282]
+
 - ``astropy.time``
 
   - Correct use of UT in TDB calculation [#1938, #1939].
