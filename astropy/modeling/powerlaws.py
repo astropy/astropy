@@ -58,8 +58,8 @@ class PowerLaw1D(Parametric1DModel):
         return amplitude * xx ** (-alpha)
 
     @staticmethod
-    def deriv(x, amplitude, x_0, alpha):
-        """One dimensional power law derivative"""
+    def fit_deriv(x, amplitude, x_0, alpha):
+        """One dimensional power law derivative with respect to parameters"""
 
         xx = x / x_0
 
@@ -123,8 +123,8 @@ class BrokenPowerLaw1D(Parametric1DModel):
         return amplitude * xx ** (-alpha)
 
     @staticmethod
-    def deriv(x, amplitude, x_break, alpha_1, alpha_2):
-        """One dimensional broken power law derivative"""
+    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2):
+        """One dimensional broken power law derivative with respect to parameters"""
 
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
@@ -183,8 +183,8 @@ class ExponentialCutoffPowerLaw1D(Parametric1DModel):
         return amplitude * xx ** (-alpha) * np.exp(-x / x_cutoff)
 
     @staticmethod
-    def deriv(x, amplitude, x_0, alpha, x_cutoff):
-        """One dimensional exponential cutoff power law derivative"""
+    def fit_deriv(x, amplitude, x_0, alpha, x_cutoff):
+        """One dimensional exponential cutoff power law derivative with respect to parameters"""
 
         xx = x / x_0
         xc = x / x_cutoff
@@ -243,8 +243,8 @@ class LogParabola1D(Parametric1DModel):
         return amplitude * xx ** exponent
 
     @staticmethod
-    def deriv(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola derivative"""
+    def fit_deriv(x, amplitude, x_0, alpha, beta):
+        """One dimensional log parabola derivative with repsect to parameters"""
 
         xx = x / x_0
         log_xx = np.log(xx)

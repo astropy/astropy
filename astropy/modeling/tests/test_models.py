@@ -176,13 +176,13 @@ def test_custom_model(amplitude=4, frequency=1):
         df = 2 * np.pi * x * amplitude * np.cos(2 * np.pi * frequency * x)
         return np.vstack((da, df))
 
-    SineModel = models.custom_model_1d(sine_model, func_deriv=sine_deriv)
+    SineModel = models.custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
 
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
 
     y = sin_model.eval(x, 5., 2.)
-    y_prime = sin_model.deriv(x, 5., 2.)
+    y_prime = sin_model.fit_deriv(x, 5., 2.)
 
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
@@ -363,7 +363,7 @@ class TestParametricModels(object):
         x_lim = models_2D[model_class]['x_lim']
         y_lim = models_2D[model_class]['y_lim']
 
-        if model_class.deriv is None:
+        if model_class.fit_deriv is None:
             pytest.skip("Derivative function is not defined for model.")
         if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
@@ -406,7 +406,7 @@ class TestParametricModels(object):
         """
         x_lim = models_1D[model_class]['x_lim']
 
-        if model_class.deriv is None:
+        if model_class.fit_deriv is None:
             pytest.skip("Derivative function is not defined for model.")
         if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
