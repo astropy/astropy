@@ -108,6 +108,9 @@ Bug Fixes
 
   - Correct use of UT in TDB calculation [#1938, #1939].
 
+  - Correct hop list from TCG to TDB to ensure that conversion is
+    possible [#2074]
+
 - ``astropy.units``
 
   - ``Quantity`` initialisation rewritten for speed [#1775]
