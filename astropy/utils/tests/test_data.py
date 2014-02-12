@@ -300,6 +300,7 @@ def test_compressed_stream():
         assert f.read().rstrip() == b'CONTENT'
 
 
+@remote_data
 def test_invalid_location_download():
     """
     checks that download_file gives a URLError and not an AttributeError,
@@ -309,4 +310,14 @@ def test_invalid_location_download():
     from ..data import download_file
 
     with pytest.raises(URLError):
+        download_file('http://astropy.org/nonexistentfile')
+
+def test_invalid_location_download_noconnect():
+    """
+    checks that download_file gives an IOError if the socket is blocked
+    """
+    from ..data import download_file
+
+    # This should invoke socket's monkeypatched failure
+    with pytest.raises(IOError):
         download_file('http://astropy.org/nonexistentfile')
