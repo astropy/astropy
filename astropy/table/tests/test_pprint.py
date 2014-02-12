@@ -87,9 +87,22 @@ class TestPprint():
                     len(line) <= pprint.MAX_WIDTH())
 
     def test_format1(self, table_type):
-        """Basic test of formatting"""
+        """Basic test of formatting, unit header row included"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40)
+        assert lines == ['    col0         col1    ...   col19  ',
+                         '    km2                  ... kg s / m2',
+                         '------------ ----------- ... ---------',
+                         '0.000000e+00    1.000000 ...      19.0',
+                         '2.000000e+01   21.000000 ...      39.0',
+                         '         ...         ... ...       ...',
+                         '1.960000e+03 1961.000000 ...    1979.0',
+                         '1.980000e+03 1981.000000 ...    1999.0']
+
+    def test_format2(self, table_type):
+        """Basic test of formatting, unit header row excluded"""
+        self._setup(table_type)
+        lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=False)
         assert lines == ['    col0         col1    ... col19 ',
                          '------------ ----------- ... ------',
                          '0.000000e+00    1.000000 ...   19.0',
@@ -99,7 +112,7 @@ class TestPprint():
                          '1.960000e+03 1961.000000 ... 1979.0',
                          '1.980000e+03 1981.000000 ... 1999.0']
 
-    def test_format2(self, table_type):
+    def test_format3(self, table_type):
         """Include the unit header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=True)
@@ -114,18 +127,18 @@ class TestPprint():
                          '1.960000e+03 1961.000000 ...    1979.0',
                          '1.980000e+03 1981.000000 ...    1999.0']
 
-    def test_format3(self, table_type):
+    def test_format4(self, table_type):
         """Do not include the name header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_name=False)
-        assert lines == ['0.000000e+00    1.000000 ...   19.0',
-                         '2.000000e+01   21.000000 ...   39.0',
-                         '4.000000e+01   41.000000 ...   59.0',
-                         '6.000000e+01   61.000000 ...   79.0',
-                         '         ...         ... ...    ...',
-                         '1.940000e+03 1941.000000 ... 1959.0',
-                         '1.960000e+03 1961.000000 ... 1979.0',
-                         '1.980000e+03 1981.000000 ... 1999.0']
+        assert lines == ['    km2                  ... kg s / m2',
+                         '------------ ----------- ... ---------',
+                         '0.000000e+00    1.000000 ...      19.0',
+                         '2.000000e+01   21.000000 ...      39.0',
+                         '4.000000e+01   41.000000 ...      59.0',
+                         '         ...         ... ...       ...',
+                         '1.960000e+03 1961.000000 ...    1979.0',
+                         '1.980000e+03 1981.000000 ...    1999.0']
 
     def test_noclip(self, table_type):
         """Basic table print"""
@@ -179,9 +192,10 @@ class TestPprint():
         """Test a range of max_lines"""
         self._setup(table_type)
         for max_lines in range(130):
-            lines = self.tb.pformat(max_lines=max_lines)
+            lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(6, min(102, max_lines))
-
+        
+            
 
 @pytest.mark.usefixtures('table_type')
 class TestFormat():
