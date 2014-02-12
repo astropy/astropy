@@ -17,6 +17,11 @@ from . import generic
 from . import utils
 from ...utils.misc import did_you_mean
 
+class UnitScaleError(ValueError):
+    """
+    Used to catch the errors involving scaled units, 
+    which are not recognized by FITS format.
+    """
 
 class Fits(generic.Generic):
     """
@@ -119,7 +124,7 @@ class Fits(generic.Generic):
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                raise ValueError(
+                raise UnitScaleError(
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))
 
