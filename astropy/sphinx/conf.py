@@ -44,7 +44,7 @@ graphviz_found = LooseVersion(get_graphviz_version())
 graphviz_broken = LooseVersion('0.30')
 
 if graphviz_found >= graphviz_broken:
-    needs_sphinx = '1.2b2'
+    needs_sphinx = '1.2'
 else:
     needs_sphinx = '1.1'
 
