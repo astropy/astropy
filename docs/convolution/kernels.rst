@@ -32,7 +32,7 @@ Lorentz curve:
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
-Smoothing the noisy data with a `~astropy.convolution.Gaussian1DKernel` of width 2 pixels:
+Smoothing the noisy data with a `~astropy.convolution.Gaussian1DKernel` of FWHM 2 pixels:
 
 >>> gauss_kernel = Gaussian1DKernel(2)
 >>> smoothed_data_gauss = convolve(data_1D, gauss_kernel)
@@ -102,7 +102,7 @@ middle of the image and add 10% noise:
 >>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
 Smoothing the noisy data with a
-:class:`~astropy.convolution.Gaussian2DKernel` of width 2 pixels:
+:class:`~astropy.convolution.Gaussian2DKernel` of FWHM 2 pixels:
 
 >>> gauss_kernel = Gaussian2DKernel(2)
 >>> smoothed_data_gauss = convolve(data_2D, gauss_kernel)
@@ -191,7 +191,7 @@ Available Kernels
 .. currentmodule:: astropy.convolution
 
 .. autosummary::
-   
+
    AiryDisk2DKernel
    Box1DKernel
    Box2DKernel

@@ -34,10 +34,10 @@ class Gaussian1DKernel(Kernel1D):
 
     Parameters
     ----------
-    width : number
-        Width of the filter kernel.
+    fwhm : number
+        Full width at half-maximum of the filter kernel.
     x_size : odd int, optional
-        Size of the kernel array. Default = 8 * width.
+        Size of the kernel array. Default = 8 * fwhm / 2*sqrt(2*ln(2)).
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -80,10 +80,11 @@ class Gaussian1DKernel(Kernel1D):
     _separable = True
     _is_bool = False
 
-    def __init__(self, width, **kwargs):
-        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * width),
-                                        0, width)
-        self._default_size = _round_up_to_odd_integer(8 * width)
+    def __init__(self, fwhm, **kwargs):
+        stddev = fwhm / (2. * np.sqrt(2. * np.log(2.)))
+        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * stddev), 0,
+                                        stddev)
+        self._default_size = _round_up_to_odd_integer(8 * stddev)
         super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
@@ -97,12 +98,14 @@ class Gaussian2DKernel(Kernel2D):
 
     Parameters
     ----------
-    width : number
-        Width of the filter kernel.
+    fwhm : number
+        Full width at half-maximum of the filter kernel.
     x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array.
+        Default = 8 * fwhm / 2*sqrt(2*ln(2)).
     y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+        Size in y direction of the kernel array.
+        Default = 8 * fwhm / 2*sqrt(2*ln(2)).
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -146,10 +149,11 @@ class Gaussian2DKernel(Kernel2D):
     _separable = True
     _is_bool = False
 
-    def __init__(self, width, **kwargs):
-        self._model = models.Gaussian2D(1. / (2 * np.pi * width ** 2), 0,
-                                        0, width, width)
-        self._default_size = _round_up_to_odd_integer(8 * width)
+    def __init__(self, fwhm, **kwargs):
+        stddev = fwhm / (2. * np.sqrt(2. * np.log(2.)))
+        self._model = models.Gaussian2D(1. / (2 * np.pi * stddev ** 2), 0, 0,
+                                        stddev, stddev)
+        self._default_size = _round_up_to_odd_integer(8 * stddev)
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 

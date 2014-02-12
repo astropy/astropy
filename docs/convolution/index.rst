@@ -77,17 +77,17 @@ This module also includes built-in kernels that can be imported as e.g.::
 
 To use a kernel, first create a specific instance of the kernel::
 
-    >>> gauss = Gaussian1DKernel(width=2)
+    >>> gauss = Gaussian1DKernel(5)
 
 ``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
 
     >>> gauss.array
-    array([  6.69151129e-05,   4.36341348e-04,   2.21592421e-03,
-             8.76415025e-03,   2.69954833e-02,   6.47587978e-02,
-             1.20985362e-01,   1.76032663e-01,   1.99471140e-01,
-             1.76032663e-01,   1.20985362e-01,   6.47587978e-02,
-             2.69954833e-02,   8.76415025e-03,   2.21592421e-03,
-             4.36341348e-04,   6.69151129e-05])
+    array([  1.55364084e-04,   8.20016554e-04,   3.46708916e-03,
+             1.17429660e-02,   3.18611169e-02,   6.92491731e-02,
+             1.20569813e-01,   1.68163983e-01,   1.87887456e-01,
+             1.68163983e-01,   1.20569813e-01,   6.92491731e-02,
+             3.18611169e-02,   1.17429660e-02,   3.46708916e-03,
+             8.20016554e-04,   1.55364084e-04])
 
 The kernel can then be used directly when calling
 :func:`~astropy.convolution.convolve`:
@@ -105,7 +105,7 @@ The kernel can then be used directly when calling
     y = np.sin(x / 100.) + np.random.normal(0., 1., x.shape)
 
     # Create kernel
-    g = Gaussian1DKernel(width=50)
+    g = Gaussian1DKernel(120)
 
     # Convolve data
     z = convolve(y, g, boundary='extend')
