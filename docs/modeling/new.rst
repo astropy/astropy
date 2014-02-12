@@ -5,8 +5,8 @@ Defining New Model Classes
 This document describes how to add a model to the package or to create a
 user-defined model. In short, one needs to define all model parameters and
 write an eval function which evaluates the model.  If the model is fittable, a
-function to compute the derivatives is required if a linear fitting algorithm
-is to be used and optional if a non-linear fitter is to be used.
+function to compute the derivatives with respect to parapemeters is required
+if a linear fitting algorithm is to be used and optional if a non-linear fitter is to be used.
 
 
 Custom 1D models
@@ -108,20 +108,22 @@ variables returned after evaluating the model.  These two attributes are used
 with composite models.
 
 Next, provide a `staticmethod`, called ``eval`` to evaluate the model and a
-`staticmethod`, called ``deriv``,  to compute its derivatives. The evaluation
-method takes all input coordinates as separate arguments and a parameter set.
+`staticmethod`, called ``fit_deriv``,  to compute its derivatives with respect
+to parameters. The evaluation method takes all input coordinates as separate
+arguments and a parameter set.
+
 For this example::
 
     @staticmethod
     def eval(x, amplitude, mean, stddev):
         return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
 
-The ``deriv`` method takes as input all coordinates as separate arguments.
+The ``fit_deriv`` method takes as input all coordinates as separate arguments.
 There is an option to compute numerical derivatives for nonlinear models in
-which case the ``deriv`` method should be ``None``::
+which case the ``fit_deriv`` method should be ``None``::
 
     @staticmethod
-    def deriv(x, ampltidue, mean, stddev):
+    def fit_deriv(x, ampltidue, mean, stddev):
         d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
         d_mean = (2 * amplitude *
                   np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
@@ -134,7 +136,7 @@ which case the ``deriv`` method should be ``None``::
 .. note::
 
     It's not strictly required that these be staticmethods if the ``eval`` or
-    ``deriv`` functions somehow depend on an attribute of the model class or
+    ``fit_deriv`` functions somehow depend on an attribute of the model class or
     instance.  But in most cases they simple functions for evaluating the
     model with the given inputs and parameters.
 
@@ -177,7 +179,7 @@ A full example of a LineModel
         return slope * x + intercept
 
     @staticmethod
-    def deriv(x, slope, intercept):
+    def fit_deriv(x, slope, intercept):
         d_slope = x
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]
