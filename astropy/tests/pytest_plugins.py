@@ -68,6 +68,12 @@ class OutputCheckerFix(doctest.OutputChecker):
     - Removes u'' prefixes on string literals
     - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
       'S9'.  Numpy 1.7 no longer includes it in display.
+    - Supports the FLOAT_COMPARISON flag, which parses floating point values
+      out of the output and compares their numerical values rather than their
+      string representation.  This naturally supports complex numbers as well
+      (simply by comparing their real and imaginary parts separately).  Note,
+      +FLOAT_COMPARISON is currently incompatible with +ELLIPSIS, so tests
+      with the +FLOAT_COMPARISON flag automatically disable +ELLIPSIS
     """
 
     _literal_re = re.compile(
@@ -78,6 +84,13 @@ class OutputCheckerFix(doctest.OutputChecker):
         r"([\'\"])([iu])[48]([\'\"])", re.UNICODE)
     _ignore_long_int = re.compile(
         r"([0-9]+)L", re.UNICODE)
+
+    # Translated to a regexp right from the Python language grammar, but
+    # including the option for a leading sign
+    # http://docs.python.org/2/reference/lexical_analysis.html#floating-point-literals
+    _point_float_re = r'\d*(?:\.\d+|\d+\.)'
+    _float_re = re.compile(r'[+-]?(?:(?:\d+|{0})[eE][+-]?\d+|{0})'.format(
+        _point_float_re))
 
     _original_output_checker = doctest.OutputChecker
 
@@ -94,9 +107,60 @@ class OutputCheckerFix(doctest.OutputChecker):
 
         return want, got
 
+    def normalize_floats(self, want, got):
+        """
+        Find all floating point values in the 'want' (expected) string, and
+        replace corresponding floats in the 'got' string with the string
+        representation from the expected string *if* the numerical values
+        compare equal.
+
+        Obviously if the two strings do not have the same number of floating
+        point values the output will not compare equal overall.  It should also
+        be noted that this could hide subtle float representation bugs; there
+        should be separate regression tests in cases where we need to test for
+        that though--doctests ought to be more flexible.
+        """
+
+        want = want.splitlines()
+        got = got.splitlines()
+
+        if len(want) != len(got):
+            # Don't bother
+            return
+
+        def repl(m):
+            want = want_floats.pop(0)
+            got = m.group(0)
+
+            if float(want) == float(got):
+                return want
+            else:
+                return got
+
+        for idx in range(len(want)):
+            wline = want[idx]
+            gline = got[idx]
+
+            want_floats = self._float_re.findall(wline)
+            gline = self._float_re.sub(repl, gline)
+
+            # If the 'got' line did not contain the same number of floats then
+            # want_floats will be left non-empty, in which case we can assume
+            # the results are "not equal"
+            if not want_floats:
+                got[idx] = gline
+            else:
+                break
+
+        return '\n'.join(want), '\n'.join(got)
+
     def check_output(self, want, got, flags):
         if flags & FIX:
             want, got = self.do_fixes(want, got)
+
+        if flags & FLOAT_COMPARISON:
+            flags = flags & ~doctest.ELLIPSIS
+            want, got = self.normalize_floats(want, got)
         # Can't use super here because doctest.OutputChecker is not a
         # new-style class.
         return self._original_output_checker.check_output(
@@ -115,6 +179,7 @@ class OutputCheckerFix(doctest.OutputChecker):
 # great, but there isn't really an API to replace the checker when
 # using doctest.testfile, unfortunately.
 FIX = doctest.register_optionflag('FIX')
+FLOAT_COMPARISON = doctest.register_optionflag('FLOAT_COMPARISON')
 doctest.OutputChecker = OutputCheckerFix
 
 
