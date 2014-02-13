@@ -41,14 +41,23 @@ In general any output values have the same shape (scalar or array) as the input.
   >>> from astropy.time import Time
   >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
   >>> t = Time(times, format='iso', scale='utc')
-  >>> t
+ >>> t
   <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
   >>> t[1]
   <Time object: scale='utc' format='iso' value=2010-01-01 00:00:00.000>
 
 The ``format`` argument specifies how to interpret the input values, e.g. ISO
 or JD or Unix time.  The ``scale`` argument specifies the `time scale`_ for the
-values, e.g. UTC or TT or UT1.
+values, e.g. UTC or TT or UT1.  The ``scale`` argument is optional and
+defaults to UTC except for `Time from epoch formats`_.
+We could have written the above as::
+
+  >>> t = Time(times, format='iso')
+
+When the format of the input can be unambiguously determined then the
+``format`` argument is not required, so we can simplify even further::
+
+  >>> t = Time(times)
 
 Now let's get the representation of these times in the JD and MJD
 formats by requesting the corresponding |Time| attributes::
@@ -163,6 +172,26 @@ Format     Subformat  Input / output
 ``yday``   date       2001:032
 =========  ========== ===========================
 
+Time from epoch formats
+"""""""""""""""""""""""
+
+The formats ``cxcsec``, ``gps``, and ``unix`` are a little special in
+that they provide a floating point representation of the elapsed
+time in seconds since a particular reference date.  These formats have
+a intrinsic time scale which is used to compute the elapsed seconds
+since the reference date.
+
+========== ====== ========================
+Format      Scale  Reference date
+========== ====== ========================
+``cxcsec``   TT   ``1998-01-01 00:00:00``
+``unix``    UTC   ``1970-01-01 00:00:00``
+``gps``     TAI   ``1980-01-06 00:00:19``
+========== ====== ========================
+
+Unlike the other formats which default to UTC, if no ``scale`` is provided when
+initializing a |Time| object then the above intrinsic scale is used.
+This is done for computational efficiency.
 
 .. _time-scale:
 
@@ -211,10 +240,10 @@ holding arrays are subscriptable, returning scalar or array objects as
 appropriate::
 
   >>> from astropy.time import Time
-  >>> t = Time(100.0, format='mjd', scale='utc')
+  >>> t = Time(100.0, format='mjd')
   >>> t.jd
   2400100.5
-  >>> t = Time([100.0, 200.0, 300.], format='mjd', scale='utc')
+  >>> t = Time([100.0, 200.0, 300.], format='mjd')
   >>> t.jd
   array([ 2400100.5,  2400200.5,  2400300.5])
   >>> t[:2]
@@ -235,10 +264,10 @@ the string parsing will be faster if the format is provided.
 ::
 
   >>> from datetime import datetime
-  >>> t = Time(datetime(2010, 1, 2, 1, 2, 3), scale='utc')
+  >>> t = Time(datetime(2010, 1, 2, 1, 2, 3))
   >>> t.format
   'datetime'
-  >>> t = Time('2010-01-02 01:02:03', scale='utc')
+  >>> t = Time('2010-01-02 01:02:03')
   >>> t.format
   'iso'
 
@@ -374,15 +403,15 @@ The default value for `in_subfmt` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
 heterogeneous subformat::
 
-  >>> Time(['2000:001', '2000:002:03:04', '2001:003:04:05:06.789'], scale='utc')
+  >>> Time(['2000:001', '2000:002:03:04', '2001:003:04:05:06.789'])
   <Time object: scale='utc' format='yday'
    value=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
 
 One can explicitly specify `in_subfmt` in order to strictly require a
 certain subformat::
 
-  >>> t = Time('2000:002:03:04', scale='utc', in_subfmt='date_hm')
-  >>> t = Time('2000:002', scale='utc', in_subfmt='date_hm')
+  >>> t = Time('2000:002:03:04', in_subfmt='date_hm')
+  >>> t = Time('2000:002', in_subfmt='date_hm')
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match any of the formats where the
@@ -396,11 +425,11 @@ The `out_subfmt` argument is similar to `in_subfmt` except that it applies
 to output formatting.  In the case of multiple matching subformats the first
 matching subformat is used.
 
-  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date').iso
+  >>> Time('2000-01-01 02:03:04', out_subfmt='date').iso
   '2000-01-01'
-  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date_hms').iso
+  >>> Time('2000-01-01 02:03:04', out_subfmt='date_hms').iso
   '2000-01-01 02:03:04.000'
-  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date*').iso
+  >>> Time('2000-01-01 02:03:04', out_subfmt='date*').iso
   '2000-01-01 02:03:04.000'
 
 lon and lat
@@ -413,7 +442,7 @@ only TDB, which relies on the ERFA routine ``eraDtdb`` to determine the time
 offset between TDB and TT), as well as for sidereal time if no explicit
 longitude is given.
 
-  >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc', lon='120d')
+  >>> t = Time('2001-03-22 00:01:44.732327132980', lon='120d')
   >>> t.sidereal_time('apparent', 'greenwich')
   <Longitude 12.00000000000... hourangle>
   >>> t.sidereal_time('apparent')
@@ -474,7 +503,7 @@ Example::
 
   >>> import matplotlib.pyplot as plt  # doctest: +SKIP
   >>> jyear = np.linspace(2000, 2001, 20)  # doctest: +SKIP
-  >>> t = Time(jyear, format='jyear', scale='utc')  # doctest: +SKIP
+  >>> t = Time(jyear, format='jyear')  # doctest: +SKIP
   >>> plt.plot_date(t.plot_date, jyear)  # doctest: +SKIP
   >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
   >>> plt.draw()  # doctest: +SKIP
@@ -631,8 +660,8 @@ Examples
 
 Use of the |TimeDelta| object is easily illustrated in the few examples below::
 
-  >>> t1 = Time('2010-01-01 00:00:00', scale='utc')
-  >>> t2 = Time('2010-02-01 00:00:00', scale='utc')
+  >>> t1 = Time('2010-01-01 00:00:00')
+  >>> t2 = Time('2010-02-01 00:00:00')
   >>> dt = t2 - t1  # Difference between two Times
   >>> dt
   <TimeDelta object: scale='tai' format='jd' value=31.0>
