@@ -180,6 +180,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Correct problems with round-trip of converting UT1->UTC->UT1 on
+    leap seconds [#2077]
+
 - ``astropy.units``
 
 - ``astropy.utils``
