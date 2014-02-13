@@ -63,7 +63,8 @@ def test_invalid_power():
     x = u.m ** Fraction(1, 2)
     assert isinstance(x.powers[0], float)
 
-    x = u.m ** Fraction(1. / 3.)
+    # Test the automatic conversion to a fraction
+    x = u.m ** (1. / 3.)
     assert isinstance(x.powers[0], Fraction)
 
 
