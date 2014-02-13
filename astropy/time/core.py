@@ -640,7 +640,7 @@ class Time(object):
                                  from_jd=True)
         else:
             tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
-                                 tm.scale, tm.precision,
+                                 tm._time._scale, tm.precision,
                                  tm.in_subfmt, tm.out_subfmt,
                                  from_jd=True)
         tm._format = format
@@ -883,10 +883,9 @@ class Time(object):
     def __sub__(self, other):
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other, scale=(self.scale if self.scale in
-                                                TimeDelta.SCALES else 'tai'))
+                other = TimeDelta(other)
             except:
-                raise OperandTypeError(self, other)
+                raise OperandTypeError(self, other, '-')
 
         # T      - Tdelta = T
         # Tdelta - Tdelta = Tdelta
@@ -899,21 +898,45 @@ class Time(object):
         # TimeDelta, but not for Time; for two times, ensure scale is OK
         if self_is_time:
             if other_is_time:  # T - T
-                scale = self.scale if self.scale in TimeDelta.SCALES else 'tai'
+                if self.scale in TIME_DELTA_SCALES:
+                    scale = self.scale
+                    self_scaled = self
+                else:
+                    scale = 'tai'
+                    self_scaled = getattr(self, scale)
+
+                other_scaled = getattr(other, scale)
+
             else:  # T - Tdelta
-                scale = (self.scale if self.scale in other.SCALES
-                         else other.scale)
+                if self.scale in other.SCALES:
+                    scale = self.scale
+                    self_scaled = self
+                    other_scaled = (other if other.scale is None
+                                    else getattr(other, scale))
+                else:
+                    scale = other.scale if other.scale is not None else 'tai'
+                    other_scaled = other
+                    self_scaled = getattr(self, scale)
+
         else:
-            if other_is_time:
-                raise OperandTypeError(self, other)
-            scale = self.scale
-            if scale not in other.SCALES:
+            if other_is_time:   # Tdelta - T
+                raise OperandTypeError(self, other, '-')
+            # Tdelta - Tdelta
+            if(self.scale is not None and self.scale not in other.SCALES or
+               other.scale is not None and other.scale not in self.SCALES):
                 raise TypeError("Cannot subtract TimeDelta instances with "
                                 "scales '{0}' and '{1}'"
                                 .format(self.scale, other.scale))
 
-        self_scaled = getattr(self, scale)
-        other_scaled = getattr(other, scale)
+            if self.scale is not None or other.scale is None:
+                scale = self.scale
+                self_scaled = self
+                other_scaled = (other if other.scale is None
+                                else getattr(other, scale))
+            else:
+                scale = other.scale
+                other_scaled = other
+                self_scaled = self
 
         jd1 = self_scaled._time.jd1 - other_scaled._time.jd1
         jd2 = self_scaled._time.jd2 - other_scaled._time.jd2
@@ -924,7 +947,10 @@ class Time(object):
             return out
 
         # T - Tdelta or Tdelta - Tdelta
-        out = self_scaled.replicate()
+        if self.scale is not None or other.scale is None:
+            out = self_scaled.replicate()
+        else:
+            out = other_scaled.replicate()
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
         out.isscalar = self.isscalar and other.isscalar
 
@@ -933,7 +959,7 @@ class Time(object):
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
                     delattr(out, attr)
-
+            # go back to original scale
             return getattr(out, self.scale)
         else:
             return out
@@ -941,8 +967,7 @@ class Time(object):
     def __add__(self, other):
         if not isinstance(other, Time):
             try:
-                other = TimeDelta(other, scale=(self.scale if self.scale in
-                                                TimeDelta.SCALES else 'tai'))
+                other = TimeDelta(other)
             except:
                 raise OperandTypeError(self, other)
 
@@ -952,39 +977,62 @@ class Time(object):
         # Tdelta + T      = T
         self_is_time = not isinstance(self, TimeDelta)
         other_is_time = not isinstance(other, TimeDelta)
-        if self_is_time and other_is_time:
-            raise OperandTypeError(self, other)
+        if other_is_time:
+            if self_is_time:
+                raise OperandTypeError(self, other, '+')
+            self, other = other, self
+            self_is_time = other_is_time
 
         # ideally, we calculate in the scale of the Time item, since that is
         # what we want the output in, but this may not be possible, since
-        # TimeDelta cannot be used for UTC (which doesn't have constant scale).
-        if(other_is_time and other.scale in self.SCALES or
-           self_is_time and self.scale not in other.SCALES):
-            scale = other.scale
-        else:
-            scale = self.scale
-            if scale not in other.SCALES:
+        # TimeDelta cannot be converted arbitrarily
+        if self_is_time:  # T + Tdelta   or  Tdelta + T (already swapped)
+            if self.scale in other.SCALES:
+                scale = self.scale
+                self_scaled = self
+                other_scaled = (other if other.scale is None
+                                else getattr(other, scale))
+            else:
+                scale = other.scale if other.scale is not None else 'tai'
+                other_scaled = other
+                self_scaled = getattr(self, scale)
+
+        else:  # Tdelta + Tdelta
+            if(self.scale is not None and self.scale not in other.SCALES or
+               other.scale is not None and other.scale not in self.SCALES):
                 raise TypeError("Cannot add TimeDelta instances with scales "
                                 "'{0}' and '{1}'"
                                 .format(self.scale, other.scale))
 
-        self_scaled = getattr(self, scale)
-        other_scaled = getattr(other, scale)
+            if self.scale is not None:
+                scale = self.scale
+                self_scaled = self
+                other_scaled = (other if other.scale is None
+                                else getattr(other, scale))
+            elif other.scale is not None:
+                scale = other.scale
+                other_scaled = other
+                self_scaled = (self if self.scale is None
+                               else getattr(self, scale))
+            else:
+                scale = None
+                self_scaled = self
+                other_scaled = other
 
         jd1 = self_scaled._time.jd1 + other_scaled._time.jd1
         jd2 = self_scaled._time.jd2 + other_scaled._time.jd2
 
-        out = (other_scaled if other_is_time else self_scaled).replicate()
+        out = self_scaled.replicate()
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
         out.isscalar = self.isscalar and other.isscalar
 
-        if self_is_time or other_is_time:
+        if self_is_time:
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
                 if hasattr(out, attr):
                     delattr(out, attr)
-
-            return getattr(out, other.scale if other_is_time else self.scale)
+            # go back to original scale
+            return getattr(out, self.scale)
 
         return out
 
@@ -1004,13 +1052,16 @@ class Time(object):
                 other = self.__class__(other, scale=self.scale)
             except:
                 raise OperandTypeError(self, other, op)
-        try:
-            other_scaled = getattr(other, self.scale)
-        except AttributeError:
+
+        if(self.scale is not None and self.scale not in other.SCALES or
+           other.scale is not None and other.scale not in self.SCALES):
             raise TypeError("Cannot compare TimeDelta instances with scales "
                             "'{0}' and '{1}'".format(self.scale, other.scale))
 
-        return (self.jd1 - other_scaled.jd1) + (self.jd2 - other_scaled.jd2)
+        if self.scale is not None and other.scale is not None:
+            other = getattr(other, self.scale)
+
+        return (self.jd1 - other.jd1) + (self.jd2 - other.jd2)
 
     def __lt__(self, other):
         return self._time_difference(other, '<') < 0.
@@ -1060,9 +1111,7 @@ class TimeDelta(Time):
     FORMATS = TIME_DELTA_FORMATS
     """Dict of time delta formats"""
 
-    def __init__(self, val, val2=None, format=None, scale='tai', copy=False):
-        # Note: scale is not used but is needed because of the inheritance
-        # from Time.
+    def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         if isinstance(val, self.__class__):
             if scale is not None:
                 self._set_scale(scale)
@@ -1080,7 +1129,8 @@ class TimeDelta(Time):
 
             self._init_from_vals(val, val2, format, scale, copy)
 
-            self.SCALES = TIME_DELTA_TYPES[scale]
+            if scale is not None:
+                self.SCALES = TIME_DELTA_TYPES[scale]
 
     def replicate(self, *args, **kwargs):
         out = super(TimeDelta, self).replicate(*args, **kwargs)
@@ -1869,6 +1919,17 @@ class TimeJulianEpochString(TimeEpochDateString):
 
 class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
+
+    def _check_scale(self, scale):
+        """
+        Check that the scale is in the allowed list of scales, or is None
+        """
+        if scale is not None and scale not in TIME_DELTA_SCALES:
+            raise ScaleValueError("Scale value '{0}' not in "
+                                  "allowed values {1}"
+                                  .format(scale, TIME_DELTA_SCALES))
+
+        return scale
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.

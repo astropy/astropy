@@ -216,13 +216,15 @@ class TestTimeDelta():
         t_tdb_ut1_utc = t_tdb_ut1.utc
         assert hasattr(t_tdb_ut1_utc, '_delta_tdb_tt')
         assert hasattr(t_tdb_ut1_utc, '_delta_ut1_utc')
+        # adding or subtracting some time should remove the delta's
+        # since these are time-dependent and should be recalculated
         for op in (operator.add, operator.sub):
             t1 = op(t_tdb, dt)
-            assert hasattr(t1, '_delta_tdb_tt')  # needed to make TDB again
+            assert not hasattr(t1, '_delta_tdb_tt')
             assert not hasattr(t1, '_delta_ut1_utc')
             t2 = op(t_tdb_ut1, dt)
             assert not hasattr(t2, '_delta_tdb_tt')
-            assert hasattr(t2, '_delta_ut1_utc')  # needed to make UT1 again
+            assert not hasattr(t2, '_delta_ut1_utc')
             t3 = op(t_tdb_ut1_utc, dt)
             assert not hasattr(t3, '_delta_tdb_tt')
             assert not hasattr(t3, '_delta_ut1_utc')
@@ -282,17 +284,20 @@ class TestTimeDeltaScales():
         dt_tt = self.dt['tt']
         dt0 = dt_tai - dt_tt
         assert dt0.scale == 'tai'
+        # tai and tt have the same scale, so differences should be the same
         assert allclose_sec(dt0.sec, 0.)
 
         dt_tcg = self.dt['tcg']
         dt1 = dt_tai - dt_tcg
         assert dt1.scale == 'tai'
+        # tai and tcg do not have the same scale, so differences different
         assert not allclose_sec(dt1.sec, 0.)
 
         t_tai_tcg = self.t['tai'].tcg
         dt_tai_tcg = t_tai_tcg - t_tai_tcg[0]
         dt2 = dt_tai - dt_tai_tcg
         assert dt2.scale == 'tai'
+        # but if tcg difference calculated from tai, it should roundtrip
         assert allclose_sec(dt2.sec, 0.)
         # check that if we put TCG first, we get a TCG scale back
         dt3 = dt_tai_tcg - dt_tai
@@ -329,3 +334,14 @@ class TestTimeDeltaScales():
         for scale in 'utc', 'tai', 'tt', 'tcg', 'tcb', 'tdb':
             with pytest.raises(TypeError):
                 dt_ut1 - self.dt[scale]
+
+    def test_scales_for_delta_scale_is_none(self):
+        """T(X) +/- dT(None) or T(X) +/- Quantity(time-like)
+
+        This is always allowed and just adds JDs, i.e., the scale of
+        the TimeDelta or time-like Quantity will be taken to be X.
+        The one exception is again for X=UTC, where TAI is assumed instead,
+        so that a day is always defined as 86400 seconds.
+        """
+        dt = TimeDelta([0., 1., -1., 1000., -1000.], format='sec')
+        assert dt.scale is None
