@@ -5,7 +5,7 @@ import numpy as np
 import operator
 
 from ...tests.helper import pytest
-from .. import (Time, TimeDelta, OperandTypeError,
+from .. import (Time, TimeDelta, OperandTypeError, ScaleValueError,
                 TIME_SCALES, TIME_DELTA_SCALES)
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -243,6 +243,13 @@ class TestTimeDeltaScales():
         self.dt = dict((scale, self.t[scale]-self.t[scale][0])
                        for scale in TIME_SCALES)
 
+    def test_delta_scales_defintion(self):
+        for scale in list(TIME_DELTA_SCALES) + [None]:
+            TimeDelta([0., 1., 10.], format='sec', scale=scale)
+
+        with pytest.raises(ScaleValueError):
+            TimeDelta([0., 1., 10.], format='sec', scale='utc')
+
     @pytest.mark.parametrize(('scale1', 'scale2'),
                              list(itertools.product(TIME_SCALES, TIME_SCALES)))
     def test_scales_for_time_minus_time(self, scale1, scale2):
@@ -335,7 +342,10 @@ class TestTimeDeltaScales():
             with pytest.raises(TypeError):
                 dt_ut1 - self.dt[scale]
 
-    def test_scales_for_delta_scale_is_none(self):
+    @pytest.mark.parametrize(
+        ('scale', 'op'), list(itertools.product(TIME_SCALES,
+                                                (operator.add, operator.sub))))
+    def test_scales_for_delta_scale_is_none(self, scale, op):
         """T(X) +/- dT(None) or T(X) +/- Quantity(time-like)
 
         This is always allowed and just adds JDs, i.e., the scale of
@@ -343,5 +353,53 @@ class TestTimeDeltaScales():
         The one exception is again for X=UTC, where TAI is assumed instead,
         so that a day is always defined as 86400 seconds.
         """
-        dt = TimeDelta([0., 1., -1., 1000., -1000.], format='sec')
-        assert dt.scale is None
+        dt_none = TimeDelta([0., 1., -1., 1000.], format='sec')
+        assert dt_none.scale is None
+        q_time = dt_none.to('s')
+
+        dt = self.dt[scale]
+        dt1 = op(dt, dt_none)
+        assert dt1.scale == dt.scale
+        assert allclose_jd(dt1.jd, op(dt.jd, dt_none.jd))
+        dt2 = op(dt_none, dt)
+        assert dt2.scale == dt.scale
+        assert allclose_jd(dt2.jd, op(dt_none.jd, dt.jd))
+        dt3 = op(q_time, dt)
+        assert dt3.scale == dt.scale
+        assert allclose_jd(dt3.jd, dt2.jd)
+
+        t = self.t[scale]
+        t1 = op(t, dt_none)
+        assert t1.scale == t.scale
+        assert allclose_jd(t1.jd, op(t.jd, dt_none.jd))
+        if op is operator.add:
+            t2 = op(dt_none, t)
+            assert t2.scale == t.scale
+            assert allclose_jd(t2.jd, t1.jd)
+        t3 = op(t, q_time)
+        assert t3.scale == t.scale
+        assert allclose_jd(t3.jd, t1.jd)
+
+    @pytest.mark.parametrize('scale', TIME_SCALES)
+    def test_delta_day_is_86400_seconds(self, scale):
+        """TimeDelta or Quantity holding 1 day always means 24*60*60 seconds
+
+        This holds true for all timescales but UTC, for which leap-second
+        days are longer or shorter by one second.
+        """
+        t = self.t[scale]
+        dt_day = TimeDelta(1., format='jd')
+        q_day = dt_day.to('day')
+
+        dt_day_leap = t[-1] - t[0]
+        # ^ = exclusive or, so either equal and not UTC, or not equal and UTC
+        assert allclose_jd(dt_day_leap.jd, dt_day.jd) ^ (scale == 'utc')
+
+        t1 = t[0] + dt_day
+        assert allclose_jd(t1.jd, t[-1].jd) ^ (scale == 'utc')
+        t2 = q_day + t[0]
+        assert allclose_jd(t2.jd, t[-1].jd) ^ (scale == 'utc')
+        t3 = t[-1] - dt_day
+        assert allclose_jd(t3.jd, t[0].jd) ^ (scale == 'utc')
+        t4 = t[-1] - q_day
+        assert allclose_jd(t4.jd, t[0].jd) ^ (scale == 'utc')

@@ -951,6 +951,7 @@ class Time(object):
             out = self_scaled.replicate()
         else:
             out = other_scaled.replicate()
+
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
         out.isscalar = self.isscalar and other.isscalar
 
@@ -1004,25 +1005,24 @@ class Time(object):
                                 "'{0}' and '{1}'"
                                 .format(self.scale, other.scale))
 
-            if self.scale is not None:
+            if self.scale is not None or other.scale is None:
                 scale = self.scale
                 self_scaled = self
                 other_scaled = (other if other.scale is None
                                 else getattr(other, scale))
-            elif other.scale is not None:
+            else:
                 scale = other.scale
                 other_scaled = other
-                self_scaled = (self if self.scale is None
-                               else getattr(self, scale))
-            else:
-                scale = None
                 self_scaled = self
-                other_scaled = other
 
         jd1 = self_scaled._time.jd1 + other_scaled._time.jd1
         jd2 = self_scaled._time.jd2 + other_scaled._time.jd2
 
-        out = self_scaled.replicate()
+        if self.scale is not None or other.scale is None:
+            out = self_scaled.replicate()
+        else:
+            out = other_scaled.replicate()
+
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
         out.isscalar = self.isscalar and other.isscalar
 
