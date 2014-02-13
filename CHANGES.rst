@@ -68,6 +68,8 @@ New Features
   - Mean and apparent sidereal time can now be calculated using the
     `sidereal_time` method [#1418].
 
+  - The time scale now defaults to UTC if no scale is provided. [#2091]
+
 - ``astropy.units``
 
   - Support for the unit format `Office of Guest Investigator Programs
