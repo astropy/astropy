@@ -127,13 +127,19 @@ def is_effectively_unity(value):
     return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
 
 
-def validate_power(p):
+def validate_power(p, support_tuples=False):
     """
     Handles the conversion of a power to a floating point or a
     rational number.
+
+    Parameters
+    ----------
+    support_tuples : bool, optional
+        If `True`, treat 2-tuples as `Fraction` objects.  This
+        behavior is deprecated and will be removed in astropy 0.5.
     """
     # For convenience, treat tuples as Fractions
-    if isinstance(p, tuple) and len(p) == 2:
+    if support_tuples and isinstance(p, tuple) and len(p) == 2:
         # Deprecated in 0.3.1
         warnings.warn(
             "Using a tuple as a fractional power is deprecated and may be "

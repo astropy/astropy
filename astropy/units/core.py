@@ -1890,7 +1890,7 @@ class CompositeUnit(UnitBase):
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
-            powers = [validate_power(p) for p in powers]
+            powers = [validate_power(p, support_tuples=True) for p in powers]
 
         self._scale = scale
         self._bases = bases
@@ -1971,7 +1971,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1]) for x in new_parts]
+        self._powers = [validate_power(x[1], support_tuples=True) for x in new_parts]
 
         if is_effectively_unity(scale):
             scale = 1.0
