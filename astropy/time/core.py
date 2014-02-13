@@ -776,7 +776,6 @@ class Time(object):
         If delta_ut1_utc is not yet set, this will interpolate them from the
         the IERS table.
         """
-
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
@@ -787,8 +786,21 @@ class Time(object):
             if jd1 is None:
                 self_utc = self.utc
                 jd1, jd2 = self_utc.jd1, self_utc.jd2
+                scale = 'utc'
+            else:
+                scale = self.scale
+            # interpolate UT1-UTC in IERS table
+            delta = iers_table.ut1_utc(jd1, jd2)
+            # if we interpolated using UT1 jds, we may be off by one
+            # second near leap seconds (and very slightly off elsewhere)
+            if scale == 'ut1':
+                # calculate UTC using the offset we got; the ERFA routine
+                # is tolerant of leap seconds, so will do this right
+                jd1_utc, jd2_utc = erfa_time.ut1_utc(jd1, jd2, delta)
+                # calculate a better estimate using the nearly correct UTC
+                delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
-            self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
+            self._set_delta_ut1_utc(delta)
 
         return self._delta_ut1_utc
 
