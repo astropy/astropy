@@ -404,15 +404,28 @@ class TestSubFormat():
 
         # Check that bad scale is caught when format is specified
         with pytest.raises(ScaleValueError):
-            Time(1950.0, format='byear')
-        with pytest.raises(ScaleValueError):
             Time(1950.0, format='byear', scale='bad scale')
 
         # Check that bad scale is caught when format is auto-determined
         with pytest.raises(ScaleValueError):
-            Time('2000:001:00:00:00')
-        with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+    def test_scale_default(self):
+        """Test behavior when no scale is provided"""
+        # These first three are TimeFromEpoch and have an intrinsic time scale
+        t = Time(100.0, format='cxcsec')
+        assert t.scale == 'tt'
+        t = Time(100.0, format='unix')
+        assert t.scale == 'utc'
+        t = Time(100.0, format='gps')
+        assert t.scale == 'tai'
+
+        for date in ('J2000', '2000:001', '2000-01-01T00:00:00'):
+            t = Time(date)
+            assert t.scale == 'utc'
+
+        t = Time(2000.1, format='byear')
+        assert t.scale == 'utc'
 
     def test_epoch_times(self):
         """Test time formats derived from EpochFromTime"""
