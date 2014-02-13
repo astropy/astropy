@@ -117,6 +117,8 @@ class TestRunner(object):
         # own.
         from ..table import Table
 
+        all_args = ''
+
         if package is None:
             package_path = self.base_path
         else:
@@ -126,12 +128,6 @@ class TestRunner(object):
             if not os.path.isdir(package_path):
                 raise ValueError('Package not found: {0}'.format(package))
 
-        if test_path:
-            package_path = os.path.join(package_path,
-                                        os.path.abspath(test_path))
-
-        all_args = package_path
-
         if docs_path is not None and not skip_docs:
             if package is not None:
                 docs_path = os.path.join(
@@ -140,7 +136,26 @@ class TestRunner(object):
                 warnings.warn(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
-            elif not test_path:  # don't do  doctests if specific file is requested
+
+        if test_path:
+            base, ext = os.path.splitext(test_path)
+            if ext == '.py':
+                test_path = os.path.join(package_path,
+                                         os.path.abspath(test_path))
+                all_args += test_path
+            elif ext == '.rst':
+                if docs_path is None:
+                    # This shouldn't happen from "python setup.py test"
+                    raise ValueError(
+                        "Can not test .rst files without a docs_path specified.")
+                else:
+                    test_path = os.path.join(docs_path, test_path)
+                    all_args += test_path
+            else:
+                raise ValueError("Test file path must be to a .py or .rst file")
+        else:
+            all_args = package_path
+            if docs_path is not None and not skip_docs:
                 all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
