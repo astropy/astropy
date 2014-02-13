@@ -41,7 +41,7 @@ In general any output values have the same shape (scalar or array) as the input.
   >>> from astropy.time import Time
   >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
   >>> t = Time(times, format='iso', scale='utc')
- >>> t
+  >>> t
   <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
   >>> t[1]
   <Time object: scale='utc' format='iso' value=2010-01-01 00:00:00.000>
