@@ -203,6 +203,11 @@ Bug Fixes
     exception when the WCS information is inavlid or inconsistent in
     some way. [#1854]
 
+  - If the C extension for `astropy.wcs` was not built or fails to
+    import for any reason, ``import astropy.wcs`` will result in an
+    `ImportError`, rather than getting obscure errors once the
+    `astropy.wcs` is used. [#2061]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
