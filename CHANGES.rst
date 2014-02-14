@@ -313,7 +313,7 @@ Bug Fixes
 
   - Raise a `NotImplementedError` when fitting composite models. [#1915]
 
-  - Fixed bug in computation of `Gaussian2D` model. [#2038]
+  - Fixed bug in computation of ``Gaussian2D`` model. [#2038]
 
 - ``astropy.nddata``
 
