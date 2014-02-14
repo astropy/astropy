@@ -87,6 +87,9 @@ the API documentation below.
   >>> dt
   <TimeDelta object: scale='tai' format='jd' value=4018.0000217...>
 
+Here, note the conversion of the timescale to TAI.  Time differences
+can only have scales in which one day is always equal to 86400 seconds.
+
   >>> import numpy as np
   >>> t[0] + dt * np.linspace(0.,1.,12)
   <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2000-01-01 06:32:43.930'
@@ -640,11 +643,11 @@ following operations are available:
 - Add two TimeDelta objects to get a new TimeDelta
 - Negate a TimeDelta or take its absolute value
 - Multiply or divide a TimeDelta by a constant or array
+- Convert TimeDelta objects to and from time-like Quantities
 
 The |TimeDelta| class is derived from the |Time| class and shares many of its
-properties.  The key difference is that the time scale is always TAI so that
-all time deltas are referenced to a uniform Julian Day which is exactly 86400
-standard SI seconds.
+properties.  One difference is that the time scale has to be one for which one
+day is exactly 86400 seconds.  Hence, the scale cannot be UTC.
 
 The available time formats are:
 
@@ -686,14 +689,56 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
+Time Scales for Time Deltas
+---------------------------
+
+Above, one sees that the difference between two UTC times is a |TimeDelta|
+with a scale of TAI.  This is because a UTC time difference cannot be uniquely
+defined unless one knows the two times that were differenced (because of leap
+seconds, a day does not always have 86400 seconds).  For all other time
+scales, the |TimeDelta| inherits the scale of the first |Time| object::
+
+  >>> t1 = Time('2010-01-01 00:00:00', scale='tcg')
+  >>> t2 = Time('2011-01-01 00:00:00', scale='tcg')
+  >>> dt = t2 - t1
+  >>> dt
+  <TimeDelta object: scale='tcg' format='jd' value=365.0>
+
+When |TimeDelta| objects are added or subtracted from |Time| objects, scales
+are converted appropriately, with the final scale being that of the |Time|
+object:: 
+
+  >>> t2 + dt
+  <Time object: scale='tcg' format='iso' value=2012-01-01 00:00:00.000>
+  >>> t2.tai
+  <Time object: scale='tai' format='iso' value=2010-12-31 23:59:27.068>
+  >>> t2.tai + dt
+  <Time object: scale='tai' format='iso' value=2011-12-31 23:59:27.046>
+
+|TimeDelta| objects can be converted only to objects with compatible scales,
+i.e., scales for which it is not necessary to know the times that were
+differenced:: 
+
+  >>> dt.tt
+  <TimeDelta object: scale='tt' format='jd' value=364.9999997456...>
+  >>> dt.tdb
+  ERROR: AttributeError: 'TimeDelta' object has no attribute 'tdb' [astropy.time.core]
+
+|TimeDelta| objects can also have an undefined scale, in which case it is
+assumed that there scale matches that of the other |Time| or |TimeDelta|
+object (or is TAI in case of a UTC time)::
+
+  >>> t2.tai + TimeDelta(365., format='jd', scale=None)
+  <Time object: scale='tai' format='iso' value=2011-12-31 23:59:27.068>
+
 Interaction with Time-like Quantities
 -------------------------------------
 
 Where possible, |Quantity| objects with units of time are treated as TimeDelta
-(though necessarily with lower precision). They can also be used as input in
-constructing |Time| and |TimeDelta| objects, and |TimeDelta| objects
-can be converted to |Quantity| objects of arbitrary units of time.
-Usage is most easily illustrated by examples::
+objects with undefined scale (though necessarily with lower precision). They
+can also be used as input in constructing |Time| and |TimeDelta| objects, and
+|TimeDelta| objects can be converted to |Quantity| objects of arbitrary units
+of time.  Usage is most easily illustrated by examples::
 
   >>> import astropy.units as u
   >>> Time(10.*u.yr, format='gps')   # time-valued quantities can be used for
@@ -712,7 +757,7 @@ Usage is most easily illustrated by examples::
   ValueError: Input values did not match the format class byear
 
   >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
-  <TimeDelta object: scale='tai' format='jd' value=3652.5>
+  <TimeDelta object: scale='None' format='jd' value=3652.5>
 
   >>> dt = TimeDelta([10., 20., 30.], format='jd')
   >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity
@@ -720,14 +765,14 @@ Usage is most easily illustrated by examples::
   >>> dt > 400. * u.hr               # and compare to quantities with units of time
   array([False,  True,  True], dtype=bool)
   >>> dt + 1.*u.hr                   # can also add/subtract such quantities
-  <TimeDelta object: scale='tai' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
+  <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr
-  <Time object: scale='utc' format='mjd' value=50000.0416667>
+  <Time object: scale='utc' format='mjd' value=50000.041666...>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
   ...                                # Quantity, TimeDelta is converted
   <Quantity [ 100., 200., 300.] d km / s>
   >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
-  <TimeDelta object: scale='tai' format='jd' value=[ 100.  200.  300.]>
+  <TimeDelta object: scale='None' format='jd' value=[ 100.  200.  300.]>
 
 Reference/API
 =============

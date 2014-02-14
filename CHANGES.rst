@@ -70,6 +70,11 @@ New Features
 
   - The time scale now defaults to UTC if no scale is provided. [#2091]
 
+  - `TimeDelta` objects can have all scales but UTC, as well as, for
+    consistency with time-like quantities, undefined scale (where the
+    scale is taken from the object one adds to or subtracts from).
+    This allows, e.g., to work consistently in TDB.  [#1932]
+
 - ``astropy.units``
 
   - Support for the unit format `Office of Guest Investigator Programs
@@ -134,6 +139,8 @@ API Changes
 - ``astropy.time``
 
   - Correct use of UT in TDB calculation [#1938, #1939].
+
+  - ``TimeDelta`` objects can have scales other than TAI [#1932].
 
 - ``astropy.units``
 
