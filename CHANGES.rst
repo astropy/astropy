@@ -456,6 +456,8 @@ Bug Fixes
 
   - Fixed bug in computation of ``Gaussian2D`` model. [#2038]
 
+  - Fixed bug in the computation of the `AiryDisk2D` model. [#2093]
+
 - ``astropy.sphinx``
 
   - Added slightly more useful debug info for AstropyAutosummary. [#2024]
