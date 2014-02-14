@@ -102,6 +102,7 @@ class Gaussian1D(Parametric1DModel):
         super(Gaussian1D, self).__init__(param_dim=param_dim,
                                          amplitude=amplitude, mean=mean,
                                          stddev=stddev, **constraints)
+
     @staticmethod
     def eval(x, amplitude, mean, stddev):
         """
@@ -211,17 +212,18 @@ class Gaussian2D(Parametric2DModel):
     def eval(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function"""
 
-        cost2 = np.cos(theta)**2
-        sint2 = np.sin(theta)**2
-        sin2t = np.sin(2.*theta)
-        xstd2 = x_stddev**2
-        ystd2 = y_stddev**2
+        cost2 = np.cos(theta) ** 2
+        sint2 = np.sin(theta) ** 2
+        sin2t = np.sin(2. * theta)
+        xstd2 = x_stddev ** 2
+        ystd2 = y_stddev ** 2
         xdiff = x - x_mean
         ydiff = y - y_mean
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
         b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
-        return amplitude * np.exp(-(a*xdiff**2 + b*xdiff*ydiff + c*ydiff**2))
+        return amplitude * np.exp(-((a * xdiff ** 2) + (b * xdiff * ydiff) +
+                                    (c * ydiff ** 2)))
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -229,23 +231,24 @@ class Gaussian2D(Parametric2DModel):
 
         cost = np.cos(theta)
         sint = np.sin(theta)
-        cost2 = np.cos(theta)**2
-        sint2 = np.sin(theta)**2
-        cos2t = np.cos(2.*theta)
-        sin2t = np.sin(2.*theta)
-        xstd2 = x_stddev**2
-        ystd2 = y_stddev**2
-        xstd3 = x_stddev**3
-        ystd3 = y_stddev**3
+        cost2 = np.cos(theta) ** 2
+        sint2 = np.sin(theta) ** 2
+        cos2t = np.cos(2. * theta)
+        sin2t = np.sin(2. * theta)
+        xstd2 = x_stddev ** 2
+        ystd2 = y_stddev ** 2
+        xstd3 = x_stddev ** 3
+        ystd3 = y_stddev ** 3
         xdiff = x - x_mean
         ydiff = y - y_mean
-        xdiff2 = xdiff**2
-        ydiff2 = ydiff**2
+        xdiff2 = xdiff ** 2
+        ydiff2 = ydiff ** 2
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
         b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
-        g = amplitude * np.exp(-(a*xdiff2 + b*xdiff*ydiff + c*ydiff2))
-        da_dtheta = (sint * cost * ((1./ystd2) - (1./xstd2)))
+        g = amplitude * np.exp(-((a * xdiff2) + (b * xdiff * ydiff) +
+                                 (c * ydiff2)))
+        da_dtheta = (sint * cost * ((1. / ystd2) - (1. / xstd2)))
         da_dx_stddev = -cost2 / xstd3
         da_dy_stddev = -sint2 / ystd3
         db_dtheta = (-cos2t / xstd2) + (cos2t / ystd2)
@@ -255,8 +258,8 @@ class Gaussian2D(Parametric2DModel):
         dc_dx_stddev = -sint2 / xstd3
         dc_dy_stddev = -cost2 / ystd3
         dg_dA = g / amplitude
-        dg_dx_mean = g * (2.*a*xdiff + b*ydiff)
-        dg_dy_mean = g * (b*xdiff + 2.*c*ydiff)
+        dg_dx_mean = g * ((2. * a * xdiff) + (b * ydiff))
+        dg_dy_mean = g * ((b * xdiff) + (2. * c * ydiff))
         dg_dx_stddev = g * (-(da_dx_stddev * xdiff2 +
                               db_dx_stddev * xdiff * ydiff +
                               dc_dx_stddev * ydiff2))
@@ -432,7 +435,7 @@ class Linear1D(Parametric1DModel):
 
     def __init__(self, slope, intercept, **constraints):
         super(Linear1D, self).__init__(slope=slope, intercept=intercept,
-                                            **constraints)
+                                       **constraints)
 
     @staticmethod
     def eval(x, slope, intercept):
@@ -481,7 +484,7 @@ class Lorentz1D(Parametric1DModel):
 
     def __init__(self, amplitude, x_0, fwhm, **constraints):
         super(Lorentz1D, self).__init__(amplitude=amplitude, x_0=x_0,
-                                       fwhm=fwhm, **constraints)
+                                        fwhm=fwhm, **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, fwhm):
@@ -747,7 +750,7 @@ class Box1D(Parametric1DModel):
 
         return np.select([np.logical_and(x >= x_0 - width / 2.,
                                          x <= x_0 + width / 2.)],
-                                        [amplitude], 0)
+                         [amplitude], 0)
 
     @classmethod
     def fit_deriv(cls, x, amplitude, x_0, width):
@@ -810,8 +813,10 @@ class Box2D(Parametric2DModel):
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
-        x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
-        y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
+        x_range = np.logical_and(x >= x_0 - x_width / 2.,
+                                 x <= x_0 + x_width / 2.)
+        y_range = np.logical_and(y >= y_0 - y_width / 2.,
+                                 y <= y_0 + y_width / 2.)
         return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
 
@@ -897,7 +902,6 @@ class TrapezoidDisk2D(Parametric2DModel):
         super(TrapezoidDisk2D, self).__init__(amplitude=amplitude,
                                               x_0=x_0, y_0=y_0, R_0=R_0,
                                               slope=slope, **constraints)
-
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, R_0, slope):
