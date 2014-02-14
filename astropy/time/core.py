@@ -52,7 +52,7 @@ SECS_PER_DAY = 86400
 TIME_FORMATS = {}
 TIME_DELTA_FORMATS = {}
 
-TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc','gps')
 TIME_DELTA_SCALES = ('tai',)
 
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
@@ -63,7 +63,7 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tcb', 'tt'): ('tdb',),
               ('tcb', 'ut1'): ('tdb', 'tt', 'tai', 'utc'),
               ('tcb', 'utc'): ('tdb', 'tt', 'tai'),
-              ('tcg', 'tdb'): ('tt',),
+              ('tcg', 'tdb'): ('tt', 'tdb'),
               ('tcg', 'ut1'): ('tt', 'tai', 'utc'),
               ('tcg', 'utc'): ('tt', 'tai'),
               ('tdb', 'ut1'): ('tt', 'tai', 'utc'),
@@ -776,6 +776,7 @@ class Time(object):
         If delta_ut1_utc is not yet set, this will interpolate them from the
         the IERS table.
         """
+
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
@@ -786,21 +787,8 @@ class Time(object):
             if jd1 is None:
                 self_utc = self.utc
                 jd1, jd2 = self_utc.jd1, self_utc.jd2
-                scale = 'utc'
-            else:
-                scale = self.scale
-            # interpolate UT1-UTC in IERS table
-            delta = iers_table.ut1_utc(jd1, jd2)
-            # if we interpolated using UT1 jds, we may be off by one
-            # second near leap seconds (and very slightly off elsewhere)
-            if scale == 'ut1':
-                # calculate UTC using the offset we got; the ERFA routine
-                # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa_time.ut1_utc(jd1, jd2, delta)
-                # calculate a better estimate using the nearly correct UTC
-                delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
-            self._set_delta_ut1_utc(delta)
+            self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
         return self._delta_ut1_utc
 
@@ -943,7 +931,7 @@ class Time(object):
         out = self.__sub__(other)
         return -out
 
-    def _tai_difference(self, other, op=None):
+    def _tai_difference(self, other):
         """If other is of same class as self, return difference in TAI.
         Otherwise, raise OperandTypeError.
         """
@@ -951,28 +939,28 @@ class Time(object):
             try:
                 other = self.__class__(other)
             except:
-                raise OperandTypeError(self, other, op)
+                raise OperandTypeError(self, other)
         self_tai = self.tai
         other_tai = other.tai
         return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
 
     def __lt__(self, other):
-        return self._tai_difference(other, '<') < 0.
+        return self._tai_difference(other) < 0.
 
     def __le__(self, other):
-        return self._tai_difference(other, '<=') <= 0.
+        return self._tai_difference(other) <= 0.
 
     def __eq__(self, other):
-        return self._tai_difference(other, '==') == 0.
+        return self._tai_difference(other) == 0.
 
     def __ne__(self, other):
-        return self._tai_difference(other, '!=') != 0.
+        return self._tai_difference(other) != 0.
 
     def __gt__(self, other):
-        return self._tai_difference(other, '>') > 0.
+        return self._tai_difference(other) > 0.
 
     def __ge__(self, other):
-        return self._tai_difference(other, '>=') >= 0.
+        return self._tai_difference(other) >= 0.
 
 
 class TimeDelta(Time):
@@ -1042,7 +1030,7 @@ class TimeDelta(Time):
         # check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
-            raise OperandTypeError(self, other, '*')
+            raise OperandTypeError(self, other)
 
         try:   # convert to straight float if dimensionless quantity
             other = other.to(1)
@@ -1298,12 +1286,7 @@ class TimeFromEpoch(TimeFormat):
         #
         # A known limitation is that the transform from self.epoch_scale to self.scale
         # cannot involve any metadata like lat or lon.
-        try:
-           tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
-        except Exception as err:
-           raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
-                                 "scale '{2}', got error:\n{3}"
-                                  .format(self.name, self.epoch_scale, self.scale, err))
+        tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
@@ -1956,10 +1939,7 @@ def split(a):
 
 
 class OperandTypeError(TypeError):
-    def __init__(self, left, right, op=None):
-        op_string = '' if op is None else ' for {0}'.format(op)
-        super(OperandTypeError, self).__init__(
-            "Unsupported operand type(s){0}: "
-            "'{1}' and '{2}'".format(op_string,
-                                     left.__class__.__name__,
-                                     right.__class__.__name__))
+    def __init__(self, left, right):
+        self.value = ("unsupported operand type(s) for -: "
+                      "'{0}' and '{1}'".format(left.__class__.__name__,
+                                               right.__class__.__name__))
