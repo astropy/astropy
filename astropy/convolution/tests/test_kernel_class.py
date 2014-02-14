@@ -54,10 +54,9 @@ class TestKernels(object):
         """
         Test GaussianKernel against SciPy ndimage gaussian filter.
         """
-        fwhm = width * (2. * np.sqrt(2. * np.log(2.)))
-        gauss_kernel_1D = Gaussian1DKernel(fwhm)
+        gauss_kernel_1D = Gaussian1DKernel(width)
         gauss_kernel_1D.normalize()
-        gauss_kernel_2D = Gaussian2DKernel(fwhm)
+        gauss_kernel_2D = Gaussian2DKernel(width)
         gauss_kernel_2D.normalize()
 
         astropy_1D = convolve(delta_pulse_1D, gauss_kernel_1D, boundary='fill')
@@ -193,22 +192,22 @@ class TestKernels(object):
         Check Model1DKernel against Gaussian1Dkernel
         """
         stddev = 5.
-        fwhm = stddev * (2. * np.sqrt(2. * np.log(2.)))
         gauss = Gaussian1D(1. / np.sqrt(2 * np.pi * stddev**2), 0, stddev)
         model_gauss_kernel = Model1DKernel(gauss, x_size=21)
-        gauss_kernel = Gaussian1DKernel(fwhm, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
+        gauss_kernel = Gaussian1DKernel(stddev, x_size=21)
+        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
+                            decimal=12)
 
     def test_model_2D_kernel(self):
         """
         Check Model2DKernel against Gaussian2Dkernel
         """
         stddev = 5.
-        fwhm = stddev * (2. * np.sqrt(2. * np.log(2.)))
         gauss = Gaussian2D(1. / (2 * np.pi * stddev**2), 0, 0, stddev, stddev)
         model_gauss_kernel = Model2DKernel(gauss, x_size=21)
-        gauss_kernel = Gaussian2DKernel(fwhm, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
+        gauss_kernel = Gaussian2DKernel(stddev, x_size=21)
+        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
+                            decimal=12)
 
     def test_custom_1D_kernel(self):
         """
