@@ -9,6 +9,7 @@ import numpy as np
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.console import human_file_size
 
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -387,11 +388,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     arrayshape = array.shape
     kernshape = kernel.shape
 
-    array_size_GB = np.product(arrayshape)*np.dtype(complex_dtype).itemsize / 1024.**3
-    if array_size_GB > 1 and not allow_huge:
-        raise ValueError("Size Error: Arrays will be %g GB.  Use "
+    array_size_B = np.product(arrayshape)*np.dtype(complex_dtype).itemsize
+    if array_size_B > 1024**3 and not allow_huge:
+        raise ValueError("Size Error: Arrays will be %s.  Use "
                          "allow_huge=True to override this exception."
-                         % array_size_GB)
+                         % human_file_size(array_size_B))
 
     # mask catching - masks must be turned into NaNs for use later
     if np.ma.is_masked(array):
