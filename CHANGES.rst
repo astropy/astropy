@@ -226,11 +226,11 @@ Bug Fixes
 
 - ``astropy.convolution``
 
-  - Fixed a bug where `_truncation` was left undefined for `CustomKernel`
+  - Fixed a bug where `_truncation` was left undefined for `CustomKernel`.
     [#2016]
 
   - Fixed a bug with `_normalization` when `CustomKernel` input array sums to
-    zero [#2016]
+    zero. [#2016]
 
 - ``astropy.coordinates``
 
