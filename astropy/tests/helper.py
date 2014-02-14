@@ -275,44 +275,38 @@ class astropy_test(Command, object):
     user_options = [
         ('package=', 'P',
          "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
-         "If nothing is specified all default Astropy tests are run."),
+         "If nothing is specified, all default tests are run."),
         ('test-path=', 't',
-         'Specify a test location by path. Must be '
-         'specified absolutely or relative to the current directory. '
-         'May be a single file or directory.'),
+         'Specify a test location by path. If a relative path, it is relative '
+         'to root of the built package.'),
         ('verbose-results', 'V',
-         'Turn on verbose output from pytest. Same as specifying `-v` in '
-         '`args`.'),
+         'Turn on verbose output from pytest.'),
         ('plugins=', 'p',
-         'Plugins to enable when running pytest.  Same as specifying `-p` in '
-         '`args`.'),
+         'Plugins to enable when running pytest.'),
         ('pastebin=', 'b',
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
         ('args=', 'a',
-         'Additional arguments to be passed to pytest'),
-        ('remote-data', 'R', 'Run tests that download remote data'),
+         'Additional arguments to be passed to pytest.'),
+        ('remote-data', 'R', 'Run tests that download remote data.'),
         ('pep8', '8',
          'Enable PEP8 checking and disable regular tests. '
-         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-         'pytest-pep8 plugin.'),
+         'Requires the pytest-pep8 plugin.'),
         ('pdb', 'd',
-         'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.'),
+         'Start the interactive Python debugger on errors.'),
         ('coverage', 'c',
          'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed'),
-        ('open-files', 'o', 'Fail if any tests leave files open'),
+         'plugin.'),
+        ('open-files', 'o', 'Fail if any tests leave files open.'),
         ('parallel=', 'n',
-         'Run the tests in parallel on the specified '
-         'number of CPUs.  If parallel is negative, it will use the all '
-         'the cores on the machine.  Requires the `pytest-xdist` plugin '
-         'is installed.'),
+         'Run the tests in parallel on the specified number of '
+         'CPUs.  If negative, all the cores on the machine will be '
+         'used.  Requires the pytest-xdist plugin.'),
         ('docs-path=', None,
          'The path to the documentation .rst files.  If not provided, and '
          'the current directory contains a directory called "docs", that '
          'will be used.'),
         ('skip-docs', None,
-         "When provided, don't test the documentation .rst files.")
+         "Don't test the documentation .rst files.")
     ]
 
     user_options = _fix_user_options(user_options)
