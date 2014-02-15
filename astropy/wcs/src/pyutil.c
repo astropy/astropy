@@ -161,7 +161,7 @@ wcsprm_fix_values(
 
   unsigned int naxis = (unsigned int)x->naxis;
 
-  value_fixer(x->cd, 4);
+  value_fixer(x->cd, naxis * naxis);
   value_fixer(x->cdelt, naxis);
   value_fixer(x->crder, naxis);
   value_fixer(x->crota, naxis);
