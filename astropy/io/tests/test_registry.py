@@ -13,6 +13,7 @@ from ...tests.helper import pytest
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
+from ...extern.six.moves import zip
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
