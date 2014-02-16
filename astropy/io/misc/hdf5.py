@@ -60,10 +60,12 @@ class HDF5TableIO(BaseIO):
     _format_name = 'hdf5'
     _supported_class = Table
 
-    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+    @classmethod
+    def identify(cls, origin, filepath, fileobj, *args, **kwargs):
         return _is_hdf5(origin, filepath, fileobj, *args, **kwargs)
 
-    def read(self, input, path=None):
+    @classmethod
+    def read(cls, input, path=None):
         """
         Read a Table object from an HDF5 file
 
@@ -147,8 +149,8 @@ class HDF5TableIO(BaseIO):
 
         return table
 
-
-    def write(self, table, output, path=None, compression=False,
+    @classmethod
+    def write(cls, table, output, path=None, compression=False,
               append=False, overwrite=False):
         """
         Write a Table object to an HDF5 file

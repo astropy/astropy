@@ -399,38 +399,34 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
 
 class MetaRegisterBaseIO(type):
 
-    def __init__(cls, name, bases, dct):
+    def __init__(cls, name, bases, members):
 
-        super(MetaRegisterBaseIO, cls).__init__(name, bases, dct)
+        super(MetaRegisterBaseIO, cls).__init__(name, bases, members)
 
-        format_abbreviation = dct.get('_format_name')
+        format_abbreviation = members.get('_format_name')
         if format_abbreviation is None:
             if cls.__name__ == 'BaseIO':
                 return
             else:
                 raise ValueError("_format_name is not defined")
 
-        supported_class = dct.get('_supported_class')
+        supported_class = members.get('_supported_class')
         if supported_class is None:
             raise ValueError("_supported_class is not defined")
 
-        reader = dct.get('read')
+        reader = members.get('read')
+        print(reader())
+        print(dir(reader))
         if reader is not None:
-            reader = functools.partial(reader, format_abbreviation)
-            register_reader(format_abbreviation,
-                            supported_class, reader)
+            register_reader(format_abbreviation, supported_class, reader)
 
-        writer = dct.get('write')
+        writer = members.get('write')
         if writer is not None:
-            writer = functools.partial(writer, format_abbreviation)
-            register_writer(format_abbreviation,
-                            supported_class, writer)
+            register_writer(format_abbreviation, supported_class, writer)
 
-        identifier = dct.get('identify')
-        if dct.get('identify') is not None:
-            identifier = functools.partial(identifier, format_abbreviation)
-            register_identifier(format_abbreviation,
-                                supported_class, identifier)
+        identifier = members.get('identify')
+        if members.get('identify') is not None:
+            register_identifier(format_abbreviation, supported_class, identifier)
 
 
 @six.add_metaclass(MetaRegisterBaseIO)

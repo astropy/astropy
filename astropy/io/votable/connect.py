@@ -49,10 +49,12 @@ class VOTableIO(BaseIO):
     _format_name = 'votable'
     _supported_class = Table
 
-    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+    @staticmethod
+    def identify(origin, filepath, fileobj, *args, **kwargs):
         return _is_votable(origin, filepath, fileobj, *args, **kwargs)
 
-    def read(self, input, table_id=None, use_names_over_ids=False):
+    @staticmethod
+    def read(input, table_id=None, use_names_over_ids=False):
         """
         Read a Table object from an VO table file
 
@@ -120,7 +122,8 @@ class VOTableIO(BaseIO):
         # Convert to an astropy.table.Table object
         return table.to_table(use_names_over_ids=use_names_over_ids)
 
-    def write(self, input, output, table_id=None, overwrite=False):
+    @staticmethod
+    def write(input, output, table_id=None, overwrite=False):
         """
         Write a Table object to an VO table file
 

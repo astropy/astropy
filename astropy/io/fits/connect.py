@@ -17,8 +17,9 @@ from ...nddata import NDData
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 
-from . import (HDUList, TableHDU, BinTableHDU, GroupsHDU, PrimaryHDU,
-               ImageHDU, Header)
+from .hdu.base import _ValidHDU
+from .hdu.table import _TableLikeHDU
+from . import HDUList, Header
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -138,7 +139,7 @@ def _is_fits(origin, filepath, fileobj, *args, **kwargs):
     elif filepath is not None:
         if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
             return True
-    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU, PrimaryHDU, ImageHDU)):
+    elif isinstance(args[0], (HDUList, _ValidHDU)):
         return True
     else:
         return False
@@ -149,10 +150,12 @@ class FITSTableIO(BaseIO):
     _format_name = 'fits'
     _supported_class = Table
 
-    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+    @staticmethod
+    def identify(origin, filepath, fileobj, *args, **kwargs):
         return _is_fits(origin, filepath, fileobj, *args, **kwargs)
 
-    def read(self, input, hdu=None):
+    @staticmethod
+    def read(input, hdu=None):
         """
         Read a Table object from an FITS file
 
@@ -200,7 +203,7 @@ class FITSTableIO(BaseIO):
             else:
                 raise ValueError("No table found")
 
-        elif isinstance(input, (TableHDU, BinTableHDU, GroupsHDU)):
+        elif isinstance(input, _TableLikeHDU):
 
             table = input
 
@@ -242,7 +245,8 @@ class FITSTableIO(BaseIO):
 
         return t
 
-    def write(self, input, output, overwrite=False):
+    @staticmethod
+    def write(input, output, overwrite=False):
         """
         Write a Table object to a FITS file
 
@@ -300,10 +304,12 @@ class FITSNDDataIO(BaseIO):
     _format_name = 'fits'
     _supported_class = NDData
 
-    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+    @staticmethod
+    def identify(origin, filepath, fileobj, *args, **kwargs):
         return _identify_fits(origin, filepath, fileobj, *args, **kwargs)
 
-    def read(self, input, hdu=None):
+    @staticmethod
+    def read(input, hdu=None):
         """
         Read an :class:`~astropy.nddata.nddata.NDData` object from a FITS file.
 
@@ -371,7 +377,8 @@ class FITSNDDataIO(BaseIO):
 
         return d
 
-    def write(self, input, output, overwrite=False):
+    @staticmethod
+    def write(input, output, overwrite=False):
         """
         Write an :class:`~astropy.nddata.nddata.NDData` object to a FITS file.
 
