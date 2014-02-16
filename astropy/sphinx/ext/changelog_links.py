@@ -14,8 +14,11 @@ ISSUE_PATTERN = re.compile('#[0-9]+')
 def process_changelog_links(app, doctree, docname):
 
     if 'changelog' in docname and app.config.github_issues_url is not None:
+
         for item in doctree.traverse():
+
             if isinstance(item, Text):
+
                 # We build a new list of items to replace the current item. If
                 # a link is found, we need to use a 'reference' item.
                 children = []
