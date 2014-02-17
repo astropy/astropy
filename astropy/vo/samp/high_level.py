@@ -113,7 +113,7 @@ def receive(timeout=None, hub=None):
         if r.mtype.startswith('table'):
             data = Table.read(r.params['url'])
         else:
-            data = NDData.read(r.params['url'])
+            data = fits.open(r.params['url'])
     finally:
         client.disconnect()
 
