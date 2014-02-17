@@ -17,17 +17,12 @@ Example uses of fitshead:
 
     $ fitshead --ext "SCI,2" filename.fits
 
-4. Print the headers of a file in JSON format:
-
-    $ fitshead --json filename.fits
-
-5. Print the headers of all fits files in a directory:
+4. Print the headers of all fits files in a directory:
 
     $ fitshead *.fits
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import os
 
 from ... import fits
 from .... import log
@@ -39,7 +34,7 @@ class FormattingException(Exception):
 
 class HeaderFormatter(object):
     """
-    Base class to format the header(s) of a FITS file into a readable format.
+    Base class to format the header(s) of a FITS file for terminal display.
 
     Parameters
     ----------
@@ -101,45 +96,16 @@ class HeaderFormatter(object):
         text = ''
         for i, key in enumerate(hdukeys):
             if i > 0:
-                prefix = os.linesep + os.linesep  # Separate HDUs
+                prefix = '\n\n'  # Separate HDUs by a blank line
             else:
                 prefix = ''
-            text += '{prefix}# HDU {key} in {filename}:{cr}{header}'.format(
+            text += '{prefix}# HDU {key} in {filename}:\n{header}'.format(
                     prefix=prefix,
                     key=key,
                     filename=self.hdulist.filename(),
-                    cr=os.linesep,
-                    header=self._get_header(key).tostring(sep=os.linesep,
+                    header=self._get_header(key).tostring(sep='\n',
                                                           padding=False))
         return text
-
-
-class JSONHeaderFormatter(HeaderFormatter):
-    """
-    Overrides HeaderFormatter to return the headers in JSON format.
-    """
-
-    def _format_hdulist(self, hdukeys):
-        import json
-
-        try:
-            from collections import OrderedDict
-            mydict = OrderedDict
-        except ImportError:  # OrderedDict was new in Python 2.7
-            mydict = dict
-
-        js = mydict()
-        js['filename'] = self.hdulist.filename()
-        js['hdulist'] = []
-
-        for i, key in enumerate(hdukeys):
-            hdudict = mydict()
-            hdudict['hdu'] = key
-            hdr = self._get_header(key)
-            hdudict['cards'] = mydict(zip(hdr.keys(), hdr.values()))
-            js['hdulist'].append(hdudict)
-
-        return json.dumps(js, indent=2)
 
 
 def main(args=None):
@@ -150,17 +116,16 @@ def main(args=None):
                      "By default, all HDU extensions are shown."))
     parser.add_argument('-e', '--ext', metavar='hdu',
                         help='specify the HDU extension number or name')
-    parser.add_argument('-j', '--json', action='store_true',
-                        help='display the output in JSON format')
     parser.add_argument('filename', nargs='+',
                         help='path to one or more FITS files to display')
     args = parser.parse_args(args)
 
     try:
         for filename in args.filename:
-            if args.json:
-                print(JSONHeaderFormatter(filename).parse(args.ext))
-            else:
-                print(HeaderFormatter(filename).parse(args.ext))
+            print(HeaderFormatter(filename).parse(args.ext))
     except FormattingException as e:
         log.error(e)
+    except IOError as e:
+        # A 'Broken pipe' IOError may occur when stdout is closed prematurely,
+        # eg when using `fitshead file.fits | head`. We let this pass quietly.
+        pass
