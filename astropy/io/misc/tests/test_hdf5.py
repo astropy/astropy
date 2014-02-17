@@ -131,7 +131,7 @@ def test_read_write_existing_table(tmpdir):
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_memory(tmpdir):
-    with h5py.File('test', driver='core', backing_store=False) as output_file:
+    with h5py.File('test', 'w', driver='core', backing_store=False) as output_file:
         t1 = Table()
         t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path='the_table')

@@ -49,6 +49,9 @@ Bug Fixes
 
 - ``astropy.io.misc``
 
+  - Fixed issues in the HDF5 Table reader/writer functions that occurred on
+    Windows. [#2099]
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``

@@ -82,7 +82,7 @@ def read_table_hdf5(input, path=None):
         if path:
             try:
                 input = input[path]
-            except KeyError:
+            except (KeyError, ValueError):
                 raise IOError("Path {0} does not exist".format(path))
 
         # `input` is now either a group or a dataset. If it is a group, we
@@ -151,8 +151,12 @@ def write_table_hdf5(table, output, path=None, compression=False,
     output : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
-    compression : bool
-        Whether to compress the table inside the HDF5 file.
+    compression : bool or str or int
+        Whether to compress the table inside the HDF5 file. If set to `True`,
+        ``'gzip'`` compression is used. If a string is specified, it should be
+        one of ``'gzip'``, ``'szip'``, or ``'lzf'``. If an integer is
+        specified (in the range 0-9), ``'gzip'`` compression is used, and the
+        integer denotes the compression level.
     path : str
         The path to which to write the table inside the HDF5 file.
         This should be relative to the input file or group.
@@ -182,7 +186,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         if group:
             try:
                 output_group = output[group]
-            except KeyError:
+            except (KeyError, ValueError):
                 output_group = output.create_group(group)
         else:
             output_group = output
@@ -215,7 +219,12 @@ def write_table_hdf5(table, output, path=None, compression=False,
         raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
-    dset = output_group.create_dataset(name, data=table._data, compression=compression)
+    if compression:
+        if compression is True:
+            compression = 'gzip'
+        dset = output_group.create_dataset(name, data=table._data, compression=compression)
+    else:
+        dset = output_group.create_dataset(name, data=table._data)
 
     # Write the meta-data to the file
     for key in table.meta:
