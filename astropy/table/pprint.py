@@ -227,7 +227,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
     # Add formatted values if within bounds allowed by max_lines
     for i in xrange(n_rows):
-        if i < i0 or i > i1: 
+        if i < i0 or i > i1:
             if multidims:
                 # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
                 # with shape (n,1,...,1) from being printed as if there was
