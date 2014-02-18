@@ -593,5 +593,5 @@ def test_error_message():
     with pytest.raises(wcs.InvalidTransformError):
         # Both lines are in here, because 0.4 calls .set within WCS.__init__,
         # whereas 0.3 and earlier did not.
-        w = wcs.WCS(header)
+        w = wcs.WCS(header, _do_set=False)
         c = w.all_pix2world([[536.0, 894.0]], 0)
