@@ -7,6 +7,7 @@ from ...table import Table
 from ...nddata import NDData
 from ...io import fits
 
+from ...utils.exceptions import TimeoutError
 from . import SAMPIntegratedClient
 from ... import __version__
 from ...extern.six.moves.urllib.parse import urljoin
@@ -48,7 +49,7 @@ def wait_until_received(object, timeout=None, step=0.1):
     while not (hasattr(object, 'received') and object.received):
         time.sleep(step)
         if timeout is not None and time.time() - start_time > timeout:
-            raise AttributeError("Timeout while waiting for message to be received")
+            raise TimeoutError("Timeout while waiting for message to be received")
 
 
 def list_clients():
