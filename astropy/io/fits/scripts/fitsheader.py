@@ -125,8 +125,10 @@ def main(args=None):
     from astropy.utils.compat import argparse
 
     parser = argparse.ArgumentParser(
-        description=("Print the header(s) of a FITS file. "
-                     "By default, all HDU extensions are shown."))
+        description=('Print the header(s) of a FITS file. '
+                     'All HDU extensions are shown by default. '
+                     'In the case of compressed images, '
+                     'the decompressed header is shown.'))
     parser.add_argument('-e', '--ext', metavar='hdu',
                         help='specify the HDU extension number or name')
     parser.add_argument('-c', '--compressed', action='store_true',
