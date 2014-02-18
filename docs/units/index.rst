@@ -11,9 +11,13 @@ Units and Quantities (`astropy.units`)
 Introduction
 ============
 
-`astropy.units` handles defining, converting between, and performing arithmetic with physical quantities. Examples of physical quantities are meters, seconds, Hz, etc.
+`astropy.units` handles defining, converting between, and performing 
+arithmetic with physical quantities. Examples of physical quantities 
+are meters, seconds, Hz, etc.
 
-`astropy.units` does not know spherical geometry or sexidecimal: if you want to deal with celestial coordinates, see the `astropy.coordinates` package.  
+`astropy.units` does not know spherical geometry or sexidecimal: if 
+you want to deal with celestial coordinates, see the 
+`astropy.coordinates` package.  
 
 Getting Started
 ===============
