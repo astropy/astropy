@@ -27,10 +27,10 @@ complex operations.  To do this, it is recommended to use
     `~fractions.Fraction` objects under the hood.  Therefore the
     following are equivalent::
 
-        >>> x = m ** Fraction(1, 3)
+        >>> x = u.m ** Fraction(1, 3)
         >>> x.powers
         [Fraction(1, 3)]
-        >>> x = m ** (1. / 3.)
+        >>> x = u.m ** (1. / 3.)
         >>> x.powers
         [Fraction(1, 3)]
 
