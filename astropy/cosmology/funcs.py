@@ -191,6 +191,26 @@ def comoving_volume(z, cosmo=None):
         cosmo = _default_cosmology.get()
     return cosmo.comoving_volume(z)
 
+def dV_comoving(z, cosmo=None):
+    """Comoving volume element at redshift z. 
+    
+    Useful for calculating the effective comoving volume. 
+    For example, allows for integration over a comoving volume 
+    that has a changing sensitivity function.
+    Total volume to redshift z is given by integrating 
+    dV_comoving to redshift (z) and over a solid_angle.
+    Parameters
+    ----------
+    z : array_like
+      Input redshifts.
+
+    Returns
+    -------
+    dV : astropy.units.Quantity
+      Comoving volume in :math:`Mpc^3` at each input redshift."""
+    if cosmo is None:
+        cosmo = _get_current()
+    return cosmo.dV_comoving(z)
 
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
