@@ -12,7 +12,7 @@ from ....io import fits
 
 
 class TestHighLevel(object):
-    
+
     def setup_method(self, method):
 
         self.tmpdir = tempfile.mkdtemp()
@@ -24,23 +24,23 @@ class TestHighLevel(object):
         self.client1.connect(hub=self.hub)
 
     def test_high_level(self):
-        
+
         # Test sending Table
-        t = Table([[1,2,3], [4,5,6]])
+        t = Table([[1, 2, 3], [4, 5, 6]])
         send(t, 'test_table_1', hub=self.hub)
 
         # Test sending NDData
         # d = NDData(np.ones((128, 128)))
         # send(d, 'test_image_1', hub=self.hub)
-        
+
         # Test sending numpy regular array
         a = np.ones((128, 128))
         send(a, 'test_image_2', hub=self.hub)
-        
+
         # Test sending numpy structured array
-        x = np.array([(1,2),(5,6)], dtype=[('a', float), ('b', float)])
+        x = np.array([(1, 2), (5, 6)], dtype=[('a', float), ('b', float)])
         send(x, 'test_table_2', hub=self.hub)
-    
+
         # Test HDU objects
 
         hdu1 = fits.ImageHDU(a)
@@ -54,4 +54,3 @@ class TestHighLevel(object):
 
         hdu4 = fits.BinTableHDU(x)
         send(hdu4, 'test_table_4', hub=self.hub)
-        
