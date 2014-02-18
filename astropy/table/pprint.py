@@ -189,6 +189,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     if multidims:
         multidim0 = tuple(0 for n in multidims)
         multidim1 = tuple(n - 1 for n in multidims)
+        trivial_multidims = np.prod(multidims) == 1
 
     col_strs = []  # List of formatted column values
     i_dashes = None
@@ -226,16 +227,17 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
     # Add formatted values if within bounds allowed by max_lines
     for i in xrange(n_rows):
-        if i < i0 or i > i1:
-            # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
-            # with shape (n,1,...,1) from being printed as if there was
-            # more than one element in a row 
-            if multidims and np.prod(multidims) == 1:
-                col_str = format_func(col.format, col[(i,) + multidim0])   
-            elif multidims:
-                col_str = (format_func(col.format, col[(i,) + multidim0]) +
-                           ' .. ' +
-                           format_func(col.format, col[(i,) + multidim1]))
+        if i < i0 or i > i1: 
+            if multidims:
+                # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
+                # with shape (n,1,...,1) from being printed as if there was
+                # more than one element in a row
+                if trivial_multidims:
+                    col_str = format_func(col.format, col[(i,) + multidim0])   
+                else:
+                    col_str = (format_func(col.format, col[(i,) + multidim0]) +
+                              ' .. ' +
+                              format_func(col.format, col[(i,) + multidim1]))
             else:
                 col_str = format_func(col.format, col[i])
             yield col_str
