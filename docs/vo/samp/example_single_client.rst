@@ -58,13 +58,21 @@ which is a human-readable name for the table. The URL can be a local URL
                 >>> import urlparse
                 >>> params["url"] = urlparse.urljoin('file:', os.path.abspath("aj285677t3_votable.xml"))
 
-Now we can set up the message itself. This includes the type of message (here
-we use ``table.load.votable`` which indicates that a VO table should be loaded,
-and the details of the table that we set above::
+Now we can set up the message itself. Every message in samp has a specific
+message type, or MType. A list of well-known MTypes for operations like
+exchanging spectra, communicating sky positions, and marking table rows can be
+found from `http://www.ivoa.net/samp/ <http://www.ivoa.net/samp/>`_. In this
+case, we will use the ``table.load.votable`` MType which indicates that a VO
+table should be loaded. We also pass parameters related to the message using
+the ``samp.params`` item, which is used here for the details of the table that
+we want to read::
 
     >>> message = {}
     >>> message["samp.mtype"] = "table.load.votable"
     >>> message["samp.params"] = params
+
+More information on messages can be found in Section 3.8 of the `SAMP standard
+<http://www.ivoa.net/documents/SAMP/20120411/>`_.
 
 Finally, we can broadcast this to all clients that are listening for
 ``table.load.votable`` messages using

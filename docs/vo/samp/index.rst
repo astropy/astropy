@@ -121,6 +121,20 @@ received. The function will either return an
 :class:`~astropy.nddata.nddata.NDData` instance, depending on the data sent by
 the other client.
 
+The :func:`~astropy.vo.samp.high_level.send` and
+:func:`~astropy.vo.samp.high_level.receive` functions provide easy ways to
+exchange images and tables between applications, which are two of the most
+common tasks for SAMP. However, SAMP is a general purpose mechanism for
+exchanging data or control between participating clients, and it supports a
+range of other operations. To perform these, send a message using the
+low-level SAMP client classes described in detail in :ref:`using-samp`, with
+an message type ("MType") that specifies the operation. A list of well-known
+MTypes for operations like exchanging spectra, communicating sky positions,
+and marking table rows can be found from `http://www.ivoa.net/samp/
+<http://www.ivoa.net/samp/>`_. Clients are also free to define custom MTypes,
+such as ``ds9.set``/``ds9.get``, used for full external control of SAOImage
+Ds9.
+
 .. _using-samp:
 
 Using `astropy.vo.samp`
