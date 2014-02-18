@@ -1,25 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-``fitshead`` is a command line script based on astropy.io.fits for printing
+``fitsheader`` is a command line script based on astropy.io.fits for printing
 the header(s) of a FITS file to the standard output.
 
-Example uses of fitshead:
+Example uses of fitsheader:
 
 1. Print the header of all the HDUs of a single .fits file:
 
-    $ fitshead filename.fits
+    $ fitsheader filename.fits
 
 2. Print the header of the third HDU extension:
 
-    $ fitshead --ext 3 filename.fits
+    $ fitsheader --ext 3 filename.fits
 
 3. Print the header of the extension with EXTNAME='SCI' and EXTVER='2':
 
-    $ fitshead --ext "SCI,2" filename.fits
+    $ fitsheader --ext "SCI,2" filename.fits
 
 4. Print the headers of all fits files in a directory:
 
-    $ fitshead *.fits
+    $ fitsheader *.fits
+
+
+Note that compressed images (HDUs of type `CompImageHDU`) really have two
+headers; a real BINTABLE header to describe the compressed data, and a fake
+IMAGE header representing the image that was compressed. Astropy returns the
+latter by default. You must supply the "--compressed" option if you require the
+header in its compressed form.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -41,11 +48,12 @@ class HeaderFormatter(object):
     filename : str
         Path to the FITS file.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, compressed=False):
         try:
             self.hdulist = fits.open(filename)
         except IOError as e:
             raise FormattingException(e.message)
+        self.compressed = compressed
 
     def parse(self, extension=None):
         """Returns the FITS file header(s) in a readable format.
@@ -83,7 +91,12 @@ class HeaderFormatter(object):
     def _get_header(self, hdukey):
         """Returns the `astropy.io.fits.header.Header` object for the HDU."""
         try:
-            return self.hdulist[hdukey].header
+            if self.compressed:
+                # In the case of a compressed image, return the header before
+                # decompression (not the default behavior)
+                return self.hdulist[hdukey]._header
+            else:
+                return self.hdulist[hdukey].header
         except IndexError:
             raise FormattingException('{0}: Extension #{1} not found.'.
                                       format(self.hdulist.filename(), hdukey))
@@ -116,16 +129,20 @@ def main(args=None):
                      "By default, all HDU extensions are shown."))
     parser.add_argument('-e', '--ext', metavar='hdu',
                         help='specify the HDU extension number or name')
+    parser.add_argument('-c', '--compressed', action='store_true',
+                        help='for compressed image data, '
+                             'show the original header which describes '
+                             'the compression rather than the data')
     parser.add_argument('filename', nargs='+',
                         help='path to one or more FITS files to display')
     args = parser.parse_args(args)
 
     try:
         for filename in args.filename:
-            print(HeaderFormatter(filename).parse(args.ext))
+            print(HeaderFormatter(filename, args.compressed).parse(args.ext))
     except FormattingException as e:
         log.error(e)
     except IOError as e:
         # A 'Broken pipe' IOError may occur when stdout is closed prematurely,
-        # eg when using `fitshead file.fits | head`. We let this pass quietly.
+        # eg when using `fitsheader file.fits | head`. We let this pass.
         pass
