@@ -123,7 +123,7 @@ API Changes
 
 - ``astropy.table``
 
-  - The default table printing function now shows a table header row 
+  - The default table printing function now shows a table header row
     for units if any columns have the unit attribute set.  [#1282]
 
 - ``astropy.time``
@@ -439,6 +439,10 @@ Bug Fixes
   - Fixed a bug where named WCSes may be erroneously reported as ``'
     '`` when using :func:`astropy.wcs.validate` or the `wcslint`
     script. [#2053]
+
+  - Fixed a bug where error messages about incorrect header keywords
+    may not be propagated correctly, resulting in a "NULL error object
+    in wcslib" message. [#2106]
 
 - Misc
 
