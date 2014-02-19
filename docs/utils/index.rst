@@ -21,7 +21,7 @@ are generally best understood through their docstrings, and hence this
 documentation does not have detailed sections like the other packages.
 
 .. note::
-    The `astropy.utils.compat` subpackage is not included in this
+    The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
     older/newer versions of python, as well as including some bugfixes
     for the stdlib that are important for Astropy. It is recommended

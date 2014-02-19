@@ -200,8 +200,8 @@ elements::
 
   (from_unit, to_unit, forward, backward)
 
-``from_unit`` and ``to_unit`` are the equivalent units.  `forward` and
-`backward` are functions that convert values between those units.
+``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
+``backward`` are functions that convert values between those units.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are
