@@ -35,7 +35,7 @@ Getting Started
 The basic way to use `astropy.time` is to create a |Time|
 object by supplying one or more input time values as well as the `time format`_ and
 `time scale`_ of those values.  The input time(s) can either be a single scalar like
-`"2010-01-01 00:00:00"` or a list or a `numpy` array of values as shown below.
+"2010-01-01 00:00:00" or a list or a `numpy` array of values as shown below.
 In general any output values have the same shape (scalar or array) as the input.
 
   >>> from astropy.time import Time
@@ -162,7 +162,7 @@ subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
 
 The supported subformats are ``date_hms``, ``date_hm``, and ``date``.  The
-table below illustrates these subformats for `iso` and `yday` formats:
+table below illustrates these subformats for ``iso`` and ``yday`` formats:
 
 =========  ========== ===========================
 Format     Subformat  Input / output
@@ -325,14 +325,14 @@ The allowed |Time| arguments to create a time object are listed below:
 val
 ^^^
 
-The `val` argument  specifies the input time or times and
+The ``val`` argument  specifies the input time or times and
 can be a single string or number, or it can be a Python list or `numpy` array
 of strings or numbers. To initialize a |Time| object based on a specified time,
-it *must* be present.  If `val` is absent (or `None`), the |Time| object will
+it *must* be present.  If ``val`` is absent (or `None`), the |Time| object will
 be created for the time corresponding to the instant the object is created.
 
 In most situations one also needs to specify the `time scale`_ via the
-`scale` argument.  The |Time| class will never guess the `time scale`_,
+``scale`` argument.  The |Time| class will never guess the `time scale`_,
 so a simple example would be::
 
   >>> t1 = Time(50100.0, scale='tt', format='mjd')
@@ -349,13 +349,13 @@ first object unless explicitly specified.
 val2
 ^^^^
 
-The `val2` argument is available for specialized situations where extremely
+The ``val2`` argument is available for specialized situations where extremely
 high precision is required.  Recall that the internal representation of time
 within `astropy.time` is two double-precision numbers that when summed give
-the Julian date.  If provided the `val2` argument is used in combination with
-`val` to set the second the internal time values.  The exact interpretation of
-`val2` is determined by the input format class.  As of this release all
-string-valued formats ignore `val2` and all numeric inputs effectively add
+the Julian date.  If provided the ``val2`` argument is used in combination with
+``val`` to set the second the internal time values.  The exact interpretation of
+``val2`` is determined by the input format class.  As of this release all
+string-valued formats ignore ``val2`` and all numeric inputs effectively add
 the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
@@ -372,7 +372,7 @@ required unless the format can be unambiguously determined from the input times.
 scale
 ^^^^^
 
-The `scale` argument sets the `time scale`_ and is required except for time
+The ``scale`` argument sets the `time scale`_ and is required except for time
 formats such as ``plot_date`` (:class:`~astropy.time.core.TimePlotDate`) and ``unix``
 (:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
@@ -380,7 +380,7 @@ in SI seconds since a fixed instant in time which is independent of time scale.
 precision
 ^^^^^^^^^^
 
-The `precision` setting affects string formats when outputting a value that
+The ``precision`` setting affects string formats when outputting a value that
 includes seconds.  It must be an integer between 0 and 9.  There is no effect
 when inputting time values from strings.  The default precision is 3.  Note
 that the limit of 9 digits is driven by the way that ERFA handles fractional
@@ -396,13 +396,13 @@ seconds.  In practice this should should not be an issue.  ::
 in_subfmt
 ^^^^^^^^^
 
-The `in_subfmt` argument provides a mechanism to select one or more
+The ``in_subfmt`` argument provides a mechanism to select one or more
 `subformat`_ values from the available subformats for string input.  Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
 <http://docs.python.org/library/fnmatch.html>`_ module.
 
-The default value for `in_subfmt` is ``*`` which matches any available
+The default value for ``in_subfmt`` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
 heterogeneous subformat::
 
@@ -410,7 +410,7 @@ heterogeneous subformat::
   <Time object: scale='utc' format='yday'
    value=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
 
-One can explicitly specify `in_subfmt` in order to strictly require a
+One can explicitly specify ``in_subfmt`` in order to strictly require a
 certain subformat::
 
   >>> t = Time('2000:002:03:04', in_subfmt='date_hm')
@@ -424,7 +424,7 @@ certain subformat::
 out_subfmt
 ^^^^^^^^^^
 
-The `out_subfmt` argument is similar to `in_subfmt` except that it applies
+The ``out_subfmt`` argument is similar to ``in_subfmt`` except that it applies
 to output formatting.  In the case of multiple matching subformats the first
 matching subformat is used.
 
@@ -457,8 +457,8 @@ longitude is given.
 Getting the Current Time
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The current time can be determined as a `Time` object using the
-`~astropy.time.Time.now` class method::
+The current time can be determined as a |Time| object using the
+`~astropy.time.core.Time.now` class method::
 
   >>> nt = Time.now()
   >>> ut = Time(datetime.utcnow(), scale='utc')
@@ -534,7 +534,7 @@ In this process the ``format`` and other object attributes like ``lon``,
 ``lat``, and ``precision`` are also propagated to the new object.
 
 
-As noted in the `Time object basics` section, a |Time| object is immutable and
+As noted in the ``Time object basics`` section, a |Time| object is immutable and
 the internal time values cannot be altered once the object is created.  The
 process of changing the time scale therefore begins by making a copy of the
 original object and then converting the internal time values in the copy to the
@@ -548,8 +548,8 @@ above require an additional offset time value that is model or
 observation-dependent.  See `SOFA Time Scale and Calendar Tools
 <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ for further details.
 
-The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
-:attr:`~astropy.time.Time.delta_tdb_tt` provide a way to set
+The two attributes :attr:`~astropy.time.core.Time.delta_ut1_utc` and
+:attr:`~astropy.time.core.Time.delta_tdb_tt` provide a way to set
 these offset times explicitly.  These represent the time scale offsets
 UT1 - UTC and TDB - TT, respectively.  As an example::
 
@@ -560,15 +560,15 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
 
 For the UT1 to UTC offset, one has to interpolate in observed values provided
 by the `International Earth Rotation and Reference Systems Service
-<http://www.iers.org>`_.  By default, `astropy` is shipped with the final
+<http://www.iers.org>`_.  By default, astropy is shipped with the final
 values provided in Bulletin B, which cover the period from 1962 to shortly
 before an astropy release, and these will be used to compute the offset if the
-:attr:`~astropy.time.Time.delta_ut1_utc` attribute is not set explicitly.  For
+:attr:`~astropy.time.core.Time.delta_ut1_utc` attribute is not set explicitly.  For
 more recent times, one can download an updated version of `IERS B
 <http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now>`_ or `IERS A
 <http://maia.usno.navy.mil/ser7/finals2000A.all>`_ (which also has
-predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
-`~astropy.time.Time.get_delta_ut1_utc`::
+predictions), and set :attr:`~astropy.time.core.Time.delta_ut1_utc` as described in
+`~astropy.time.core.Time.get_delta_ut1_utc`::
 
   >>> from astropy.utils.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
@@ -578,7 +578,7 @@ predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
 
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object.  If the
-:attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set then
+:attr:`~astropy.time.core.Time.delta_tdb_tt` attribute is not explicitly set then
 the ERFA C-library routine ``eraDtdb`` will be used to compute the TDB to TT
 offset.  Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
