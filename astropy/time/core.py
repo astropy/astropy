@@ -1194,11 +1194,10 @@ class TimeFormat(object):
         if hasattr(self.__class__, 'epoch_scale') and scale is None:
             scale = self.__class__.epoch_scale
 
+        if scale is None:
+            scale = 'utc'  # Default scale as of astropy 0.4
+
         if scale not in TIME_SCALES:
-            if scale is None:
-                raise ScaleValueError("No scale value supplied but it is "
-                                      "required for class {0}"
-                                      .format(self.__class__.__name__))
             raise ScaleValueError("Scale value '{0}' not in "
                                   "allowed values {1}"
                                   .format(scale, TIME_SCALES))
