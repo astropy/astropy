@@ -41,12 +41,12 @@ class NDData(object):
 
     Parameters
     -----------
-    data : `~numpy.ndarray` or `~astropy.nddata.NDData`
+    data : `~numpy.ndarray` or `NDData`
         The actual data contained in this `NDData` object. Not that this
         will always be copies by *reference* , so you should make copy
-        the `data` before passing it in if that's the  desired behavior.
+        the ``data`` before passing it in if that's the  desired behavior.
 
-    uncertainty : `~astropy.nddata.NDUncertainty`, optional
+    uncertainty : `~astropy.nddata.nduncertainty.NDUncertainty`, optional
         Uncertainties on the data.
 
     mask : `~numpy.ndarray`, optional
@@ -54,10 +54,10 @@ class NDData(object):
         matching that of the data. The values must be ``False`` where
         the data is *valid* and ``True`` when it is not (like Numpy
         masked arrays). If `data` is a numpy masked array, providing
-        `mask` here will causes the mask from the masked array to be
+        ``mask`` here will causes the mask from the masked array to be
         ignored.
 
-    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
+    flags : `~numpy.ndarray` or `~astropy.nddata.flag_collection.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
         either as a Numpy array of any type with a shape matching that of the
         data, or as a `~astropy.nddata.FlagCollection` instance which has a
@@ -77,7 +77,7 @@ class NDData(object):
         of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
 
-    unit : `astropy.units.UnitBase` instance or str, optional
+    unit : `~astropy.units.core.UnitBase` instance or str, optional
         The units of the data.
 
 

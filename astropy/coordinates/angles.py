@@ -54,7 +54,7 @@ class Angle(u.Quantity):
 
     Parameters
     ----------
-    angle : array, scalar, Quantity, Angle
+    angle : `~numpy.array`, scalar, `~astropy.units.quantity.Quantity`, `~astropy.coordinates.angles.Angle`
         The angle value. If a tuple, will be interpreted as ``(h, m
         s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
         will be interpreted following the rules described above.
@@ -63,17 +63,17 @@ class Angle(u.Quantity):
         values will be in the given `unit`, or if None is provided,
         the unit will be taken from the first given value.
 
-    unit : `~astropy.units.UnitBase`, str, optional
+    unit : `~astropy.units.core.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
         unit.
 
-    dtype : ~numpy.dtype, optional
-        See `~astropy.units.Quantity`.
+    dtype : `~numpy.dtype`, optional
+        See `~astropy.units.quantity.Quantity`.
 
     copy : bool, optional
-        See `~astropy.units.Quantity`.
+        See `~astropy.units.quantity.Quantity`.
 
     Raises
     ------
