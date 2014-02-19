@@ -560,14 +560,14 @@ def test_comoving_volume():
                        wright_closed, rtol=1e-2)
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_dV_comoving():
+def test_differential_comoving_volume():
     from scipy.integrate import quad
 
     c_flat = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
     c_open = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
     c_closed = core.LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
 
-    # test that integration of dV_comoving() yields same as comoving_volume()
+    # test that integration of differential_comoving_volume() yields same as comoving_volume()
     redshifts = np.array([0.5, 1, 2, 3, 5, 9])
     wright_flat = np.array([29.123, 159.529, 630.427, 1178.531, 2181.485,
                             3654.802]) * 1e9  # convert to Mpc**3
@@ -577,9 +577,9 @@ def test_dV_comoving():
                               358.992]) * 1e9
     # The wright calculator isn't very accurate, so we use a rather
     # modest precision.
-    ftemp = lambda x: c_flat.dV_comoving(x).value
-    otemp = lambda x: c_open.dV_comoving(x).value
-    ctemp = lambda x: c_closed.dV_comoving(x).value
+    ftemp = lambda x: c_flat.differential_comoving_volume(x).value
+    otemp = lambda x: c_open.differential_comoving_volume(x).value
+    ctemp = lambda x: c_closed.differential_comoving_volume(x).value
     # Multiply by solid_angle (4 * pi)
     assert np.allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0] 
                                  for redshift in redshifts]), 
