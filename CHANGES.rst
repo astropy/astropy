@@ -118,6 +118,9 @@ API Changes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+ 
+  - The method computing the derivative of the model with respect
+    to parameters was renamed from `deriv` to `fit_deriv`. [#1739]
 
 - ``astropy.nddata``
 

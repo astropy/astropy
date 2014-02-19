@@ -43,7 +43,7 @@ class PolynomialBase(ParametricModel):
     _param_names = []
 
     linear = True
-    col_deriv = False
+    col_fit_deriv = False
 
     @lazyproperty
     def param_names(self):
@@ -85,11 +85,11 @@ class PolynomialBase(ParametricModel):
 
     def _deriv_with_constraints(self, params=None, x=None, y=None):
         if y is None:
-            d = np.array(self.deriv(x=x))
+            d = np.array(self.fit_deriv(x=x))
         else:
-            d = np.array(self.deriv(x=x, y=y))
+            d = np.array(self.fit_deriv(x=x, y=y))
 
-        if self.col_deriv:
+        if self.col_fit_deriv:
             return d[self._fit_param_indices]
         else:
             return d[:, self._fit_param_indices]
@@ -436,7 +436,7 @@ class Chebyshev1D(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
-    def deriv(self, x, *params):
+    def fit_deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
 
@@ -524,7 +524,7 @@ class Legendre1D(PolynomialModel):
                 c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
         return c0 + c1 * x
 
-    def deriv(self, x, *params):
+    def fit_deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
 
@@ -591,7 +591,7 @@ class Polynomial1D(PolynomialModel):
                                            n_outputs=1,
                                            param_dim=param_dim, **params)
 
-    def deriv(self, x, *params):
+    def fit_deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
 
@@ -698,7 +698,7 @@ class Polynomial2D(PolynomialModel):
             r0 = coeff[n + 1]
         return r0 + r1 + r2
 
-    def deriv(self, x, y, *params):
+    def fit_deriv(self, x, y, *params):
         """
         Computes the Vandermonde matrix.
 
@@ -827,7 +827,7 @@ class Chebyshev2D(OrthoPolynomialBase):
             kfunc[n] = 2 * y * kfunc[n - 1] - kfunc[n - 2]
         return kfunc
 
-    def deriv(self, x, y, *params):
+    def fit_deriv(self, x, y, *params):
         """
         Derivatives with respect to the coefficients.
 
@@ -942,7 +942,7 @@ class Legendre2D(OrthoPolynomialBase):
                                   (n - 1) * kfunc[n + x_terms - 2]) / (n)
         return kfunc
 
-    def deriv(self, x, y, *params):
+    def fit_deriv(self, x, y, *params):
         """
         Derivatives with repect to the coefficients.
         This is an array with Legendre polynomials:

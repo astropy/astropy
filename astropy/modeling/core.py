@@ -360,10 +360,11 @@ class ParametricModel(Model):
     """
 
     linear = False
-    deriv = None
-    # Flag that indicates if the model derivatives are given in columns
-    # or rows
-    col_deriv = True
+    # derivative with respect to parameters
+    fit_deriv = None
+    # Flag that indicates if the model derivatives with respect to parameters
+    # are given in columns or rows
+    col_fit_deriv = True
     fittable = True
 
 

@@ -110,7 +110,7 @@ class Gaussian1D(Parametric1DModel):
         return amplitude * np.exp(- 0.5 * (x - mean) ** 2 / stddev ** 2)
 
     @staticmethod
-    def deriv(x, amplitude, mean, stddev):
+    def fit_deriv(x, amplitude, mean, stddev):
         """
         Model function derivatives Gauss1D
         """
@@ -223,11 +223,10 @@ class Gaussian2D(Parametric2DModel):
                                     c * (y - y_mean) ** 2))
 
     @staticmethod
-    def deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
-        """Two dimensional Gaussian function derivative"""
+    def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
+        """Two dimensional Gaussian function derivative with respect to parameters"""
 
         # Helper quantities
-        # Derivatives are not checked yet
         a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
                          (np.sin(theta) / y_stddev) ** 2)
         b = 0.5 * (np.cos(theta) * np.sin(theta) *
@@ -386,7 +385,7 @@ class Sine1D(Parametric1DModel):
         return amplitude * np.sin(2 * np.pi * frequency * x)
 
     @staticmethod
-    def deriv(x, amplitude, frequency):
+    def fit_deriv(x, amplitude, frequency):
         """One dimensional Sine model derivative"""
 
         d_amplitude = np.sin(2 * np.pi * frequency * x)
@@ -433,8 +432,8 @@ class Linear1D(Parametric1DModel):
         return slope * x + intercept
 
     @staticmethod
-    def deriv(x, slope, intercept):
-        """One dimensional Line model derivative"""
+    def fit_deriv(x, slope, intercept):
+        """One dimensional Line model derivative with respect to parameters"""
 
         d_slope = x
         d_intercept = np.ones_like(x)
@@ -483,8 +482,8 @@ class Lorentz1D(Parametric1DModel):
                 (fwhm / 2.) ** 2))
 
     @staticmethod
-    def deriv(x, amplitude, x_0, fwhm):
-        """One dimensional Lorentzian model derivative"""
+    def fit_deriv(x, amplitude, x_0, fwhm):
+        """One dimensional Lorentzian model derivative wiht respect to parameters"""
 
         d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
         d_x_0 = (amplitude * d_amplitude * (2 * x - 2 * x_0) /
@@ -525,8 +524,8 @@ class Const1D(Parametric1DModel):
         return amplitude * np.ones_like(x)
 
     @staticmethod
-    def deriv(x, amplitude):
-        """One dimensional Constant model derivative"""
+    def fit_deriv(x, amplitude):
+        """One dimensional Constant model derivative with respect to parameters"""
 
         d_amplitude = np.ones_like(x)
         return [d_amplitude]
@@ -742,8 +741,8 @@ class Box1D(Parametric1DModel):
                                         [amplitude], 0)
 
     @classmethod
-    def deriv(cls, x, amplitude, x_0, width):
-        """One dimensional Box model derivative"""
+    def fit_deriv(cls, x, amplitude, x_0, width):
+        """One dimensional Box model derivative with respect to parameters"""
 
         d_amplitude = cls.eval(x, 1, x_0, width)
         d_x_0 = np.zeros_like(x)
@@ -1115,8 +1114,8 @@ class Beta1D(Parametric1DModel):
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
 
     @staticmethod
-    def deriv(x, amplitude, x_0, gamma, alpha):
-        """One dimensional Beta model derivative"""
+    def fit_deriv(x, amplitude, x_0, gamma, alpha):
+        """One dimensional Beta model derivative with respect to parameters"""
 
         d_A = (1 + (x - x_0) ** 2 / gamma ** 2) ** (-alpha)
         d_x_0 = (-amplitude * alpha * d_A * (-2 * x + 2 * x_0) /
@@ -1177,8 +1176,8 @@ class Beta2D(Parametric2DModel):
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
-    def deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
-        """Two dimensional Beta model derivative"""
+    def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
+        """Two dimensional Beta model derivative with respect to parameters"""
 
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
         d_A = (1 + rr_gg) ** (-alpha)
@@ -1191,7 +1190,7 @@ class Beta2D(Parametric2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-def custom_model_1d(func, func_deriv=None):
+def custom_model_1d(func, func_fit_deriv=None):
     """
     Create a one dimensional model from a user defined function. The
     parameters of the model will be inferred from the arguments of
@@ -1212,13 +1211,13 @@ def custom_model_1d(func, func_deriv=None):
         keyword arguments (the parameters).  It must return the value
         of the model (typically as an array, but can also be a scalar for
         scalar inputs).  This corresponds to the `ParametricModel.eval` method.
-    func_deriv : function, optional
+    func_fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should
         have the same argument signature as `func`, but should return a
         sequence where each element of the sequence is the derivative
         with respect to the correseponding argument. This corresponds to the
-        `ParametricModel.deriv` method.
+        `ParametricModel.fit_deriv` method.
 
 
     Examples
@@ -1231,7 +1230,7 @@ def custom_model_1d(func, func_deriv=None):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
         >>> def sine_deriv(x, amplitude=1., frequency=1.):
         ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
-        >>> SineModel = custom_model_1d(sine_model, func_deriv=sine_deriv)
+        >>> SineModel = custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it:
 
@@ -1245,8 +1244,8 @@ def custom_model_1d(func, func_deriv=None):
     if not six.callable(func):
         raise ModelDefinitionError("Not callable. Must be function")
 
-    if func_deriv is not None and not six.callable(func_deriv):
-        raise ModelDefinitionError("func_deriv not callable. Must be function")
+    if func_fit_deriv is not None and not six.callable(func_fit_deriv):
+        raise ModelDefinitionError("func_fit_deriv not callable. Must be function")
 
     model_name = func.__name__
     param_values = six.get_function_defaults(func)
@@ -1254,7 +1253,7 @@ def custom_model_1d(func, func_deriv=None):
     # Check if all parameters are keyword arguments
     nparams = len(param_values)
 
-    if func_deriv is not None and len(six.get_function_defaults(func_deriv)) != nparams:
+    if func_fit_deriv is not None and len(six.get_function_defaults(func_fit_deriv)) != nparams:
         raise ModelDefinitionError("derivative function should accept"
                                    " same number of parameters as func.")
 
@@ -1292,8 +1291,8 @@ def custom_model_1d(func, func_deriv=None):
 
     eval(compile(init_code_string, filename, 'single'), eval_globals)
 
-    if func_deriv is not None:
-        members['deriv'] = staticmethod(func_deriv)
+    if func_fit_deriv is not None:
+        members['fit_deriv'] = staticmethod(func_fit_deriv)
 
     members['__init__'] = eval_globals['__init__']
     members.update(params)

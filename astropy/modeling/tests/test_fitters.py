@@ -39,7 +39,7 @@ class TestPolynomial2D(object):
         self.fitter = fitting.LinearLSQFitter()
 
     def test_poly2D_fitting(self):
-        v = self.model.deriv(x=self.x, y=self.y)
+        v = self.model.fit_deriv(x=self.x, y=self.y)
         p = linalg.lstsq(v, self.z.flatten())[0]
         new_model = self.fitter(self.model, self.x, self.y, self.z)
         utils.assert_allclose(new_model.parameters, p)
