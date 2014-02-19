@@ -10,7 +10,7 @@ import re
 
 from docutils.nodes import Text, reference
 
-BLOCK_PATTERN = re.compile('\[#[#0-9,\s]+\]')
+BLOCK_PATTERN = re.compile('\[#.+\]', flags=re.DOTALL)
 ISSUE_PATTERN = re.compile('#[0-9]+')
 
 
