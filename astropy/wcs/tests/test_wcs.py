@@ -567,3 +567,14 @@ def test_validate_faulty_wcs():
     hdulist = fits.HDUList([hdu])
     # Check that this doesn't raise a NameError exception:
     wcs.validate(hdulist)
+
+
+def test_error_message():
+    header = get_pkg_data_contents(
+        'data/invalid_header.hdr', encoding='binary')
+
+    with pytest.raises(wcs.InvalidTransformError):
+        # Both lines are in here, because 0.4 calls .set within WCS.__init__,
+        # whereas 0.3 and earlier did not.
+        w = wcs.WCS(header)
+        c = w.all_pix2world([[536.0, 894.0]], 0)

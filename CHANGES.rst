@@ -210,6 +210,10 @@ Bug Fixes
     '`` when using :func:`astropy.wcs.validate` or the `wcslint`
     script. [#2053]
 
+  - Fixed a bug where error messages about incorrect header keywords
+    may not be propagated correctly, resulting in a "NULL error object
+    in wcslib" message. [#2106]
+
 - Misc
 
   - There are a number of improvements to make `astropy` work better
