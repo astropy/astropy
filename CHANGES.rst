@@ -82,6 +82,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - The column string representation for n-dimensional cells with only
+    one element has been fixed. [#1522]
+
   - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
     metadata. [#1471]
 
