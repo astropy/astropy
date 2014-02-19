@@ -1221,7 +1221,11 @@ class TimeFormat(object):
 
 
 class TimeJD(TimeFormat):
-    """Julian Date time format"""
+    """
+    Julian Date time format, which represents the number of days since the
+    beginning of the Julian Period.
+    For example, 2451544.5 in JD is midnight on January 1, 2000.
+    """
     name = 'jd'
 
     def set_jds(self, val1, val2):
@@ -1234,7 +1238,11 @@ class TimeJD(TimeFormat):
 
 
 class TimeMJD(TimeFormat):
-    """Modified Julian Date time format"""
+    """
+    Modified Julian Date time format, which represents the number of days
+    since midnight on November 17, 1858.
+    For example, 51544.0 in MJD is midnight on January 1, 2000.
+    """
     name = 'mjd'
 
     def set_jds(self, val1, val2):
@@ -1319,6 +1327,7 @@ class TimeFromEpoch(TimeFormat):
 class TimeUnix(TimeFromEpoch):
     """
     Unix time: seconds from 1970-01-01 00:00:00 UTC.
+    For example, 946684800.0 in Unix time is midnight on January 1, 2000.
 
     NOTE: this quantity is not exactly unix time and differs from the strict
     POSIX definition by up to 1 second on days with a leap second.  POSIX
@@ -1335,7 +1344,10 @@ class TimeUnix(TimeFromEpoch):
 
 
 class TimeCxcSec(TimeFromEpoch):
-    """Chandra X-ray Center seconds from 1998-01-01 00:00:00 TT"""
+    """
+    Chandra X-ray Center seconds from 1998-01-01 00:00:00 TT.
+    For example, 63072064.184 is midnight on January 1, 2000.
+    """
     name = 'cxcsec'
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
     epoch_val = '1998-01-01 00:00:00'
@@ -1346,6 +1358,7 @@ class TimeCxcSec(TimeFromEpoch):
 
 class TimeGPS(TimeFromEpoch):
     """GPS time: seconds from 1980-01-06 00:00:00 UTC
+    For example, 630720013.0 is midnight on January 1, 2000.
 
     Notes
     =====
@@ -1377,6 +1390,8 @@ class TimePlotDate(TimeFromEpoch):
       >>> plt.plot_date(t.plot_date, jyear)
       >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
       >>> plt.draw()
+
+    For example, 730120.0003703703 is midnight on January 1, 2000.
     """
     # This corresponds to the zero reference time for matplotlib plot_date().
     # Note that TAI and UTC are equivalent at the reference time.
@@ -1615,7 +1630,8 @@ class TimeString(TimeUnique):
 class TimeISO(TimeString):
     """
     ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
-
+    For example, 2000-01-01 00:00:00.000 is midnight on January 1, 2000.
+    
     The allowed subformats are:
 
     - 'date_hms': date + hours, mins, secs (and optional fractional secs)
@@ -1641,6 +1657,7 @@ class TimeISOT(TimeString):
     ISO 8601 compliant date-time format "YYYY-MM-DDTHH:MM:SS.sss...".
     This is the same as TimeISO except for a "T" instead of space between
     the date and time.
+    For example, 2000-01-01T00:00:00.000 is midnight on January 1, 2000.
 
     The allowed subformats are:
 
@@ -1665,6 +1682,7 @@ class TimeYearDayTime(TimeString):
     """
     Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".  The
     day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+    For example, 2000:001:00:00:00.000 is midnight on January 1, 2000.
 
     The allowed subformats are:
 
