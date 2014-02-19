@@ -142,6 +142,9 @@ pipeline_all_pixel2world(
 
     if ((status = wcsp2s(pipeline->wcs, (int)ncoord, (int)nelem, wcs_input, imgcrd,
                          phi, theta, wcs_output, stat))) {
+      if (pipeline->err == NULL) {
+        pipeline->err = calloc(1, sizeof(struct wcserr));
+      }
       wcserr_copy(pipeline->wcs->err, pipeline->err);
     }
 
@@ -228,6 +231,9 @@ int pipeline_pix2foc(
   if (has_sip) {
     status = sip_pix2deltas(pipeline->sip, 2, ncoord, input, foc);
     if (status) {
+      if (pipeline->err == NULL) {
+        pipeline->err = calloc(1, sizeof(struct wcserr));
+      }
       wcserr_copy(pipeline->sip->err, pipeline->err);
       goto exit;
     }
