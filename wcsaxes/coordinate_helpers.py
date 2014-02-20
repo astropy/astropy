@@ -7,9 +7,11 @@ from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.collections import PathCollection
 
 from .formatter_locator import AngleFormatterLocator
-from . import six
 from .ticks import Ticks
 from .grid_paths import get_lon_lat_path
+
+from . import six
+
 
 class BaseCoordinateHelper(object):
 
@@ -170,6 +172,17 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         self.grid_lines.set_paths(paths)
 
     def grid(self, draw_grid=True, **kwargs):
+        """
+        Plot gridlines for this coordinate.
+
+        Standard matplotlib appearance options (color, alpha, etc.) can be
+        passed as keyword arguments.
+
+        Parameters
+        ----------
+        draw_grid : bool
+            Whether to show the gridlines
+        """
 
         self.grid_lines.set(**kwargs)
 
@@ -197,6 +210,21 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                             "instance")
 
     def set_ticks(self, values=None, spacing=None, number=None):
+        """
+        Set the location of the ticks.
+
+        Only one of the options from ``values``, ``spacing``, or ``number``
+        should be specified.
+
+        Parameters
+        ----------
+        values : iterable, optional
+            The coordinate values at which to show the ticks.
+        spacing : float, optional
+            The spacing between ticks.
+        number : float, optional
+            The approximate number of ticks shown.
+        """
         if values is not None:
             self._formatter_locator_helper.values = values
         elif spacing is not None:
