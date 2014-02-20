@@ -195,8 +195,10 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             t.set_ha(ha)
             t.set_va(va)
 
-            self.parent_axes.add_artist(t)
-            self.text_labels.append(t)
+            t.set_figure(self.parent_axes.get_figure())
+            t.set_transform(self.parent_axes.transData)
+
+            t.draw(renderer)
 
         self._update_grid()
 
