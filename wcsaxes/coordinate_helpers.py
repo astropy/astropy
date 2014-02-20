@@ -5,12 +5,16 @@ import numpy as np
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.collections import PathCollection
+from matplotlib.text import Text
 
 from .formatter_locator import AngleFormatterLocator
 from .ticks import Ticks
 from .grid_paths import get_lon_lat_path
 
 from . import six
+
+
+# TODO: very little here is sky-specific. Only the wrapping. Maybe we can avoid the use of an empty base class.
 
 
 class BaseCoordinateHelper(object):
@@ -96,7 +100,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         self.parent_axes.add_collection(self.grid_lines)
         self.grid_lines.set_visible(False)
 
-    def _update_ticks(self):
+        self.text_labels = []
+
+    def _update_ticks(self, renderer):
 
         # Here we should determine the location and rotation of all the ticks.
         # For each axis, we can check the intersections for the specific
@@ -111,6 +117,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
         x_pix, y_pix = self.parent_axes._sample_bounding_frame(1000)
+
+        # TODO: the above could be abstracted to work with any line, which
+        # could then be re-used for floating axes1
 
         # Find angle normal to border and inwards
         dx = x_pix - np.roll(x_pix, 1)
@@ -130,6 +139,8 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         # Search for intersections
         # TODO: can be made more accurate/robust
+        tick_world_coordinates_2 = []
+        tick_normal = []
         tick_pixel_coordinates = []
         tick_angles = []
         for tick_position in tick_world_coordinates:
@@ -138,11 +149,59 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             for i in inter:
                 tick_pixel_coordinates.append((x_pix[i], y_pix[i]))
                 tick_angles.append(normal_angle[i])
+                tick_world_coordinates_2.append(tick_position)
+                tick_normal.append(normal_angle[i])
 
         # And finally we set the locations and angles
         self.ticks._set_positions(world=tick_world_coordinates,
                                  pixel=tick_pixel_coordinates,
                                  angles=tick_angles)
+
+        # Add labels
+        for label in self.text_labels:
+            label.remove()
+
+        tick_normal = np.array(tick_normal) % 360
+
+        for i in range(len(tick_world_coordinates_2)):
+
+            coordinate = tick_world_coordinates_2[i]
+            x, y = tick_pixel_coordinates[i]
+            angle = tick_angles[i]
+            label_text = self._formatter_locator_helper.formatter([coordinate])[0]
+
+            t = Text(text=label_text, color='green', clip_on=False)
+            text_size = renderer.points_to_pixels(t.get_size())
+
+            pad = text_size * 0.4
+
+            # In future, do something smarter for arbitrary directions
+            if np.abs(tick_normal[i] - 90.) < 45:
+                ha = 'center'
+                va = 'bottom'
+                dx = 0
+                dy = -text_size - pad
+            elif np.abs(tick_normal[i] - 180.) < 45:
+                ha = 'left'
+                va = 'center'
+                dx = pad
+                dy = 0
+            elif np.abs(tick_normal[i] - 270.) < 45:
+                ha = 'center'
+                va = 'bottom'
+                dx = 0
+                dy = pad
+            else:
+                ha = 'right'
+                va = 'center'
+                dx = -pad
+                dy = 0.
+
+            t.set_position((x+dx, y+dy))
+            t.set_ha(ha)
+            t.set_va(va)
+
+            self.parent_axes.add_artist(t)
 
         self._update_grid()
 
@@ -247,7 +306,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         renderer.open_group('coordinate_axis')
 
-        self._update_ticks()
+        self._update_ticks(renderer)
         self.ticks.draw(renderer)
 
         renderer.close_group('coordinate_axis')

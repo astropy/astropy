@@ -177,9 +177,9 @@ class AngleFormatterLocator(object):
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
             return values
 
-    def formatter(self, direction, factor, values, **kwargs):
+    def formatter(self, values):
         if len(values) > 0:
-            angles = Angle(np.asarray(values) / factor, unit=u.deg)
+            angles = Angle(np.asarray(values), unit=u.deg)
             string = angles.to_string(unit=self._unit,
                                       precision=self._precision,
                                       decimal=self._decimal,
