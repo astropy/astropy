@@ -153,6 +153,15 @@ Bug Fixes
   - Pickling unrecognized units will not raise a
     `AttributeError`. [#2047]
 
+  - `astropy.units` now correctly preserves the precision of
+    fractional powers. [#2070]
+
+  - If a ``Unit`` or ``Quantity`` is raised to a floating point power
+    that is very close to a rational number with a denominator less
+    than or equal to 10, it is converted to a `Fraction` object to
+    preserve its precision through complex unit conversion operations.
+    [#2070]
+
 - ``astropy.utils``
 
   - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]

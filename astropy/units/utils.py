@@ -10,12 +10,18 @@ package.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numbers
 import io
 import re
+import warnings
 
+import numpy as np
 from numpy import finfo
 
 from ..extern import six
+from ..utils.compat.fractions import Fraction
+from ..utils.exceptions import AstropyDeprecationWarning
+
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -119,3 +125,67 @@ def generate_unit_summary(namespace):
 
 def is_effectively_unity(value):
     return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
+
+
+def validate_power(p, support_tuples=False):
+    """
+    Handles the conversion of a power to a floating point or a
+    rational number.
+
+    Parameters
+    ----------
+    support_tuples : bool, optional
+        If `True`, treat 2-tuples as `Fraction` objects.  This
+        behavior is deprecated and will be removed in astropy 0.5.
+    """
+    # For convenience, treat tuples as Fractions
+    if support_tuples and isinstance(p, tuple) and len(p) == 2:
+        # Deprecated in 0.3.1
+        warnings.warn(
+            "Using a tuple as a fractional power is deprecated and may be "
+            "removed in a future version.  Use Fraction(n, d) instead.",
+            AstropyDeprecationWarning)
+        p = Fraction(p[0], p[1])
+
+    if isinstance(p, numbers.Rational) or isinstance(p, Fraction):
+        # If the fractional power can be represented *exactly* as a
+        # floating point number, we convert it to a float, to make the
+        # math much faster, otherwise, we retain it as a
+        # `fractions.Fraction` object to avoid losing precision.
+        denom = p.denominator
+        if denom == 1:
+            p = int(p.numerator)
+        # This is bit-twiddling hack to see if the integer is a
+        # power of two
+        elif (denom & (denom - 1)) == 0:
+            p = float(p)
+    else:
+        if not np.isscalar(p):
+            raise ValueError(
+                "Quantities and Units may only be raised to a scalar power")
+
+        p = float(p)
+
+        # If the value is indistinguishable from a rational number
+        # with a low-numbered denominator, convert to a Fraction
+        # object.  We don't want to convert for denominators that are
+        # a power of 2, since those can be perfectly represented, and
+        # subsequent operations are much faster if they are retained
+        # as floats.  Nor do we need to test values that are divisors
+        # of a higher number, such as 3, since it is already addressed
+        # by 6.
+
+        # First check for denominator of 1
+        if (p % 1.0) == 0.0:
+            p = int(p)
+        # Leave alone if the denominator is exactly 2, 4 or 8
+        elif (p * 8.0) % 1.0 == 0.0:
+            pass
+        else:
+            for i in [10, 9, 7, 6]:
+                scaled = p * float(i)
+                if (scaled + 4. * _float_finfo.eps) % 1.0 < 8. * _float_finfo.eps:
+                    p = Fraction(int(scaled), i)
+                    break
+
+    return p

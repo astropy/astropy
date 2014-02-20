@@ -11,16 +11,14 @@ from ..extern import six
 from ..extern.six.moves import zip
 
 import inspect
-import numbers
 import sys
 import textwrap
 import warnings
 import numpy as np
 
-from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable
-from .utils import is_effectively_unity
+from .utils import is_effectively_unity, validate_power
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -554,7 +552,7 @@ class UnitBase(object):
         """
         Return the powers of the unit.
         """
-        return [1.0]
+        return [1]
 
     def to_string(self, format='generic'):
         """
@@ -602,25 +600,6 @@ class UnitBase(object):
             normalized += get_current_unit_registry().equivalencies
 
         return normalized
-
-    def _validate_power(self, p):
-        if isinstance(p, tuple) and len(p) == 2:
-            p = Fraction(p[0], p[1])
-
-        if isinstance(p, numbers.Rational):
-            # If the fractional power can be represented *exactly* as
-            # a floating point number, we convert it to a float, to
-            # make the math much faster, otherwise, we use a
-            # `fractions.Fraction` object to avoid losing precision.
-            denom = p.denominator
-            # This is bit-twiddling hack to see if the integer is a
-            # power of two
-            if (denom & (denom - 1)) == 0:
-                p = float(p)
-        else:
-            p = float(p)
-
-        return p
 
     def __pow__(self, p):
         return CompositeUnit(1, [self], [p])
@@ -1911,7 +1890,7 @@ class CompositeUnit(UnitBase):
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
-            powers = [self._validate_power(p) for p in powers]
+            powers = [validate_power(p, support_tuples=True) for p in powers]
 
         self._scale = scale
         self._bases = bases
@@ -1992,7 +1971,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [x[1] for x in new_parts]
+        self._powers = [validate_power(x[1], support_tuples=True) for x in new_parts]
 
         if is_effectively_unity(scale):
             scale = 1.0
