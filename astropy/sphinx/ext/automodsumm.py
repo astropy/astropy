@@ -99,14 +99,17 @@ class Automodsumm(AstropyAutosummary):
     option_spec['skip'] = _str_list_converter
 
     def run(self):
+        env = self.state.document.settings.env
+        modname = self.arguments[0]
+
         self.warnings = []
         nodelist = []
 
         try:
-            localnames, fqns, objs = find_mod_objs(self.arguments[0])
+            localnames, fqns, objs = find_mod_objs(modname)
         except ImportError:
             self.warnings = []
-            self.warn("Couldn't import module " + self.arguments[0])
+            self.warn("Couldn't import module " + modname)
             return self.warnings
 
         try:
@@ -115,35 +118,40 @@ class Automodsumm(AstropyAutosummary):
             funconly = 'functions-only' in self.options
             clsonly = 'classes-only' in self.options
 
-            skipmap = {}
+            skipnames = []
             if 'skip' in self.options:
-                skipnames = set(self.options['skip'])
-                for lnm, fqnm in zip(localnames, fqns):
-                    if lnm in skipnames:
-                        skipnames.remove(lnm)
-                        skipmap[fqnm] = lnm
-                if len(skipnames) > 0:
+                option_skipnames = set(self.options['skip'])
+                for lnm in localnames:
+                    if lnm in option_skipnames:
+                        option_skipnames.remove(lnm)
+                        skipnames.append(lnm)
+                if len(option_skipnames) > 0:
                     self.warn('Tried to skip objects {objs} in module {mod}, '
                               'but they were not present.  Ignoring.'.format(
-                              objs=skipnames, mod=self.arguments[0]))
+                              objs=option_skipnames, mod=modname))
 
             if funconly and not clsonly:
                 cont = []
-                for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and inspect.isfunction(obj):
-                        cont.append('~' + nm)
+                for nm, obj in zip(localnames, objs):
+                    if nm not in skipnames and inspect.isfunction(obj):
+                        cont.append(nm)
             elif clsonly:
                 cont = []
-                for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and inspect.isclass(obj):
-                        cont.append('~' + nm)
+                for nm, obj in zip(localnames, objs):
+                    if nm not in skipnames and inspect.isclass(obj):
+                        cont.append(nm)
             else:
                 if clsonly and funconly:
                     self.warning('functions-only and classes-only both '
                                  'defined. Skipping.')
-                cont = ['~' + nm for nm in fqns if nm not in skipmap]
+                cont = [nm for nm in localnames if nm not in skipnames]
 
             self.content = cont
+
+            #for some reason, even though ``currentmodule`` is substituted in, sphinx
+            #doesn't necessarily recognize this fact.  So we just force it
+            #internally, and that seems to fix things
+            env.temp_data['py:module'] = modname
 
             #can't use super because Sphinx/docutils has trouble
             #return super(Autosummary,self).run()
@@ -291,7 +299,13 @@ def automodsumm_to_autosummary_lines(fn, app):
             app.warn('[automodsumm]' + msg, (fn, lnnum))
             continue
 
-        newlines.append(i1 + '.. autosummary::')
+        # Use the currentmodule directive so we can just put the local names
+        # in the autosummary table.  Note that this doesn't always seem to
+        # actually "take" in Sphinx's eyes, so in `Automodsumm.run`, we have to
+        # force it internally, as well.
+        newlines.extend([i1 + '.. currentmodule:: ' + modnm,
+                         '',
+                         '.. autosummary::'])
         newlines.extend(oplines)
 
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
@@ -301,7 +315,7 @@ def automodsumm_to_autosummary_lines(fn, app):
                 continue
             if clssonly and not inspect.isclass(obj):
                 continue
-            newlines.append(allindent + '~' + fqn)
+            newlines.append(allindent + nm)
 
     return newlines
 
