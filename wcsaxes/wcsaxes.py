@@ -49,6 +49,10 @@ class WCSAxes(Axes):
         p_new = np.linspace(0., 1., n_samples)
         return np.interp(p_new, p, x), np.interp(p_new, p, y)
 
+    def get_coord_range(self):
+        # TODO: implement this
+        return [[-180., 180.], [-89.999, 89.999]]
+
     def draw(self, renderer, inframe=False):
 
         super(WCSAxes, self).draw(renderer, inframe)
@@ -59,9 +63,6 @@ class WCSAxes(Axes):
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
-
-        self.coords[0]._update_ticks(coord_range=[-180., 180.])
-        self.coords[1]._update_ticks(coord_range=[-89.999, 89.999])
 
         self.coords[0].draw(renderer)
         self.coords[1].draw(renderer)
