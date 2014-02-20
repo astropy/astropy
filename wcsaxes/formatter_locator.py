@@ -136,12 +136,12 @@ class AngleFormatterLocator(object):
 
         return spacing
 
-    def locator(self, v1, v2):
+    def locator(self, value_min, value_max):
 
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values), len(self.values), 1.0
+            return np.asarray(self.values)
 
         else:
 
@@ -155,7 +155,7 @@ class AngleFormatterLocator(object):
                 # number of ticks was specified, work out optimal spacing
 
                 # first compute the exact spacing
-                dv = abs(float(v2 - v1)) / self.number * u.degree
+                dv = abs(float(value_max - value_min)) / self.number * u.degree
 
                 if dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
@@ -172,10 +172,10 @@ class AngleFormatterLocator(object):
 
             # We now find the interval values as multiples of the spacing and generate the tick
             # positions from this
-            imin = np.floor(v1 / spacing_deg)
-            imax = np.ceil(v2 / spacing_deg)
+            imin = np.floor(value_min / spacing_deg)
+            imax = np.ceil(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            return values, len(values), 1.0
+            return values
 
     def formatter(self, direction, factor, values, **kwargs):
         if len(values) > 0:

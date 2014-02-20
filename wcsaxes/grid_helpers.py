@@ -1,7 +1,5 @@
 import abc
 
-from mpl_toolkits.axisartist import angle_helper, GridHelperCurveLinear
-
 from .coordinate_helpers import SkyCoordinateHelper
 from .transforms import WCSWorld2PixelTransform
 from . import six
@@ -47,44 +45,23 @@ class BaseGridHelper(object):
         raise NotImplementedError()
 
 
-class SkyGridHelper(BaseGridHelper):
+class SkyCoordinatesMap(object):
 
     def __init__(self, axes, wcs):
 
+        # Keep track of parent axes and WCS
         self._axes = axes
         self._wcs = wcs
-
-        # The following code was taken from the demo_floating_axis example in
-        # Matplotlib. We make use of helpers in the mpl_toolkits package.
-
-        self._extreme_finder = angle_helper.ExtremeFinderCycle(20, 20,
-                                                               lon_cycle=360,
-                                                               lat_cycle=None,
-                                                               lon_minmax=(-360., 360.),
-                                                               lat_minmax = (-90., 90.)
-                                                               )
 
         # Set up transform
         self._transform = WCSWorld2PixelTransform(self._wcs)
 
         # Set up coordinates
         self._coords = {}
-        self._coords[0] = SkyCoordinateHelper()
-        self._coords[1] = SkyCoordinateHelper()
-
-        # Set up grid helper
-        self._grid_helper = GridHelperCurveLinear(self._transform,
-                                                  extreme_finder=self._extreme_finder,
-                                                  grid_locator1=self[0].locator,
-                                                  grid_locator2=self[1].locator,
-                                                  tick_formatter1=self[0].formatter,
-                                                  tick_formatter2=self[1].formatter,
-                                                  )
-
-        # Add reference to grid helper to coordinates so that they can
-        # invalidate the tick/label cache.
-        self._coords[0]._grid_helper = self._grid_helper
-        self._coords[1]._grid_helper = self._grid_helper
+        self._coords[0] = SkyCoordinateHelper(parent_axes=axes,
+                                              transform=self._transform, coord_index=0)
+        self._coords[1] = SkyCoordinateHelper(parent_axes=axes,
+                                              transform=self._transform, coord_index=1)
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
@@ -92,18 +69,11 @@ class SkyGridHelper(BaseGridHelper):
         name_2 = self._wcs.wcs.ctype[1][:4]
         self._coords[name_2.lower()] = self._coords[1]
 
-    @property
-    def grid_helper(self):
-        return self._grid_helper
-
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             return self._coords[item.lower()]
         else:
             return self._coords[item]
-
-    def grid(self, *args, **kwargs):
-        self._axes.grid(*args, **kwargs)
 
     def set_visible(self, visibility):
         raise NotImplementedError()
