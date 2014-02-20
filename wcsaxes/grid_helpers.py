@@ -84,6 +84,21 @@ class SkyCoordinatesMap(object):
     def disable_offset_mode(self):
         raise NotImplementedError()
 
+    def grid(self, show_grid=True, **kwrags):
+        """
+        Plot gridlines for both coordinates.
+
+        Standard matplotlib appearance options (color, alpha, etc.) can be
+        passed as keyword arguments.
+
+        Parameters
+        ----------
+        draw_grid : bool
+            Whether to show the gridlines
+        """
+        self[0].grid(show_grid=show_grid, **kwargs)
+        self[1].grid(show_grid=show_grid, **kwargs)
+
 
 class ScalarGridHelper(BaseGridHelper):
     pass
