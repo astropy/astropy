@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 from numpy.testing import assert_allclose
 from .. import models
-
+from astropy.coordinates import Angle
 
 try:
     from scipy import optimize
@@ -41,3 +41,20 @@ def test_Gaussian2D():
              [66.26262987, 78.29536082, 87.74139348, 93.25543692, 94.00369635],
              [53.6289606, 64.80568981, 74.27249818, 80.73169335, 83.22642276]]
     assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+
+
+def test_Gaussian2DRotation():
+    amplitude = 42
+    x_mean, y_mean = 0, 0
+    x_stddev, y_stddev = 2, 3
+    theta = Angle(10, 'deg')
+    pars = dict(amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
+                x_stddev=x_stddev, y_stddev=y_stddev)
+    rotation_matrix = models.MatrixRotation2D(angle=theta.degree)
+    point1 = (x_mean + 2 * x_stddev, y_mean + 2 * y_stddev)
+    point2 = rotation_matrix(*point1)
+    g1 = models.Gaussian2D(theta=0, **pars)
+    g2 = models.Gaussian2D(theta=theta.radian, **pars)
+    value1 = g1(*point1)
+    value2 = g2(*point2)
+    assert_allclose(value1, value2)

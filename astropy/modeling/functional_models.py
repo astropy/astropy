@@ -144,7 +144,7 @@ class Gaussian2D(Parametric2DModel):
         matrix (cov_matrix) is input.
     theta : float, optional
         Rotation angle in radians. The rotation angle increases clockwise.
-    cov_matrix : ndarray
+    cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the x_stddev,
         y_stddev, and theta specification.
 
