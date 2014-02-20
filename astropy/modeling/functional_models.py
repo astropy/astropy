@@ -34,11 +34,11 @@ class Gaussian1D(Parametric1DModel):
     Parameters
     ----------
     amplitude : float
-        Amplitude of the gaussian
+        Amplitude of the Gaussian.
     mean : float
-        Mean of the gaussian
+        Mean of the Gaussian.
     stddev : float
-        Standard deviation of the gaussian
+        Standard deviation of the Gaussian.
 
     Notes
     -----
@@ -106,14 +106,14 @@ class Gaussian1D(Parametric1DModel):
     @staticmethod
     def eval(x, amplitude, mean, stddev):
         """
-        Model function Gauss1D
+        Gaussian1D model function.
         """
         return amplitude * np.exp(- 0.5 * (x - mean) ** 2 / stddev ** 2)
 
     @staticmethod
     def fit_deriv(x, amplitude, mean, stddev):
         """
-        Model function derivatives Gauss1D
+        Gaussian1D model function derivatives.
         """
 
         d_amplitude = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
@@ -129,22 +129,24 @@ class Gaussian2D(Parametric2DModel):
     Parameters
     ----------
     amplitude : float
-        Amplitude of the gaussian
+        Amplitude of the Gaussian.
     x_mean : float
-        Mean of the gaussian in x
+        Mean of the Gaussian in x.
     y_mean : float
-        Mean of the gaussian in y
+        Mean of the Gaussian in y.
     x_stddev : float
-        Standard deviation of the gaussian in x
-        Either x_fwhm or x_stddev must be specified
+        Standard deviation of the Gaussian in x.
+        x_stddev and y_stddev must be specified unless a covariance
+        matrix (cov_matrix) is input.
     y_stddev : float
-        Standard deviation of the gaussian in y
-        Either y_fwhm or y_stddev must be specified
-    theta : float
-        Rotation angle in radians. Note: increases clockwise.
+        Standard deviation of the Gaussian in y.
+        x_stddev and y_stddev must be specified unless a covariance
+        matrix (cov_matrix) is input.
+    theta : float, optional
+        Rotation angle in radians. The rotation angle increases clockwise.
     cov_matrix : ndarray
-        A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
-        theta specification.
+        A 2x2 covariance matrix. If specified, overrides the x_stddev,
+        y_stddev, and theta specification.
 
     Notes
     -----
@@ -184,11 +186,11 @@ class Gaussian2D(Parametric2DModel):
                  theta=0.0, cov_matrix=None, **constraints):
         if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either y_stddev must be specified, or a "
+                "Either x/y_stddev must be specified, or a "
                 "covariance matrix.")
         elif x_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either x_stddev must be specified, or a "
+                "Either x/y_stddev must be specified, or a "
                 "covariance matrix.")
         elif cov_matrix is not None and (x_stddev is not None or
                                          y_stddev is not None):
