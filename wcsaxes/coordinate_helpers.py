@@ -89,15 +89,22 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         self.tick_positions_world = []
 
-    def _update_ticks(self, coord_range):
+        # Initialize container for the grid lines
+        self.grid_lines = PathCollection([])
+        self.parent_axes.add_collection(self.grid_lines)
+        self.grid_lines.set_visible(False)
+
+    def _update_ticks(self):
 
         # Here we should determine the location and rotation of all the ticks.
         # For each axis, we can check the intersections for the specific
         # coordinate and once we have the tick positions, we can use the WCS to
         # determine the rotations.
 
+        coord_range = self.parent_axes.get_coord_range()
+
         # First find the ticks we want to show
-        self.tick_positions_world = self._formatter_locator_helper.locator(*coord_range)
+        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index])
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -120,33 +127,57 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                     world[i + 1:] = world[i + 1:] - 360.
 
         # Search for intersections
-        locations = []
-        angles = []
-        for tick_position in self.tick_positions_world:
+        # TODO: can be made more accurate/robust
+        tick_pixel_coordinates = []
+        tick_angles = []
+        for tick_position in tick_world_coordinates:
             inter = np.where(((world[:-1] <= tick_position) & (world[1:] > tick_position)) |
                              ((world[:-1] > tick_position) & (world[1:] <= tick_position)))[0]
             for i in inter:
-                locations.append((x_pix[i], y_pix[i]))
-                angles.append(normal_angle[i])
+                tick_pixel_coordinates.append((x_pix[i], y_pix[i]))
+                tick_angles.append(normal_angle[i])
 
-        print(angles)
         # And finally we set the locations and angles
-        self.ticks.set_locs_angles(zip(locations, angles))
+        self.ticks._set_positions(world=tick_world_coordinates,
+                                 pixel=tick_pixel_coordinates,
+                                 angles=tick_angles)
 
-        self.grid(True)
+        self._update_grid()
 
-    def grid(self, draw_grid):
+    def _update_grid(self):
+
+        # For 3-d WCS with a correlated third axis, the *proper* way of
+        # drawing a grid should be to find the world coordinates of all pixels
+        # and drawing contours. What we are doing here assumes that we can
+        # define the grid lines with just two of the coordinates (and
+        # therefore assumes that the other coordinates are fixed and set to
+        # the value in the slice). Here we basically assume that if the WCS
+        # had a third axis, it has been abstracted away in the transformation.
+
+        coord_range = self.parent_axes.get_coord_range()
+
         paths = []
-        for w in self.tick_positions_world:
+        for w in self.ticks.get_world_coordinates():
             if self.coord_index == 0:
                 lon = np.repeat(w, 1000)
-                lat = np.linspace(-89.999, 89.999, 1000)
+                lat = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
             else:
-                lon = np.linspace(-179.999, 179.999, 1000)
+                lon = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
                 lat = np.repeat(w, 1000)
             lon_lat = np.vstack([lon, lat]).transpose()
             paths.append(get_lon_lat_path(self.parent_axes, self.transform, lon_lat))
-        self.parent_axes.add_collection(PathCollection(paths, edgecolors='b', facecolors='none', alpha=0.4))
+
+        self.grid_lines.set_paths(paths)
+
+    def grid(self, draw_grid=True, **kwargs):
+
+        self.grid_lines.set(**kwargs)
+
+        if self.grid_lines.get_visible():
+            if not draw_grid:
+                self.grid_lines.set_visible(False)
+        else:
+            self.grid_lines.set_visible(True)
 
     def set_major_formatter(self, formatter):
         """
@@ -188,11 +219,8 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         renderer.open_group('coordinate_axis')
 
-        # self._update_ticks()
+        self._update_ticks()
         self.ticks.draw(renderer)
-
-        # if self.grid_lines.get_visible():
-        #     self.grid_lines.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
