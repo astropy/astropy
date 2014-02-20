@@ -253,7 +253,7 @@ of ``c`` is used instead of the constant.
 Displaying available equivalencies
 ----------------------------------
 
-The :meth:`~astropy.units.core.Unit.find_equivalent_units` method also
+The :meth:`~astropy.units.core.UnitBase.find_equivalent_units` method also
 understands equivalencies.  For example, without passing equivalencies,
 there are three compatible units for ``Hz`` in the standard set::
 
