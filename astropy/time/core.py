@@ -1222,8 +1222,9 @@ class TimeFormat(object):
 
 class TimeJD(TimeFormat):
     """
-    Julian Date time format, which represents the number of days since the
-    beginning of the Julian Period.
+    Julian Date time format.
+    This represents the number of days since the beginning of
+    the Julian Period.
     For example, 2451544.5 in JD is midnight on January 1, 2000.
     """
     name = 'jd'
@@ -1239,8 +1240,8 @@ class TimeJD(TimeFormat):
 
 class TimeMJD(TimeFormat):
     """
-    Modified Julian Date time format, which represents the number of days
-    since midnight on November 17, 1858.
+    Modified Julian Date time format.
+    This represents the number of days since midnight on November 17, 1858.
     For example, 51544.0 in MJD is midnight on January 1, 2000.
     """
     name = 'mjd'
@@ -1680,8 +1681,8 @@ class TimeISOT(TimeString):
 
 class TimeYearDayTime(TimeString):
     """
-    Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".  The
-    day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+    Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".
+    The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
     For example, 2000:001:00:00:00.000 is midnight on January 1, 2000.
 
     The allowed subformats are:
