@@ -138,36 +138,30 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                     world[i + 1:] = world[i + 1:] - 360.
 
         # Search for intersections
-        # TODO: can be made more accurate/robust
-        tick_world_coordinates_2 = []
-        tick_normal = []
-        tick_pixel_coordinates = []
-        tick_angles = []
+        self.ticks.clear()
         for tick_position in tick_world_coordinates:
+            # TODO: can be made more accurate/robust
             inter = np.where(((world[:-1] <= tick_position) & (world[1:] > tick_position)) |
                              ((world[:-1] > tick_position) & (world[1:] <= tick_position)))[0]
             for i in inter:
-                tick_pixel_coordinates.append((x_pix[i], y_pix[i]))
-                tick_angles.append(normal_angle[i])
-                tick_world_coordinates_2.append(tick_position)
-                tick_normal.append(normal_angle[i])
-
-        # And finally we set the locations and angles
-        self.ticks._set_positions(world=tick_world_coordinates,
-                                 pixel=tick_pixel_coordinates,
-                                 angles=tick_angles)
+                self.ticks.add(pixel=(x_pix[i], y_pix[i]),
+                               world=tick_position,
+                               angle=normal_angle[i])
 
         # Add labels
+
         for label in self.text_labels:
+            print(label)
+            label.set_visible(False)
             label.remove()
 
-        tick_normal = np.array(tick_normal) % 360
+        tick_normal = np.array(self.ticks.angle) % 360
 
-        for i in range(len(tick_world_coordinates_2)):
+        for i in range(len(self.ticks)):
 
-            coordinate = tick_world_coordinates_2[i]
-            x, y = tick_pixel_coordinates[i]
-            angle = tick_angles[i]
+            coordinate = self.ticks.world[i]
+            x, y = self.ticks.pixel[i]
+            angle = self.ticks.angle[i]
             label_text = self._formatter_locator_helper.formatter([coordinate])[0]
 
             t = Text(text=label_text, color='green', clip_on=False)
@@ -175,8 +169,13 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
             pad = text_size * 0.4
 
-            # In future, do something smarter for arbitrary directions
-            if np.abs(tick_normal[i] - 90.) < 45:
+            # TODO: do something smarter for arbitrary directions
+            if np.abs(tick_normal[i]) < 45.:
+                ha = 'right'
+                va = 'center'
+                dx = -pad
+                dy = 0.
+            elif np.abs(tick_normal[i] - 90.) < 45:
                 ha = 'center'
                 va = 'bottom'
                 dx = 0
@@ -186,22 +185,18 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                 va = 'center'
                 dx = pad
                 dy = 0
-            elif np.abs(tick_normal[i] - 270.) < 45:
+            else:
                 ha = 'center'
                 va = 'bottom'
                 dx = 0
                 dy = pad
-            else:
-                ha = 'right'
-                va = 'center'
-                dx = -pad
-                dy = 0.
 
             t.set_position((x+dx, y+dy))
             t.set_ha(ha)
             t.set_va(va)
 
             self.parent_axes.add_artist(t)
+            self.text_labels.append(t)
 
         self._update_grid()
 
@@ -218,7 +213,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         coord_range = self.parent_axes.get_coord_range()
 
         paths = []
-        for w in self.ticks.get_world_coordinates():
+        for w in np.unique(self.ticks.world):
             if self.coord_index == 0:
                 lon = np.repeat(w, 1000)
                 lat = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
