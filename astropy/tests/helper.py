@@ -249,12 +249,15 @@ def _fix_user_options(options):
     return [tuple(to_str_or_none(x) for x in y) for y in options]
 
 
-def _save_coverage(cov, rootdir):
+def _save_coverage(cov, result, rootdir, testing_path):
     """
     This method is called after the tests have been run in coverage mode
     to cleanup and then save the coverage data and report.
     """
     from ..utils.console import color_print
+
+    if result != 0:
+        return
 
     # The coverage report includes the full path to the temporary
     # directory, so we replace all the paths with the true source
@@ -265,11 +268,13 @@ def _save_coverage(cov, rootdir):
     # Python 2.x.
     if six.PY2:
         d = cov.data
+        cov._harvest_data()
         for key in d.lines.keys():
             new_path = os.path.relpath(
                 os.path.realpath(key),
                 os.path.realpath(testing_path))
-            new_path = os.path.abspath(new_path)
+            new_path = os.path.abspath(
+                os.path.join(rootdir, new_path))
             d.lines[new_path] = d.lines.pop(key)
 
     color_print('Saving coverage data in .coverage...', 'green')
@@ -402,8 +407,8 @@ class astropy_test(Command, object):
                 cmd_post = (
                     'cov.stop(); '
                     'from astropy.tests.helper import _save_coverage; '
-                    '_save_coverage(cov, "{0}");'.format(
-                        os.path.abspath('.')))
+                    '_save_coverage(cov, result, "{0}", "{1}");'.format(
+                        os.path.abspath('.'), testing_path))
 
             if sys.version_info[0] >= 3:
                 set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
