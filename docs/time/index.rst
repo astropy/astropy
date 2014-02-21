@@ -720,9 +720,11 @@ i.e., scales for which it is not necessary to know the times that were
 differenced:: 
 
   >>> dt.tt
-  <TimeDelta object: scale='tt' format='jd' value=364.9999997456...>
+  <TimeDelta object: scale='tt' format='jd' value=364.99999974...>
   >>> dt.tdb
-  ERROR: AttributeError: 'TimeDelta' object has no attribute 'tdb' [astropy.time.core]
+  Traceback (most recent call last):
+    ...
+  ScaleValueError: Cannot convert TimeDelta with scale 'tcg' to scale 'tdb'
 
 |TimeDelta| objects can also have an undefined scale, in which case it is
 assumed that there scale matches that of the other |Time| or |TimeDelta|

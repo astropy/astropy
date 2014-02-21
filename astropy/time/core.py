@@ -686,7 +686,7 @@ class Time(object):
         """
         Get dynamic attributes to output format or do timescale conversion.
         """
-        if attr in self.SCALES:
+        if attr in self.SCALES and self.scale is not None:
             tm = self.replicate()
             tm._set_scale(attr)
             return tm
@@ -703,6 +703,16 @@ class Time(object):
             else:
                 out = tm.value
             return out
+
+        elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
+            if self.scale is None:
+                raise ScaleValueError("Cannot convert TimeDelta with "
+                                      "undefined scale to any defined scale.")
+            else:
+                raise ScaleValueError("Cannot convert {0} with scale "
+                                      "'{1}' to scale '{2}'"
+                                      .format(self.__class__.__name__,
+                                              self.scale, attr))
 
         else:
             # Should raise AttributeError
