@@ -54,10 +54,6 @@ class BaseCoordinateHelper(object):
                                          facecolor='none', visible=False,
                                          figure=self.parent_axes.get_figure())
 
-        # Default parameters for tick labels
-        self.set_ticklabel_size('medium')
-        self.set_ticklabel_color('black')
-
     def grid(self, draw_grid=True, **kwargs):
         """
         Plot gridlines for this coordinate.
