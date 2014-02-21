@@ -1,3 +1,8 @@
+"""
+This file defines the classes used to represent a 'coordinate', which includes
+axes, ticks, tick labels, and grid lines.
+"""
+
 import abc
 
 import numpy as np
@@ -97,8 +102,8 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         # Initialize container for the grid lines
         self.grid_lines = PathCollection([], zorder=1000, transform=self.parent_axes.transData, facecolor='none')
-        # self.parent_axes.add_collection(self.grid_lines)
         self.grid_lines.set_visible(False)
+        self.grid_lines.set_figure(self.parent_axes.get_figure())
 
         self.text_labels = []
 
@@ -109,10 +114,11 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         # coordinate and once we have the tick positions, we can use the WCS to
         # determine the rotations.
 
+        # Find the range of coordinates in all directions
         coord_range = self.parent_axes.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index])
+        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index]) % 360.
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -129,24 +135,38 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         # Transform to world coordinates
         world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:,self.coord_index]
 
-        # Smooth out discontinuities
-        for i in range(len(world) - 1):
-            if(abs(world[i] - world[i + 1]) > 180.):
-                if(world[i] > world[i + 1]):
-                    world[i + 1:] = world[i + 1:] + 360.
-                else:
-                    world[i + 1:] = world[i + 1:] - 360.
+        # Let's just code up the algorithm with simple loops and we can then
+        # see whether to optimize it array-wise, or just cythonize it.
 
-        # Search for intersections
+        # We find for each interval the starting and ending coordinate,
+        # ensuring that we take wrapping into account correctly.
+        w1 = world % 360.
+        w2 = np.roll(world, -1) % 360.
+        w1[w2 - w1 > 180.] += 360
+        w2[w1 - w2 > 180.] += 360
+
+        # Need to check ticks as well as ticks + 360, since the above can
+        # produce pairs such as 359 to 361 or 0.5 to 1.5, both of which would
+        # match a tick at 0.75.
+        check_ticks = np.hstack([tick_world_coordinates, tick_world_coordinates + 360.])
+
         self.ticks.clear()
-        for tick_position in tick_world_coordinates:
-            # TODO: can be made more accurate/robust
-            inter = np.where(((world[:-1] <= tick_position) & (world[1:] > tick_position)) |
-                             ((world[:-1] > tick_position) & (world[1:] <= tick_position)))[0]
-            for i in inter:
-                self.ticks.add(pixel=(x_pix[i], y_pix[i]),
-                               world=tick_position,
-                               angle=normal_angle[i])
+
+        for t in check_ticks:
+
+            # Find steps where a tick is present
+            intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
+
+            # Loop over ticks, and find exact pixel coordinates by linear
+            # interpolation
+            for imin in intersections:
+                imax = (imin + 1) % len(world)
+                frac = (t - w1[imin]) / (w2[imin] - w1[imin])
+                x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
+                y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
+                self.ticks.add(pixel=(x_pix_i, y_pix_i),
+                               world=t % 360.,
+                               angle=normal_angle[imin])
 
         # Add labels
 
