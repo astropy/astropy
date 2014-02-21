@@ -348,7 +348,7 @@ def main(argv):
     for pr, sha in suggester.iter_suggested_prs():
         # If sys.stdout's default encoding has a limited codepage this blows up if
         # the PR title contains unencodable characters =_=
-        title = pr['title'].encode(sys.stdout, errors='replace').decode()
+        title = pr['title'].encode(sys.stdout.encoding, errors='replace').decode()
         log.info(pr_format.format(pr['number'], sha, title))
         suggestions.append((pr, sha))
 
