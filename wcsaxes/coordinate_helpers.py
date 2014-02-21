@@ -166,6 +166,14 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             t = Text(text=label_text, color='green', clip_on=False)
             text_size = renderer.points_to_pixels(t.get_size())
 
+            # TODO: there must be a better way to figure out the text size in
+            # data units
+            axmin, aymin, axmax, aymax = self.parent_axes.get_window_extent().bounds
+            xmin, xmax = self.parent_axes.get_xlim()
+            ymin, ymax = self.parent_axes.get_ylim()
+            xscale = abs((xmax - xmin) / (axmax - axmin))
+            yscale = abs((ymax - ymin) / (aymax - aymin))
+
             pad = text_size * 0.4
 
             # TODO: do something smarter for arbitrary directions
@@ -176,9 +184,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                 dy = 0.
             elif np.abs(tick_normal[i] - 90.) < 45:
                 ha = 'center'
-                va = 'bottom'
+                va = 'top'
                 dx = 0
-                dy = -text_size - pad
+                dy = -pad
             elif np.abs(tick_normal[i] - 180.) < 45:
                 ha = 'left'
                 va = 'center'
@@ -189,6 +197,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                 va = 'bottom'
                 dx = 0
                 dy = pad
+
+            dx *= xscale
+            dy *= yscale
 
             t.set_position((x+dx, y+dy))
             t.set_ha(ha)
