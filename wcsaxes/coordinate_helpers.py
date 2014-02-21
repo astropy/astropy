@@ -101,9 +101,10 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         self.tick_positions_world = []
 
         # Initialize container for the grid lines
-        self.grid_lines = PathCollection([], zorder=1000, transform=self.parent_axes.transData, facecolor='none')
-        self.grid_lines.set_visible(False)
-        self.grid_lines.set_figure(self.parent_axes.get_figure())
+        self.grid_lines = PathCollection([],
+                                         transform=self.parent_axes.transData,
+                                         facecolor='none', visible=False,
+                                         figure=self.parent_axes.get_figure())
 
         self.text_labels = []
 
