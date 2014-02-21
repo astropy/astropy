@@ -35,7 +35,7 @@ Getting Started
 The basic way to use `astropy.time` is to create a |Time|
 object by supplying one or more input time values as well as the `time format`_ and
 `time scale`_ of those values.  The input time(s) can either be a single scalar like
-"2010-01-01 00:00:00" or a list or a `numpy` array of values as shown below.
+``"2010-01-01 00:00:00"`` or a list or a `numpy` array of values as shown below.
 In general any output values have the same shape (scalar or array) as the input.
 
   >>> from astropy.time import Time
@@ -560,7 +560,7 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
 
 For the UT1 to UTC offset, one has to interpolate in observed values provided
 by the `International Earth Rotation and Reference Systems Service
-<http://www.iers.org>`_.  By default, astropy is shipped with the final
+<http://www.iers.org>`_.  By default, Astropy is shipped with the final
 values provided in Bulletin B, which cover the period from 1962 to shortly
 before an astropy release, and these will be used to compute the offset if the
 :attr:`~astropy.time.core.Time.delta_ut1_utc` attribute is not set explicitly.  For
