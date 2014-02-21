@@ -130,9 +130,9 @@ that derives from the base :class:`~astropy.time.core.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
-=========  ====================================================  ==================
+=========  ====================================================  ==============================
 Format            Class                                           Example argument
-=========  ====================================================  ==================
+=========  ====================================================  ==============================
 byear      :class:`~astropy.time.core.TimeBesselianEpoch`             1950.0
 byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`      'B1950.0'
 cxcsec     :class:`~astropy.time.core.TimeCxcSec`                   63072064.184
@@ -147,7 +147,7 @@ mjd        :class:`~astropy.time.core.TimeMJD`                      51544.0
 plot_date  :class:`~astropy.time.core.TimePlotDate`                730120.0003703703
 unix       :class:`~astropy.time.core.TimeUnix`                    946684800.0
 yday       :class:`~astropy.time.core.TimeYearDayTime`             2000:001:00:00:00.000
-=========  ====================================================  ==================
+=========  ====================================================  ==============================
 
 Subformat
 """"""""""
