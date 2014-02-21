@@ -14,6 +14,7 @@ from matplotlib.text import Text
 
 from .formatter_locator import AngleFormatterLocator
 from .ticks import Ticks
+from .ticklabels import TickLabels
 from .grid_paths import get_lon_lat_path
 
 from . import six
@@ -40,6 +41,9 @@ class BaseCoordinateHelper(object):
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
         self.ticks = Ticks(transform=self.parent_axes.transData +
                                      self.offset_transform)
+
+        self.ticklabels = TickLabels(transform=self.parent_axes.transData,
+                                     figure=self.parent_axes.get_figure())
 
         # Initialize formatter/locator
         self._formatter_locator = self._formatter_locator_class()
@@ -132,6 +136,7 @@ class BaseCoordinateHelper(object):
 
         self._update_ticks(renderer)
         self.ticks.draw(renderer)
+        self.ticklabels.draw(renderer)
         self.grid_lines.draw(renderer)
 
         renderer.close_group('coordinate_axis')
@@ -157,12 +162,12 @@ class BaseCoordinateHelper(object):
 
     def set_ticks_size(self, color):
         self.ticks.set_ticksize(size)
-    
+
     def set_ticklabel_size(self, size):
-        self._ticklabel_size = size
+        self.ticklabels.set_size(size)
 
     def set_ticklabel_color(self, color):
-        self._ticklabel_color = color
+        self.ticklabels.set_color(color)
 
 
 class SkyCoordinateHelper(BaseCoordinateHelper):
@@ -226,67 +231,25 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
                 frac = (t - w1[imin]) / (w2[imin] - w1[imin])
                 x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
                 y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
+
                 self.ticks.add(pixel=(x_pix_i, y_pix_i),
                                world=t % 360.,
                                angle=normal_angle[imin])
 
-        # Add labels
+                self.ticklabels.add(pixel=(x_pix_i, y_pix_i),
+                                    world=t % 360.,
+                                    angle=normal_angle[imin],
+                                    text=self._formatter_locator.formatter([t % 360.])[0])
 
-        tick_normal = np.array(self.ticks.angle) % 360
+        # TODO: simplify the code to find the scaling from pixel to data
+        # coordinates
+        axmin, aymin, axmax, aymax = self.parent_axes.get_window_extent().bounds
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+        xscale = abs((xmax - xmin) / (axmax - axmin))
+        yscale = abs((ymax - ymin) / (aymax - aymin))
 
-        for i in range(len(self.ticks)):
-
-            coordinate = self.ticks.world[i]
-            x, y = self.ticks.pixel[i]
-            angle = self.ticks.angle[i]
-            label_text = self._formatter_locator.formatter([coordinate])[0]
-
-            t = Text(text=label_text, color=self._ticklabel_color, size=self._ticklabel_size, clip_on=False)
-            text_size = renderer.points_to_pixels(t.get_size())
-
-            # TODO: there must be a better way to figure out the text size in
-            # data units
-            axmin, aymin, axmax, aymax = self.parent_axes.get_window_extent().bounds
-            xmin, xmax = self.parent_axes.get_xlim()
-            ymin, ymax = self.parent_axes.get_ylim()
-            xscale = abs((xmax - xmin) / (axmax - axmin))
-            yscale = abs((ymax - ymin) / (aymax - aymin))
-
-            pad = text_size * 0.4
-
-            # TODO: do something smarter for arbitrary directions
-            if np.abs(tick_normal[i]) < 45.:
-                ha = 'right'
-                va = 'center'
-                dx = -pad
-                dy = 0.
-            elif np.abs(tick_normal[i] - 90.) < 45:
-                ha = 'center'
-                va = 'top'
-                dx = 0
-                dy = -pad
-            elif np.abs(tick_normal[i] - 180.) < 45:
-                ha = 'left'
-                va = 'center'
-                dx = pad
-                dy = 0
-            else:
-                ha = 'center'
-                va = 'bottom'
-                dx = 0
-                dy = pad
-
-            dx *= xscale
-            dy *= yscale
-
-            t.set_position((x+dx, y+dy))
-            t.set_ha(ha)
-            t.set_va(va)
-
-            t.set_figure(self.parent_axes.get_figure())
-            t.set_transform(self.parent_axes.transData)
-
-            t.draw(renderer)
+        self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
 
         self._update_grid()
 
@@ -316,8 +279,6 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             paths.append(get_lon_lat_path(self.parent_axes, self.transform, lon_lat))
 
         self.grid_lines.set_paths(paths)
-
-
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
