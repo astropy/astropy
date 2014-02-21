@@ -30,8 +30,8 @@ class TestTimeComparisons():
                 op(t1, None)
             assert str(err).endswith("Unsupported operand type(s) for {0}: 'Time' and 'NoneType'"
                                      .format(op_str))
-        assert t1 != None
-        assert not t1 == None
+        assert (t1 == None) is False
+        assert (t1 != None) is True
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
