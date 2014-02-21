@@ -346,7 +346,10 @@ def main(argv):
     pr_format = '[#{0}][{1}]: {2}'
     suggestions = []
     for pr, sha in suggester.iter_suggested_prs():
-        log.info(pr_format.format(pr['number'], sha, pr['title']))
+        # If sys.stdout's default encoding has a limited codepage this blows up if
+        # the PR title contains unencodable characters =_=
+        title = pr['title'].encode(sys.stdout, errors='replace').decode()
+        log.info(pr_format.format(pr['number'], sha, title))
         suggestions.append((pr, sha))
 
     suggestions.sort(key=lambda p: p[0]['merged_at'])
