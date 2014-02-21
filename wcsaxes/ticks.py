@@ -22,6 +22,7 @@ class Ticks(Line2D):
         self.set_ticksize(ticksize)
         self.set_tick_out(tick_out)
         self.clear()
+        self.set_color('white')
         Line2D.__init__(self, [0.], [0.], **kwargs)
 
 
@@ -49,6 +50,30 @@ class Ticks(Line2D):
         """
         return self._ticksize
 
+    def set_color(self, color):
+        """
+        Set the color of the ticks
+        """
+        self._color = color
+
+    def get_color(self):
+        """
+        Return the color of the ticks
+        """
+        return self._color
+
+    def set_alpha(self, color):
+        """
+        Set the color of the ticks
+        """
+        self._alpha = alpha
+
+    def get_alpha(self):
+        """
+        Return the color of the ticks
+        """
+        return self._alpha
+
     def clear(self):
         self.world = []
         self.pixel = []
@@ -75,6 +100,8 @@ class Ticks(Line2D):
         path_trans = self.get_transform()
 
         gc = renderer.new_gc()
+        gc.set_foreground(self.get_color())
+        gc.set_alpha(self.get_alpha())
 
         offset = renderer.points_to_pixels(self.get_ticksize())
         marker_scale = Affine2D().scale(offset, offset)

@@ -26,6 +26,116 @@ class BaseCoordinateHelper(object):
 
     __metaclass__ = abc.ABCMeta
 
+    def __init__(self, parent_axes=None, transform=None, coord_index=None):
+
+        super(BaseCoordinateHelper, self).__init__()
+
+        # Keep a reference to the parent axes and the transform
+        self.parent_axes = parent_axes
+        self.transform = transform
+        self.coord_index = coord_index
+
+        # Initialize ticks
+        self.dpi_transform = Affine2D()
+        self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
+        self.ticks = Ticks(transform=self.parent_axes.transData +
+                                     self.offset_transform)
+
+        # Initialize formatter/locator
+        self._formatter_locator = self._formatter_locator_class()
+
+        # Initialize container for the grid lines
+        self.grid_lines = PathCollection([],
+                                         transform=self.parent_axes.transData,
+                                         facecolor='none', visible=False,
+                                         figure=self.parent_axes.get_figure())
+
+        # Default parameters for tick labels
+        self.set_ticklabel_size('medium')
+        self.set_ticklabel_color('black')
+
+    def grid(self, draw_grid=True, **kwargs):
+        """
+        Plot gridlines for this coordinate.
+
+        Standard matplotlib appearance options (color, alpha, etc.) can be
+        passed as keyword arguments.
+
+        Parameters
+        ----------
+        draw_grid : bool
+            Whether to show the gridlines
+        """
+
+        self.grid_lines.set(**kwargs)
+
+        if self.grid_lines.get_visible():
+            if not draw_grid:
+                self.grid_lines.set_visible(False)
+        else:
+            self.grid_lines.set_visible(True)
+
+    def set_major_formatter(self, formatter):
+        """
+        Set the formatter to use for the major tick labels.
+
+        Parameters
+        ----------
+        formatter : str or Formatter
+            The format or formatter to use.
+        """
+        if isinstance(formatter, Formatter):
+            raise NotImplementedError()  # figure out how to swap out formatter
+        elif isinstance(formatter, six.string_types):
+            self._formatter_locator.format = formatter
+        else:
+            raise TypeError("formatter should be a string or a Formatter "
+                            "instance")
+
+    def set_ticks(self, values=None, spacing=None, number=None):
+        """
+        Set the location of the ticks.
+
+        Only one of the options from ``values``, ``spacing``, or ``number``
+        should be specified.
+
+        Parameters
+        ----------
+        values : iterable, optional
+            The coordinate values at which to show the ticks.
+        spacing : float, optional
+            The spacing between ticks.
+        number : float, optional
+            The approximate number of ticks shown.
+        """
+        if values is not None:
+            self._formatter_locator.values = values
+        elif spacing is not None:
+            self._formatter_locator.spacing = spacing
+        elif number is not None:
+            self._formatter_locator.number = number
+        else:
+            raise ValueError("one of values, spacing, or number should be "
+                             "specified")
+
+    @property
+    def locator(self):
+        return _formatter_locator.locator
+
+    @property
+    def formatter(self):
+        return _formatter_locator.formatter
+
+    def draw(self, renderer):
+
+        renderer.open_group('coordinate_axis')
+
+        self._update_ticks(renderer)
+        self.ticks.draw(renderer)
+        self.grid_lines.draw(renderer)
+
+        renderer.close_group('coordinate_axis')
+
     def set_ticks_position(self):
         """
         Set the axes on which the ticks for this coordinate should
@@ -42,71 +152,22 @@ class BaseCoordinateHelper(object):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def set_major_formatter(self, formatter):
-        """
-        Set the major formatter for the ticks - should be either a
-        ``Formatter`` instance for world coordinates, or a string such as
-        ``dd:mm:ss.s``.
-        """
-        raise NotImplementedError()
+    def set_ticks_color(self, color):
+        self.ticks.set_color(color)
 
-    @abc.abstractmethod
-    def set_ticks(self, spacing=None, number=None):
-        """
-        Set the spacing/value of the ticks. This can take:
+    def set_ticks_size(self, color):
+        self.ticks.set_ticksize(size)
+    
+    def set_ticklabel_size(self, size):
+        self._ticklabel_size = size
 
-        * A list of tick position
-        * A spacing with the ``spacing=`` option (can take quantities)
-        * An approximate number of tick marks with the ``number=`` option
-        """
-        raise NotImplementedError()
-
-    def grid(self):
-        """
-        Draw grid lines for just this coordinate. Should return a
-        ``LineCollection`` instance.
-        """
-        raise NotImplementedError()
-
-    @abc.abstractproperty
-    def locator(self):
-        raise NotImplementedError()
-
-    @abc.abstractproperty
-    def formatter(self):
-        raise NotImplementedError()
+    def set_ticklabel_color(self, color):
+        self._ticklabel_color = color
 
 
 class SkyCoordinateHelper(BaseCoordinateHelper):
 
-    def __init__(self, parent_axes=None, transform=None, coord_index=None):
-
-        super(SkyCoordinateHelper, self).__init__()
-
-        # Keep a reference to the parent axes and the transform
-        self.parent_axes = parent_axes
-        self.transform = transform
-        self.coord_index = coord_index
-
-        # Initialize ticks
-        self.dpi_transform = Affine2D()
-        self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self.ticks = Ticks(transform=self.parent_axes.transData +
-                                     self.offset_transform)
-
-        # Initialize formatter/locator
-        self._formatter_locator_helper = AngleFormatterLocator()
-
-        self.tick_positions_world = []
-
-        # Initialize container for the grid lines
-        self.grid_lines = PathCollection([],
-                                         transform=self.parent_axes.transData,
-                                         facecolor='none', visible=False,
-                                         figure=self.parent_axes.get_figure())
-
-        self.text_labels = []
+    _formatter_locator_class = AngleFormatterLocator
 
     def _update_ticks(self, renderer):
 
@@ -119,7 +180,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         coord_range = self.parent_axes.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index]) % 360.
+        tick_world_coordinates = self._formatter_locator.locator(*coord_range[self.coord_index]) % 360.
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -171,10 +232,6 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         # Add labels
 
-        for label in self.text_labels:
-            label.set_visible(False)
-            label.remove()
-
         tick_normal = np.array(self.ticks.angle) % 360
 
         for i in range(len(self.ticks)):
@@ -182,9 +239,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             coordinate = self.ticks.world[i]
             x, y = self.ticks.pixel[i]
             angle = self.ticks.angle[i]
-            label_text = self._formatter_locator_helper.formatter([coordinate])[0]
+            label_text = self._formatter_locator.formatter([coordinate])[0]
 
-            t = Text(text=label_text, color='green', clip_on=False)
+            t = Text(text=label_text, color=self._ticklabel_color, size=self._ticklabel_size, clip_on=False)
             text_size = renderer.points_to_pixels(t.get_size())
 
             # TODO: there must be a better way to figure out the text size in
@@ -245,7 +302,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         coord_range = self.parent_axes.get_coord_range()
 
-        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index])
+        tick_world_coordinates = self._formatter_locator.locator(*coord_range[self.coord_index])
 
         paths = []
         for w in tick_world_coordinates:
@@ -260,87 +317,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         self.grid_lines.set_paths(paths)
 
-    def grid(self, draw_grid=True, **kwargs):
-        """
-        Plot gridlines for this coordinate.
 
-        Standard matplotlib appearance options (color, alpha, etc.) can be
-        passed as keyword arguments.
-
-        Parameters
-        ----------
-        draw_grid : bool
-            Whether to show the gridlines
-        """
-
-        self.grid_lines.set(**kwargs)
-
-        if self.grid_lines.get_visible():
-            if not draw_grid:
-                self.grid_lines.set_visible(False)
-        else:
-            self.grid_lines.set_visible(True)
-
-    def set_major_formatter(self, formatter):
-        """
-        Set the formatter to use for the major tick labels.
-
-        Parameters
-        ----------
-        formatter : str or Formatter
-            The format or formatter to use.
-        """
-        if isinstance(formatter, Formatter):
-            raise NotImplementedError()  # figure out how to swap out formatter
-        elif isinstance(formatter, six.string_types):
-            self._formatter_locator_helper.format = formatter
-        else:
-            raise TypeError("formatter should be a string or a Formatter "
-                            "instance")
-
-    def set_ticks(self, values=None, spacing=None, number=None):
-        """
-        Set the location of the ticks.
-
-        Only one of the options from ``values``, ``spacing``, or ``number``
-        should be specified.
-
-        Parameters
-        ----------
-        values : iterable, optional
-            The coordinate values at which to show the ticks.
-        spacing : float, optional
-            The spacing between ticks.
-        number : float, optional
-            The approximate number of ticks shown.
-        """
-        if values is not None:
-            self._formatter_locator_helper.values = values
-        elif spacing is not None:
-            self._formatter_locator_helper.spacing = spacing
-        elif number is not None:
-            self._formatter_locator_helper.number = number
-        else:
-            raise ValueError("one of values, spacing, or number should be "
-                             "specified")
-
-    @property
-    def locator(self):
-        return _formatter_locator_helper.locator
-
-    @property
-    def formatter(self):
-        return _formatter_locator_helper.formatter
-
-    def draw(self, renderer):
-
-        renderer.open_group('coordinate_axis')
-
-        self._update_ticks(renderer)
-        self.ticks.draw(renderer)
-        self.grid_lines.draw(renderer)
-
-        renderer.close_group('coordinate_axis')
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
