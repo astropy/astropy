@@ -1020,7 +1020,7 @@ class Time(object):
         other is zero.
         """
         try:
-            diff = self._tai_difference(other, '==')
+            diff = self._tai_difference(other)
         except OperandTypeError:
             return False
         return diff == 0.
@@ -1032,7 +1032,7 @@ class Time(object):
         other is zero.
         """
         try:
-            diff = self._tai_difference(other, '==')
+            diff = self._tai_difference(other)
         except OperandTypeError:
             return True
         return diff != 0.
