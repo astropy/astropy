@@ -96,8 +96,8 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         self.tick_positions_world = []
 
         # Initialize container for the grid lines
-        self.grid_lines = PathCollection([])
-        self.parent_axes.add_collection(self.grid_lines)
+        self.grid_lines = PathCollection([], zorder=1000, transform=self.parent_axes.transData, facecolor='none')
+        # self.parent_axes.add_collection(self.grid_lines)
         self.grid_lines.set_visible(False)
 
         self.text_labels = []
@@ -151,7 +151,6 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         # Add labels
 
         for label in self.text_labels:
-            print(label)
             label.set_visible(False)
             label.remove()
 
@@ -214,8 +213,10 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         coord_range = self.parent_axes.get_coord_range()
 
+        tick_world_coordinates = self._formatter_locator_helper.locator(*coord_range[self.coord_index])
+
         paths = []
-        for w in np.unique(self.ticks.world):
+        for w in tick_world_coordinates:
             if self.coord_index == 0:
                 lon = np.repeat(w, 1000)
                 lat = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
@@ -305,6 +306,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
         self._update_ticks(renderer)
         self.ticks.draw(renderer)
+        self.grid_lines.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 

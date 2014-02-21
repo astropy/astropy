@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 from matplotlib.axes import Axes
@@ -10,7 +11,7 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .grid_helpers import SkyCoordinatesMap
 from .utils import get_coordinate_system
-
+from .coordinate_range import find_coordinate_range
 
 class WCSAxes(Axes):
 
@@ -50,8 +51,9 @@ class WCSAxes(Axes):
         return np.interp(p_new, p, x), np.interp(p_new, p, y)
 
     def get_coord_range(self):
-        # TODO: implement this
-        return [[-180., 180.], [-89.999, 89.999]]
+        xmin, xmax = self.get_xlim()
+        ymin, ymax = self.get_ylim()
+        return find_coordinate_range(self.coords._transform.inverted(), [xmin, xmax, ymin, ymax], xangle=True, yangle=True)
 
     def draw(self, renderer, inframe=False):
 
