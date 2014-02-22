@@ -1,3 +1,4 @@
+__doctest_requires__ = {('Chi2Fitter.*'): ['scipy']}
 from astropy.modeling.fitting import Fitter
 
 class Chi2Fitter(Fitter):

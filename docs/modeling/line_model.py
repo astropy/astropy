@@ -18,7 +18,7 @@ class LineModel(models.PolynomialModel):
         return slope * x + intercept
 
     @staticmethod
-    def deriv(x, slope, intercept):
+    def fit_deriv(x, slope, intercept):
         d_slope = x
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]

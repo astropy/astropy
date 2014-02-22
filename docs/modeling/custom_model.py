@@ -1,3 +1,4 @@
+__doctest_requires__ = {('.'): ['matplotlib', 'scipy']}
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.modeling.models import custom_model_1d
