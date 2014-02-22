@@ -3,6 +3,7 @@
 # astropy.table.Table class
 
 from .hdf5 import read_table_hdf5, write_table_hdf5, is_hdf5
+from .html import html_read, html_write, html_identify
 
 from .. import registry as io_registry
 from ...table import Table
