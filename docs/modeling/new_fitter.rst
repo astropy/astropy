@@ -6,13 +6,13 @@ If you would like to use a fit statistic or minimizer different from the ones bu
 you have to create a subclass of `~astropy.modeling.fitting.Fitter`. 
 
 Here is an example how to define a least squares fitter for nonlinear models
-by wrapping the `~scipy.optimize.fmin_slsqp`  minimisation function:
+by wrapping the `~scipy.optimize.minimize`  minimisation function:
 
 .. literalinclude:: new_fitter.py
    :linenos:
 
 The user calls ``Chi2Fitter.__call__`` with a given ``model`` and data ``x`` and ``y``,
-which checks and reformats the inputs a bit and then calls `~scipy.optimize.fmin_slsqp`,
+which checks and reformats the inputs a bit and then calls `~scipy.optimize.minimize`,
 which repeatedly calls ``Chi2Fitter.errorfunc`` in each fit iteration. 
 
 Let's go through it line by line:
@@ -50,7 +50,7 @@ The special method ``Chi2Fitter.__call__`` runs the minimisation:
 Usage
 -----
 
-You can use this user-defined `SLSQPFitter` just like the built-in astropy Fitters:: 
+You can use this user-defined `Chi2Fitter` just like the built-in astropy fitters:: 
 
    import numpy as np
    from astropy.modeling import models
@@ -63,5 +63,5 @@ You can use this user-defined `SLSQPFitter` just like the built-in astropy Fitte
    y = g(x) + np.random.normal(0., 0.2, x.shape)
    
    # Fit the data using a Gaussian
-   fitter = SLSQPFitter()
+   fitter = Chi2Fitter()
    g = fitter(g, x, y, maxiter=50)
