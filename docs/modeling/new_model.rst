@@ -1,5 +1,5 @@
 **************************
-Defining New Model Classes
+Defining a new model class
 **************************
 
 This document describes how to add a model to the package or to create a
@@ -8,7 +8,6 @@ write an eval function which evaluates the model.  If the model is fittable, a
 function to compute the derivatives with respect to parapemeters is required
 if a linear fitting algorithm is to be used and optional if a non-linear fitter is to be used.
 
-
 Custom 1D models
 ----------------
 
@@ -16,35 +15,8 @@ For 1D models, the `~astropy.modeling.functional_models.custom_model_1d`
 decorator is provided to make it very easy to define new models. The following
 example demonstrates how to set up a model consisting of two Gaussians:
 
-.. plot::
+.. plot:: modeling/custom_model.py
    :include-source:
-
-    import numpy as np
-    from astropy.modeling.models import custom_model_1d
-    from astropy.modeling.fitting import NonLinearLSQFitter
-
-    # Define model
-    @custom_model_1d
-    def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
-                            amplitude2=1., mean2=1., sigma2=1.):
-        return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
-                amplitude2 * np.exp(-0.5 * ((x - mean2) / sigma2)**2))
-
-    # Generate fake data
-    np.random.seed(0)
-    x = np.linspace(-5., 5., 200)
-    m_ref = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
-                             amplitude2=0.5, mean2=2., sigma2=1.0)
-    y = m_ref(x) + np.random.normal(0., 0.1, x.shape)
-
-    # Fit model to data
-    m_init = sum_of_gaussians()
-    fit = NonLinearLSQFitter()
-    m = fit(m_init, x, y)
-
-    # Plot the data and the best fit
-    plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x), color='r', lw=2)
 
 A step by step definition of a 1D Gaussian model
 ------------------------------------------------
@@ -157,85 +129,6 @@ with constraints.::
 A full example of a LineModel
 -----------------------------
 
-::
+.. literalinclude:: line_model.py
+   :linenos:
 
-    from astropy.modeling import models, Parameter, format_input
-    import numpy as np
-
-    class LineModel(models.PolynomialModel):
-        slope = Parameter('slope')
-        intercept = Parameter('intercept')
-        linear = True
-
-    def __init__(self, slope, intercept, param_dim=1, **constraints):
-        super(LineModel, self).__init__(slope=slope, intercept=intercept,
-                                        param_dim=param_dim, **constraints)
-        self.domain = [-1, 1]
-        self.window = [-1, 1]
-        self._order = 2
-
-    @staticmethod
-    def eval(x, slope, intercept):
-        return slope * x + intercept
-
-    @staticmethod
-    def fit_deriv(x, slope, intercept):
-        d_slope = x
-        d_intercept = np.ones_like(x)
-        return [d_slope, d_intercept]
-
-    @format_input
-    def __call__(self, x):
-        return self.eval(x, *self.param_sets)
-
-
-***************************
-Defining New Fitter Classes
-***************************
-
-This section describes how to add a new nonlinear fitting algorithm to this
-package or write a user-defined fitter.  In short, one needs to define an error
-function and a ``__call__`` method and define the types of constraints which
-work with this fitter (if any).
-
-The details are described below using scipy's SLSQP algorithm as an example.
-The base class for all fitters is `~astropy.modeling.fitting.Fitter`::
-
-    class SLSQPFitter(Fitter):
-        supported_constraints = ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
-
-        def __init__(self):
-            super(SLSQPFitter,self).__init__()
-
-All fitters take a model (their ``__call__`` method modifies the model's
-parameters) as their first argument.
-
-Next, the error function takes a list of parameters returned by an iteration of
-the fitting algorithm and input coordinates, evaluates the model with them and
-returns some type of a measure for the fit.  In the example the sum of the
-squared residuals is used as a measure of fitting.::
-
-    def errorfunc(self, fps, *args):
-        model = args[0]
-        meas = args[-1]
-        model.fitparams(fps)
-        res = self.model(*args[1:-1]) - meas
-        return np.sum(res**2)
-
-The ``__call__`` method performs the fitting. As a minimum it takes all
-coordinates as separate arguments. Additional arguments are passed as
-necessary.::
-
-    def __call__(self, model, x, y , maxiter=MAXITER, epsilon=EPS):
-        if model.linear:
-                raise ModelLinearityException(
-                    'Model is linear in parameters; '
-                    'non-linear fitting methods should not be used.')
-        model_copy = model.copy()
-        init_values, _ = model_copy._model_to_fit_params()
-        self.fitparams = optimize.fmin_slsqp(self.errorfunc, p0=init_values,
-                                             args=(y, x),
-                                             bounds=self.bounds,
-                                             eqcons=self.eqcons,
-                                             ineqcons=self.ineqcons)
-        return model_copy

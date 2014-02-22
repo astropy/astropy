@@ -177,7 +177,8 @@ Using `modeling`
    parameters
    models
    fitting
-   new
+   new_model
+   new_fitter
    algorithms
    design
 
