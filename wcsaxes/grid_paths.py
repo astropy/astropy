@@ -93,6 +93,7 @@ def get_lon_lat_path(ax, transform, lon_lat):
     # And add to the axes
     return path
 
+
 def get_gridline_path(ax, transform, world):
     """
     Draw a grid line

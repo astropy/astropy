@@ -25,7 +25,6 @@ class Ticks(Line2D):
         self.set_color('white')
         Line2D.__init__(self, [0.], [0.], **kwargs)
 
-
     def set_tick_out(self, tick_out):
         """
         set True if tick need to be rotated by 180 degree.
