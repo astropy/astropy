@@ -64,18 +64,51 @@ def select_step_hour(dv):
     return step * unit
 
 
+def select_step_scalar(dv):
+
+    log10_dv = np.log10(dv)
+
+    base = int(log10_dv)
+    frac = log10_dv - base
+
+    steps = np.log10([1, 2, 5, 10])
+
+    imin = np.argmin(np.abs(frac - steps))
+
+    return 10.**(base + steps[imin])
+
+
+
+
 def get_coordinate_system(wcs):
+    """
+    Given a WCS object for a pair of spherical coordinates, return the
+    corresponding astropy coordinate class.
+    """
 
     xcoord = wcs.wcs.ctype[0][0:4]
     ycoord = wcs.wcs.ctype[1][0:4]
 
-    from astropy.coordinates import FK5Coordinates, GalacticCoordinates
+    from astropy.coordinates import FK5, Galactic
 
     if xcoord == 'RA--' and ycoord == 'DEC-':
-        coordinate_class = FK5Coordinates
+        coordinate_class = FK5
     elif xcoord == 'GLON' and ycoord == 'GLAT':
-        coordinate_class = GalacticCoordinates
+        coordinate_class = Galactic
     else:
         raise ValueError("System not supported (yet): {0}/{1}".format(xcoord, ycoord))
 
     return coordinate_class
+
+
+def ctype_is_angle(ctype):
+    """
+    Determine whether a particular WCS ctype corresponds to an angle or scalar
+    coordinate.
+    """
+    if ctype[:4] in ['RA--', 'DEC-']:
+        return True
+    elif ctype[1:4] in ['LON', 'LAT']:
+        return True
+    else:
+        return False

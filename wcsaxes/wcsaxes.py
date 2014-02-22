@@ -9,9 +9,10 @@ from astropy.wcs import WCS
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
-from .grid_helpers import SkyCoordinatesMap
+from .grid_helpers import CoordinatesMap
 from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
+
 
 class WCSAxes(Axes):
 
@@ -31,7 +32,7 @@ class WCSAxes(Axes):
 
         # Here determine all the coordinate axes that should be shown.
 
-        self.coords = SkyCoordinatesMap(self, self.wcs)
+        self.coords = CoordinatesMap(self, self.wcs)
 
     def _get_bounding_frame(self):
         """
@@ -55,7 +56,7 @@ class WCSAxes(Axes):
         ymin, ymax = self.get_ylim()
         return find_coordinate_range(self.coords._transform.inverted(),
                                      [xmin, xmax, ymin, ymax],
-                                     x_angle=True, y_angle=True)
+                                     x_angle=self.coords[0].is_angle, y_angle=self.coords[1].is_angle)
 
     def draw(self, renderer, inframe=False):
 
@@ -104,13 +105,13 @@ class WCSAxes(Axes):
 
             world2pixel = WCSWorld2PixelTransform(self.wcs) + self.transData
 
-            coord_class = get_coordinate_system(self.wcs)
-
             if frame == 'world':
 
                 return world2pixel
 
             elif frame == 'fk5':
+
+                coord_class = get_coordinate_system(self.wcs)
 
                 if coord_class is FK5:
                     return world2pixel
@@ -119,6 +120,8 @@ class WCSAxes(Axes):
                             + world2pixel)
 
             elif frame == 'galactic':
+
+                coord_class = get_coordinate_system(self.wcs)
 
                 if coord_class is Galactic:
                     return world2pixel

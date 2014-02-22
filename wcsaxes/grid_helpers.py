@@ -1,51 +1,11 @@
-import abc
-
-from .coordinate_helpers import SkyCoordinateHelper
+from .coordinate_helpers import AngleCoordinateHelper, ScalarCoordinateHelper
 from .transforms import WCSWorld2PixelTransform
+from .utils import ctype_is_angle
+
 from . import six
 
 
-class BaseGridHelper(object):
-
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def grid(self):
-        """
-        Draw grid lines for both coordinates.
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def __getitem__(self):
-        """
-        Access the coordinates by index or by name
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def set_visible(self, visibility):
-        """
-        Set whether the coordinate system is visible
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def enable_offset_mode(self, reference_coordinates):
-        """
-        Enable the offset mode given a set of reference cooridnates
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def disable_offset_mode(self):
-        """
-        Disable the offset mode
-        """
-        raise NotImplementedError()
-
-
-class SkyCoordinatesMap(object):
+class CoordinatesMap(object):
 
     def __init__(self, axes, wcs):
 
@@ -58,10 +18,15 @@ class SkyCoordinatesMap(object):
 
         # Set up coordinates
         self._coords = {}
-        self._coords[0] = SkyCoordinateHelper(parent_axes=axes,
-                                              transform=self._transform, coord_index=0)
-        self._coords[1] = SkyCoordinateHelper(parent_axes=axes,
-                                              transform=self._transform, coord_index=1)
+        for coord_index in [0, 1]:
+            if ctype_is_angle(wcs.wcs.ctype[coord_index]):
+                self._coords[coord_index] = AngleCoordinateHelper(parent_axes=axes,
+                                                                  transform=self._transform,
+                                                                  coord_index=coord_index)
+            else:
+                self._coords[coord_index] = ScalarCoordinateHelper(parent_axes=axes,
+                                                                   transform=self._transform,
+                                                                   coord_index=coord_index)
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
@@ -98,7 +63,3 @@ class SkyCoordinatesMap(object):
         """
         self[0].grid(show_grid=show_grid, **kwargs)
         self[1].grid(show_grid=show_grid, **kwargs)
-
-
-class ScalarGridHelper(BaseGridHelper):
-    pass

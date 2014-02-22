@@ -17,14 +17,15 @@ from astropy.coordinates import Angle
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')
 DDEC_RE = re.compile('^d(.(d)+)?$')
+SCAL_RE = re.compile('^x(.(x)+)?$')
 
 
-class AngleFormatterLocator(object):
+class BaseFormatterLocator(object):
     """
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format='dd:mm:ss'):
+    def __init__(self, values=None, number=None, spacing=None, format=None):
 
         self._values = values
         self._number = number
@@ -65,6 +66,18 @@ class AngleFormatterLocator(object):
         self._number = None
         self._spacing = spacing
         self._values = None
+
+
+class AngleFormatterLocator(BaseFormatterLocator):
+    """
+    A joint formatter/locator
+    """
+
+    def __init__(self, values=None, number=None, spacing=None, format='dd:mm:ss'):
+        super(AngleFormatterLocator, self).__init__(values=values,
+                                                    number=number,
+                                                    spacing=spacing,
+                                                    format=format)
 
     @property
     def format(self):
@@ -185,5 +198,88 @@ class AngleFormatterLocator(object):
                                       decimal=self._decimal,
                                       fields=self._fields).tolist()
             return string
+        else:
+            return []
+
+
+class ScalarFormatterLocator(BaseFormatterLocator):
+    """
+    A joint formatter/locator
+    """
+
+    def __init__(self, values=None, number=None, spacing=None, format='x.xxx'):
+        super(ScalarFormatterLocator, self).__init__(values=values,
+                                                    number=number,
+                                                    spacing=spacing,
+                                                    format=format)
+
+    @property
+    def format(self):
+        return self._format
+
+    @format.setter
+    def format(self, value):
+
+        self._format = value
+
+        if SCAL_RE.match(value) is not None:
+            if '.' in value:
+                self._precision = len(value) - value.index('.')
+            else:
+                self._precision = 0
+        else:
+            raise ValueError("Invalid format: {0}".format(value))
+
+        if self.spacing is not None and self.spacing < self.base_spacing:
+            warnings.warn("Spacing is too small - resetting spacing to match format")
+            self.spacing = self.base_spacing
+
+        if self.spacing is not None and (self.spacing % self.base_spacing) > 1e-10:
+            warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+            self.spacing = self.base_spacing * np.round(self.spacing / self.spacing)
+
+    @property
+    def base_spacing(self):
+        return 1. / (10. ** self._precision)
+
+    def locator(self, value_min, value_max):
+
+        if self.values is not None:
+
+            # values were manually specified
+            return np.asarray(self.values)
+
+        else:
+
+            if self.spacing is not None:
+
+                # spacing was manually specified
+                spacing = self.spacing
+
+            elif self.number is not None:
+
+                # number of ticks was specified, work out optimal spacing
+
+                # first compute the exact spacing
+                dv = abs(float(value_max - value_min)) / self.number
+
+                if dv < self.base_spacing:
+                    # if the spacing is less than the minimum spacing allowed by the format, simply
+                    # use the format precision instead.
+                    spacing = self.base_spacing
+                else:
+                    from .utils import select_step_scalar
+                    spacing = select_step_scalar(dv)
+
+            # We now find the interval values as multiples of the spacing and generate the tick
+            # positions from this
+            imin = np.floor(value_min / spacing)
+            imax = np.ceil(value_max / spacing)
+            values = np.arange(imin, imax + 1, dtype=int) * spacing
+            return values
+
+    def formatter(self, values):
+        if len(values) > 0:
+            return [("{0:."+str(self._precision)+"f}").format(x) for x in values]
         else:
             return []

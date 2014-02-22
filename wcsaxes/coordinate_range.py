@@ -41,8 +41,6 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
     xp, yp = np.meshgrid(x, y)
     world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
     xw, yw = world[:,0].reshape(xp.shape), world[:,1].reshape(yp.shape)
-    k = 0
-    iyprev = -1
 
     if x_angle:
 
@@ -123,12 +121,10 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
 
     # Check if range is smaller when normalizing to the range -180 to 180
 
-    xw_min_check = np.min(wrap_180(xw))
-    xw_max_check = np.max(wrap_180(xw))
-    yw_min_check = np.min(wrap_180(yw))
-    yw_max_check = np.max(wrap_180(yw))
-
     if x_angle:
+
+        xw_min_check = np.min(wrap_180(xw))
+        xw_max_check = np.max(wrap_180(xw))
 
         if xw_max - xw_min < 360. and xw_max - xw_min > xw_max_check - xw_min_check:
             if xw_max > 0.:
@@ -147,6 +143,9 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
                     xw_max = xw_max_check - 360.
 
     if y_angle:
+
+        yw_min_check = np.min(wrap_180(yw))
+        yw_max_check = np.max(wrap_180(yw))
 
         if yw_max - yw_min < 360. and yw_max - yw_min > yw_max_check - yw_min_check:
             if yw_max > 0.:
