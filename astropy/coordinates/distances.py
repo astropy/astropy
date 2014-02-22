@@ -61,6 +61,8 @@ class Distance(u.Quantity):
     ValueError
         If ``z`` is provided with a ``unit`` or ``cosmology`` is provided when ``z`` is
         *not* given, or ``value`` is given as well as ``z``
+    ValueError
+        If value specified is less than 0.
 
     Examples
     --------
@@ -148,6 +150,9 @@ class Distance(u.Quantity):
 
         if value.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
+
+        if np.any(value < 0):
+            raise ValueError("Distance must be >= 0.")
 
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)
