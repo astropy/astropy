@@ -41,7 +41,7 @@ class BaseCoordinateHelper(object):
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
         self.ticks = Ticks(transform=self.parent_axes.transData +
-                                     self.offset_transform)
+                           self.offset_transform)
 
         self.ticklabels = TickLabels(transform=self.parent_axes.transData,
                                      figure=self.parent_axes.get_figure())
@@ -226,7 +226,7 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
         normal_angle = np.degrees(np.arctan2(dx, -dy))
 
         # Transform to world coordinates
-        world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:,self.coord_index]
+        world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:, self.coord_index]
 
         # Let's just code up the algorithm with simple loops and we can then
         # see whether to optimize it array-wise, or just cythonize it.
@@ -309,7 +309,7 @@ class ScalarCoordinateHelper(BaseCoordinateHelper):
         normal_angle = np.degrees(np.arctan2(dx, -dy))
 
         # Transform to world coordinates
-        world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:,self.coord_index]
+        world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:, self.coord_index]
 
         # Let's just code up the algorithm with simple loops and we can then
         # see whether to optimize it array-wise, or just cythonize it.
@@ -356,4 +356,3 @@ class ScalarCoordinateHelper(BaseCoordinateHelper):
 
     def _get_gridline(self, xy_world):
         return get_gridline_path(self.parent_axes, self.transform, xy_world)
-

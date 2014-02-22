@@ -65,7 +65,7 @@ class TickLabels(Text):
 
             x, y = self.pixel[i]
 
-            self.set_position((x+dx, y+dy))
+            self.set_position((x + dx, y + dy))
             self.set_ha(ha)
             self.set_va(va)
 

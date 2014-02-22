@@ -10,6 +10,7 @@ from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
 
+
 class CurvedTransform(Transform):
     """
     Abstract base class for non-affine curved transforms

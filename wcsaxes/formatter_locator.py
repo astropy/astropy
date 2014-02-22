@@ -209,9 +209,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     def __init__(self, values=None, number=None, spacing=None, format='x.xxx'):
         super(ScalarFormatterLocator, self).__init__(values=values,
-                                                    number=number,
-                                                    spacing=spacing,
-                                                    format=format)
+                                                     number=number,
+                                                     spacing=spacing,
+                                                     format=format)
 
     @property
     def format(self):
@@ -280,6 +280,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     def formatter(self, values):
         if len(values) > 0:
-            return [("{0:."+str(self._precision)+"f}").format(x) for x in values]
+            return [("{0:." + str(self._precision) + "f}").format(x) for x in values]
         else:
             return []

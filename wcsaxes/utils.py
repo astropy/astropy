@@ -75,9 +75,7 @@ def select_step_scalar(dv):
 
     imin = np.argmin(np.abs(frac - steps))
 
-    return 10.**(base + steps[imin])
-
-
+    return 10. ** (base + steps[imin])
 
 
 def get_coordinate_system(wcs):

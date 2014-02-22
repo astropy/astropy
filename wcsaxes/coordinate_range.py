@@ -31,8 +31,8 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
     # Initialize the ranges
     wmin = np.repeat(np.inf, 2)
     wmax = np.repeat(-np.inf, 2)
-    vmin = np.repeat(np.inf, 4).reshape(2,2)
-    vmax = np.repeat(-np.inf, 4).reshape(2,2)
+    vmin = np.repeat(np.inf, 4).reshape(2, 2)
+    vmax = np.repeat(-np.inf, 4).reshape(2, 2)
 
     # Sample coordinates on a 50 x 50 grid.
     NX = NY = 50
@@ -40,7 +40,7 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
     y = np.linspace(extent[2], extent[3], NY + 1)
     xp, yp = np.meshgrid(x, y)
     world = transform.transform(np.vstack([xp.ravel(), yp.ravel()]).transpose())
-    xw, yw = world[:,0].reshape(xp.shape), world[:,1].reshape(yp.shape)
+    xw, yw = world[:, 0].reshape(xp.shape), world[:, 1].reshape(yp.shape)
 
     if x_angle:
 
@@ -58,12 +58,12 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
 
         for iy in range(1, NY + 1):
 
-            wjump = xw[iy, :] - xw[iy - 1, :]
+            wjump = xw[iy,:] - xw[iy - 1,:]
             reset = np.abs(wjump) > 180.
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.
                 wjump = 360. * (wjump / 360.).astype(int)
-                xw[iy, :][reset] -= wjump[reset]
+                xw[iy,:][reset] -= wjump[reset]
 
     if y_angle:
 
@@ -79,12 +79,12 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
 
         for iy in range(1, NY + 1):
 
-            wjump = yw[iy, :] - yw[iy - 1, :]
+            wjump = yw[iy,:] - yw[iy - 1,:]
             reset = np.abs(wjump) > 180.
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.
                 wjump = 360. * (wjump / 360.).astype(int)
-                yw[iy, :][reset] -= wjump[reset]
+                yw[iy,:][reset] -= wjump[reset]
 
     xw_min = np.min(xw)
     xw_max = np.max(xw)
