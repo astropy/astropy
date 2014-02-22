@@ -112,3 +112,12 @@ def ctype_is_angle(ctype):
         return True
     else:
         return False
+
+
+def get_pixels_to_data_scales(axes):
+    axmin, aymin, axmax, aymax = axes.get_window_extent().bounds
+    xmin, xmax = axes.get_xlim()
+    ymin, ymax = axes.get_ylim()
+    xscale = abs((xmax - xmin) / (axmax - axmin))
+    yscale = abs((ymax - ymin) / (aymax - aymin))
+    return xscale, yscale

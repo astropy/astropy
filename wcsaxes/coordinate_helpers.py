@@ -16,6 +16,7 @@ from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
+from .utils import get_pixels_to_data_scales
 
 from . import six
 
@@ -165,6 +166,33 @@ class BaseCoordinateHelper(object):
     def set_ticklabel_color(self, color):
         self.ticklabels.set_color(color)
 
+    def _update_grid(self):
+
+        # For 3-d WCS with a correlated third axis, the *proper* way of
+        # drawing a grid should be to find the world coordinates of all pixels
+        # and drawing contours. What we are doing here assumes that we can
+        # define the grid lines with just two of the coordinates (and
+        # therefore assumes that the other coordinates are fixed and set to
+        # the value in the slice). Here we basically assume that if the WCS
+        # had a third axis, it has been abstracted away in the transformation.
+
+        coord_range = self.parent_axes.get_coord_range()
+
+        tick_world_coordinates = self._formatter_locator.locator(*coord_range[self.coord_index])
+
+        paths = []
+        for w in tick_world_coordinates:
+            if self.coord_index == 0:
+                x_world = np.repeat(w, 1000)
+                y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
+            else:
+                x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
+                y_world = np.repeat(w, 1000)
+            xy_world = np.vstack([x_world, y_world]).transpose()
+            paths.append(self._get_gridline(xy_world))
+
+        self.grid_lines.set_paths(paths)
+
 
 class AngleCoordinateHelper(BaseCoordinateHelper):
 
@@ -239,44 +267,14 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                                     angle=normal_angle[imin],
                                     text=self._formatter_locator.formatter([t % 360.])[0])
 
-        # TODO: simplify the code to find the scaling from pixel to data
-        # coordinates
-        axmin, aymin, axmax, aymax = self.parent_axes.get_window_extent().bounds
-        xmin, xmax = self.parent_axes.get_xlim()
-        ymin, ymax = self.parent_axes.get_ylim()
-        xscale = abs((xmax - xmin) / (axmax - axmin))
-        yscale = abs((ymax - ymin) / (aymax - aymin))
+        xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
 
         self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
 
         self._update_grid()
 
-    def _update_grid(self):
-
-        # For 3-d WCS with a correlated third axis, the *proper* way of
-        # drawing a grid should be to find the world coordinates of all pixels
-        # and drawing contours. What we are doing here assumes that we can
-        # define the grid lines with just two of the coordinates (and
-        # therefore assumes that the other coordinates are fixed and set to
-        # the value in the slice). Here we basically assume that if the WCS
-        # had a third axis, it has been abstracted away in the transformation.
-
-        coord_range = self.parent_axes.get_coord_range()
-
-        tick_world_coordinates = self._formatter_locator.locator(*coord_range[self.coord_index])
-
-        paths = []
-        for w in tick_world_coordinates:
-            if self.coord_index == 0:
-                lon = np.repeat(w, 1000)
-                lat = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
-            else:
-                lon = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                lat = np.repeat(w, 1000)
-            lon_lat = np.vstack([lon, lat]).transpose()
-            paths.append(get_lon_lat_path(self.parent_axes, self.transform, lon_lat))
-
-        self.grid_lines.set_paths(paths)
+    def _get_gridline(self, xy_world):
+        return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
@@ -350,41 +348,12 @@ class ScalarCoordinateHelper(BaseCoordinateHelper):
                                     angle=normal_angle[imin],
                                     text=self._formatter_locator.formatter([t])[0])
 
-        # TODO: simplify the code to find the scaling from pixel to data
-        # coordinates
-        axmin, aymin, axmax, aymax = self.parent_axes.get_window_extent().bounds
-        xmin, xmax = self.parent_axes.get_xlim()
-        ymin, ymax = self.parent_axes.get_ylim()
-        xscale = abs((xmax - xmin) / (axmax - axmin))
-        yscale = abs((ymax - ymin) / (aymax - aymin))
+        xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
 
         self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
 
         self._update_grid()
 
-    def _update_grid(self):
+    def _get_gridline(self, xy_world):
+        return get_gridline_path(self.parent_axes, self.transform, xy_world)
 
-        # For 3-d WCS with a correlated third axis, the *proper* way of
-        # drawing a grid should be to find the world coordinates of all pixels
-        # and drawing contours. What we are doing here assumes that we can
-        # define the grid lines with just two of the coordinates (and
-        # therefore assumes that the other coordinates are fixed and set to
-        # the value in the slice). Here we basically assume that if the WCS
-        # had a third axis, it has been abstracted away in the transformation.
-
-        coord_range = self.parent_axes.get_coord_range()
-
-        tick_world_coordinates = self._formatter_locator.locator(*coord_range[self.coord_index])
-
-        paths = []
-        for w in tick_world_coordinates:
-            if self.coord_index == 0:
-                lon = np.repeat(w, 1000)
-                lat = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
-            else:
-                lon = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                lat = np.repeat(w, 1000)
-            lon_lat = np.vstack([lon, lat]).transpose()
-            paths.append(get_gridline_path(self.parent_axes, self.transform, lon_lat))
-
-        self.grid_lines.set_paths(paths)
