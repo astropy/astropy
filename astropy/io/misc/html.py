@@ -4,6 +4,8 @@ from ...table import Table
 from ...utils.xml import writer
 from .. import registry
 
+__all__ = ['html_write', 'html_read', 'html_identify']
+
 def html_write(table, filename, clobber=False):
     """
     Writes the table data to filename in HTML.
@@ -24,7 +26,46 @@ def html_write(table, filename, clobber=False):
                         with xml_writer.tag('td'):
                             xml_writer.data(str(table[colname][row_num]))
     html_file.close()
-                            
+
+def html_read(fileorname):
+    """
+    Reads HTML input from the given file into a table.
+
+    Parameters
+    ----------
+    fileorname : str or `file`-like object
+        The file name or file from which to extract table data.
+
+    This requires `BeautifulSoup
+    <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
+    """
+
+    from bs4 import BeautifulSoup
+
+    if isinstance(fileorname, basestring):
+        html_file = open(fileorname)
+        html = html_file.read()
+        html_file.close()
+    else:
+        html = fileorname.read()
+    soup = BeautifulSoup(html)
+    table = soup.find('table')
+    colnames = []
+    grid = []
+    for row in table.findAll('tr'):
+        row_list = []
+        for header_el in row.findAll('th'):
+            colnames.append(header_el.string.replace('\n', ''))
+        for el in row.findAll('td'):
+            row_list.append(el.string.replace('\n', ''))
+        if len(row_list) > 0:
+            grid.append(row_list)
+
+    # Reverse rows and columns as required by Table.__init__
+    transpose = [[grid[j][i] for j in range(len(grid))]
+                 for i in range(len(grid[0]))]
+    return Table(transpose, names=colnames)
+
 def html_identify(origin, path, fileobj, *args, **kwargs):
     """
     Determines whether the given filename is an HTML file.
@@ -33,3 +74,4 @@ def html_identify(origin, path, fileobj, *args, **kwargs):
 
 registry.register_identifier('html', Table, html_identify)
 registry.register_writer('html', Table, html_write)
+registry.register_reader('html', Table, html_read)
