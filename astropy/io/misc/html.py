@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 from ...table import Table
 from ...utils.xml import writer
-from .. import registry
 
 __all__ = ['html_write', 'html_read', 'html_identify']
 
