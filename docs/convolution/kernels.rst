@@ -32,7 +32,7 @@ Lorentz curve:
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
-Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1D` of width 2 pixels:
+Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian1DKernel(2)
 >>> smoothed_data_gauss = convolve(data_1D, gauss_kernel)
@@ -260,26 +260,26 @@ function is evaluated on a grid with
 :func:`~astropy.convolution.utils.discretize_model`. For the
 discretization step the following modes are available:
 
-Mode ``'center'`` (default) evaluates the response function on the grid by
-taking the value at the center of the bin.
+* Mode ``'center'`` (default) evaluates the response function on the grid by
+  taking the value at the center of the bin.
 
->>> from astropy.convolution import Gaussian1DKernel
->>> gauss_center = Gaussian1DKernel(3, mode='center')
+   >>> from astropy.convolution import Gaussian1DKernel
+   >>> gauss_center = Gaussian1DKernel(3, mode='center')
 
-Mode ``'linear_interp'`` takes the values at the corners of the bin and linearly
-interpolates the value at the center:
+* Mode ``'linear_interp'`` takes the values at the corners of the bin and linearly
+  interpolates the value at the center:
 
->>> gauss_interp = Gaussian1DKernel(3, mode='linear_interp')
+  >>> gauss_interp = Gaussian1DKernel(3, mode='linear_interp')
 
-Mode ``'oversample'`` evaluates the response function by taking the mean on an
-oversampled grid. The oversample factor can be specified with the ``factor``
-argument. If the oversample factor is too large, the evaluation becomes slow.
+* Mode ``'oversample'`` evaluates the response function by taking the mean on an
+  oversampled grid. The oversample factor can be specified with the ``factor``
+  argument. If the oversample factor is too large, the evaluation becomes slow.
 
->>> gauss_oversample = Gaussian1DKernel(3, mode='oversample', factor=10)
+ >>> gauss_oversample = Gaussian1DKernel(3, mode='oversample', factor=10)
 
-Mode ``'integrate'`` integrates the function over the pixel using
-``scipy.integrate.quad`` and ``scipy.integrate.dblquad``. This mode is very
-slow and only recommended when highest accuracy is required.
+* Mode ``'integrate'`` integrates the function over the pixel using
+  ``scipy.integrate.quad`` and ``scipy.integrate.dblquad``. This mode is very
+  slow and only recommended when highest accuracy is required.
 
 .. doctest-requires:: scipy
 

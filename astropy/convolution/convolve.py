@@ -22,9 +22,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     Convolve an array with a kernel.
 
     This routine differs from `scipy.ndimage.filters.convolve` because
-    it includes a special treatment for `NaN` values. Rather than
-    including `NaNs` in the convolution calculation, which causes large
-    `NaN` holes in the convolved image, `NaN` values are replaced with
+    it includes a special treatment for ``NaN`` values. Rather than
+    including ``NaN``s in the convolution calculation, which causes large
+    ``NaN`` holes in the convolved image, ``NaN`` values are replaced with
     interpolated values using the kernel as an interpolation function.
 
     Parameters
@@ -33,7 +33,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel : `numpy.ndarray` or nddata.convolution.Kernel
+    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
     boundary : str, optional
@@ -44,9 +44,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             * 'fill'
                 Set values outside the array boundary to `fill_value`.
             * 'wrap'
-                Periodic boundary that wrap to the other side of `array`.
+                Periodic boundary that wrap to the other side of ``array``.
             * 'extend'
-                Set values outside the array to the nearest `array`
+                Set values outside the array to the nearest ``array``
                 value.
     fill_value : float, optional
         The value to use outside the array when using boundary='fill'
@@ -65,7 +65,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     Notes
     -----
     Masked arrays are not supported at this time.  The convolution
-    is always done at numpy.float precision.
+    is always done at `numpy.float` precision.
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
@@ -230,8 +230,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
 
-    * It can treat NaN's as zeros or interpolate over them.
-    * `inf` values are treated as `NaN`
+    * It can treat ``NaN`` values as zeros or interpolate over them.
+    * `inf` values are treated as ``NaN``
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
     * Its only valid `mode` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
@@ -258,8 +258,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             * 'wrap': periodic boundary
 
     interpolate_nan : bool
-        The convolution will be re-weighted assuming NAN values are meant to be
-        ignored, not treated as zero.  If this is off, all NaN values will be
+        The convolution will be re-weighted assuming ``NaN`` values are meant to be
+        ignored, not treated as zero.  If this is off, all ``NaN`` values will be
         treated as zero.
     ignore_edge_zeros : bool
         Ignore the zero-pad-created zeros.  This will effectively decrease
@@ -267,17 +267,17 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         This parameter may result in 'edge-brightening' effects if you're using
         a normalized kernel
     min_wt : float
-        If ignoring NANs/zeros, force all grid points with a weight less than
-        this value to NAN (the weight of a grid point with *no* ignored
+        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
+        this value to ``NaN`` (the weight of a grid point with *no* ignored
         neighbors is 1.0).
         If `min_wt` == 0.0, then all zero-weight points will be set to zero
-        instead of NAN (which they would be otherwise, because 1/0 = nan).
+        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
         See the examples below
     normalize_kernel : function or boolean
         If specified, this is the function to divide kernel by to normalize it.
-        e.g., normalize_kernel=np.sum means that kernel will be modified to be:
-        kernel = kernel / np.sum(kernel).  If True, defaults to
-        normalize_kernel = np.sum
+        e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
+        ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
+        ``normalize_kernel = np.sum``.
 
     Other Parameters
     ----------------
@@ -382,14 +382,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if array.ndim != kernel.ndim:
         raise Exception('array and kernel have differing number of dimensions')
 
-    # NAN and inf catching
+    # NaN and inf catching
     nanmaskarray = np.isnan(array) + np.isinf(array)
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) + np.isinf(kernel)
     kernel[nanmaskkernel] = 0
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and
             not interpolate_nan and not quiet):
-        warnings.warn("NOT ignoring nan values even though they are present "
+        warnings.warn("NOT ignoring NaN values even though they are present "
                       " (they are treated as 0)", AstropyUserWarning)
 
     if normalize_kernel is True:
@@ -499,7 +499,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
-    # restore nans in original image (they were modified inplace earlier)
+    # restore NaNs in original image (they were modified inplace earlier)
     # We don't have to worry about masked arrays - if input was masked, it was
     # copied
     array[nanmaskarray] = np.nan
