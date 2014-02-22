@@ -92,3 +92,52 @@ def get_lon_lat_path(ax, transform, lon_lat):
 
     # And add to the axes
     return path
+
+def get_gridline_path(ax, transform, world):
+    """
+    Draw a grid line
+
+    Parameters
+    ----------
+    ax : ~matplotlib.axes.Axes
+        The axes in which to plot the grid
+    transform : transformation class
+        The transformation between the world and pixel coordinates
+    world : `~numpy.ndarray`
+        The world coordinates along the curve, given as a (n,2)
+        array.
+    """
+
+    # Get pixel limits
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+
+    # Transform line to pixel coordinates
+    pixel = transform.transform(world)
+
+    # Mask values with invalid pixel positions
+    mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
+
+    # Mask values outside the viewport
+    outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
+               (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
+    mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
+
+    # We can now start to set up the codes for the Path.
+    codes = np.zeros(world.shape[0], dtype=np.uint8)
+    codes[:] = Path.LINETO
+    codes[0] = Path.MOVETO
+    codes[mask] = Path.MOVETO
+
+    # Also need to move to point *after* a hidden value
+    codes[1:][mask[:-1]] = Path.MOVETO
+
+    # We now go through and search for discontinuities in the curve that would
+    # be due to the curve going outside the field of view, invalid WCS values,
+    # or due to discontinuities in the projection.
+
+    # Create the path
+    path = Path(pixel, codes=codes)
+
+    # And add to the axes
+    return path
