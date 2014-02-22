@@ -71,7 +71,3 @@ def html_identify(origin, path, fileobj, *args, **kwargs):
     Determines whether the given filename is an HTML file.
     """
     return path.lower().split('.')[-1] in ['htm', 'html']
-
-registry.register_identifier('html', Table, html_identify)
-registry.register_writer('html', Table, html_write)
-registry.register_reader('html', Table, html_read)

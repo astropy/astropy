@@ -10,3 +10,6 @@ from ...table import Table
 io_registry.register_reader('hdf5', Table, read_table_hdf5)
 io_registry.register_writer('hdf5', Table, write_table_hdf5)
 io_registry.register_identifier('hdf5', Table, is_hdf5)
+io_registry.register_reader('html', Table, html_read)
+io_registry.register_writer('html', Table, html_write)
+io_registry.register_identifier('html', Table, html_identify)
