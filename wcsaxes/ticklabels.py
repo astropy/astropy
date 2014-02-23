@@ -11,22 +11,38 @@ class TickLabels(Text):
         self._y_pixel_to_data = 1.
         super(TickLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
+        self.set_visible_axes('all')
 
     def clear(self):
-        self.world = []
-        self.pixel = []
-        self.angle = []
-        self.text = []
+        self.world = {}
+        self.pixel = {}
+        self.angle = {}
+        self.text = {}
 
-    def add(self, world, pixel, angle, text):
-        self.world.append(world)
-        self.pixel.append(pixel)
-        self.angle.append(angle)
-        self.text.append(text)
+    def add(self, axis, world, pixel, angle, text):
+        if axis not in self.world:
+            self.world[axis] = [world]
+            self.pixel[axis] = [pixel]
+            self.angle[axis] = [angle]
+            self.text[axis] = [text]
+        else:
+            self.world[axis].append(world)
+            self.pixel[axis].append(pixel)
+            self.angle[axis].append(angle)
+            self.text[axis].append(text)
 
     def set_pixel_to_data_scaling(self, xscale, yscale):
         self._x_pixel_to_data = xscale
         self._y_pixel_to_data = yscale
+
+    def set_visible_axes(self, visible_axes):
+        self._visible_axes = visible_axes
+
+    def get_visible_axes(self):
+        if self._visible_axes == 'all':
+            return self.world.keys()
+        else:
+            return self._visible_axes
 
     def draw(self, renderer):
 
@@ -34,39 +50,41 @@ class TickLabels(Text):
 
         pad = text_size * 0.4
 
-        for i in range(len(self.world)):
+        for axis in self.get_visible_axes():
 
-            self.set_text(self.text[i])
+            for i in range(len(self.world[axis])):
 
-            # TODO: do something smarter for arbitrary directions
-            if np.abs(self.angle[i]) < 45.:
-                ha = 'right'
-                va = 'center'
-                dx = -pad
-                dy = 0.
-            elif np.abs(self.angle[i] - 90.) < 45:
-                ha = 'center'
-                va = 'top'
-                dx = 0
-                dy = -pad
-            elif np.abs(self.angle[i] - 180.) < 45:
-                ha = 'left'
-                va = 'center'
-                dx = pad
-                dy = 0
-            else:
-                ha = 'center'
-                va = 'bottom'
-                dx = 0
-                dy = pad
+                self.set_text(self.text[axis][i])
 
-            dx *= self._x_pixel_to_data
-            dy *= self._y_pixel_to_data
+                # TODO: do something smarter for arbitrary directions
+                if np.abs(self.angle[axis][i]) < 45.:
+                    ha = 'right'
+                    va = 'center'
+                    dx = -pad
+                    dy = 0.
+                elif np.abs(self.angle[axis][i] - 90.) < 45:
+                    ha = 'center'
+                    va = 'top'
+                    dx = 0
+                    dy = -pad
+                elif np.abs(self.angle[axis][i] - 180.) < 45:
+                    ha = 'left'
+                    va = 'center'
+                    dx = pad
+                    dy = 0
+                else:
+                    ha = 'center'
+                    va = 'bottom'
+                    dx = 0
+                    dy = pad
 
-            x, y = self.pixel[i]
+                dx *= self._x_pixel_to_data
+                dy *= self._y_pixel_to_data
 
-            self.set_position((x + dx, y + dy))
-            self.set_ha(ha)
-            self.set_va(va)
+                x, y = self.pixel[axis][i]
 
-            super(TickLabels, self).draw(renderer)
+                self.set_position((x + dx, y + dy))
+                self.set_ha(ha)
+                self.set_va(va)
+
+                super(TickLabels, self).draw(renderer)

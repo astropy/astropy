@@ -37,19 +37,46 @@ class WCSAxes(Axes):
     def _get_bounding_frame(self):
         """
         Return the bounding frame of the axes.
+
+        Returns
+        -------
+        bounding_frame : dict
+            The bounding frame of the axes, as a dictionary containing
+            different axes with different names. This allows the user to then
+            specify which axis should contain ticks and labels.
         """
+
         xmin, xmax = self.get_xlim()
         ymin, ymax = self.get_ylim()
-        return [xmin, xmax, xmax, xmin, xmin], [ymin, ymin, ymax, ymax, ymin]
+
+        frame = {}
+        frame['b'] = ([xmin, xmax], [ymin, ymin])
+        frame['r'] = ([xmax, xmax], [ymin, ymax])
+        frame['t'] = ([xmax, xmin], [ymax, ymax])
+        frame['l'] = ([xmin, xmin], [ymax, ymin])
+
+        return frame
 
     def _sample_bounding_frame(self, n_samples):
         """
         Return n points equally spaced around the frame.
+
+        Returns
+        -------
+        bounding_frame : dict
+            The bounding frame of the axes, as a dictionary containing
+            different axes with different names. This allows the user to then
+            specify which axis should contain ticks and labels. The frame
+            returns from this method is over-sampled.
         """
-        x, y = self._get_bounding_frame()
-        p = np.linspace(0., 1., len(x))
-        p_new = np.linspace(0., 1., n_samples)
-        return np.interp(p_new, p, x), np.interp(p_new, p, y)
+        frame = self._get_bounding_frame()
+        new_frame = {}
+        for axis in frame:
+            x, y = frame[axis]
+            p = np.linspace(0., 1., len(x))
+            p_new = np.linspace(0., 1., n_samples)
+            new_frame[axis] = np.interp(p_new, p, x), np.interp(p_new, p, y)
+        return new_frame
 
     def get_coord_range(self):
         xmin, xmax = self.get_xlim()
@@ -62,9 +89,11 @@ class WCSAxes(Axes):
 
         super(WCSAxes, self).draw(renderer, inframe)
 
-        x, y = self._get_bounding_frame()
-        line = Line2D(x, y, transform=self.transData, color='purple')
-        line.draw(renderer)
+        frame = self._get_bounding_frame()
+        for axis in frame:
+            x, y = frame[axis]
+            line = Line2D(x, y, transform=self.transData, color='black')
+            line.draw(renderer)
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
