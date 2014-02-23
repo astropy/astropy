@@ -71,12 +71,12 @@ def html_read(fileorname):
                  for i in range(len(grid[0]))]
     return Table(transpose, names=colnames)
 
-def html_identify(origin, path, fileobj, *args, **kwargs):
+def html_identify(origin, filepath, fileobj, *args, **kwargs):
     """
     Determines whether the given filename is an HTML file.
     """
     if fileobj is not None:
-        path = fileobj.name
-    if path is not None:
-        return path.lower().split('.')[-1] in ['htm', 'html']
+        filepath = fileobj.name
+    if filepath is not None:
+        return filepath.endswith('.html') or filepath.endswith('.htm')
     return False
