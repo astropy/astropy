@@ -29,9 +29,9 @@ class CoordinatesMap(object):
                                                                    coord_index=coord_index)
 
         # Set up aliases for coordinates
-        name_1 = self._wcs.wcs.ctype[0][:4]
+        name_1 = self._wcs.wcs.ctype[0][:4].replace('-', '')
         self._coords[name_1.lower()] = self._coords[0]
-        name_2 = self._wcs.wcs.ctype[1][:4]
+        name_2 = self._wcs.wcs.ctype[1][:4].replace('-', '')
         self._coords[name_2.lower()] = self._coords[1]
 
     def __getitem__(self, item):
