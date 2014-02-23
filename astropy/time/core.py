@@ -26,9 +26,9 @@ from ..extern import six
 
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
-           'TimeDatetime',
-           'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
+           'TimePlotDate', 'TimeDatetime', 'TimeString',
+           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
            'OperandTypeError', 'TimeEpochDateString',
@@ -86,11 +86,11 @@ ERFA_ELB = 1.550519768e-8
 SCALE_OFFSETS = {('tt', 'tai'): None,
                  ('tai', 'tt'): None,
                  ('tcg', 'tt'): -ERFA_ELG,
-                 ('tt', 'tcg'): ERFA_ELG/(1.-ERFA_ELG),
+                 ('tt', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
                  ('tcg', 'tai'): -ERFA_ELG,
-                 ('tai', 'tcg'): ERFA_ELG/(1.-ERFA_ELG),
+                 ('tai', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
                  ('tcb', 'tdb'): -ERFA_ELB,
-                 ('tdb', 'tcb'): ERFA_ELB/(1.-ERFA_ELB)}
+                 ('tdb', 'tcb'): ERFA_ELB / (1. - ERFA_ELB)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -266,16 +266,16 @@ class Time(object):
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
-        If format is None and the input is a string-type or object array then guess
-        available formats and stop when one matches.
+        If format is None and the input is a string-type or object array then
+        guess available formats and stop when one matches.
         """
 
         if format is None and (isinstance(val[0], self.__class__) or
                                val.dtype.kind in ('S', 'U', 'O')):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
-            err_msg = 'any of the formats where the format keyword is optional {0}'.format(
-                [name for name, cls in formats])
+            err_msg = ('any of the formats where the format keyword is '
+                       'optional {0}'.format([name for name, cls in formats]))
         elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
             if format is None:
@@ -1410,7 +1410,7 @@ class TimeFromEpoch(TimeFormat):
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
-        # Initialize the reference epoch which is a single time defined in subclasses
+        # Initialize the reference epoch (a single time defined in subclasses)
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
         self.epoch = epoch
@@ -1421,16 +1421,16 @@ class TimeFromEpoch(TimeFormat):
 
     def set_jds(self, val1, val2):
         """
-        Initialize the internal jd1 and jd2 attributes given val1 and val2.  For an
-        TimeFromEpoch subclass like TimeUnix these will be floats giving the effective
-        seconds since an epoch time (e.g. 1970-01-01 00:00:00).
+        Initialize the internal jd1 and jd2 attributes given val1 and val2.
+        For an TimeFromEpoch subclass like TimeUnix these will be floats giving
+        the effective seconds since an epoch time (e.g. 1970-01-01 00:00:00).
         """
         # Form new JDs based on epoch time + time from epoch (converted to JD).
-        # One subtlety that might not be obvious is that 1.000 Julian days in UTC
-        # can be 86400 or 86401 seconds.  For the TimeUnix format the assumption
-        # is that every day is exactly 86400 seconds, so in principle this
-        # is doing the math incorrectly, *except* that it matches the definition
-        # of Unix time which does not include leap seconds.
+        # One subtlety that might not be obvious is that 1.000 Julian days in
+        # UTC can be 86400 or 86401 seconds.  For the TimeUnix format the
+        # assumption is that every day is exactly 86400 seconds, so this is, in
+        # principle, doing the math incorrectly, *except* that it matches the
+        # definition of Unix time which does not include leap seconds.
 
         # note: use divisor=1./self.unit, since this is either 1 or 1/86400,
         # and 1/86400 is not exactly representable as a float64, so multiplying
@@ -1441,18 +1441,20 @@ class TimeFromEpoch(TimeFormat):
         jd1 = self.epoch.jd1 + day
         jd2 = self.epoch.jd2 + frac
 
-        # Create a temporary Time object corresponding to the current new (jd1, jd2) in
-        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the desired time
-        # scale for this object.
+        # Create a temporary Time object corresponding to the new (jd1, jd2) in
+        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the
+        # desired time scale for this object.
         #
-        # A known limitation is that the transform from self.epoch_scale to self.scale
-        # cannot involve any metadata like lat or lon.
+        # A known limitation is that the transform from self.epoch_scale to
+        # self.scale cannot involve any metadata like lat or lon.
         try:
-           tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
+            tm = getattr(Time(jd1, jd2, scale=self.epoch_scale,
+                              format='jd'), self.scale)
         except Exception as err:
-           raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
-                                 "scale '{2}', got error:\n{3}"
-                                  .format(self.name, self.epoch_scale, self.scale, err))
+            raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
+                                  "to specified scale '{2}', got error:\n{3}"
+                                  .format(self.name, self.epoch_scale,
+                                          self.scale, err))
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
@@ -1501,8 +1503,8 @@ class TimeGPS(TimeFromEpoch):
     =====
     This implementation is strictly a representation of the number of seconds
     (including leap seconds) since midnight UTC on 1980-01-06.  GPS can also be
-    considered as a time scale which is ahead of TAI by a fixed offset (to within
-    about 100 nanoseconds).
+    considered as a time scale which is ahead of TAI by a fixed offset
+    (to within about 100 nanoseconds).
 
     For details, see http://tycho.usno.navy.mil/gpstt.html
     """
@@ -1517,9 +1519,11 @@ class TimeGPS(TimeFromEpoch):
 
 class TimePlotDate(TimeFromEpoch):
     """
-    Matplotlib `~matplotlib.pyplot.plot_date` input: 1 + number of days from 0001-01-01 00:00:00 UTC
+    Matplotlib `~matplotlib.pyplot.plot_date` input:
+    1 + number of days from 0001-01-01 00:00:00 UTC
 
-    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
+    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date`
+    function::
 
       >>> import matplotlib.pyplot as plt
       >>> jyear = np.linspace(2000, 2001, 20)
@@ -1564,15 +1568,16 @@ class TimeAstropyTime(TimeUnique):
         """
 
         if not all(isinstance(val, Time) for val in val1):
-            raise TypeError('Input values for {0} class must be datetime objects'
-                            .format(cls.name))
+            raise TypeError('Input values for {0} class must be datetime '
+                            'objects'.format(cls.name))
 
         if scale is None:
             scale = val1[0].scale
         jd1 = np.concatenate([getattr(val, scale)._time.jd1 for val in val1])
         jd2 = np.concatenate([getattr(val, scale)._time.jd2 for val in val1])
         OutTimeFormat = val1[0]._time.__class__
-        self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt, from_jd=True)
+        self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt,
+                             from_jd=True)
 
         return self
 
@@ -1620,19 +1625,20 @@ class TimeDatetime(TimeUnique):
             imin[i] = val.minute
             dsec[i] = val.second + val.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
-                                              iy, im, id, ihr, imin, dsec)
+        self.jd1, self.jd2 = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     @property
     def value(self):
         iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
-                                                 6,  # precision = 6 for microseconds
+                                                 6,  # precision=6 for microsec
                                                  self.jd1, self.jd2)
 
         out = np.empty(len(self), dtype=np.object)
         idxs = itertools.count()
-        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids, ihmsfs):
+        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids,
+                                                    ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
             out[idx] = datetime(int(iy), int(im), int(id),
                                 int(ihr), int(imin), int(isec), int(ifracsec))
@@ -1699,8 +1705,8 @@ class TimeString(TimeUnique):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
-                                              iy, im, id, ihr, imin, dsec)
+        self.jd1, self.jd2 = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
         """
@@ -1890,7 +1896,7 @@ class TimeEpochDateString(TimeString):
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
-            except (IndexError, ValueError) as err:
+            except (IndexError, ValueError):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:
@@ -2007,23 +2013,23 @@ def _make_1d_array(val, copy=False):
 
 def day_frac(val1, val2, factor=1., divisor=1.):
     """
-    Return the sum of ``val1`` and ``val2`` as two float64s, an integer part and the
-    fractional remainder.  If ``factor`` is not 1.0 then multiply the sum by ``factor``.
-    If ``divisor`` is not 1.0 then divide the sum by ``divisor``.
+    Return the sum of ``val1`` and ``val2`` as two float64s, an integer part
+    and the fractional remainder.  If ``factor`` is not 1.0 then multiply the
+    sum by ``factor``.  If ``divisor`` is not 1.0 then divide the sum by
+    ``divisor``.
 
-    The arithmetic is all done with exact floating point operations so no precision is
-    lost to rounding error.  This routine assumes the sum is less than about 1e16,
-    otherwise the ``frac`` part will be greater than 1.0.
+    The arithmetic is all done with exact floating point operations so no
+    precision is lost to rounding error.  This routine assumes the sum is less
+    than about 1e16, otherwise the ``frac`` part will be greater than 1.0.
 
     Returns
     -------
     day, frac: float64
         Integer and fractional part of val1 + val2.
     """
-
-    # Add val1 and val2 exactly, returning the result as two float64s.  The first is the
-    # approximate sum (with some floating point error) and the second is the error of the
-    # float64 sum.
+    # Add val1 and val2 exactly, returning the result as two float64s.
+    # The first is the approximate sum (with some floating point error)
+    # and the second is the error of the float64 sum.
     sum12, err12 = two_sum(val1, val2)
 
     if np.any(factor != 1.):
@@ -2049,9 +2055,9 @@ def day_frac(val1, val2, factor=1., divisor=1.):
 
 def two_sum(a, b):
     """
-    Add ``a`` and ``b`` exactly, returning the result as two float64s.  The first is the
-    approximate sum (with some floating point error) and the second is the error of the
-    float64 sum.
+    Add ``a`` and ``b`` exactly, returning the result as two float64s.
+    The first is the approximate sum (with some floating point error)
+    and the second is the error of the float64 sum.
 
     Using the procedure of Shewchuk, 1997,
     Discrete & Computational Geometry 18(3):305-363
@@ -2072,9 +2078,9 @@ def two_sum(a, b):
 
 def two_product(a, b):
     """
-    Multiple ``a`` and ``b`` exactly, returning the result as two float64s.  The first is
-    the approximate prodcut (with some floating point error) and the second is the error
-    of the float64 product.
+    Multiple ``a`` and ``b`` exactly, returning the result as two float64s.
+    The first is the approximate prodcut (with some floating point error)
+    and the second is the error of the float64 product.
 
     Uses the procedure of Shewchuk, 1997,
     Discrete & Computational Geometry 18(3):305-363
