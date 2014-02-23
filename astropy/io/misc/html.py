@@ -1,3 +1,10 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This package contains functions for reading and writing HTML files
+containing table data, meant to be used as readers/writers in
+`astropy.table`. See :ref:`table_io` for more details.
+"""
+
 from __future__ import absolute_import
 
 from ...table import Table
