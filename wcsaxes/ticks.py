@@ -23,7 +23,7 @@ class Ticks(Line2D):
         self.set_tick_out(tick_out)
         self.clear()
         Line2D.__init__(self, [0.], [0.], **kwargs)
-        self.set_color('white')
+        self.set_color('black')
         self.set_visible_axes('all')
 
     def set_tick_out(self, tick_out):
