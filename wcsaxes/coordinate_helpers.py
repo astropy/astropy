@@ -68,6 +68,9 @@ class BaseCoordinateHelper(object):
             Whether to show the gridlines
         """
 
+        if 'color' in kwargs:
+            kwargs['edgecolor'] = kwargs.pop('color')
+
         self.grid_lines.set(**kwargs)
 
         if self.grid_lines.get_visible():
