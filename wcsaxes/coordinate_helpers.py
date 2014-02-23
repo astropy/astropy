@@ -254,9 +254,6 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
 
             for t in check_ticks:
 
-                if self.coord_type == 'longitude':
-                    t = t % 360.
-
                 # Find steps where a tick is present
                 intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
 
@@ -269,17 +266,22 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                     x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
                     y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
 
+                    if self.coord_type == 'longitude':
+                        t_new = t % 360.
+                    else:
+                        t_new = t
+
                     self.ticks.add(axis=axis,
                                    pixel=(x_pix_i, y_pix_i),
-                                   world=t,
+                                   world=t_new,
                                    angle=normal_angle[imin],
                                    axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
                                         pixel=(x_pix_i, y_pix_i),
-                                        world=t,
+                                        world=t_new,
                                         angle=normal_angle[imin],
-                                        text=self._formatter_locator.formatter([t], spacing=spacing)[0],
+                                        text=self._formatter_locator.formatter([t_new], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
 
         xscale, yscale = get_pixels_to_data_scales(self.parent_axes)

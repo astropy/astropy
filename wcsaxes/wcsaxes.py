@@ -3,7 +3,7 @@ import numpy as np
 
 from matplotlib.axes import Axes
 from matplotlib.lines import Line2D
-from matplotlib.transforms import Affine2D
+from matplotlib.transforms import Affine2D, Bbox
 
 from astropy.wcs import WCS
 
@@ -162,3 +162,21 @@ class WCSAxes(Axes):
             else:
 
                 raise NotImplemented("frame {0} not implemented".format(frame))
+
+    def get_tightbbox(self, renderer):
+
+        if not self.get_visible():
+            return
+
+        bb = []
+
+        bb.extend(self.coords[0].ticklabels.bboxes)
+        bb.extend(self.coords[1].ticklabels.bboxes)
+
+        bb = [b for b in bb if b and (b.width!=0 or b.height!=0)]
+
+        if bb:
+            _bbox = Bbox.union(bb)
+            return _bbox
+        else:
+            return None
