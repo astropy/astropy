@@ -52,7 +52,7 @@ class CoordinatesMap(object):
     def disable_offset_mode(self):
         raise NotImplementedError()
 
-    def grid(self, show_grid=True, **kwargs):
+    def grid(self, draw_grid=True, **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -64,5 +64,5 @@ class CoordinatesMap(object):
         draw_grid : bool
             Whether to show the gridlines
         """
-        self[0].grid(show_grid=show_grid, **kwargs)
-        self[1].grid(show_grid=show_grid, **kwargs)
+        self[0].grid(draw_grid=draw_grid, **kwargs)
+        self[1].grid(draw_grid=draw_grid, **kwargs)
