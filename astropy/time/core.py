@@ -26,9 +26,9 @@ from ..extern import six
 
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
-           'TimeDatetime',
-           'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
+           'TimePlotDate', 'TimeDatetime', 'TimeString',
+           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
            'OperandTypeError', 'TimeEpochDateString',
@@ -53,8 +53,6 @@ TIME_FORMATS = {}
 TIME_DELTA_FORMATS = {}
 
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
-TIME_DELTA_SCALES = ('tai',)
-
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -71,6 +69,28 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'ut1'): ('tai', 'utc'),
               ('tt', 'utc'): ('tai',),
               }
+GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
+BARYCENTRIC_SCALES = ('tcb', 'tdb')
+ROTATIONAL_SCALES = ('ut1',)
+TIME_DELTA_TYPES = dict((scale, scales)
+                        for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
+                                       ROTATIONAL_SCALES) for scale in scales)
+TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
+# TODO: access these from erfa.h??
+# L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
+# d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
+ERFA_ELG = 6.969290134e-10
+# L_B = 1 - d(TDB)/d(TCB)
+ERFA_ELB = 1.550519768e-8
+# scale offsets as second = first + first * scale_offset[(first,second)]
+SCALE_OFFSETS = {('tt', 'tai'): None,
+                 ('tai', 'tt'): None,
+                 ('tcg', 'tt'): -ERFA_ELG,
+                 ('tt', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
+                 ('tcg', 'tai'): -ERFA_ELG,
+                 ('tai', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
+                 ('tcb', 'tdb'): -ERFA_ELB,
+                 ('tdb', 'tcb'): ERFA_ELB / (1. - ERFA_ELB)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -246,16 +266,16 @@ class Time(object):
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
-        If format is None and the input is a string-type or object array then guess
-        available formats and stop when one matches.
+        If format is None and the input is a string-type or object array then
+        guess available formats and stop when one matches.
         """
 
         if format is None and (isinstance(val[0], self.__class__) or
                                val.dtype.kind in ('S', 'U', 'O')):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
-            err_msg = 'any of the formats where the format keyword is optional {0}'.format(
-                [name for name, cls in formats])
+            err_msg = ('any of the formats where the format keyword is '
+                       'optional {0}'.format([name for name, cls in formats]))
         elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
             if format is None:
@@ -620,7 +640,7 @@ class Time(object):
                                  from_jd=True)
         else:
             tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
-                                 tm.scale, tm.precision,
+                                 tm._time._scale, tm.precision,
                                  tm.in_subfmt, tm.out_subfmt,
                                  from_jd=True)
         tm._format = format
@@ -666,7 +686,7 @@ class Time(object):
         """
         Get dynamic attributes to output format or do timescale conversion.
         """
-        if attr in self.SCALES:
+        if attr in self.SCALES and self.scale is not None:
             tm = self.replicate()
             tm._set_scale(attr)
             return tm
@@ -683,6 +703,16 @@ class Time(object):
             else:
                 out = tm.value
             return out
+
+        elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
+            if self.scale is None:
+                raise ScaleValueError("Cannot convert TimeDelta with "
+                                      "undefined scale to any defined scale.")
+            else:
+                raise ScaleValueError("Cannot convert {0} with scale "
+                                      "'{1}' to scale '{2}'"
+                                      .format(self.__class__.__name__,
+                                              self.scale, attr))
 
         else:
             # Should raise AttributeError
@@ -861,80 +891,93 @@ class Time(object):
         return len(self.jd1)
 
     def __sub__(self, other):
-        self_tai = self.tai
         if not isinstance(other, Time):
             try:
                 other = TimeDelta(other)
             except:
-                raise OperandTypeError(self, other)
+                raise OperandTypeError(self, other, '-')
 
-        other_tai = other.tai
-
+        # Tdelta - something is dealt with in TimeDelta, so we have
         # T      - Tdelta = T
-        # Tdelta - Tdelta = Tdelta
         # T      - T      = Tdelta
-        # Tdelta - T      = error
-        self_time = not isinstance(self, TimeDelta)
-        other_time = not isinstance(other, TimeDelta)
+        other_is_delta = isinstance(other, TimeDelta)
 
-        jd1 = self_tai._time.jd1 - other_tai._time.jd1
-        jd2 = self_tai._time.jd2 - other_tai._time.jd2
-        if other_time:
-            if self_time:
-                # Note: jd1 is exact; jd2 carry-over done in TimeDelta init.
-                tai = TimeDelta(jd1, jd2, format='jd')
-                tai.isscalar = self_tai.isscalar and other_tai.isscalar
-                return tai
+        # we need a constant scale to calculate, which is guaranteed for
+        # TimeDelta, but not for Time (which can be UTC)
+        if other_is_delta:  # T - Tdelta
+            if self.scale in other.SCALES:
+                out = self.replicate()
+                if other.scale not in (out.scale, None):
+                    other = getattr(other, out.scale)
             else:
-                raise OperandTypeError(self, other)
-
-        tai = self_tai.replicate()
-        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = self_tai.isscalar and other_tai.isscalar
-
-        if self_time:
+                out = getattr(self, (other.scale if other.scale is not None
+                                     else 'tai'))
             # remove attributes that are invalidated by changing time
             for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-                if hasattr(tai, attr):
-                    delattr(tai, attr)
-            return getattr(tai, self.scale)
+                if hasattr(out, attr):
+                    delattr(out, attr)
 
-        return tai
+        else:  # T - T
+            self_time = (self._time if self.scale in TIME_DELTA_SCALES
+                         else self.tai._time)
+            # set up TimeDelta, subtraction to be done shortly
+            out = TimeDelta(self_time.jd1, self_time.jd2, format='jd',
+                            scale=self_time.scale)
+
+            if other.scale != out.scale:
+                other = getattr(other, out.scale)
+
+        jd1 = out._time.jd1 - other._time.jd1
+        jd2 = out._time.jd2 - other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        if other_is_delta and out.scale != self.scale:
+            return getattr(out, self.scale)
+
+        return out
 
     def __add__(self, other):
-        self_tai = self.tai
         if not isinstance(other, Time):
             try:
                 other = TimeDelta(other)
             except:
-                raise OperandTypeError(self, other)
+                raise OperandTypeError(self, other, '+')
 
-        other_tai = other.tai
-
+        # Tdelta + something is dealt with in TimeDelta, so we have
         # T      + Tdelta = T
-        # Tdelta + Tdelta = Tdelta
         # T      + T      = error
-        # Tdelta + T      = T
-        self_time = not isinstance(self, TimeDelta)
-        other_time = not isinstance(other, TimeDelta)
-        if self_time and other_time:
-            raise OperandTypeError(self, other)
 
-        jd1 = self_tai._time.jd1 + other_tai._time.jd1
-        jd2 = self_tai._time.jd2 + other_tai._time.jd2
-        tai = (other_tai if other_time else self_tai).replicate()
-        tai._time.jd1, tai._time.jd2 = day_frac(jd1, jd2)
-        tai.isscalar = self_tai.isscalar and other_tai.isscalar
+        if not isinstance(other, TimeDelta):
+            raise OperandTypeError(self, other, '+')
 
-        if self_time or other_time:
-            # remove attributes that are invalidated by changing time
-            for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-                if hasattr(tai, attr):
-                    delattr(tai, attr)
+        # ideally, we calculate in the scale of the Time item, since that is
+        # what we want the output in, but this may not be possible, since
+        # TimeDelta cannot be converted arbitrarily
+        if self.scale in other.SCALES:
+            out = self.replicate()
+            if other.scale not in (out.scale, None):
+                other = getattr(other, out.scale)
+        else:
+            out = getattr(self, (other.scale if other.scale is not None
+                                 else 'tai'))
 
-            return getattr(tai, other.scale if other_time else self.scale)
+        # remove attributes that are invalidated by changing time
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
+            if hasattr(out, attr):
+                delattr(out, attr)
 
-        return tai
+        jd1 = out._time.jd1 + other._time.jd1
+        jd2 = out._time.jd2 + other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        if out.scale != self.scale:
+            return getattr(out, self.scale)
+
+        return out
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -943,36 +986,43 @@ class Time(object):
         out = self.__sub__(other)
         return -out
 
-    def _tai_difference(self, other, op=None):
-        """If other is of same class as self, return difference in TAI.
+    def _time_difference(self, other, op=None):
+        """If other is of same class as self, return difference in self.scale.
         Otherwise, raise OperandTypeError.
         """
         if other.__class__ is not self.__class__:
             try:
-                other = self.__class__(other)
+                other = self.__class__(other, scale=self.scale)
             except:
                 raise OperandTypeError(self, other, op)
-        self_tai = self.tai
-        other_tai = other.tai
-        return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
+
+        if(self.scale is not None and self.scale not in other.SCALES or
+           other.scale is not None and other.scale not in self.SCALES):
+            raise TypeError("Cannot compare TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
+
+        if self.scale is not None and other.scale is not None:
+            other = getattr(other, self.scale)
+
+        return (self.jd1 - other.jd1) + (self.jd2 - other.jd2)
 
     def __lt__(self, other):
-        return self._tai_difference(other, '<') < 0.
+        return self._time_difference(other, '<') < 0.
 
     def __le__(self, other):
-        return self._tai_difference(other, '<=') <= 0.
+        return self._time_difference(other, '<=') <= 0.
 
     def __eq__(self, other):
-        return self._tai_difference(other, '==') == 0.
+        return self._time_difference(other, '==') == 0.
 
     def __ne__(self, other):
-        return self._tai_difference(other, '!=') != 0.
+        return self._time_difference(other, '!=') != 0.
 
     def __gt__(self, other):
-        return self._tai_difference(other, '>') > 0.
+        return self._time_difference(other, '>') > 0.
 
     def __ge__(self, other):
-        return self._tai_difference(other, '>=') >= 0.
+        return self._time_difference(other, '>=') >= 0.
 
 
 class TimeDelta(Time):
@@ -1005,9 +1055,10 @@ class TimeDelta(Time):
     """Dict of time delta formats"""
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
-        # Note: scale is not used but is needed because of the inheritance
-        # from Time.
-        if not isinstance(val, self.__class__):
+        if isinstance(val, self.__class__):
+            if scale is not None:
+                self._set_scale(scale)
+        else:
             if format is None:
                 try:
                     val = val.to(u.day)
@@ -1019,7 +1070,106 @@ class TimeDelta(Time):
                                      .format(self.__class__.__name__))
                 format = 'jd'
 
-            self._init_from_vals(val, val2, format, 'tai', copy)
+            self._init_from_vals(val, val2, format, scale, copy)
+
+            if scale is not None:
+                self.SCALES = TIME_DELTA_TYPES[scale]
+
+    def replicate(self, *args, **kwargs):
+        out = super(TimeDelta, self).replicate(*args, **kwargs)
+        out.SCALES = self.SCALES
+        return out
+
+    def _set_scale(self, scale):
+        """
+        This is the key routine that actually does time scale conversions.
+        This is not public and not connected to the read-only scale property.
+        """
+
+        if scale == self.scale:
+            return
+        if scale not in self.SCALES:
+            raise ValueError("Scale {0} is not in the allowed scales {1}"
+                             .format(repr(scale), sorted(self.SCALES)))
+
+        # For TimeDelta, there can only be a change in scale factor,
+        # which is written as time2 - time1 = scale_offset * time1
+        scale_offset = SCALE_OFFSETS[(self.scale, scale)]
+        if scale_offset is None:
+            self._time.scale = scale
+        else:
+            jd1, jd2 = self._time.jd1, self._time.jd2
+            offset1, offset2 = day_frac(jd1, jd2, factor=scale_offset)
+            self._time = self.FORMATS[self.format](
+                jd1 + offset1, jd2 + offset2, scale,
+                self.precision, self.in_subfmt,
+                self.out_subfmt, from_jd=True)
+
+    def __add__(self, other):
+        # only deal with TimeDelta + TimeDelta
+        if isinstance(other, Time):
+            if not isinstance(other, TimeDelta):
+                return other.__add__(self)
+        else:
+            try:
+                other = TimeDelta(other)
+            except:
+                raise OperandTypeError(self, other, '+')
+
+        # the scales should be compatible (e.g., cannot convert TDB to TAI)
+        if(self.scale is not None and self.scale not in other.SCALES or
+           other.scale is not None and other.scale not in self.SCALES):
+            raise TypeError("Cannot add TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
+
+        # adjust the scale of other if the scale of self is set (or no scales)
+        if self.scale is not None or other.scale is None:
+            out = self.replicate()
+            if other.scale is not None:
+                other = getattr(other, self.scale)
+        else:
+            out = other.replicate()
+
+        jd1 = self._time.jd1 + other._time.jd1
+        jd2 = self._time.jd2 + other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        return out
+
+    def __sub__(self, other):
+        # only deal with TimeDelta - TimeDelta
+        if isinstance(other, Time):
+            if not isinstance(other, TimeDelta):
+                raise OperandTypeError(self, other, '-')
+        else:
+            try:
+                other = TimeDelta(other)
+            except:
+                raise OperandTypeError(self, other, '-')
+
+        # the scales should be compatible (e.g., cannot convert TDB to TAI)
+        if(self.scale is not None and self.scale not in other.SCALES or
+           other.scale is not None and other.scale not in self.SCALES):
+            raise TypeError("Cannot subtract TimeDelta instances with scales "
+                            "'{0}' and '{1}'".format(self.scale, other.scale))
+
+        # adjust the scale of other if the scale of self is set (or no scales)
+        if self.scale is not None or other.scale is None:
+            out = self.replicate()
+            if other.scale is not None:
+                other = getattr(other, self.scale)
+        else:
+            out = other.replicate()
+
+        jd1 = self._time.jd1 - other._time.jd1
+        jd2 = self._time.jd2 - other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+        out.isscalar = self.isscalar and other.isscalar
+
+        return out
 
     def __neg__(self):
         """Negation of a `TimeDelta` object."""
@@ -1057,7 +1207,7 @@ class TimeDelta(Time):
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd')
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
@@ -1090,7 +1240,7 @@ class TimeDelta(Time):
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd')
+        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -1260,7 +1410,7 @@ class TimeFromEpoch(TimeFormat):
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
-        # Initialize the reference epoch which is a single time defined in subclasses
+        # Initialize the reference epoch (a single time defined in subclasses)
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
         self.epoch = epoch
@@ -1271,16 +1421,16 @@ class TimeFromEpoch(TimeFormat):
 
     def set_jds(self, val1, val2):
         """
-        Initialize the internal jd1 and jd2 attributes given val1 and val2.  For an
-        TimeFromEpoch subclass like TimeUnix these will be floats giving the effective
-        seconds since an epoch time (e.g. 1970-01-01 00:00:00).
+        Initialize the internal jd1 and jd2 attributes given val1 and val2.
+        For an TimeFromEpoch subclass like TimeUnix these will be floats giving
+        the effective seconds since an epoch time (e.g. 1970-01-01 00:00:00).
         """
         # Form new JDs based on epoch time + time from epoch (converted to JD).
-        # One subtlety that might not be obvious is that 1.000 Julian days in UTC
-        # can be 86400 or 86401 seconds.  For the TimeUnix format the assumption
-        # is that every day is exactly 86400 seconds, so in principle this
-        # is doing the math incorrectly, *except* that it matches the definition
-        # of Unix time which does not include leap seconds.
+        # One subtlety that might not be obvious is that 1.000 Julian days in
+        # UTC can be 86400 or 86401 seconds.  For the TimeUnix format the
+        # assumption is that every day is exactly 86400 seconds, so this is, in
+        # principle, doing the math incorrectly, *except* that it matches the
+        # definition of Unix time which does not include leap seconds.
 
         # note: use divisor=1./self.unit, since this is either 1 or 1/86400,
         # and 1/86400 is not exactly representable as a float64, so multiplying
@@ -1291,18 +1441,20 @@ class TimeFromEpoch(TimeFormat):
         jd1 = self.epoch.jd1 + day
         jd2 = self.epoch.jd2 + frac
 
-        # Create a temporary Time object corresponding to the current new (jd1, jd2) in
-        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the desired time
-        # scale for this object.
+        # Create a temporary Time object corresponding to the new (jd1, jd2) in
+        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the
+        # desired time scale for this object.
         #
-        # A known limitation is that the transform from self.epoch_scale to self.scale
-        # cannot involve any metadata like lat or lon.
+        # A known limitation is that the transform from self.epoch_scale to
+        # self.scale cannot involve any metadata like lat or lon.
         try:
-           tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
+            tm = getattr(Time(jd1, jd2, scale=self.epoch_scale,
+                              format='jd'), self.scale)
         except Exception as err:
-           raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}' to specified "
-                                 "scale '{2}', got error:\n{3}"
-                                  .format(self.name, self.epoch_scale, self.scale, err))
+            raise ScaleValueError("Cannot convert from '{0}' epoch scale '{1}'"
+                                  "to specified scale '{2}', got error:\n{3}"
+                                  .format(self.name, self.epoch_scale,
+                                          self.scale, err))
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
@@ -1351,8 +1503,8 @@ class TimeGPS(TimeFromEpoch):
     =====
     This implementation is strictly a representation of the number of seconds
     (including leap seconds) since midnight UTC on 1980-01-06.  GPS can also be
-    considered as a time scale which is ahead of TAI by a fixed offset (to within
-    about 100 nanoseconds).
+    considered as a time scale which is ahead of TAI by a fixed offset
+    (to within about 100 nanoseconds).
 
     For details, see http://tycho.usno.navy.mil/gpstt.html
     """
@@ -1367,9 +1519,11 @@ class TimeGPS(TimeFromEpoch):
 
 class TimePlotDate(TimeFromEpoch):
     """
-    Matplotlib `~matplotlib.pyplot.plot_date` input: 1 + number of days from 0001-01-01 00:00:00 UTC
+    Matplotlib `~matplotlib.pyplot.plot_date` input:
+    1 + number of days from 0001-01-01 00:00:00 UTC
 
-    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
+    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date`
+    function::
 
       >>> import matplotlib.pyplot as plt
       >>> jyear = np.linspace(2000, 2001, 20)
@@ -1414,15 +1568,16 @@ class TimeAstropyTime(TimeUnique):
         """
 
         if not all(isinstance(val, Time) for val in val1):
-            raise TypeError('Input values for {0} class must be datetime objects'
-                            .format(cls.name))
+            raise TypeError('Input values for {0} class must be datetime '
+                            'objects'.format(cls.name))
 
         if scale is None:
             scale = val1[0].scale
         jd1 = np.concatenate([getattr(val, scale)._time.jd1 for val in val1])
         jd2 = np.concatenate([getattr(val, scale)._time.jd2 for val in val1])
         OutTimeFormat = val1[0]._time.__class__
-        self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt, from_jd=True)
+        self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt,
+                             from_jd=True)
 
         return self
 
@@ -1470,19 +1625,20 @@ class TimeDatetime(TimeUnique):
             imin[i] = val.minute
             dsec[i] = val.second + val.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
-                                              iy, im, id, ihr, imin, dsec)
+        self.jd1, self.jd2 = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     @property
     def value(self):
         iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
-                                                 6,  # precision = 6 for microseconds
+                                                 6,  # precision=6 for microsec
                                                  self.jd1, self.jd2)
 
         out = np.empty(len(self), dtype=np.object)
         idxs = itertools.count()
-        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids, ihmsfs):
+        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids,
+                                                    ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
             out[idx] = datetime(int(iy), int(im), int(id),
                                 int(ihr), int(imin), int(isec), int(ifracsec))
@@ -1549,8 +1705,8 @@ class TimeString(TimeUnique):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
-                                              iy, im, id, ihr, imin, dsec)
+        self.jd1, self.jd2 = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
         """
@@ -1740,7 +1896,7 @@ class TimeEpochDateString(TimeString):
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
-            except (IndexError, ValueError) as err:
+            except (IndexError, ValueError):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:
@@ -1778,6 +1934,17 @@ class TimeJulianEpochString(TimeEpochDateString):
 
 class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
+
+    def _check_scale(self, scale):
+        """
+        Check that the scale is in the allowed list of scales, or is None
+        """
+        if scale is not None and scale not in TIME_DELTA_SCALES:
+            raise ScaleValueError("Scale value '{0}' not in "
+                                  "allowed values {1}"
+                                  .format(scale, TIME_DELTA_SCALES))
+
+        return scale
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
@@ -1846,23 +2013,23 @@ def _make_1d_array(val, copy=False):
 
 def day_frac(val1, val2, factor=1., divisor=1.):
     """
-    Return the sum of ``val1`` and ``val2`` as two float64s, an integer part and the
-    fractional remainder.  If ``factor`` is not 1.0 then multiply the sum by ``factor``.
-    If ``divisor`` is not 1.0 then divide the sum by ``divisor``.
+    Return the sum of ``val1`` and ``val2`` as two float64s, an integer part
+    and the fractional remainder.  If ``factor`` is not 1.0 then multiply the
+    sum by ``factor``.  If ``divisor`` is not 1.0 then divide the sum by
+    ``divisor``.
 
-    The arithmetic is all done with exact floating point operations so no precision is
-    lost to rounding error.  This routine assumes the sum is less than about 1e16,
-    otherwise the ``frac`` part will be greater than 1.0.
+    The arithmetic is all done with exact floating point operations so no
+    precision is lost to rounding error.  This routine assumes the sum is less
+    than about 1e16, otherwise the ``frac`` part will be greater than 1.0.
 
     Returns
     -------
     day, frac: float64
         Integer and fractional part of val1 + val2.
     """
-
-    # Add val1 and val2 exactly, returning the result as two float64s.  The first is the
-    # approximate sum (with some floating point error) and the second is the error of the
-    # float64 sum.
+    # Add val1 and val2 exactly, returning the result as two float64s.
+    # The first is the approximate sum (with some floating point error)
+    # and the second is the error of the float64 sum.
     sum12, err12 = two_sum(val1, val2)
 
     if np.any(factor != 1.):
@@ -1888,9 +2055,9 @@ def day_frac(val1, val2, factor=1., divisor=1.):
 
 def two_sum(a, b):
     """
-    Add ``a`` and ``b`` exactly, returning the result as two float64s.  The first is the
-    approximate sum (with some floating point error) and the second is the error of the
-    float64 sum.
+    Add ``a`` and ``b`` exactly, returning the result as two float64s.
+    The first is the approximate sum (with some floating point error)
+    and the second is the error of the float64 sum.
 
     Using the procedure of Shewchuk, 1997,
     Discrete & Computational Geometry 18(3):305-363
@@ -1911,9 +2078,9 @@ def two_sum(a, b):
 
 def two_product(a, b):
     """
-    Multiple ``a`` and ``b`` exactly, returning the result as two float64s.  The first is
-    the approximate prodcut (with some floating point error) and the second is the error
-    of the float64 product.
+    Multiple ``a`` and ``b`` exactly, returning the result as two float64s.
+    The first is the approximate prodcut (with some floating point error)
+    and the second is the error of the float64 product.
 
     Uses the procedure of Shewchuk, 1997,
     Discrete & Computational Geometry 18(3):305-363

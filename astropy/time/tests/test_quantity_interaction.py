@@ -95,7 +95,7 @@ class TestTimeDeltaQuantity():
 
     def test_invalid_quantity_input(self):
         with pytest.raises(u.UnitsError):
-            TimeDelta(2450000.*u.m, format='jd', scale='utc')
+            TimeDelta(2450000.*u.m, format='jd')
 
         with pytest.raises(u.UnitsError):
             Time(2450000.*u.dimensionless_unscaled, format='jd', scale='utc')
