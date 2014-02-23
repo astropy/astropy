@@ -33,7 +33,7 @@ def select_step_degree(dv):
         n = degree_limits.searchsorted(dv.to(u.degree))
         step = degree_steps[n]
         unit = degree_units[n]
-        
+
         return step * unit
 
     else:

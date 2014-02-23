@@ -22,8 +22,9 @@ class Ticks(Line2D):
         self.set_ticksize(ticksize)
         self.set_tick_out(tick_out)
         self.clear()
-        self.set_color('white')
         Line2D.__init__(self, [0.], [0.], **kwargs)
+        self.set_color('white')
+        self.set_visible_axes('all')
 
     def set_tick_out(self, tick_out):
         """
@@ -49,39 +50,29 @@ class Ticks(Line2D):
         """
         return self._ticksize
 
-    def set_color(self, color):
-        """
-        Set the color of the ticks
-        """
-        self._color = color
+    def set_visible_axes(self, visible_axes):
+        self._visible_axes = visible_axes
 
-    def get_color(self):
-        """
-        Return the color of the ticks
-        """
-        return self._color
-
-    def set_alpha(self, color):
-        """
-        Set the color of the ticks
-        """
-        self._alpha = alpha
-
-    def get_alpha(self):
-        """
-        Return the color of the ticks
-        """
-        return self._alpha
+    def get_visible_axes(self):
+        if self._visible_axes == 'all':
+            return self.world.keys()
+        else:
+            return self._visible_axes
 
     def clear(self):
-        self.world = []
-        self.pixel = []
-        self.angle = []
+        self.world = {}
+        self.pixel = {}
+        self.angle = {}
 
-    def add(self, world, pixel, angle):
-        self.world.append(world)
-        self.pixel.append(pixel)
-        self.angle.append(angle)
+    def add(self, axis, world, pixel, angle):
+        if axis not in self.world:
+            self.world[axis] = [world]
+            self.pixel[axis] = [pixel]
+            self.angle[axis] = [angle]
+        else:
+            self.world[axis].append(world)
+            self.pixel[axis].append(pixel)
+            self.angle[axis].append(angle)
 
     def __len__(self):
         return len(self.world)
@@ -99,8 +90,6 @@ class Ticks(Line2D):
         path_trans = self.get_transform()
 
         gc = renderer.new_gc()
-        gc.set_foreground(self.get_color())
-        gc.set_alpha(self.get_alpha())
 
         offset = renderer.points_to_pixels(self.get_ticksize())
         marker_scale = Affine2D().scale(offset, offset)
@@ -109,17 +98,19 @@ class Ticks(Line2D):
 
         initial_angle = 180. if self.get_tick_out() else 0.
 
-        for loc, angle in zip(self.pixel, self.angle):
+        for axis in self.get_visible_axes():
 
-            # Set the rotation for this tick
-            marker_rotation.rotate_deg(initial_angle + angle)
+            for loc, angle in zip(self.pixel[axis], self.angle[axis]):
 
-            # Draw the markers
-            locs = path_trans.transform_non_affine(np.array([loc, loc]))
-            renderer.draw_markers(gc, self._tickvert_path, marker_transform,
-                                  Path(locs), path_trans.get_affine())
+                # Set the rotation for this tick
+                marker_rotation.rotate_deg(initial_angle + angle)
 
-            # Reset the tick rotation before moving to the next tick
-            marker_rotation.clear()
+                # Draw the markers
+                locs = path_trans.transform_non_affine(np.array([loc, loc]))
+                renderer.draw_markers(gc, self._tickvert_path, marker_transform,
+                                      Path(locs), path_trans.get_affine())
+
+                # Reset the tick rotation before moving to the next tick
+                marker_rotation.clear()
 
         gc.restore()
