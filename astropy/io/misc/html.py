@@ -14,6 +14,12 @@ def html_write(table, filename, clobber=False):
     html_file = open(filename, 'w')
     xml_writer = writer.XMLWriter(html_file)
     with xml_writer.tag('html'):
+        with xml_writer.tag('head'):
+            with xml_writer.tag('style'):
+                xml_writer.data(
+                    'table,th,td{border:1px solid black;'
+                    'border-collapse:collapse;}'
+                    'th,td{padding:5px;}')
         with xml_writer.tag('table'):
             with xml_writer.tag('tr'):
                 for colname in table.colnames:
