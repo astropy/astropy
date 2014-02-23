@@ -73,7 +73,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format='dd:mm:ss'):
+    def __init__(self, values=None, number=None, spacing=None, format=None):
+        self._unit = u.degree
         super(AngleFormatterLocator, self).__init__(values=values,
                                                     number=number,
                                                     spacing=spacing,
@@ -87,6 +88,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
     def format(self, value):
 
         self._format = value
+
+        if value is None:
+            return
 
         if DMS_RE.match(value) is not None:
             self._decimal = False
@@ -170,7 +174,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 # first compute the exact spacing
                 dv = abs(float(value_max - value_min)) / self.number * u.degree
 
-                if dv < self.base_spacing:
+                if self.format is not None and dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
                     spacing_deg = self.base_spacing.to(u.degree).value
@@ -183,20 +187,43 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         from .utils import select_step_hour
                         spacing_deg = select_step_hour(dv).to(u.degree).value
 
+
             # We now find the interval values as multiples of the spacing and generate the tick
             # positions from this
             imin = np.floor(value_min / spacing_deg)
             imax = np.ceil(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            return values
+            return values, spacing_deg * u.degree
 
-    def formatter(self, values):
+    def formatter(self, values, spacing):
         if len(values) > 0:
+
+            if self.format is None:
+                if spacing > 1 * u.degree:
+                    fields = 1
+                    precision = 0
+                elif spacing > 1. * u.arcmin:
+                    fields = 2
+                    precision = 0
+                elif spacing > 1. * u.arcsec:
+                    fields = 3
+                    precision = 0
+                else:
+                    fields = 3
+                    precision = -int(np.floor(np.log10(spacing.to(u.arcsec).value)))
+                decimal = False
+                unit = u.degree
+            else:
+                fields = self._fields
+                precision = self._precision
+                decimal = self._decimal
+                unit = self._unit
+
             angles = Angle(np.asarray(values), unit=u.deg)
-            string = angles.to_string(unit=self._unit,
-                                      precision=self._precision,
-                                      decimal=self._decimal,
-                                      fields=self._fields).tolist()
+            string = angles.to_string(unit=unit,
+                                      precision=precision,
+                                      decimal=decimal,
+                                      fields=fields).tolist()
             return string
         else:
             return []
@@ -207,7 +234,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format='x.xxx'):
+    def __init__(self, values=None, number=None, spacing=None, format=None):
         super(ScalarFormatterLocator, self).__init__(values=values,
                                                      number=number,
                                                      spacing=spacing,
@@ -221,6 +248,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     def format(self, value):
 
         self._format = value
+
+        if value is None:
+            return
 
         if SCAL_RE.match(value) is not None:
             if '.' in value:
@@ -263,7 +293,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # first compute the exact spacing
                 dv = abs(float(value_max - value_min)) / self.number
 
-                if dv < self.base_spacing:
+                if self.format is not None and dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
                     spacing = self.base_spacing
@@ -276,10 +306,18 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             imin = np.floor(value_min / spacing)
             imax = np.ceil(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
-            return values
+            return values, spacing
 
-    def formatter(self, values):
+    def formatter(self, values, spacing):
+
         if len(values) > 0:
+
+            if self.format is None:
+                precision = -int(np.floor(np.log10(spacing)))
+            else:
+                precision = self._precision
+
             return [("{0:." + str(self._precision) + "f}").format(x) for x in values]
+
         else:
             return []

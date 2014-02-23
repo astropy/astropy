@@ -83,7 +83,7 @@ class TickLabels(Text):
         if self._visible_axes == 'all':
             return self.world.keys()
         else:
-            return self._visible_axes
+            return [x for x in self._visible_axes if x in self.world]
 
     def draw(self, renderer):
 

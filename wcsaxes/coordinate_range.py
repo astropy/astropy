@@ -167,7 +167,10 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
 
     x_range = xw_max - xw_min
     if x_type == 'longitude':
-        if xw_min < 0.:
+        if x_range > 300.:
+            xw_min = 0.
+            xw_max = 360.
+        elif xw_min < 0.:
             xw_min = max(-180., xw_min - 0.1 * x_range)
             xw_max = min(+180., xw_max + 0.1 * x_range)
         else:
@@ -179,7 +182,10 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
 
     y_range = yw_max - yw_min
     if y_type == 'longitude':
-        if yw_min < 0.:
+        if y_range > 360.:
+            yw_min = -180.
+            yw_max = 180.
+        elif yw_min < 0.:
             yw_min = max(-180., yw_min - 0.1 * y_range)
             yw_max = min(+180., yw_max + 0.1 * y_range)
         else:
