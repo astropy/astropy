@@ -111,17 +111,17 @@ def get_coordinate_system(wcs):
     return coordinate_class
 
 
-def ctype_is_angle(ctype):
+def coord_type_from_ctype(ctype):
     """
     Determine whether a particular WCS ctype corresponds to an angle or scalar
     coordinate.
     """
-    if ctype[:4] in ['RA--', 'DEC-']:
-        return True
-    elif ctype[1:4] in ['LON', 'LAT']:
-        return True
+    if ctype[:4] == 'RA--' or ctype[1:4] == 'LON':
+        return 'longitude'
+    elif ctype[:4] == 'DEC-' or ctype[1:4] == 'LAT':
+        return 'latitude'
     else:
-        return False
+        return 'scalar'
 
 
 def get_pixels_to_data_scales(axes):

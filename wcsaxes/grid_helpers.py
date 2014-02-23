@@ -1,6 +1,6 @@
 from .coordinate_helpers import AngleCoordinateHelper, ScalarCoordinateHelper
 from .transforms import WCSWorld2PixelTransform
-from .utils import ctype_is_angle
+from .utils import coord_type_from_ctype
 
 from . import six
 
@@ -19,14 +19,17 @@ class CoordinatesMap(object):
         # Set up coordinates
         self._coords = {}
         for coord_index in [0, 1]:
-            if ctype_is_angle(wcs.wcs.ctype[coord_index]):
+            coord_type = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
+            if coord_type in ['longitude', 'latitude']:
                 self._coords[coord_index] = AngleCoordinateHelper(parent_axes=axes,
                                                                   transform=self._transform,
-                                                                  coord_index=coord_index)
+                                                                  coord_index=coord_index,
+                                                                  coord_type=coord_type)
             else:
                 self._coords[coord_index] = ScalarCoordinateHelper(parent_axes=axes,
                                                                    transform=self._transform,
-                                                                   coord_index=coord_index)
+                                                                   coord_index=coord_index,
+                                                                   coord_type=coord_type)
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4].replace('-', '')

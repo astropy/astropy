@@ -28,7 +28,7 @@ class BaseCoordinateHelper(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, parent_axes=None, transform=None, coord_index=None):
+    def __init__(self, parent_axes=None, transform=None, coord_index=None, coord_type='scalar'):
 
         super(BaseCoordinateHelper, self).__init__()
 
@@ -36,6 +36,7 @@ class BaseCoordinateHelper(object):
         self.parent_axes = parent_axes
         self.transform = transform
         self.coord_index = coord_index
+        self.coord_type = coord_type
 
         # Initialize ticks
         self.dpi_transform = Affine2D()
@@ -201,8 +202,6 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
 
     _formatter_locator_class = AngleFormatterLocator
 
-    is_angle = True
-
     def _update_ticks(self, renderer):
 
         # Here we should determine the location and rotation of all the ticks.
@@ -290,8 +289,6 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
 class ScalarCoordinateHelper(BaseCoordinateHelper):
 
     _formatter_locator_class = ScalarFormatterLocator
-
-    is_angle = False
 
     def _update_ticks(self, renderer):
 

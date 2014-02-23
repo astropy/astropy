@@ -83,7 +83,8 @@ class WCSAxes(Axes):
         ymin, ymax = self.get_ylim()
         return find_coordinate_range(self.coords._transform.inverted(),
                                      [xmin, xmax, ymin, ymax],
-                                     x_angle=self.coords[0].is_angle, y_angle=self.coords[1].is_angle)
+                                     x_type=self.coords[0].coord_type,
+                                     y_type=self.coords[1].coord_type)
 
     def draw(self, renderer, inframe=False):
 
