@@ -63,16 +63,19 @@ class Ticks(Line2D):
         self.world = {}
         self.pixel = {}
         self.angle = {}
+        self.disp = {}
 
-    def add(self, axis, world, pixel, angle):
+    def add(self, axis, world, pixel, angle, axis_displacement):
         if axis not in self.world:
             self.world[axis] = [world]
             self.pixel[axis] = [pixel]
             self.angle[axis] = [angle]
+            self.disp[axis] = [axis_displacement]
         else:
             self.world[axis].append(world)
             self.pixel[axis].append(pixel)
             self.angle[axis].append(angle)
+            self.disp[axis].append(axis_displacement)
 
     def __len__(self):
         return len(self.world)
@@ -90,6 +93,8 @@ class Ticks(Line2D):
         path_trans = self.get_transform()
 
         gc = renderer.new_gc()
+        gc.set_foreground(self.get_color())
+        gc.set_alpha(self.get_alpha())
 
         offset = renderer.points_to_pixels(self.get_ticksize())
         marker_scale = Affine2D().scale(offset, offset)

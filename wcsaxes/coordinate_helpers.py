@@ -267,13 +267,15 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                     self.ticks.add(axis=axis,
                                    pixel=(x_pix_i, y_pix_i),
                                    world=t % 360.,
-                                   angle=normal_angle[imin])
+                                   angle=normal_angle[imin],
+                                   axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
                                         pixel=(x_pix_i, y_pix_i),
                                         world=t % 360.,
                                         angle=normal_angle[imin],
-                                        text=self._formatter_locator.formatter([t % 360.])[0])
+                                        text=self._formatter_locator.formatter([t % 360.])[0],
+                                        axis_displacement=imin + frac)
 
         xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
 

@@ -92,7 +92,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             self._decimal = False
             self._unit = u.degree
             if '.' in value:
-                self._precision = len(value) - value.index('.')
+                self._precision = len(value) - value.index('.') - 1
                 self._fields = 3
             else:
                 self._precision = 0
