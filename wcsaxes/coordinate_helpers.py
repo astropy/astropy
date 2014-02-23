@@ -326,8 +326,8 @@ class ScalarCoordinateHelper(BaseCoordinateHelper):
             x_pix, y_pix = frame[axis]
 
             # Find angle normal to border and inwards
-            dx = x_pix - np.roll(x_pix, 1)
-            dy = y_pix - np.roll(y_pix, 1)
+            dx = x_pix[1:] - x_pix[:-1]
+            dy = y_pix[1:] - y_pix[:-1]
             normal_angle = np.degrees(np.arctan2(dx, -dy))
 
             # Transform to world coordinates
@@ -338,8 +338,8 @@ class ScalarCoordinateHelper(BaseCoordinateHelper):
 
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly.
-            w1 = world
-            w2 = np.roll(world, -1)
+            w1 = world[1:]
+            w2 = world[:-1]
 
             # Need to check ticks as well as ticks + 360, since the above can
             # produce pairs such as 359 to 361 or 0.5 to 1.5, both of which would
