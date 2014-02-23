@@ -313,11 +313,14 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if len(values) > 0:
 
             if self.format is None:
-                precision = -int(np.floor(np.log10(spacing)))
+                if spacing < 1.:
+                    precision = -int(np.floor(np.log10(spacing)))
+                else:
+                    precision = 0
             else:
                 precision = self._precision
 
-            return [("{0:." + str(self._precision) + "f}").format(x) for x in values]
+            return [("{0:." + str(precision) + "f}").format(x) for x in values]
 
         else:
             return []

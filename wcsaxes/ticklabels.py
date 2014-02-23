@@ -93,6 +93,8 @@ class TickLabels(Text):
 
         pad = text_size * 0.4
 
+        self.bboxes = []
+
         for axis in self.get_visible_axes():
 
             for i in range(len(self.world[axis])):
@@ -131,3 +133,6 @@ class TickLabels(Text):
                 self.set_va(va)
 
                 super(TickLabels, self).draw(renderer)
+
+                bb = super(TickLabels, self).get_window_extent(renderer)
+                self.bboxes.append(bb)
