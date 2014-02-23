@@ -86,10 +86,10 @@ def find_coordinate_range(transform, extent, x_angle=False, y_angle=False):
                 wjump = 360. * (wjump / 360.).astype(int)
                 yw[iy,:][reset] -= wjump[reset]
 
-    xw_min = np.min(xw)
-    xw_max = np.max(xw)
-    yw_min = np.min(yw)
-    yw_max = np.max(yw)
+    xw_min = np.nanmin(xw)
+    xw_max = np.nanmax(xw)
+    yw_min = np.nanmin(yw)
+    yw_max = np.nanmax(yw)
 
     # Check if range is smaller when normalizing to the range 0 to 360
 
