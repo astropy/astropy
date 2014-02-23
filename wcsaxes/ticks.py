@@ -3,9 +3,6 @@ import numpy as np
 from matplotlib.lines import Path, Line2D
 from matplotlib.transforms import Affine2D
 
-# Code partially adapted from mpl_toolkits.axisartist.
-# TODO: include license
-
 
 class Ticks(Line2D):
     """
