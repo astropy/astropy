@@ -69,4 +69,8 @@ def html_identify(origin, path, fileobj, *args, **kwargs):
     """
     Determines whether the given filename is an HTML file.
     """
-    return path.lower().split('.')[-1] in ['htm', 'html']
+    if fileobj is not None:
+        path = fileobj.name
+    if path is not None:
+        return path.lower().split('.')[-1] in ['htm', 'html']
+    return False
