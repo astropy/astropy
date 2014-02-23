@@ -14,9 +14,16 @@ from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
 
 
+IDENTITY = WCS(naxis=2)
+IDENTITY.wcs.ctype = ["X", "Y"]
+IDENTITY.wcs.crval = [1., 1.]
+IDENTITY.wcs.crpix = [1., 1.]
+IDENTITY.wcs.cdelt = [1., 1.]
+
+
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=None, **kwargs):
+    def __init__(self, fig, rect, wcs=IDENTITY, **kwargs):
 
         self.wcs = wcs
 
@@ -90,17 +97,18 @@ class WCSAxes(Axes):
 
         super(WCSAxes, self).draw(renderer, inframe)
 
-        frame = self._get_bounding_frame()
-        for axis in frame:
-            x, y = frame[axis]
-            line = Line2D(x, y, transform=self.transData, color='black')
-            line.draw(renderer)
-
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
 
         self.coords[0].draw(renderer)
         self.coords[1].draw(renderer)
+
+        frame = self._get_bounding_frame()
+        for axis in frame:
+            x, y = frame[axis]
+            line = Line2D(x, y, transform=self.transData, color='black', zorder=1000)
+            line.draw(renderer)
+
 
     def get_transform(self, frame, equinox=None, obstime=None):
 
