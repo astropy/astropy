@@ -107,8 +107,8 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False):
+                  pdb=False, open_files=False, parallel=0, docs_path=None,
+                  skip_docs=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -190,38 +190,6 @@ class TestRunner(object):
         if pdb:
             all_args += ' --pdb'
 
-        if coverage:
-            try:
-                import pytest_cov
-            except ImportError:
-                raise ImportError(
-                    'Coverage reporting requires pytest-cov plugin: '
-                    'http://pypi.python.org/pypi/pytest-cov')
-            else:
-                # Don't use get_pkg_data_filename here, because it
-                # requires importing astropy.config and thus screwing
-                # up coverage results for those packages.
-                coveragerc = os.path.join(
-                    os.path.dirname(__file__), 'coveragerc')
-
-                # We create a coveragerc that is specific to the version
-                # of Python we're running, so that we can mark branches
-                # as being specifically for Python 2 or Python 3
-                with open(coveragerc, 'r') as fd:
-                    coveragerc_content = fd.read()
-                if sys.version_info[0] >= 3:
-                    ignore_python_version = '2'
-                else:
-                    ignore_python_version = '3'
-                coveragerc_content = coveragerc_content.replace(
-                    "{ignore_python_version}", ignore_python_version)
-                with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    tmp.write(coveragerc_content.encode('utf-8'))
-
-                all_args += (
-                    ' --cov-report html --cov astropy'
-                    ' --cov-config {0}'.format(tmp.name))
-
         # check for opened files after each test
         if open_files:
             try:
@@ -259,16 +227,10 @@ class TestRunner(object):
         if sys.version_info < (2, 7, 3):
             all_args = all_args.encode('utf-8')
 
-        try:
-            all_args = shlex.split(
-                all_args, posix=not sys.platform.startswith('win'))
+        all_args = shlex.split(
+            all_args, posix=not sys.platform.startswith('win'))
 
-            result = pytest.main(args=all_args, plugins=plugins)
-        finally:
-            if coverage:
-                if not tmp.closed:
-                    tmp.close()
-                os.remove(tmp.name)
+        result = pytest.main(args=all_args, plugins=plugins)
 
         return result
 
@@ -285,6 +247,41 @@ def _fix_user_options(options):
         return str(x)
 
     return [tuple(to_str_or_none(x) for x in y) for y in options]
+
+
+def _save_coverage(cov, result, rootdir, testing_path):
+    """
+    This method is called after the tests have been run in coverage mode
+    to cleanup and then save the coverage data and report.
+    """
+    from ..utils.console import color_print
+
+    if result != 0:
+        return
+
+    # The coverage report includes the full path to the temporary
+    # directory, so we replace all the paths with the true source
+    # path. This means that the coverage line-by-line report will only
+    # be correct for Python 2 code (since the Python 3 code will be
+    # different in the build directory from the source directory as
+    # long as 2to3 is needed). Therefore we only do this fix for
+    # Python 2.x.
+    if six.PY2:
+        d = cov.data
+        cov._harvest_data()
+        for key in d.lines.keys():
+            new_path = os.path.relpath(
+                os.path.realpath(key),
+                os.path.realpath(testing_path))
+            new_path = os.path.abspath(
+                os.path.join(rootdir, new_path))
+            d.lines[new_path] = d.lines.pop(key)
+
+    color_print('Saving coverage data in .coverage...', 'green')
+    cov.save()
+
+    color_print('Saving HTML coverage report in htmlcov...', 'green')
+    cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
 
 
 class astropy_test(Command, object):
@@ -312,8 +309,7 @@ class astropy_test(Command, object):
         ('pdb', 'd',
          'Start the interactive Python debugger on errors.'),
         ('coverage', 'c',
-         'Create a coverage report. Requires the pytest-cov '
-         'plugin.'),
+         'Create a coverage report. Requires the coverage package.'),
         ('open-files', 'o', 'Fail if any tests leave files open.'),
         ('parallel=', 'n',
          'Run the tests in parallel on the specified number of '
@@ -358,6 +354,10 @@ class astropy_test(Command, object):
         build_cmd = self.get_finalized_command('build')
         new_path = os.path.abspath(build_cmd.build_lib)
 
+        if self.docs_path is None:
+            if os.path.exists('docs'):
+                self.docs_path = os.path.abspath('docs')
+
         # Copy the build to a temporary directory for the purposes of testing
         # - this avoids creating pyc and __pycache__ directories inside the
         # build directory
@@ -366,25 +366,56 @@ class astropy_test(Command, object):
         shutil.copytree(new_path, testing_path)
         shutil.copy('setup.cfg', testing_path)
 
-        if self.docs_path is None:
-            if os.path.exists('docs'):
-                self.docs_path = os.path.abspath('docs')
+        cmd_pre = ''
+        cmd_post = ''
 
         try:
+            if self.coverage:
+                try:
+                    import coverage
+                except ImportError:
+                    raise ImportError(
+                        "--coverage requires that the coverage package is "
+                        "installed.")
 
-            # Run the tests in a subprocess--this is necessary since new extension
-            # modules may have appeared, and this is the easiest way to set up a
-            # new environment
+                # Don't use get_pkg_data_filename here, because it
+                # requires importing astropy.config and thus screwing
+                # up coverage results for those packages.
+                coveragerc = os.path.join(
+                    os.path.dirname(__file__), 'coveragerc')
 
-            # We need to set a flag in the child's environment so that
-            # unnecessary code is not imported before py.test can start
-            # up, otherwise the coverage results will be artifically low.
+                # We create a coveragerc that is specific to the version
+                # of Python we're running, so that we can mark branches
+                # as being specifically for Python 2 or Python 3
+                with open(coveragerc, 'r') as fd:
+                    coveragerc_content = fd.read()
+                if sys.version_info[0] >= 3:
+                    ignore_python_version = '2'
+                else:
+                    ignore_python_version = '3'
+                coveragerc_content = coveragerc_content.replace(
+                    "{ignore_python_version}", ignore_python_version)
+                tmp_coveragerc = os.path.join(tmp_dir, 'coveragerc')
+                with open(tmp_coveragerc, 'wb') as tmp:
+                    tmp.write(coveragerc_content.encode('utf-8'))
+
+                cmd_pre = (
+                    'import coverage; '
+                    'cov = coverage.coverage(data_file="{0}", config_file="{1}"); '
+                    'cov.start();'.format(
+                        os.path.abspath(".coverage"), tmp_coveragerc))
+                cmd_post = (
+                    'cov.stop(); '
+                    'from astropy.tests.helper import _save_coverage; '
+                    '_save_coverage(cov, result, "{0}", "{1}");'.format(
+                        os.path.abspath('.'), testing_path))
+
             if sys.version_info[0] >= 3:
                 set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
             else:
                 set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
 
-            cmd = ('{0}; import {1.package_name}, sys; sys.exit('
+            cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
                    '{1.package_name}.test('
                    'package={1.package!r}, '
                    'test_path={1.test_path!r}, '
@@ -395,12 +426,13 @@ class astropy_test(Command, object):
                    'remote_data={1.remote_data!r}, '
                    'pep8={1.pep8!r}, '
                    'pdb={1.pdb!r}, '
-                   'coverage={1.coverage!r}, '
                    'open_files={1.open_files!r}, '
                    'parallel={1.parallel!r}, '
                    'docs_path={1.docs_path!r}, '
-                   'skip_docs={1.skip_docs!r}))')
-            cmd = cmd.format(set_flag, self)
+                   'skip_docs={1.skip_docs!r})); '
+                   '{cmd_post}'
+                   'sys.exit(result)')
+            cmd = cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
             # override the config locations to not make a new directory nor use
             # existing cache or config
@@ -409,6 +441,9 @@ class astropy_test(Command, object):
             os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
             os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
+            # Run the tests in a subprocess--this is necessary since
+            # new extension modules may have appeared, and this is the
+            # easiest way to set up a new environment
             try:
                 retcode = subprocess.call([sys.executable, '-c', cmd],
                                           cwd=testing_path, close_fds=False)
@@ -416,36 +451,6 @@ class astropy_test(Command, object):
                 # kill the temporary dirs
                 shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
                 shutil.rmtree(os.environ['XDG_CACHE_HOME'])
-
-            if self.coverage and retcode == 0:
-
-                # Copy the htmlcov from build/lib.../htmlcov to a more
-                # obvious place
-                if os.path.exists('htmlcov'):
-                    shutil.rmtree('htmlcov')
-                shutil.copytree(os.path.join(testing_path, 'htmlcov'), 'htmlcov')
-
-                # The coverage report includes the full path to the temporary
-                # directory, so we replace all the paths with the true source
-                # path. This means that the coverage line-by-line report will
-                # only be correct for Python 2 code (since the Python 3 code
-                # will be different in the build directory from the source
-                # directory as long as 2to3 is needed). Therefore we only do
-                # this fix for Python 2.x.
-
-                if six.PY2:
-                    import coverage
-                    d = coverage.CoverageData()
-                    d.read_file(os.path.join(testing_path, '.coverage'))
-                    for key in d.lines.keys():
-                        new_path = os.path.relpath(os.path.realpath(key),
-                                                   os.path.realpath(testing_path))
-                        new_path = os.path.abspath(new_path)
-                        d.lines[new_path] = d.lines.pop(key)
-                    d.write()
-                else:
-                    shutil.copy2(os.path.join(testing_path, '.coverage'), '.coverage')
-
         finally:
 
             # Remove temporary directory

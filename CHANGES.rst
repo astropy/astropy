@@ -123,7 +123,7 @@ API Changes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
- 
+
   - The method computing the derivative of the model with respect
     to parameters was renamed from `deriv` to `fit_deriv`. [#1739]
 
@@ -225,6 +225,15 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``python setup.py test --coverage`` will now give more accurate
+  results, because the coverage analysis will include early imports of
+  astropy.  There doesn't seem to be a way to get this to work when
+  doing ``import astropy; astropy.test()``, so the ``coverage``
+  keyword to ``astropy.test`` has been removed.  Coverage testing now
+  depends only on `coverage.py
+  <http://nedbatchelder.com/code/coverage/>`__, not
+  ``pytest-cov``. [#2112]
 
 - The included version of py.test has been upgraded to 2.5.1. [#1970]
 

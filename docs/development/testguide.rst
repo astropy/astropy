@@ -133,7 +133,7 @@ internet. To turn these tests on use the ``remote_data`` flag::
 
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
-and convenience options ``verbose=``, ``pastebin=`` and ``coverage=``.
+and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
 ``astropy.test``. This will enable PEP8 checking and disable regular tests.
@@ -239,8 +239,8 @@ reports.  To generate a test coverage report, use::
 There is a `coveragerc
 <http://nedbatchelder.com/code/coverage/config.html>`_ file that
 defines files to omit as well as lines to exclude.  It is installed
-along with astropy so that the `astropy.test` function can use it.  In
-the source tree, it is at `astropy/tests/coveragerc`.
+along with astropy so that the ``astropy`` testing framework can use
+it.  In the source tree, it is at `astropy/tests/coveragerc`.
 
 Running tests in parallel
 ^^^^^^^^^^^^^^^^^^^^^^^^^
