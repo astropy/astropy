@@ -244,7 +244,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Virtual Observatory service access and validation. Currently, only Simple Cone Search is supported.
+                Virtual Observatory service access and validation. Currently, only Simple Cone Search and SAMP are supported.
             </td>
         </tr>
         <tr>
