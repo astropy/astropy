@@ -13,10 +13,10 @@ from .core import CosmologyError
 from ..units import Quantity
 
 __all__ = ['H',  'age',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
-           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume',
-           'critical_density', 'distmod', 'kpc_comoving_per_arcmin',
-           'kpc_proper_per_arcmin', 'lookback_time', 'luminosity_distance',
-           'scale_factor', 'z_at_value']
+           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume', 
+           'differential_comoving_volume', 'critical_density', 'distmod', 
+           'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin', 'lookback_time', 
+           'luminosity_distance', 'scale_factor', 'z_at_value']
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -192,13 +192,15 @@ def comoving_volume(z, cosmo=None):
     return cosmo.comoving_volume(z)
 
 def differential_comoving_volume(z, cosmo=None):
-    """Comoving volume element at redshift z. 
+    """Differential comoving volume at redshift z.
     
     Useful for calculating the effective comoving volume. 
     For example, allows for integration over a comoving volume 
-    that has a changing sensitivity function.
-    Total volume to redshift z is given by integrating 
-    differential_comoving_volume to redshift (z) and over a solid_angle.
+    that has a sensitivity function that changes with redshift.
+    The total comoving volume is given by integrating 
+    differential_comoving_volume to redshift z 
+    and multiplying by a solid angle.
+            
     Parameters
     ----------
     z : array_like
@@ -207,7 +209,8 @@ def differential_comoving_volume(z, cosmo=None):
     Returns
     -------
     dV : astropy.units.Quantity
-      Comoving volume in :math:`Mpc^3` at each input redshift."""
+      Differential comoving volume per redshift per steradian at 
+      each input redshift."""
     if cosmo is None:
         cosmo = _get_current()
     return cosmo.differential_comoving_volume(z)
