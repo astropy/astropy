@@ -134,13 +134,13 @@ class BaseCoordinateHelper(object):
     def formatter(self):
         return _formatter_locator.formatter
 
-    def draw(self, renderer):
+    def draw(self, renderer, other_bboxes=None):
 
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
         self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer)
+        self.ticklabels.draw(renderer, other_bboxes=other_bboxes)
         for path in self.grid_lines:
             PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
 
