@@ -10,6 +10,8 @@ from __future__ import absolute_import
 from ...table import Table
 from ...utils.xml import writer
 
+import io
+
 __all__ = ['html_write', 'html_read', 'html_identify']
 
 def html_write(table, filename, clobber=False):
@@ -18,25 +20,31 @@ def html_write(table, filename, clobber=False):
     """
     if not clobber and os.path.exists(filename):
         return
-    html_file = open(filename, 'w')
-    xml_writer = writer.XMLWriter(html_file)
-    with xml_writer.tag('html'):
-        with xml_writer.tag('head'):
-            with xml_writer.tag('style'):
-                xml_writer.data(
+    html_file = io.open(filename, 'w', encoding='utf-8')
+    w = writer.XMLWriter(html_file)
+    with w.tag('html'):
+        with w.tag('head'):
+            # Declare encoding and set CSS style for table
+            with w.tag('meta', attrib={'charset':'utf-8'}):
+                pass
+            with w.tag('meta', attrib={'http-equiv':'Content-type',
+                                       'content':'text/html;charset=UTF-8'}):
+                pass
+            with w.tag('style'):
+                w.data(
                     'table,th,td{border:1px solid black;'
                     'border-collapse:collapse;}'
                     'th,td{padding:5px;}')
-        with xml_writer.tag('table'):
-            with xml_writer.tag('tr'):
+        with w.tag('table'):
+            with w.tag('tr'):
                 for colname in table.colnames:
-                    with xml_writer.tag('th'):
-                        xml_writer.data(colname)
+                    with w.tag('th'):
+                        w.data(colname)
             for row_num in range(len(table)):
-                with xml_writer.tag('tr'):
+                with w.tag('tr'):
                     for colname in table.colnames:
-                        with xml_writer.tag('td'):
-                            xml_writer.data(str(table[colname][row_num]))
+                        with w.tag('td'):
+                            w.data(str(table[colname][row_num]))
     html_file.close()
 
 def html_read(fileorname):
