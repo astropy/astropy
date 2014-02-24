@@ -6,6 +6,9 @@ Bug Fixes
 
 - ``astropy.config``
 
+  - Fixed a bug where ``ConfigurationItem.set_temp()`` does not reset to
+    default value when exception is raised within ``with`` block. [#2117]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``

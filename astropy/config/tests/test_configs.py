@@ -252,4 +252,11 @@ def test_configitem_setters():
     with ci.set_temp(46):
         assert ci() == 46
 
+    # Make sure it is reset even with Exception
+    try:
+        with ci.set_temp(47):
+            raise Exception
+    except:
+        pass
+
     assert ci() == 43
