@@ -183,50 +183,85 @@ Python versions and make sure they are on your ``$PATH``.
     though it is probably worth defining a `git alias
     <https://git.wiki.kernel.org/index.php/Aliases>`_ to do this.
 
+Test-running options
+--------------------
 
+Running parts of the test suite
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Regression tests
-================
+It is possible to run only the tests for a particular subpackage.  For
+example, to run only the ``wcs`` tests from the commandline::
 
-Any time a bug is fixed, and wherever possible, one or more regression tests
-should be added to ensure that the bug is not introduced in future. Regression
-tests should include the ticket URL where the bug was reported.
+    python setup.py test -P wcs
 
-Where to put tests
-==================
+Or from Python::
 
-Package-specific tests
-----------------------
+    >>> import astropy
+    >>> astropy.test(package="wcs")
 
-Each package should include a suite of unit tests, covering as many of the
-public methods/functions as possible. These tests should be included inside
-each sub-package, either in a `tests` directory, or in a test.py file, e.g::
+You can also specify a single file to test from the commandline::
 
-    astropy/io/fits/tests/
+    python setup.py test -t astropy/wcs/tests/test_wcs.py
 
-or::
+When the ``-t`` option is given a relative path, it is relative to the
+installed root of astropy.  When ``-t`` is given a relative path to a
+documentation ``.rst`` file to test, it is relative to the root of the
+documentation, i.e. the ``docs`` directory in the source tree.  For
+example::
 
-    astropy/io/fits/test.py
+    python setup.py test -t units/index.rst
 
-``tests`` directories should contain an ``__init__.py`` file so that the tests
-can be imported and so that they can use relative imports.
+Testing for open files
+^^^^^^^^^^^^^^^^^^^^^^
 
-Interoperability tests
-----------------------
+Astropy can test whether any of the unit tests inadvertently leave any
+files open.  Since this greatly slows down the time it takes to run
+the tests, it is turned off by default.
 
-Tests involving two or more sub-packages should be included in::
+To use it from the commandline, do::
 
-    astropy/tests/
+    python setup.py test --open-files
 
-and using::
+To use it from Python, do::
 
-    astropy.test()
+    >>> import astropy
+    >>> astropy.test(open_files=True)
 
-then runs both these interoperability tests, and all the unit tests in the
-sub-packages. This functionality is especially important for people who install
-packages through bundles and package managers, where the original source code
-for the tests is not immediately available.
+Test coverage reports
+^^^^^^^^^^^^^^^^^^^^^
 
+Astropy can use `coverage.py
+<http://nedbatchelder.com/code/coverage/>`_ to generate test coverage
+reports.  To generate a test coverage report, use::
+
+    python setup.py test --coverage
+
+There is a `coveragerc
+<http://nedbatchelder.com/code/coverage/config.html>`_ file that
+defines files to omit as well as lines to exclude.  It is installed
+along with astropy so that the `astropy.test` function can use it.  In
+the source tree, it is at `astropy/tests/coveragerc`.
+
+Running tests in parallel
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to speed up astropy's tests using the `pytest-xdist`
+plugin.  This plugin can be installed using `pip`::
+
+    pip install pytest-xdist
+
+Once installed, tests can be run in parallel using the `--parallel`
+commandline option.  For example, to use 4 processes::
+
+    python setup.py test --parallel=4
+
+Pass a negative number to `--parallel` to create the same number of
+processes as cores on your machine.
+
+Similarly, this feature can be invoked from Python::
+
+    >>> import astropy
+    >>> astropy.test(parallel=4)
 
 Writing tests
 =============
@@ -276,6 +311,35 @@ The result is::
 
     test.py:5: AssertionError
     =========================== 1 failed in 0.07 seconds ===========================
+
+Where to put tests
+------------------
+
+Package-specific tests
+^^^^^^^^^^^^^^^^^^^^^^
+
+Each package should include a suite of unit tests, covering as many of
+the public methods/functions as possible. These tests should be
+included inside each sub-package, e.g::
+
+    astropy/io/fits/tests/
+
+``tests`` directories should contain an ``__init__.py`` file so that
+the tests can be imported and so that they can use relative imports.
+
+Interoperability tests
+^^^^^^^^^^^^^^^^^^^^^^
+
+Tests involving two or more sub-packages should be included in::
+
+    astropy/tests/
+
+Regression tests
+----------------
+
+Any time a bug is fixed, and wherever possible, one or more regression tests
+should be added to ensure that the bug is not introduced in future. Regression
+tests should include the ticket URL where the bug was reported.
 
 Working with data files
 -----------------------
@@ -334,11 +398,11 @@ large, we will need to design a mechanism for removing test data immediately.
 Tests that create files
 -----------------------
 
-Tests may often be run from directories where users do not have write permissions
-so tests which create files should always do so in temporary directories. This
-can be done with the `py.test tmpdir function argument
-<http://pytest.org/latest/tmpdir.html>`_
-or with Python's built-in `tempfile module
+Tests may often be run from directories where users do not have write
+permissions so tests which create files should always do so in
+temporary directories. This can be done with the `py.test tmpdir
+function argument <http://pytest.org/latest/tmpdir.html>`_ or with
+Python's built-in `tempfile module
 <http://docs.python.org/library/tempfile.html#module-tempfile>`_.
 
 Setting up/Tearing down tests
@@ -380,8 +444,8 @@ the functions in the file access it::
     def teardown_module(module):
         os.remove(DATAFILE)
 
-Class-level
-^^^^^^^^^^^
+Class-level setup/teardown
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tests can be organized into classes that have their own setup/teardown
 functions. In the following ::
@@ -408,8 +472,8 @@ functions. In the following ::
 In the above example, the ``setup_class`` method is called first, then all the
 tests in the class, and finally the ``teardown_class`` is called.
 
-Method-level
-^^^^^^^^^^^^
+Method-level setup/teardown
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are cases where one might want setup and teardown methods to be run
 before and after *each* test. For this, use the ``setup_method`` and
@@ -434,8 +498,8 @@ before and after *each* test. For this, use the ``setup_method`` and
         def teardown_method(self, method):
             pass
 
-Function-level
-^^^^^^^^^^^^^^
+Function-level setup/teardown
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finally, one can use ``setup_function`` and ``teardown_function`` to define a
 setup/teardown mechanism to be run before and after each function in a module.
@@ -476,23 +540,48 @@ inputs::
     def test(letter):
         assert type(letter) == str
 
+Tests requiring optional dependencies
+-------------------------------------
+
+For tests that test functions or methods that require optional
+dependencies (e.g. Scipy), pytest should be instructed to skip the
+test if the dependencies are not present. The following example shows
+how this should be done::
+
+    import pytest
+
+    try:
+        import scipy
+        HAS_SCIPY = True
+    except ImportError:
+        HAS_SCIPY = False
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_that_uses_scipy():
+        ...
+
+In this way, the test is run if Scipy is present, and skipped if
+not. No tests should fail simply because an optional dependency is not
+present.
+
 Using py.test helper functions
 ------------------------------
 
 If your tests need to use `py.test helper functions
-<http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as ``pytest.raises``,
-import ``pytest`` into your test module like so::
+<http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as
+``pytest.raises``, import ``pytest`` into your test module like so::
 
     from ...tests.helper import pytest
 
-You may need to adjust the relative import to work for the depth of your module.
-``tests.helper`` imports ``pytest`` either from the user's system or ``extern.pytest``
-if the user does not have py.test installed. This is so that users need not
-install py.test to run AstroPy's tests.
+You may need to adjust the relative import to work for the depth of
+your module.  ``tests.helper`` imports ``pytest`` either from the
+user's system or ``extern.pytest`` if the user does not have py.test
+installed. This is so that users need not install py.test to run
+AstroPy's tests.
 
 
 Testing warnings
------------------
+----------------
 
 In order to test that warnings are triggered as expected in certain
 situations, you can use the `astropy.tests.helper.catch_warnings`
@@ -512,13 +601,15 @@ a real-world example::
       assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
               in str(warning_lines[0].message))
 
-Within ``py.test`` there is also the option of using the ``recwarn``
-function argument to test that warnings are triggered.  This method
-has been found to be problematic in at least one case (`pull request
-1174
-<https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-so the `astropy.tests.helper.catch_warnings` context manager is
-preferred.
+.. note::
+
+   Within ``py.test`` there is also the option of using the
+   ``recwarn`` function argument to test that warnings are triggered.
+   This method has been found to be problematic in at least one case
+   (`pull request 1174
+   <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
+   so the `astropy.tests.helper.catch_warnings` context manager is
+   preferred.
 
 .. _doctests:
 
@@ -657,117 +748,3 @@ This doctest expects an exception with a traceback, but the text of the
 traceback is skipped in the example output--only the first and last lines
 of the output are checked.  See the :mod:``doctest`` documentation for
 more examples of skipping output.
-
-
-Using data in tests
-===================
-
-Tests can include very small datafiles, but any files significantly larger
-than the source code should be placed on a remote server. The base URL for the
-test files will be::
-
-    http://data.astropy.org/
-
-and files will be accessed by their MD5 hash, for example::
-
-    http://data.astropy.org/94935ac31d585f68041c08f87d1a19d4
-
-Tests then retrieve data via this URL. This implicitly allows versioning,
-since different versions of data files will have different hashes. Old data
-files should not be removed, so that tests can be run in any version of
-AstroPy.
-
-The details of the server implementation have yet to be decided, but using
-these static hash-based URLs ensures that even if we change the backend, the
-URL will remain the same.
-
-
-Tests requiring optional dependencies
-=====================================
-
-For tests that test functions or methods that require optional dependencies (e.g. Scipy), pytest should be instructed to skip the test if the dependencies are not present. The following example shows how this should be done::
-
-    import pytest
-
-    try:
-        import scipy
-        HAS_SCIPY = True
-    except ImportError:
-        HAS_SCIPY = False
-
-    @pytest.mark.skipif('not HAS_SCIPY')
-    def test_that_uses_scipy():
-        ...
-
-In this way, the test is run if Scipy is present, and skipped if not. No tests should fail simply because an optional dependency is not present.
-
-Test coverage reports
-=====================
-
-Astropy can use `coverage.py
-<http://nedbatchelder.com/code/coverage/>`_ to generate test coverage
-reports.  To generate a test coverage report, use::
-
-    python setup.py test --coverage
-
-There is a `coveragerc
-<http://nedbatchelder.com/code/coverage/config.html>`_ file that
-defines files to omit as well as lines to exclude.  It is installed
-along with astropy so that the `astropy.test` function can use it.  In
-the source tree, it is at `astropy/tests/coveragerc`.
-
-Marking blocks of code to exclude from coverage
------------------------------------------------
-
-Blocks of code may be ignored by adding a comment containing the
-phrase ``pragma: no cover`` to the start of the block::
-
-    if this_rarely_happens:  # pragma: no cover
-        this_call_is_ignored()
-
-Blocks of code that are intended to run only in Python 2.x or 3.x may
-also be marked so that they will be ignored when appropriate by
-`coverage.py`::
-
-    if sys.version_info[0] >= 3:  # pragma: py3
-        do_it_the_python3_way()
-    else:  # pragma: py2
-        do_it_the_python2_way()
-
-Testing for open files
-======================
-
-Astropy can test whether any of the unit tests inadvertently leave any
-files open.  Since this greatly slows down the time it takes to run
-the tests, it is turned off by default.
-
-To use it from the commandline, do::
-
-    python setup.py test --open-files
-
-To use it from Python, do::
-
-    >>> import astropy
-    >>> astropy.test(open_files=True)
-
-
-Running tests in parallel
-=========================
-
-It is possible to speed up astropy's tests using the `pytest-xdist`
-plugin.  This plugin can be installed using `pip`::
-
-    pip install pytest-xdist
-
-Once installed, tests can be run in parallel using the `--parallel`
-commandline option.  For example, to use 4 processes::
-
-    python setup.py test --parallel=4
-
-Pass a negative number to `--parallel` to create the same number of
-processes as cores on your machine.
-
-Similarly, this feature can be invoked from Python::
-
-    >>> import astropy
-    >>> astropy.test(parallel=4)
