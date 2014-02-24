@@ -2,6 +2,9 @@
 
 # TEST_UNICODE_LITERALS
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from copy import copy
 
 import numpy as np
@@ -10,6 +13,7 @@ from ...tests.helper import pytest
 from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
+from ...extern.six.moves import zip
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
@@ -268,7 +272,7 @@ def test_read_invalid_return():
 
 
 def test_read_basic_table():
-    data = np.array(zip([1, 2, 3], ['a', 'b', 'c']),
+    data = np.array(list(zip([1, 2, 3], ['a', 'b', 'c'])),
                     dtype=[(str('A'), int), (str('B'), '|S1')])
     io_registry.register_reader('test', Table, lambda x: Table(x))
     t = Table.read(data, format='test')

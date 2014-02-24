@@ -1,12 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import re
 import sys
 
 import numpy as np
 
 from ..utils import OrderedDict
-
+from ..extern import six
+from ..extern.six.moves import zip
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
@@ -60,7 +64,7 @@ def get_formats(data_class=None):
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
                      has_identify, deprecated))
 
-    data = zip(*rows) if rows else None
+    data = list(zip(*rows)) if rows else None
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
                                       'Auto-identify', 'Deprecated'))
     format_table.sort(['Data class', 'Deprecated', 'Format'])
@@ -298,7 +302,7 @@ def read(cls, *args, **kwargs):
             fileobj = None
 
             if len(args):
-                if isinstance(args[0], basestring):
+                if isinstance(args[0], six.string_types):
                     from ..utils.data import get_readable_fileobj
                     path = args[0]
                     try:
@@ -344,7 +348,7 @@ def write(data, *args, **kwargs):
         path = None
         fileobj = None
         if len(args):
-            if isinstance(args[0], basestring):
+            if isinstance(args[0], six.string_types):
                 path = args[0]
                 fileobj = None
             elif hasattr(args[0], 'read'):
