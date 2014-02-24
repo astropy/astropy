@@ -11,6 +11,7 @@ from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.collections import PathCollection
 from matplotlib.text import Text
+from matplotlib.patches import PathPatch
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -51,10 +52,8 @@ class BaseCoordinateHelper(object):
         self._formatter_locator = self._formatter_locator_class()
 
         # Initialize container for the grid lines
-        self.grid_lines = PathCollection([],
-                                         transform=self.parent_axes.transData,
-                                         facecolor='none', visible=False,
-                                         figure=self.parent_axes.get_figure())
+        self.grid_lines = []
+        self.grid_lines_kwargs = {}
 
     def grid(self, draw_grid=True, **kwargs):
         """
@@ -72,13 +71,17 @@ class BaseCoordinateHelper(object):
         if 'color' in kwargs:
             kwargs['edgecolor'] = kwargs.pop('color')
 
-        self.grid_lines.set(**kwargs)
+        self.grid_lines_kwargs = {'visible':True,
+                                  'facecolor':'none',
+                                  'transform':self.parent_axes.transData}
 
-        if self.grid_lines.get_visible():
+        self.grid_lines_kwargs.update(kwargs)
+
+        if self.grid_lines_kwargs['visible']:
             if not draw_grid:
-                self.grid_lines.set_visible(False)
+                self.grid_lines_kwargs['visible'] = False
         else:
-            self.grid_lines.set_visible(True)
+            self.grid_lines_kwargs['visible'] = True
 
     def set_major_formatter(self, formatter):
         """
@@ -138,7 +141,8 @@ class BaseCoordinateHelper(object):
         self._update_ticks(renderer)
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer)
-        self.grid_lines.draw(renderer)
+        for path in self.grid_lines:
+            PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
@@ -184,7 +188,7 @@ class BaseCoordinateHelper(object):
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
-        paths = []
+        self.grid_lines = []
         for w in tick_world_coordinates:
             if self.coord_index == 0:
                 x_world = np.repeat(w, 1000)
@@ -193,9 +197,7 @@ class BaseCoordinateHelper(object):
                 x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
                 y_world = np.repeat(w, 1000)
             xy_world = np.vstack([x_world, y_world]).transpose()
-            paths.append(self._get_gridline(xy_world))
-
-        self.grid_lines.set_paths(paths)
+            self.grid_lines.append(self._get_gridline(xy_world).cleaned(simplify=True))
 
 
 class AngleCoordinateHelper(BaseCoordinateHelper):
