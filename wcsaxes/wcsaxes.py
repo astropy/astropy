@@ -101,7 +101,7 @@ class WCSAxes(Axes):
         # each coordinate axis. For now, just assume it covers the whole sky.
 
         self.coords[0].draw(renderer)
-        self.coords[1].draw(renderer)
+        self.coords[1].draw(renderer, other_bboxes=self.coords[0].ticklabels.bboxes)
 
         frame = self._get_bounding_frame()
         for axis in frame:

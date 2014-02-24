@@ -6,6 +6,7 @@ from matplotlib.text import Text
 def sort_using(X, Y):
     return [x for (y,x) in sorted(zip(Y,X))]
 
+
 class TickLabels(Text):
 
     def __init__(self, *args, **kwargs):
@@ -85,7 +86,10 @@ class TickLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self.world]
 
-    def draw(self, renderer):
+    def draw(self, renderer, other_bboxes=None):
+
+        if other_bboxes is None:
+            other_bboxes = []
 
         self.simplify_labels()
 
@@ -132,7 +136,8 @@ class TickLabels(Text):
                 self.set_ha(ha)
                 self.set_va(va)
 
-                super(TickLabels, self).draw(renderer)
-
                 bb = super(TickLabels, self).get_window_extent(renderer)
-                self.bboxes.append(bb)
+
+                if bb.count_overlaps(self.bboxes + other_bboxes) == 0:
+                    super(TickLabels, self).draw(renderer)
+                    self.bboxes.append(bb)
