@@ -67,15 +67,24 @@ class OutputCheckerFix(doctest.OutputChecker):
         r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
     _remove_byteorder = re.compile(
         r"([\'\"])[|<>]([biufcSaUV][0-9]+)([\'\"])", re.UNICODE)
+    _fix_32bit = re.compile(
+        r"([\'\"])([iu])[48]([\'\"])", re.UNICODE)
+    _ignore_long_int = re.compile(
+        r"([0-9]+)L", re.UNICODE)
 
     _original_output_checker = doctest.OutputChecker
 
     def do_fixes(self, want, got):
         want = re.sub(self._literal_re, r'\1\2', want)
         want = re.sub(self._remove_byteorder, r'\1\2\3', want)
+        want = re.sub(self._fix_32bit, r'\1\2\3', want)
+        want = re.sub(self._ignore_long_int, r'\1', want)
 
         got = re.sub(self._literal_re, r'\1\2', got)
         got = re.sub(self._remove_byteorder, r'\1\2\3', got)
+        got = re.sub(self._fix_32bit, r'\1\2\3', got)
+        got = re.sub(self._ignore_long_int, r'\1', got)
+
         return want, got
 
     def check_output(self, want, got, flags):
