@@ -237,12 +237,25 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
             normal_angle = np.degrees(np.arctan2(dx, -dy))
 
             # Transform to world coordinates
-            world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:, self.coord_index]
+            pixel = np.vstack([x_pix, y_pix]).transpose()
+            world = self.transform.inverted().transform(pixel)
+
+            # Determine tick rotation
+            # TODO: optimize!
+            world_off = world.copy()
+            world_off[:, (self.coord_index + 1) % 2] += 1.e-5
+            pixel_off = self.transform.transform(world_off)
+            dpix_off = pixel_off - pixel
+            tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
+            normal_angle_full = np.hstack([normal_angle, normal_angle[-1]])
+            reset = ((normal_angle_full - tick_angle) % 360 > 90.) &
+                    ((tick_angle - normal_angle_full) % 360 > 90.)
+            tick_angle[reset] -= 180.
 
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly.
-            w1 = world[1:]
-            w2 = world[:-1]
+            w1 = world[1:, self.coord_index]
+            w2 = world[:-1, self.coord_index]
             if self.coord_type == 'longitude':
                 w1 = w1 % 360.
                 w2 = w2 % 360.
@@ -267,6 +280,7 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
                     x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
                     y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
+                    angle_i = tick_angle[imin] + frac * (tick_angle[imax] - tick_angle[imin])
 
                     if self.coord_type == 'longitude':
                         t_new = t % 360.
@@ -276,7 +290,7 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                     self.ticks.add(axis=axis,
                                    pixel=(x_pix_i, y_pix_i),
                                    world=t_new,
-                                   angle=normal_angle[imin],
+                                   angle=angle_i,
                                    axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
