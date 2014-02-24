@@ -243,53 +243,13 @@ class ConfigurationItem(object):
             self.set(initval)
 
     def save(self, value=None):
-        """ Writes a value for this `ConfigurationItem` to the relevant
-        configuration file.
-
-        This also writes updated versions of the comments that give the
-        description and type information.
-
-        .. note::
-            This only saves the value of this *particular* `ConfigurationItem`.
-            To save all configuration settings for this package at once, see
-            `save_config`.
-
-        Parameters
-        ----------
-        value
-            Save this value to the configuration file. If None, the current
-            value of this `ConfigurationItem` will be saved.
-
-        Raises
-        ------
-        TypeError
-            If the provided `value` is not valid for this `ConfigurationItem`.
         """
-        try:
-            value = self() if value is None else self._validate_val(value)
-        except validate.ValidateError as e:
-            msg = 'Provided value for configuration item {0} not valid: {1}'
-            raise TypeError(msg.format(self.name, e.args[0]))
-
-        # Now find the  ConfigObj that this is based on
-        baseobj = get_config(self.module)
-        secname = baseobj.name
-        cobj = baseobj
-        # a ConfigObj's parent is itself, so we look for the parent with that
-        while cobj.parent is not cobj:
-            cobj = cobj.parent
-
-        # use the current on disk version, which will be modified with the
-        # given value and type/description
-        newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
-        if secname is not None:
-            if secname not in newobj:
-                newobj[secname] = {}
-            newsec = newobj[secname]
-
-        newsec[self.name] = value
-        newsec.comments[self.name] = self._generate_comments()
-        newobj.write()
+        Removed in astropy 0.4.
+        """
+        raise NotImplementedError(
+            "The ability to save config options was removed in astropy 0.4. "
+            "To change config settings, edit '{0}' directly.".
+            format(get_config_filename(self.module)))
 
     def reload(self):
         """ Reloads the value of this `ConfigurationItem` from the relevant
@@ -384,7 +344,18 @@ class ConfigurationItem(object):
 _cfgobjs = {}
 
 
-def get_config(packageormod=None, reload=False):
+def get_config_filename(packageormod=None):
+    """
+    Get the filename of the config file associated with the given
+    package or module.
+    """
+    cfg = get_config(packageormod)
+    while cfg.parent is not cfg:
+        cfg = cfg.parent
+    return cfg.filename
+
+
+def get_config(packageormod=None):
     """ Gets the configuration object or section associated with a particular
     package or module.
 
@@ -435,8 +406,7 @@ def get_config(packageormod=None, reload=False):
                 cfgfn = path.join(get_config_dir(), rootname + '.cfg')
                 cobj = configobj.ConfigObj(cfgfn, interpolation=False)
             except (IOError, OSError) as e:
-                msg = ('Configuration defaults will be used, and '
-                       'configuration cannot be saved due to ')
+                msg = ('Configuration defaults will be used due to ')
                 errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
                 msg += e.__class__.__name__ + errstr
                 warn(ConfigurationMissingWarning(msg))
@@ -456,38 +426,13 @@ def get_config(packageormod=None, reload=False):
 
 
 def save_config(packageormod=None, filename=None):
-    """ Saves all configuration settings to the configuration file for the
-    root package of the requested package/module.
-
-    This overwrites any configuration items that have been changed in
-    `ConfigurationItem` objects that are based on the configuration file
-    determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
-    the 'astropy.config.configuration' module).
-
-    .. note::
-        To save only a single item, use the `ConfigurationItem.save` method -
-        this will save all options in the current session that may have been
-        changed.
-
-    Parameters
-    ----------
-    packageormod : str or None
-        The package or module name - see `get_config` for details.
-
-    filename : str, optional
-        Save the config to a given filename instead of to the default location.
-
     """
-
-    sec = get_config(packageormod)
-    # look for the section that is its own parent - that's the base object
-    while sec.parent is not sec:
-        sec = sec.parent
-    if filename is not None:
-        with open(filename, 'w') as f:
-            sec.write(outfile=f)
-    else:
-        sec.write()
+    Removed in astropy 0.4.
+    """
+    raise NotImplementedError(
+        "The ability to save config options was removed in astropy 0.4. "
+        "To change config settings, edit '{0}' directly.".
+        format(get_config_filename(packageormod)))
 
 
 def reload_config(packageormod=None):

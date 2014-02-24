@@ -32,11 +32,6 @@ def test_config_file():
 
     reload_config('astropy')
 
-    # saving shouldn't change the file, because reload should have made sure it
-    # is based on the current file.  But don't do it if there's no file
-    if os.path.exists(apycfg.filename):
-        save_config('astropy')
-
 
 def test_configitem():
     from ..configuration import ConfigurationItem, get_config
@@ -63,63 +58,6 @@ def test_configitem():
     ci.set(34)
     assert ci() == 34
     assert sec.comments['tstnm'][1] == 'this is a Description'
-
-
-def test_configitem_save(tmpdir):
-    from ..configuration import ConfigurationItem, get_config
-
-    ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
-    apycfg = get_config(ci.module)
-
-    # now try saving
-
-    while apycfg.parent is not apycfg:
-        apycfg = apycfg.parent
-    f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'w') as fd:
-        apycfg.write(fd)
-    with io.open(f.strpath, 'rU') as fd:
-        lns = [x.strip() for x in fd.readlines()]
-
-    assert 'tstnm2 = 42' in lns
-    assert '# this is another Description' in lns
-
-    oldfn = apycfg.filename
-    try:
-        # We had used LocalPath's `copy` method here, but it copies
-        # the file in TEXT mode, destroying newlines on Windows.  We
-        # need to do a binary copy.
-        shutil.copy(tmpdir.join('astropy.cfg').strpath,
-             tmpdir.join('astropy.cfg2').strpath)
-        # tmpdir.join('astropy.cfg').copy(tmpdir.join('astropy.cfg2'))
-        apycfg.filename = tmpdir.join('astropy.cfg2').realpath().strpath
-
-        ci.set(30)
-        ci.save()
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 30' in lns
-
-        ci.save(31)
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 31' in lns
-
-        # also try to save one that doesn't yet exist
-        apycfg.filename = tmpdir.join('astropy.cfg3').realpath().strpath
-        ci.save()
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 30' in lns
-
-    finally:
-        apycfg.filename = oldfn
 
 
 def test_configitem_types():
@@ -210,7 +148,6 @@ def test_config_noastropy_fallback(monkeypatch):
     w = w[0]
     assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
-    assert 'and configuration cannot be saved due to' in str(w.message)
 
 
 def test_configitem_setters():
