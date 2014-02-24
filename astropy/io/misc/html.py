@@ -5,7 +5,9 @@ containing table data, meant to be used as readers/writers in
 `astropy.table`. See :ref:`table_io` for more details.
 """
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 from ...table import Table
 from ...utils.xml import writer
@@ -62,7 +64,7 @@ def html_read(fileorname):
 
     from bs4 import BeautifulSoup
 
-    if isinstance(fileorname, basestring):
+    if isinstance(fileorname, six.string_types):
         html_file = open(fileorname)
         html = html_file.read()
         html_file.close()
@@ -93,5 +95,22 @@ def html_identify(origin, filepath, fileobj, *args, **kwargs):
     if fileobj is not None:
         filepath = fileobj.name
     if filepath is not None:
-        return filepath.endswith('.html') or filepath.endswith('.htm')
+        if origin == 'write':
+            return filepath.endswith('.html') or filepath.endswith('.htm')
+        else:
+            open_file = open(filepath)
+            line = open_file.readline()
+            while len(line) > 0:
+                if len(line) > 1: # Check for first non-empty line
+                    break
+                line = open_file.readline()
+            open_file.close()
+            
+            # Check to see if line begins with a valid HTML identifier
+            identifiers = ['<!doctype html', '<head', '<title', '<html',
+                           '<script', '<style', '<table', '<a href=']
+            line = line.lower()
+            for identifier in identifiers:
+                if line.startswith(identifier):
+                    return True
     return False
