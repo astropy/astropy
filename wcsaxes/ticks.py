@@ -54,7 +54,7 @@ class Ticks(Line2D):
         if self._visible_axes == 'all':
             return self.world.keys()
         else:
-            return self._visible_axes
+            return [x for x in self._visible_axes if x in self.world]
 
     def clear(self):
         self.world = {}
