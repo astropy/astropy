@@ -644,7 +644,7 @@ the left or right table, the corresponding column values are designated as missi
 An inner join is the same but only returns rows where there is a key match in both the
 left and right tables::
 
-  >>> print join(left, right, join_type='inner')
+  >>> print join(left, right, join_type='inner')  # doctest: +SKIP
   key  L   R
   --- --- ---
     1  L2  R1
