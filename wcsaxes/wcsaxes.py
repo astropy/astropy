@@ -42,6 +42,14 @@ class WCSAxes(Axes):
 
         self.coords = CoordinatesMap(self, self.wcs)
 
+        self._all_coords = [self.coords]
+
+        # Common default settings
+        self.coords[0].set_axislabels_position('b')
+        self.coords[1].set_axislabels_position('l')
+        self.coords[0].set_ticklabels_position('b')
+        self.coords[1].set_ticklabels_position('l')
+
     def _get_bounding_frame(self):
         """
         Return the bounding frame of the axes.
@@ -86,10 +94,10 @@ class WCSAxes(Axes):
             new_frame[axis] = np.interp(p_new, p, x), np.interp(p_new, p, y)
         return new_frame
 
-    def get_coord_range(self):
+    def get_coord_range(self, transform):
         xmin, xmax = self.get_xlim()
         ymin, ymax = self.get_ylim()
-        return find_coordinate_range(self.coords._transform.inverted(),
+        return find_coordinate_range(transform.inverted(),
                                      [xmin, xmax, ymin, ymax],
                                      x_type=self.coords[0].coord_type,
                                      y_type=self.coords[1].coord_type)
@@ -103,11 +111,15 @@ class WCSAxes(Axes):
 
         self._bboxes = []
 
-        self.coords[0].draw(renderer, bboxes=self._bboxes)
-        self.coords[1].draw(renderer, bboxes=self._bboxes)
+        for coords in self._all_coords:
 
-        self.coords[0].draw_axislabels(renderer, bboxes=self._bboxes)
-        self.coords[1].draw_axislabels(renderer, bboxes=self._bboxes)
+            coords[0].draw(renderer, bboxes=self._bboxes)
+            coords[1].draw(renderer, bboxes=self._bboxes)
+
+        for coords in self._all_coords:
+
+            coords[0].draw_axislabels(renderer, bboxes=self._bboxes)
+            coords[1].draw_axislabels(renderer, bboxes=self._bboxes)
 
         frame = self._get_bounding_frame()
         for axis in frame:
@@ -115,6 +127,21 @@ class WCSAxes(Axes):
             line = Line2D(x, y, transform=self.transData, color='black', zorder=1000)
             line.draw(renderer)
 
+    def get_coords_overlay(self, frame, equinox=None, obstime=None):
+
+        transform = self.get_transform(frame, equinox=equinox, obstime=obstime)
+
+        coords = CoordinatesMap(self, self.wcs, transform=transform)
+
+        self._all_coords.append(coords)
+
+        # Common settings for overlay
+        coords[0].set_axislabels_position('t')
+        coords[1].set_axislabels_position('r')
+        coords[0].set_ticklabels_position('t')
+        coords[1].set_ticklabels_position('r')
+
+        return coords
 
     def get_transform(self, frame, equinox=None, obstime=None):
 

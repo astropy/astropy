@@ -215,7 +215,7 @@ class CoordinateHelper(object):
         # determine the rotations.
 
         # Find the range of coordinates in all directions
-        coord_range = self.parent_axes.get_coord_range()
+        coord_range = self.parent_axes.get_coord_range(self.transform)
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
@@ -324,7 +324,7 @@ class CoordinateHelper(object):
         # the value in the slice). Here we basically assume that if the WCS
         # had a third axis, it has been abstracted away in the transformation.
 
-        coord_range = self.parent_axes.get_coord_range()
+        coord_range = self.parent_axes.get_coord_range(self.transform)
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
