@@ -181,12 +181,7 @@ class WCSAxes(Axes):
         if not self.get_visible():
             return
 
-        bb = []
-
-        bb.extend(self.coords[0].ticklabels.bboxes)
-        bb.extend(self.coords[1].ticklabels.bboxes)
-
-        bb = [b for b in bb if b and (b.width!=0 or b.height!=0)]
+        bb = [b for b in self._bboxes if b and (b.width!=0 or b.height!=0)]
 
         if bb:
             _bbox = Bbox.union(bb)
