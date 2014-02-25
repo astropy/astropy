@@ -20,3 +20,10 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Reference/API
+=============
+
+.. automodapi:: wcsaxes.wcsaxes
+
+.. automodapi:: wcsaxes.coordinate_helpers
+

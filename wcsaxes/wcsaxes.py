@@ -15,6 +15,8 @@ from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
 
 
+__all__ = ['WCSAxes']
+
 IDENTITY = WCS(naxis=2)
 IDENTITY.wcs.ctype = ["X", "Y"]
 IDENTITY.wcs.crval = [1., 1.]
