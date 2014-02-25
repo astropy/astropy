@@ -6,6 +6,7 @@ from matplotlib.lines import Line2D
 from matplotlib.transforms import Affine2D, Bbox
 
 from astropy.wcs import WCS
+from astropy.utils import OrderedDict
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
@@ -56,7 +57,7 @@ class WCSAxes(Axes):
         xmin, xmax = self.get_xlim()
         ymin, ymax = self.get_ylim()
 
-        frame = {}
+        frame = OrderedDict()
         frame['b'] = ([xmin, xmax], [ymin, ymin])
         frame['r'] = ([xmax, xmax], [ymin, ymax])
         frame['t'] = ([xmax, xmin], [ymax, ymax])
@@ -77,7 +78,7 @@ class WCSAxes(Axes):
             returns from this method is over-sampled.
         """
         frame = self._get_bounding_frame()
-        new_frame = {}
+        new_frame = OrderedDict()
         for axis in frame:
             x, y = frame[axis]
             p = np.linspace(0., 1., len(x))
