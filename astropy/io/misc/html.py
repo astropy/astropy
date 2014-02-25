@@ -65,7 +65,7 @@ def html_read(fileorname):
     from bs4 import BeautifulSoup
 
     if isinstance(fileorname, six.string_types):
-        html_file = open(fileorname)
+        html_file = io.open(fileorname, 'w', encoding='utf-8')
         html = html_file.read()
         html_file.close()
     else:
@@ -98,7 +98,7 @@ def html_identify(origin, filepath, fileobj, *args, **kwargs):
         if origin == 'write':
             return filepath.endswith('.html') or filepath.endswith('.htm')
         else:
-            open_file = open(filepath)
+            open_file = io.open(filepath, 'w', encoding='utf-8')
             line = open_file.readline()
             while len(line) > 0:
                 if len(line) > 1: # Check for first non-empty line
