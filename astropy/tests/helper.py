@@ -34,6 +34,7 @@ except ImportError:
 from distutils.core import Command
 
 from .. import test
+from ..utils.exceptions import AstropyWarning
 
 if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
     import pytest
@@ -107,8 +108,8 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, open_files=False, parallel=0, docs_path=None,
-                  skip_docs=False):
+                  pdb=False, coverage=False, open_files=False, parallel=0,
+                  docs_path=None, skip_docs=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -116,6 +117,13 @@ class TestRunner(object):
         # impossible to test packages that define Table types on their
         # own.
         from ..table import Table
+
+        if coverage:
+            warnings.warn(
+                "The coverage option is ignored on run_tests, since it "
+                "can not be made to work in that context.  Use "
+                "'python setup.py test --coverage' instead.",
+                AstropyWarning)
 
         all_args = ''
 
