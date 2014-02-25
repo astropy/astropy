@@ -20,6 +20,8 @@ from .utils import get_pixels_to_data_scales
 
 from . import six
 
+__all__ = ['CoordinateHelper']
+
 
 class CoordinateHelper(object):
 
