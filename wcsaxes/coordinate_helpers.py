@@ -16,6 +16,7 @@ from matplotlib.patches import PathPatch
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
 from .ticklabels import TickLabels
+from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
 from .utils import get_pixels_to_data_scales
 
@@ -46,6 +47,11 @@ class BaseCoordinateHelper(object):
                            self.offset_transform)
 
         self.ticklabels = TickLabels(transform=self.parent_axes.transData,
+                                     figure=self.parent_axes.get_figure())
+
+        # Initialize axis labels
+        self.axislabels = AxisLabels(self.parent_axes._get_bounding_frame(),
+                                     transform=self.parent_axes.transData,
                                      figure=self.parent_axes.get_figure())
 
         # Initialize formatter/locator
@@ -134,17 +140,27 @@ class BaseCoordinateHelper(object):
     def formatter(self):
         return _formatter_locator.formatter
 
-    def draw(self, renderer, other_bboxes=None):
+    def draw(self, renderer, bboxes):
 
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
         self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer, other_bboxes=other_bboxes)
+        self.ticklabels.draw(renderer, bboxes=bboxes)
+
         for path in self.grid_lines:
             PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
 
         renderer.close_group('coordinate_axis')
+
+    def draw_axislabels(self, renderer, bboxes):
+
+        renderer.open_group('axis labels')
+
+        self.axislabels._frame = self.parent_axes._get_bounding_frame()
+        self.axislabels.draw(renderer, bboxes=bboxes)
+
+        renderer.close_group('axis labels')
 
     def set_ticks_position(self, position):
         """
@@ -173,6 +189,26 @@ class BaseCoordinateHelper(object):
 
     def set_ticklabel_color(self, color):
         self.ticklabels.set_color(color)
+
+    def set_axislabel(self, label):
+        """
+        Set the label for the axis.
+        """
+        self.axislabels.set_text(label)
+
+    def set_axislabels_position(self, position):
+        """
+        Set the axes on which the ticklabels for this coordinate should
+        appear. Should be a string containing zero or more of ``b``, ``t``,
+        ``l``, ``r``.
+        """
+        self.axislabels.set_visible_axes(position)
+
+    def set_axislabel_size(self, size):
+        self.axislabels.set_size(size)
+
+    def set_axislabel_color(self, color):
+        self.axislabels.set_color(color)
 
     def _update_grid(self):
 

@@ -37,6 +37,12 @@ class CoordinatesMap(object):
         name_2 = self._wcs.wcs.ctype[1][:4].replace('-', '')
         self._coords[name_2.lower()] = self._coords[1]
 
+        # Common default settings
+        self._coords[0].set_axislabels_position('b')
+        self._coords[1].set_axislabels_position('l')
+        self._coords[0].set_ticklabels_position('b')
+        self._coords[1].set_ticklabels_position('l')
+
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             return self._coords[item.lower()]

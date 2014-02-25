@@ -86,18 +86,13 @@ class TickLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self.world]
 
-    def draw(self, renderer, other_bboxes=None):
-
-        if other_bboxes is None:
-            other_bboxes = []
+    def draw(self, renderer, bboxes):
 
         self.simplify_labels()
 
         text_size = renderer.points_to_pixels(self.get_size())
 
         pad = text_size * 0.4
-
-        self.bboxes = []
 
         for axis in self.get_visible_axes():
 
@@ -138,6 +133,6 @@ class TickLabels(Text):
 
                 bb = super(TickLabels, self).get_window_extent(renderer)
 
-                if bb.count_overlaps(self.bboxes + other_bboxes) == 0:
+                if bb.count_overlaps(bboxes) == 0:
                     super(TickLabels, self).draw(renderer)
-                    self.bboxes.append(bb)
+                    bboxes.append(bb)
