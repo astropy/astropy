@@ -100,8 +100,13 @@ class WCSAxes(Axes):
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
 
-        self.coords[0].draw(renderer)
-        self.coords[1].draw(renderer, other_bboxes=self.coords[0].ticklabels.bboxes)
+        self._bboxes = []
+
+        self.coords[0].draw(renderer, bboxes=self._bboxes)
+        self.coords[1].draw(renderer, bboxes=self._bboxes)
+
+        self.coords[0].draw_axislabels(renderer, bboxes=self._bboxes)
+        self.coords[1].draw_axislabels(renderer, bboxes=self._bboxes)
 
         frame = self._get_bounding_frame()
         for axis in frame:
