@@ -12,18 +12,13 @@ Contents:
    :maxdepth: 2
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+WCSAxes is a framework for making plots of Astronomical data in Matplotlib. It
+is affiliated with the `Astropy <http://www.astropy.org>`_ project and is
+intended for inclusion in the Astropy package once stable.
 
 Reference/API
 =============
 
-.. automodapi:: wcsaxes.wcsaxes
-
 .. automodapi:: wcsaxes.coordinate_helpers
+   :no-inheritance-diagram:
 
