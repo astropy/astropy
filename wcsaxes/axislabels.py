@@ -56,7 +56,7 @@ class AxisLabels(Text):
             # Find label position, by trying to move it successively further
             # away from the axis and then checking for intersection with tick
             # labels. Obviously this could be optimized if needed.
-            for pad in range(20):
+            for pad in range(1, 20):
 
                 xlabel = xcen + np.cos(normal_angle) * pad * text_size * self._x_pixel_to_data
                 ylabel = ycen + np.sin(normal_angle) * pad * text_size * self._y_pixel_to_data
