@@ -243,6 +243,14 @@ class CoordinateHelper(object):
             pixel = np.vstack([x_pix, y_pix]).transpose()
             world = self.transform.inverted().transform(pixel)
 
+            # We need to catch cases where the pixel coordinates don't
+            # round-trip as this indicates coordinates that are outside the
+            # valid projection region
+            pixel_check = self.transform.transform(world)
+            invalid = ((np.abs(pixel_check[:,0] - pixel[:,0]) > 1.) |
+                       (np.abs(pixel_check[:,1] - pixel[:,1]) > 1.))
+            world[invalid,:] = np.nan
+
             # Determine tick rotation
             # TODO: optimize!
             world_off = world.copy()
