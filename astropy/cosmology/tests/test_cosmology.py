@@ -886,7 +886,7 @@ def test_z_at_value_roundtrip():
         f = getattr(funcs, name)
         if not hasattr(f, '__call__'):
             continue
-        print('Round-trip testing {}'.format(name))
+        print('Round-trip testing {0}'.format(name))
         fval = f(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
