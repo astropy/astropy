@@ -125,9 +125,9 @@ def coord_type_from_ctype(ctype):
 
 
 def get_pixels_to_data_scales(axes):
-    axmin, aymin, axmax, aymax = axes.get_window_extent().bounds
+    extent = axes.get_window_extent()
     xmin, xmax = axes.get_xlim()
     ymin, ymax = axes.get_ylim()
-    xscale = abs((xmax - xmin) / (axmax - axmin))
-    yscale = abs((ymax - ymin) / (aymax - aymin))
+    xscale = abs((xmax - xmin) / extent.width)
+    yscale = abs((ymax - ymin) / extent.height)
     return xscale, yscale
