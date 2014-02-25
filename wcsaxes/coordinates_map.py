@@ -7,14 +7,17 @@ from . import six
 
 class CoordinatesMap(object):
 
-    def __init__(self, axes, wcs):
+    def __init__(self, axes, wcs, transform=None):
 
         # Keep track of parent axes and WCS
         self._axes = axes
         self._wcs = wcs
 
         # Set up transform
-        self._transform = WCSWorld2PixelTransform(self._wcs)
+        if transform is None:
+            self._transform = WCSWorld2PixelTransform(self._wcs)
+        else:
+            self._transform = transform
 
         # Set up coordinates
         self._coords = {}
@@ -32,11 +35,7 @@ class CoordinatesMap(object):
         name_2 = self._wcs.wcs.ctype[1][:4].replace('-', '')
         self._coords[name_2.lower()] = self._coords[1]
 
-        # Common default settings
-        self._coords[0].set_axislabels_position('b')
-        self._coords[1].set_axislabels_position('l')
-        self._coords[0].set_ticklabels_position('b')
-        self._coords[1].set_ticklabels_position('l')
+        # Set up default labels if possible
 
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
