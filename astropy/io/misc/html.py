@@ -98,7 +98,7 @@ def html_identify(origin, filepath, fileobj, *args, **kwargs):
         if origin == 'write':
             return filepath.endswith('.html') or filepath.endswith('.htm')
         else:
-            open_file = io.open(filepath, 'w', encoding='utf-8')
+            open_file = io.open(filepath, encoding='utf-8')
             line = open_file.readline()
             while len(line) > 0:
                 if len(line) > 1: # Check for first non-empty line
