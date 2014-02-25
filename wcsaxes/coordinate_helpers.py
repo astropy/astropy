@@ -103,12 +103,13 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def set_ticks(self, values=None, spacing=None, number=None, size=None, color=None):
+    def set_ticks(self, values=None, spacing=None, number=None, size=None,
+                  color=None, alpha=None):
         """
         Set the location and properties of the ticks.
 
-        One and only one of the options from ``values``, ``spacing``, or
-        ``number`` should be specified.
+        At most one of the options from ``values``, ``spacing``, or
+        ``number`` can be specified.
 
         Parameters
         ----------
@@ -124,21 +125,25 @@ class CoordinateHelper(object):
             A valid Matplotlib color for the ticks
         """
 
+        if sum([values is None, spacing is None, number is None]) < 2:
+            raise ValueError("At most one of values, spacing, or number should "
+                             "be specified")
+
         if values is not None:
             self._formatter_locator.values = values
         elif spacing is not None:
             self._formatter_locator.spacing = spacing
         elif number is not None:
             self._formatter_locator.number = number
-        else:
-            raise ValueError("one of values, spacing, or number should be "
-                             "specified")
 
         if size is not None:
             self.ticks.set_size(size)
 
         if color is not None:
             self.ticks.set_color(color)
+
+        if alpha is not None:
+            self.ticks.set_alpha(alpha)
 
     def set_ticks_position(self, position):
         """
