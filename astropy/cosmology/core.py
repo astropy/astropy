@@ -1166,8 +1166,8 @@ class FLRW(Cosmology):
         dh = self._hubble_distance
         da = self.angular_diameter_distance(z)
         zp1 = 1.0 + z 
-        return dh * (zp1 ** 2 * da ** 2) / self.efunc(z) / u.sr
-
+        return dh * (zp1 ** 2 * da ** 2) / u.Quantity(self.efunc(z), u.sr)
+        
     def kpc_comoving_per_arcmin(self, z):
         """ Separation in transverse comoving kpc corresponding to an
         arcminute at redshift `z`.
