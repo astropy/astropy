@@ -100,26 +100,18 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
         xw_min_check = np.min(xw % 360.)
         xw_max_check = np.max(xw % 360.)
 
-        if xw_max - xw_min < 360. and xw_max - xw_min > xw_max_check - xw_min_check:
-            if xw_max > 0.:
-                xw_min = xw_min_check
-                xw_max = xw_max_check
-            else:
-                xw_min = xw_min_check - 360.
-                xw_max = xw_max_check - 360.
+        if xw_max - xw_min < 360. and xw_max - xw_min >= xw_max_check - xw_min_check:
+            xw_min = xw_min_check
+            xw_max = xw_max_check
 
     if y_type in ['longitude', 'latitude']:
 
         yw_min_check = np.min(yw % 360.)
         yw_max_check = np.max(yw % 360.)
 
-        if yw_max - yw_min < 360. and yw_max - yw_min > yw_max_check - yw_min_check:
-            if yw_max > 0.:
-                yw_min = yw_min_check
-                yw_max = yw_max_check
-            else:
-                yw_min = yw_min_check - 360.
-                yw_max = yw_max_check - 360.
+        if yw_max - yw_min < 360. and yw_max - yw_min >= yw_max_check - yw_min_check:
+            yw_min = yw_min_check
+            yw_max = yw_max_check
 
     # Check if range is smaller when normalizing to the range -180 to 180
 
@@ -128,42 +120,19 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
         xw_min_check = np.min(wrap_180(xw))
         xw_max_check = np.max(wrap_180(xw))
 
-        if xw_max - xw_min < 360. and xw_max - xw_min > xw_max_check - xw_min_check:
-            if xw_max > 0.:
-                if xw_max_check > 0:
-                    xw_min = xw_min_check
-                    xw_max = xw_max_check
-                else:
-                    xw_min = xw_min_check + 360.
-                    xw_max = xw_max_check + 360.
-            else:
-                if xw_max_check < 0:
-                    xw_min = xw_min_check
-                    xw_max = xw_max_check
-                else:
-                    xw_min = xw_min_check - 360.
-                    xw_max = xw_max_check - 360.
+
+        if xw_max_check - xw_min_check < 360. and xw_max - xw_min >= xw_max_check - xw_min_check:
+            xw_min = xw_min_check
+            xw_max = xw_max_check
 
     if y_type in ['longitude', 'latitude']:
 
         yw_min_check = np.min(wrap_180(yw))
         yw_max_check = np.max(wrap_180(yw))
 
-        if yw_max - yw_min < 360. and yw_max - yw_min > yw_max_check - yw_min_check:
-            if yw_max > 0.:
-                if yw_max_check > 0:
-                    yw_min = yw_min_check
-                    yw_max = yw_max_check
-                else:
-                    yw_min = yw_min_check + 360.
-                    yw_max = yw_max_check + 360.
-            else:
-                if yw_max_check < 0:
-                    yw_min = yw_min_check
-                    yw_max = yw_max_check
-                else:
-                    yw_min = yw_min_check - 360.
-                    yw_max = yw_max_check - 360.
+        if yw_max_check - yw_min_check < 360. and yw_max - yw_min >= yw_max_check - yw_min_check:
+            yw_min = yw_min_check
+            yw_max = yw_max_check
 
     x_range = xw_max - xw_min
     if x_type == 'longitude':
