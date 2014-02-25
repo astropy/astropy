@@ -41,7 +41,10 @@ class Kernel(object):
 
     def __init__(self, array):
         self._array = array
-        self._normalization = 1. / self._array.sum()
+        if self._array.sum() == 0:
+            self._normalization = np.inf
+        else:
+            self._normalization = 1. / self._array.sum()
 
     @property
     def truncation(self):
@@ -103,6 +106,11 @@ class Kernel(object):
         """
         # There are kernel that sum to zero and
         # the user should be warned in this case
+        if np.isinf(self._normalization):
+            warnings.warn('Kernel cannot be normalized because the '
+                          'normalization factor is infinite.',
+                          AstropyUserWarning)
+            return
         if np.abs(self._normalization) > MAX_NORMALIZATION:
             warnings.warn("Normalization factor of kernel is "
                           "exceptionally large > {0}.".format(MAX_NORMALIZATION),

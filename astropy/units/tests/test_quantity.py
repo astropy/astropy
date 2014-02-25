@@ -854,3 +854,8 @@ def test_quantity_to_view():
     q2 = q1.to(u.km)
     assert q1.value[0] == 1000
     assert q2.value[0] == 1
+
+
+@raises(ValueError)
+def test_quantity_tuple_power():
+    (5.0 * u.m) ** (1, 2)

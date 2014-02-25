@@ -8,6 +8,7 @@ import warnings
 
 import numpy as np
 
+from ...units.format.fits import UnitScaleError
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from .. import registry as io_registry
@@ -237,7 +238,15 @@ def write_table_fits(input, output, overwrite=False):
     # Set units for output HDU
     for col in table_hdu.columns:
         if input[col.name].unit is not None:
-            col.unit = input[col.name].unit.to_string(format='fits')
+            try:
+                col.unit = input[col.name].unit.to_string(format='fits')
+            except UnitScaleError:
+                scale = input[col.name].unit.scale
+                raise UnitScaleError(
+                    "The column '{0}' could not be stored in FITS format "
+                    "because it has a scale '({1})' that "
+                    "is not recognized by the FITS standard. Either scale "
+                    "the data or change the units.".format(col.name, str(scale)))
 
     for key, value in input.meta.items():
 

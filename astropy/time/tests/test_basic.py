@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 
 from ...tests.helper import pytest
-from .. import Time, ScaleValueError, erfa_time
+from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
 
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -170,6 +170,19 @@ class TestBasic():
         assert t.tcg.iso == '2006-01-15 21:25:43.322690'
         assert t.tdb.iso == '2006-01-15 21:25:42.684373'
         assert t.tcb.iso == '2006-01-15 21:25:56.893952'
+
+    def test_all_transforms(self):
+        """Test that all transforms work.  Does not test correctness,
+        except reversibility [#2074]"""
+        lat = 19.48125
+        lon = -155.933222
+        for scale1 in TIME_SCALES:
+            t1 = Time('2006-01-15 21:24:37.5', format='iso', scale=scale1,
+                      lat=lat, lon=lon)
+            for scale2 in TIME_SCALES:
+                t2 = getattr(t1, scale2)
+                t21 = getattr(t2, scale1)
+                assert allclose_jd(t21.jd, t1.jd)
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""

@@ -80,7 +80,8 @@ class Gaussian1DKernel(Kernel1D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * width), 0, width)
+        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * width),
+                                        0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
@@ -145,7 +146,8 @@ class Gaussian2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.Gaussian2D(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
+        self._model = models.Gaussian2D(1. / (2 * np.pi * width ** 2), 0,
+                                        0, width, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
@@ -159,7 +161,7 @@ class Box1DKernel(Kernel1D):
     and can produce artifacts, when applied repeatedly to the same data.
 
     By default the Box kernel uses the `linear_interp` discretization mode,
-    which allows non shifting, even sized kernels.  This is achieved by
+    which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2. E.g a Box kernel with an effective
     smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
 
@@ -227,7 +229,7 @@ class Box2DKernel(Kernel2D):
     and can produce artifact, when applied repeatedly to the same data.
 
     By default the Box kernel uses the `linear_interp` discretization mode,
-    which allows non shifting, even sized kernels.  This is achieved by
+    which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2.
 
 
@@ -293,8 +295,8 @@ class Tophat2DKernel(Kernel2D):
     """
     2D Tophat filter kernel.
 
-    The Tophat filter is an isotropic smoothing filter. It can produce artifact,
-    when applied repeatedly on the same data.
+    The Tophat filter is an isotropic smoothing filter. It can produce
+    artifacts when applied repeatedly on the same data.
 
     Parameters
     ----------
@@ -400,7 +402,7 @@ class Ring2DKernel(Kernel2D):
     def __init__(self, radius_in, width, **kwargs):
         radius_out = radius_in + width
         self._model = models.Ring2D(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
-                                        0, 0, radius_in, width)
+                                    0, 0, radius_in, width)
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super(Ring2DKernel, self).__init__(**kwargs)
         self._truncation = 0
@@ -906,7 +908,6 @@ class CustomKernel(Kernel):
         >>> kernel.dimension
         2
     """
-
     def __init__(self, array):
         self.array = array
         super(CustomKernel, self).__init__(self._array)
@@ -930,9 +931,8 @@ class CustomKernel(Kernel):
         else:
             raise TypeError("Must be list or array.")
 
-        #Check if array is odd in all axis
+        # Check if array is odd in all axes
         odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
-
         if not odd:
             raise KernelSizeError("Kernel size must be odd in all axes.")
 
@@ -941,5 +941,4 @@ class CustomKernel(Kernel):
         zeros = self._array == 0
         self._is_bool = np.all(np.logical_or(ones, zeros))
 
-        # Set normalization
-        self._normalization = 1. / self._array.sum()
+        self._truncation = 0.0

@@ -21,6 +21,7 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable
+from .utils import validate_power
 
 
 __all__ = ["Quantity"]
@@ -202,14 +203,13 @@ class Quantity(np.ndarray):
         # this as a special case.
         # TODO: find a better way to deal with this case
         if function is np.power and result_unit is not None:
-            if not np.isscalar(args[1]):
-                raise ValueError(
-                    "Quantities may only be raised to a scalar power")
 
             if units[1] is None:
-                result_unit = result_unit ** args[1]
+                p = args[1]
             else:
-                result_unit = result_unit ** args[1].to(dimensionless_unscaled)
+                p = args[1].to(dimensionless_unscaled).value
+
+            result_unit = result_unit ** validate_power(p)
 
         # We now prepare the output object
 

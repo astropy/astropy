@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from ...extern import six
+
 import os
 import sys
 import warnings
@@ -484,6 +486,13 @@ def test_validate():
             x.strip() for x in results_txt.splitlines()])
 
 
+def test_validate_with_2_wcses():
+    # From Issue #2053
+    results = wcs.validate(get_pkg_data_filename("data/2wcses.hdr"))
+
+    assert "WCS key 'A':" in six.text_type(results)
+
+
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
@@ -533,7 +542,7 @@ def test_footprint_to_file():
     """
     From github issue #1912
     """
-    # Arbtirary keywords from real data
+    # Arbitrary keywords from real data
     w = wcs.WCS({'CTYPE1': 'RA---ZPN', 'CRUNIT1': 'deg',
                  'CRPIX1': -3.3495999e+02, 'CRVAL1': 3.185790700000e+02,
                  'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
@@ -543,3 +552,29 @@ def test_footprint_to_file():
     # Just check that this doesn't raise an exception:
     w.footprint_to_file(tmp.name)
     tmp.close()
+
+
+def test_validate_faulty_wcs():
+    """
+    From github issue #2053
+    """
+    from ...io import fits
+    h = fits.Header()
+    # Illegal WCS:
+    h['RADESYSA'] = 'ICRS'
+    h['PV2_1'] = 1.0
+    hdu = fits.PrimaryHDU([[0]], header=h)
+    hdulist = fits.HDUList([hdu])
+    # Check that this doesn't raise a NameError exception:
+    wcs.validate(hdulist)
+
+
+def test_error_message():
+    header = get_pkg_data_contents(
+        'data/invalid_header.hdr', encoding='binary')
+
+    with pytest.raises(wcs.InvalidTransformError):
+        # Both lines are in here, because 0.4 calls .set within WCS.__init__,
+        # whereas 0.3 and earlier did not.
+        w = wcs.WCS(header)
+        c = w.all_pix2world([[536.0, 894.0]], 0)

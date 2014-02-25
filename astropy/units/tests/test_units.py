@@ -18,6 +18,7 @@ from ...tests.helper import pytest, raises, catch_warnings
 from ...utils.compat.fractions import Fraction
 
 from ... import units as u
+from ... import constants as c
 
 
 def test_getting_started():
@@ -53,11 +54,15 @@ def test_initialisation():
 
 
 def test_invalid_power():
-    x = u.m ** (1, 3)
+    x = u.m ** Fraction(1, 3)
     assert isinstance(x.powers[0], Fraction)
 
-    x = u.m ** (1, 2)
+    x = u.m ** Fraction(1, 2)
     assert isinstance(x.powers[0], float)
+
+    # Test the automatic conversion to a fraction
+    x = u.m ** (1. / 3.)
+    assert isinstance(x.powers[0], Fraction)
 
 
 def test_invalid_compare():
@@ -262,7 +267,7 @@ def test_decompose_bases():
 
     d = e.esu.unit.decompose(bases=cgs.bases)
     assert d._bases == [u.cm, u.g, u.s]
-    assert d._powers == [Fraction(3, 2), Fraction(1, 2), -1]
+    assert d._powers == [Fraction(3, 2), 0.5, -1]
     assert d._scale == 1.0
 
 
@@ -569,3 +574,34 @@ def test_fits_hst_unit():
     """See #1911."""
     x = u.Unit("erg /s /cm**2 /angstrom")
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
+
+
+def test_fractional_powers():
+    """See #2069"""
+    m = 1e9 * u.Msun
+    tH = 1. / (70. * u.km / u.s / u.Mpc)
+    vc = 200 * u.km/u.s
+
+    x = (c.G ** 2 * m ** 2 * tH.cgs) ** Fraction(1, 3) / vc
+    v1 = x.to('pc')
+
+    x = (c.G ** 2 * m ** 2 * tH) ** Fraction(1, 3) / vc
+    v2 = x.to('pc')
+
+    x = (c.G ** 2 * m ** 2 * tH.cgs) ** (1.0 / 3.0) / vc
+    v3 = x.to('pc')
+
+    x = (c.G ** 2 * m ** 2 * tH) ** (1.0 / 3.0) / vc
+    v4 = x.to('pc')
+
+    assert_allclose(v1, v2)
+    assert_allclose(v2, v3)
+    assert_allclose(v3, v4)
+
+    x = u.m ** (1.0 / 11.0)
+    assert isinstance(x.powers[0], float)
+
+    x = u.m ** (3.0 / 7.0)
+    assert isinstance(x.powers[0], Fraction)
+    assert x.powers[0].numerator == 3
+    assert x.powers[0].denominator == 7

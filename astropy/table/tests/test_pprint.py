@@ -67,6 +67,41 @@ class TestMultiD():
                          '   1 .. 20',
                          '   3 .. 40',
                          '   5 .. 60']
+                         
+    def test_fake_multidim(self, table_type):
+        """Test printing with 'fake' multidimensional column"""
+        arr = [np.array([[(1,)],
+                         [(10,)]]),
+               np.array([[(3,)],
+                         [(30,)]]),
+               np.array([[(5,)],
+                         [(50,)]])]
+        t = table_type(arr)
+        lines = t.pformat()
+        print(lines)
+        assert lines == ['col0 [1,1] col1 [1,1] col2 [1,1]',
+                         '---------- ---------- ----------',
+                         '         1          3          5',
+                         '        10         30         50']
+
+        lines = t.pformat(html=True)
+        assert lines == ['<table id="table{id}">'.format(id=id(t)),
+                         '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
+                         '<tr><td>1</td><td>3</td><td>5</td></tr>',
+                         '<tr><td>10</td><td>30</td><td>50</td></tr>',
+                         '</table>']
+        assert t._repr_html_() == ('<table id="table{tid}"><thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2'.format(tid=id(t)) +
+                                   ' [1,1]</th></tr></thead><tr><td>1</td><td>3</td><td>5</td>'
+                                   '</tr><tr><td>10</td><td>30</td><td>50</td></tr></table>')
+
+        t = table_type([arr])
+        lines = t.pformat()
+        print(lines)
+        assert lines == ['col0 [2,1,1]',
+                         '------------',
+                         '     1 .. 10',
+                         '     3 .. 30',
+                         '     5 .. 50']
 
 
 def test_html_escaping():

@@ -69,6 +69,8 @@ class OutputCheckerFix(doctest.OutputChecker):
         r"([\'\"])[|<>]([biufcSaUV][0-9]+)([\'\"])", re.UNICODE)
     _fix_32bit = re.compile(
         r"([\'\"])([iu])[48]([\'\"])", re.UNICODE)
+    _ignore_long_int = re.compile(
+        r"([0-9]+)L", re.UNICODE)
 
     _original_output_checker = doctest.OutputChecker
 
@@ -76,10 +78,12 @@ class OutputCheckerFix(doctest.OutputChecker):
         want = re.sub(self._literal_re, r'\1\2', want)
         want = re.sub(self._remove_byteorder, r'\1\2\3', want)
         want = re.sub(self._fix_32bit, r'\1\2\3', want)
+        want = re.sub(self._ignore_long_int, r'\1', want)
 
         got = re.sub(self._literal_re, r'\1\2', got)
         got = re.sub(self._remove_byteorder, r'\1\2\3', got)
         got = re.sub(self._fix_32bit, r'\1\2\3', got)
+        got = re.sub(self._ignore_long_int, r'\1', got)
 
         return want, got
 

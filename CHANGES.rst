@@ -6,9 +6,18 @@ Bug Fixes
 
 - ``astropy.config``
 
+  - Fixed a bug where ``ConfigurationItem.set_temp()`` does not reset to
+    default value when exception is raised within ``with`` block. [#2117]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``
+
+  - Fixed a bug where ``_truncation`` was left undefined for ``CustomKernel``.
+    [#2016]
+
+  - Fixed a bug with ``_normalization`` when ``CustomKernel`` input array
+    sums to zero. [#2016]
 
 - ``astropy.coordinates``
 
@@ -43,6 +52,9 @@ Bug Fixes
 
 - ``astropy.io.misc``
 
+  - Fixed issues in the HDF5 Table reader/writer functions that occurred on
+    Windows. [#2099]
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
@@ -63,6 +75,8 @@ Bug Fixes
 
   - Raise a `NotImplementedError` when fitting composite models. [#1915]
 
+  - Fixed bug in computation of ``Gaussian2D`` model. [#2038]
+
 - ``astropy.nddata``
 
 - ``astropy.sphinx``
@@ -72,6 +86,9 @@ Bug Fixes
 - ``astropy.stats``
 
 - ``astropy.table``
+
+  - The column string representation for n-dimensional cells with only
+    one element has been fixed. [#1522]
 
   - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
     metadata. [#1471]
@@ -108,6 +125,9 @@ Bug Fixes
 
   - Correct use of UT in TDB calculation [#1938, #1939].
 
+  - Correct hop list from TCG to TDB to ensure that conversion is
+    possible [#2074]
+
 - ``astropy.units``
 
   - ``Quantity`` initialisation rewritten for speed [#1775]
@@ -137,6 +157,15 @@ Bug Fixes
 
   - Pickling unrecognized units will not raise a
     `AttributeError`. [#2047]
+
+  - `astropy.units` now correctly preserves the precision of
+    fractional powers. [#2070]
+
+  - If a ``Unit`` or ``Quantity`` is raised to a floating point power
+    that is very close to a rational number with a denominator less
+    than or equal to 10, it is converted to a `Fraction` object to
+    preserve its precision through complex unit conversion operations.
+    [#2070]
 
 - ``astropy.utils``
 
@@ -187,6 +216,17 @@ Bug Fixes
 
   - Fixed the AttributeError exception which was raised when using
     :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
+
+  - Fixed a NameError exception which was raised when using
+    :func:`astropy.wcs.validate` or the `wcslint` script. [#2053]
+
+  - Fixed a bug where named WCSes may be erroneously reported as ``'
+    '`` when using :func:`astropy.wcs.validate` or the `wcslint`
+    script. [#2053]
+
+  - Fixed a bug where error messages about incorrect header keywords
+    may not be propagated correctly, resulting in a "NULL error object
+    in wcslib" message. [#2106]
 
 - Misc
 

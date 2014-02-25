@@ -116,6 +116,8 @@ class TestRunner(object):
         # own.
         from ..table import Table
 
+        all_args = ''
+
         if package is None:
             package_path = self.base_path
         else:
@@ -125,12 +127,6 @@ class TestRunner(object):
             if not os.path.isdir(package_path):
                 raise ValueError('Package not found: {0}'.format(package))
 
-        if test_path:
-            package_path = os.path.join(package_path,
-                                        os.path.abspath(test_path))
-
-        all_args = package_path
-
         if docs_path is not None and not skip_docs:
             if package is not None:
                 docs_path = os.path.join(
@@ -139,7 +135,26 @@ class TestRunner(object):
                 raise ValueError(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
-            elif not test_path:  # don't do  doctests if specific file is requested
+
+        if test_path:
+            base, ext = os.path.splitext(test_path)
+            if ext == '.py':
+                test_path = os.path.join(package_path,
+                                         os.path.abspath(test_path))
+                all_args += test_path
+            elif ext == '.rst':
+                if docs_path is None:
+                    # This shouldn't happen from "python setup.py test"
+                    raise ValueError(
+                        "Can not test .rst files without a docs_path specified.")
+                else:
+                    test_path = os.path.join(docs_path, test_path)
+                    all_args += test_path
+            else:
+                raise ValueError("Test file path must be to a .py or .rst file")
+        else:
+            all_args = package_path
+            if docs_path is not None and not skip_docs:
                 all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
@@ -275,44 +290,40 @@ class astropy_test(Command, object):
     user_options = [
         ('package=', 'P',
          "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
-         "If nothing is specified all default Astropy tests are run."),
+         "If nothing is specified, all default tests are run."),
         ('test-path=', 't',
-         'Specify a test location by path. Must be '
-         'specified absolutely or relative to the current directory. '
-         'May be a single file or directory.'),
+         'Specify a test location by path.  If a relative path to a '
+         '.py file, it is relative to the built package.  If a relative '
+         'path to a .rst file, it is relative to the docs directory '
+         '(see --docs-path).  May also be an absolute path.'),
         ('verbose-results', 'V',
-         'Turn on verbose output from pytest. Same as specifying `-v` in '
-         '`args`.'),
+         'Turn on verbose output from pytest.'),
         ('plugins=', 'p',
-         'Plugins to enable when running pytest.  Same as specifying `-p` in '
-         '`args`.'),
+         'Plugins to enable when running pytest.'),
         ('pastebin=', 'b',
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
         ('args=', 'a',
-         'Additional arguments to be passed to pytest'),
-        ('remote-data', 'R', 'Run tests that download remote data'),
+         'Additional arguments to be passed to pytest.'),
+        ('remote-data', 'R', 'Run tests that download remote data.'),
         ('pep8', '8',
          'Enable PEP8 checking and disable regular tests. '
-         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-         'pytest-pep8 plugin.'),
+         'Requires the pytest-pep8 plugin.'),
         ('pdb', 'd',
-         'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.'),
+         'Start the interactive Python debugger on errors.'),
         ('coverage', 'c',
          'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed'),
-        ('open-files', 'o', 'Fail if any tests leave files open'),
+         'plugin.'),
+        ('open-files', 'o', 'Fail if any tests leave files open.'),
         ('parallel=', 'n',
-         'Run the tests in parallel on the specified '
-         'number of CPUs.  If parallel is negative, it will use the all '
-         'the cores on the machine.  Requires the `pytest-xdist` plugin '
-         'is installed.'),
+         'Run the tests in parallel on the specified number of '
+         'CPUs.  If negative, all the cores on the machine will be '
+         'used.  Requires the pytest-xdist plugin.'),
         ('docs-path=', None,
          'The path to the documentation .rst files.  If not provided, and '
          'the current directory contains a directory called "docs", that '
          'will be used.'),
         ('skip-docs', None,
-         "When provided, don't test the documentation .rst files.")
+         "Don't test the documentation .rst files.")
     ]
 
     user_options = _fix_user_options(user_options)

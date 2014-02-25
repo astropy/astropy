@@ -60,7 +60,7 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tcb', 'tt'): ('tdb',),
               ('tcb', 'ut1'): ('tdb', 'tt', 'tai', 'utc'),
               ('tcb', 'utc'): ('tdb', 'tt', 'tai'),
-              ('tcg', 'tdb'): ('tt', 'tdb'),
+              ('tcg', 'tdb'): ('tt',),
               ('tcg', 'ut1'): ('tt', 'tai', 'utc'),
               ('tcg', 'utc'): ('tt', 'tai'),
               ('tdb', 'ut1'): ('tt', 'tai', 'utc'),
@@ -813,7 +813,7 @@ class Time(object):
         out = self.__sub__(other)
         return -out
 
-    def _tai_difference(self, other):
+    def _tai_difference(self, other, op=None):
         """If other is of same class as self, return difference in TAI.
         Otherwise, raise OperandTypeError.
         """
@@ -821,28 +821,28 @@ class Time(object):
             try:
                 other = self.__class__(other)
             except:
-                raise OperandTypeError(self, other)
+                raise OperandTypeError(self, other, op)
         self_tai = self.tai
         other_tai = other.tai
         return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
 
     def __lt__(self, other):
-        return self._tai_difference(other) < 0.
+        return self._tai_difference(other, '<') < 0.
 
     def __le__(self, other):
-        return self._tai_difference(other) <= 0.
+        return self._tai_difference(other, '<=') <= 0.
 
     def __eq__(self, other):
-        return self._tai_difference(other) == 0.
+        return self._tai_difference(other, '==') == 0.
 
     def __ne__(self, other):
-        return self._tai_difference(other) != 0.
+        return self._tai_difference(other, '!=') != 0.
 
     def __gt__(self, other):
-        return self._tai_difference(other) > 0.
+        return self._tai_difference(other, '>') > 0.
 
     def __ge__(self, other):
-        return self._tai_difference(other) >= 0.
+        return self._tai_difference(other, '>=') >= 0.
 
 
 class TimeDelta(Time):
@@ -912,7 +912,7 @@ class TimeDelta(Time):
         # check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
-            raise OperandTypeError(self, other)
+            raise OperandTypeError(self, other, '*')
 
         try:   # convert to straight float if dimensionless quantity
             other = other.to(1)
@@ -1815,7 +1815,10 @@ def split(a):
 
 
 class OperandTypeError(TypeError):
-    def __init__(self, left, right):
-        self.value = ("unsupported operand type(s) for -: "
-                      "'{0}' and '{1}'".format(left.__class__.__name__,
-                                               right.__class__.__name__))
+    def __init__(self, left, right, op=None):
+        op_string = '' if op is None else ' for {0}'.format(op)
+        super(OperandTypeError, self).__init__(
+            "Unsupported operand type(s){0}: "
+            "'{1}' and '{2}'".format(op_string,
+                                     left.__class__.__name__,
+                                     right.__class__.__name__))

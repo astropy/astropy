@@ -7,9 +7,10 @@ from numpy.testing import assert_allclose
 
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
+from ....units.format.fits import UnitScaleError
 from .... import units as u
 from .... import log
-from ....tests.helper import pytest
+from ....tests.helper import pytest, catch_warnings
 
 PY3 = sys.version_info[0] >= 3
 DATA = os.path.join(os.path.dirname(__file__), 'data')
@@ -218,3 +219,15 @@ def test_masking_regression_1795():
     assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
+
+def test_scale_error():
+    from astropy.table import Table
+    a = [1, 4, 5]
+    b = [2.0, 5.0, 8.2]
+    c = ['x', 'y', 'z']
+    t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
+    t['a'].unit='percent'
+    with pytest.raises(UnitScaleError) as exc:
+        t.write('t.fits',format='fits', overwrite=True)
+    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
+

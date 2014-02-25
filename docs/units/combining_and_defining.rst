@@ -13,6 +13,27 @@ numeric operators.  For example::
   >>> 52.0 * fluxunit / u.s
   <Quantity 52.0 erg / (cm2 s2)>
 
+Units support fractional powers, which retain their precision through
+complex operations.  To do this, it is recommended to use
+`fractions.Fraction` objects.  For example::
+
+  >>> from astropy.utils.compat.fractions import Fraction
+  >>> Franklin = u.g ** Fraction(1, 2) * u.cm ** Fraction(3, 2) * u.s ** -1
+
+.. note::
+
+    Floating-point powers that are effectively the same as fractions
+    with a denominator less than 10 are implicitly converted to
+    `~fractions.Fraction` objects under the hood.  Therefore the
+    following are equivalent::
+
+        >>> x = u.m ** Fraction(1, 3)
+        >>> x.powers
+        [Fraction(1, 3)]
+        >>> x = u.m ** (1. / 3.)
+        >>> x.powers
+        [Fraction(1, 3)]
+
 Users are free to define new units, either fundamental or compound
 using the `~astropy.units.core.def_unit` function.  For example::
 

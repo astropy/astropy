@@ -234,8 +234,10 @@ class ConfigurationItem(object):
         """
         initval = self()
         self.set(value)
-        yield
-        self.set(initval)
+        try:
+            yield
+        finally:
+            self.set(initval)
 
     def save(self, value=None):
         """ Writes a value for this `ConfigurationItem` to the relevant
