@@ -56,7 +56,9 @@ class CoordinateHelper(object):
 
         # Initialize container for the grid lines
         self.grid_lines = []
-        self.grid_lines_kwargs = {}
+        self.grid_lines_kwargs = {'visible':False,
+                                  'facecolor':'none',
+                                  'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, **kwargs):
         """
@@ -73,10 +75,6 @@ class CoordinateHelper(object):
 
         if 'color' in kwargs:
             kwargs['edgecolor'] = kwargs.pop('color')
-
-        self.grid_lines_kwargs = {'visible':True,
-                                  'facecolor':'none',
-                                  'transform':self.parent_axes.transData}
 
         self.grid_lines_kwargs.update(kwargs)
 
@@ -142,11 +140,13 @@ class CoordinateHelper(object):
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
+        self._update_grid()
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
-        for path in self.grid_lines:
-            PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
+        if self.grid_lines_kwargs['visible']:
+            for path in self.grid_lines:
+                PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
@@ -312,8 +312,6 @@ class CoordinateHelper(object):
 
         self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
 
-        self._update_grid()
-
     def _update_grid(self):
 
         # For 3-d WCS with a correlated third axis, the *proper* way of
@@ -337,7 +335,7 @@ class CoordinateHelper(object):
                 x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
                 y_world = np.repeat(w, 1000)
             xy_world = np.vstack([x_world, y_world]).transpose()
-            self.grid_lines.append(self._get_gridline(xy_world).cleaned(simplify=True))
+            self.grid_lines.append(self._get_gridline(xy_world))
 
     def _get_gridline(self, xy_world):
         if self.coord_type == 'scalar':
