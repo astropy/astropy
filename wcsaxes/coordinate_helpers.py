@@ -258,8 +258,8 @@ class CoordinateHelper(object):
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly for
             # longitudes.
-            w1 = world[1:, self.coord_index]
-            w2 = world[:-1, self.coord_index]
+            w1 = world[:-1, self.coord_index]
+            w2 = world[1:, self.coord_index]
             if self.coord_type == 'longitude':
                 w1 = w1 % 360.
                 w2 = w2 % 360.
@@ -284,6 +284,7 @@ class CoordinateHelper(object):
                 for imin in intersections:
 
                     imax = imin + 1
+
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
                     x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
                     y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
