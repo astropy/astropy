@@ -248,8 +248,8 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
             dpix_off = pixel_off - pixel
             tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
             normal_angle_full = np.hstack([normal_angle, normal_angle[-1]])
-            reset = ((normal_angle_full - tick_angle) % 360 > 90.) &
-                    ((tick_angle - normal_angle_full) % 360 > 90.)
+            reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
+                    ((tick_angle - normal_angle_full) % 360 > 90.))
             tick_angle[reset] -= 180.
 
             # We find for each interval the starting and ending coordinate,
