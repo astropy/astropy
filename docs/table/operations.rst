@@ -623,7 +623,7 @@ product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching k
 combination of the left and right tables is represented.  When there is no match in either
 the left or right table, the corresponding column values are designated as missing.
 
-  >>> print join(left, right, join_type='outer')
+  >>> print join(left, right, join_type='outer')  # doctest: +SKIP
   key  L   R
   --- --- ---
     0  L1  --
