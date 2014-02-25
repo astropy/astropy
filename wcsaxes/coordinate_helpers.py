@@ -64,7 +64,7 @@ class CoordinateHelper(object):
 
     def grid(self, draw_grid=True, **kwargs):
         """
-        Plot gridlines for this coordinate.
+        Plot grid lines for this coordinate.
 
         Standard matplotlib appearance options (color, alpha, etc.) can be
         passed as keyword arguments.
@@ -103,12 +103,12 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
-    def set_ticks(self, values=None, spacing=None, number=None):
+    def set_ticks(self, values=None, spacing=None, number=None, size=None, color=None):
         """
-        Set the location of the ticks.
+        Set the location and properties of the ticks.
 
-        Only one of the options from ``values``, ``spacing``, or ``number``
-        should be specified.
+        One and only one of the options from ``values``, ``spacing``, or
+        ``number`` should be specified.
 
         Parameters
         ----------
@@ -118,7 +118,12 @@ class CoordinateHelper(object):
             The spacing between ticks.
         number : float, optional
             The approximate number of ticks shown.
+        size : float, optional
+            The length of the ticks in points
+        color : str or tuple
+            A valid Matplotlib color for the ticks
         """
+
         if values is not None:
             self._formatter_locator.values = values
         elif spacing is not None:
@@ -129,6 +134,83 @@ class CoordinateHelper(object):
             raise ValueError("one of values, spacing, or number should be "
                              "specified")
 
+        if size is not None:
+            self.ticks.set_size(size)
+
+        if color is not None:
+            self.ticks.set_color(color)
+
+    def set_ticks_position(self, position):
+        """
+        Set where ticks should appear
+
+        Parameters
+        ----------
+        position : str
+            The axes on which the ticks for this coordinate should appear.
+            Should be a string containing zero or more of ``'b'``, ``'t'``,
+            ``'l'``, ``'r'``. For example, ``'lb'`` will lead the ticks to be
+            shown on the left and bottom axis.
+        """
+        self.ticks.set_visible_axes(position)
+
+    def set_ticklabel(self, **kwargs):
+        """
+        Set the visual properties for the tick labels.
+
+        Parameters
+        ----------
+        kwargs
+            Keyword arguments are passed to :class:`matplotlib.text.Text`. These
+            can include keywords to set the ``color``, ``size``, ``weight``, and
+            other text properties.
+        """
+        self.ticklabels.set(**kwargs)
+
+    def set_ticklabel_position(self, position):
+        """
+        Set where tick labels should appear
+
+        Parameters
+        ----------
+        position : str
+            The axes on which the tick labels for this coordinate should
+            appear. Should be a string containing zero or more of ``'b'``,
+            ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
+            tick labels to be shown on the left and bottom axis.
+        """
+        self.ticklabels.set_visible_axes(position)
+
+    def set_axislabel(self, text, **kwargs):
+        """
+        Set the text and optionally visual properties for the axis label.
+
+        Parameters
+        ----------
+        text : str
+            The axis label text.
+        kwargs
+            Keywords are passed to :class:`matplotlib.text.Text`. These
+            can include keywords to set the ``color``, ``size``, ``weight``, and
+            other text properties.
+        """
+        self.axislabels.set_text(text)
+        self.axislabels.set(**kwargs)
+
+    def set_axislabel_position(self, position):
+        """
+        Set where axis labels should appear
+
+        Parameters
+        ----------
+        position : str
+            The axes on which the axis label for this coordinate should
+            appear. Should be a string containing zero or more of ``'b'``,
+            ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
+            axis label to be shown on the left and bottom axis.
+        """
+        self.axislabels.set_visible_axes(position)
+
     @property
     def locator(self):
         return _formatter_locator.locator
@@ -137,7 +219,7 @@ class CoordinateHelper(object):
     def formatter(self):
         return _formatter_locator.formatter
 
-    def draw(self, renderer, bboxes):
+    def _draw(self, renderer, bboxes):
 
         renderer.open_group('coordinate_axis')
 
@@ -152,7 +234,7 @@ class CoordinateHelper(object):
 
         renderer.close_group('coordinate_axis')
 
-    def draw_axislabels(self, renderer, bboxes):
+    def _draw_axislabels(self, renderer, bboxes):
 
         renderer.open_group('axis labels')
 
@@ -160,54 +242,6 @@ class CoordinateHelper(object):
         self.axislabels.draw(renderer, bboxes=bboxes)
 
         renderer.close_group('axis labels')
-
-    def set_ticks_position(self, position):
-        """
-        Set the axes on which the ticks for this coordinate should
-        appear. Should be a string containing zero or more of ``b``, ``t``,
-        ``l``, ``r``.
-        """
-        self.ticks.set_visible_axes(position)
-
-    def set_ticklabels_position(self, position):
-        """
-        Set the axes on which the ticklabels for this coordinate should
-        appear. Should be a string containing zero or more of ``b``, ``t``,
-        ``l``, ``r``.
-        """
-        self.ticklabels.set_visible_axes(position)
-
-    def set_ticks_color(self, color):
-        self.ticks.set_color(color)
-
-    def set_ticks_size(self, color):
-        self.ticks.set_ticksize(size)
-
-    def set_ticklabel_size(self, size):
-        self.ticklabels.set_size(size)
-
-    def set_ticklabel_color(self, color):
-        self.ticklabels.set_color(color)
-
-    def set_axislabel(self, label):
-        """
-        Set the label for the axis.
-        """
-        self.axislabels.set_text(label)
-
-    def set_axislabels_position(self, position):
-        """
-        Set the axes on which the ticklabels for this coordinate should
-        appear. Should be a string containing zero or more of ``b``, ``t``,
-        ``l``, ``r``.
-        """
-        self.axislabels.set_visible_axes(position)
-
-    def set_axislabel_size(self, size):
-        self.axislabels.set_size(size)
-
-    def set_axislabel_color(self, color):
-        self.axislabels.set_color(color)
 
     def _update_ticks(self, renderer):
 

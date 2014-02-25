@@ -47,10 +47,10 @@ class WCSAxes(Axes):
         self._all_coords = [self.coords]
 
         # Common default settings
-        self.coords[0].set_axislabels_position('b')
-        self.coords[1].set_axislabels_position('l')
-        self.coords[0].set_ticklabels_position('b')
-        self.coords[1].set_ticklabels_position('l')
+        self.coords[0].set_axislabel_position('b')
+        self.coords[1].set_axislabel_position('l')
+        self.coords[0].set_ticklabel_position('b')
+        self.coords[1].set_ticklabel_position('l')
 
     def _get_bounding_frame(self):
         """
@@ -115,13 +115,13 @@ class WCSAxes(Axes):
 
         for coords in self._all_coords:
 
-            coords[0].draw(renderer, bboxes=self._bboxes)
-            coords[1].draw(renderer, bboxes=self._bboxes)
+            coords[0]._draw(renderer, bboxes=self._bboxes)
+            coords[1]._draw(renderer, bboxes=self._bboxes)
 
         for coords in self._all_coords:
 
-            coords[0].draw_axislabels(renderer, bboxes=self._bboxes)
-            coords[1].draw_axislabels(renderer, bboxes=self._bboxes)
+            coords[0]._draw_axislabels(renderer, bboxes=self._bboxes)
+            coords[1]._draw_axislabels(renderer, bboxes=self._bboxes)
 
         frame = self._get_bounding_frame()
         for axis in frame:
@@ -142,10 +142,10 @@ class WCSAxes(Axes):
         self._all_coords.append(coords)
 
         # Common settings for overlay
-        coords[0].set_axislabels_position('t')
-        coords[1].set_axislabels_position('r')
-        coords[0].set_ticklabels_position('t')
-        coords[1].set_ticklabels_position('r')
+        coords[0].set_axislabel_position('t')
+        coords[1].set_axislabel_position('r')
+        coords[0].set_ticklabel_position('t')
+        coords[1].set_ticklabel_position('r')
 
         return coords
 
