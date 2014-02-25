@@ -158,7 +158,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values)
+            return np.asarray(self.values), 1.1 * u.arcsec
 
         else:
 
@@ -196,6 +196,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             return values, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
+
         if len(values) > 0:
 
             if self.format is None:
