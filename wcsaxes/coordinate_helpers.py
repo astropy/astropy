@@ -3,8 +3,6 @@ This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.
 """
 
-import abc
-
 import numpy as np
 
 from matplotlib.ticker import Formatter
@@ -23,16 +21,10 @@ from .utils import get_pixels_to_data_scales
 from . import six
 
 
-# TODO: very little here is sky-specific. Only the wrapping. Maybe we can avoid the use of an empty base class.
+class CoordinateHelper(object):
 
-
-class BaseCoordinateHelper(object):
-
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, parent_axes=None, transform=None, coord_index=None, coord_type='scalar'):
-
-        super(BaseCoordinateHelper, self).__init__()
+    def __init__(self, parent_axes=None, transform=None, coord_index=None,
+                 coord_type='scalar'):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -40,22 +32,27 @@ class BaseCoordinateHelper(object):
         self.coord_index = coord_index
         self.coord_type = coord_type
 
+        # Initialize tick formatter/locator
+        if coord_type == 'scalar':
+            self._formatter_locator = ScalarFormatterLocator()
+        elif coord_type in ['longitude', 'latitude']:
+            self._formatter_locator = AngleFormatterLocator()
+        else:
+            raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
+
         # Initialize ticks
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self.ticks = Ticks(transform=self.parent_axes.transData +
-                           self.offset_transform)
+        self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
-        self.ticklabels = TickLabels(transform=self.parent_axes.transData,
-                                     figure=self.parent_axes.get_figure())
+        # Initialize tick labels
+        self.ticklabels = TickLabels(transform=parent_axes.transData,
+                                     figure=parent_axes.get_figure())
 
         # Initialize axis labels
-        self.axislabels = AxisLabels(self.parent_axes._get_bounding_frame(),
-                                     transform=self.parent_axes.transData,
-                                     figure=self.parent_axes.get_figure())
-
-        # Initialize formatter/locator
-        self._formatter_locator = self._formatter_locator_class()
+        self.axislabels = AxisLabels(parent_axes._get_bounding_frame(),
+                                     transform=parent_axes.transData,
+                                     figure=parent_axes.get_figure())
 
         # Initialize container for the grid lines
         self.grid_lines = []
@@ -210,36 +207,6 @@ class BaseCoordinateHelper(object):
     def set_axislabel_color(self, color):
         self.axislabels.set_color(color)
 
-    def _update_grid(self):
-
-        # For 3-d WCS with a correlated third axis, the *proper* way of
-        # drawing a grid should be to find the world coordinates of all pixels
-        # and drawing contours. What we are doing here assumes that we can
-        # define the grid lines with just two of the coordinates (and
-        # therefore assumes that the other coordinates are fixed and set to
-        # the value in the slice). Here we basically assume that if the WCS
-        # had a third axis, it has been abstracted away in the transformation.
-
-        coord_range = self.parent_axes.get_coord_range()
-
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
-
-        self.grid_lines = []
-        for w in tick_world_coordinates:
-            if self.coord_index == 0:
-                x_world = np.repeat(w, 1000)
-                y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
-            else:
-                x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                y_world = np.repeat(w, 1000)
-            xy_world = np.vstack([x_world, y_world]).transpose()
-            self.grid_lines.append(self._get_gridline(xy_world).cleaned(simplify=True))
-
-
-class AngleCoordinateHelper(BaseCoordinateHelper):
-
-    _formatter_locator_class = AngleFormatterLocator
-
     def _update_ticks(self, renderer):
 
         # Here we should determine the location and rotation of all the ticks.
@@ -289,7 +256,8 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
             tick_angle[reset] -= 180.
 
             # We find for each interval the starting and ending coordinate,
-            # ensuring that we take wrapping into account correctly.
+            # ensuring that we take wrapping into account correctly for
+            # longitudes.
             w1 = world[1:, self.coord_index]
             w2 = world[:-1, self.coord_index]
             if self.coord_type == 'longitude':
@@ -298,12 +266,15 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                 w1[w2 - w1 > 180.] += 360
                 w2[w1 - w2 > 180.] += 360
 
-            # Need to check ticks as well as ticks + 360, since the above can
-            # produce pairs such as 359 to 361 or 0.5 to 1.5, both of which
-            # would match a tick at 0.75.
-            check_ticks = np.hstack([tick_world_coordinates, tick_world_coordinates + 360.])
+            # For longitudes, we need to check ticks as well as ticks + 360,
+            # since the above can produce pairs such as 359 to 361 or 0.5 to
+            # 1.5, both of which would match a tick at 0.75. Otherwise we just
+            # check the ticks determined above.
+            if self.coord_type == 'longitude':
+                tick_world_coordinates = np.hstack([tick_world_coordinates,
+                                                    tick_world_coordinates + 360.])
 
-            for t in check_ticks:
+            for t in tick_world_coordinates:
 
                 # Find steps where a tick is present
                 intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
@@ -319,21 +290,21 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
                     angle_i = tick_angle[imin] + frac * (tick_angle[imax] - tick_angle[imin])
 
                     if self.coord_type == 'longitude':
-                        t_new = t % 360.
+                        world = t % 360.
                     else:
-                        t_new = t
+                        world = t
 
                     self.ticks.add(axis=axis,
                                    pixel=(x_pix_i, y_pix_i),
-                                   world=t_new,
+                                   world=world,
                                    angle=angle_i,
                                    axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
                                         pixel=(x_pix_i, y_pix_i),
-                                        world=t_new,
+                                        world=world,
                                         angle=normal_angle[imin],
-                                        text=self._formatter_locator.formatter([t_new], spacing=spacing)[0],
+                                        text=self._formatter_locator.formatter([world], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
 
         xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
@@ -342,93 +313,33 @@ class AngleCoordinateHelper(BaseCoordinateHelper):
 
         self._update_grid()
 
-    def _get_gridline(self, xy_world):
-        return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
+    def _update_grid(self):
 
+        # For 3-d WCS with a correlated third axis, the *proper* way of
+        # drawing a grid should be to find the world coordinates of all pixels
+        # and drawing contours. What we are doing here assumes that we can
+        # define the grid lines with just two of the coordinates (and
+        # therefore assumes that the other coordinates are fixed and set to
+        # the value in the slice). Here we basically assume that if the WCS
+        # had a third axis, it has been abstracted away in the transformation.
 
-class ScalarCoordinateHelper(BaseCoordinateHelper):
-
-    _formatter_locator_class = ScalarFormatterLocator
-
-    def _update_ticks(self, renderer):
-
-        # Here we should determine the location and rotation of all the ticks.
-        # For each axis, we can check the intersections for the specific
-        # coordinate and once we have the tick positions, we can use the WCS to
-        # determine the rotations.
-
-        # Find the range of coordinates in all directions
         coord_range = self.parent_axes.get_coord_range()
 
-        # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
-        # We want to allow non-standard rectangular frames, so we just rely on
-        # the parent axes to tell us what the bounding frame is.
-        frame = self.parent_axes._sample_bounding_frame(1000)
-
-        # TODO: the above could be abstracted to work with any line, which
-        # could then be re-used for floating axes1
-
-        self.ticks.clear()
-        self.ticklabels.clear()
-
-        for axis in frame:
-
-            x_pix, y_pix = frame[axis]
-
-            # Find angle normal to border and inwards
-            dx = x_pix[1:] - x_pix[:-1]
-            dy = y_pix[1:] - y_pix[:-1]
-            normal_angle = np.degrees(np.arctan2(dx, -dy))
-
-            # Transform to world coordinates
-            world = self.transform.inverted().transform(np.vstack([x_pix, y_pix]).transpose())[:, self.coord_index]
-
-            # Let's just code up the algorithm with simple loops and we can then
-            # see whether to optimize it array-wise, or just cythonize it.
-
-            # We find for each interval the starting and ending coordinate,
-            # ensuring that we take wrapping into account correctly.
-            w1 = world[1:]
-            w2 = world[:-1]
-
-            # Need to check ticks as well as ticks + 360, since the above can
-            # produce pairs such as 359 to 361 or 0.5 to 1.5, both of which would
-            # match a tick at 0.75.
-            check_ticks = tick_world_coordinates
-
-            for t in check_ticks:
-
-                # Find steps where a tick is present
-                intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
-
-                # Loop over ticks, and find exact pixel coordinates by linear
-                # interpolation
-                for imin in intersections:
-                    imax = (imin + 1) % len(world)
-                    frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
-                    y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
-
-                    self.ticks.add(axis=axis,
-                                   pixel=(x_pix_i, y_pix_i),
-                                   world=t,
-                                   angle=normal_angle[imin],
-                                   axis_displacement=imin + frac)
-
-                    self.ticklabels.add(axis=axis,
-                                        pixel=(x_pix_i, y_pix_i),
-                                        world=t,
-                                        angle=normal_angle[imin],
-                                        text=self._formatter_locator.formatter([t], spacing=spacing)[0],
-                                        axis_displacement=imin + frac)
-
-        xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
-
-        self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
-
-        self._update_grid()
+        self.grid_lines = []
+        for w in tick_world_coordinates:
+            if self.coord_index == 0:
+                x_world = np.repeat(w, 1000)
+                y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
+            else:
+                x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
+                y_world = np.repeat(w, 1000)
+            xy_world = np.vstack([x_world, y_world]).transpose()
+            self.grid_lines.append(self._get_gridline(xy_world).cleaned(simplify=True))
 
     def _get_gridline(self, xy_world):
-        return get_gridline_path(self.parent_axes, self.transform, xy_world)
+        if self.coord_type == 'scalar':
+            return get_gridline_path(self.parent_axes, self.transform, xy_world)
+        else:
+            return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
