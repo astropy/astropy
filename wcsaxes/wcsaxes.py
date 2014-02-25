@@ -129,9 +129,13 @@ class WCSAxes(Axes):
 
     def get_coords_overlay(self, frame, equinox=None, obstime=None):
 
-        transform = self.get_transform(frame, equinox=equinox, obstime=obstime)
-
-        coords = CoordinatesMap(self, self.wcs, transform=transform)
+        # Here we can't use get_transform because that deals with
+        # pixel-to-pixel transformations when passing a WCS object.
+        if isinstance(frame, WCS):
+            coords = CoordinatesMap(self, frame)
+        else:
+            transform = self.get_transform(frame, equinox=equinox, obstime=obstime) - self.transData
+            coords = CoordinatesMap(self, self.wcs, transform=transform)
 
         self._all_coords.append(coords)
 
