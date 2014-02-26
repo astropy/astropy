@@ -136,7 +136,7 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
     tabledata_format : str, optional
         The format of table data to write.  Must be one of `tabledata`
         (text representation), `binary` or `binary2`.  Default is
-        `tabledata`.
+        `tabledata`.  See :ref:`votable-serialization`.
     """
 
     # Check if output file already exists

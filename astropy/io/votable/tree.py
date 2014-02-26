@@ -2054,6 +2054,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         Note that the 'fits' format, since it requires an external
         file, can not be written out.  Any file read in with 'fits'
         format will be read out, by default, in 'tabledata' format.
+
+        See :ref:`votable-serialization`.
         """
         return self._format
 
@@ -3326,7 +3328,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             Override the format of the table(s) data to write.  Must
             be one of `tabledata` (text representation), `binary` or
             `binary2`.  By default, use the format that was specified
-            in each `Table` object as it was created or read in.
+            in each `Table` object as it was created or read in.  See
+            :ref:`votable-serialization`.
         """
         if write_null_values != False:
             warnings.warn(

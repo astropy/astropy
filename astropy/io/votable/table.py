@@ -169,7 +169,8 @@ def writeto(table, file, tabledata_format=None):
         Override the format of the table(s) data to write.  Must be
         one of `tabledata` (text representation), `binary` or
         `binary2`.  By default, use the format that was specified in
-        each `Table` object as it was created or read in.
+        each `Table` object as it was created or read in.  See
+        :ref:`votable-serialization`.
     """
     from ...table import Table
     if isinstance(table, Table):
