@@ -96,7 +96,7 @@ class Pix2Sky_AZP(Zenithal):
         self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_AZP, self).__init__()
+        super(Pix2Sky_AZP, self).__init__(mu=mu, gamma=gamma)
         self.mu = mu
         self.gamma = gamma
 
@@ -158,7 +158,7 @@ class Sky2Pix_AZP(Zenithal):
     gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, mu=0.0, gamma=0.0):
-        super(Sky2Pix_AZP, self).__init__()
+        super(Sky2Pix_AZP, self).__init__(mu=mu, gamma=gamma)
         self.mu = mu
         self.gamma = gamma
 
@@ -346,7 +346,7 @@ class Pix2Sky_CYP(Cylindrical):
     lam = Parameter('lam', setter=_validate_lam)
 
     def __init__(self, mu, lam):
-        super(Pix2Sky_CYP, self).__init__()
+        super(Pix2Sky_CYP, self).__init__(mu=mu, lam=lam)
         self.mu = mu
         self.lam = lam
 
@@ -391,7 +391,7 @@ class Sky2Pix_CYP(Cylindrical):
     lam = Parameter('lam', setter=_validate_lam)
 
     def __init__(self, mu, lam):
-        super(Sky2Pix_CYP, self).__init__()
+        super(Sky2Pix_CYP, self).__init__(mu=mu, lam=lam)
         self.mu = mu
         self.lam = lam
 
@@ -434,7 +434,7 @@ class Sky2Pix_CEA(Cylindrical):
     lam = Parameter('lam')
 
     def __init__(self, lam=1):
-        super(Sky2Pix_CEA, self).__init__()
+        super(Sky2Pix_CEA, self).__init__(lam=lam)
         self.lam = lam
 
     def inverse(self):

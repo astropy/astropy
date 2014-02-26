@@ -100,6 +100,11 @@ class Parameter(object):
     model : object
         an instance of a Model class; this should only be used internally for
         creating bound Parameters
+    optional : bool
+        indicates that the parameter is to be considered alternative when describing a model
+        it is not used internally by the model
+        example is a rotation model with a "rotation_matrix" parameter 
+        (used internally) and "angle" parameter for the user API
     """
 
     # See the _nextid classmethod
@@ -107,7 +112,7 @@ class Parameter(object):
 
     def __init__(self, name, description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None):
+                 model=None, optional=False):
         super(Parameter, self).__init__()
         self._name = name
         self.__doc__ = description.strip()
@@ -122,6 +127,7 @@ class Parameter(object):
         self._order = None
         self._shape = None
         self._model = model
+        self._optional = optional
 
         # The getter/setter functions take one or two arguments: The first
         # argument is always the value itself (either the value returned or the
@@ -137,7 +143,7 @@ class Parameter(object):
         else:
             self._setter = None
 
-        if model is not None:
+        if model is not None and self._optional == False:
             try:
                 _, self._shape = self._validate_value(model, self.value)
             except AttributeError:
@@ -159,9 +165,13 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
+        if obj.param_dim != 1:
+            # If multiple parameter sets, then value is a list of parameters.
+            # use the shape of the first one to compare with the shape of the original parameter
+            _, shape = _tofloat(value[0])
         # Compare the shape against the previous value's shape, if it exists
         if hasattr(obj, self._attr):
-            current_shape = getattr(obj, self.name).shape
+            current_shape = obj._param_metrics[self.name][1]
             if shape != current_shape:
                 raise InputParameterError(
                     "Input value for parameter '{0}' does not have the "
@@ -415,7 +425,10 @@ class Parameter(object):
         if model is None:
             return
 
-        param_dim = model.param_dim
+        try:
+            param_dim = model.param_dim
+        except AttributeError:
+            return
         if param_dim == 1:
             # Just validate the value with _tofloat
             return _tofloat(value)

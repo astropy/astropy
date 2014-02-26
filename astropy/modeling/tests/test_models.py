@@ -179,7 +179,7 @@ def test_custom_model(amplitude=4, frequency=1):
     SineModel = models.custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
 
     x = np.linspace(0, 4, 50)
-    sin_model = SineModel()
+    sin_model = SineModel(4, 1)
 
     y = sin_model.eval(x, 5., 2.)
     y_prime = sin_model.fit_deriv(x, 5., 2.)
@@ -213,7 +213,7 @@ def test_custom_model_defaults():
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
 
-    sin_model = SineModel()
+    sin_model = SineModel(4, 1)
     assert SineModel.amplitude.default == 4
     assert SineModel.frequency.default == 1
 

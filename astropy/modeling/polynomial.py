@@ -111,7 +111,13 @@ class PolynomialModel(PolynomialBase):
         self._n_inputs = n_inputs
         self._n_outputs = n_outputs
 
-        if params:
+        if not params:
+            for name in self.param_names:
+                if param_dim == 1:
+                    params[name] = 0.0
+                else:
+                    params[name] = [0.0] * param_dim
+        else:
             p = params.get('c0', params.get('c0_0'))
             if isinstance(p, collections.Sequence):
                 n_params = len(p)
@@ -137,7 +143,7 @@ class PolynomialModel(PolynomialBase):
 
     @property
     def degree(self):
-        """TODO: Docstring for me"""
+        """Return the degree of the polynomial."""
 
         return self._degree
 
