@@ -728,21 +728,21 @@ class LabeledInput(dict):
 
     Examples
     --------
-    >>> x,y = np.mgrid[:5, :5]
+    >>> y, x = np.mgrid[:5, :5]
     >>> l = np.arange(10)
     >>> labeled_input = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> labeled_input.x
-    array([[0, 0, 0, 0, 0],
-           [1, 1, 1, 1, 1],
-           [2, 2, 2, 2, 2],
-           [3, 3, 3, 3, 3],
-           [4, 4, 4, 4, 4]])
+    array([[0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4]])
     >>> labeled_input['x']
-    array([[0, 0, 0, 0, 0],
-           [1, 1, 1, 1, 1],
-           [2, 2, 2, 2, 2],
-           [3, 3, 3, 3, 3],
-           [4, 4, 4, 4, 4]])
+    array([[0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4],
+           [0, 1, 2, 3, 4]])
     """
 
     def __init__(self, data, labels):
@@ -883,7 +883,7 @@ class SerialCompositeModel(_CompositeModel):
 
         >>> import numpy as np
         >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
-        >>> x, y = np.mgrid[:5, :5]
+        >>> y, x = np.mgrid[:5, :5]
         >>> rotation = models.MatrixRotation2D(angle=23.5)
         >>> offset_x = models.Shift(-4.23)
         >>> offset_y = models.Shift(2)

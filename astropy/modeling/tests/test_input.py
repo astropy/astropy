@@ -43,7 +43,7 @@ class TestInputType(object):
         self.y = 6.7
         self.x1 = np.arange(1, 10, .1)
         self.y1 = np.arange(1, 10, .1)
-        self.x2, self.y2 = np.mgrid[:10, :8]
+        self.y2, self.x2 = np.mgrid[:10, :8]
 
     @pytest.mark.parametrize(('model', 'params'), model1d_params)
     def test_input1D(self, model, params):
@@ -67,7 +67,7 @@ class TestFitting(object):
     """
     def setup_class(self):
         self.x1 = np.arange(10)
-        self.x, self.y = np.mgrid[:10, :10]
+        self.y, self.x = np.mgrid[:10, :10]
 
     def test_linear_fitter_1set(self):
         """
@@ -226,7 +226,7 @@ class TestEvaluation(object):
     """
     def setup_class(self):
         self.x1 = np.arange(20)
-        self.x, self.y = np.mgrid[:10, :10]
+        self.y, self.x = np.mgrid[:10, :10]
 
     def test_non_linear_NYset(self):
         """
@@ -301,5 +301,5 @@ class TestEvaluation(object):
     def test_evaluate_gauss2d(self):
         cov = np.array([[1., 0.8], [0.8, 3]])
         g = models.Gaussian2D(1., 5., 4., cov_matrix=cov)
-        x, y = np.mgrid[:10, :10]
+        y, x = np.mgrid[:10, :10]
         g(x, y)

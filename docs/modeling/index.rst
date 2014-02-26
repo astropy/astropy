@@ -141,7 +141,7 @@ Similarly to the 1-d example, we can create a simulated 2-d data dataset, and fi
 
     # Generate fake data
     np.random.seed(0)
-    x, y = np.mgrid[:128, :128]
+    y, x = np.mgrid[:128, :128]
     z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
     z += np.random.normal(0., 0.1, z.shape) * 50000.
 

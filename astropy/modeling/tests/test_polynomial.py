@@ -53,7 +53,7 @@ class TestFitting(object):
         self.N = 100
         self.M = 100
         self.x1 = np.linspace(1, 10, 100)
-        self.x2, self.y2 = np.mgrid[:100, :83]
+        self.y2, self.x2 = np.mgrid[:100, :83]
         rsn = np.random.RandomState(0)
         self.n1 = rsn.randn(self.x1.size) * .1
         self.n2 = rsn.randn(self.x2.size)

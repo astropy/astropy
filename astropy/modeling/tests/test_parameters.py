@@ -270,7 +270,7 @@ class TestMultipleParameterSets(object):
 
     def setup_class(self):
         self.x1 = np.arange(1, 10, .1)
-        self.x, self.y = np.mgrid[:10, :7]
+        self.y, self.x = np.mgrid[:10, :7]
         self.x11 = np.array([self.x1, self.x1]).T
         self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7])
 
