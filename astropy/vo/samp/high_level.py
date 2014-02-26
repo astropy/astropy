@@ -196,10 +196,11 @@ def send(data, name, destination='all', timeout=10, hub=None):
             client.call_and_wait(c, message, timeout=str(timeout))
     elif destination in ['ds9', 'topcat', 'aladin']:
         clients = list_clients()
-        for client_id in clients:
-            name = clients[client_id]['samp.name']
+        for target_client in clients:
+            name = target_client['name']
             if destination in name.lower():
-                client.call_and_wait(client_id, message, timeout=str(timeout))
+                client.call_and_wait(str(target_client['id']), message,
+                                     timeout=str(timeout))
     else:
         client.call_and_wait(destination, message, timeout=str(timeout))
 
