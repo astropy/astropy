@@ -7,16 +7,13 @@ Test the conversion to/from astropy.table
 
 import io
 import os
-import shutil
-import tempfile
-from distutils import version
 
 import numpy as np
-from ....tests.helper import pytest
 
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
+
 
 def test_table(tmpdir):
     # Read the VOTABLE
@@ -125,7 +122,24 @@ def test_table_read_with_unnamed_tables():
 def test_from_table_without_mask():
     from ....table import Table, Column
     t = Table()
-    c = Column(data=[1,2,3], name='a')
+    c = Column(data=[1, 2, 3], name='a')
     t.add_column(c)
     output = io.BytesIO()
     t.write(output, format='votable')
+
+
+def test_write_with_format():
+    from ....table import Table, Column
+    t = Table()
+    c = Column(data=[1, 2, 3], name='a')
+    t.add_column(c)
+
+    output = io.BytesIO()
+    t.write(output, format='votable', tabledata_format="binary")
+    assert b'BINARY' in output.getvalue()
+    assert b'TABLEDATA' not in output.getvalue()
+
+    output = io.BytesIO()
+    t.write(output, format='votable', tabledata_format="binary2")
+    assert b'BINARY2' in output.getvalue()
+    assert b'TABLEDATA' not in output.getvalue()

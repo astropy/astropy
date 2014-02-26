@@ -2640,6 +2640,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         return array
 
     def to_xml(self, w, **kwargs):
+        specified_format = kwargs.get('tabledata_format')
+        if specified_format is not None:
+            format = specified_format
+        else:
+            format = self.format
+        if format == 'fits':
+            format = 'tabledata'
+
         with w.tag(
             'TABLE',
             attrib=w.object_attrs(
@@ -2665,14 +2673,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             if len(self.array):
                 with w.tag('DATA'):
-                    if self.format == 'fits':
-                        self.format = 'tabledata'
-
-                    if self.format == 'tabledata':
+                    if format == 'tabledata':
                         self._write_tabledata(w, **kwargs)
-                    elif self.format == 'binary':
+                    elif format == 'binary':
                         self._write_binary(1, w, **kwargs)
-                    elif self.format == 'binary2':
+                    elif format == 'binary2':
                         self._write_binary(2, w, **kwargs)
 
             if kwargs['version_1_2_or_later']:
@@ -3296,7 +3301,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         return self
 
     def to_xml(self, fd, write_null_values=False,
-               compressed=False,
+               compressed=False, tabledata_format=None,
                _debug_python_based_parser=False,
                _astropy_version=None):
         """
@@ -3305,23 +3310,33 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Parameters
         ----------
         fd : str path or writable file-like object
-           Where to write the file.
+            Where to write the file.
 
         write_null_values : bool, optional
-           Deprecated and retained for backward compatibility.  When
-           `write_null_values` was `False`, invalid VOTable files
-           could be generated, so the option has just been removed
-           entirely.
+            Deprecated and retained for backward compatibility.  When
+            `write_null_values` was `False`, invalid VOTable files
+            could be generated, so the option has just been removed
+            entirely.
 
         compressed : bool, optional
-           When `True`, write to a gzip-compressed file.  (Default:
-           `False`)
+            When `True`, write to a gzip-compressed file.  (Default:
+            `False`)
+
+        tabledata_format : str, optional
+            Override the format of the table(s) data to write.  Must
+            be one of `tabledata` (text representation), `binary` or
+            `binary2`.  By default, use the format that was specified
+            in each `Table` object as it was created or read in.
         """
         if write_null_values != False:
             warnings.warn(
                 "write_null_values has been deprecated and has no effect",
                 AstropyDeprecationWarning)
 
+        if tabledata_format is not None:
+            if tabledata_format.lower() not in (
+                    'tabledata', 'binary', 'binary2'):
+                raise ValueError("Unknown format type '{0}'".format(format))
 
         kwargs = {
             'version': self.version,
@@ -3331,6 +3346,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 util.version_compare(self.version, '1.2') >= 0,
             'version_1_3_or_later':
                 util.version_compare(self.version, '1.3') >= 0,
+            'tabledata_format':
+                tabledata_format,
             '_debug_python_based_parser': _debug_python_based_parser,
             '_group_number': 1}
 
