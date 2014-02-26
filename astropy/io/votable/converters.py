@@ -680,7 +680,7 @@ class FloatingPoint(Numeric):
             format_parts.append(six.text_type(width))
 
         if precision is None:
-            format_parts.append('s')
+            format_parts.append('r')
         elif precision.startswith("E"):
             format_parts.append('.%dg' % int(precision[1:]))
         elif precision.startswith("F"):
@@ -734,8 +734,12 @@ class FloatingPoint(Numeric):
         if mask:
             return self._null_output
         if np.isfinite(value):
+            if not np.isscalar(value):
+                value = value.dtype.type(value)
             result = self._output_format % value
-            if (self._output_format[-1] == 's' and
+            if result.startswith('array'):
+                raise RuntimeError()
+            if (self._output_format[-1] == 'r' and
                 result.endswith('.0')):
                 result = result[:-2]
             return result
@@ -1002,9 +1006,9 @@ class Complex(FloatingPoint, Array):
                 return 'NaN'
             else:
                 value = self.null
-        real = self._output_format % value.real
-        imag = self._output_format % value.imag
-        if self._output_format[-1] == 's':
+        real = self._output_format % float(value.real)
+        imag = self._output_format % float(value.imag)
+        if self._output_format[-1] == 'r':
             if real.endswith('.0'):
                 real = real[:-2]
             if imag.endswith('.0'):
