@@ -182,6 +182,11 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+  - It is now possible to save an ``astropy.table.Table`` object as a
+    VOTable with any of the supported data formats, ``tabledata``,
+    ``binary`` and ``binary2``, by using the ``tabledata_format``
+    kwarg. [#2138]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
