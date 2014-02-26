@@ -99,7 +99,7 @@ def receive(timeout=None, hub=None):
 
     Returns
     -------
-    data : `~astropy.table.table.Table` or `~astropy.nddata.nddata.NDData`
+    data : `~astropy.table.table.Table` or `~astropy.io.fits.HDUList`
         The data received over SAMP.
     """
 
