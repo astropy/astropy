@@ -67,17 +67,17 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
 
     Returns
     -------
-    filtered_data : `numpy.masked.MaskedArray`
+    filtered_data : `numpy.ma.MaskedArray`
         A masked array with the same shape as `data` input, where the points
         rejected by the algorithm have been masked.
 
     Notes
     -----
-     1. The routine works by calculating
+     1. The routine works by calculating::
 
             deviation = data - cenfunc(data [,axis=int])
 
-        and then setting a mask for points outside the range
+        and then setting a mask for points outside the range::
 
             data.mask = deviation**2 > sig**2 * varfunc(deviation)
 
@@ -375,11 +375,11 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
         for non-uniform bin widths (in this case, 'range' is ignored).
     range : (float, float), optional
         The lower and upper range of the bins. If `None` (default),
-        the range is set to (x.min(), x.max()). Values outside the
+        the range is set to ``(x.min(), x.max())``. Values outside the
         range are ignored.
     conf : float in [0, 1], optional
         Desired probability content in the confidence
-        interval (p - perr[0], p + perr[1]) in each bin. Default is
+        interval ``(p - perr[0], p + perr[1])`` in each bin. Default is
         0.68269.
     interval : {'wilson', 'jeffreys', 'wald'}, optional
         Formula used to calculate confidence interval on the
@@ -395,8 +395,8 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     bin_ctr : numpy.ndarray
         Central value of bins. Bins without any entries are not returned.
     bin_halfwidth : numpy.ndarray
-        Half-width of each bin such that `bin_ctr - bin_halfwidth` and
-        `bin_ctr + bins_halfwidth` give the left and right side of each bin,
+        Half-width of each bin such that ``bin_ctr - bin_halfwidth`` and
+        ``bin_ctr + bins_halfwidth`` give the left and right side of each bin,
         respectively.
     p : numpy.ndarray
         Efficiency in each bin.
@@ -532,7 +532,7 @@ def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation.
 
     Returns the median absolute deviation (MAD) of the array elements.
-    The MAD is defined as :math `median( \|a - median (a)\| )`.
+    The MAD is defined as ``median(abs(a - median(a)))``.
 
     Parameters
     ----------
@@ -690,7 +690,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     Returns
     -------
-    biweight_midvariance: float
+    biweight_midvariance : float
         Returns the biweight midvariance for the array elements.
 
     Examples
@@ -707,7 +707,6 @@ def biweight_midvariance(a, c=9.0, M=None):
     See Also
     --------
     median_absolute_deviation, biweight_location
-
     """
 
     a = np.array(a, copy=False)

@@ -99,7 +99,7 @@ class Kernel(object):
 
         Parameters
         ----------
-        mode : str
+        mode : {'integral', 'peak'}
             One of the following modes:
                 * 'integral' (default)
                     Kernel normalized such that its integral = 1.
@@ -310,11 +310,11 @@ def kernel_arithmetics(kernel, value, operation):
 
     Parameters
     ----------
-    kernel : astropy.convolution.kernel
+    kernel : `astropy.convolution.kernel.Kernel`
         Kernel instance
     values : kernel, float or int
         Value to operate with
-    operation : str
+    operation : {'add', 'sub', 'mul'}
         One of the following operations:
             * 'add'
                 Add two kernels
