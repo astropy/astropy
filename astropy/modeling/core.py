@@ -225,11 +225,9 @@ class Model(object):
 
         This is an array where each column represents one parameter set.
         """
-
-        parameters = [getattr(self, attr) for attr in self.param_names]
-        values = [par.value for par in parameters]
-        shapes = [par.shape for par in parameters]
-        n_dims = np.asarray([len(p.shape) for p in parameters])
+        values = [getattr(self, attr).value for attr in self.param_names]
+        shapes = [self._param_metrics[name][1] for name in self.param_names]
+        n_dims = np.asarray([len(shape) for shape in shapes])
 
         if (n_dims > 1).any():
             if () in shapes:

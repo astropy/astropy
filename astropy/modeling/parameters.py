@@ -125,7 +125,6 @@ class Parameter(object):
         self._default_max = max
 
         self._order = None
-        self._shape = None
         self._model = model
         self._optional = optional
 
@@ -145,7 +144,7 @@ class Parameter(object):
 
         if model is not None and self._optional == False:
             try:
-                _, self._shape = self._validate_value(model, self.value)
+                _, _shape = self._validate_value(model, self.value)
             except AttributeError:
                 # This can happen if the paramter's value has not been set yet
                 pass
@@ -275,13 +274,7 @@ class Parameter(object):
                 val = self._setter(val)
             setattr(self._model, self._attr, val)
         raise AttributeError('Cannot set a value on a parameter definition')
-
-    @property
-    def shape(self):
-        """The shape of this parameter's value array."""
-
-        return self._shape
-
+ 
     @property
     def size(self):
         """The size of this parameter's value array."""
