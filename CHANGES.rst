@@ -64,6 +64,8 @@ New Features
   - Reference documentation now shows functions/class docstrings at the 
     inteded user-facing API location rather than the actual file where 
     the implementation is found. [#1826]
+  - The `automodsumm` extension configuration was changed to generate
+    documentation of class `__call__` member functions. [#1817, #2135]
 
 - ``astropy.table``
 
