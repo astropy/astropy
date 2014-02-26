@@ -31,7 +31,7 @@ class TestPolynomial2D(object):
     """
     def setup_class(self):
         self.model = models.Polynomial2D(2)
-        self.x, self.y = np.mgrid[:5, :5]
+        self.y, self.x = np.mgrid[:5, :5]
 
         def poly2(x, y):
             return 1 + 2 * x + 3 * x ** 2 + 4 * y + 5 * y ** 2 + 6 * x * y
@@ -67,7 +67,7 @@ class TestICheb2D(object):
     """
     def setup_class(self):
         self.pmodel = models.Polynomial2D(2)
-        self.x, self.y = np.mgrid[:5, :5]
+        self.y, self.x = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
         self.cheb2 = models.Chebyshev2D(2, 2)
         self.fitter = fitting.LinearLSQFitter()

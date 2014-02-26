@@ -42,7 +42,7 @@ class TestSerialComposite(object):
     Test composite models evaluation in series
     """
     def setup_class(self):
-        self.x, self.y = np.mgrid[:5, :5]
+        self.y, self.x = np.mgrid[:5, :5]
         self.p1 = models.Polynomial1D(3)
         self.p11 = models.Polynomial1D(3)
         self.p2 = models.Polynomial2D(3)
@@ -240,7 +240,7 @@ class TestParametricModels(object):
         self.y = 6.7
         self.x1 = np.arange(1, 10, .1)
         self.y1 = np.arange(1, 10, .1)
-        self.x2, self.y2 = np.mgrid[:10, :8]
+        self.y2, self.x2 = np.mgrid[:10, :8]
 
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_input1D(self, model_class):

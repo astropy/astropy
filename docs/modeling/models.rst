@@ -159,7 +159,7 @@ The examples here assume this import statement was executed::
 
 In more complex cases the input and output may be mapped to transformations::
 
-    >>> x, y = np.mgrid[:5, :5]
+    >>> y, x = np.mgrid[:5, :5]
     >>> off = models.Shift(-3.2)
     >>> poly2 = models.Polynomial2D(2)
     >>> serial_composite_model = SerialCompositeModel(
@@ -176,16 +176,16 @@ The output is also a `~astropy.modeling.core.LabeledInput` object and the
 result is stored in label 'z'::
 
     >>> print(result)  # doctest: +SKIP
-    {'x': array([[-3.2, -3.2, -3.2, -3.2, -3.2],
-           [-2.2, -2.2, -2.2, -2.2, -2.2],
-           [-1.2, -1.2, -1.2, -1.2, -1.2],
-           [-0.2, -0.2, -0.2, -0.2, -0.2],
-           [ 0.8,  0.8,  0.8,  0.8,  0.8]]),
-     'y': array([[0, 1, 2, 3, 4],
-           [0, 1, 2, 3, 4],
-           [0, 1, 2, 3, 4],
-           [0, 1, 2, 3, 4],
-           [0, 1, 2, 3, 4]]),
+    {'x': array([[-3.2, -2.2, -1.2, -0.2,  0.8],
+           [-3.2, -2.2, -1.2, -0.2,  0.8],
+           [-3.2, -2.2, -1.2, -0.2,  0.8],
+           [-3.2, -2.2, -1.2, -0.2,  0.8],
+           [-3.2, -2.2, -1.2, -0.2,  0.8]]),
+     'y':  array([[0, 0, 0, 0, 0],
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]]),
      'z': array([[ 0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.],
