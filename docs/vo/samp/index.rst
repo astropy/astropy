@@ -109,17 +109,25 @@ The ``destination`` argument should then either be given the ``id``, or one of
 the aliases as described above.
 
 Similarly, you can use the :func:`~astropy.vo.samp.high_level.receive`
-function to receive data from another SAMP client. Simply do::
+function to receive data from another SAMP client. Unlike sending data, in
+order to receive data there are two steps. First, from the Python console or
+script you need to call the :func:`~astropy.vo.samp.high_level.receive`
+function, which will automatically start a SAMP client that will be waiting
+for the data. Second, from a running application like Topcat or Ds9, you need
+to select a dataset and then find the appropriate menu option that sends or
+broadcasts the data. For instance in Topcat, choose the menu item ``Interop``
+=> ``Send table to ...`` => ``Astropy``. These options won't be available
+until you have started the astropy Python client listening, which is done
+with::
 
     >>> from astropy.vo.samp import receive
     >>> data = receive()
 
-then send the data from the other SAMP client. The above call to
-:func:`~astropy.vo.samp.high_level.receive` will hang until the data is
-received. The function will either return an
+The above call to :func:`~astropy.vo.samp.high_level.receive` will hang until
+you send data from one of the other SAMP clients to the Astropy client. The function will either return an
 :class:`~astropy.table.table.Table` instance or a
-:class:`~astropy.nddata.nddata.NDData` instance, depending on the data sent by
-the other client.
+:class:`~astropy.io.fits.HDUList` instance, depending on the data sent by the
+other client.
 
 The :func:`~astropy.vo.samp.high_level.send` and
 :func:`~astropy.vo.samp.high_level.receive` functions provide easy ways to
