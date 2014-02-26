@@ -486,11 +486,11 @@ linked, as shown below::
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
   >>> arr['a']  # column "a" of the input array
-  array([1, 4])
+  array([1, 4]...)
   >>> t = Table(arr, copy=False)
   >>> t['a'][1] = 99
   >>> arr['a']  # arr['a'] got changed when we modified t['a']
-  array([ 1, 99])
+  array([ 1, 99]...)
 
 Note that when referencing the data it is not possible to change the data types
 since that operation requires making a copy of the data.  In this case an error

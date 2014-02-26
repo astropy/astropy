@@ -6,7 +6,6 @@ from ...extern import six
 import os
 import sys
 import warnings
-import tempfile
 
 import numpy as np
 from numpy.testing import (
@@ -538,7 +537,7 @@ def test_fixes():
         w.to_header()
 
 
-def test_footprint_to_file():
+def test_footprint_to_file(tmpdir):
     """
     From github issue #1912
     """
@@ -548,10 +547,8 @@ def test_footprint_to_file():
                  'CTYPE2': 'DEC--ZPN', 'CRUNIT2': 'deg',
                  'CRPIX2': 3.0453999e+03, 'CRVAL2': 4.388538000000e+01,
                  'PV2_1': 1., 'PV2_3': 220.})
-    tmp = tempfile.NamedTemporaryFile()
     # Just check that this doesn't raise an exception:
-    w.footprint_to_file(tmp.name)
-    tmp.close()
+    w.footprint_to_file(str(tmpdir.join('test.txt')))
 
 
 def test_validate_faulty_wcs():
