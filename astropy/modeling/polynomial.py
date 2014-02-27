@@ -136,7 +136,7 @@ class PolynomialModel(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(PolynomialModel, self).__init__(param_dim=param_dim)
+        super(PolynomialModel, self).__init__(param_dim=param_dim, **params)
 
         for name, value in params.items():
             setattr(self, name, value)
@@ -254,8 +254,14 @@ class OrthoPolynomialBase(PolynomialBase):
         self.x_window = x_window
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
-
-        if params:
+        
+        if not params:
+            for name in self.param_names:
+                if param_dim == 1:
+                    params[name] = 0.0
+                else:
+                    params[name] = [0.0] * param_dim
+        else:
             p = params.get('c0_0')
             if isinstance(p, collections.Sequence):
                 n_params = len(p)
@@ -274,7 +280,7 @@ class OrthoPolynomialBase(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim)
+        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim, **params)
 
         for name, value in params.items():
             setattr(self, name, value)

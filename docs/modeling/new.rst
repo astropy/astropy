@@ -38,7 +38,8 @@ example demonstrates how to set up a model consisting of two Gaussians:
     y = m_ref(x) + np.random.normal(0., 0.1, x.shape)
 
     # Fit model to data
-    m_init = sum_of_gaussians()
+    m_init = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
+                              amplitude2=0.5, mean2=2., sigma2=1.0)
     fit = NonLinearLSQFitter()
     m = fit(m_init, x, y)
 
