@@ -188,9 +188,24 @@ The best choice for the filter strongly depends on the application.
 Available Kernels
 -----------------
 
-.. automodsumm:: astropy.convolution.kernels
-    :classes-only:
+.. currentmodule:: astropy.convolution
 
+.. autosummary::
+   
+   AiryDisk2DKernel
+   Box1DKernel
+   Box2DKernel
+   CustomKernel
+   Gaussian1DKernel
+   Gaussian2DKernel
+   MexicanHat1DKernel
+   MexicanHat2DKernel
+   Model1DKernel
+   Model2DKernel
+   Ring2DKernel
+   Tophat2DKernel
+   Trapezoid1DKernel
+   TrapezoidDisk2DKernel
 
 Kernel Arithmetics
 ------------------
