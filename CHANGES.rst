@@ -231,7 +231,7 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Fixed a bug where using `==` on two array coordinates wouldn't 
+  - Fixed a bug where using ``==`` on two array coordinates wouldn't
     work. [#1832]
 
   - Fixed bug which caused `len()` not to work for coordinate objects
