@@ -15,7 +15,8 @@ from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_mode, fileobj_closed,
                    fileobj_is_binary)
 
-from ...extern.six import PY3, string_types, itervalues, iteritems, next
+from ...extern import six
+from ...extern.six import string_types, itervalues, iteritems, next
 from ...extern.six.moves import zip, range
 from ...utils import deprecated, isiterable
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -1942,7 +1943,7 @@ class Header(object):
 
     # Some fixes for compatibility with the Python 3 dict interface, where
     # iteritems -> items, etc.
-    if PY3:  # pragma: py3
+    if six.PY3:
         keys = iterkeys
         values = itervalues
         items = iteritems

@@ -21,7 +21,8 @@ from itertools import islice
 import numpy as np
 
 from ... import __version__
-from ...extern.six import PY3, u, string_types
+from ...extern import six
+from ...extern.six import u, string_types
 from ...extern.six.moves import zip, xrange, reduce
 from ...utils import indent
 from .card import Card, BLANK_CARD
@@ -84,7 +85,7 @@ class _BaseDiff(object):
 
         return not self.identical
 
-    if PY3:
+    if six.PY3:
         __bool__ = __nonzero__
         del __nonzero__
 
