@@ -61,6 +61,10 @@ New Features
     configuration options to write out what `automidapi` and
     `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
+  - Reference documentation now shows functions/class docstrings at the 
+    inteded user-facing API location rather than the actual file where 
+    the implementation is found. [#1826]
+
 - ``astropy.table``
 
 - ``astropy.time``
