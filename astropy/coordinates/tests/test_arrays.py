@@ -301,3 +301,16 @@ def test_array_len():
         len(c)
 
     assert c.shape == tuple()
+
+def test_array_eq():
+    from .. import ICRS
+
+    c1 = ICRS([1, 2], [3, 4], unit=('deg', 'deg'))
+    c2 = ICRS([1, 2], [3, 5], unit=('deg', 'deg'))
+    c3 = ICRS([1, 3], [3, 4], unit=('deg', 'deg'))
+    c4 = ICRS([1, 2], [3, 4.2], unit=('deg', 'deg'))
+
+    assert c1 == c1
+    assert c1 != c2
+    assert c1 != c3
+    assert c1 != c4
