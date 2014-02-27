@@ -7,7 +7,6 @@ from __future__ import (absolute_import, division, print_function,
 from ...extern import six
 
 # STDLIB
-import collections
 import contextlib
 import io
 import sys
@@ -17,27 +16,6 @@ from .. import data
 
 
 __all__ = ['get_xml_iterator', 'get_xml_encoding', 'xml_readlines']
-
-
-############################################################
-# TODO: Refactor this into a py3k compatibility module
-IS_PY3K = (sys.version_info[0] >= 3)
-
-if IS_PY3K:
-    def is_callable(o):
-        """
-        Abstracts away the different ways to test for a callable object in
-        Python 2.x and 3.x.
-        """
-        return isinstance(o, collections.Callable)
-else:
-    def is_callable(o):
-        """
-        Abstracts away the different ways to test for a callable object in
-        Python 2.x and 3.x.
-        """
-        return six.callable(o)
-############################################################
 
 
 @contextlib.contextmanager
@@ -81,7 +59,7 @@ def _convert_to_fd_or_read_function(fd):
     fd : context-dependent
         See above.
     """
-    if is_callable(fd):
+    if six.callable(fd):
         yield fd
         return
 
@@ -89,12 +67,12 @@ def _convert_to_fd_or_read_function(fd):
         if sys.platform.startswith('win'):
             yield new_fd.read
         else:
-            if IS_PY3K:
+            if six.PY3:
                 if isinstance(new_fd, io.FileIO):
                     yield new_fd
                 else:
                     yield new_fd.read
-            else:
+            elif six.PY2:
                 if isinstance(new_fd, file):
                     yield new_fd
                 else:
@@ -104,7 +82,7 @@ def _convert_to_fd_or_read_function(fd):
 def _fast_iterparse(fd, buffersize=2 ** 10):
     from xml.parsers import expat
 
-    if not is_callable(fd):
+    if not six.callable(fd):
         read = fd.read
     else:
         read = fd
@@ -117,7 +95,7 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
         del text[:]
 
-    if sys.version_info[:3] < (2, 6, 5):
+    if sys.version_info[:3] < (2, 6, 5):  # pragma py2
         # Due to Python issue #4978, convert all keys to byte strings
         _start = start
         def start(name, attr):
@@ -129,7 +107,7 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
 
     parser = expat.ParserCreate()
-    if not IS_PY3K:
+    if six.PY2:
         parser.returns_unicode = True
     parser.specified_attributes = True
     parser.StartElementHandler = start

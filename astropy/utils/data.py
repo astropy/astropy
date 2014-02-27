@@ -55,9 +55,6 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     ' of the python session.')
 
 
-PY3K = sys.version_info[0] >= 3
-
-
 class CacheMissingWarning(AstropyWarning):
     """
     This warning indicates the standard cache directory is not accessible, with
@@ -170,9 +167,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout)
-        if PY3K:
+        if six.PY3:
             fileobj = io.FileIO(name_or_obj, 'r')
-        else:
+        elif six.PY2:
             fileobj = open(name_or_obj, 'rb')
         close_fds.append(fileobj)
     else:
@@ -230,9 +227,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
-    if PY3K:
+    if six.PY3:
         needs_textio_wrapper = encoding != 'binary'
-    else:
+    elif six.PY2:
         needs_textio_wrapper = encoding != 'binary' and encoding is not None
 
     if needs_textio_wrapper:
@@ -246,9 +243,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             tmp.write(data)
             tmp.close()
             delete_fds.append(tmp)
-            if PY3K:
+            if six.PY3:
                 fileobj = io.FileIO(tmp.name, 'r')
-            else:
+            elif six.PY2:
                 fileobj = open(tmp.name, 'rb')
             close_fds.append(fileobj)
 
@@ -258,7 +255,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # `io.FileIO` object in the first place, because we can't
         # get a raw file descriptor out of it on Python 2.x, which
         # is required for the XML iterparser.
-        if not PY3K and isinstance(fileobj, file):
+        if six.PY2 and isinstance(fileobj, file):
             fileobj = io.FileIO(fileobj.fileno())
 
         fileobj = io.BufferedReader(fileobj)
@@ -1146,9 +1143,9 @@ def _open_shelve(shelffn, withclosing=False):
     """
     import shelve
 
-    if not PY3K:  # pragma: py2
+    if six.PY2:
         shelf = shelve.open(shelffn, protocol=2)
-    else:  # pragma: py3
+    elif six.PY3:
         shelf = shelve.open(shelffn + '.db', protocol=2)
 
     if withclosing:

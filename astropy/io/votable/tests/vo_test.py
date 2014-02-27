@@ -878,9 +878,9 @@ def test_fileobj():
         if sys.platform == 'win32':
             fd()
         else:
-            if sys.version_info[0] >= 3:
+            if six.PY3:
                 assert isinstance(fd, io.FileIO)
-            else:
+            elif six.PY2:
                 assert isinstance(fd, file)
 
 

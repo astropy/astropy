@@ -646,6 +646,14 @@ also be marked so that they will be ignored when appropriate by
     else:  # pragma: py2
         do_it_the_python2_way()
 
+Using ``six.PY3`` and ``six.PY2`` will also automatically exclude
+blocks from coverage, without requiring the pragma comment::
+
+    if six.PY3:
+        do_it_the_python3_way()
+    elif six.PY2:
+        do_it_the_python2_way()
+
 .. _doctests:
 
 Writing doctests

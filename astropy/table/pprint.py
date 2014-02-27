@@ -24,7 +24,7 @@ if six.PY3:
         else:
             return str(val)
     _format_funcs = {None: default_format_func}
-else:
+elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
@@ -148,7 +148,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_unit=None):
 
     show_unit : bool
         Include a header row for unit.  Default is to show a row
-        for units only if one or more columns has a defined value 
+        for units only if one or more columns has a defined value
         for the unit.
 
     Returns
@@ -190,7 +190,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
     show_unit : bool
         Include a header row for unit.  Default is to show a row
-        for units only if one or more columns has a defined value 
+        for units only if one or more columns has a defined value
         for the unit.
 
     out : dict
@@ -247,7 +247,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
                 # with shape (n,1,...,1) from being printed as if there was
                 # more than one element in a row
                 if trivial_multidims:
-                    col_str = format_func(col.format, col[(i,) + multidim0])   
+                    col_str = format_func(col.format, col[(i,) + multidim0])
                 else:
                     col_str = (format_func(col.format, col[(i,) + multidim0]) +
                               ' .. ' +
@@ -281,7 +281,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
     show_unit : bool
         Include a header row for unit.  Default is to show a row
-        for units only if one or more columns has a defined value 
+        for units only if one or more columns has a defined value
         for the unit.
 
     html : bool
@@ -304,10 +304,10 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     # use and to determine the width
     max_lines, max_width = _get_pprint_size(max_lines, max_width)
     cols = []
-    
+
     if show_unit is None:
         show_unit = any([col.unit for col in six.itervalues(table.columns)])
-        
+
     for col in six.itervalues(table.columns):
         lines, n_header = _pformat_col(col, max_lines, show_name,
                                        show_unit)
@@ -377,7 +377,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
 
     show_unit : bool
         Include a header row for unit.  Default is to show a row
-        for units only if one or more columns has a defined value 
+        for units only if one or more columns has a defined value
         for the unit.
     """
     allowed_keys = 'f br<>qhpn'

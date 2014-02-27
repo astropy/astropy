@@ -4,11 +4,12 @@ from __future__ import (absolute_import, division, print_function,
 
 import io
 
+from ...extern import six
 from ...tests.helper import pytest
 from ..compat import gzip
 
 
-pytestmark = pytest.mark.skipif(str("sys.version_info < (3,0)"))
+pytestmark = pytest.mark.skipif(str("six.PY2"))
 
 
 def test_gzip(tmpdir):
