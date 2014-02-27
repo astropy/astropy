@@ -652,7 +652,7 @@ class Longitude(Angle):
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = self.wrap_angle.to(self.unit).value
         self_angle = self.value
-        wrapped = np.mod(self_angle - wrap_angle, a360) - (a360 - wrap_angle)
+        wrapped = np.mod(self_angle - wrap_angle, a360) + (wrap_angle - a360)
         value = u.Quantity(wrapped, self.unit)
         super(Longitude, self).__setitem__((), value)
 
