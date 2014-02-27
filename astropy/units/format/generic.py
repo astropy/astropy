@@ -370,6 +370,7 @@ class Generic(Base):
                 "discouraged by the FITS standard".format(s),
                 UnitsWarning)
         return result
+    parse.__doc__ = Base.parse.__doc__
 
     def _do_parse(self, s, debug=False):
         # This is a short circuit for the case where the string
@@ -433,6 +434,7 @@ class Generic(Base):
             return ' '.join(parts)
         elif isinstance(unit, core.NamedUnit):
             return self._get_unit_name(unit)
+    to_string.__doc__ = Base.to_string.__doc__
 
 
 class Unscaled(Generic):

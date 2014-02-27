@@ -292,6 +292,7 @@ class CDS(Base):
                     raise ValueError(six.text_type(e))
                 else:
                     raise ValueError("Syntax error")
+    parse.__doc__ = Base.parse.__doc__
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
@@ -340,3 +341,4 @@ class CDS(Base):
             s = self._get_unit_name(unit)
 
         return s
+    to_string.__doc__ = Base.to_string.__doc__

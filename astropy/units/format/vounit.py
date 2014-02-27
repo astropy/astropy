@@ -77,6 +77,7 @@ class VOUnit(generic.Generic):
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
         return result
+    parse.__doc__ = generic.Generic.parse.__doc__
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
@@ -144,3 +145,4 @@ class VOUnit(generic.Generic):
             s = self._get_unit_name(unit)
 
         return s
+    to_string.__doc__ = generic.Generic.to_string.__doc__

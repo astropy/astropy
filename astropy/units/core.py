@@ -1492,11 +1492,19 @@ class NamedUnit(UnitBase):
         return self._long_names
 
     def register(self, add_to_namespace=False):
+        """
+        The register method has been removed in astropy 0.3.
+        Use add_enabled_units/set_enabled_units instead.
+        """
         raise NotImplementedError(
             "The register method has been removed in astropy 0.3. "
             "Use add_enabled_units/set_enabled_units instead.")
 
     def deregister(self, remove_from_namespace=False):
+        """
+        The deregister method has been removed in astropy 0.3.
+        Use add_enabled_units/set_enabled_units instead.
+        """
         raise NotImplementedError(
             "The deregister method has been removed in astropy 0.3. "
             "Use add_enabled_units/set_enabled_units instead.")
@@ -1609,6 +1617,7 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def to_string(self, format='generic'):
         return self.name
+    to_string.__doc__ = UnitBase.to_string.__doc__
 
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
@@ -1629,18 +1638,22 @@ class UnrecognizedUnit(IrreducibleUnit):
     def is_equivalent(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         return self == other
+    is_equivalent.__doc__ = UnitBase.is_equivalent.__doc__
 
     def get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.".format(self.name))
+    get_converter.__doc__ = UnitBase.get_converter.__doc__
 
     def get_format_name(self, format):
         return self.name
+    get_format_name.__doc__ = NamedUnit.get_format_name.__doc__
 
     def is_unity(self):
         return False
+    is_unity.__doc__ = UnitBase.is_unity.__doc__
 
 
 class _UnitMetaClass(type):

@@ -396,6 +396,7 @@ class OGIP(Generic):
                 else:
                     raise ValueError(
                         "Syntax error parsing unit {0!r}".format(s))
+    parse.__doc__ = Generic.parse.__doc__
 
     def _get_unit_name(self, unit):
         name = unit.get_format_name('ogip')
@@ -446,3 +447,4 @@ class OGIP(Generic):
                     core.UnitsWarning)
 
         return Generic.to_string(self, unit)
+    to_string.__doc__ = Generic.to_string.__doc__

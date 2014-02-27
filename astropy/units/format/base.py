@@ -11,8 +11,7 @@ class Base(object):
 
     def parse(self, s):
         """
-        Convert a string to a unit object.  Must be overridden by the
-        subclass.
+        Convert a string to a unit object.
         """
 
         raise NotImplementedError(
@@ -20,8 +19,7 @@ class Base(object):
 
     def to_string(self, u):
         """
-        Convert a unit object to a string.  Must be overridden by the
-        subclass.
+        Convert a unit object to a string.
         """
 
         raise NotImplementedError(
