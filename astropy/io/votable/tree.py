@@ -996,6 +996,10 @@ class Values(Element, _IDProperty):
         return self
 
     def is_defaults(self):
+        """
+        Are the settings on this ``VALUE`` element all the same as the
+        XML defaults?
+        """
         # If there's nothing meaningful or non-default to write,
         # don't write anything.
         return (self.ref is None and self.null is None and self.ID is None and
