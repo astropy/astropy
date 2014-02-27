@@ -25,6 +25,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed a bug where using ``==`` on two array coordinates wouldn't
+    work. [#1832]
+
   - Fixed bug which caused `len()` not to work for coordinate objects
     and added a `shape` property to get appropriately array-like
     behavior. [#1761, #2014]
