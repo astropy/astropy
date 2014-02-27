@@ -390,7 +390,7 @@ class astropy_test(Command, object):
                 # requires importing astropy.config and thus screwing
                 # up coverage results for those packages.
                 coveragerc = os.path.join(
-                    os.path.dirname(__file__), 'coveragerc')
+                    testing_path, self.package_name, 'tests', 'coveragerc')
 
                 # We create a coveragerc that is specific to the version
                 # of Python we're running, so that we can mark branches
