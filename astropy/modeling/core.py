@@ -12,7 +12,7 @@ possible the transformation is done using multiple parameter sets, `param_sets`.
 The number of parameter sets is stored in an attribute `param_dim`.
 
 Parametric models also store a flat list of all parameters as an instance of
-`~astropy.modeling.parameters.Parameters`. When fitting, this list-like object is modified by a
+`~astropy.modeling.Parameter`. When fitting, this list-like object is modified by a
 subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models, the values of the
 parameters are used as initial guesses by the fitting class. Normally users
 will not have to use the `~astropy.modeling.parameters` module directly.
@@ -298,20 +298,20 @@ class ParametricModel(Model):
     fixed : dict
         Dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
-        Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
+        Alternatively the `~astropy.modeling.Parameter.fixed`
         property of a parameter may be used.
     tied : dict
         Dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.
-        Alternatively the `~astropy.modeling.parameters.Parameter.tied`
+        Alternatively the `~astropy.modeling.Parameter.tied`
         property of a parameter may be used.
     bounds : dict
         Dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
         parameters. Keys are parameter names. Values are a list of length 2
         giving the desired range for the parameter.  Alternatively the
-        `~astropy.modeling.parameters.Parameter.min` and
-        `~astropy.modeling.parameters.Parameter.max` properties of a parameter
+        `~astropy.modeling.Parameter.min` and
+        `~astropy.modeling.Parameter.max` properties of a parameter
         may be used.
     eqcons : list
         List of functions of length n such that ``eqcons[j](x0, *args) == 0.0``

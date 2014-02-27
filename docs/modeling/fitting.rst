@@ -5,12 +5,12 @@ Fitting Models to Data
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters can be called as functions. They take an
 instance of `~astropy.modeling.ParametricModel` as input and modify
-`~astropy.modeling.core.ParametricModel.parameters` attribute. The idea is to
+`~astropy.modeling.ParametricModel.parameters` attribute. The idea is to
 make this extensible and allow users to easily add other fitters.
 
-Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.  There are
-currently two non-linear fitters which use `~scipy.optimize.leastsq` and
-`~scipy.optimize.fmin_slsqp`.
+Linear fitting is done using Numpy's `numpy.linalg.lstsq` function.  There are
+currently two non-linear fitters which use `scipy.optimize.leastsq` and
+`scipy.optimize.fmin_slsqp`.
 
 The rules for passing input to fitters are:
 
@@ -52,7 +52,7 @@ Fitting examples
 Fitters support constrained fitting.
 
 - All fitters support fixed (frozen) parameters through the ``fixed`` argument
-  to models or setting the `~astropy.modeling.parameters.Parameter.fixed`
+  to models or setting the `~astropy.modeling.Parameter.fixed`
   attribute directly on a parameter.
 
   For linear fitters, freezing a polynomial coefficient means that a polynomial
@@ -78,7 +78,7 @@ Fitters support constrained fitting.
              [ 2.96827886,  2.96827886]])
 
 
-- A parameter can be `~astropy.modeling.parameters.Parameter.tied` (linked to
+- A parameter can be `~astropy.modeling.Parameter.tied` (linked to
   another parameter). This can be done in two ways::
 
       >>> def tiedfunc(g1):
@@ -94,8 +94,8 @@ Fitters support constrained fitting.
       >>> gfit = fitting.NonLinearLSQFitter()
 
 Bounded fitting is supported through the ``bounds`` arguments to models or by
-setting `~astropy.modeling.parameters.Parameter.min` and
-`~astropy.modeling.parameters.Parameter.max` attributes on a parameter.  Bounds
+setting `~astropy.modeling.Parameter.min` and
+`~astropy.modeling.Parameter.max` attributes on a parameter.  Bounds
 for the `~astropy.modeling.fitting.NonLinearLSQFitter` are always exactly
 satisfied--if the value of the parameter is outside the fitting interval, it
 will be reset to the value at the bounds. The
