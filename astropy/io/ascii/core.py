@@ -55,6 +55,7 @@ FORMAT_CLASSES = {}
 class InconsistentTableError(ValueError):
     """
     Indicates that an input table is inconsistent in some way.
+    
     The default behavior of ``BaseReader`` is to throw an instance of
     this class if a data row doesn't match the header.
     """
@@ -63,47 +64,48 @@ class InconsistentTableError(ValueError):
 
 class NoType(object):
     """
-    Superclass for ``StrType`` and ``NumType`` classes, which describe
-    the data format of a ``Column``. This class is the default type of
-    ``Column`` as well.
+    Superclass for ``StrType`` and ``NumType`` classes.
+
+    This class is the default type of ``Column`` and provides a base
+    class for other data types.
     """
     pass
 
 
 class StrType(NoType):
     """
-    Used in ``Column`` to indicate that the column consists of
-    text data.
+    Indicates that a column consists of text data.
     """
     pass
 
 
 class NumType(NoType):
-    """Used in ``Column`` to indicate that the column consists of
-    numerical data."""
+    """
+    Indicates that a column consists of numerical data.
+    """
     pass
 
 
 class FloatType(NumType):
     """
-    This class is a subclass of ``NumType`` and describes
-    floating-point data.
+    Describes floating-point data.
     """
     pass
 
 
 class IntType(NumType):
     """
-    This class is a subclass of ``NumType`` and describes
-    integer data.
+    Describes integer data.
     """
     pass
 
 
 class AllType(StrType, FloatType, IntType):
     """
-    The type returned by ``convert_numpy`` if the given numpy type
-    does not match ``StrType``, ``FloatType``, or ``IntType``.
+    Subclass of all other data types.
+
+    This type is returned by ``convert_numpy`` if the given numpy
+    type does not match ``StrType``, ``FloatType``, or ``IntType``.
     """
     pass
 
