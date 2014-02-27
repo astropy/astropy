@@ -101,16 +101,16 @@ from .. import ICRS, FK4, FK4NoETerms, FK5, Galactic, AltAz
 def test_coordinate_to_string_vector_hms(frame):
 
     C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == ['-0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
-    assert C.to_string(precision=1) == ['-0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
+    assert C.to_string(precision=0) == ['0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
+    assert C.to_string(precision=1) == ['0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
 
 
 @pytest.mark.parametrize('frame', [Galactic, AltAz])
 def test_coordinate_to_string_vector_dms(frame):
 
     C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == ['-0d00m00s 0d00m00s', '12d03m00s 13d30m00s']
-    assert C.to_string(precision=1) == ['-0d00m00.0s 0d00m00.0s', '12d03m00.0s 13d30m00.0s']
+    assert C.to_string(precision=0) == ['0d00m00s 0d00m00s', '12d03m00s 13d30m00s']
+    assert C.to_string(precision=1) == ['0d00m00.0s 0d00m00.0s', '12d03m00.0s 13d30m00.0s']
 
 
 @pytest.mark.parametrize('frame', [ICRS, FK4, FK4NoETerms, FK5])
