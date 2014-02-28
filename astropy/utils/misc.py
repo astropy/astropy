@@ -916,6 +916,12 @@ class InheritDocstrings(type):
     docstrings filled in from the methods they override in the base
     class.
 
+    If the class uses multiple inheritance, the docstring will be
+    chosen from the first class in the bases list, in the same way as
+    methods are normally resolved in Python.  If this results in
+    selecting the wrong docstring, the docstring will need to be
+    explicitly included on the method.
+
     For example::
 
         >>> from astropy.utils.misc import InheritDocstrings
