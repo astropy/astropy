@@ -10,6 +10,17 @@
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.io.votable``
+
+  - By default, floating point values are now written out using
+    ``repr`` rather than ``str`` to preserve precision [#2137]
+
+0.3.1 (unreleased)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
 - ``astropy.config``
 
   - Fixed a bug where ``ConfigurationItem.set_temp()`` does not reset to
