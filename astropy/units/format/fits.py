@@ -19,7 +19,7 @@ from ...utils.misc import did_you_mean
 
 class UnitScaleError(ValueError):
     """
-    Used to catch the errors involving scaled units, 
+    Used to catch the errors involving scaled units,
     which are not recognized by FITS format.
     """
 
@@ -136,3 +136,4 @@ class Fits(generic.Generic):
             s = self._get_unit_name(unit)
 
         return s
+    to_string.__doc__ = generic.Generic.to_string.__doc__

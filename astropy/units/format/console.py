@@ -98,3 +98,4 @@ class Console(base.Base):
             s = self._get_unit_name(unit)
 
         return s
+    to_string.__doc__ = base.Base.to_string.__doc__
