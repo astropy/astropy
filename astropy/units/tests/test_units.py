@@ -608,3 +608,7 @@ def test_fractional_powers():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0].numerator == 3
     assert x.powers[0].denominator == 7
+
+
+def test_inherit_docstrings():
+    assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__

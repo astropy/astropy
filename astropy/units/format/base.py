@@ -4,6 +4,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
+from ...utils.misc import InheritDocstrings
+from ...extern import six
+
+
+@six.add_metaclass(InheritDocstrings)
 class Base(object):
     """
     The abstract base class of all unit formats.
@@ -11,8 +16,7 @@ class Base(object):
 
     def parse(self, s):
         """
-        Convert a string to a unit object.  Must be overridden by the
-        subclass.
+        Convert a string to a unit object.
         """
 
         raise NotImplementedError(
@@ -20,8 +24,7 @@ class Base(object):
 
     def to_string(self, u):
         """
-        Convert a unit object to a string.  Must be overridden by the
-        subclass.
+        Convert a unit object to a string.
         """
 
         raise NotImplementedError(

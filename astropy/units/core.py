@@ -17,7 +17,7 @@ import warnings
 import numpy as np
 
 from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable
+from ..utils.misc import isiterable, InheritDocstrings
 from .utils import is_effectively_unity, validate_power
 from . import format as unit_format
 
@@ -446,6 +446,7 @@ class UnitsWarning(AstropyWarning):
     pass
 
 
+@six.add_metaclass(InheritDocstrings)
 class UnitBase(object):
     """
     Abstract base class for units.
@@ -1643,7 +1644,7 @@ class UnrecognizedUnit(IrreducibleUnit):
         return False
 
 
-class _UnitMetaClass(type):
+class _UnitMetaClass(InheritDocstrings):
     """
     This metaclass exists because the Unit constructor should
     sometimes return instances that already exist.  This "overrides"

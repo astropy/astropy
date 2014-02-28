@@ -31,7 +31,8 @@ from ..extern.six.moves import urllib
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden', 'JsonCustomEncoder', 'indent']
+           'walk_skip_hidden', 'JsonCustomEncoder', 'indent',
+           'InheritDocstrings']
 
 __doctest_skip__ = ['find_current_module']
 
@@ -907,3 +908,36 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         return 'Did you mean {0}?'.format(matches)
 
     return ''
+
+
+class InheritDocstrings(type):
+    """
+    This metaclass makes methods of a class automatically have their
+    docstrings filled in from the methods they override in the base
+    class.
+
+    For example::
+
+        >>> from astropy.utils.misc import InheritDocstrings
+        >>> from astropy.extern import six
+        >>> @six.add_metaclass(InheritDocstrings)
+        ... class A(object):
+        ...     def wiggle(self):
+        ...         "Wiggle the thingamajig"
+        ...         pass
+        >>> class B(A):
+        ...     def wiggle(self):
+        ...         pass
+        >>> B.wiggle.__doc__
+        u'Wiggle the thingamajig'
+    """
+    def __init__(cls, name, bases, dct):
+        for key, val in six.iteritems(dct):
+            if (inspect.isfunction(val) and
+                not key.startswith('_') and
+                val.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_method = getattr(base, key, None)
+                    if super_method is not None:
+                        val.__doc__ = super_method.__doc__
+                        break
