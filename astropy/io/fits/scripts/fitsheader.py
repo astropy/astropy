@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ``fitsheader`` is a command line script based on astropy.io.fits for printing
-the header(s) of a FITS file to the standard output.
+the header(s) of one ore more FITS file(s) to the standard output.
 
 Example uses of fitsheader:
 
-1. Print the header of all the HDUs of a single .fits file:
+1. Print the header of all the HDUs of a .fits file:
 
     $ fitsheader filename.fits
 
@@ -13,7 +13,8 @@ Example uses of fitsheader:
 
     $ fitsheader --ext 3 filename.fits
 
-3. Print the header of the extension with EXTNAME='SCI' and EXTVER='2':
+3. Print the header of a named extension having EXTNAME='SCI' and EXTVER='2'
+in the header:
 
     $ fitsheader --ext "SCI,2" filename.fits
 
@@ -21,12 +22,14 @@ Example uses of fitsheader:
 
     $ fitsheader *.fits
 
-
 Note that compressed images (HDUs of type `CompImageHDU`) really have two
-headers; a real BINTABLE header to describe the compressed data, and a fake
+headers: a real BINTABLE header to describe the compressed data, and a fake
 IMAGE header representing the image that was compressed. Astropy returns the
 latter by default. You must supply the "--compressed" option if you require the
-header in its compressed form.
+header that describes the compression.
+
+With Astropy installed, please run ``fitscheck --help`` to see the full program
+usage documentation.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -127,13 +130,13 @@ def main(args=None):
     parser = argparse.ArgumentParser(
         description=('Print the header(s) of a FITS file. '
                      'All HDU extensions are shown by default. '
-                     'In the case of compressed images, '
+                     'In the case of a compressed image, '
                      'the decompressed header is shown.'))
     parser.add_argument('-e', '--ext', metavar='hdu',
                         help='specify the HDU extension number or name')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
-                             'show the original header which describes '
+                             'show the true header which describes '
                              'the compression rather than the data')
     parser.add_argument('filename', nargs='+',
                         help='path to one or more FITS files to display')
