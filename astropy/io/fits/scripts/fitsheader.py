@@ -28,8 +28,8 @@ IMAGE header representing the image that was compressed. Astropy returns the
 latter by default. You must supply the "--compressed" option if you require the
 header that describes the compression.
 
-With Astropy installed, please run ``fitscheck --help`` to see the full program
-usage documentation.
+With Astropy installed, please run ``fitsheader --help`` to see the full usage
+documentation.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
