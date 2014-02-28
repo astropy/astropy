@@ -187,7 +187,7 @@ Normally, passing an unrecognized unit string raises an exception::
   Angstrom or angstrom?
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
-argument `parse_strict` that can take one of three values to control
+argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
   - ``'raise'``: (default) raise a ValueError exception.
