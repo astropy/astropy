@@ -23,6 +23,7 @@ from ... import __version__ as astropy_version
 from ...utils.collections import HomogeneousList
 from ...utils.xml.writer import XMLWriter
 from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.misc import InheritDocstrings
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -404,6 +405,7 @@ class _DescriptionProperty(object):
 
 ######################################################################
 # ELEMENT CLASSES
+@six.add_metaclass(InheritDocstrings)
 class Element(object):
     """
     A base class for all classes that represent XML elements in the
@@ -473,12 +475,10 @@ class SimpleElement(Element):
                 break
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name,
                   attrib=w.object_attrs(self, self._attr_list))
-    to_xml.__doc__ = Element.to_xml.__doc__
 
 
 class SimpleElementWithContent(SimpleElement):
@@ -501,12 +501,10 @@ class SimpleElementWithContent(SimpleElement):
                 break
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name, self._content,
                   attrib=w.object_attrs(self, self._attr_list))
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     @property
     def content(self):
@@ -799,7 +797,6 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             attrib['unit'] = self.unit.to_string('cds')
         w.element(self._element_name, self._content,
                   attrib=attrib)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
 
 class Values(Element, _IDProperty):
@@ -1035,7 +1032,6 @@ class Values(Element, _IDProperty):
                     break
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def is_defaults(self):
         """
@@ -1077,7 +1073,6 @@ class Values(Element, _IDProperty):
                         'OPTION',
                         name=name,
                         value=value)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     def to_table_column(self, column):
         # Have the ref filled in here
@@ -1485,7 +1480,6 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         self._setup(config, pos)
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, w, **kwargs):
         attrib = w.object_attrs(self, self._attr_list)
@@ -1498,7 +1492,6 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                 self.values.to_xml(w, **kwargs)
             for link in self.links:
                 link.to_xml(w, **kwargs)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     def to_table_column(self, column):
         """
@@ -1604,7 +1597,6 @@ class Param(Field):
             self._value = ""
         Field.to_xml(self, w, **kwargs)
         self._value = tmp_value
-    to_xml.__doc__ = Element.to_xml.__doc__
 
 
 class CooSys(SimpleElement):
@@ -1948,7 +1940,6 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
                 elif tag == 'GROUP':
                     break
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, w, **kwargs):
         with w.tag(
@@ -1959,7 +1950,6 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
                 w.element("DESCRIPTION", self.description, wrap=True)
             for entry in self.entries:
                 entry.to_xml(w, **kwargs)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     def iter_fields_and_params(self):
         """
@@ -2419,7 +2409,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 break
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def _parse_tabledata(self, iterator, colnumbers, fields, config):
         # Since we don't know the number of rows up front, we'll
@@ -2738,7 +2727,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             if kwargs['version_1_2_or_later']:
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
@@ -3128,7 +3116,6 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         del self._votable
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, w, **kwargs):
         attrs = w.object_attrs(self, ('ID', 'type', 'utype'))
@@ -3141,7 +3128,6 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                                 self.resources):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
-    to_xml.__doc__ = Element.to_xml.__doc__
 
     def iter_tables(self):
         """
@@ -3357,7 +3343,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             warn_or_raise(W53, W53, (), config, pos)
 
         return self
-    parse.__doc__ = Element.parse.__doc__
 
     def to_xml(self, fd, write_null_values=False,
                compressed=False, tabledata_format=None,
