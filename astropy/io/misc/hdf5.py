@@ -13,7 +13,7 @@ import warnings
 import numpy as np
 
 from ...utils.exceptions import AstropyUserWarning
-from ..registry import BaseIO
+from ..registry.core import BaseIO
 from ...table import Table
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'

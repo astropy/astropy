@@ -8,7 +8,7 @@ from ...extern import six
 
 from . import parse, from_table
 from .tree import VOTableFile, Table as VOTable
-from ..registry import BaseIO
+from ..registry.core import BaseIO
 from ...table import Table
 
 

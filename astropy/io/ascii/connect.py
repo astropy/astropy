@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from .. import registry as io_registry
+from ..registry import core as io_registry
 from ...table import Table
 from ...extern.six.moves import zip
 

@@ -14,7 +14,7 @@ from .. import log
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from ..io import registry as io_registry
+from ..io.registry import core as io_registry
 from ..config import ConfigurationItem
 from ..utils.metadata import MetaData
 

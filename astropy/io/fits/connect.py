@@ -8,7 +8,7 @@ import warnings
 
 import numpy as np
 
-from ..registry import BaseIO
+from ..registry.core import BaseIO
 from ... import log
 from ... import units as u
 from ...extern.six import string_types

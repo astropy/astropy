@@ -6,10 +6,10 @@ from copy import copy
 
 import numpy as np
 
-from ...tests.helper import pytest
-from ..registry import _readers, _writers, _identifiers
-from .. import registry as io_registry
-from ...table import Table
+from ....tests.helper import pytest
+from ..core import _readers, _writers, _identifiers
+from .. import core as io_registry
+from ....table import Table
 
 def setup_module(module):
     module._READERS_ORIGINAL = copy(_readers)

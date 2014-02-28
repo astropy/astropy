@@ -6,8 +6,8 @@ import functools
 
 import numpy as np
 
-from ..utils import OrderedDict
-from ..extern import six
+from ...utils import OrderedDict
+from ...extern import six
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
@@ -24,10 +24,10 @@ _identifiers = OrderedDict()
 
 def import_connectors():
     # TODO: there must be a more elegant way to do this
-    from ..io.ascii import connect
-    from ..io.fits import connect
-    from ..io.misc import connect
-    from ..io.votable import connect
+    from ...io.ascii import connect
+    from ...io.fits import connect
+    from ...io.misc import connect
+    from ...io.votable import connect
 
 
 def get_formats(data_class=None):
@@ -44,7 +44,7 @@ def get_formats(data_class=None):
     format_table: Table
         Table of available I/O formats
     """
-    from ..table import Table
+    from ...table import Table
     format_classes = sorted(set(_readers) | set(_writers))
     rows = []
 
@@ -310,7 +310,7 @@ def read(cls, *args, **kwargs):
 
             if len(args):
                 if isinstance(args[0], basestring):
-                    from ..utils.data import get_readable_fileobj
+                    from ...utils.data import get_readable_fileobj
                     path = args[0]
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
@@ -415,8 +415,6 @@ class MetaRegisterBaseIO(type):
             raise ValueError("_supported_class is not defined")
 
         reader = members.get('read')
-        print(reader())
-        print(dir(reader))
         if reader is not None:
             register_reader(format_abbreviation, supported_class, reader)
 

@@ -17,7 +17,7 @@ import numpy as np
 from numpy import ma
 
 from .. import log
-from ..io import registry as io_registry
+from ..io.registry import core as io_registry
 from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated
 from ..utils.console import color_print
