@@ -207,7 +207,7 @@ class TestNonLinearFitters(object):
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
         utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
-    @pytest.mark.parametrize(('fitter_class',), fitters)
+    @pytest.mark.parametrize(('fitter_class'), fitters)
     def test_fitter_against_LevMar(self, fitter_class):
         """ Tests results from non-linear fitters against `LevMarLSQFitter`."""
         levmar = fitting.LevMarLSQFitter()
