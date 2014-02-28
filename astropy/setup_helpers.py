@@ -40,6 +40,8 @@ from .utils.compat.misc import invalidate_caches
 from .utils.misc import walk_skip_hidden
 from .utils.exceptions import AstropyDeprecationWarning
 
+from .extern import six
+
 
 try:
     import Cython
@@ -602,13 +604,34 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         # first run the normal build_py
         SetuptoolsBuildPy.run(self)
 
+        pkgnm = self.distribution.packages[0]
+
         # REMOVE: in astropy 0.5
         if self.distribution.is_pure():
             # Generate the default astropy.cfg - we only do this here if it's
             # pure python.  Otherwise, it'll happen at the end of build_exp
             generate_default_config(
                 os.path.abspath(self.build_lib),
-                self.distribution.packages[0], self)
+                pkgnm, self)
+
+        # Also copy over *only* the pytest part of setup.cfg.  This is necessary
+        # because the astropy.test() function needs this information to know how
+        # it should be configured.
+        p = six.moves.configparser.SafeConfigParser()
+        p.add_section('pytest')
+
+        pkgnmsection = r'"' + pkgnm + r'[\/]'
+        for k, (fnsrc, v) in six.iteritems(self.distribution.command_options['pytest']):
+            # also need to adjust any part of the pytest section that contains
+            # reference to the package directory (e.g., "astropy" for the core
+            # package), because this file is actually written *into* that
+            # directory.
+            if pkgnmsection in v:
+                v = v.replace(pkgnmsection, '"')
+            p.set('pytest', k, v)
+
+        with open(os.path.join(self.build_lib, pkgnm, 'pytest.ini'), 'w') as f:
+            p.write(f)
 
 
 # REMOVE: in astropy 0.5
