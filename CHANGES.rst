@@ -61,8 +61,8 @@ New Features
     configuration options to write out what `automidapi` and
     `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
-  - Reference documentation now shows functions/class docstrings at the 
-    inteded user-facing API location rather than the actual file where 
+  - Reference documentation now shows functions/class docstrings at the
+    inteded user-facing API location rather than the actual file where
     the implementation is found. [#1826]
 
 - ``astropy.table``
@@ -258,16 +258,59 @@ Other Changes and Additions
   behavior.  If unicode support of masked arrays is important to your
   application, upgrade to Numpy 1.8 or later for best results. [#2059]
 
-0.3.1 (unreleased)
+0.3.2 (unreleased)
 ------------------
 
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
 - ``astropy.io.votable``
 
   - By default, floating point values are now written out using
     ``repr`` rather than ``str`` to preserve precision [#2137]
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.sphinx``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+- Misc
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 0.3.1 (unreleased)
 ------------------
