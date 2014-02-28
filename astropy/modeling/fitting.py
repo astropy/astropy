@@ -429,7 +429,7 @@ class LevMarLSQFitter(object):
 
     """
 
-    supported_constraints = ['bounds', 'fixed', 'tied']
+    supported_constraints = ['fixed', 'tied', 'bounds']
 
     def __init__(self):
 
@@ -497,7 +497,7 @@ class LevMarLSQFitter(object):
         model_copy = _validate_model(model, self.supported_constraints)
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
 
-        if model_copy.deriv is None or estimate_jacobian:
+        if model_copy.fit_deriv is None or estimate_jacobian:
             dfunc = None
         else:
             dfunc = self._wrap_deriv
