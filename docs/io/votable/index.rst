@@ -311,6 +311,49 @@ example::
    columns, convert the Table to an `astropy.table.Table`, make the
    changes, and then convert it back.
 
+.. _votable-serialization:
+
+Data serialization formats
+--------------------------
+
+VOTable supports a number of different serialization formats.
+
+- `TABLEDATA
+  <http://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html#ToC36>`__
+  stores the data in pure XML, where the numerical values are written
+  as human-readable strings.
+
+- `BINARY
+  <http://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html#ToC38>`__
+  is a binary representation of the data, stored in the XML as an
+  opaque ``base64``-encoded blob.
+
+- `BINARY2
+  <http://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html#ToC39>`__
+  was added in VOTable 1.3, and is identical to "BINARY", except that
+  it explicitly records the position of missing values rather than
+  identifying them by a special value.
+
+- `FITS
+  <http://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html#ToC37>`__
+  stores the data in an external FITS file.  This serialization is not
+  supported by the `astropy.io.votable` writer, since it requires
+  writing multiple files.
+
+The serialization format can be selected in two ways:
+
+    1) By setting the ``format`` attribute of a
+    `astropy.io.votable.tree.Table` object::
+
+        votable.get_first_table().format = "binary"
+        votable.to_xml("new_votable.xml")
+
+    2) By overriding the format of all tables using the
+    ``tabledata_format`` keyword argument when writing out a VOTable
+    file::
+
+        votable.to_xml("new_votable.xml", tabledata_format="binary")
+
 Converting to/from an `astropy.table.Table`
 -------------------------------------------
 

@@ -154,7 +154,7 @@ def parse_single_table(source, **kwargs):
     return votable.get_first_table()
 
 
-def writeto(table, file):
+def writeto(table, file, tabledata_format=None):
     """
     Writes a `astropy.io.vo.VOTableFile` to a VOTABLE_ xml file.
 
@@ -164,6 +164,13 @@ def writeto(table, file):
 
     file : str or writable file-like object
         Path or file object to write to
+
+    tabledata_format : str, optional
+        Override the format of the table(s) data to write.  Must be
+        one of `tabledata` (text representation), `binary` or
+        `binary2`.  By default, use the format that was specified in
+        each `Table` object as it was created or read in.  See
+        :ref:`votable-serialization`.
     """
     from ...table import Table
     if isinstance(table, Table):
@@ -172,7 +179,8 @@ def writeto(table, file):
         raise TypeError(
             "first argument must be astropy.io.vo.VOTableFile or "
             "astropy.table.Table instance")
-    table.to_xml(file, _debug_python_based_parser=True)
+    table.to_xml(file, tabledata_format=tabledata_format,
+                 _debug_python_based_parser=True)
 
 
 def validate(source, output=None, xmllint=False, filename=None):
