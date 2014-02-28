@@ -386,10 +386,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             new_doc += r'\ '
         return new_doc
 
-    def deprecate_function(func, message):
+    def get_function(func):
         """
-        Returns a wrapped function that displays an
-        ``AstropyDeprecationWarning`` when it is called.
+        Given a function or classmethod, get the function object.
         """
         if isinstance(func, classmethod):
             try:
@@ -397,7 +396,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             except AttributeError:
                 # classmethods in Python2.6 and below lack the __func__
                 # attribute so we need to hack around to get it
-                method = obj.__get__(None, object)
+                method = func.__get__(None, object)
                 if hasattr(method, '__func__'):
                     func = method.__func__
                 elif hasattr(method, 'im_func'):
@@ -406,9 +405,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                     # Nothing we can do really...  just return the original
                     # classmethod
                     return func
-            is_classmethod = True
-        else:
-            is_classmethod = False
+        return func
+
+    def deprecate_function(func, message):
+        """
+        Returns a wrapped function that displays an
+        ``AstropyDeprecationWarning`` when it is called.
+        """
+        is_classmethod = isinstance(func, classmethod)
+        func = get_function(func)
 
         def deprecated_func(*args, **kwargs):
             if pending:
@@ -451,11 +456,25 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # extension classes (which functools.wraps does not, since
         # it tries to modify the original class).
 
+        # We need to add a custom pickler or you'll get
+        #     Can't pickle <class ..>: it's not found as ...
+        # errors. Picklability is required for any class that is
+        # documented by Sphinx.
+
+        def __getstate__(self):
+            return super(cls, self).__getstate__()
+
+        def __setstate__(self, state):
+            return super(cls, self).__setstate__(state)
+
         d = {
             '__doc__': deprecate_doc(cls.__doc__, message),
             '__init__': deprecate_function(cls.__init__, message),
-            '__module__': cls.__module__
+            '__module__': cls.__module__,
+            '__getstate__': __getstate__,
+            '__setstate__': __setstate__
         }
+
         return type(cls.__name__, (cls,), d)
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
@@ -473,10 +492,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             obj_type_name = obj_type
 
         if not name:
-            if isinstance(obj, classmethod):
-                name = obj.__func__.__name__
-            else:
-                name = obj.__name__
+            name = get_function(obj).__name__
 
         altmessage = ''
         if not message or type(message) == type(deprecate):

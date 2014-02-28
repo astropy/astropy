@@ -334,7 +334,7 @@ PyTypeObject PyUnitsType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   #endif
-  "astropy.wcs.UnitConverter",        /*tp_name*/
+  "astropy.wcs._wcs.UnitConverter",        /*tp_name*/
   sizeof(PyUnits),              /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor)PyUnits_dealloc,  /*tp_dealloc*/
