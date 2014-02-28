@@ -1,0 +1,33 @@
+.. doctest-skip-all
+
+.. _whatsnew-0.4:
+
+==========================
+What's New in Astropy 0.4?
+==========================
+
+Overview
+--------
+
+xxx
+
+Documentation/Sphinx extension changes
+--------------------------------------
+
+Starting in v0.4, astropy documentation will now show the full name of functions
+and classes prefixed by the intended user-facing location.  This is in contrast
+to previous versions, which pointed to the actual implementation module, rather
+than the intended public API location.
+
+This will affect URLs pointing to specific documentation pages.  For example,
+this URL points to the v0.3 location of the
+`astropy.cosmology.luminosity_distance` function:
+http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.html
+while the appropriate URL for v0.4 and later is:
+http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
+
+
+Deprecation and backward-incompatible changes
+---------------------------------------------
+
+None.
