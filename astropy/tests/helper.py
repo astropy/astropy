@@ -379,6 +379,10 @@ class astropy_test(Command, object):
 
         try:
             if self.coverage:
+                if self.parallel != 0:
+                    raise ValueError(
+                        "--coverage can not be used with --parallel")
+
                 try:
                     import coverage
                 except ImportError:
