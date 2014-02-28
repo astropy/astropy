@@ -232,4 +232,4 @@ def test_float_default_precision():
         config=config)
     c = converters.get_converter(field, config=config)
     assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
-            '1 2 3 8.999999')
+            '1 2 3 8.9999990000000007')
