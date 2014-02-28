@@ -21,6 +21,7 @@ from . import daophot
 from . import sextractor
 from . import ipac
 from . import latex
+from . import html
 
 from ...table import Table
 
@@ -210,7 +211,8 @@ def _get_guess_kwargs_list():
                          dict(Reader=sextractor.SExtractor),
                          dict(Reader=ipac.Ipac),
                          dict(Reader=latex.Latex),
-                         dict(Reader=latex.AASTex)
+                         dict(Reader=latex.AASTex),
+                         dict(Reader=html.HTML)
                          ]
     for Reader in (basic.CommentedHeader, basic.Basic, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
