@@ -103,6 +103,38 @@ def test_deprecated_attribute():
 
     assert len(w) == 0
 
+
+def test_deprecated_class():
+    @misc.deprecated('100.0')
+    class A(object):
+        """
+        This is the class docstring.
+        """
+        def __init__(self):
+            """
+            This is the __init__ docstring
+            """
+            pass
+
+    orig_A = A.__bases__[0]
+
+    # The only thing that should be different about the new class
+    # is __doc__, __init__, __bases__ and __subclasshook__.
+    for x in dir(orig_A):
+        if x not in ('__doc__', '__init__', '__bases__', '__dict__',
+                     '__subclasshook__'):
+            assert getattr(A, x) == getattr(orig_A, x)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        A()
+
+    assert len(w) == 1
+    assert 'function' not in A.__doc__
+    assert 'deprecated' in A.__doc__
+    assert 'function' not in A.__init__.__doc__
+    assert 'deprecated' in A.__init__.__doc__
+
+
 @remote_data
 def test_api_lookup():
     strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)

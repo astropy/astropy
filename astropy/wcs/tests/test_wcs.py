@@ -18,9 +18,8 @@ from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from ...tests.helper import pytest
 from ...utils.misc import NumpyRNGContext
-
+from ...utils.exceptions import AstropyDeprecationWarning
 
 try:
     import scipy  # pylint: disable=W0611
@@ -127,7 +126,10 @@ def test_spectra():
 
 
 def test_units():
-    u = wcs.UnitConverter("log(MHz)", "ln(Hz)")
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        u = wcs.UnitConverter("log(MHz)", "ln(Hz)")
+    assert len(w) == 1
+
     print(u.convert([1, 2, 3, 4]))
 
 basic_units = "m s g rad sr K A mol cd".split()

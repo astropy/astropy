@@ -98,6 +98,9 @@ if _wcs is not None:
     UnitConverter = deprecated(
         '0.2', name='UnitConverter', alternative='astropy.units')(
             UnitConverter)
+    # This is to make Sphinx happy so it thinks the class comes from
+    # this file and will document it.
+    UnitConverter.__module__ = __name__
 else:
     WCSBase = object
     Wcsprm = object
