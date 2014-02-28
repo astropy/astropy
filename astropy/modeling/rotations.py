@@ -150,9 +150,7 @@ class MatrixRotation2D(Model):
     """
 
     def _validate_angle(angle):
-        """Validates that an input angle is a number and converts it from
-        degrees to radians.
-        """
+        """Validates that an input angle is a number and converts it from degrees to radians."""
 
         if not isinstance(angle, numbers.Number):
             raise TypeError("Expected angle to be a number")

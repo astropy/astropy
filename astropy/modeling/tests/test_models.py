@@ -396,7 +396,8 @@ class TestParametricModels(object):
         new_model_with_deriv = fitter_with_deriv(model_with_deriv, xv, yv, data)
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, xv, yv, data, estimate_jacobian=True)
-        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1)
+        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters,
+                              rtol=0.1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), list(models_1D.keys()))
@@ -430,7 +431,10 @@ class TestParametricModels(object):
         new_model_with_deriv = fitter_with_deriv(model_with_deriv, x, data)
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, x, data, estimate_jacobian=True)
-        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.1)
+        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters,
+
+                              atol=0.1)
+
 
 def create_model(model_class, parameters, use_constraints=True):
     """
@@ -466,7 +470,7 @@ def test_ShiftModel():
     # Shift by a list
     m = models.Shift([42, 43])
     utils.assert_equal(m(0), [42, 43])
-    utils.assert_equal(m([1, 2]), [[ 43,  44], [ 44,  45]])
+    utils.assert_equal(m([1, 2]), [[43,  44], [44,  45]])
 
 
 def test_ScaleModel():
@@ -478,7 +482,7 @@ def test_ScaleModel():
     # Scale by a list
     m = models.Scale([42, 43])
     utils.assert_equal(m(0), [0, 0])
-    utils.assert_equal(m([1, 2]), [[ 42,  43], [ 84,  86]])
+    utils.assert_equal(m([1, 2]), [[42,  43], [84,  86]])
 
 
 def test_parametric_model_repr():

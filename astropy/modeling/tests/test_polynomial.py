@@ -46,6 +46,7 @@ linear2d = {
                    'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3}},
     }
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting(object):
     """
@@ -93,7 +94,7 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
-    
+
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
         """ Test fitting with NonLinearLSQFitter"""
@@ -103,4 +104,3 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
-    

@@ -4,18 +4,18 @@
 This module implements classes (called Fitters) which combine optimization
 algorithms (typically from `scipy.optimize`) with statistic functions to
 perfom fitting. Fitters are implemented as callable classes. In addition
-to the data to fit, the ``__call__`` method takes an instance of 
+to the data to fit, the ``__call__`` method takes an instance of
 `~astropy.modeling.core.ParametricModel` as input, and returns a copy
 of the model with its parameters determined by the optimizer.
 
-Optimization algorithms, called "optimizers" are implemented in 
-`~astropy.modeling.optimizers.py` and statistic functions are in 
-`~astropy.modeling.statistic.py`. The goal is to provide an easy 
+Optimization algorithms, called "optimizers" are implemented in
+`~astropy.modeling.optimizers.py` and statistic functions are in
+`~astropy.modeling.statistic.py`. The goal is to provide an easy
 to extend framework and allow users to easily create new fitters
 by combining statistics with optimizers.
 
-There are two exceptions to the above scheme. 
-`~astropy.modeling.fitting.LinearLSQFitter` uses Numpy's 
+There are two exceptions to the above scheme.
+`~astropy.modeling.fitting.LinearLSQFitter` uses Numpy's
 `~numpy.linalg.lstsq` function.
 `~astropy.modeling.fitting.LevMarLSQFitter` uses `~scipy.optimize.leastsq`
 which combines optimization and statistic in one implementation.
@@ -56,7 +56,7 @@ from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
 
 def _convert_input(x, y, z=None):
-    """ Convert inputs to float arrays. """
+    """Convert inputs to float arrays."""
 
     x = np.asarray(x, dtype=np.float)
     y = np.asarray(y, dtype=np.float)
@@ -70,6 +70,7 @@ def _convert_input(x, y, z=None):
             raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
+
 
 def _fitter_to_model_params(model, fps):
     """Constructs the full list of model parameters from the fitted and constrained parameters"""
@@ -96,24 +97,24 @@ def _fitter_to_model_params(model, fps):
 
 
 def _validate_constraints(supported_constraints, model):
-    """ Make sure model constraints are supported by the current fitter. """
+    """Make sure model constraints are supported by the current fitter."""
 
     message = 'Optimizer cannot handle {0} constraints.'
 
     if (any(model.fixed.values()) and
             'fixed' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('fixed parameter'))
+            message.format('fixed parameter'))
 
     if (any(model.tied.values()) and
             'tied' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('tied parameter'))
+            message.format('tied parameter'))
 
     if (any([tuple(b) != (None, None) for b in model.bounds.values()]) and
             'bounds' not in supported_constraints):
         raise UnsupportedConstraintError(
-                message.format('bound parameter'))
+            message.format('bound parameter'))
 
     if model.eqcons and 'eqcons' not in supported_constraints:
         raise UnsupportedConstraintError(message.format('equality'))
@@ -140,6 +141,7 @@ def _validate_model(model, supported_constraints):
 
     model_copy = model.copy()
     return model_copy
+
 
 class ModelsError(Exception):
     """Base class for model exceptions"""
@@ -220,7 +222,6 @@ class Fitter(object):
         """
 
         raise NotImplementedError("Subclasses should implement this method.")
-
 
 
 class LinearLSQFitter(object):
@@ -316,7 +317,9 @@ class LinearLSQFitter(object):
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
 
-        if any(model.tied.values()) or any([tuple(b)!=(None, None) for b in model.bounds.values()]) or model.eqcons or model.ineqcons:
+        if any(model.tied.values()) \
+                or any([tuple(b) != (None, None) for b in model.bounds.values()]) \
+                or model.eqcons or model.ineqcons:
             raise ValueError("LinearFitter supports only fixed constraints.")
         multiple = False
         model_copy = model.copy()
@@ -445,6 +448,17 @@ class LevMarLSQFitter(object):
         super(LevMarLSQFitter, self).__init__()
 
     def objective_function(self, fps, *args):
+        """
+        Function to minimize
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            [model, [weights], [input coordinates]]
+
+        """
         model = args[0]
         weights = args[1]
         _fitter_to_model_params(model, fps)
@@ -579,7 +593,6 @@ class SLSQPLSQFitter(Fitter):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
 
-
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
         Fit data to this model.
@@ -615,7 +628,7 @@ class SLSQPLSQFitter(Fitter):
         model_copy : `ParametricModel`
             a copy of the input model with parameters set by the fitter
         """
-       
+
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
@@ -623,7 +636,7 @@ class SLSQPLSQFitter(Fitter):
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, p0, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
-        
+
         return model_copy
 
 
@@ -681,7 +694,7 @@ class SimplexLSQFitter(Fitter):
         farg = (model_copy, weights, ) + farg
 
         p0, _ = model_copy._model_to_fit_params()
-           
+
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, p0, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
@@ -817,4 +830,3 @@ class JointFitter(object):
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
             model.parameters = np.array(mparams)
-
