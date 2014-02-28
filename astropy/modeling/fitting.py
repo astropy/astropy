@@ -222,7 +222,9 @@ class LinearLSQFitter(object):
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
 
-        if any(model.tied.values()) or any([tuple(b)!=(None, None) for b in model.bounds.values()]) or model.eqcons or model.ineqcons:
+        if any(model.tied.values()) \
+                or any([tuple(b) != (None, None) for b in model.bounds.values()]) \
+                or model.eqcons or model.ineqcons:
             raise ValueError("LinearFitter supports only fixed constraints.")
         multiple = False
         model_copy = model.copy()
@@ -362,20 +364,16 @@ class LevMarLSQFitter(object):
 
     def objective_function(self, fps, *args):
         """
-        Computes and returns the residuals of the model from the data.
+        Function to minimize
 
         Parameters
         ----------
         fps : list
             parameters returned by the fitter
         args : list
-            input coordinates
-
-        Returns
-        -------
-        res : array
-            1D array of residuals
+            [model, [weights], [input coordinates]]
         """
+
         model = args[0]
         weights = args[1]
         _fitter_to_model_params(model, fps)
@@ -520,7 +518,6 @@ class SLSQPLSQFitter(Fitter):
     def __init__(self):
         super(SLSQPLSQFitter, self).__init__(optimizer=SLSQP, statistic=leastsquare)
         self.fit_info = {}
-
 
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
@@ -776,7 +773,7 @@ class JointFitter(object):
 
 
 def _convert_input(x, y, z=None):
-    """ Convert inputs to float arrays. """
+    """Convert inputs to float arrays."""
 
     x = np.asarray(x, dtype=np.float)
     y = np.asarray(y, dtype=np.float)
@@ -850,7 +847,7 @@ def _model_to_fit_params(model):
 
 
 def _validate_constraints(supported_constraints, model):
-    """ Make sure model constraints are supported by the current fitter. """
+    """Make sure model constraints are supported by the current fitter."""
 
     message = 'Optimizer cannot handle {0} constraints.'
 
@@ -878,7 +875,9 @@ def _validate_constraints(supported_constraints, model):
 
 
 def _validate_model(model, supported_constraints):
-    """ Check that model and fitter are compatible and return a copy of the model. """
+    """
+    Check that model and fitter are compatible and return a copy of the model.
+    """
 
     if not model.fittable:
         raise ValueError("Model does not appear to be fittable.")
@@ -894,4 +893,3 @@ def _validate_model(model, supported_constraints):
 
     model_copy = model.copy()
     return model_copy
-

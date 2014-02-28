@@ -49,6 +49,7 @@ linear2d = {
                    'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3}},
     }
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting(object):
     """

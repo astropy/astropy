@@ -26,6 +26,7 @@ except ImportError:
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
+
 class TestPolynomial2D(object):
 
     """
@@ -140,8 +141,8 @@ class TestJointFitter(object):
         A = 9.8
         p = np.r_[A, p1, p2]
         compmodel = lambda A, p, x: A * np.exp(-0.5 / p[1] ** 2 * (x - p[0]) ** 2)
-        errf = lambda p, x1, y1, x2, y2: np.ravel(np.r_[compmodel(p[0], p[1:3],
-                                                                  x1) - y1, compmodel(p[0], p[3:], x2) - y2])
+        errf = lambda p, x1, y1, x2, y2: np.ravel(np.r_[compmodel(p[0], p[1:3], x1) -
+                                                  y1, compmodel(p[0], p[3:], x2) - y2])
         coeff, _ = optimize.leastsq(errf, p, args=(self.x, self.ny1, self.x,
                                                    self.ny2))
         utils.assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))

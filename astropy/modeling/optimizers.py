@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import warnings
 import abc
 import numpy as np
+from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ["SLSQP", "Simplex"]
@@ -22,13 +23,25 @@ DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
 #Default requested accuracy
 DEFAULT_ACC = 1e-07
 
+
+@six.add_metaclass(abc.ABCMeta)
 class Optimization(object):
+    """
+    Base class for optimizers.
 
-    __metaclass__ = abc.ABCMeta
+    Parameters
+    ----------
+    opt_method : callable
+        Implements optimization method
 
-    # The base Optimizer does not support any constraints by default; individual
-    # optimizers should explicitly set this list to the specific constraints
-    # it supports
+    Notes
+    -----
+    The base Optimizer does not support any constraints by default; individual
+    optimizers should explicitly set this list to the specific constraints
+    it supports.
+
+    """
+
     supported_constraints = []
 
     def __init__(self, opt_method):
@@ -39,29 +52,32 @@ class Optimization(object):
 
     @property
     def maxiter(self):
-        """Maximum number of iterations."""
+        """Maximum number of iterations"""
         return self._maxiter
 
     @maxiter.setter
     def maxiter(self, val):
+        """Set maxiter"""
         self._maxiter = val
 
     @property
     def eps(self):
-        """ Step for the forward difference approximation of the Jacobian"""
+        """Step for the forward difference approximation of the Jacobian"""
         return self._eps
 
     @eps.setter
     def eps(self, val):
+        """Set eps value"""
         self._eps = val
 
     @property
     def acc(self):
-        """ Requested accuracy. """
+        """Requested accuracy"""
         return self._acc
 
     @acc.setter
     def acc(self, val):
+        """Set accuracy"""
         self._acc = val
 
     def __repr__(self):
@@ -72,10 +88,10 @@ class Optimization(object):
     def opt_method(self):
         return self._opt_method
 
-
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this method")
+
 
 class SLSQP(Optimization):
     """
@@ -102,6 +118,21 @@ class SLSQP(Optimization):
         }
 
     def __call__(self, objfunc, initval, fargs, **kwargs):
+        """
+        Run the solver.
+
+        Parameters
+        ----------
+        objfunc : callable
+            objection function
+        initval : iterable
+            initial guess for the parameter values
+        fargs : tuple
+            other arguments to be passed to the statistic function
+        kwargs : dict
+            other keyword arguments to be passed to the solver
+
+        """
         if 'maxiter' not in kwargs:
             kwargs['iter'] = self._maxiter
 
@@ -119,14 +150,13 @@ class SLSQP(Optimization):
             if i[0] is None:
                 i[0] = -10 ** 12
             if i[1] is None:
-                i[1] = 10 **12
+                i[1] = 10 ** 12
         # older versions of scipy require this array to be float
         bounds = np.asarray(bounds, dtype=np.float)
         eqcons = np.array(model.eqcons)
         ineqcons = np.array(model.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = self.opt_method(
-            objfunc, initval, args=fargs, #iter=self._maxiter, acc=self._acc,
-            full_output=True,
+            objfunc, initval, args=fargs, full_output=True,
             bounds=bounds, eqcons=eqcons, ieqcons=ineqcons,
             **kwargs)
 
@@ -168,6 +198,21 @@ class Simplex(Optimization):
         }
 
     def __call__(self, objfunc, initval, fargs, **kwargs):
+        """
+        Run the solver.
+
+        Parameters
+        ----------
+        objfunc : callable
+            objection function
+        initval : iterable
+            initial guess for the parameter values
+        fargs : tuple
+            other arguments to be passed to the statistic function
+        kwargs : dict
+            other keyword arguments to be passed to the solver
+
+        """
         if 'maxiter' not in kwargs:
             kwargs['maxiter'] = self._maxiter
         if 'acc' not in kwargs:

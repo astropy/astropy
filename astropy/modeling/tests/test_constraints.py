@@ -48,7 +48,7 @@ class TestNonLinearConstraints(object):
             return mean
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.LevMarLSQFitter()
-        model = fitter(g1,self.x, self.ny1)
+        model = fitter(g1, self.x, self.ny1)
         utils.assert_allclose(model.mean.value, 50 * model.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -239,7 +239,7 @@ def test_set_tied_2():
         return 50 * model.stddev
 
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1,
-                                   tied={'amplitude': tie_amplitude})
+                              tied={'amplitude': tie_amplitude})
     assert gauss.amplitude.tied != False
 
 
@@ -265,6 +265,7 @@ def test_set_bounds_1():
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (0.0, None)}
+
 
 def test_set_bounds_2():
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1)

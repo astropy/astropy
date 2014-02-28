@@ -129,7 +129,7 @@ class PolynomialModel(PolynomialBase):
 
     @property
     def degree(self):
-        """TODO: Docstring for me"""
+        """Degree of polynomial."""
 
         return self._degree
 
@@ -416,9 +416,7 @@ class Chebyshev1D(PolynomialModel):
                                           **params)
 
     def clenshaw(self, x, coeff):
-        """
-        Evaluates the polynomial using Clenshaw's algorithm.
-        """
+        """Evaluates the polynomial using Clenshaw's algorithm."""
 
         if isinstance(x, tuple) or isinstance(x, list):
             x = np.asarray(x)
