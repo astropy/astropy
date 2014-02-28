@@ -50,6 +50,9 @@ class HeaderFormatter(object):
     ----------
     filename : str
         Path to the FITS file.
+
+    compressed : boolean, optional
+        show the header describing the compression (for CompImageHDU's only)
     """
     def __init__(self, filename, compressed=False):
         try:

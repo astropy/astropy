@@ -2471,3 +2471,18 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         pytest.raises(KeyError, lambda: h['FOO.AXIS'])
         pytest.raises(KeyError, lambda: h['FOO.AXIS.'])
         pytest.raises(KeyError, lambda: h['FOO.'])
+
+    def test_fitsheader_script(self):
+        """
+        Checks the basic functionality of the fitsheader script
+        """
+        from ....io.fits.scripts import fitsheader
+        # Can an extension by specified by the EXTNAME keyword?
+        hf = fitsheader.HeaderFormatter(self.data('zerowidth.fits'))
+        assert "EXTNAME = 'AIPS FQ" in hf.parse('AIPS FQ')
+        # fitsheader should only print the compressed header when asked
+        hf = fitsheader.HeaderFormatter(self.data('comp.fits'))
+        assert "XTENSION= 'IMAGE" in hf.parse(1)  # decompressed
+        hf = fitsheader.HeaderFormatter(self.data('comp.fits'),
+                                        compressed=True)
+        assert "XTENSION= 'BINTABLE" in hf.parse(1)  # compressed
