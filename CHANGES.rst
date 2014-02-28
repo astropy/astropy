@@ -65,6 +65,8 @@ New Features
 
 - ``astropy.stats``
 
+  - Added flat prior to binom_conf_interval and binned_binom_proportion
+
 - ``astropy.sphinx``
 
   - The `automodapi` and `automodsumm` extensions now include sphinx
