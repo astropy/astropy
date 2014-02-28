@@ -1576,7 +1576,6 @@ class IrreducibleUnit(NamedUnit):
                 "bases".format(self))
 
         return self
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
 
 class UnrecognizedUnit(IrreducibleUnit):
@@ -1838,11 +1837,9 @@ class Unit(NamedUnit):
 
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
     def is_unity(self):
         return self._represents.is_unity()
-    is_unity.__doc__ = UnitBase.is_unity.__doc__
 
 
 class PrefixUnit(Unit):
@@ -2003,7 +2000,6 @@ class CompositeUnit(UnitBase):
         if len(bases) == 0:
             self._decomposed_cache = x
         return x
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
     def is_unity(self):
         unit = self.decompose()
