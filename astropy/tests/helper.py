@@ -201,7 +201,7 @@ class TestRunner(object):
                 # requires importing astropy.config and thus screwing
                 # up coverage results for those packages.
                 coveragerc = os.path.join(
-                    os.path.dirname(__file__), 'coveragerc')
+                    package_path, package, 'tests', 'coveragerc')
 
                 # We create a coveragerc that is specific to the version
                 # of Python we're running, so that we can mark branches
