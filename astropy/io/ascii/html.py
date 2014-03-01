@@ -68,10 +68,10 @@ class HTMLInputter(core.BaseInputter):
         <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
     """
 
-    from bs4 import BeautifulSoup
-    from bs4.element import Comment
-
     def process_lines(self, lines):
+        from bs4 import BeautifulSoup
+        from bs4.element import Comment
+        
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []
         for x in soup.contents[0].descendants:
