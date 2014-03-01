@@ -1036,7 +1036,6 @@ class Time(object):
         except OperandTypeError:
             return True
         return diff != 0.
->>>>>>> Changed == and != operators in Time so no exceptions are thrown
 
     def __gt__(self, other):
         return self._time_difference(other, '>') > 0.
