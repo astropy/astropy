@@ -38,9 +38,6 @@ from . import core
 from ...table import Table
 from ...utils.xml import writer
 
-from bs4 import BeautifulSoup
-from bs4.element import Comment
-
 class SoupString(str):
     """
     Allows for strings to hold BeautifulSoup data.
@@ -66,13 +63,19 @@ class ListWriter:
 class HTMLInputter(core.BaseInputter):
     """
     Input lines of HTML in a valid form.
+
+    This requires `BeautifulSoup
+        <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
     """
+
+    from bs4 import BeautifulSoup
+    from bs4.element import Comment
 
     def process_lines(self, lines):
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []
         for x in soup.contents[0].descendants:
-            if str(x).strip():
+            if str(x).strip() and not isinstance(x, Comment):
                 soup_obj = SoupString(x)
                 soup_list.append(soup_obj)
         return soup_list
