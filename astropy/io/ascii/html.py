@@ -34,6 +34,7 @@ This requires `BeautifulSoup
 from __future__ import absolute_import, division, print_function
 
 from . import core
+from .latex import add_dictval_to_list
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment
@@ -88,6 +89,12 @@ class HTMLSplitter(core.BaseSplitter):
         if not data_found:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')
+    def join(self, vals):
+        """
+        Join HTML data into one row with <td> tags.
+        """
+        return '<tr><td>' + '</td><td>'.join(x.strip() for x in vals) + \
+               '</td></tr>'
 
 class HTMLHeader(core.BaseHeader):
     def start_line(self, lines):
@@ -102,6 +109,20 @@ class HTMLHeader(core.BaseHeader):
                 return i
         raise core.InconsistentTableError('HTML tables must contain at least '
                                               'one <tr> tag')
+    def write(self, lines):
+        """
+        Write HTML header data to a list.
+        """
+        lines.append('<html><head><meta charset="utf-8"/>'
+                     '<meta http-equiv="Content-type" '
+                     'content="text/html;charset=UTF-8"/>'
+                     '<style>')
+        add_dictval_to_list(self.html, 'css', lines)
+        lines.append('</style></head>')
+        lines.append('<body><table><tr>')
+        for col in self.cols:
+            lines.append('<th>{0}</th>'.format(col.name))
+        lines.append('</tr>')
 
 class HTMLData(core.BaseData):
     def start_line(self, lines):
@@ -132,13 +153,30 @@ class HTMLData(core.BaseData):
                 last_index = i
         return last_index + 1
 
+    def write(self, lines):
+        """
+        Write HTML table data to a list.
+        """
+        copy = self.start_line
+        self.start_line = 0
+        core.BaseData.write(self, lines)
+        self.start_line = copy
+        lines.append('</table></body></html>')
+
 class HTML(core.BaseReader):
+    """
+    Read and write HTML tables.
+    """
+    
     _format_name = 'html'
     _io_registry_format_aliases = ['html']
     _io_registry_suffix = '.html'
     _description = 'HTML table'
 
-    def __init__(self):
+    def __init__(self, htmldict={}):
+        """
+        Initialize classes for HTML reading and writing.
+        """
         core.BaseReader.__init__(self)
         self.inputter = HTMLInputter()
         self.header = HTMLHeader()
@@ -149,3 +187,6 @@ class HTML(core.BaseReader):
         self.data.inputter = HTMLInputter()
         self.data.header = self.header
         self.header.data = self.data
+        self.html = htmldict
+        self.header.html = self.html
+        self.data.html = self.html
