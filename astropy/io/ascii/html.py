@@ -32,9 +32,11 @@ This requires `BeautifulSoup
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import absolute_import, division, print_function
+from ...extern import six
 
 from . import core
-from .latex import add_dictval_to_list
+from ...table import Table
+from ...utils.xml import writer
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment
@@ -49,6 +51,17 @@ class SoupString(str):
 
     def __init__(self, val):
         self.soup = val
+
+class ListWriter:
+    """
+    Allows for XMLWriter to write to a list instead of a file.
+    """
+
+    def __init__(self, out):
+        self.out = out
+
+    def write(self, data):
+        self.out.append(data)
 
 class HTMLInputter(core.BaseInputter):
     """
@@ -89,12 +102,6 @@ class HTMLSplitter(core.BaseSplitter):
         if not data_found:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')
-    def join(self, vals):
-        """
-        Join HTML data into one row with <td> tags.
-        """
-        return '<tr><td>' + '</td><td>'.join(x.strip() for x in vals) + \
-               '</td></tr>'
 
 class HTMLHeader(core.BaseHeader):
     def start_line(self, lines):
@@ -109,20 +116,6 @@ class HTMLHeader(core.BaseHeader):
                 return i
         raise core.InconsistentTableError('HTML tables must contain at least '
                                               'one <tr> tag')
-    def write(self, lines):
-        """
-        Write HTML header data to a list.
-        """
-        lines.append('<html><head><meta charset="utf-8"/>'
-                     '<meta http-equiv="Content-type" '
-                     'content="text/html;charset=UTF-8"/>'
-                     '<style>')
-        add_dictval_to_list(self.html, 'css', lines)
-        lines.append('</style></head>')
-        lines.append('<body><table><tr>')
-        for col in self.cols:
-            lines.append('<th>{0}</th>'.format(col.name))
-        lines.append('</tr>')
 
 class HTMLData(core.BaseData):
     def start_line(self, lines):
@@ -153,16 +146,6 @@ class HTMLData(core.BaseData):
                 last_index = i
         return last_index + 1
 
-    def write(self, lines):
-        """
-        Write HTML table data to a list.
-        """
-        copy = self.start_line
-        self.start_line = 0
-        core.BaseData.write(self, lines)
-        self.start_line = copy
-        lines.append('</table></body></html>')
-
 class HTML(core.BaseReader):
     """
     Read and write HTML tables.
@@ -190,3 +173,39 @@ class HTML(core.BaseReader):
         self.html = htmldict
         self.header.html = self.html
         self.data.html = self.html
+
+    def write(self, table):
+        """
+        Return data in ``table`` converted to HTML as a list of strings.
+        """
+
+        cols = list(six.itervalues(table.columns))
+        lines = []
+
+        # Use XMLWriter to output HTML to lines
+        w = writer.XMLWriter(ListWriter(lines))
+        
+        with w.tag('html'):
+            with w.tag('head'):
+                # Declare encoding and set CSS style for table
+                with w.tag('meta', attrib={'charset':'utf-8'}):
+                    pass
+                with w.tag('meta', attrib={'http-equiv':'Content-type',
+                                    'content':'text/html;charset=UTF-8'}):
+                    pass
+                if 'css' in self.html:
+                    with w.tag('style'):
+                        w.data(self.html['css'])
+                with w.tag('tr'):
+                    for col in cols:
+                        with w.tag('th'):
+                            w.data(col.name)
+                col_str_iters = [col.iter_str_vals() for col in cols]
+                for row in zip(*col_str_iters):
+                    with w.tag('tr'):
+                        for el in row:
+                            with w.tag('td'):
+                                w.data(el)
+
+        # Fixes XMLWriter's insertion of unwanted line breaks
+        return [''.join(lines)]
