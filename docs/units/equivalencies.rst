@@ -16,7 +16,7 @@ equivalencies included in `astropy.units` and then describe how to
 define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
-`equivalencies` keyword argument of :meth:`Quantity.to
+``equivalencies`` keyword argument of :meth:`Quantity.to
 <astropy.units.quantity.Quantity.to>`, :meth:`Unit.to
 <astropy.units.core.UnitBase.to>` or :meth:`Unit.get_converter
 <astropy.units.core.UnitBase.get_converter>` methods.
@@ -200,8 +200,8 @@ elements::
 
   (from_unit, to_unit, forward, backward)
 
-`from_unit` and `to_unit` are the equivalent units.  `forward` and
-`backward` are functions that convert values between those units.
+``from_unit`` and ``to_unit`` are the equivalent units.  ``forward`` and
+``backward`` are functions that convert values between those units.
 
 For example, until 1964 the metric liter was defined as the volume of
 1kg of water at 4°C at 760mm mercury pressure.  Volumes and masses are
@@ -253,9 +253,9 @@ of ``c`` is used instead of the constant.
 Displaying available equivalencies
 ----------------------------------
 
-The :meth:`~astropy.units.core.Unit.find_equivalent_units` method also
+The :meth:`~astropy.units.core.UnitBase.find_equivalent_units` method also
 understands equivalencies.  For example, without passing equivalencies,
-there are three compatible units for `Hz` in the standard set::
+there are three compatible units for ``Hz`` in the standard set::
 
   >>> u.Hz.find_equivalent_units()
     Primary name | Unit definition | Aliases

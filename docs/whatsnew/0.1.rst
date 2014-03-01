@@ -10,10 +10,10 @@ might integrate with Astropy.
 Astropy 0.1 integrated several existing packages under a single ``astropy``
 package with a unified installer, including:
 
- * asciitable as :mod:`astropy.io.ascii`
- * PyFITS as :mod:`astropy.io.fits`
- * votable as :mod:`astropy.io.vo`
- * PyWCS as :mod:`astropy.wcs`
+ * asciitable as `astropy.io.ascii`
+ * PyFITS as `astropy.io.fits`
+ * votable as ``astropy.io.vo``
+ * PyWCS as `astropy.wcs`
 
 It also added the beginnings of the :mod:`astropy.cosmology` package, and new
 common data structures for science data in the :mod:`astropy.nddata` and

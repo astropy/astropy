@@ -90,7 +90,7 @@ saves those settings to a new FITS header.
 Validating the WCS keywords in a FITS file
 ------------------------------------------
 
-`astropy` includes a commandline tool, `wcslint` to check the WCS
+Astropy includes a commandline tool, ``wcslint`` to check the WCS
 keywords in a FITS file::
 
     > wcslint invalid.fits
