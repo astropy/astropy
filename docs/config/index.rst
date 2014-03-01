@@ -28,7 +28,7 @@ exact location by doing::
 
 And you should see the location of your configuration directory. The standard
 scheme generally puts your configuration directory in ``$HOME/.astropy/config``,
-but if you've set the environment variable `XDG_CONFIG_HOME` and the
+but if you've set the environment variable ``XDG_CONFIG_HOME`` and the
 ``$XDG_CONFIG_HOME/astropy`` directory exists, it will instead be there.
 
 Once you've found the configuration file, open it with your favorite editor.
@@ -44,14 +44,14 @@ want to see your changes immediately in your current Astropy session, just do::
 .. note::
     If for whatever reason your ``$HOME/.astropy`` directory is not accessible
     (i.e., you have astropy running somehow as root but you are not the root
-    user), the best solution is to set the `XDG_CONFIG_HOME` and
-    `XDG_CACHE_HOME` environment variables pointing to directories, and create
+    user), the best solution is to set the ``XDG_CONFIG_HOME`` and
+    ``XDG_CACHE_HOME`` environment variables pointing to directories, and create
     an ``astropy`` directory inside each of those.  Both the configuration and
     data download systems will then use those directories and never try to
     access the ``$HOME/.astropy`` directory.
 
 
-Using `config`
+Using config
 ==============
 
 Accessing Values
@@ -84,8 +84,8 @@ Changing Values at Run-time
 The configuration system is most conveniently used by modifying
 configuration files as described above. Values can also, however, be
 modified in an active python session using the
-:meth:`~astropy.config.configuration.ConfigurationItem.set` method. A run-time
-`ConfigurationItem` object can be used to make these changes. These items
+:meth:`~astropy.config.ConfigurationItem.set` method. A run-time
+`~astropy.config.ConfigurationItem` object can be used to make these changes. These items
 are found in the same module as the configuration section they are in,
 and usually have the same name as in the configuration files, but in all
 caps.
@@ -156,7 +156,7 @@ This should update the variables with the values from the configuration file::
     6.3
 
 Or if you want to reload all astropy configuration at once, use the
-`~astropy.config.configuration.reload_config` function::
+`~astropy.config.reload_config` function::
 
     >>> config.reload_config('astropy')
 
@@ -174,7 +174,7 @@ however, and astropy packages must all use it (and it is recommended for
 affiliated packages).
 
 The Reference guide below describes the full interface for a
-`ConfigurationItem` - this is a guide for *typical* developer usage. In
+`~astropy.config.ConfigurationItem` - this is a guide for *typical* developer usage. In
 almost all cases, a configuration item should be defined and used in the
 following manner::
 
@@ -200,8 +200,8 @@ configuration files can also locate these items.
 Item Types and Validation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If not otherwise specified, a `ConfigurationItem` gets its type from the type of
-the `defaultvalue` it is given when it is created.  The item can only be set
+If not otherwise specified, a `~astropy.config.ConfigurationItem` gets its type from the type of
+the ``defaultvalue`` it is given when it is created.  The item can only be set
 to be an object of this type.  Hence::
 
     SOME_SETTING = ConfigurationItem('some_setting', 1, 'A description.')
@@ -210,7 +210,7 @@ to be an object of this type.  Hence::
 will fail, because ``1.2`` is a float and ``1`` is an int.
 
 Note that if you want the configuration item to be limited to a particular set
-of specific options, you should pass in a list as the `defaultvalue` option.
+of specific options, you should pass in a list as the ``defaultvalue`` option.
 The first entry in the list will be taken as the default, and the list as a whole
 gives all the valid options.  For example::
 
@@ -220,21 +220,21 @@ gives all the valid options.  For example::
     AN_OPTION.set('d')  # fails!
     AN_OPTION.set(6)  # fails!
 
-Finally, a ConfigurationItem can be explicitly give a type via the `cfgtype` option::
+Finally, a `~astropy.config.ConfigurationItem` can be explicitly give a type via the ``cfgtype`` option::
 
     AN_INT_SETTING = ConfigurationItem('an_int_setting', 1, 'A description.', cfgtype='integer')
     AN_INT_SETTING.set(3)  # works fine
     AN_INT_SETTING.set(4.2)  #fails!
 
-If the default value's type doesn't match `cfgtype`, the `ConfigurationItem` cannot be created::
+If the default value's type doesn't match ``cfgtype``, the `~astropy.config.ConfigurationItem` cannot be created::
 
     >>> AN_INT_SETTING = ConfigurationItem('an_int_setting', 4.2, 'A description.', cfgtype='integer')
     VdtTypeError: the value "4.2" is of the wrong type.
 
-hence the default behavior (of automatically determining `cfgtype`) is usually what
+hence the default behavior (of automatically determining ``cfgtype``) is usually what
 you want.  The main exception is when you want your configuration item to be a list.
 The default behavior will treat that as a list of *options* unless you explicitly
-tell it that the `ConfigurationItem` itself is supposed to be a list::
+tell it that the `~astropy.config.ConfigurationItem` itself is supposed to be a list::
 
     >>> A_LIST_SETTING = ConfigurationItem(a_list_setting', [1, 2, 3], 'A description.')
     >>> A_LIST_SETTING()
@@ -243,7 +243,7 @@ tell it that the `ConfigurationItem` itself is supposed to be a list::
     >>> A_LIST_SETTING()
     [1, 2, 3]
 
-Details of all the valid `cfgtype` items can be found in the
+Details of all the valid ``cfgtype`` items can be found in the
 `validation section of the configobj  manual <http://www.voidspace.org.uk/python/validate.html#the-standard-functions>`_.
 We simply list the valid values here for quick reference:
 
@@ -278,10 +278,10 @@ items in your code. First, it is tempting to do something like::
         return SOME_SETTING + 2  # WRONG, you wanted SOME_SETTING() + 2
 
 but this is incorrect, because ``SOME_SETTING`` instead of
-``SOME_SETTING()`` will yield a `ConfigurationItem` object, instead of the
+``SOME_SETTING()`` will yield a `~astropy.config.ConfigurationItem` object, instead of the
 *value* of that item (an integer, in this case).
 
-The second point to keep in mind is that `ConfigurationItem` objects can
+The second point to keep in mind is that `~astropy.config.ConfigurationItem` objects can
 be changed at runtime by users. So you always read their values instead
 of just storing their initial value to some other variable (or used as a
 default for a function). For example, the following will work, but is
