@@ -1014,10 +1014,28 @@ class Time(object):
         return self._time_difference(other, '<=') <= 0.
 
     def __eq__(self, other):
-        return self._time_difference(other, '==') == 0.
+        """
+        If other is an incompatible object for comparison, return False.
+        Otherwise, return True if the time difference between self and
+        other is zero.
+        """
+        try:
+            diff = self._time_difference(other)
+        except OperandTypeError:
+            return False
+        return diff == 0.
 
     def __ne__(self, other):
-        return self._time_difference(other, '!=') != 0.
+        """
+        If other is an incompatible object for comparison, return True.
+        Otherwise, return False if the time difference between self and
+        other is zero.
+        """
+        try:
+            diff = self._time_difference(other)
+        except OperandTypeError:
+            return True
+        return diff != 0.
 
     def __gt__(self, other):
         return self._time_difference(other, '>') > 0.

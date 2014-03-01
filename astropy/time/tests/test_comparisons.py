@@ -16,17 +16,22 @@ class TestTimeComparisons():
         self.t2 = Time(np.arange(49000, 51000, 200), format='mjd', scale='utc')
 
     def test_miscompares(self):
+        """
+        If an incompatible object is compared to a Time object, == should
+        return False and != should return True. All other comparison
+        operators should raise an OperandTypeError.
+        """
         t1 = Time('J2000', scale='utc')
-        for op, op_str in ((operator.eq, '=='),
-                           (operator.ge, '>='),
+        for op, op_str in ((operator.ge, '>='),
                            (operator.gt, '>'),
-                           (operator.ne, '!='),
                            (operator.le, '<='),
                            (operator.lt, '<')):
             with pytest.raises(OperandTypeError) as err:
                 op(t1, None)
             assert str(err).endswith("Unsupported operand type(s) for {0}: 'Time' and 'NoneType'"
                                      .format(op_str))
+        assert (t1 == None) is False
+        assert (t1 != None) is True
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
