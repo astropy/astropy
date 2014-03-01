@@ -1016,7 +1016,7 @@ class Time(object):
     def __eq__(self, other):
         """
         If other is an incompatible object for comparison, return False.
-        Otherwise, return True if the TAI difference between self and
+        Otherwise, return True if the time difference between self and
         other is zero.
         """
         try:
@@ -1028,7 +1028,7 @@ class Time(object):
     def __ne__(self, other):
         """
         If other is an incompatible object for comparison, return True.
-        Otherwise, return False if the TAI difference between self and
+        Otherwise, return False if the time difference between self and
         other is zero.
         """
         try:
