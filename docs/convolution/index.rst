@@ -51,9 +51,9 @@ and are both used as::
     result = convolve(image, kernel)
     result = convolve_fft(image, kernel)
 
-:func:`~astropy.convolution.convolve.convolve` is implemented as a
+:func:`~astropy.convolution.convolve` is implemented as a
 direct convolution algorithm, while
-:func:`~astropy.convolution.convolve.convolve_fft` uses a fast Fourier
+:func:`~astropy.convolution.convolve_fft` uses a fast Fourier
 transform (FFT). Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 
@@ -63,7 +63,7 @@ For example, to convolve a 1-d dataset with a user-specified kernel, you can do:
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
     array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
 
-Notice that the end points are set to zero - by default, points that are too close to the boundary to have a convolved value calculated are set to zero. However, the :func:`~astropy.convolution.convolve.convolve` function allows for a `boundary` argument that can be used to specify alternate behaviors. For example, setting `boundary='extend'` causes values near the edges to be computed, assuming the original data is simply extended using a constant extrapolation beyond the boundary::
+Notice that the end points are set to zero - by default, points that are too close to the boundary to have a convolved value calculated are set to zero. However, the :func:`~astropy.convolution.convolve` function allows for a `boundary` argument that can be used to specify alternate behaviors. For example, setting `boundary='extend'` causes values near the edges to be computed, assuming the original data is simply extended using a constant extrapolation beyond the boundary::
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
@@ -90,7 +90,7 @@ To use a kernel, first create a specific instance of the kernel::
              4.36341348e-04,   6.69151129e-05])
 
 The kernel can then be used directly when calling
-:func:`~astropy.convolution.convolve.convolve`:
+:func:`~astropy.convolution.convolve`:
 
 .. plot::
    :include-source:

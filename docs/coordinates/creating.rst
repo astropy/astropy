@@ -29,7 +29,7 @@ provide strings to create coordinates.  If the `unit` parameter is
 `Angle` class' parsing scheme, and has a guiding principal of being
 able to interpret any *unambiguous* string specifying an angle. For
 the exact rules for how each string is parsed, see the
-`~astropy.coordinates.angles.Angle` documentation.  Some examples::
+`~astropy.coordinates.Angle` documentation.  Some examples::
 
     >>> ICRS("3h36m29.7888s -41d08m15.162342s", unit=(None, None))
     <ICRS RA=54.12412 deg, Dec=-41.13755 deg>

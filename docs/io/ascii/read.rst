@@ -115,7 +115,7 @@ Parameters for ``read()``
 **Outputter**: Outputter class
   This converts the raw data tables value into the
   output object that gets returned by |read|.  The default is
-  :class:`~astropy.io.ascii.core.TableOutputter`, which returns a
+  :class:`~astropy.io.ascii.TableOutputter`, which returns a
   :class:`~astropy.table.Table` object.
 
 **Inputter**: Inputter class

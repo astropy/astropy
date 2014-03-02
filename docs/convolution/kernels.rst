@@ -12,7 +12,7 @@ Every filter kernel is characterized by its response function. For time series
 we speak of an "impulse response function" or for images we call it "point
 spread function". This response function is given for every kernel by a
 `~astropy.modeling.core.ParametricModel`, which is evaluated on a grid with
-:func:`~astropy.convolution.utils.discretize_model` to obtain a kernel
+:func:`~astropy.convolution.discretize_model` to obtain a kernel
 array, which can be used for discrete convolution with the binned data.
 
 
@@ -32,12 +32,12 @@ Lorentz curve:
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
-Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1DKernel` of width 2 pixels:
+Smoothing the noisy data with a `~astropy.convolution.Gaussian1DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian1DKernel(2)
 >>> smoothed_data_gauss = convolve(data_1D, gauss_kernel)
 
-Smoothing the same data with a `~astropy.convolution.kernels.Box1DKernel` of width 5 pixels:
+Smoothing the same data with a `~astropy.convolution.Box1DKernel` of width 5 pixels:
 
 >>> box_kernel = Box1DKernel(5)
 >>> smoothed_data_box = convolve(data_1D, box_kernel)
@@ -75,8 +75,8 @@ The following plot illustrates the results:
 
 
 Beside the astropy convolution functions
-`~astropy.convolution.convolve.convolve` and
-`~astropy.convolution.convolve.convolve_fft`, it is also possible to use
+`~astropy.convolution.convolve` and
+`~astropy.convolution.convolve_fft`, it is also possible to use
 the kernels with Numpy or Scipy convolution by passing the ``array`` attribute.
 This will be faster in most cases than the astropy convolution, but will not
 work properly if ``NaN`` values are present in the data.
@@ -102,13 +102,13 @@ middle of the image and add 10% noise:
 >>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
 Smoothing the noisy data with a
-:class:`~astropy.convolution.kernels.Gaussian2DKernel` of width 2 pixels:
+:class:`~astropy.convolution.Gaussian2DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian2DKernel(2)
 >>> smoothed_data_gauss = convolve(data_2D, gauss_kernel)
 
 Smoothing the noisy data with a
-:class:`~astropy.convolution.kernels.Tophat2DKernel` of width 5 pixels:
+:class:`~astropy.convolution.Tophat2DKernel` of width 5 pixels:
 
 >>> tophat_kernel = Tophat2DKernel(5)
 >>> smoothed_data_tophat = convolve(data_2D, tophat_kernel)
@@ -272,7 +272,7 @@ Discretization
 
 To obtain the kernel array for discrete convolution, the kernels response
 function is evaluated on a grid with
-:func:`~astropy.convolution.utils.discretize_model`. For the
+:func:`~astropy.convolution.discretize_model`. For the
 discretization step the following modes are available:
 
 * Mode ``'center'`` (default) evaluates the response function on the grid by
@@ -317,18 +317,18 @@ attribute.
 The normalization can also differ from one, especially for small kernels, due
 to the discretization step. This can be partly controlled by the ``mode``
 argument, when initializing the kernel (See also
-:func:`~astropy.convolution.utils.discretize_model`). Setting the
+:func:`~astropy.convolution.discretize_model`). Setting the
 ``mode`` to ``'oversample'`` allows to conserve the normalization even on the
 subpixel scale.
 
 The kernel arrays can be renormalized explicitly by calling either the
 ``normalize()`` method or by setting the ``normalize_kernel`` argument in the
-:func:`~astropy.convolution.convolve.convolve` and
-:func:`~astropy.convolution.convolve.convolve_fft` functions. The latter
+:func:`~astropy.convolution.convolve` and
+:func:`~astropy.convolution.convolve_fft` functions. The latter
 method leaves the kernel itself unchanged but works with an internal normalized
 version of the kernel.
 
-Note that for :class:`~astropy.convolution.kernels.MexicanHat1DKernel`
-and :class:`~astropy.convolution.kernels.MexicanHat2DKernel` there is
+Note that for :class:`~astropy.convolution.MexicanHat1DKernel`
+and :class:`~astropy.convolution.MexicanHat2DKernel` there is
 :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. To define a proper normalization
 both filters are derived from a normalized Gaussian function.

@@ -4,7 +4,7 @@ Distances and Cartesian Representations
 Coordinates can also have line-of-sight distances.  If these are provided, a
 coordinate object becomes a full-fledged point in three-dimensional space.
 
-The `~astropy.coordinates.distances.Distance` class is provided to represent a
+The `~astropy.coordinates.Distance` class is provided to represent a
 line-of-sight distance for a coordinate.  It must include a length unit to be
 valid.::
 
@@ -59,7 +59,7 @@ unit sphere::
     the Earth center (or for precision work, the Earth/Moon barycenter).
 
 The Cartesian coordinates can also be accessed via the
-`~astropy.coordinates.distances.CartesianPoints` object, which has
+`~astropy.coordinates.CartesianPoints` object, which has
 additional capabilities like arithmetic operations::
 
     >>> cp = c.cartesian

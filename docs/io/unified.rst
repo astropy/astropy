@@ -132,21 +132,21 @@ indicates which support write functionality.
            Format               Suffix Write                                          Description
 =============================== ====== ===== ============================================================================================
 ``ascii``                                Yes ASCII table in any supported format (uses guessing)
-``ascii.aastex``                         Yes :class:`~astropy.io.ascii.latex.AASTex`: AASTeX deluxetable used for AAS journals
-``ascii.basic``                          Yes :class:`~astropy.io.ascii.basic.Basic`: Basic table with custom delimiters
-``ascii.cds``                                :class:`~astropy.io.ascii.cds.Cds`: CDS format table
-``ascii.commented_header``               Yes :class:`~astropy.io.ascii.basic.CommentedHeader`: Column names in a commented line
-``ascii.daophot``                            :class:`~astropy.io.ascii.daophot.Daophot`: IRAF DAOphot format table
-``ascii.fixed_width``                    Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: Fixed width
-``ascii.fixed_width_no_header``          Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthNoHeader`: Fixed width with no header
-``ascii.fixed_width_two_line``           Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthTwoLine`: Fixed width with second header line
-``ascii.ipac``                           Yes :class:`~astropy.io.ascii.ipac.Ipac`: IPAC format table
-``ascii.latex``                   .tex   Yes :class:`~astropy.io.ascii.latex.Latex`: LaTeX table
-``ascii.no_header``                      Yes :class:`~astropy.io.ascii.basic.NoHeader`: Basic table with no headers
-``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line
-``ascii.sextractor``                         :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table
-``ascii.tab``                            Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values
-``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.basic.Csv`: Basic table with comma-separated values
+``ascii.aastex``                         Yes :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
+``ascii.basic``                          Yes :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
+``ascii.cds``                                :class:`~astropy.io.ascii.Cds`: CDS format table
+``ascii.commented_header``               Yes :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
+``ascii.daophot``                            :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
+``ascii.fixed_width``                    Yes :class:`~astropy.io.ascii.FixedWidth`: Fixed width
+``ascii.fixed_width_no_header``          Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
+``ascii.fixed_width_two_line``           Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+``ascii.ipac``                           Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
+``ascii.latex``                   .tex   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
+``ascii.no_header``                      Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
+``ascii.sextractor``                         :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
+``ascii.tab``                            Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
+``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
 =============================== ====== ===== ============================================================================================
 
 .. note::

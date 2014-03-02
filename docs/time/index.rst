@@ -7,8 +7,8 @@ Time and Dates (`astropy.time`)
 ****************************************************
 
 .. |Quantity| replace:: :class:`~astropy.units.quantity.Quantity`
-.. |Longitude| replace:: :class:`~astropy.coordinates.angles.Longitude`
-.. |Latitude| replace:: :class:`~astropy.coordinates.angles.Latitude`
+.. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
+.. |Latitude| replace:: :class:`~astropy.coordinates.Latitude`
 
 Introduction
 ============
@@ -129,35 +129,35 @@ Time Format
 The time format specifies how an instant of time is represented.  The currently
 available formats are can be found in the ``Time.FORMATS`` dict and
 are listed in the table below.  Each of these formats is implemented as a class
-that derives from the base :class:`~astropy.time.core.TimeFormat` class.
+that derives from the base :class:`~astropy.time.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
 =========  ====================================================  ==============================
 Format            Class                                           Example argument
 =========  ====================================================  ==============================
-byear      :class:`~astropy.time.core.TimeBesselianEpoch`             1950.0
-byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`      'B1950.0'
-cxcsec     :class:`~astropy.time.core.TimeCxcSec`                   63072064.184
-datetime   :class:`~astropy.time.core.TimeDatetime`              datetime(2000, 1, 2, 12, 0, 0)
-gps        :class:`~astropy.time.core.TimeGPS`                     630720013.0
-iso        :class:`~astropy.time.core.TimeISO`                     '2000-01-01 00:00:00.000'
-isot       :class:`~astropy.time.core.TimeISOT`                    '2000-01-01T00:00:00.000'
-jd         :class:`~astropy.time.core.TimeJD`                       2451544.5
-jyear      :class:`~astropy.time.core.TimeJulianEpoch`              2000.0
-jyear_str  :class:`~astropy.time.core.TimeJulianEpochString`       'J2000.0'
-mjd        :class:`~astropy.time.core.TimeMJD`                      51544.0
-plot_date  :class:`~astropy.time.core.TimePlotDate`                730120.0003703703
-unix       :class:`~astropy.time.core.TimeUnix`                    946684800.0
-yday       :class:`~astropy.time.core.TimeYearDayTime`             2000:001:00:00:00.000
+byear      :class:`~astropy.time.TimeBesselianEpoch`             1950.0
+byear_str  :class:`~astropy.time.TimeBesselianEpochString`      'B1950.0'
+cxcsec     :class:`~astropy.time.TimeCxcSec`                   63072064.184
+datetime   :class:`~astropy.time.TimeDatetime`              datetime(2000, 1, 2, 12, 0, 0)
+gps        :class:`~astropy.time.TimeGPS`                     630720013.0
+iso        :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
+isot       :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
+jd         :class:`~astropy.time.TimeJD`                       2451544.5
+jyear      :class:`~astropy.time.TimeJulianEpoch`              2000.0
+jyear_str  :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
+mjd        :class:`~astropy.time.TimeMJD`                      51544.0
+plot_date  :class:`~astropy.time.TimePlotDate`                730120.0003703703
+unix       :class:`~astropy.time.TimeUnix`                    946684800.0
+yday       :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 =========  ====================================================  ==============================
 
 Subformat
 """"""""""
 
-The time format classes :class:`~astropy.time.core.TimeISO`,
-:class:`~astropy.time.core.TimeISOT`, and
-:class:`~astropy.time.core.TimeYearDayTime` support the concept of
+The time format classes :class:`~astropy.time.TimeISO`,
+:class:`~astropy.time.TimeISOT`, and
+:class:`~astropy.time.TimeYearDayTime` support the concept of
 subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
 
@@ -373,8 +373,8 @@ scale
 ^^^^^
 
 The ``scale`` argument sets the `time scale`_ and is required except for time
-formats such as ``plot_date`` (:class:`~astropy.time.core.TimePlotDate`) and ``unix``
-(:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
+formats such as ``plot_date`` (:class:`~astropy.time.TimePlotDate`) and ``unix``
+(:class:`~astropy.time.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
 
 precision
@@ -458,7 +458,7 @@ Getting the Current Time
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The current time can be determined as a |Time| object using the
-`~astropy.time.core.Time.now` class method::
+`~astropy.time.Time.now` class method::
 
   >>> nt = Time.now()
   >>> ut = Time(datetime.utcnow(), scale='utc')
@@ -548,8 +548,8 @@ above require an additional offset time value that is model or
 observation-dependent.  See `SOFA Time Scale and Calendar Tools
 <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ for further details.
 
-The two attributes :attr:`~astropy.time.core.Time.delta_ut1_utc` and
-:attr:`~astropy.time.core.Time.delta_tdb_tt` provide a way to set
+The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
+:attr:`~astropy.time.Time.delta_tdb_tt` provide a way to set
 these offset times explicitly.  These represent the time scale offsets
 UT1 - UTC and TDB - TT, respectively.  As an example::
 
@@ -563,12 +563,12 @@ by the `International Earth Rotation and Reference Systems Service
 <http://www.iers.org>`_.  By default, Astropy is shipped with the final
 values provided in Bulletin B, which cover the period from 1962 to shortly
 before an astropy release, and these will be used to compute the offset if the
-:attr:`~astropy.time.core.Time.delta_ut1_utc` attribute is not set explicitly.  For
+:attr:`~astropy.time.Time.delta_ut1_utc` attribute is not set explicitly.  For
 more recent times, one can download an updated version of `IERS B
 <http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now>`_ or `IERS A
 <http://maia.usno.navy.mil/ser7/finals2000A.all>`_ (which also has
-predictions), and set :attr:`~astropy.time.core.Time.delta_ut1_utc` as described in
-`~astropy.time.core.Time.get_delta_ut1_utc`::
+predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
+`~astropy.time.Time.get_delta_ut1_utc`::
 
   >>> from astropy.utils.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
@@ -578,7 +578,7 @@ predictions), and set :attr:`~astropy.time.core.Time.delta_ut1_utc` as described
 
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object.  If the
-:attr:`~astropy.time.core.Time.delta_tdb_tt` attribute is not explicitly set then
+:attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set then
 the ERFA C-library routine ``eraDtdb`` will be used to compute the TDB to TT
 offset.  Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
@@ -612,7 +612,7 @@ Sidereal Time
 -------------
 
 Apparent or mean sidereal time can be calculated using
-:meth:`~astropy.time.core.Time.sidereal_time`.  The method returns a |Longitude|
+:meth:`~astropy.time.Time.sidereal_time`.  The method returns a |Longitude|
 with units of hourangle, which by default is for the longitude with which the
 |Time| object is initialized.  Like the scale transformations, ERFA C-library
 routines are used under the hood, which support calculations following
@@ -654,8 +654,8 @@ The available time formats are:
 =========  ===================================================
 Format            Class
 =========  ===================================================
-sec        :class:`~astropy.time.core.TimeDeltaSec`
-jd         :class:`~astropy.time.core.TimeDeltaJD`
+sec        :class:`~astropy.time.TimeDeltaSec`
+jd         :class:`~astropy.time.TimeDeltaJD`
 =========  ===================================================
 
 Examples
