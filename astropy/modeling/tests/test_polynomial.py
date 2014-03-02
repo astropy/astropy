@@ -62,7 +62,7 @@ class TestFitting(object):
         self.n2 = rsn.randn(self.x2.size)
         self.n2.shape = self.x2.shape
         self.linear_fitter = fitting.LinearLSQFitter()
-        self.non_linear_fitter = fitting.NonLinearLSQFitter()
+        self.non_linear_fitter = fitting.LevMarLSQFitter()
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_linear_fitter_1D(self, model_class):
@@ -93,7 +93,7 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
-
+    
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
         """ Test fitting with NonLinearLSQFitter"""
@@ -103,3 +103,4 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
+    
