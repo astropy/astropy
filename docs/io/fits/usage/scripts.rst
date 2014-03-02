@@ -5,7 +5,7 @@ Astropy installs a couple of useful utility programs on your system that are
 built with Astropy.
 
 fitsheader
-^^^^^^^^^
+^^^^^^^^^^
 .. automodule:: astropy.io.fits.scripts.fitsheader
 
 fitscheck

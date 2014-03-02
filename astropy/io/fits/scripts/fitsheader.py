@@ -1,31 +1,33 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 ``fitsheader`` is a command line script based on astropy.io.fits for printing
-the header(s) of one ore more FITS file(s) to the standard output.
+the header(s) of one or more FITS file(s) to the standard output in a human-
+readable format.
 
 Example uses of fitsheader:
 
-1. Print the header of all the HDUs of a .fits file:
+1. Print the header of all the HDUs of a .fits file::
 
     $ fitsheader filename.fits
 
-2. Print the header of the third HDU extension:
+2. Print the header of the third HDU extension::
 
     $ fitsheader --ext 3 filename.fits
 
-3. Print the header of a named extension having EXTNAME='SCI' and EXTVER='2'
-in the header:
+3. Print the header of a named extension, e.g. to select the HDU with header
+   keywords EXTNAME='SCI' and EXTVER='2'::
 
     $ fitsheader --ext "SCI,2" filename.fits
 
-4. Print the headers of all fits files in a directory:
+4. Print the headers of all fits files in a directory::
 
     $ fitsheader *.fits
 
-Note that compressed images (HDUs of type `CompImageHDU`) really have two
-headers: a real BINTABLE header to describe the compressed data, and a fake
-IMAGE header representing the image that was compressed. Astropy returns the
-latter by default. You must supply the "--compressed" option if you require the
+Note that compressed images (HDUs of type
+:class:`~astropy.io.fits.CompImageHDU`) really have two headers: a real
+BINTABLE header to describe the compressed data, and a fake IMAGE header
+representing the image that was compressed. Astropy returns the latter by
+default. You must supply the ``--compressed`` option if you require the real
 header that describes the compression.
 
 With Astropy installed, please run ``fitsheader --help`` to see the full usage
