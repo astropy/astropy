@@ -2,7 +2,7 @@
 
 """
 This module contains configuration and setup utilities for the
-`astropy` project. This includes all functionality related to the
+Astropy project. This includes all functionality related to the
 affiliated package index.
 """
 from __future__ import (absolute_import, division, print_function,
