@@ -476,9 +476,10 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                 ns['exceptions'], ns['all_exceptions'] = \
                                    get_members_mod(obj, 'exception')
             elif doc.objtype == 'class':
+                api_class_methods = ['__init__', '__call__']
                 ns['members'] = get_members_class(obj, None)
                 ns['methods'], ns['all_methods'] = \
-                                 get_members_class(obj, 'method', ['__init__'])
+                                 get_members_class(obj, 'method', api_class_methods)
                 ns['attributes'], ns['all_attributes'] = \
                                  get_members_class(obj, 'attribute')
                 ns['methods'].sort()
