@@ -7,6 +7,8 @@ be here, but rather in the particular subpackage.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import sys
+
 
 class AstropyWarning(Warning):
     """
@@ -44,3 +46,11 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
     The suggested procedure is to issue this warning for the version in
     which the change occurs, and remove it for all following versions.
     """
+
+
+# TimeoutError is defined in Python 3.3 and above
+if sys.version_info[:2] < (3,3):
+    class TimeoutError(Exception):
+        pass
+else:
+    TimeoutError = TimeoutError
