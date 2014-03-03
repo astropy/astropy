@@ -40,7 +40,7 @@ class sesame_url(state.ScienceState):
 
 
 SESAME_URL = state.ScienceStateAlias(
-    "0.4", "SESAME_URL", "sesame_url", sesame_url)
+    "0.4", "SESAME_URL", "sesame_url", sesame_url, cfgtype="list")
 
 
 class sesame_database(state.ScienceState):
@@ -50,7 +50,7 @@ class sesame_database(state.ScienceState):
     subpackage. Default is to search all databases, but this can be
     'all', 'simbad', 'ned', or 'vizier'.)
     """
-    _value = 'all'
+    _value = ['all']
 
     @classmethod
     def validate(cls, value):
@@ -63,7 +63,8 @@ class sesame_database(state.ScienceState):
 
 
 SESAME_DATABASE = state.ScienceStateAlias(
-    "0.4", "SESAME_DATABASE", "sesame_database", sesame_database)
+    "0.4", "SESAME_DATABASE", "sesame_database", sesame_database,
+    cfgtype="list")
 
 
 NAME_RESOLVE_TIMEOUT = _config.ConfigAlias(

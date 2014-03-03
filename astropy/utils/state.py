@@ -62,13 +62,18 @@ class ScienceStateAlias(ConfigItem):
     science_state : ScienceState subclass
         The science state class that now manages this information.
 
+    cfgtype : str or None, optional
+        A type specifier like those used as the *values* of a particular key in
+        a `configspec` file of `configobj`. If None, the type will be inferred
+        from the default value.
+
     module : str, optional
         The module containing the old configuration item.
     """
     # REMOVE in astropy 0.5
 
     def __init__(self, since, python_name, config_name, science_state,
-                 module=None):
+                 cfgtype=None, module=None):
         # We have to do the automatic module determination here, not
         # just in ConfigItem, otherwise the extra stack frame will
         # make it come up with the wrong answer.
@@ -89,6 +94,7 @@ class ScienceStateAlias(ConfigItem):
         super(ScienceStateAlias, self).__init__(
             science_state._value,
             science_state.__doc__,
+            cfgtype=cfgtype,
             module=module)
         self.name = config_name
 
@@ -98,7 +104,7 @@ class ScienceStateAlias(ConfigItem):
         value = super(ScienceStateAlias, self).__call__()
 
         # We got a value in the config file
-        if value != science_state._value:
+        if science_state.validate(value) != science_state._value:
             warnings.warn(
                 "Config parameter '{0}' in section [{1}] is deprecated. "
                 "Use science state {2}.{3} instead.".format(

@@ -249,8 +249,6 @@ class ConfigItem(property):
             elif isinstance(defaultvalue, six.string_types):
                 cfgtype = 'string'
                 defaultvalue = str(defaultvalue)
-            else:
-                raise TypeError("Unsupported configuration type")
 
         self.cfgtype = cfgtype
 
