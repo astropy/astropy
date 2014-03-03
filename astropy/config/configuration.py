@@ -322,15 +322,6 @@ class ConfigItem(property):
         finally:
             self.set(initval)
 
-    def save(self, value=None):
-        """
-        Removed in astropy 0.4.
-        """
-        raise NotImplementedError(
-            "The ability to save config options was removed in astropy 0.4. "
-            "To change config settings, edit '{0}' directly.".
-            format(get_config_filename(self.module)))
-
     def reload(self):
         """ Reloads the value of this `ConfigItem` from the relevant
         configuration file.
@@ -472,6 +463,15 @@ class ConfigurationItem(ConfigItem):
             module=module,
             aliases=aliases)
         self.name = name
+
+    def save(self, value=None):
+        """
+        Removed in astropy 0.4.
+        """
+        raise NotImplementedError(
+            "The ability to save config options was removed in astropy 0.4. "
+            "To change config settings, edit '{0}' directly.".
+            format(get_config_filename(self.module)))
 
 
 # TODO: Use InheritDocstrings
