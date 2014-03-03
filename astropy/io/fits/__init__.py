@@ -20,7 +20,11 @@ from ... import config as _config
 # Set module-global boolean variables
 # TODO: Make it possible to set these variables via environment variables
 # again, once support for that is added to Astropy
-class _Conf(_config.ConfigNamespace):
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.io.fits`.
+    """
+
     enable_record_valued_keyword_cards = _config.ConfigItem(
         True,
         'If True, enable support for record-valued keywords as described by '
@@ -28,7 +32,7 @@ class _Conf(_config.ConfigNamespace):
         aliases=['astropy.io.fits.enabled_record_valued_keyword_cards'])
     extension_name_case_sensitive = _config.ConfigItem(
         False,
-        'If True, extension names (i.e. the EXTNAME keyword) should be '
+        'If True, extension names (i.e. the ``EXTNAME`` keyword) should be '
         'treated as case-sensitive.')
     strip_header_whitespace = _config.ConfigItem(
         True,
@@ -41,7 +45,7 @@ class _Conf(_config.ConfigNamespace):
         'FITS files. This generally provides better performance, especially '
         'for large files, but may affect performance in I/O-heavy '
         'applications.')
-conf = _Conf()
+conf = Conf()
 
 
 ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
@@ -77,8 +81,8 @@ from .header import Header
 from .verify import VerifyError
 
 
-__all__ = (card.__all__ + column.__all__ + convenience.__all__ +
-           hdu.__all__ +
+__all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
+           convenience.__all__ + hdu.__all__ +
            ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
             'new_table', 'Header', 'VerifyError', 'conf',
             'EXTENSION_NAME_CASE_SENSITIVE', 'USE_MEMMAP',

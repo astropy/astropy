@@ -15,11 +15,15 @@ from .flag_collection import *
 from .. import config as _config
 
 
-class _Conf(_config.ConfigNamespace):
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.nddata`.
+    """
+
     warn_unsupported_correlated = _config.ConfigItem(
         True,
-        'Whether to issue a warning if NDData arithmetic is performed with '
-        'uncertainties and the uncertainties do not support the propagation '
-        'of correlated uncertainties.'
+        'Whether to issue a warning if `~astropy.nddata.NDData` arithmetic '
+        'is performed with uncertainties and the uncertainties do not '
+        'support the propagation of correlated uncertainties.'
     )
-conf = _Conf()
+conf = Conf()

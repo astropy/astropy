@@ -166,6 +166,9 @@ See Also
 Reference/API
 -------------
 
+.. automodapi:: astropy.vo
+   :no-inheritance-diagram:
+
 .. automodapi:: astropy.vo.client.vos_catalog
    :no-inheritance-diagram:
 
@@ -176,6 +179,8 @@ Reference/API
    :no-inheritance-diagram:
 
 .. automodapi:: astropy.vo.client.exceptions
+
+.. automodapi:: astropy.vo.validator
 
 .. automodapi:: astropy.vo.validator.validate
    :no-inheritance-diagram:

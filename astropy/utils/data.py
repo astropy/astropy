@@ -28,21 +28,27 @@ from .. import config as _config
 from ..utils.exceptions import AstropyWarning
 
 
-__all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
-           'get_pkg_data_filename', 'get_pkg_data_contents',
-           'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
-           'clear_download_cache', 'CacheMissingWarning',
-           'get_free_space_in_dir', 'check_free_space_in_dir', 'download_file',
-           'download_files_in_parallel']
+__all__ = [
+    'Conf', 'conf', 'get_readable_fileobj', 'get_file_contents',
+    'get_pkg_data_fileobj', 'get_pkg_data_filename',
+    'get_pkg_data_contents', 'get_pkg_data_fileobjs',
+    'get_pkg_data_filenames', 'compute_hash', 'clear_download_cache',
+    'CacheMissingWarning', 'get_free_space_in_dir',
+    'check_free_space_in_dir', 'download_file',
+    'download_files_in_parallel']
 
 
-class _Conf(_config.ConfigNamespace):
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.utils.data`.
+    """
+
     dataurl = _config.ConfigItem(
         'http://data.astropy.org/',
         'URL for astropy remote data site.')
     remote_timeout = _config.ConfigItem(
         3.,
-        'Time to wait for remote data query (in seconds).',
+        'Time to wait for remote data queries (in seconds).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     compute_hash_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
@@ -58,7 +64,7 @@ class _Conf(_config.ConfigNamespace):
         True,
         'If True, temporary download files created when the cache is '
         'inaccessible will be deleted at the end of the python session.')
-conf = _Conf()
+conf = Conf()
 
 
 DATAURL = _config.ConfigAlias(

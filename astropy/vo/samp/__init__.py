@@ -20,10 +20,14 @@ from .hub_proxy import *
 from ... import config as _config
 
 
-class _Conf(_config.ConfigNamespace):
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.vo.samp`.
+    """
+
     use_internet = _config.ConfigItem(
         True,
-        "Whether to allow astropy.vo.samp to use "
-        "the internet, if available",
+        "Whether to allow `astropy.vo.samp` to use "
+        "the internet, if available.",
         aliases=['astropy.vo.samp.utils.use_internet'])
-conf = _Conf()
+conf = Conf()

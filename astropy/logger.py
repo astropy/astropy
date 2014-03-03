@@ -15,7 +15,7 @@ from .utils.console import color_print
 from .utils.misc import find_current_module
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
-__all__ = ['log', 'AstropyLogger', 'LoggingError', 'conf']
+__all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
 
 
 # Initialize by calling _init_log()
@@ -40,38 +40,38 @@ class _AstLogIPYExc(Exception):
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration items for `astropy.logger`.
+    Configuration parameters for `astropy.logger`.
     """
     log_level = _config.ConfigItem(
         'INFO',
         "Threshold for the logging messages. Logging "
         "messages that are less severe than this level "
-        "will be ignored. The levels are 'DEBUG', "
-        "'INFO', 'WARNING', 'ERROR'")
+        "will be ignored. The levels are ``'DEBUG'``, "
+        "``'INFO'``, ``'WARNING'``, ``'ERROR'``.")
     log_warnings = _config.ConfigItem(
         True,
-        "Whether to log warnings.warn calls")
+        "Whether to log `warnings.warn` calls.")
     log_exceptions = _config.ConfigItem(
         False,
         "Whether to log exceptions before raising "
-        "them")
+        "them.")
     log_to_file = _config.ConfigItem(
         False,
         "Whether to always log messages to a log "
-        "file")
+        "file.")
     log_file_path = _config.ConfigItem(
         '',
-        "The file to log messages to. When '', "
-        "it defaults to a file 'astropy.log' in "
+        "The file to log messages to. When ``''``, "
+        "it defaults to a file ``'astropy.log'`` in "
         "the astropy config directory.")
     log_file_level = _config.ConfigItem(
         'INFO',
         "Threshold for logging messages to "
-        "log_file_path")
+        "`log_file_path`.")
     log_file_format = _config.ConfigItem(
         "%(asctime)r, "
         "%(origin)r, %(levelname)r, %(message)r",
-        "Format for log file entries")
+        "Format for log file entries.")
 conf = Conf()
 
 

@@ -84,7 +84,7 @@ class ConfigNamespace(object):
 
     For example::
 
-        class _Conf(_config.ConfigNamespace):
+        class Conf(_config.ConfigNamespace):
             unicode_output = _config.ConfigItem(
                 False,
                 'Use Unicode characters when outputting values, ...')
@@ -92,7 +92,7 @@ class ConfigNamespace(object):
                 sys.platform != 'win32',
                 'When True, use ANSI color escape sequences when ...',
                 aliases=['astropy.utils.console.USE_COLOR'])
-        conf = _Conf()
+        conf = Conf()
     """
     def set_temp(self, attr, value):
         """

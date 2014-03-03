@@ -78,16 +78,20 @@ from . import config as _config
 import sys
 
 
-class _Conf(_config.ConfigNamespace):
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy`.
+    """
+
     unicode_output = _config.ConfigItem(
         False,
-        'Use Unicode characters when outputting values, and writing widgets '
-        'to the console.')
+        'When True, use Unicode characters when outputting values, and '
+        'displaying widgets at the console.')
     use_color = _config.ConfigItem(
         sys.platform != 'win32',
         'When True, use ANSI color escape sequences when writing to the console.',
         aliases=['astropy.utils.console.USE_COLOR', 'astropy.logger.USE_COLOR'])
-conf = _Conf()
+conf = Conf()
 
 
 UNICODE_OUTPUT = _config.ConfigAlias(
