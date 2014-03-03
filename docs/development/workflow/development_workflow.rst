@@ -109,6 +109,15 @@ to Astropy:
     A good graphical interface to git makes some of these steps much
     easier. Some options are described in :ref:`git_gui_options`.
 
+
+If something goes wrong
+-----------------------
+
+`git` provides a number of ways to recover from errors. If you end up making a
+`git` mistake, do not hesitate to ask for help. An additional resource that
+walks you through recovering from `git` mistakes is the
+`git choose-your-own-adventure`_.
+
 .. _astropy-git:
 
 Astropy Guidelines for `git`
@@ -438,3 +447,4 @@ branch you made:
 .. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: http://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
+.. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
