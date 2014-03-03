@@ -474,6 +474,7 @@ class ConfigurationItem(ConfigItem):
         self.name = name
 
 
+# TODO: Use InheritDocstrings
 class ConfigAlias(ConfigItem):
     """
     A class that exists to support backward compatibility only.

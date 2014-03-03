@@ -11,12 +11,23 @@ from ..utils import find_current_module
 
 
 class ScienceState(object):
+    """
+    Science state subclasses are used to manage global items that can
+    affect science results.  Subclasses will generally override
+    `validate` to convert from any of the acceptable inputs (such as
+    strings) to the appropriate internal objects, and set an initial
+    value to the `_value` member so it has a default.
+    """
+
     def __init__(self):
         raise RuntimeError(
             "This class is a singleton.  Do not instantiate.")
 
     @classmethod
     def get(cls):
+        """
+        Get the current science state value.
+        """
         return cls.validate(cls._value)
 
     @classmethod
@@ -42,6 +53,7 @@ class ScienceState(object):
         return value
 
 
+# TODO: Use InheritDocstrings
 class ScienceStateAlias(ConfigItem):
     """
     This is a backward compatibility layer for configuration items
