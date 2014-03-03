@@ -569,7 +569,7 @@ class SphericalCoordinatesBase(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
+        This method requires `SciPy` to be installed or it will fail.
 
         See Also
         --------
