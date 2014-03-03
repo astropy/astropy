@@ -29,7 +29,7 @@
 from astropy.sphinx.conf import *
 
 import astropy
-
+nitpicky = True
 
 # -- General configuration ----------------------------------------------------
 

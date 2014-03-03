@@ -30,37 +30,37 @@ The basic workflow is as follows:
 
     1. ``from astropy import wcs``
 
-    2. Call the `~astropy.wcs.wcs.WCS` constructor with an
+    2. Call the `~astropy.wcs.WCS` constructor with an
        `astropy.io.fits` header and/or hdulist object.
 
     3. Optionally, if the FITS file uses any deprecated or
        non-standard features, you may need to call one of the
-       `~astropy.wcs.wcs.WCS.fix` methods on the object.
+       `~astropy.wcs.fix` methods on the object.
 
     4. Use one of the following transformation methods:
 
-       - `~astropy.wcs.wcs.WCS.all_pix2world`: Perform all three
+       - `~astropy.wcs.all_pix2world`: Perform all three
          transformations from pixel to world coordinates.
 
-       - `~astropy.wcs.wcs.WCS.wcs_pix2world`: Perform just the core
+       - `~astropy.wcs.wcs_pix2world`: Perform just the core
          WCS transformation from pixel to world coordinates.
 
-       - `~astropy.wcs.wcs.WCS.wcs_world2pix`: Perform just the core
+       - `~astropy.wcs.wcs_world2pix`: Perform just the core
          WCS transformation from world to pixel coordinates.
 
-       - `~astropy.wcs.wcs.WCS.sip_pix2foc`: Convert from pixel to
+       - `~astropy.wcs.sip_pix2foc`: Convert from pixel to
          focal plane coordinates using the `SIP`_ polynomial
          coefficients.
 
-       - `~astropy.wcs.wcs.WCS.sip_foc2pix`: Convert from focal plane
+       - `~astropy.wcs.sip_foc2pix`: Convert from focal plane
          to pixel coordinates using the `SIP`_ polynomial
          coefficients.
 
-       - `~astropy.wcs.wcs.WCS.p4_pix2foc`: Convert from pixel to
+       - `~astropy.wcs.p4_pix2foc`: Convert from pixel to
          focal plane coordinates using the table lookup distortion
          method described in `Paper IV`_.
 
-       - `~astropy.wcs.wcs.WCS.det2im`: Convert from detector
+       - `~astropy.wcs.det2im`: Convert from detector
          coordinates to image coordinates.  Commonly used for narrow
          column correction.
 

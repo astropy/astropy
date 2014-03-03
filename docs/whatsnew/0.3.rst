@@ -119,7 +119,7 @@ and we can then execute the query::
 
 The result is returned as a :class:`astropy.io.votable.tree.Table` instance
 (note that this is different from the generic
-:class:`astropy.table.table.Table` class)::
+:class:`astropy.table.Table` class)::
 
     >>> result.url
     u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
@@ -132,7 +132,7 @@ The result is returned as a :class:`astropy.io.votable.tree.Table` instance
 
 .. as above, we are deliberately not using ~ in the API link
 
-Converting to an :class:`astropy.table.table.Table` is
+Converting to an :class:`astropy.table.Table` is
 straightforward::
 
     >>> table = result.to_table()
@@ -192,7 +192,7 @@ Coordinate objects from the :ref:`astropy-coordinates` sub-package can now
 store arrays of coordinates instead of just a single coordinate. This
 dramatically speeds up coordinate conversions when many coordinates are used.
 The following example shows how one can combine this with functionality from
-the :class:`~astropy.table.table.Table` class to read in arrays of coordinates
+the :class:`~astropy.table.Table` class to read in arrays of coordinates
 and convert them to a different coordinate frame. First, we can read in a table
 which contains coordinates both in decimal and string form::
 
@@ -242,12 +242,12 @@ return Numpy arrays.
 
 As shown above, all the coordinate classes have now been renamed to drop the
 ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``). In
-addition, ``HorizontalCoordinates`` has now been renamed to `~astropy.coordinates.builtin_systems.AltAz`.
+addition, ``HorizontalCoordinates`` has now been renamed to `~astropy.coordinates.AltAz`.
 
 Coordinate objects now support matching one set of coordinates to another
 using the array coordinates functionality described above.  See
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_sky`
-and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
+`~astropy.coordinates.SphericalCoordinatesBase.match_to_catalog_sky`
+and `~astropy.coordinates.SphericalCoordinatesBase.match_to_catalog_3d`
 for more details.
 
 Finally, coordinate objects now have a ``to_string`` method that allows easy
@@ -278,16 +278,16 @@ more input tables:
      - Function
    * - :ref:`grouped-operations`
      - Group tables and columns by keys
-     - `~astropy.table.table.Table.group_by`
+     - `~astropy.table.Table.group_by`
    * - :ref:`stack-vertically`
      - Concatenate input tables along rows
-     - `~astropy.table.operations.vstack`
+     - `~astropy.table.vstack`
    * - :ref:`stack-horizontally`
      - Concatenate input tables along columns
-     - `~astropy.table.operations.hstack`
+     - `~astropy.table.hstack`
    * - :ref:`table-join`
      - Database-style join of two tables
-     - `~astropy.table.operations.join`
+     - `~astropy.table.join`
 
 Grouping is a useful concept that allows you to divide a table
 into sub-groups based on certain key values and create new tables based
@@ -316,8 +316,8 @@ Reference Systems Service
 calculation of UT1 becomes possible.
 
 One very significant improvement is an overhaul of the internal
-time manipulations so that arithmetic with `~astropy.time.core.Time` and
-`~astropy.time.core.TimeDelta` objects maintain sub-nanosecond precision over a time span
+time manipulations so that arithmetic with `~astropy.time.Time` and
+`~astropy.time.TimeDelta` objects maintain sub-nanosecond precision over a time span
 longer than the age of the universe.  This is done by carefully managing
 the way the time is represented and manipulated using two 64-bit floats.
 
@@ -333,7 +333,7 @@ ASCII Tables
 The :ref:`io-ascii` sub-package now includes functionality to write `IPAC format tables
 <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_.
 
-The `~astropy.io.ascii.ui.read()` and `~astropy.io.ascii.ui.write()` functions now
+The `~astropy.io.ascii.read()` and `~astropy.io.ascii.write()` functions now
 allow a ``format`` keyword argument for specifying the file format as a string.
 This replaces the deprecated ``Reader`` and ``Writer`` keywords which required
 supplying a fully-qualified class type.  To convert existing code that uses
@@ -451,8 +451,8 @@ will now be displayed about any non-standard WCS keywords that were fixed to
 become standard compliant.
 
 For users who have `Scipy <http://www.scipy.org>`_ installed, the
-:class:`~astropy.wcs.wcs.WCS` class features a new method
-:meth:`~astropy.wcs.wcs.WCS.all_world2pix` for converting from world
+:class:`~astropy.wcs.WCS` class features a new method
+:meth:`~astropy.wcs.WCS.all_world2pix` for converting from world
 coordinates to pixel space including the inversion of astrometric distortion
 corrections.
 

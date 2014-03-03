@@ -4,7 +4,7 @@ NDData overview
 Initializing
 ------------
 
-An `~astropy.nddata.nddata.NDData` object can be instantiated by passing it an
+An `~astropy.nddata.NDData` object can be instantiated by passing it an
 n-dimensional Numpy array::
 
     >>> import numpy as np
@@ -12,7 +12,7 @@ n-dimensional Numpy array::
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
 
-or by passing it an `~astropy.nddata.nddata.NDData` object:
+or by passing it an `~astropy.nddata.NDData` object:
 
     >>> ndd1 = NDData(array)
     >>> ndd2 = NDData(ndd1)
@@ -73,7 +73,7 @@ and flags can easily be used to set the mask::
 Uncertainties
 -------------
 
-`~astropy.nddata.nddata.NDData` objects have an `uncertainty` attribute that can be
+`~astropy.nddata.NDData` objects have an `uncertainty` attribute that can be
 used to set the uncertainty on the data values. This is done by using classes
 to represent the uncertainties of a given type. For example, to set standard
 deviation uncertainties on the pixel values, you can do::
@@ -88,15 +88,15 @@ Arithmetic
 ----------
 
 Provided that the world coordinate system (WCS), units, and shape match, two
-:class:`~astropy.nddata.nddata.NDData` instances can be added or subtracted
+:class:`~astropy.nddata.NDData` instances can be added or subtracted
 from each other, with uncertainty propagation, creating a new
-:class:`~astropy.nddata.nddata.NDData` object::
+:class:`~astropy.nddata.NDData` object::
 
     ndd3 = ndd1.add(ndd2)
     ndd4 = ndd1.subtract(ndd2)
 
-The purpose of the :meth:`~astropy.nddata.nddata.NDData.add` and
-:meth:`~astropy.nddata.nddata.NDData.subtract` methods is to allow the
+The purpose of the :meth:`~astropy.nddata.add` and
+:meth:`~astropy.nddata.subtract` methods is to allow the
 combination of two data objects that have common WCS, units, and shape, with
 consistent behavior for masks and flags, and with a framework to propagate
 uncertainties. These methods are intended for use by sub-classes and functions
@@ -108,7 +108,7 @@ that deal with more complex combinations.
 Meta-data
 ---------
 
-The :class:`~astropy.nddata.nddata.NDData` class includes a ``meta`` attribute
+The :class:`~astropy.nddata.NDData` class includes a ``meta`` attribute
 that defaults to an empty dictionary, and can be used to set overall meta-data
 for the dataset::
 
@@ -122,7 +122,7 @@ Elements of the meta-data dictionary can be set to any valid Python object::
 Converting to Numpy arrays
 --------------------------
 
-`~astropy.nddata.nddata.NDData` objects can also be easily converted to
+`~astropy.nddata.NDData` objects can also be easily converted to
 numpy arrays::
 
     >>> import numpy as np
@@ -132,7 +132,7 @@ numpy arrays::
 
 If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
 in all cases a useable `numpy.ndarray` or subclass will result. This allows
-straightforward plotting of `~astropy.nddata.nddata.NDData` objects with 1-
+straightforward plotting of `~astropy.nddata.NDData` objects with 1-
 and 2-dimensional datasets using `matplotlib`::
 
     >>> from matplotlib import pyplot as plt  # doctest: +SKIP
