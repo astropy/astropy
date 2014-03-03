@@ -3,13 +3,13 @@
 Masking and missing values
 --------------------------
 
-The `astropy.table` package provides support for masking and missing
+The `astropy.Table` package provides support for masking and missing
 values in a table by wrapping the `numpy.ma` masked array package.
 This allows handling tables with missing or invalid entries in much
 the same manner as for standard (unmasked) tables.  It
 is useful to be familiar with the `masked array
 <http://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html>`_
-documentation when using masked tables within `astropy.table`.
+documentation when using masked tables within `astropy.Table`.
 
 In a nutshell, the concept is to define a boolean mask that mirrors
 the structure of the table data array.  Wherever a mask value is
@@ -75,7 +75,7 @@ different classes for these two cases.
   >>> t = Table([[1, 2]], names=['a'])
   >>> b = MaskedColumn([3, 4], mask=[True, False])
   >>> t['b'] = b
-  INFO: Upgrading Table to masked Table [astropy.table.table]
+  INFO: Upgrading Table to masked Table [astropy.Table]
 
 Note the INFO message because the underlying type of the table is modified in this operation.
 
@@ -85,7 +85,7 @@ Note the INFO message because the underlying type of the table is modified in th
   >>> b = Column([3, 4], name='b')
   >>> t = Table([a, b])
   >>> t.add_row([3, 6], mask=[True, False])
-  INFO: Upgrading Table to masked Table [astropy.table.table]
+  INFO: Upgrading Table to masked Table [astropy.Table]
 
 **Convert an existing table to a masked table**
 

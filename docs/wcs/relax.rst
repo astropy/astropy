@@ -20,8 +20,8 @@ out only standard keywords), in accordance with `Postel's prescription
 Header-reading relaxation constants
 -----------------------------------
 
-`~astropy.wcs.wcs.WCS`, `~astropy.wcs.Wcsprm` and
-`~astropy.wcs.wcs.find_all_wcs` have a *relax* argument, which may be
+`~astropy.wcs.WCS`, `~astropy.wcs.Wcsprm` and
+`~astropy.wcs.find_all_wcs` have a *relax* argument, which may be
 either `True`, `False` or an `int`.
 
 - If `True`, (default), all non-standard WCS extensions recognized by the parser
@@ -271,7 +271,7 @@ The flag bits are:
 Header-writing relaxation constants
 -----------------------------------
 
-`~astropy.wcs.wcs.WCS.to_header` and `~astropy.wcs.wcs.WCS.to_header_string`
+`~astropy.wcs.WCS.to_header` and `~astropy.wcs.WCS.to_header_string`
 has a *relax* argument which may be either `True`, `False` or an
 `int`.
 
