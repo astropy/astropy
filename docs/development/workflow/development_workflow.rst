@@ -404,6 +404,11 @@ branch from the development branch and applying your changes to your branch.
 This results in re-writing the history of commits, which is why you should do it
 only if asked.
 
+It is easier to make mistakes rebasing than other areas of `git`, so before you
+start make a branch to serve as a backup copy of your work::
+
+    git branch tmp my-new-feature # make temporary branch--will be deleted later
+
 The actual rebasing is usually easy::
 
     git fetch astropy/master  # get the latest development astropy
@@ -419,7 +424,13 @@ after you have pushed it somewhere::
 
     git push -f
 
-If you run into any problems, do not hesitate to ask. A more detailed conceptual discussing of rebasing is at :ref:`rebase-on-trunk`.
+If you run into any problems, do not hesitate to ask. A more detailed conceptual
+discussing of rebasing is at :ref:`rebase-on-trunk`.
+
+Once your rebase is successfully pushed to GitHub you can delete the backup
+branch you made:
+
+    git branch -D tmp
 
 .. include:: links.inc
 
