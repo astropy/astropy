@@ -53,11 +53,11 @@ The example described in `Custom 1D models`_ can be used for most 1D cases, but
 the following section described how to construct model classes in general.
 The details are explained below with a 1D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
-from `~astropy.modeling.core.ParametricModel`; if not it should subclass
-`~astropy.modeling.core.Model`.
+from `~astropy.modeling.ParametricModel`; if not it should subclass
+`~astropy.modeling.Model`.
 
 If the model takes parameters they should be specified as class attributes in
-the model's class definition using the `~astropy.modeling.parameters.Parameter`
+the model's class definition using the `~astropy.modeling.Parameter`
 descriptor.  The first argument for defining the parameter must be a unique (
 to that model) name of the parameter, and it must be identical to the class
 attribute being assigned that parameter.  Subsequent arguments are optional,
@@ -143,7 +143,7 @@ which case the ``fit_deriv`` method should be ``None``::
 
 Finally, the ``__call__`` method takes input coordinates as separate arguments.
 It reformats them (if necessary) using the
-`~astropy.modeling.core.format_input` wrapper/decorator and calls the eval
+`~astropy.modeling.format_input` wrapper/decorator and calls the eval
 method to perform the model evaluation using ``model.param_sets`` as
 parameters.  The reason there is a separate eval method is to allow fitters to
 call the eval method with different parameters which is necessary for fitting

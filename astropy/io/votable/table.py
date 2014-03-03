@@ -97,13 +97,13 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         ``vounit``.  A custom formatter may be provided by passing a
         `astropy.units.format.Base` instance.  If `None` (default),
         the unit format to use will be the one specified by the
-        VOTable specification (which is `cds` up to version 1.2 of
-        VOTable, and (probably) `vounit` in future versions of the
+        VOTable specification (which is ``cds`` up to version 1.2 of
+        VOTable, and (probably) ``vounit`` in future versions of the
         spec).
 
     Returns
     -------
-    votable : `astropy.io.votable.tree.VOTableFile` object
+    votable : `~astropy.io.votable.tree.VOTableFile` object
 
     See also
     --------
@@ -144,7 +144,7 @@ def parse_single_table(source, **kwargs):
 
     Returns
     -------
-    votable : `astropy.io.votable.tree.Table` object
+    votable : `~astropy.io.votable.tree.Table` object
     """
     if kwargs.get('table_number') is None:
         kwargs['table_number'] = 0
@@ -156,11 +156,11 @@ def parse_single_table(source, **kwargs):
 
 def writeto(table, file, tabledata_format=None):
     """
-    Writes a `astropy.io.vo.VOTableFile` to a VOTABLE_ xml file.
+    Writes a `~astropy.io.votable.tree.VOTableFile` to a VOTABLE_ xml file.
 
     Parameters
     ----------
-    table : `astropy.io.vo.VOTableFile` or `astropy.table.Table` instance.
+    table : `~astropy.io.votable.tree.VOTableFile` or `~astropy.table.Table` instance.
 
     file : str or writable file-like object
         Path or file object to write to
@@ -193,14 +193,14 @@ def validate(source, output=None, xmllint=False, filename=None):
         Path to a VOTABLE_ xml file.
 
     output : writable file-like object, optional
-        Where to output the report.  Defaults to `sys.stdout`.
+        Where to output the report.  Defaults to ``sys.stdout``.
         If `None`, the output will be returned as a string.
 
     xmllint : bool, optional
-        When `True`, also send the file to `xmllint` for schema and
-        DTD validation.  Requires that `xmllint` is installed.  The
-        default is `False`.  `source` must be a file on the local
-        filesystem in order for `xmllint` to work.
+        When `True`, also send the file to ``xmllint`` for schema and
+        DTD validation.  Requires that ``xmllint`` is installed.  The
+        default is `False`.  ``source`` must be a file on the local
+        filesystem in order for ``xmllint`` to work.
 
     filename : str, optional
         A filename to use in the error messages.  If not provided, one
@@ -209,7 +209,7 @@ def validate(source, output=None, xmllint=False, filename=None):
     Returns
     -------
     is_valid : bool or str
-        Returns `True` if no warnings were found.  If `output` is
+        Returns `True` if no warnings were found.  If ``output`` is
         `None`, the return value will be a string.
     """
 
@@ -311,13 +311,13 @@ def validate(source, output=None, xmllint=False, filename=None):
 
 def from_table(table, table_id=None):
     """
-    Given an `astropy.table.Table` object, return a
+    Given an `~astropy.table.Table` object, return a
     `~astropy.io.votable.tree.VOTableFile` file structure containing
     just that single table.
 
     Parameters
     ----------
-    table : `astropy.table.Table` instance
+    table : `~astropy.table.Table` instance
 
     table_id : str, optional
         If not `None`, set the given id on the returned
@@ -325,7 +325,7 @@ def from_table(table, table_id=None):
 
     Returns
     -------
-    votable : `astropy.io.votable.tree.VOTableFile` instance
+    votable : `~astropy.io.votable.tree.VOTableFile` instance
     """
     return tree.VOTableFile.from_table(table, table_id=table_id)
 

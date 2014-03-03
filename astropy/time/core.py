@@ -134,7 +134,7 @@ class Time(object):
 
     Parameters
     ----------
-    val : sequence, str, number, or `~astropy.time.core.Time` object
+    val : sequence, str, number, or `~astropy.time.Time` object
         Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times.
@@ -148,9 +148,9 @@ class Time(object):
         Subformat for inputting string times
     out_subfmt : str, optional
         Subformat for outputting string times
-    lon, lat : `~astropy.coordinates.angles.Angle` or float, optional
+    lon, lat : `~astropy.coordinates.Angle` or float, optional
         Earth East longitude and latitude of observer.  Can be anything that
-        initialises an `~astropy.coordinates.angle.Angle` object
+        initialises an `~astropy.coordinates.Angle` object
         (if float, should be decimal degrees).
         They are required to calculate local sidereal times and give improved
         precision for conversion from/to TDB and TCB.

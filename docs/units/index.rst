@@ -4,7 +4,7 @@
 Units and Quantities (`astropy.units`)
 **************************************
 
-.. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+.. |quantity| replace:: :class:`~astropy.units.Quantity`
 
 .. currentmodule:: astropy.units
 

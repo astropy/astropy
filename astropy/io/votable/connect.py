@@ -50,7 +50,7 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
 
     Parameters
     ----------
-    input : str or `astropy.io.votable.tree.VOTableFile` or `astropy.io.votable.tree.Table`
+    input : str or `~astropy.io.votable.tree.VOTableFile` or `~astropy.io.votable.tree.Table`
         If a string, the filename to read the table from. If a
         :class:`~astropy.io.votable.tree.VOTableFile` or
         :class:`~astropy.io.votable.tree.Table` object, the object to extract
@@ -63,8 +63,8 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         the table in the file, starting at 0.
 
     use_names_over_ids : bool, optional
-        When `True` use the `name` attributes of columns as the names
-        of columns in the `astropy.table.Table` instance.  Since names
+        When `True` use the ``name`` attributes of columns as the names
+        of columns in the `~astropy.table.Table` instance.  Since names
         are not guaranteed to be unique, this may cause some columns
         to be renamed by appending numbers to the end.  Otherwise
         (default), use the ID attributes as the column names.

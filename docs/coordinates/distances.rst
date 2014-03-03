@@ -4,7 +4,7 @@ Distances and Cartesian Representations
 Coordinates can also have line-of-sight distances.  If these are provided, a
 coordinate object becomes a full-fledged point in three-dimensional space.
 
-The `~astropy.coordinates.distances.Distance` class is provided to represent a
+The `~astropy.coordinates.Distance` class is provided to represent a
 line-of-sight distance for a coordinate.  It must include a length unit to be
 valid.::
 
@@ -21,15 +21,15 @@ valid.::
     >>> c
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
-Because `Distance` is a subclass of `~astropy.units.Quantity`, in general a
+Because `~astropy.coordinates.Distance` is a subclass of `~astropy.units.Quantity`, in general a
 `~astropy.units.Quantity` with units of length may be provided and it will
-automatically convert to a `Distance`::
+automatically convert to a `~astropy.coordinates.Distance`::
 
     >>> ICRS('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
-If a `distance` is present, the coordinate can be converted into Cartesian
-coordinates using the `x`/`y`/`z` attributes (which are
+If a ``distance`` is present, the coordinate can be converted into Cartesian
+coordinates using the ``x``/``y``/``z`` attributes (which are
 `~astropy.units.Quantity` objects)::
 
     >>> c.x
@@ -39,7 +39,7 @@ coordinates using the `x`/`y`/`z` attributes (which are
     >>> c.z
     <Quantity 507.88990924863... kpc>
 
-If a `distance` is not present, the Cartesian coordinates are still
+If a ``distance`` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
@@ -59,7 +59,7 @@ unit sphere::
     the Earth center (or for precision work, the Earth/Moon barycenter).
 
 The Cartesian coordinates can also be accessed via the
-`~astropy.coordinates.distances.CartesianPoints` object, which has
+`~astropy.coordinates.CartesianPoints` object, which has
 additional capabilities like arithmetic operations::
 
     >>> cp = c.cartesian
@@ -79,7 +79,7 @@ additional capabilities like arithmetic operations::
     <CartesianPoints [ 0., 0., 0.] kpc>
 
 This Cartesian representation can also be used to create a new coordinate
-object, either directly or through a `CartesianPoints` object::
+object, either directly or through a `~astropy.coordinates.CartesianPoints` object::
 
     >>> from astropy.coordinates import CartesianPoints
     >>> ICRS(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)

@@ -1,4 +1,4 @@
-.. |Time| replace:: :class:`~astropy.time.core.Time`
-.. |TimeDelta| replace:: :class:`~astropy.time.core.TimeDelta`
+.. |Time| replace:: :class:`~astropy.time.Time`
+.. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
 .. _SOFA: http://www.iausofa.org/index.html
 .. _ERFA: https://github.com/liberfa/erfa

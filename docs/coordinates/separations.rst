@@ -12,7 +12,7 @@ computes the great-circle distance (*not* the small-angle approximation)::
     <Angle 20.746118437707... deg>
 
 
-The returned object is an `~astropy.coordinates.angles.Angle` instance, so it
+The returned object is an `~astropy.coordinates.Angle` instance, so it
 is straightforward to access the angle in any of several equivalent angular
 units::
 

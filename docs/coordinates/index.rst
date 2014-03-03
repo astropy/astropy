@@ -37,9 +37,9 @@ include lists of multiple coordinates in one object::
     >>> ICRS(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], unit=(u.degree, u.degree))
     <ICRS RA=[ 10.68458  83.82208] deg, Dec=[ 41.26917  -5.39111] deg>
 
-The individual components of a coordinate are `~astropy.coordinates.angles.Longitude`
-or `~astropy.coordinates.angles.Latitude` objects, which are specialized versions
-of the general `~astropy.coordinates.angles.Angle` class.  The component values are
+The individual components of a coordinate are `~astropy.coordinates.Longitude`
+or `~astropy.coordinates.Latitude` objects, which are specialized versions
+of the general `~astropy.coordinates.Angle` class.  The component values are
 accessed using aptly named attributes::
 
     >>> c = ICRS(ra=10.68458, dec=41.26917,
@@ -116,7 +116,7 @@ arrays::
 The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects (if you have an active internet
 connection). All subclasses of
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
+`~astropy.coordinates.SphericalCoordinatesBase` have a
 special class method, `from_name()`, that accepts a string and queries
 `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
 coordinates for that object::
@@ -126,7 +126,7 @@ coordinates for that object::
     (<Longitude 83.82208... deg>, <Latitude -5.39111... deg>)
 
 This works for any subclass of
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
+`~astropy.coordinates.SphericalCoordinatesBase`::
 
     >>> c = Galactic.from_name("M42")  # doctest: +REMOTE_DATA
     >>> c.l, c.b  # doctest: +SKIP

@@ -9,23 +9,23 @@ I/O Registry (`astropy.io.registry`)
           The I/O registry is only meant to be used directly by users who want
           to define their own custom readers/writers. Users who want to find
           out more about what built-in formats are supported by
-          :class:`~astropy.table.table.Table` by default should see
+          :class:`~astropy.table.Table` by default should see
           :ref:`table_io`. No built-in formats are currently defined for
-          :class:`~astropy.nddata.nddata.NDData`, but this will be added in
+          :class:`~astropy.nddata.NDData`, but this will be added in
           future).
 
 Introduction
 ============
 
 The I/O registry is a sub-module used to define the readers/writers available
-for the :class:`~astropy.table.table.Table` and
-:class:`~astropy.nddata.nddata.NDData` classes.
+for the :class:`~astropy.table.Table` and
+:class:`~astropy.nddata.NDData` classes.
 
 Using `io.registry`
 ===================
 
 The following example demonstrates how to create a reader for the
-:class:`~astropy.table.table.Table` class. First, we can create a highly
+:class:`~astropy.table.Table` class. First, we can create a highly
 simplistic FITS reader which just reads the data as a structured array::
 
     from astropy.table import Table
@@ -41,7 +41,7 @@ and then register it::
     registry.register_reader('fits', Table, fits_table_reader)
 
 Reader functions can take any arguments except ``format`` (since this
-is reserved for :func:`~astropy.io.registry.read`) and should return an instance of the class specified as the second argument of ``register_reader`` (:class:`~astropy.table.table.Table` in the above case.)
+is reserved for :func:`~astropy.io.registry.read`) and should return an instance of the class specified as the second argument of ``register_reader`` (:class:`~astropy.table.Table` in the above case.)
 
 We can then read in a FITS table with::
 

@@ -8,7 +8,7 @@ Introduction
 ============
 
 `astropy.constants` contains a number of physical constants useful in
-Astronomy. Constants are `~astropy.units.quantity.Quantity` objects with
+Astronomy. Constants are `~astropy.units.Quantity` objects with
 additional meta-data describing their provenance and uncertainties.
 
 Getting Started
@@ -25,7 +25,7 @@ need, you can simply do:
     >>> from astropy import constants as const
 
 and then subsequently use for example ``const.G``. Constants are fully-fledged
-`~astropy.units.quantity.Quantity` objects, so you can easily convert them to
+`~astropy.units.Quantity` objects, so you can easily convert them to
 different units for example::
 
     >>> print const.c
@@ -42,7 +42,7 @@ different units for example::
     0.306601393788 pc / yr
 
 and you can use them in conjunction with unit and other non-constant
-`~astropy.units.quantity.Quantity` objects::
+`~astropy.units.Quantity` objects::
 
     >>> from astropy import units as u
     >>> F = (const.G * 3. * const.M_sun * 100 * u.kg) / (2.2 * u.au) ** 2

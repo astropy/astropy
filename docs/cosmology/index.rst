@@ -71,15 +71,15 @@ Using `cosmology`
 =================
 
 Most of the functionality is enabled by the
-`~astropy.cosmology.core.FLRW` object. This represents a homogeneous
+`~astropy.cosmology.FLRW` object. This represents a homogeneous
 and isotropic cosmology (a cosmology characterized by the
 Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
 solved Einstein's field equation for this special case).  However, you
 can't work with this class directly, as you must specify a dark energy
 model by using one of its subclasses instead, such as
-`~astropy.cosmology.core.FlatLambdaCDM`.
+`~astropy.cosmology.FlatLambdaCDM`.
 
-You can create a new `~astropy.cosmology.core.FlatLambdaCDM` object with
+You can create a new `~astropy.cosmology.FlatLambdaCDM` object with
 arguments giving the Hubble parameter and omega matter (both at z=0):
 
   >>> from astropy.cosmology import FlatLambdaCDM
@@ -100,7 +100,7 @@ The exception are neutrino masses, where you must supply a
 units if you want massive neutrinos.
 
 The pre-defined cosmologies described in the `Getting Started`_
-section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
+section are instances of `~astropy.cosmology.FlatLambdaCDM`, and have
 the same methods. So we can find the luminosity distance to
 redshift 4 by:
 
@@ -123,11 +123,11 @@ They also accept arrays of redshifts:
   >>> cosmo.age([0.5, 1, 1.5]).value
   array([ 8.42128047,  5.74698053,  4.19645402])
 
-See the `~astropy.cosmology.core.FLRW` and
-`~astropy.cosmology.core.FlatLambdaCDM` object docstring for all the
+See the `~astropy.cosmology.FLRW` and
+`~astropy.cosmology.FlatLambdaCDM` object docstring for all the
 methods and attributes available. In addition to flat Universes,
 non-flat varieties are supported such as
-`~astropy.cosmology.core.LambdaCDM`.  There are also a variety of
+`~astropy.cosmology.LambdaCDM`.  There are also a variety of
 standard cosmologies with the parameters already defined
 (see `Built-in Cosmologies`_):
 
@@ -160,7 +160,7 @@ energy, a flat Universe with a constant dark energy equation of state,
 but not necessarily a cosmological constant.  A variety of additional
 dark energy models are also supported -- see `Specifying a dark energy model`_.
 
-In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
+In addition to the `~astropy.cosmology.LambdaCDM` object, there
 are convenience functions that calculate some of these quantities
 without needing to explicitly give a cosmology - but there are more
 methods available if you work directly with the cosmology object.
@@ -207,7 +207,7 @@ it's possible to specify a "current" cosmology.
 You can set the current cosmology to a pre-defined value by using the
 "default_cosmology" option in the ``[cosmology.core]`` section of the
 configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the `~astropy.cosmology.core.set_current` function to set a
+use the `~astropy.cosmology.set_current` function to set a
 cosmology for the current Python session.
 
 If you haven't set a current cosmology using one of the methods
@@ -261,7 +261,7 @@ WMAP9     Hinshaw et al. 2013           69.3  0.287 Yes
 Planck13  Planck Collab 2013, Paper XVI 67.8  0.307 Yes
 ========  ============================= ====  ===== =======
 
-Currently, all are instances of `~astropy.cosmology.core.FlatLambdaCDM`.
+Currently, all are instances of `~astropy.cosmology.FlatLambdaCDM`.
 More details about exactly where each set of parameters come from
 are available in the document tag for each object:
 
@@ -276,7 +276,7 @@ Using `cosmology` inside Astropy
 
 If you are writing code for the `astropy` core or an affiliated
 package, it is strongly recommended that you use the current cosmology
-through the `~astropy.cosmology.core.get_current` function. It is also
+through the `~astropy.cosmology.get_current` function. It is also
 recommended that you provide an override option something like the
 following::
 
@@ -294,25 +294,25 @@ unless explicitly overridden.
 Specifying a dark energy model
 ==============================
 
-In addition to the standard `~astropy.cosmology.core.FlatLambdaCDM` model
+In addition to the standard `~astropy.cosmology.FlatLambdaCDM` model
 described above, a number of additional dark energy models are
-provided.  `~astropy.cosmology.core.FlatLambdaCDM`
-and `~astropy.cosmology.core.LambdaCDM` assume that dark
+provided.  `~astropy.cosmology.FlatLambdaCDM`
+and `~astropy.cosmology.LambdaCDM` assume that dark
 energy is a cosmological constant, and should be the most commonly
 used cases; the former assumes a flat Universe, the latter allows
-for spatial curvature.  `~astropy.cosmology.core.FlatwCDM` and
-`~astropy.cosmology.core.wCDM` assum a constant dark
+for spatial curvature.  `~astropy.cosmology.FlatwCDM` and
+`~astropy.cosmology.wCDM` assum a constant dark
 energy equation of state parameterized by :math:`w_{0}`. Two forms of a
 variable dark energy equation of state are provided: the simple first
 order linear expansion :math:`w(z) = w_{0} + w_{z} z` by
-`~astropy.cosmology.core.w0wzCDM`, as well as the common CPL form by
-`~astropy.cosmology.core.w0waCDM`: :math:`w(z) = w_{0} + w_{a} (1 - a) =
+`~astropy.cosmology.w0wzCDM`, as well as the common CPL form by
+`~astropy.cosmology.w0waCDM`: :math:`w(z) = w_{0} + w_{a} (1 - a) =
 w_{0} + w_{a} z / (1 + z)` and its generalization to include a pivot
-redshift by `~astropy.cosmology.core.wpwaCDM`: :math:`w(z) = w_{p} + w_{a}
+redshift by `~astropy.cosmology.wpwaCDM`: :math:`w(z) = w_{p} + w_{a}
 (a_{p} - a)`.
 
 Users can specify their own equation of state by sub-classing
-`~astropy.cosmology.core.FLRW`.  See the provided subclasses for
+`~astropy.cosmology.FLRW`.  See the provided subclasses for
 examples.
 
 Photons and Neutrinos
@@ -393,7 +393,7 @@ value is provided, all the species are assumed to have the same mass.
   >>> cos.Onu(1) * cos.critical_density(1)
   <Quantity 2.4443803803704...e-31 g / cm3>
 
-While these examples used `~astropy.cosmology.core.FlatLambdaCDM`,
+While these examples used `~astropy.cosmology.FlatLambdaCDM`,
 the above examples also apply for all of the other cosmology classes.
 
 

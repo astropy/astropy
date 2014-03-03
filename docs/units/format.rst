@@ -3,9 +3,9 @@
 String representations of units
 ===============================
 
-.. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+.. |quantity| replace:: :class:`~astropy.units.Quantity`
 
-.. |unit| replace:: :class:`~astropy.units.core.UnitBase`
+.. |unit| replace:: :class:`~astropy.units.UnitBase`
 
 Converting units to string representations
 ------------------------------------------
@@ -90,7 +90,7 @@ Creating units from strings
 ---------------------------
 
 Units can also be created from strings in a number of different
-formats using the `~astropy.units.core.Unit` class::
+formats using the `~astropy.units.Unit` class::
 
   >>> from astropy import units as u
   >>> u.Unit("m")
@@ -186,16 +186,16 @@ Normally, passing an unrecognized unit string raises an exception::
   u'Angstroem' not supported by the FITS standard. Did you mean
   Angstrom or angstrom?
 
-However, the `~astropy.units.core.Unit` constructor has the keyword
+However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
   - ``'raise'``: (default) raise a ValueError exception.
 
   - ``'warn'``: emit a Warning, and return an
-    `~astropy.units.core.UnrecognizedUnit` instance.
+    `~astropy.units.UnrecognizedUnit` instance.
 
-  - ``'silent'``: return an `~astropy.units.core.UnrecognizedUnit`
+  - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
 So, for example, one can do::
@@ -205,7 +205,7 @@ So, for example, one can do::
    'fits': At col 0, 'Angstroem' is not a valid unit in string
    'Angstroem' [astropy.units.core]
 
-This `~astropy.units.core.UnrecognizedUnit` object remembers the
+This `~astropy.units.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.

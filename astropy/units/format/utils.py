@@ -15,7 +15,7 @@ from ...utils.compat.fractions import Fraction
 def get_grouped_by_powers(bases, powers):
     """
     Groups the powers and bases in the given
-    `~astropy.units.core.CompositeUnit` into positive powers and
+    `~astropy.units.CompositeUnit` into positive powers and
     negative powers for easy display on either side of a solidus.
 
     Parameters

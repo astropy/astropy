@@ -731,7 +731,7 @@ class AiryDisk2DKernel(Kernel2D):
 
 class Model1DKernel(Kernel1D):
     """
-    Create kernel from `astropy.modeling.core.Parametric1DModel`.
+    Create kernel from `astropy.modeling.Parametric1DModel`.
 
     The model has to be centered on x = 0.
 
@@ -761,11 +761,11 @@ class Model1DKernel(Kernel1D):
     Raises
     ------
     TypeError
-        If model is not an instance of `astropy.modeling.core.Parametric1DModel`
+        If model is not an instance of `astropy.modeling.Parametric1DModel`
 
     See also
     --------
-    Model2DKernel : Create kernel from `astropy.modeling.core.Parametric2DModel`
+    Model2DKernel : Create kernel from `astropy.modeling.Parametric2DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -795,7 +795,7 @@ class Model1DKernel(Kernel1D):
 
 class Model2DKernel(Kernel2D):
     """
-    Create kernel from `astropy.modeling.core.Parametric1DModel`.
+    Create kernel from `astropy.modeling.Parametric1DModel`.
 
     The model has to be centered on x = 0 and y= 0.
 

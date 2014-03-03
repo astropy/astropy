@@ -58,7 +58,7 @@ columns to a table.  In both cases the new columns must be specified as |Column|
   >>> t.add_columns(t2.columns.values())
 
 Finally, columns can also be added from
-:class:`~astropy.units.quantity.Quantity` objects, which automatically sets the
+:class:`~astropy.units.Quantity` objects, which automatically sets the
 ``.unit`` attribute on the column:
 
   >>> from astropy import units as u

@@ -14,7 +14,7 @@ Astropy has the following strict requirements:
 Astropy also depends on other packages for optional features:
 
 - `h5py <http://alfven.org/wp/hdf5-for-python/>`_: To read/write
-  :class:`~astropy.table.table.Table` objects from/to HDF5 files
+  :class:`~astropy.table.Table` objects from/to HDF5 files
 
 - `scipy <http://www.scipy.org/>`_: To power a variety of features (currently
   mainly cosmology-related functionality)

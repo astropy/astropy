@@ -13,7 +13,7 @@ another.
 
 As described above, there are two ways of transforming coordinates.  Coordinates
 that have an alias (created with
-`~astropy.coordinates.transformations.coordinate_alias`) can be converted by
+`~astropy.coordinates.coordinate_alias`) can be converted by
 simply using attribute style access to any other coordinate system::
 
     >>> from astropy import units as u

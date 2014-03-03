@@ -2,8 +2,8 @@
 Creating and Evaluating Models
 ******************************
 
-The base class of all models is `~astropy.modeling.core.Model`, however
-fittable models should subclass `~astropy.modeling.core.ParametricModel`.
+The base class of all models is `~astropy.modeling.Model`, however
+fittable models should subclass `~astropy.modeling.ParametricModel`.
 Parametric models can be linear or nonlinear in a regression analysis sense.
 
 Model instances are callabale, that is, o evaluate a model it is called like a
@@ -38,7 +38,7 @@ transforms by adding models in :class:`series
 <astropy.modeling.core.SummedCompositeModel>`. Because composite models can
 be nested within other composite models, creating theoretically infinitely
 complex models, a mechanism to map input data to models is needed. In this case
-the input may be wrapped in a `~astropy.modeling.core.LabeledInput` object-- a
+the input may be wrapped in a `~astropy.modeling.LabeledInput` object-- a
 dict-like object whose items are ``{label: data}`` pairs.
 
 
@@ -167,12 +167,12 @@ In more complex cases the input and output may be mapped to transformations::
 
 The above composite transform will apply an inplace shift to x, followed by a
 2D polynomial and will save the result in an array, labeled 'z'.  To evaluate
-this model use a `~astropy.modeling.core.LabeledInput` object::
+this model use a `~astropy.modeling.LabeledInput` object::
 
     >>> labeled_data = LabeledInput([x, y], ['x', 'y'])
     >>> result = serial_composite_model(labeled_data)
 
-The output is also a `~astropy.modeling.core.LabeledInput` object and the
+The output is also a `~astropy.modeling.LabeledInput` object and the
 result is stored in label 'z'::
 
     >>> print(result)  # doctest: +SKIP

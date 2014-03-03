@@ -7,7 +7,7 @@ communicating with fitters, model evaluation and getting values to/from users.
 
 Models maintain a list of parameter names,
 `~astropy.modeling.core.Model.param_names`.  Single parameters are instances of
-`~astropy.modeling.parameters.Parameter` which provide a proxy for the actual
+`~astropy.modeling.Parameter` which provide a proxy for the actual
 parameter values.  Simple mathematical operations can be performed with them,
 but they also contain additional attributes specific to model parameters, such
 as any constraints on their values. The preferred way for users to interact

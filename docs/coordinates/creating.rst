@@ -24,12 +24,12 @@ Note that if you do not provide units explicitly, this will fail::
     UnitsError: No unit was specified
 
 While the above example uses python numerical types, you can also
-provide strings to create coordinates.  If the `unit` parameter is
+provide strings to create coordinates.  If the ``unit`` parameter is
 ``(None, None)`` (the default), strings will be interpreted using the
-`Angle` class' parsing scheme, and has a guiding principal of being
+`~astropy.coordinates.Angle` class' parsing scheme, and has a guiding principal of being
 able to interpret any *unambiguous* string specifying an angle. For
 the exact rules for how each string is parsed, see the
-`~astropy.coordinates.angles.Angle` documentation.  Some examples::
+`~astropy.coordinates.Angle` documentation.  Some examples::
 
     >>> ICRS("3h36m29.7888s -41d08m15.162342s", unit=(None, None))
     <ICRS RA=54.12412 deg, Dec=-41.13755 deg>

@@ -97,9 +97,9 @@ def conesearch(center, radius, verb=1, **kwargs):
               given in decimal degrees.
             - If astropy coordinates object is given, it will
               be converted internally to
-              `~astropy.coordinates.builtin_systems.ICRS`.
+              `~astropy.coordinates.ICRS`.
 
-    radius : float or `~astropy.coordinates.angles.Angle` object
+    radius : float or `~astropy.coordinates.Angle` object
         Radius of the cone to search:
 
             - If float is given, it is assumed to be in decimal degrees.

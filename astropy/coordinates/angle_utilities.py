@@ -329,7 +329,7 @@ def parse_angle(angle, unit=None, debug=False):
             * -1h2m3s
 
     unit : `~astropy.units.UnitBase` instance, optional
-        The unit used to interpret the string.  If `unit` is not
+        The unit used to interpret the string.  If ``unit`` is not
         provided, the unit must be explicitly represented in the
         string, either at the end or as number separators.
 
@@ -339,8 +339,8 @@ def parse_angle(angle, unit=None, debug=False):
     Returns
     -------
     value, unit : tuple
-        `value` is the value as a floating point number or three-part
-        tuple, and `unit` is a `Unit` instance which is either the
+        ``value`` is the value as a floating point number or three-part
+        tuple, and ``unit`` is a `Unit` instance which is either the
         unit passed in or the one explicitly mentioned in the input
         string.
     """
@@ -590,7 +590,7 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's'),
     Takes a decimal hour value and returns a string formatted as hms with
     separator specified by the 'sep' parameter.
 
-    `h` must be a scalar.
+    ``h`` must be a scalar.
     """
     h, m, s = hours_to_hms(h)
     return sexagesimal_to_string((h, m, s), precision=precision, pad=pad,
@@ -602,7 +602,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
     Takes a decimal hour value and returns a string formatted as dms with
     separator specified by the 'sep' parameter.
 
-    `d` must be a scalar.
+    ``d`` must be a scalar.
     """
     d, m, s = degrees_to_dms(d)
     return sexagesimal_to_string((d, m, s), precision=precision, pad=pad,

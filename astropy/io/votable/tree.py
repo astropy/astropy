@@ -283,7 +283,7 @@ class _IDProperty(object):
     @property
     def ID(self):
         """
-        The XML ID_ of the element.  May be ``None`` or a string
+        The XML ID_ of the element.  May be `None` or a string
         conforming to XML ID_ syntax.
         """
         return self._ID
@@ -429,7 +429,7 @@ class Element(object):
         ----------
         iterator : xml iterator
             An iterator over XML elements as returned by
-            `astropy.utils.xml.iterparser.get_xml_iterator`.
+            `~astropy.utils.xml.iterparser.get_xml_iterator`.
 
         config : dict
             The configuration dictionary that affects how certain
@@ -1427,7 +1427,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     @property
     def values(self):
         """
-        A :class:`Values` instance (or ``None``) defining the domain
+        A :class:`Values` instance (or `None`) defining the domain
         of the column.
         """
         return self._values
@@ -1640,7 +1640,7 @@ class CooSys(SimpleElement):
     def ID(self):
         """
         [*required*] The XML ID of the COOSYS_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
+        cross-referencing.  May be `None` or a string conforming to
         XML ID_ syntax.
         """
         return self._ID

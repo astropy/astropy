@@ -135,7 +135,7 @@ def test_creating_cartesian_single():
 
 def test_creating_cartesian_triple():
     """
-    test building cartesian points with the `x`,`y`,`z` constructor
+    test building cartesian points with the ``x``,``y``,``z`` constructor
     """
 
     from .. import CartesianPoints

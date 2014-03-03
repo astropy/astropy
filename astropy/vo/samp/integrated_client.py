@@ -16,8 +16,8 @@ class SAMPIntegratedClient(object):
     A Simple SAMP client.
 
     This class is meant to simplify the client usage providing a proxy class
-    that merges the :class:`~astropy.vo.samp.client.SAMPClient` and
-    :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy` functionalities in a
+    that merges the :class:`~astropy.vo.samp.SAMPClient` and
+    :class:`~astropy.vo.samp.SAMPHubProxy` functionalities in a
     simplified API.
 
     Parameters
@@ -122,7 +122,7 @@ class SAMPIntegratedClient(object):
 
         Parameters
         ----------
-        hub : `~astropy.vo.samp.hub.SAMPHubServer`, optional
+        hub : `~astropy.vo.samp.SAMPHubServer`, optional
             The hub to connect to.
 
         hub_params : dict, optional

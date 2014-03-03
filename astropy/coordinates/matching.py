@@ -18,8 +18,8 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
     a set of catalog coordinates.
 
     This finds the 3-dimensional closest neighbor, which is only different
-    from the on-sky distance if `distance` is set in either `matchcoord`
-    or `catalogcoord`.
+    from the on-sky distance if ``distance`` is set in either ``matchcoord``
+    or ``catalogcoord``.
 
     Parameters
     ----------
@@ -37,25 +37,25 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
         itself as the closest match).
     storekdtree : bool or str, optional
         If True or a string, will store the KD-Tree used for the computation
-        in the `catalogcoord`.  This dramatically speeds up subsequent calls
+        in the ``catalogcoord``.  This dramatically speeds up subsequent calls
         with the same catalog. If a str, it specifies the attribute name for
-        `catalogcoord` that should store the KD-tree.
+        ``catalogcoord`` that should store the KD-tree.
 
     Returns
     -------
     idx : integer array
-        Indecies into `catalogcoord` to get the matched points for each
-        `matchcoord`. Shape matches `matchcoord`.
+        Indecies into ``catalogcoord`` to get the matched points for each
+        ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.units.quantity.Angle`
-        The on-sky separation between the closest match for each `matchcoord` and
-        the `matchcoord`. Shape matches `matchcoord`.
-    dist3d : `~astropy.units.quantity.Quantity`
-        The 3D distance between the closest match for each `matchcoord` and
-        the `matchcoord`. Shape matches `matchcoord`.
+        The on-sky separation between the closest match for each ``matchcoord`` and
+        the ``matchcoord``. Shape matches ``matchcoord``.
+    dist3d : `~astropy.units.Quantity`
+        The 3D distance between the closest match for each ``matchcoord`` and
+        the ``matchcoord``. Shape matches ``matchcoord``.
 
     Notes
     -----
-    This function requires `scipy` to be installed or it will fail.
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
     """
     from warnings import warn
 
@@ -119,8 +119,8 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
     a set of catalog coordinates.
 
     This finds the on-sky closest neighbor, which is only different from the
-    3-dimensional match if `distance` is set in either `matchcoord`
-    or `catalogcoord`.
+    3-dimensional match if ``distance`` is set in either ``matchcoord``
+    or ``catalogcoord``.
 
     Parameters
     ----------
@@ -138,25 +138,25 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
         itself as the closest match).
     storekdtree : bool or str, optional
         If True or a string, will store the KD-Tree used for the computation
-        in the `catalogcoord`.  This dramatically speeds up subsequent calls
+        in the ``catalogcoord``.  This dramatically speeds up subsequent calls
         with the same catalog. If a str, it specifies the attribute name for
-        `catalogcoord` that should store the KD-tree.
+        ``catalogcoord`` that should store the KD-tree.
 
     Returns
     -------
     idx : integer array
-        Indecies into `catalogcoord` to get the matched points for each
-        `matchcoord`. Shape matches `matchcoord`.
+        Indecies into ``catalogcoord`` to get the matched points for each
+        ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.units.quantity.Angle`
-        The on-sky separation between the closest match for each `matchcoord` and
-        the `matchcoord`. Shape matches `matchcoord`.
-    dist3d : `~astropy.units.quantity.Quantity`
-        The 3D distance between the closest match for each `matchcoord` and
-        the `matchcoord`. Shape matches `matchcoord`.
+        The on-sky separation between the closest match for each ``matchcoord`` and
+        the ``matchcoord``. Shape matches ``matchcoord``.
+    dist3d : `~astropy.units.Quantity`
+        The 3D distance between the closest match for each ``matchcoord`` and
+        the ``matchcoord``. Shape matches ``matchcoord``.
 
     Notes
     -----
-    This function requires `scipy` to be installed or it will fail.
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
     """
     dcoo = matchcoord._distance
     cpcoo = matchcoord._cartpoint

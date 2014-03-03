@@ -4,7 +4,7 @@ Fitting Models to Data
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters can be called as functions. They take an
-instance of `~astropy.modeling.core.ParametricModel` as input and modify
+instance of `~astropy.modeling.ParametricModel` as input and modify
 `~astropy.modeling.core.ParametricModel.parameters` attribute. The idea is to
 make this extensible and allow users to easily add other fitters.
 

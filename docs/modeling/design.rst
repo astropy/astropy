@@ -18,7 +18,7 @@ model by combining models in `parallel
 separately with the original input and the deltas are summed).  Since models
 may have multiple input values, machinery is provided that allows assigning
 outputs from one model into the appropriate input of another in a flexible way,
-`~astropy.modeling.core.LabeledInput`. Finally, it is permitted to combine any
+`~astropy.modeling.LabeledInput`. Finally, it is permitted to combine any
 number of models using all of these mechanisms simultaneously.  A composite
 model can be used to make further composite models.
 

@@ -13,9 +13,9 @@ and are both used as::
     >>> result = convolve(image, kernel)  # doctest: +SKIP
     >>> result = convolve_fft(image, kernel)  # doctest: +SKIP
 
-:func:`~astropy.convolution.convolve.convolve` is implemented as a
+:func:`~astropy.convolution.convolve` is implemented as a
 direct convolution algorithm, while
-:func:`~astropy.convolution.convolve.convolve_fft` uses a fast Fourier
+:func:`~astropy.convolution.convolve_fft` uses a fast Fourier
 transform (FFT). Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 
@@ -24,7 +24,7 @@ The input images and kernels should be lists or Numpy arrays with either both
 image and kernel). The result is a Numpy array with the same dimensions as the
 input image. The convolution is always done as floating point.
 
-The :func:`~astropy.convolution.convolve.convolve` function takes an
+The :func:`~astropy.convolution.convolve` function takes an
 optional ``boundary=`` argument describing how to perform the convolution at
 the edge of the array. The values for ``boundary`` can be:
 

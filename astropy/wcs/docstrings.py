@@ -1399,7 +1399,7 @@ To get a string of the contents, use `repr`.
 print_contents_tabprm = """
 print_contents()
 
-Print the contents of the `~astropy.wcs._astropy.wcs.Tabprm` object to
+Print the contents of the `~astropy.wcs.Tabprm` object to
 stdout.  Probably only useful for debugging purposes, and may be
 removed in the future.
 
@@ -1980,7 +1980,7 @@ number of respects:
 
 Keywords can be translated between the image array, binary table, and
 pixel lists forms by manipulating the `~astropy.wcs.Wcsprm.colnum` or
-`~astropy.wcs.Wcsprm.colax` members of the `~astropy.wcs.Wcsprm.WCS`
+`~astropy.wcs.Wcsprm.colax` members of the `~astropy.wcs.WCS`
 object.
 
 Parameters
