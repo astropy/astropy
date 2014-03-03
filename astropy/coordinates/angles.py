@@ -54,16 +54,16 @@ class Angle(u.Quantity):
 
     Parameters
     ----------
-    angle : `~numpy.array`, scalar, `~astropy.units.quantity.Quantity`, `~astropy.coordinates.angles.Angle`
-        The angle value. If a tuple, will be interpreted as ``(h, m
-        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+    angle : `~numpy.array`, scalar, `~astropy.units.quantity.Quantity`, `~astropy.coordinates.Angle`
+        The angle value. If a tuple, will be interpreted as ``(h, m,
+        s)`` or ``(d, m, s)`` depending on ``unit``. If a string, it
         will be interpreted following the rules described above.
 
-        If `angle` is a sequence or array of strings, the resulting
-        values will be in the given `unit`, or if None is provided,
+        If ``angle`` is a sequence or array of strings, the resulting
+        values will be in the given ``unit``, or if None is provided,
         the unit will be taken from the first given value.
 
-    unit : `~astropy.units.core.UnitBase`, str, optional
+    unit : `~astropy.units.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
@@ -77,7 +77,7 @@ class Angle(u.Quantity):
 
     Raises
     ------
-    `~astropy.units.core.UnitsError`
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     _include_easy_conversion_members = True
@@ -237,8 +237,8 @@ class Angle(u.Quantity):
     def signed_dms(self):
         """
         The angle's value in degrees, as a named tuple with ``(sign, d, m, s)``
-        members.  The `d`, `m`, `s` are thus always positive, and the sign of
-        the angle is given by `sign`. (This is a read-only property.)
+        members.  The ``d``, ``m``, ``s`` are thus always positive, and the sign of
+        the angle is given by ``sign``. (This is a read-only property.)
 
         This is primarily intented for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
@@ -272,28 +272,28 @@ class Angle(u.Quantity):
             degrees, or 'hms' if the unit is hours.
 
         precision : int, optional
-            The level of decimal precision.  If `decimal` is True,
+            The level of decimal precision.  If ``decimal`` is True,
             this is the raw precision, otherwise it gives the
             precision of the last place of the sexagesimal
-            representation (seconds).  If `None`, or not provided, the
+            representation (seconds).  If ``None``, or not provided, the
             number of decimal places is determined by the value, and
             will be between 0-8 decimal places as required.
 
         alwayssign : bool, optional
-            If `True`, include the sign no matter what.  If `False`,
+            If ``True``, include the sign no matter what.  If ``False``,
             only include the sign if it is negative.
 
         pad : bool, optional
-            If `True`, include leading zeros when needed to ensure a
+            If ``True``, include leading zeros when needed to ensure a
             fixed number of characters for sexagesimal representation.
 
         fields : int, optional
             Specifies the number of fields to display when outputting
             sexagesimal notation.  For example:
 
-                - fields == 1: `'5d'`
-                - fields == 2: `'5d45m'`
-                - fields == 3: `'5d45m32.5s'`
+                - fields == 1: '5d'
+                - fields == 2: '5d45m'
+                - fields == 3: '5d45m32.5s'
 
             By default, all fields are displayed.
 
@@ -522,7 +522,7 @@ class Latitude(Angle):
 
       -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
-    Any attempt to set a value outside that range will result in a `ValueError`.
+    Any attempt to set a value outside that range will result in a ``ValueError``.
 
     The input angle(s) can be specified either as an array, list, scalar, tuple (see
     below), string, :class:`~astropy.units.quantity.Quantity` or another `Angle`.
@@ -533,14 +533,14 @@ class Latitude(Angle):
     ----------
     angle : array, list, scalar, Quantity, Angle
         The angle value(s). If a tuple, will be interpreted as ``(h, m
-        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        s)`` or ``(d, m, s)`` depending on ``unit``. If a string, it
         will be interpreted following the rules described for `Angle`.
 
-        If `angle` is a sequence or array of strings, the resulting
-        values will be in the given `unit`, or if None is provided,
+        If ``angle`` is a sequence or array of strings, the resulting
+        values will be in the given ``unit``, or if None is provided,
         the unit will be taken from the first given value.
 
-    unit : :class:`~astropy.units.core.UnitBase`, str, optional
+    unit : :class:`~astropy.units.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
@@ -548,7 +548,7 @@ class Latitude(Angle):
 
     Raises
     ------
-    `~astropy.units.core.UnitsError`
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, **kwargs):
@@ -609,16 +609,16 @@ class Longitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, Quantity, `Angle`
+    angle : array, list, scalar, `~.astropy.units.quantity.Quantity`, `Angle`
         The angle value(s). If a tuple, will be interpreted as ``(h, m
-        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        s)`` or ``(d, m, s)`` depending on ``unit``. If a string, it
         will be interpreted following the rules described for `Angle`.
 
-        If `angle` is a sequence or array of strings, the resulting
+        If ``angle`` is a sequence or array of strings, the resulting
         values will be in the given `unit`, or if None is provided,
         the unit will be taken from the first given value.
 
-    unit : :class:`~astropy.units.core.UnitBase`, str, optional
+    unit : :class:`~astropy.units.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
@@ -629,7 +629,7 @@ class Longitude(Angle):
 
     Raises
     ------
-    `~astropy.units.core.UnitsError`
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
@@ -718,7 +718,7 @@ def rotation_matrix(angle, axis='z', unit=None):
         rotations obey left-hand-rule).
 
     unit : UnitBase, optional
-        If `angle` does not have associated units, they are in this
+        If ``angle`` does not have associated units, they are in this
         unit.  If neither are provided, it is assumed to be degrees.
 
     Returns

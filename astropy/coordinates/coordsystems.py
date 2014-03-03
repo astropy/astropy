@@ -32,10 +32,10 @@ class SphericalCoordinatesBase(object):
     property, or leave it unaltered to indicate the coordinates are
     equinoxless.
 
-    `_initialize_latlon` is provided to implement typical
+    ``_initialize_latlon`` is provided to implement typical
     initialization features, and should be called from a subclass'
     `__init__`.  See the classes in
-    `astropy.coordinates.builtin_systems` for examples of this.
+    `~astropy.coordinates` for examples of this.
     """
 
     @abstractmethod
@@ -58,43 +58,43 @@ class SphericalCoordinatesBase(object):
 
     _init_docstring_param_templ = """coordstr : str
         A single string with the coordinates.  Cannot be used with
-        `{latnm}` and `{lonnm}` nor `x`/`y`/`z`.
-    {lonnm} : `~astropy.coordinates.angle.Angle`, float, int, str
-        This must be given with `{latnm}`.
-    {latnm} : `~astropy.coordinates.angle.Angle`, float, int, str
-        This must be given with `{lonnm}`.
-    distance : `~astropy.coordinates.coordsystems.Distance`, optional
-        This may be given with `{latnm}` and `{lonnm}` or `coordstr`
-        and not `x`, `y`, or `z`.  If not given, `None` (unit sphere)
+        ``{latnm}`` and ``{lonnm}`` nor ``x``, ``y``, ``z``.
+    {lonnm} : `~astropy.coordinates.Angle`, float, int, str
+        This must be given with ``{latnm}``.
+    {latnm} : `~astropy.coordinates.Angle`, float, int, str
+        This must be given with ``{lonnm}``.
+    distance : `~astropy.coordinates.Distance`, optional
+        This may be given with ``{latnm}`` and ``{lonnm}`` or ``coordstr``
+        and not ``x``, ``y``, or ``z``.  If not given, ``None`` (unit sphere)
         will be assumed.
     x : number
-        The first cartesian coordinate. Must be given with `y` and `z`
-        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
+        The first cartesian coordinate. Must be given with ``y`` and ``z``
+        and not with ``{lonnm}`` or ``{latnm}`` nor ``coordstr``.
     y : number
-        The second cartesian coordinate. Must be given with `x` and `z`
-        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
+        The second cartesian coordinate. Must be given with ``x`` and ``z``
+        and not with ``{lonnm}`` or ``{latnm}`` nor ``coordstr``.
     z : number
-        The third cartesian coordinate. Must be given with `x` and `y`
-        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
-    cartpoint : `~astropy.coordinates.distance.CartesianPoints`
+        The third cartesian coordinate. Must be given with ``x`` and ``y``
+        and not with ``{lonnm}`` or ``{latnm}`` nor ``coordstr``.
+    cartpoint : `~astropy.coordinates.CartesianPoints`
         A cartesian point with the coordinates.  Cannot be used with
         any other arguments.
     unit
-        The `unit` parameter's interpretation depends on what other
+        The ``unit`` parameter's interpretation depends on what other
         parameters are given:
 
-        * If `{lonnm}` and `{latnm}` or `coordstr` are given:
-            `unit` must be a length-2 sequence specifying the units of
-            `{lonnm}` and `{latnm}`, respectively. They can be either
+        * If ``{lonnm}`` and ``{latnm}`` or ``coordstr`` are given:
+            ``unit`` must be a length-2 sequence specifying the units of
+            ``{lonnm}`` and ``{latnm}``, respectively. They can be either
             `~astropy.units.UnitBase` objects or strings that will be
             converted using `~astropy.units.Unit`.  They can also be
             None to attempt to automatically interpret the units (see
-            `~astropy.coordinates.angles.Angle` for details.) If `unit`
-            is just `None`, this will be interpreted the same as
+            `~astropy.coordinates.Angle` for details.) If ``unit``
+            is just ``None``, this will be interpreted the same as
             ``(None, None)``.
 
-        * If `x`, `y`, and `z` are given:
-            `unit` must be a single unit with dimensions of length"""
+        * If ``x``, ``y``, and ``z`` are given:
+            ``unit`` must be a single unit with dimensions of length"""
 
     def _initialize_latlon(self, lonname, latname, initargs, initkwargs):
         """
@@ -328,7 +328,7 @@ class SphericalCoordinatesBase(object):
     def latangle(self):
         """
         The latitudinal/elevation angle for these coordinates as an
-        `~astropy.coordinates.angles.Angle` object.
+        `~astropy.coordinates.Angle` object.
 
         Subclasses will often provide properties returning the same object, but
         with a name more appropriate for the particular subclass.
@@ -339,7 +339,7 @@ class SphericalCoordinatesBase(object):
     def lonangle(self):
         """
         The longitudinal/azimuthal angle for these coordinates as an
-        `~astropy.coordinates.angles.Angle` object.
+        `~astropy.coordinates.Angle` object.
 
         Subclasses will often provide properties returning the same object, but
         with a name more appropriate for the particular subclass.
@@ -357,12 +357,12 @@ class SphericalCoordinatesBase(object):
     def distance(self):
         """
         The radial distance for this coordinate object as an
-        `~astropy.coordinates.coordsystems.Distance` object.
+        `~astropy.coordinates.Distance` object.
 
         If set as a tuple, the tuple will be passed into the
-        `~astropy.coordinates.coordsystems.Distance` constructor.
+        `~astropy.coordinates.Distance` constructor.
 
-        Alternatively, this may be `None`, indicating an unknown/not given
+        Alternatively, this may be ``None``, indicating an unknown/not given
         distance. Where necessary, this object will be interpreted as angles on
         the unit sphere.
         """
@@ -426,13 +426,13 @@ class SphericalCoordinatesBase(object):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
+        other : `~astropy.coordinates.SphericalCoordinatesBase`
             The coordinate to get the separation to.
 
         Returns
         -------
-        sep : `~astropy.coordinates.angles.Angle`
-            The on-sky separation between this and the `other` coordinate.
+        sep : `~astropy.coordinates.Angle`
+            The on-sky separation between this and the ``other`` coordinate.
 
         Notes
         -----
@@ -460,12 +460,12 @@ class SphericalCoordinatesBase(object):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
+        other : `~astropy.coordinates.SphericalCoordinatesBase`
             The coordinate system to get the distance to.
 
         Returns
         -------
-        sep : `~astropy.coordinates.coordsystems.Distance`
+        sep : `~astropy.coordinates.Distance`
             The real-space distance between these two coordinates.
 
         Raises
@@ -497,8 +497,8 @@ class SphericalCoordinatesBase(object):
         of catalog coordinates.
 
         This finds the 3-dimensional closest neighbor, which is only different
-        from the on-sky distance if `distance` is set in this object or the
-        `catalogcoord` object.
+        from the on-sky distance if ``distance`` is set in this object or the
+        ``catalogcoord`` object.
 
         Parameters
         ----------
@@ -516,22 +516,22 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         idx : integer array
-            Indecies into `catalogcoord` to get the matched points for each
-            `matchcoord`. Shape matches this coordinate.
+            Indecies into ``catalogcoord`` to get the matched points for each
+            ``matchcoord``. Shape matches this coordinate.
         sep2d : `~astropy.units.quantity.Angle`
-            The on-sky separation between the closest match for each `matchcoord` and
-            the `matchcoord`. Shape matches `matchcoord`.
+            The on-sky separation between the closest match for each ``matchcoord`` and
+            the ``matchcoord``. Shape matches ``matchcoord``.
         dist3d : `~astropy.units.quantity.Quantity`
-            The 3D distance between the closest match for each `matchcoord` and
-            the `matchcoord`. Shape matches this coordinate.
+            The 3D distance between the closest match for each ``matchcoord`` and
+            the ``matchcoord``. Shape matches this coordinate.
 
         Notes
         -----
-        This method requires `scipy` to be installed or it will fail.
+        This method requires `SciPy <http:www.scipy.org>`_ to be installed or it will fail.
 
         See Also
         --------
-        astropy.coordinates.matching.match_coordinates_3d
+        astropy.coordinates.match_coordinates_3d
         """
         from .matching import match_coordinates_3d
 
@@ -558,22 +558,22 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         idx : integer array
-            Indecies into `catalogcoord` to get the matched points for each
-            `matchcoord`. Shape matches this coordinate.
+            Indecies into ``catalogcoord`` to get the matched points for each
+            ``matchcoord``. Shape matches this coordinate.
         sep2d : `~astropy.units.quantity.Angle`
-            The on-sky separation between the closest match for each `matchcoord` and
-            the `matchcoord`. Shape matches `matchcoord`.
+            The on-sky separation between the closest match for each ``matchcoord`` and
+            the ``matchcoord``. Shape matches ``matchcoord``.
         dist3d : `~astropy.units.quantity.Quantity`
-            The 3D distance between the closest match for each `matchcoord` and
-            the `matchcoord`. Shape matches this coordinate.
+            The 3D distance between the closest match for each ``matchcoord`` and
+            the ``matchcoord``. Shape matches this coordinate.
 
         Notes
         -----
-        This method requires `scipy` to be installed or it will fail.
+        This method requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
 
         See Also
         --------
-        astropy.coordinates.matching.match_coordinates_sky
+        astropy.coordinates.match_coordinates_sky
         """
         from .matching import match_coordinates_sky
 
@@ -592,7 +592,7 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         transcoord
-            A new object with this coordinate represented in the `tosys` system.
+            A new object with this coordinate represented in the ``tosys`` system.
 
         Raises
         ------
@@ -624,8 +624,8 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         transformable : bool or str
-            True if this can be trasnformed to `tosys`, False if not. The
-            string 'same' if `tosys` is the same system as this object
+            True if this can be trasnformed to ``tosys``, False if not. The
+            string 'same' if ``tosys`` is the same system as this object
             (i.e. no transformation is needed).
         """
         from .transformations import master_transform_graph
@@ -688,8 +688,8 @@ class SphericalCoordinatesBase(object):
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
         url, and  query timeout can be set through configuration items in
-        `astropy.coordinates.name_resolve` -- see docstring for
-        `astropy.coordinates.name_resolve.get_icrs_coordinates` for more
+        `~astropy.coordinates.name_resolve` -- see docstring for
+        `~astropy.coordinates.get_icrs_coordinates` for more
         information.
 
         Parameters
@@ -720,19 +720,19 @@ class SphericalCoordinatesBase(object):
         """
         A string representation of the coordinates.
 
-        See :meth:`astropy.coordinates.Angle.to_string` for details and keyword
+        See :meth:`~astropy.coordinates.Angle.to_string` for details and keyword
         arguments (the two angles forming the coordinates are are both
-        :class:`astropy.coordinates.Angle` instances). Keyword arguments are passed to
-        :meth:`astropy.coordinates.Angle.to_string`.
+        :class:`~astropy.coordinates.Angle` instances). Keyword arguments are passed to
+        :meth:`~astropy.coordinates.Angle.to_string`.
 
         Parameters
         ----------
         style : {'hmsdms', 'dms', 'decimal', None}
             The formatting specification to use. These encode the three most
-            common ways to represent coordinates. If `None` is passed, the
+            common ways to represent coordinates. If ``None`` is passed, the
             defaults for the current coordinate class is used.
         kwargs
-            Keyword arguments are passed to :meth:`astropy.coordinates.Angle.to_string`.
+            Keyword arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
         if style is None:

@@ -77,7 +77,7 @@ class NDData(object):
         of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
 
-    unit : `~astropy.units.core.UnitBase` instance or str, optional
+    unit : `~astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
 

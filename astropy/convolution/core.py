@@ -311,7 +311,7 @@ def kernel_arithmetics(kernel, value, operation):
 
     Parameters
     ----------
-    kernel : `astropy.convolution.kernel.Kernel`
+    kernel : `astropy.convolution.Kernel`
         Kernel instance
     values : kernel, float or int
         Value to operate with

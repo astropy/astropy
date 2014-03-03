@@ -35,7 +35,7 @@ complex operations.  To do this, it is recommended to use
         [Fraction(1, 3)]
 
 Users are free to define new units, either fundamental or compound
-using the `~astropy.units.core.def_unit` function.  For example::
+using the `~astropy.units.def_unit` function.  For example::
 
   >>> bakers_fortnight = u.def_unit('bakers_fortnight', 13 * u.day)
 
@@ -55,7 +55,7 @@ Creating a new fundamental unit is simple::
 
 By default, custom units are not searched by methods such as
 `~astropy.units.core.UnitBase.find_equivalent_units`.  However, they
-can be enabled by calling `~astropy.units.core.add_enabled_units`::
+can be enabled by calling `~astropy.units.add_enabled_units`::
 
   >>> kmph = u.def_unit('kmph', u.km / u.h)
   >>> (u.m / u.s).find_equivalent_units()

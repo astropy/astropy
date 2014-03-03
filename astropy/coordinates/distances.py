@@ -27,24 +27,24 @@ class Distance(u.Quantity):
 
     This can be initialized in one of four ways:
 
-    * A distance `value` (array or float) and a `unit`
+    * A distance ``value`` (array or float) and a ``unit``
     * A `~astropy.units.quantity.Quantity` object
     * A redshift and (optionally) a cosmology.
     * Providing a distance modulus
 
     Parameters
     ----------
-    value : scalar or `~astropy.units.quantity.Quantity`
-        The value of this distance
-    unit : `~astropy.units.core.UnitBase`
-        The units for this distance, *if* `value` is not a `Quantity`.
+    value : scalar or `~astropy.units.quantity.Quantity`.
+        The value of this distance.
+    unit : `~astropy.units.UnitBase`
+        The units for this distance, *if* ``value`` is not a `~astropy.units.quantity.Quantity`.
         Must have dimensions of distance.
     z : float
         A redshift for this distance.  It will be converted to a distance
         by computing the luminosity distance for this redshift given the
-        cosmology specified by `cosmology`. Must be given as a keyword argument.
-    cosmology : `~astropy.cosmology.Cosmology` or None
-        A cosmology that will be used to compute the distance from `z`.
+        cosmology specified by ``cosmology``. Must be given as a keyword argument.
+    cosmology : ``Cosmology`` or ``None``
+        A cosmology that will be used to compute the distance from ``z``.
         If None, the current cosmology will be used (see
         `astropy.cosmology` for details).
     distmod : float or `~astropy.units.Quantity`
@@ -56,11 +56,11 @@ class Distance(u.Quantity):
 
     Raises
     ------
-    astropy.units.core.UnitsError
-        If the `unit` is not a distance.
+    `~astropy.units.UnitsError`
+        If the ``unit`` is not a distance.
     ValueError
-        If `z` is provided with a `unit` or `cosmology` is provided when `z` is
-        *not* given, or `value` is given as well as `z`
+        If ``z`` is provided with a ``unit`` or ``cosmology`` is provided when ``z`` is
+        *not* given, or ``value`` is given as well as ``z``
 
     Examples
     --------
@@ -85,7 +85,7 @@ class Distance(u.Quantity):
         if isinstance(value, u.Quantity):
             # This includes Distances as well
             if z is not None or distmod is not None:
-                raise ValueError('`value` was given along with `z` or `distmod`'
+                raise ValueError('``value`` was given along with ``z`` or ``distmod``'
                                  ' in Quantity constructor.')
 
             if unit is not None:
@@ -96,7 +96,7 @@ class Distance(u.Quantity):
         elif value is None:
             if z is not None:
                 if distmod is not None:
-                    raise ValueError('both `z` and `distmod` given in Distance '
+                    raise ValueError('both ``z`` and ``distmod`` given in Distance '
                                      'constructor')
 
                 if cosmology is None:
@@ -124,20 +124,20 @@ class Distance(u.Quantity):
                 else:
                     value = u.Quantity(value, u.parsec).to(unit).value
             else:
-                raise ValueError('none of `value`, `z`, or `distmod` were given'
+                raise ValueError('none of ``value``, ``z``, or ``distmod`` were given'
                                  ' to Distance constructor')
 
                 value = ld.value
                 unit = ld.unit
         elif z is not None:  # and value is not None based on above
-            raise ValueError('Both `z` and a `value` were provided in Distance '
+            raise ValueError('Both ``z`` and a ``value`` were provided in Distance '
                              'constructor')
         elif cosmology is not None:
-            raise ValueError('A `cosmology` was given but `z` was not provided '
+            raise ValueError('A ``cosmology`` was given but ``z`` was not provided '
                              'in Distance constructor')
         elif unit is None:
             raise u.UnitsError('No unit was provided for Distance')
-        #"else" the baseline `value` + `unit` case
+        #"else" the baseline ``value`` + ``unit`` case
 
         unit = _convert_to_and_validate_length_unit(unit)
 
@@ -173,14 +173,14 @@ class Distance(u.Quantity):
 
         Parameters
         ----------
-        cosmology : `~astropy.cosmology.cosmology` or None
-            The cosmology to assume for this calculation, or None to use the
-            current cosmology.
+        cosmology : ``Cosmology`` or ``None``
+            The cosmology to assume for this calculation, or ``None`` to use the
+            current cosmology (see `astropy.cosmology` for details).
 
         Returns
         -------
         z : float
-            The redshift of this distance given the provided `cosmology`.
+            The redshift of this distance given the provided ``cosmology``.
         """
         from ..cosmology import luminosity_distance
         from scipy import optimize
@@ -215,7 +215,7 @@ class CartesianPoints(u.Quantity):
     z : `~astropy.units.Quantity` or array-like, optional
         The third cartesian coordinate.
     unit : `~astropy.units.UnitBase` object or None
-        The physical unit of the coordinate values. If `x`, `y`, or `z`
+        The physical unit of the coordinate values. If ``x``, ``y``, or ``z``
         are quantities, they will be converted to this unit.
     dtype : ~numpy.dtype, optional
         See `~astropy.units.Quantity`. Must be given as a keyword argument.
@@ -224,12 +224,12 @@ class CartesianPoints(u.Quantity):
 
     Raises
     ------
-    astropy.units.UnitsError
-        If the units on `x`, `y`, and `z` do not match or an invalid unit is given
+    `~astropy.units.UnitsError`
+        If the units on ``x``, ``y``, and ``z`` do not match or an invalid unit is given
     ValueError
-        If `y` and `z` don't match `x`'s shape or `x` is not length-3
+        If ``y`` and ``z`` don't match ``x``'s shape or ``x`` is not length-3
     TypeError
-        If incompatible array types are passed into `x`, `y`, or `z`
+        If incompatible array types are passed into ``x``, ``y``, or ``z``
 
     """
 
@@ -251,7 +251,7 @@ class CartesianPoints(u.Quantity):
                 for coo in (x, y, z):
                     if hasattr(coo, 'unit'):
                         if unit is not None and coo.unit != unit:
-                            raise u.UnitsError('Units for `x`, `y`, and `z` do '
+                            raise u.UnitsError('Units for ``x``, ``y``, and ``z`` do '
                                                'not match in CartesianPoints')
                         unit = coo.unit
                 #if `unit`  is still None at this point, it means none were
@@ -343,11 +343,11 @@ class CartesianPoints(u.Quantity):
 
         Returns
         -------
-        r : astropy.units.Quantity
-            The radial coordinate (in the same units as this `CartesianPoint`).
-        lat : astropy.units.Quantity
+        r : `~astropy.units.Quantity`
+            The radial coordinate (in the same units as this `CartesianPoints`).
+        lat : `~astropy.units.Quantity`
             The spherical coordinates latitude.
-        lon : astropy.units.Quantity
+        lon : `~astropy.units.Quantity`
             The spherical coordinates longitude.
 
         """
@@ -364,7 +364,7 @@ class CartesianPoints(u.Quantity):
 
 def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
     """
-    raises `astropy.units.UnitsError` if not a length unit
+    raises `~astropy.units.UnitsError` if not a length unit
     """
     unit = u.Unit(unit)
 

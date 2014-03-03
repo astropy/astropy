@@ -83,7 +83,7 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
         The attribute name
 
     unique : bool
-        Should be `True` if the attribute is unique and therefore this
+        Should be ``True`` if the attribute is unique and therefore this
         should return only one value.  Otherwise, returns a list of
         values.
 
@@ -429,7 +429,7 @@ class Element(object):
         ----------
         iterator : xml iterator
             An iterator over XML elements as returned by
-            `astropy.utils.xml.iterparser.get_xml_iterator`.
+            `~astropy.utils.xml.iterparser.get_xml_iterator`.
 
         config : dict
             The configuration dictionary that affects how certain
@@ -932,7 +932,7 @@ class Values(Element, _IDProperty):
 
     @property
     def min_inclusive(self):
-        """When `True`, the domain includes the minimum value."""
+        """When ``True``, the domain includes the minimum value."""
         return self._min_inclusive
 
     @min_inclusive.setter
@@ -968,7 +968,7 @@ class Values(Element, _IDProperty):
 
     @property
     def max_inclusive(self):
-        """When `True`, the domain includes the maximum value."""
+        """When ``True``, the domain includes the maximum value."""
         return self._max_inclusive
 
     @max_inclusive.setter
