@@ -12,7 +12,7 @@ if a linear fitting algorithm is to be used and optional if a non-linear fitter 
 Custom 1D models
 ----------------
 
-For 1D models, the `~astropy.modeling.functional_models.custom_model_1d`
+For 1D models, the `~astropy.modeling.models.custom_model_1d`
 decorator is provided to make it very easy to define new models. The following
 example demonstrates how to set up a model consisting of two Gaussians:
 
@@ -67,9 +67,9 @@ and custom getters/setters for the parameter value.
 .. note::
 
     If the method which evaluates the model cannot work with multiple parameter
-    sets, `~astropy.modeling.core.Model.param_dim` should not be given as an
+    sets, `~astropy.modeling.Model.param_dim` should not be given as an
     argument in the ``__init__`` method. The default for
-    `~astropy.modeling.core.Model.param_dim` is set in the base class to 1.
+    `~astropy.modeling.Model.param_dim` is set in the base class to 1.
 
 ::
 
@@ -81,7 +81,7 @@ and custom getters/setters for the parameter value.
         stddev = Parameter('stddev')
 
 At a minimum, the ``__init__`` method takes all parameters and the number of
-parameter sets, `~astropy.modeling.core.Model.param_dim`::
+parameter sets, `~astropy.modeling.Model.param_dim`::
 
     def __init__(self, amplitude, mean, stddev, param_dim=1, **constraints):
         # Note that this __init__ does nothing different from the base class's
@@ -99,11 +99,11 @@ parameter sets, `~astropy.modeling.core.Model.param_dim`::
     the parameters have default values.
 
 Parametric models can be linear or nonlinear in a regression sense. The default
-value of the `~astropy.modeling.core.Model.linear` attribute is ``True``.
+value of the `~astropy.modeling.Model.linear` attribute is ``True``.
 Nonlinear models should define the ``linear`` class attribute as ``False``.
-The `~astropy.modeling.core.Model.n_inputs` attribute stores the number of
+The `~astropy.modeling.Model.n_inputs` attribute stores the number of
 input variables the model expects.  The
-`~astropy.modeling.core.Model.n_outputs` attribute stores the number of output
+`~astropy.modeling.Model.n_outputs` attribute stores the number of output
 variables returned after evaluating the model.  These two attributes are used
 with composite models.
 

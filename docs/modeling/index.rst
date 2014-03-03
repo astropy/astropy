@@ -7,7 +7,7 @@ Models And Fitting (`astropy.modeling`)
 Introduction
 ============
 
-`~astropy.modeling` provides a framework for representing models and
+`astropy.modeling` provides a framework for representing models and
 performing model evaluation and fitting. It supports 1D and 2D models
 and fitting with parameter constraints.
 
@@ -23,7 +23,7 @@ new model classes, nor special purpose fitting routines (but not making that
 hard to do if it is necessary).
 
 .. warning::
-    `~astropy.modeling` is currently a work-in-progress, and thus it is
+    `astropy.modeling` is currently a work-in-progress, and thus it is
     likely there will be significant API changes in later versions of
     Astropy. If you have specific ideas for how it might be improved,
     feel free to let us know on the `astropy-dev mailing list`_ or at
@@ -88,10 +88,9 @@ Simple 1D model fitting
 -----------------------
 
 In this section, we look at a simple example of fitting a Gaussian to a
-simulated dataset. We use the :class:`~astropy.modeling.functional_models.Gaussian1D`
-and :class:`~astropy.modeling.functional_models.Trapezoid1D` models and the
-:class:`~astropy.modeling.fitting.NonLinearLSQFitter` fitter to
-fit the data:
+simulated dataset. We use the `~astropy.modeling.models.Gaussian1D`
+and `~astropy.modeling.models.Trapezoid1D` models and the
+`~astropy.modeling.fitting.NonLinearLSQFitter` fitter to fit the data:
 
 .. plot::
    :include-source:
@@ -131,7 +130,8 @@ that takes the initial model (``t_init`` or ``g_init``) and the data values
 Simple 2D model fitting
 -----------------------
 
-Similarly to the 1-d example, we can create a simulated 2-d data dataset, and fit a polynomial model to it. This could be used for example to fit the background in an image.
+Similarly to the 1-d example, we can create a simulated 2-d data dataset, and fit a polynomial model to it.
+This could be used for example to fit the background in an image.
 
 .. plot::
    :include-source:

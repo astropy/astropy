@@ -6,7 +6,7 @@ Parameters are used in three different contexts within this package:
 communicating with fitters, model evaluation and getting values to/from users.
 
 Models maintain a list of parameter names,
-`~astropy.modeling.core.Model.param_names`.  Single parameters are instances of
+`~astropy.modeling.Model.param_names`.  Single parameters are instances of
 `~astropy.modeling.Parameter` which provide a proxy for the actual
 parameter values.  Simple mathematical operations can be performed with them,
 but they also contain additional attributes specific to model parameters, such
@@ -15,14 +15,14 @@ with models is through individual parameters.
 
 The goal of this package is, when possible, to allow simultaneous model
 evaluation and fitting with multiple parameter sets. Because of this, all
-models have a `~astropy.modeling.core.Model.param_sets` attribute, an array of
+models have a `~astropy.modeling.Model.param_sets` attribute, an array of
 shape ``(len(param_names), param_dim)``, where
-`~astropy.modeling.core.Model.param_dim` is the number of parameter sets.
+`~astropy.modeling.Model.param_dim` is the number of parameter sets.
 Typically the array is of type float but can become an object array in some
-cases. `~astropy.modeling.core.Model.param_sets` is used for model evaluation.
+cases. `~astropy.modeling.Model.param_sets` is used for model evaluation.
 
 In addition, fittable models maintain an attribute,
-`~astropy.modeling.core.ParametricModel.parameters`, which is a flattened 1D
+`~astropy.modeling.ParametricModel.parameters`, which is a flattened 1D
 array of parameter values. It serves as the primary storage of the raw values
 of fittable models' parameters, and is used directly by fitters as an efficient
 means of reading and updating a model's parameters.
@@ -41,7 +41,7 @@ Parameter examples
     array([ 0.,  0.,  0.,  0.,  0.])
 
 - Coefficients can be set using the
-  `~astropy.modeling.core.ParametricModel.parameters` attribute::
+  `~astropy.modeling.ParametricModel.parameters` attribute::
 
     >>> p1.parameters = [0, 1, 2, 3, 4]
     >>> p1.parameters
@@ -89,7 +89,7 @@ Parameter examples
     Parameter('c0_0', value=[-34.2  10. ])
 
 - The number of parameter sets is stored in an attribute
-  `~astropy.modeling.core.Model.param_dim`::
+  `~astropy.modeling.Model.param_dim`::
 
     >>> ch2.param_dim
     2

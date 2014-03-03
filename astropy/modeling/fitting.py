@@ -7,9 +7,9 @@ as input and define a ``__call__`` method which fits the model to the data and c
 model's parameters attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
 
-Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.
-There are currently two non-linear fitters which use `~scipy.optimize.leastsq` and
-`~scipy.optimize.slsqp` functions in scipy.optimize.\
+Linear fitting is done using the `numpy.linalg.lstsq` function.
+There are currently two non-linear fitters which use `scipy.optimize.leastsq` and
+`scipy.optimize.slsqp` functions in `scipy.optimize`.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
@@ -163,7 +163,8 @@ class LinearLSQFitter(Fitter):
 
     Parameters
     ----------
-    model : an instance of `~astropy.modeling.ParametricModel`
+    model : `~astropy.modeling.ParametricModel`
+        Model
 
     Raises
     ------
@@ -488,7 +489,7 @@ class NonLinearLSQFitter(Fitter):
         fitters using function derivative are added or when the statistic is
         separated from the fitting routines.
 
-        `~scipy.optimize.leastsq` expects the function derivative to have the
+        `scipy.optimize.leastsq` expects the function derivative to have the
         above signature (parlist, (argtuple)). In order to accomodate model
         constraints, instead of using p directly, we set the parameter list in
         this function.

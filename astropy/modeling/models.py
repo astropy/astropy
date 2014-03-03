@@ -23,20 +23,20 @@ CONSTRAINTS_DOC = """
     fixed: a dict
         a dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
-        Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
+        Alternatively the `~astropy.modeling.Parameter.fixed`
         property of a parameter may be used.
     tied: dict
         a dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.  Alternatively the
-        `~astropy.modeling.parameters.Parameter.tied` property of a parameter
+        `~astropy.modeling.Parameter.tied` property of a parameter
         may be used.
     bounds: dict
         a dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
         parameters. Keys  are parameter names. Values  are a list of length 2
         giving the desired range for the parameter.  Alternatively the
-        `~astropy.modeling.parameters.Parameter.min` and
-        `~astropy.modeling.parameters.Parameter.max` properties of a parameter
+        `~astropy.modeling.Parameter.min` and
+        `~astropy.modeling.Parameter.max` properties of a parameter
         may be used.
     eqcons: list
         A list of functions of length ``n`` such that ``eqcons[j](x0,*args) ==

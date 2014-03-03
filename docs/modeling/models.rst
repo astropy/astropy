@@ -8,9 +8,9 @@ Parametric models can be linear or nonlinear in a regression analysis sense.
 
 Model instances are callabale, that is, o evaluate a model it is called like a
 function. When possible the transformation is done using multiple
-:attr:`param_sets <astropy.modeling.core.Model.param_sets>`.  The number of
+:attr:`param_sets <astropy.modeling.Model.param_sets>`.  The number of
 parameter sets is stored in an attribute
-`~astropy.modeling.core.Model.param_dim`.
+`~astropy.modeling.Model.param_dim`.
 
 Parametric models also store a flat array of all parameter values.  When
 fitting, this array is directly modified by a subclass of
@@ -18,7 +18,7 @@ fitting, this array is directly modified by a subclass of
 parameter values simultaneously.  When fitting nonlinear models, the values of
 the parameters are used as initial guesses by the fitting class.
 
-Models have an `~astropy.modeling.core.Model.n_inputs` attribute, which shows
+Models have an `~astropy.modeling.Model.n_inputs` attribute, which shows
 how many coordinates the model expects as an input. All models expect
 coordinates as separate arguments.  For example a 2D model expects x and y to
 be passed separately, e.g. as two arrays or two lists. When a model has
@@ -29,13 +29,13 @@ parameter sets and ``x_shape, y_shape`` is the shape of the input array.  In
 all other cases the shape of the output array is the same as the shape of the
 input arrays.
 
-Models also have an attribute `~astropy.modeling.core.Model.n_outputs`, which
+Models also have an attribute `~astropy.modeling.Model.n_outputs`, which
 shows the number of output coordinates. The
-`~astropy.modeling.core.Model.n_inputs` and
-`~astropy.modeling.core.Model.n_outputs` attributes are used to chain
+`~astropy.modeling.Model.n_inputs` and
+`~astropy.modeling.Model.n_outputs` attributes are used to chain
 transforms by adding models in :class:`series
-<astropy.modeling.core.SerialCompositeModel>` or in :class:`parallel
-<astropy.modeling.core.SummedCompositeModel>`. Because composite models can
+<astropy.modeling.SerialCompositeModel>` or in :class:`parallel
+<astropy.modeling.SummedCompositeModel>`. Because composite models can
 be nested within other composite models, creating theoretically infinitely
 complex models, a mechanism to map input data to models is needed. In this case
 the input may be wrapped in a `~astropy.modeling.LabeledInput` object-- a
