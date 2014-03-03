@@ -152,7 +152,8 @@ class Distance(u.Quantity):
             raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
 
         if np.any(value < 0) and not allow_negative:
-            raise ValueError("Distance must be >= 0.")
+            raise ValueError("Distance must be >= 0. Set the kwarg "
+                            "'allow_negative=True' to allow negative values.")
 
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)
