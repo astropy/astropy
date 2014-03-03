@@ -386,6 +386,41 @@ You may be asked to make changes in the discussion of the pull request. Make
 those changes in your local copy, commit them to your local repo and push them
 to GitHub. GitHub will automatically update your pull request.
 
+.. _rebase:
+
+Rebase, but only if asked
+=========================
+
+Sometimes the maintainers of Astropy will ask you to *rebase* your changes
+before they are merged into the main Astropy repository.
+
+Conceptually, rebasing means taking your changes and applying them to the latest
+version of the development branch of the official astropy as though that was the
+version you had originally branched from.
+
+Behind the scenes, `git` is deleting the changes and branch you made, making the
+changes others made to the development branch of Astropy, then re-making your
+branch from the development branch and applying your changes to your branch.
+This results in re-writing the history of commits, which is why you should do it
+only if asked.
+
+The actual rebasing is usually easy::
+
+    git fetch astropy/master  # get the latest development astropy
+    git rebase astropy/master my-new-feature
+
+You are more likely to run into *conflics* here--places where the changes you
+made conflict with changes that someone else made--than anywhere else. Ask for
+help if you need it.
+
+After the rebase you need to push your changes to GitHub; you will need force
+the push because `git` objects to re-writing the history of the respository
+after you have pushed it somewhere::
+
+    git push -f
+
+If you run into any problems, do not hesitate to ask. A more detailed conceptual discussing of rebasing is at :ref:`rebase-on-trunk`.
+
 .. include:: links.inc
 
 .. _Interactive tutorial: http://try.github.io/
