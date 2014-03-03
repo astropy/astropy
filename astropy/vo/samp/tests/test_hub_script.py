@@ -2,11 +2,11 @@ import sys
 
 from ..hub_script import hub_script
 
-from ..utils import ALLOW_INTERNET
+from .. import conf
 
 
 def setup_module(module):
-    ALLOW_INTERNET.set(False)
+    conf.use_internet = False
 
 
 def setup_function(function):

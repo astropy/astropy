@@ -15,3 +15,15 @@ from .hub import *
 from .client import *
 from .integrated_client import *
 from .hub_proxy import *
+
+
+from ... import config as _config
+
+
+class _Conf(_config.ConfigNamespace):
+    use_internet = _config.ConfigItem(
+        True,
+        "Whether to allow astropy.vo.samp to use "
+        "the internet, if available",
+        aliases=['astropy.vo.samp.utils.use_internet'])
+conf = _Conf()

@@ -7,7 +7,6 @@ from ..extern.six.moves import range as xrange
 
 import collections
 import sys
-import platform
 import warnings
 
 from copy import deepcopy
@@ -640,11 +639,11 @@ class Table(object):
         If no value of `max_lines` is supplied then the height of the screen
         terminal is used to set `max_lines`.  If the terminal height cannot
         be determined then the default is taken from the configuration item
-        `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        `astropy.table.conf.max_lines`.  If a negative value of `max_lines`
         is supplied then there is no line limit applied.
 
         The same applies for max_width except the configuration item is
-        `astropy.table.pprint.MAX_WIDTH`.
+        `astropy.table.conf.max_width`.
 
         Parameters
         ----------
@@ -754,11 +753,11 @@ class Table(object):
         If no value of `max_lines` is supplied then the height of the screen
         terminal is used to set `max_lines`.  If the terminal height cannot
         be determined then the default is taken from the configuration item
-        `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        `astropy.table.conf.max_lines`.  If a negative value of `max_lines`
         is supplied then there is no line limit applied.
 
         The same applies for max_width except the configuration item  is
-        `astropy.table.pprint.MAX_WIDTH`.
+        `astropy.table.conf.max_width`.
 
         Parameters
         ----------

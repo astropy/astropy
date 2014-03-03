@@ -14,7 +14,7 @@ import time
 import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
-                            SESAME_DATABASE, _parse_response)
+                            sesame_database, _parse_response)
 from ..builtin_systems import ICRS
 from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, pytest
@@ -145,23 +145,23 @@ def test_database_specify():
 
     name = "ngc 3642"
     for db in ["simbad", "vizier", "all"]:
-        SESAME_DATABASE.set(db)
-        try:
-            icrs = ICRS.from_name(name)
-        except NameResolveError:
-            ra,dec = _cached_ngc3642[db]
-            icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+        with sesame_database.set(db):
+            try:
+                icrs = ICRS.from_name(name)
+            except NameResolveError:
+                ra,dec = _cached_ngc3642[db]
+                icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
 
-        time.sleep(1)
+            time.sleep(1)
 
     name = "castor"
     # Don't search ned or vizier since castor isn't in either
     for db in ["simbad",  "all"]:
-        SESAME_DATABASE.set(db)
-        try:
-            icrs = ICRS.from_name(name)
-        except NameResolveError:
-            ra,dec = _cached_castor[db]
-            icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+        with sesame_database.set(db):
+            try:
+                icrs = ICRS.from_name(name)
+            except NameResolveError:
+                ra,dec = _cached_castor[db]
+                icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
 
-        time.sleep(1)
+            time.sleep(1)

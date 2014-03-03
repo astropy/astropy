@@ -23,14 +23,12 @@ from . import groups
 from .pprint import (_pformat_col, _pformat_col_iter, _more_tabcol)
 from .np_utils import fix_column_name
 
-from ..config import ConfigurationItem
+from ..config import ConfigAlias
 
 NUMPY_VERSION = version.LooseVersion(np.__version__)
 
-AUTO_COLNAME = ConfigurationItem(
-    'auto_colname', 'col{0}',
-    'The template that determines the name of a column if it cannot be '
-    'determined. Uses new-style (format method) string formatting')
+AUTO_COLNAME = ConfigAlias(
+    'AUTO_COLNAME', 'auto_colname', 'astropy.table.column', 'astropy.table')
 
 ERROR_COLUMN_ARGS_MESSAGE = """
 The first argument to {class_name} is the string {first_arg}, which was probably intended
@@ -55,7 +53,8 @@ def _check_column_new_args(func):
 
 
 def _auto_names(n_cols):
-    return [AUTO_COLNAME().format(i) for i in range(n_cols)]
+    from . import conf
+    return [conf.auto_colname.format(i) for i in range(n_cols)]
 
 
 def _column_compare(op):
@@ -332,7 +331,7 @@ class BaseColumn(np.ndarray):
         If no value of `max_lines` is supplied then the height of the screen
         terminal is used to set `max_lines`.  If the terminal height cannot be
         determined then the default will be determined using the
-        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
+        `astropy.table.conf.max_lines` configuration item. If a negative
         value of `max_lines` is supplied then there is no line limit applied.
 
         Parameters
@@ -361,7 +360,7 @@ class BaseColumn(np.ndarray):
         If no value of `max_lines` is supplied then the height of the screen
         terminal is used to set `max_lines`.  If the terminal height cannot be
         determined then the default will be determined using the
-        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
+        `astropy.table.conf.max_lines` configuration item. If a negative
         value of `max_lines` is supplied then there is no line limit applied.
 
         Parameters

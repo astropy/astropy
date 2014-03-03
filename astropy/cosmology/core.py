@@ -5,17 +5,15 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 
 import sys
-import warnings
 from math import sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
 from .. import constants as const
-from ..config import ConfigurationItem
-from ..utils.misc import isiterable
-from ..utils.exceptions import AstropyUserWarning
+from ..utils.misc import isiterable, deprecated
 from .. import units as u
+from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters
 
@@ -28,7 +26,8 @@ from . import parameters
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "get_current",
-           "set_current", "WMAP5", "WMAP7", "WMAP9", "Planck13"]
+           "set_current", "WMAP5", "WMAP7", "WMAP9", "Planck13",
+           "default_cosmology"]
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -46,11 +45,6 @@ a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
 
 # Boltzmann constant in eV / K
 kB_evK = const.k_B.to(u.eV / u.K)
-
-DEFAULT_COSMOLOGY = ConfigurationItem(
-    'default_cosmology', 'no_default',
-    'The default cosmology to use. Note this is only read on import, '
-    'so changing this value at runtime has no effect.')
 
 
 class CosmologyError(Exception):
@@ -2349,30 +2343,60 @@ for key in parameters.available:
 del key, par, cosmo
 
 #########################################################################
-# The variable below contains the current cosmology used by the
-# convenience functions below and by other astropy functions if no
-# cosmology is explicitly given. It can be set with set_current() and
-# should be accessed using get_current().
+# The science state below contains the current cosmology.
 #########################################################################
 
 
+class default_cosmology(ScienceState):
+    """
+    The default cosmology to use.  To change it::
+
+        >>> from astropy.cosmology import default_cosmology, WMAP7
+        >>> with default_cosmology.set(WMAP7):
+        ...     # WMAP7 cosmology in effect
+
+    Or, you may use a string::
+
+        >>> with default_cosmology.set('WMAP7'):
+        ...     # WMAP7 cosmology in effect
+    """
+    _value = 'WMAP9'
+
+    @staticmethod
+    def get_cosmology_from_string(arg):
+        """ Return a cosmology instance from a string.
+        """
+        if arg == 'no_default':
+            cosmo = None
+        else:
+            try:
+                cosmo = getattr(sys.modules[__name__], arg)
+            except AttributeError:
+                s = "Unknown cosmology '%s'. Valid cosmologies:\n%s" % (
+                    arg, parameters.available)
+                raise ValueError(s)
+        return cosmo
+
+    @classmethod
+    def validate(cls, value):
+        if value is None:
+            value = 'WMAP9'
+        if isinstance(value, six.string_types):
+            return cls.get_cosmology_from_string(value)
+        elif isinstance(value, Cosmology):
+            return value
+        else:
+            raise TypeError("default_cosmology must be a string or Cosmology instance.")
+
+
+@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get_cosmology_from_string')
 def get_cosmology_from_string(arg):
     """ Return a cosmology instance from a string.
     """
-    if arg == 'no_default':
-        cosmo = None
-    else:
-        try:
-            cosmo = getattr(sys.modules[__name__], arg)
-        except AttributeError:
-            s = "Unknown cosmology '%s'. Valid cosmologies:\n%s" % (
-                arg, parameters.available)
-            raise ValueError(s)
-    return cosmo
-
-_current = get_cosmology_from_string(DEFAULT_COSMOLOGY())
+    return default_cosmology.get_cosmology_from_string(arg)
 
 
+@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get')
 def get_current():
     """ Get the current cosmology.
 
@@ -2382,51 +2406,24 @@ def get_current():
     Returns
     -------
     cosmo : `Cosmology` instance
-
-    See Also
-    --------
-    set_current : sets the current cosmology
     """
-    if _current is None:
-        warnings.warn('No default cosmology has been specified, '
-                      'using 9-year WMAP.', AstropyUserWarning)
-        return WMAP9
-
-    return _current
+    return default_cosmology.get()
 
 
+@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.set')
 def set_current(cosmo):
     """ Set the current cosmology.
 
     Call this with an empty string ('') to get a list of the strings
     that map to available pre-defined cosmologies.
 
-    .. warning::
-        `set_current` is the only way to change the current cosmology at
-        runtime! The current cosmology can also be read from an option
-        in the astropy configuration file when astropy.cosmology is first
-        imported. However, any subsequent changes to the cosmology
-        configuration option using `ConfigurationItem.set
-        <astropy.config.configuration.ConfigurationItem.set>` at run-time
-        will not update the current cosmology.
-
     Parameters
     ----------
     cosmo : str or `Cosmology` instance
       The cosmology to use.
-
-
-
-    See Also
-    --------
-    get_current : returns the currently-set cosmology
     """
-    global _current
-    if isinstance(cosmo, six.string_types):
-        _current = get_cosmology_from_string(cosmo)
-    elif isinstance(cosmo, Cosmology):
-        _current = cosmo
-    else:
-        raise ValueError(
-            "Argument must be a string or cosmology instance. Valid strings:"
-            "\n%s" % parameters.available)
+    return default_cosmology.set(cosmo)
+
+
+DEFAULT_COSMOLOGY = ScienceStateAlias(
+    'DEFAULT_COSMOLOGY', default_cosmology)

@@ -14,18 +14,19 @@ from ...extern.six.moves.urllib.error import URLError
 from ...extern.six.moves.urllib.request import urlopen
 from ...extern.six.moves import xmlrpc_client as xmlrpc
 from ...extern.six import StringIO
-from ...config import ConfigurationItem
+from ...config import ConfigAlias
 
 from .constants import SAMP_STATUS_ERROR
 from .errors import SAMPProxyError
 
-ALLOW_INTERNET = ConfigurationItem('use_internet', True,
-                                   "Whether to allow astropy.vo.samp to use "
-                                   "the internet, if available")
+ALLOW_INTERNET = ConfigAlias(
+    'ALLOW_INTERNET', 'use_internet',
+    'astropy.vo.samp.utils', 'astropy.vo.samp')
 
 
 def internet_on():
-    if not ALLOW_INTERNET():
+    from . import conf
+    if not conf.use_internet:
         return False
     else:
         try:

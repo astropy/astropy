@@ -20,10 +20,10 @@ class FitsTestCase(object):
         # Restore global settings to defaults
         # TODO: Replace this when there's a better way to in the config API to
         # force config values to their defaults
-        fits.ENABLE_RECORD_VALUED_KEYWORD_CARDS.set(True)
-        fits.EXTENSION_NAME_CASE_SENSITIVE.set(False)
-        fits.STRIP_HEADER_WHITESPACE.set(True)
-        fits.USE_MEMMAP.set(True)
+        fits.conf.enable_record_valued_keyword_cards = True
+        fits.conf.extension_name_case_sensitive = False
+        fits.conf.strip_header_whitespace = True
+        fits.conf.use_memmap = True
 
     def teardown(self):
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
@@ -38,6 +38,11 @@ class FitsTestCase(object):
                     # garbage-collected
                     time.sleep(0.5)
                     tries -= 1
+
+        fits.conf.reset('enable_record_valued_keyword_cards')
+        fits.conf.reset('extension_name_case_sensitive')
+        fits.conf.reset('strip_header_whitespace')
+        fits.conf.reset('use_memmap')
 
     def copy_file(self, filename):
         """Copies a backup of a test data file to the temp dir and sets its

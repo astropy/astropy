@@ -110,8 +110,7 @@ class TestDiff(FitsTestCase):
         assert diff.diff_keyword_values == {'B': [(2.00001, 2.00002)]}
 
     def test_ignore_blanks(self):
-        fits.STRIP_HEADER_WHITESPACE.set(False)
-        try:
+        with fits.conf.set_temp('strip_header_whitespace', False):
             ha = Header([('A', 1), ('B', 2), ('C', 'A       ')])
             hb = ha.copy()
             hb['C'] = 'A'
@@ -126,8 +125,6 @@ class TestDiff(FitsTestCase):
             diff = HeaderDiff(ha, hb, ignore_blanks=False)
             assert not diff.identical
             assert diff.diff_keyword_values == {'C': [('A       ', 'A')]}
-        finally:
-            fits.STRIP_HEADER_WHITESPACE.set(True)
 
     def test_ignore_blank_cards(self):
         """Test for https://trac.assembla.com/pyfits/ticket/152

@@ -25,6 +25,7 @@ transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
   >>> cosmology.core.set_current(cosmology.WMAP9)
+  <astropy.utils.state._Context object at ...>
   >>> cosmology.H(0)
   <Quantity 69.3... km / (Mpc s)>
 
@@ -276,15 +277,15 @@ Using `cosmology` inside Astropy
 
 If you are writing code for the Astropy core or an affiliated
 package, it is strongly recommended that you use the current cosmology
-through the `~astropy.cosmology.get_current` function. It is also
-recommended that you provide an override option something like the
-following::
+through the `~astropy.cosmology.default_cosmology` science state
+object. It is also recommended that you provide an override option
+something like the following::
 
     def myfunc(..., cosmo=None):
-	from astropy.cosmology import get_current
+	from astropy.cosmology import default_cosmology
 
 	if cosmo is None:
-	    cosmo = get_current()
+	    cosmo = default_cosmology.get()
 
 	... your code here ...
 

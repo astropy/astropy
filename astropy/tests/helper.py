@@ -640,46 +640,44 @@ def assert_follows_unicode_guidelines(
         ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
-    from .. import UNICODE_OUTPUT
+    from .. import conf
     from ..extern import six
 
-    UNICODE_OUTPUT.set(False)
+    with conf.set_temp('unicode_output', False):
+        bytes_x = bytes(x)
+        unicode_x = six.text_type(x)
+        repr_x = repr(x)
 
-    bytes_x = bytes(x)
-    unicode_x = six.text_type(x)
-    repr_x = repr(x)
+        assert isinstance(bytes_x, bytes)
+        bytes_x.decode('ascii')
+        assert isinstance(unicode_x, six.text_type)
+        unicode_x.encode('ascii')
+        assert isinstance(repr_x, six.string_types)
+        if isinstance(repr_x, bytes):
+            repr_x.decode('ascii')
+        else:
+            repr_x.encode('ascii')
 
-    assert isinstance(bytes_x, bytes)
-    bytes_x.decode('ascii')
-    assert isinstance(unicode_x, six.text_type)
-    unicode_x.encode('ascii')
-    assert isinstance(repr_x, six.string_types)
-    if isinstance(repr_x, bytes):
-        repr_x.decode('ascii')
-    else:
-        repr_x.encode('ascii')
+        if roundtrip is not None:
+            assert x.__class__(bytes_x) == x
+            assert x.__class__(unicode_x) == x
+            assert eval(repr_x, roundtrip) == x
 
-    if roundtrip is not None:
-        assert x.__class__(bytes_x) == x
-        assert x.__class__(unicode_x) == x
-        assert eval(repr_x, roundtrip) == x
+    with conf.set_temp('unicode_output', True):
+        bytes_x = bytes(x)
+        unicode_x = six.text_type(x)
+        repr_x = repr(x)
 
-    UNICODE_OUTPUT.set(True)
+        assert isinstance(bytes_x, bytes)
+        bytes_x.decode('ascii')
+        assert isinstance(unicode_x, six.text_type)
+        assert isinstance(repr_x, six.string_types)
+        if isinstance(repr_x, bytes):
+            repr_x.decode('ascii')
+        else:
+            repr_x.encode('ascii')
 
-    bytes_x = bytes(x)
-    unicode_x = six.text_type(x)
-    repr_x = repr(x)
-
-    assert isinstance(bytes_x, bytes)
-    bytes_x.decode('ascii')
-    assert isinstance(unicode_x, six.text_type)
-    assert isinstance(repr_x, six.string_types)
-    if isinstance(repr_x, bytes):
-        repr_x.decode('ascii')
-    else:
-        repr_x.encode('ascii')
-
-    if roundtrip is not None:
-        assert x.__class__(bytes_x) == x
-        assert x.__class__(unicode_x) == x
-        assert eval(repr_x, roundtrip) == x
+        if roundtrip is not None:
+            assert x.__class__(bytes_x) == x
+            assert x.__class__(unicode_x) == x
+            assert eval(repr_x, roundtrip) == x

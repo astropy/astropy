@@ -11,11 +11,12 @@ import numpy as np
 # LOCAL
 from .. import conesearch, vos_catalog
 from ..exceptions import VOSError, ConeSearchError
+from ... import conf
 from .... import units as u
 from ....coordinates import ICRS
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
-from ....utils.data import REMOTE_TIMEOUT
+from ....utils import data
 
 
 __doctest_skip__ = ['*']
@@ -49,10 +50,10 @@ class TestConeSearch(object):
         self.catname = 'USNO-A2'
 
         # Avoid downloading the full database
-        conesearch.CONESEARCH_DBNAME.set('conesearch_simple')
+        conf.conesearch_dbname = 'conesearch_simple'
 
         # Sometimes 3s is not enough
-        REMOTE_TIMEOUT.set(10)
+        data.conf.remote_timeout = 10
 
         self.verbose = False
         self.pedantic = False
@@ -95,7 +96,7 @@ class TestConeSearch(object):
         tab_4 = conesearch.conesearch(
             SCS_CENTER, SCS_RADIUS,
             catalog_db=vos_catalog.get_remote_catalog_db(
-                conesearch.CONESEARCH_DBNAME()),
+                conf.conesearch_dbname),
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert tab_2.url == tab_3.url
@@ -125,7 +126,7 @@ class TestConeSearch(object):
         async_search = conesearch.AsyncConeSearch(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
-        tab = async_search.get(timeout=REMOTE_TIMEOUT())
+        tab = async_search.get(timeout=data.conf.remote_timeout)
 
         assert async_search.done()
         assert tab.array.size > 0
@@ -134,7 +135,7 @@ class TestConeSearch(object):
         async_search_all = conesearch.AsyncSearchAll(
             SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
-        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 3))
+        all_results = async_search_all.get(timeout=(data.conf.remote_timeout * 3))
 
         assert async_search_all.done()
         for tab in all_results.values():
@@ -164,9 +165,8 @@ class TestConeSearch(object):
                 verbose=self.verbose)
 
     def teardown_class(self):
-        conesearch.CONESEARCH_DBNAME.set(
-            conesearch.CONESEARCH_DBNAME.defaultvalue)
-        REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
+        conf.reset('conesearch_dbname')
+        data.conf.reset('remote_timeout')
 
 
 class TestErrorResponse(object):

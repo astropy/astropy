@@ -22,7 +22,6 @@ from ..exceptions import ValidationMultiprocessingError
 from ...client.vos_catalog import VOSDatabase
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
-from ....utils.data import REMOTE_TIMEOUT
 
 
 __doctest_skip__ = ['*']
@@ -40,10 +39,10 @@ class TestConeSearchValidation(object):
             'excp': 'conesearch_exception.json',
             'nerr': 'conesearch_error.json'}
 
-        validate.CS_MSTR_LIST.set(get_pkg_data_filename(os.path.join(
-            self.datadir, 'vao_conesearch_sites_121107_subset.xml')))
+        conf.conesearch_master_list = get_pkg_data_filename(os.path.join(
+            self.datadir, 'vao_conesearch_sites_121107_subset.xml'))
 
-        REMOTE_TIMEOUT.set(30)
+        data.conf.remote_timeout = 30
 
     @staticmethod
     def _compare_catnames(fname1, fname2):
@@ -86,6 +85,6 @@ class TestConeSearchValidation(object):
             os.path.join(local_outdir, 'conesearch_good.json'))
 
     def teardown_class(self):
-        validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
-        REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
+        conf.reset('conesearch_master_list')
+        data.conf.reset('remote_timeout')
         shutil.rmtree(self.out_dir)

@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 import numpy as np
 
-from .core import get_current as _get_current
+from .core import default_cosmology as _default_cosmology
 from .core import CosmologyError
 from ..units import Quantity
 
@@ -165,7 +165,7 @@ def age(z, cosmo=None):
     z_at_value : Find the redshift corresponding to an age.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.age(z)
 
 
@@ -188,7 +188,7 @@ def comoving_volume(z, cosmo=None):
       Comoving volume in :math:`Mpc^3` at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.comoving_volume(z)
 
 
@@ -208,7 +208,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
       input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.kpc_comoving_per_arcmin(z)
 
 
@@ -228,7 +228,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
       input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.kpc_proper_per_arcmin(z)
 
 
@@ -248,7 +248,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
       at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.arcsec_per_kpc_comoving(z)
 
 
@@ -268,7 +268,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
       at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.arcsec_per_kpc_proper(z)
 
 
@@ -293,7 +293,7 @@ def distmod(z, cosmo=None):
     z_at_value : Find the redshift corresponding to a distance modulus.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.distmod(z)
 
 
@@ -311,7 +311,7 @@ def H(z, cosmo=None):
       Hubble parameter at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.H(z)
 
 
@@ -331,7 +331,7 @@ def scale_factor(z, cosmo=None):
       Scale factor at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.scale_factor(z)
 
 
@@ -349,7 +349,7 @@ def critical_density(z, cosmo=None):
       Critical density at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.critical_density(z)
 
 
@@ -374,7 +374,7 @@ def lookback_time(z, cosmo=None):
     z_at_value : Find the redshift corresponding to a lookback time.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.lookback_time(z)
 
 
@@ -395,7 +395,7 @@ def comoving_distance(z, cosmo=None):
       Comoving distance at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.comoving_distance(z)
 
 
@@ -417,7 +417,7 @@ def angular_diameter_distance(z, cosmo=None):
       Angular diameter distance at each input redshift.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.angular_diameter_distance(z)
 
 
@@ -442,5 +442,5 @@ def luminosity_distance(z, cosmo=None):
     z_at_value : Find the redshift corresponding to a luminosity distance.
     """
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.luminosity_distance(z)

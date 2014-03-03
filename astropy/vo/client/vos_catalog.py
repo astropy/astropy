@@ -16,8 +16,8 @@ from copy import deepcopy
 
 # LOCAL
 from .exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL, InvalidAccessURL
-from ...config.configuration import ConfigurationItem
 from ...io.votable import parse_single_table, table, tree
+from ...config import ConfigAlias
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj, REMOTE_TIMEOUT
@@ -31,9 +31,9 @@ __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
 
 __dbversion__ = 1
 
-BASEURL = ConfigurationItem('vos_baseurl',
-                            'http://stsdas.stsci.edu/astrolib/vo_databases/',
-                            'URL where VO Service database file is stored.')
+BASEURL = ConfigAlias(
+    'BASEURL', 'vos_baseurl',
+    'astropy.vo.client.vos_catalog', 'astropy.vo')
 
 
 class VOSBase(object):
@@ -615,7 +615,7 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
     ----------
     dbname : str
         Prefix of JSON file to download from
-        ``astropy.vo.client.vos_catalog.BASEURL``.
+        `astropy.vo.conf.vos_baseurl`.
 
     cache : bool
         Use caching for VO Service database. Access to actual VO
@@ -631,9 +631,12 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
         A database of VO services.
 
     """
+    from .. import conf
+
     return VOSDatabase.from_json(
-        urllib.parse.urljoin(BASEURL(), dbname + '.json'),
-        encoding='utf8', cache=cache, show_progress=verbose)
+        urllib.parse.urljoin(conf.vos_baseurl, dbname + '.json',
+                             encoding='utf8', cache=cache,
+                             show_progress=verbose)
 
 
 def _get_catalogs(service_type, catalog_db, **kwargs):
@@ -788,13 +791,15 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         May be one of the following, in order from easiest to
         use to most control:
 
-            - `None`: A database of ``service_type`` catalogs is downloaded
-              from ``astropy.vo.client.vos_catalog.BASEURL``.  The first
-              catalog in the database to successfully return a result is used.
+            - `None`: A database of ``service_type`` catalogs is
+              downloaded from `astropy.vo.conf.vos_baseurl`.  The
+              first catalog in the database to successfully return a
+              result is used.
 
-            - *catalog name*: A name in the database of ``service_type``
-              catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
-              For a list of acceptable names, use :func:`list_catalogs`.
+            - *catalog name*: A name in the database of
+              ``service_type`` catalogs at
+              `astropy.vo.conf.vos_baseurl` is used.  For a list of
+              acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
               ``service_type``. Must end in either '?' or '&'.
@@ -808,9 +813,9 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     pedantic : bool or `None`
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
-        :py:mod:`warnings` module.
-        When not provided, uses the configuration setting
-        ``astropy.io.votable.table.PEDANTIC``, which defaults to `False`.
+        :py:mod:`warnings` module.  When not provided, uses the
+        configuration setting `astropy.io.votable.conf.pedantic`, which
+        defaults to `False`.
 
     verbose : bool
         Verbose output.
@@ -840,7 +845,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
                              verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
-        pedantic = table.PEDANTIC()
+        pedantic = votable.conf.pedantic
 
     for name, catalog in catalogs:
         if isinstance(catalog, six.string_types):

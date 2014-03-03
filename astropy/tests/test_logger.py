@@ -9,7 +9,7 @@ import warnings
 
 from .helper import pytest, catch_warnings
 from .. import log
-from ..logger import LoggingError, LOG_LEVEL
+from ..logger import LoggingError, conf
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning
 
 
@@ -257,7 +257,7 @@ def test_log_to_list(level):
 
     if level is None:
         # The log level *should* be set to whatever it was in the config
-        level = LOG_LEVEL()
+        level = conf.log_level
 
     # Check list length
     if level == 'DEBUG':
@@ -346,7 +346,7 @@ def test_log_to_file(tmpdir, level):
 
     if level is None:
         # The log level *should* be set to whatever it was in the config
-        level = LOG_LEVEL()
+        level = conf.log_level
 
     # Check list length
     if level == 'DEBUG':

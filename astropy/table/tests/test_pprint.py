@@ -116,10 +116,10 @@ class TestPprint():
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float).reshape(100, 40)
         lines = table_type(arr).pformat()
-        assert len(lines) == pprint.MAX_LINES()
+        assert len(lines) == table.conf.max_lines
         for line in lines:
-            assert (len(line) > pprint.MAX_WIDTH() - 10 and
-                    len(line) <= pprint.MAX_WIDTH())
+            assert (len(line) > table.conf.max_width - 10 and
+                    len(line) <= table.conf.max_width)
 
     def test_format1(self, table_type):
         """Basic test of formatting, unit header row included"""
@@ -262,15 +262,13 @@ class TestFormat():
             str(t['a'])
 
     def test_column_format_with_threshold(self, table_type):
-        MAX_LINES_val = pprint.MAX_LINES()
-        pprint.MAX_LINES.set(6)
-        t = table_type([np.arange(20)], names=['a'])
-        t['a'].format = '%{0:}'
-        assert str(t['a']) == ' a \n---\n %0\n %1\n...\n%19'
-        t['a'].format = '{ %4.2f }'
-        assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
-                              ' { 1.00 }\n      ...\n{ 19.00 }'
-        pprint.MAX_LINES.set(MAX_LINES_val)
+        with table.conf.set_temp('max_lines', 6):
+            t = table_type([np.arange(20)], names=['a'])
+            t['a'].format = '%{0:}'
+            assert str(t['a']) == ' a \n---\n %0\n %1\n...\n%19'
+            t['a'].format = '{ %4.2f }'
+            assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
+                                  ' { 1.00 }\n      ...\n{ 19.00 }'
 
     def test_column_format_func(self, table_type):
         # run most of functions twice

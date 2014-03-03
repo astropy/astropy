@@ -74,13 +74,27 @@ if not _ASTROPY_SETUP_:
     _check_numpy()
 
 
-from .config import ConfigurationItem
+from . import config as _config
+import sys
 
 
-UNICODE_OUTPUT = ConfigurationItem(
-    'unicode_output', False,
-    'Use Unicode characters when outputting values, and writing widgets '
-    'to the console.')
+class _Conf(_config.ConfigNamespace):
+    unicode_output = _config.ConfigItem(
+        False,
+        'Use Unicode characters when outputting values, and writing widgets '
+        'to the console.')
+    use_color = _config.ConfigItem(
+        sys.platform != 'win32',
+        'When True, use ANSI color escape sequences when writing to the console.',
+        aliases=['astropy.utils.console.USE_COLOR', 'astropy.logger.USE_COLOR'])
+conf = _Conf()
+
+
+UNICODE_OUTPUT = _config.ConfigAlias(
+    'UNICODE_OUTPUT', 'unicode_output')
+
+
+del sys
 
 
 # set up the test command

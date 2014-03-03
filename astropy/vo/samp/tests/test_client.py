@@ -5,10 +5,10 @@ from ..client import SAMPClient
 from ..integrated_client import SAMPIntegratedClient
 
 # By default, tests should not use the internet.
-from ..utils import ALLOW_INTERNET
+from .. import conf
 
 def setup_module(module):
-    ALLOW_INTERNET.set(False)
+    conf.use_internet = False
 
 
 def test_SAMPHubProxy():

@@ -15,7 +15,7 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import registry as io_registry
-from ..config import ConfigurationItem
+from ..config import ConfigAlias
 from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
@@ -24,12 +24,9 @@ __all__ = ['NDData']
 __doctest_skip__ = ['NDData']
 
 
-WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
-    'warn_unsupported_correlated', True,
-    'Whether to issue a warning if NDData arithmetic is performed with '
-    'uncertainties and the uncertainties do not support the propagation '
-    'of correlated uncertainties.'
-)
+WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
+    'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
+    'astropy.nddata.nddata', 'astropy.nddata')
 
 
 class NDData(object):
@@ -330,17 +327,20 @@ class NDData(object):
 
         Notes
         -----
-        This method requires the datasets to have identical WCS properties,
-        equivalent units, and identical shapes. Flags and meta-data get set to
-        None in the resulting dataset. The unit in the result is the same as
-        the unit in `self`. Uncertainties are propagated, although correlated
-        errors are not supported by any of the built-in uncertainty classes.
-        If uncertainties are assumed to be correlated, a warning is issued by
-        default (though this can be disabled via the
-        `WARN_UNSUPPORTED_CORRELATED` configuration item). Values masked in
-        either dataset before the operation are masked in the resulting
-        dataset.
+        This method requires the datasets to have identical WCS
+        properties, equivalent units, and identical shapes. Flags and
+        meta-data get set to None in the resulting dataset. The unit
+        in the result is the same as the unit in `self`. Uncertainties
+        are propagated, although correlated errors are not supported
+        by any of the built-in uncertainty classes.  If uncertainties
+        are assumed to be correlated, a warning is issued by default
+        (though this can be disabled via the
+        `astropy.nddata.conf.warn_unsupported_correlated`
+        configuration item). Values masked in either dataset before
+        the operation are masked in the resulting dataset.
         """
+        from . import conf
+
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
@@ -371,7 +371,7 @@ class NDData(object):
         elif operand.uncertainty is None:
             result.uncertainty = self.uncertainty
         else:  # both self and operand have uncertainties
-            if (WARN_UNSUPPORTED_CORRELATED() and
+            if (conf.warn_unsupported_correlated and
                 (not self.uncertainty.support_correlated or
                  not operand.uncertainty.support_correlated)):
                 log.info("The uncertainty classes used do not support the "

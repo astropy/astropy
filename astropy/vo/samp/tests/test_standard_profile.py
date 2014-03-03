@@ -11,13 +11,13 @@ from ..constants import SAMP_STATUS_OK
 from ..errors import SAMPClientError, SAMPProxyError
 
 # By default, tests should not use the internet.
-from ..utils import ALLOW_INTERNET
+from .. import conf
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
 
 def setup_module(module):
-    ALLOW_INTERNET.set(False)
+    conf.use_internet = False
 
 TEST_CERT1 = get_pkg_data_filename('data/test1.crt')
 TEST_KEY1 = get_pkg_data_filename('data/test1.key')

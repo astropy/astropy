@@ -28,10 +28,9 @@ catalogs below:
 * USNO B1
 
 This subset undergoes daily validations hosted by STScI using
-:ref:`vo-sec-validator-validate`. Those that pass without
-critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
-default. They are controlled by
-``astropy.vo.client.conesearch.CONESEARCH_DBNAME``:
+:ref:`vo-sec-validator-validate`. Those that pass without critical
+warnings or exceptions are used by :ref:`vo-sec-client-scs` by
+default. They are controlled by `astropy.vo.conf.conesearch_dbname`:
 
 #. ``'conesearch_good'``
    Default. Passed validation without critical warnings and exceptions.

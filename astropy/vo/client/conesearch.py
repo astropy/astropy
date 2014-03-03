@@ -13,14 +13,12 @@ from . import vos_catalog
 from .async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
-from ...config.configuration import ConfigurationItem
+from ...config.configuration import ConfigAlias
 from ...coordinates import ICRS, SphericalCoordinatesBase
-from ...logger import log
 from ...units import Quantity
-from ...utils.data import REMOTE_TIMEOUT
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
-
+from ...utils import data
 
 __all__ = ['AsyncConeSearch', 'conesearch', 'AsyncSearchAll', 'search_all',
            'list_catalogs', 'predict_search', 'conesearch_timer']
@@ -30,8 +28,9 @@ __all__ = ['AsyncConeSearch', 'conesearch', 'AsyncSearchAll', 'search_all',
 # doctests
 __doctest_skip__ = ['AsyncConeSearch', 'AsyncSearchAll']
 
-CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch_good',
-                                      'Conesearch database name.')
+CONESEARCH_DBNAME = ConfigAlias(
+    'CONESEARCH_DBNAME', 'conesearch_dbname',
+    'astropy.vo.client.conesearch', 'astropy.vo')
 
 
 class AsyncConeSearch(AsyncBase):
@@ -63,7 +62,7 @@ class AsyncConeSearch(AsyncBase):
     False
 
     Get search results after a 30-second wait (not to be
-    confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
+    confused with `astropy.utils.data.conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
     done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
     Cone Search result is returned and can be manipulated as in
@@ -128,19 +127,19 @@ def conesearch(center, radius, verb=1, **kwargs):
         use to most control:
 
             - `None`: A database of
-              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-              catalogs is downloaded from
-              ``astropy.vo.client.vos_catalog.BASEURL``.  The first
-              catalog in the database to successfully return a result is used.
+              `astropy.vo.conf.conesearch_dbname` catalogs is
+              downloaded from `astropy.vo.conf.vos_baseurl`.  The
+              first catalog in the database to successfully return a
+              result is used.
 
             - *catalog name*: A name in the database of
-              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-              catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
-              For a list of acceptable names, use :func:`list_catalogs`.
+              `astropy.vo.conf.conesearch_dbname` catalogs at
+              `astropy.vo.conf.vos_baseurl` is used.  For a list of
+              acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
-              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``.
-              Must end in either '?' or '&'.
+              `astropy.vo.conf.conesearch.conesearch_dbname`.  Must
+              end in either '?' or '&'.
 
             - `VOSCatalog` object: A specific catalog manually downloaded and
               selected from the database (see :ref:`vo-sec-client-vos`).
@@ -151,9 +150,9 @@ def conesearch(center, radius, verb=1, **kwargs):
     pedantic : bool or `None`
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
-        :py:mod:`warnings` module.
-        When not provided, uses the configuration setting
-        ``astropy.io.votable.table.PEDANTIC``, which defaults to `False`.
+        :py:mod:`warnings` module.  When not provided, uses the
+        configuration setting `astropy.io.votable.conf.pedantic`,
+        which defaults to `False`.
 
     verbose : bool
         Verbose output.
@@ -177,6 +176,8 @@ def conesearch(center, radius, verb=1, **kwargs):
         If VO service request fails.
 
     """
+    from .. import conf
+
     # Validate RA and DEC
     ra, dec = _validate_coord(center)
 
@@ -190,7 +191,7 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     args = {'RA': ra, 'DEC': dec, 'SR': sr, 'VERB': verb}
 
-    return vos_catalog.call_vo_service(CONESEARCH_DBNAME(),
+    return vos_catalog.call_vo_service(conf.conesearch_dbname,
                                        kwargs=args, **kwargs)
 
 
@@ -220,13 +221,13 @@ class AsyncSearchAll(AsyncBase):
     >>> async_search.done()
     False
 
-    Get a dictionary of all search results after a 30-second wait
-    (not to be confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
+    Get a dictionary of all search results after a 30-second wait (not
+    to be confused with `astropy.utils.data.conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
-    done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
-    a dictionary is returned and can be manipulated as in
-    :ref:`Simple Cone Search Examples <vo-sec-scs-examples>`.
-    If no ``timeout`` keyword given, it waits until completion:
+    done after 30 seconds, ``TimeoutError`` is raised. Otherwise, a
+    dictionary is returned and can be manipulated as in :ref:`Simple
+    Cone Search Examples <vo-sec-scs-examples>`.  If no ``timeout``
+    keyword given, it waits until completion:
 
     >>> async_allresults = async_search.get(timeout=30)
     >>> all_catalogs = list(async_allresults)
@@ -266,6 +267,8 @@ def search_all(*args, **kwargs):
         When invalid inputs are passed into Cone Search.
 
     """
+    from .. import conf
+
     all_results = {}
 
     catalog_db = kwargs.get('catalog_db', None)
@@ -275,7 +278,7 @@ def search_all(*args, **kwargs):
     cache = kwargs.get('cache', True)
     verbose = kwargs.get('verbose', True)
 
-    catalogs = vos_catalog._get_catalogs(CONESEARCH_DBNAME(), catalog_db,
+    catalogs = vos_catalog._get_catalogs(conf.conesearch_dbname, catalog_db,
                                          cache=cache, verbose=verbose)
 
     for name, catalog in catalogs:
@@ -320,7 +323,9 @@ def list_catalogs(**kwargs):
         List of catalog names.
 
     """
-    return vos_catalog.list_catalogs(CONESEARCH_DBNAME(), **kwargs)
+    from .. import conf
+
+    return vos_catalog.list_catalogs(conf.conesearch_dbname, **kwargs)
 
 
 def predict_search(url, *args, **kwargs):
@@ -341,7 +346,8 @@ def predict_search(url, *args, **kwargs):
 
         #. Fitted slope is negative.
         #. Any of the estimated results is negative.
-        #. Estimated run time exceeds ``astropy.utils.data.REMOTE_TIMEOUT``.
+        #. Estimated run time exceeds
+           `astropy.utils.data.conf.remote_timeout`.
 
     .. note::
 
@@ -417,9 +423,9 @@ def predict_search(url, *args, **kwargs):
     if t_est < 0 or t_coeffs[1] < 0:  # pragma: no cover
         warnings.warn('Estimated runtime ({0} s) is non-physical with slope of '
                       '{1}'.format(t_est, t_coeffs[1]), AstropyUserWarning)
-    elif t_est > REMOTE_TIMEOUT():  # pragma: no cover
+    elif t_est > data.conf.remote_timeout:  # pragma: no cover
         warnings.warn('Estimated runtime is longer than timeout of '
-                      '{0} s'.format(REMOTE_TIMEOUT()), AstropyUserWarning)
+                      '{0} s'.format(data.conf.remote_timeout), AstropyUserWarning)
 
     # Predict number of objects
     sr_arr = sorted(cs_pred.results)  # Orig with floating point error

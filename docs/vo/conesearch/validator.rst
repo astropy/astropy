@@ -19,13 +19,13 @@ Currently, only Cone Search validation is done using
 :func:`~astropy.vo.validator.validate.check_conesearch_sites`,
 which utilizes underlying `astropy.io.votable.validator` library.
 
-A master list of all available Cone Search services is
-obtained from ``astropy.vo.validator.validate.CS_MSTR_LIST``, which
-is a URL query to STScI VAO Registry by default.
-However, by default, only the ones in ``astropy.vo.validator.validate.CS_URLS``
-are validated (also see :ref:`vo-sec-default-scs-services`),
-while the rest are skipped. There are also options to validate
-a user-defined list of services or all of them.
+A master list of all available Cone Search services is obtained from
+`astropy.vo.validator.conf.conesearch_master_list`, which is a URL
+query to STScI VAO Registry by default.  However, by default, only the
+ones in `astropy.vo.validator.conf.conesearch_urls` are validated
+(also see :ref:`vo-sec-default-scs-services`), while the rest are
+skipped. There are also options to validate a user-defined list of
+services or all of them.
 
 All Cone Search queries are done using RA, DEC, and SR given by
 ``<testQuery>`` XML tag in the registry, and maximum verbosity.
@@ -35,16 +35,14 @@ it uses a default search for ``RA=0&DEC=0&SR=0.1``.
 The results are separated into 4 groups below. Each group
 is stored as a JSON file of `~astropy.vo.client.vos_catalog.VOSDatabase`:
 
-#. ``conesearch_good.json``
-     Passed validation without critical warnings and
-     exceptions. This database residing in
-     ``astropy.vo.client.vos_catalog.BASEURL`` is the one used
-     by :ref:`vo-sec-client-scs` by default.
-#. ``conesearch_warn.json``
-     Has critical warnings but no exceptions. Users
-     can manually set
-     ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-     to use this at their own risk.
+#. ``conesearch_good.json`` Passed validation without critical
+     warnings and exceptions. This database residing in
+     `astropy.vo.conf.vos_baseurl` is the one used by
+     :ref:`vo-sec-client-scs` by default.
+#. ``conesearch_warn.json`` Has critical warnings but no
+     exceptions. Users can manually set
+     `astropy.vo.conf.conesearch_dbname` to use this at their own
+     risk.
 #. ``conesearch_exception.json``
      Has some exceptions. *Never* use this.
      For informational purpose only.
@@ -60,23 +58,23 @@ Warnings and Exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 A subset of `astropy.io.votable.exceptions` that is considered
-non-critical is defined by ``astropy.vo.validator.validate.NONCRIT_WARNINGS``,
-which will not be flagged as bad by the validator. However,
-this does not change the behavior of ``astropy.io.votable.table.PEDANTIC``,
-which still needs to be set to ``False`` for them not to be thrown out
-by :func:`~astropy.vo.client.conesearch.conesearch`.
-Despite being listed as non-critical, user is responsible
-to check whether the results are reliable; They should not be
-used blindly.
+non-critical is defined by
+`astropy.vo.validator.conf.noncritical_warnings`, which will not be
+flagged as bad by the validator. However, this does not change the
+behavior of `astropy.io.votable.conf.pedantic`, which still needs to
+be set to ``False`` for them not to be thrown out by
+:func:`~astropy.vo.client.conesearch.conesearch`.  Despite being
+listed as non-critical, user is responsible to check whether the
+results are reliable; They should not be used blindly.
 
 Some `units recognized by VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_
 are considered invalid by Cone Search standards. As a result,
 they will give the warning ``'W50'``, which is non-critical by default.
 
-User can also modify ``astropy.vo.validator.validate.NONCRIT_WARNINGS`` to
-include or exclude any warnings or exceptions, as desired.
-However, this should be done with caution. Adding exceptions
-to non-critical list is not recommended.
+User can also modify `astropy.vo.validator.conf.noncritical_warnings`
+to include or exclude any warnings or exceptions, as desired.
+However, this should be done with caution. Adding exceptions to
+non-critical list is not recommended.
 
 .. _vo-sec-validator-build-db:
 
@@ -141,12 +139,12 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-* ``astropy.vo.validator.validate.CS_MSTR_LIST``
+* `astropy.vo.validator.conf.conesearch_master_list`
     VO registry query URL that should return a VO table with all the desired
     VO services.
-* ``astropy.vo.validator.validate.CS_URLS``
+* `astropy.vo.validator.conf.conesearch_urls`
     Subset of Cone Search access URLs to validate.
-* ``astropy.vo.validator.validate.NONCRIT_WARNINGS``
+* `astropy.vo.validator.conf.noncritical_warnings`
     List of VO table parser warning codes that are considered non-critical.
 
 Also depends on properties in
@@ -167,8 +165,8 @@ accessing the individual services (at least 30 seconds is recommended).
 In addition, all VO table warnings from the registry are suppressed because
 we are not trying to validate the registry itself but the services it contains:
 
->>> from astropy.utils.data import REMOTE_TIMEOUT
->>> with REMOTE_TIMEOUT.set_temp(30):
+>>> from astropy.utils import data
+>>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites()
 Downloading http://vao.stsci.edu/directory/NVORegInt.asmx/...
 |===========================================|  25M/ 25M (100.00%)        00s
@@ -193,7 +191,7 @@ current directory. For this example, we use ``registry_db`` from
  'http://archive.stsci.edu/copernicus/search.php?', ...,
  'http://galex.stsci.edu/gxWS/ConeSearch/gxConeSearch.aspx?',
  'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&']
->>> with REMOTE_TIMEOUT.set_temp(30):
+>>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites(
 ...         destdir='./subset', verbose=False, parallel=False, url_list=urls)
 INFO: check_conesearch_sites took 84.7241549492 s on AVERAGE...
@@ -202,15 +200,17 @@ Add ``'W24'`` from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
->>> from astropy.vo.validator.validate import NONCRIT_WARNINGS
->>> with NONCRIT_WARNINGS.set_temp(NONCRIT_WARNINGS() + ['W24']):
-...     with REMOTE_TIMEOUT.set_temp(30):
+<<<<<<< HEAD:docs/vo/conesearch/validator.rst
+>>> from astropy.vo.validator.validate import conf
+>>> with conf.set_temp('noncritical_warnings', conf.noncritical_warnings + ['W24']):
+...     with data.conf.set_temp('remote_timeout', 30):
 ...         validate.check_conesearch_sites()
 
 Validate *all* Cone Search services in the master registry
 (this will take a while) and write results in ``'all'`` sub-directory:
 
->>> with REMOTE_TIMEOUT.set_temp(30):
+<<<<<<< HEAD:docs/vo/conesearch/validator.rst
+>>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites(destdir='./all', url_list=None)
 
 To look at the HTML pages of the validation results in the current
@@ -253,7 +253,7 @@ Inspection of Validation Results
 `astropy.vo.validator.inspect` inspects results from
 :ref:`vo-sec-validator-validate`. It reads in JSON files of
 `~astropy.vo.client.vos_catalog.VOSDatabase`
-residing in ``astropy.vo.client.vos_catalog.BASEURL``, which
+residing in ``astropy.vo.conf.vos_baseurl``, which
 can be changed to point to a different location.
 
 Configurable Items
@@ -261,7 +261,7 @@ Configurable Items
 
 This parameter is set via :ref:`astropy_config`:
 
-* ``astropy.vo.client.vos_catalog.BASEURL``
+* `astropy.vo.conf.vos_baseurl`
 
 Examples
 ^^^^^^^^
@@ -269,8 +269,8 @@ Examples
 >>> from astropy.vo.validator import inspect
 
 Load Cone Search validation results from
-``astropy.vo.client.vos_catalog.BASEURL``
-(by default, the one used by :ref:`vo-sec-client-scs`):
+``astropy.vo.conf.vos_baseurl`` (by default, the one used by
+:ref:`vo-sec-client-scs`):
 
 >>> r = inspect.ConeSearchResults()
 Downloading http://.../conesearch_good.json
@@ -310,9 +310,9 @@ W17,W42,W21
 .../vo.xml:4:0: W42: No XML namespace specified
 .../vo.xml:15:15: W17: VOTABLE element contains more than one DESCRIPTION...
 
-List Cone Search catalogs with warnings, excluding warnings that
-were ignored in ``astropy.vo.validator.validate.NONCRIT_WARNINGS``,
-and writes the output to a file named ``'warn_cats.txt'`` in the current
+List Cone Search catalogs with warnings, excluding warnings that were
+ignored in `astropy.vo.validator.conf.noncritical_warnings`, and
+writes the output to a file named ``'warn_cats.txt'`` in the current
 directory. This is useful to see why the services failed validations:
 
 >>> with open('warn_cats.txt', 'w') as fout:
@@ -347,8 +347,8 @@ and wish to inspect the output databases. This example reads in
 validation of STScI Cone Search services done in
 :ref:`Validation for Simple Cone Search Examples <vo-sec-validate-examples>`:
 
->>> from astropy.vo.client.vos_catalog import BASEURL
->>> with BASEURL.set_temp('./subset/'):
+>>> from astropy.vo import conf
+>>> with conf.set_temp('vos_baseurl', './subset/'):
 >>>     r = inspect.ConeSearchResults()
 >>> r.tally()
 good: 19 catalog(s)

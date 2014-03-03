@@ -24,7 +24,7 @@ import time
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
-from ..config.configuration import ConfigurationItem
+from .. import config as _config
 from ..utils.exceptions import AstropyWarning
 
 
@@ -36,23 +36,43 @@ __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'download_files_in_parallel']
 
 
-DATAURL = ConfigurationItem(
-    'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
-REMOTE_TIMEOUT = ConfigurationItem(
-    'remote_timeout', 3., 'Time to wait for remote data query (in seconds).')
-COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem(
-    'hash_block_size', 2 ** 16,  # 64K
-    'Block size for computing MD5 file hashes.')
-DOWNLOAD_CACHE_BLOCK_SIZE = ConfigurationItem(
-    'download_block_size', 2 ** 16,  # 64K
-    'Number of bytes of remote data to download per step.')
-DOWNLOAD_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
-    'download_cache_lock_attempts', 5, 'Number of times to try to get the lock ' +
-    'while accessing the data cache before giving up.')
-DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
-    'delete_temporary_downloads_at_exit', True, 'If True, temporary download' +
-    ' files created when the cache is inacessible will be deleted at the end' +
-    ' of the python session.')
+class _Conf(_config.ConfigNamespace):
+    dataurl = _config.ConfigItem(
+        'http://data.astropy.org/',
+        'URL for astropy remote data site.')
+    remote_timeout = _config.ConfigItem(
+        3.,
+        'Time to wait for remote data query (in seconds).',
+        aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
+    compute_hash_block_size = _config.ConfigItem(
+        2 ** 16,  # 64K
+        'Block size for computing MD5 file hashes.')
+    download_block_size = _config.ConfigItem(
+        2 ** 16,  # 64K
+        'Number of bytes of remote data to download per step.')
+    download_cache_lock_attempts = _config.ConfigItem(
+        5,
+        'Number of times to try to get the lock ' +
+        'while accessing the data cache before giving up.')
+    delete_temporary_downloads_at_exit = _config.ConfigItem(
+        True,
+        'If True, temporary download files created when the cache is '
+        'inaccessible will be deleted at the end of the python session.')
+conf = _Conf()
+
+
+DATAURL = _config.ConfigAlias(
+    'DATAURL', 'dataurl')
+REMOTE_TIMEOUT = _config.ConfigAlias(
+    'REMOTE_TIMEOUT', 'remote_timeout')
+COMPUTE_HASH_BLOCK_SIZE = _config.ConfigAlias(
+    'COMPUTE_HASH_BLOCK_SIZE', 'compute_hash_block_size')
+DOWNLOAD_CACHE_BLOCK_SIZE = _config.ConfigAlias(
+    'DOWNLOAD_CACHE_BLOCK_SIZE', 'download_block_size')
+DOWNLOAD_CACHE_LOCK_ATTEMPTS = _config.ConfigAlias(
+    'DOWNLOAD_CACHE_LOCK_ATTEMPTS', 'download_cache_lock_attempts')
+DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = _config.ConfigAlias(
+    'DELETE_TEMPORARY_DOWNLOADS_AT_EXIT', 'delete_temporary_downloads_at_exit')
 
 
 class CacheMissingWarning(AstropyWarning):
@@ -159,7 +179,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     if remote_timeout is None:
         # use configfile default
-        remote_timeout = REMOTE_TIMEOUT()
+        remote_timeout = conf.remote_timeout
 
     # Get a file object to the content
     if isinstance(name_or_obj, six.string_types):
@@ -399,7 +419,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     elif os.path.isfile(datafn):  # local file
         return get_readable_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding,
+        return get_readable_fileobj(conf.dataurl + datafn, encoding=encoding,
                                     cache=cache)
 
 
@@ -438,8 +458,9 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
         from a remote server.  Default is `True`.
 
     timeout : float
-        Timeout for the requests in seconds (default is the configurable
-        REMOTE_TIMEOUT, which is 3s by default)
+        Timeout for the requests in seconds (default is the
+        configurable `astropy.utils.data.conf.remote_timeout`, which
+        is 3s by default)
 
     Raises
     ------
@@ -486,14 +507,14 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
 
     if remote_timeout is None:
         # use configfile default
-        remote_timeout = REMOTE_TIMEOUT()
+        remote_timeout = conf.remote_timeout
 
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
         if hashfn is None:
             return download_file(
-                DATAURL() + data_name, cache=True,
+                conf.dataurl + data_name, cache=True,
                 show_progress=show_progress,
                 timeout=remote_timeout)
         else:
@@ -507,7 +528,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
             return datafn
         else:  # remote file
             return download_file(
-                DATAURL() + data_name, cache=True,
+                conf.dataurl + data_name, cache=True,
                 show_progress=show_progress,
                 timeout=remote_timeout)
 
@@ -720,10 +741,10 @@ def compute_hash(localfn):
 
     with open(localfn, 'rb') as f:
         h = hashlib.md5()
-        block = f.read(COMPUTE_HASH_BLOCK_SIZE())
+        block = f.read(conf.compute_hash_block_size)
         while block:
             h.update(block)
-            block = f.read(COMPUTE_HASH_BLOCK_SIZE())
+            block = f.read(conf.compute_hash_block_size)
 
     return h.hexdigest()
 
@@ -863,8 +884,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         is `True`)
 
     timeout : float, optional
-        Timeout for the requests in seconds (default is the configurable
-        REMOTE_TIMEOUT, which is 3s by default)
+        The timeout, in seconds.  Otherwise, use
+        `astropy.utils.data.conf.remote_timeout`.
 
     Returns
     -------
@@ -878,6 +899,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     """
 
     from ..utils.console import ProgressBarOrSpinner
+
+    if timeout is None:
+        timeout = conf.remote_timeout
 
     missing_cache = False
 
@@ -937,13 +961,13 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 with NamedTemporaryFile(delete=False) as f:
                     try:
                         bytes_read = 0
-                        block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
+                        block = remote.read(conf.download_block_size)
                         while block:
                             f.write(block)
                             hash.update(block)
                             bytes_read += len(block)
                             p.update(bytes_read)
-                            block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
+                            block = remote.read(conf.download_block_size)
                     except:
                         if os.path.exists(f.name):
                             os.remove(f.name)
@@ -969,7 +993,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                 msg = ('File downloaded to temporary location due to problem '
                        'with cache directory and will not be cached.')
                 warn(CacheMissingWarning(msg, local_path))
-            if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
+            if conf.delete_temporary_downloads_at_exit:
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
     except urllib.error.URLError as e:
@@ -1011,8 +1035,8 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         is `True`)
 
     timeout : float, optional
-        Timeout for the requests in seconds (default is the configurable
-        REMOTE_TIMEOUT, which is 3s by default)
+        Timeout for the requests in seconds (default is the
+        configurable `astropy.utils.data.conf.remote_timeout`).
 
     Returns
     -------
@@ -1020,6 +1044,9 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         The local file paths corresponding to the downloaded URLs.
     """
     from .console import ProgressBar
+
+    if timeout is None:
+        timeout = conf.remote_timeout
 
     if show_progress:
         progress = sys.stdout
@@ -1186,7 +1213,7 @@ def _acquire_download_cache_lock():
     """
 
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
-    for i in range(DOWNLOAD_CACHE_LOCK_ATTEMPTS()):
+    for i in range(conf.download_cache_lock_attempts):
         try:
             os.mkdir(lockdir)
             #write the pid of this process for informational purposes

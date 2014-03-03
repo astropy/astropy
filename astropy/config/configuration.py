@@ -12,22 +12,22 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
-import hashlib
-import io
-import textwrap
-
 from contextlib import contextmanager
+import hashlib
+import importlib
+import io
 from os import path
 from warnings import warn
 
 from ..extern.configobj import configobj, validate
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from ..utils import find_current_module
 from .paths import get_config_dir
 
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
-           'reload_config']
+           'reload_config', 'ConfigNamespace', 'ConfigItem', 'ConfigAlias']
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -65,32 +65,132 @@ class ConfigurationChangedWarning(AstropyWarning):
     """
 
 
-class ConfigurationItem(object):
-    """ A setting and associated value stored in the astropy configuration
-    files.
+class _ConfigNamespaceMeta(type):
+    def __init__(cls, name, bases, dict):
+        if cls.__bases__[0] is object:
+            return
 
-    These objects are typically defined at the top of astropy subpackages
-    or affiliated packages, and store values or option settings that can be
-    modified by the user to
+        for key, val in six.iteritems(dict):
+            if isinstance(val, ConfigItem):
+                val.name = key
+
+
+@six.add_metaclass(_ConfigNamespaceMeta)
+class ConfigNamespace(object):
+    """
+    A namespace of configuration items.  Each subpackage with
+    configuration items should define a subclass of this class,
+    containing `ConfigItem` instances as members.
+
+    For example::
+
+        class _Conf(_config.ConfigNamespace):
+            unicode_output = _config.ConfigItem(
+                False,
+                'Use Unicode characters when outputting values, ...')
+            use_color = _config.ConfigItem(
+                sys.platform != 'win32',
+                'When True, use ANSI color escape sequences when ...',
+                aliases=['astropy.utils.console.USE_COLOR'])
+        conf = _Conf()
+    """
+    def set_temp(self, attr, value):
+        """
+        Temporarily set a configuration value.
+
+        Parameters
+        ----------
+        attr : str
+            Configuration item name
+
+        value : object
+            The value to set temporarily.
+
+        Examples
+        --------
+        >>> import astropy
+        >>> with astropy.conf.set_temp('use_color', False):
+        ...     pass
+        ...     # console output will not contain color
+        >>> # console output contains color again...
+        """
+        if hasattr(self, attr):
+            return self.__class__.__dict__[attr].set_temp(value)
+        raise AttributeError("No configuration parameter '{0}'".format(attr))
+
+    def reload(self, attr=None):
+        """
+        Reload a configuration item from the configuration file.
+
+        Parameters
+        ----------
+        attr : str, optional
+            The name of the configuration parameter to reload.  If not
+            provided, reload all configuration parameters.
+        """
+        if attr is not None:
+            if hasattr(self, attr):
+                return self.__class__.__dict__[attr].reload()
+            raise AttributeError("No configuration parameter '{0}'".format(attr))
+
+        for item in six.itervalues(self.__class__.__dict__):
+            if isinstance(item, ConfigItem):
+                item.reload()
+
+    def reset(self, attr=None):
+        """
+        Reset a configuration item to its default.
+
+        Parameters
+        ----------
+        attr : str, optional
+            The name of the configuration parameter to reload.  If not
+            provided, reset all configuration parameters.
+        """
+        if attr is not None:
+            if hasattr(self, attr):
+                prop = self.__class__.__dict__[attr]
+                prop.set(prop.defaultvalue)
+                return
+            raise AttributeError("No configuration parameter '{0}'".format(attr))
+
+        for item in six.itervalues(self.__class__.__dict__):
+            if isinstance(item, ConfigItem):
+                item.set(item.defaultvalue)
+
+
+class ConfigItem(property):
+    """
+    A setting and associated value stored in a configuration file.
+
+    These objects should be created as members of
+    `ConfigNamespace` subclasses, for example::
+
+        class _Conf(config.ConfigNamespace):
+            unicode_output = config.ConfigItem(
+                'unicode_output', False,
+                'Use Unicode characters when outputting values, and writing widgets '
+                'to the console.')
+        conf = _Conf()
 
     Parameters
     ----------
-    name : str
-        The (case-sensitive) name of this parameter, as shown in the
-        configuration file.
-    defaultvalue
+    defaultvalue : object, optional
         The default value for this item. If this is a list of strings, this
         item will be interpreted as an 'options' value - this item must be one
         of those values, and the first in the list will be taken as the default
         value.
-    description : str or None
+
+    description : str or None, optional
         A description of this item (will be shown as a comment in the
         configuration file)
-    cfgtype : str or None
+
+    cfgtype : str or None, optional
         A type specifier like those used as the *values* of a particular key in
         a `configspec` file of `configobj`. If None, the type will be inferred
         from the default value.
-    module : str or None
+
+    module : str or None, optional
         The full module name that this item is associated with. The first
         element (e.g. 'astropy' if this is 'astropy.config.configuration')
         will be used to determine the name of the configuration file, while
@@ -98,39 +198,22 @@ class ConfigurationItem(object):
         inferred from the package within whiich this object's initializer is
         called.
 
+    aliases : str, or list of str, optional
+        The deprecated location(s) of this configuration item.
+
     Raises
     ------
     RuntimeError
         If `module` is None, but the module this item is created from cannot
         be determined.
-
-    Examples
-    --------
-    The following example will create an item 'cfgoption = 42' in the
-    '[configuration]' section of astropy.cfg (located in the directory that
-    `astropy.config.get_config_dir` returns), or if the option is already
-    set, it will take the value from the configuration file::
-
-        from astropy.config import ConfigurationItem
-
-        CFG_OPTION = ConfigurationItem('cfgoption',42,module='astropy.configuration')
-
-    If called as ``CFG_OPTION()``, this will return the value ``42``, or some
-    other integer if the ``astropy.cfg`` file specifies a different value.
-
-    If this were a file ``astropy/configuration/__init__.py``, the `module`
-    option would not be necessary, as it would automatically detect the correct
-    module.
-
     """
 
     # this is used to make validation faster so a Validator object doesn't
     # have to be created every time
     _validator = validate.Validator()
 
-    def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
-                 module=None):
-        from ..utils import find_current_module
+    def __init__(self, defaultvalue='', description=None, cfgtype=None,
+                 module=None, aliases=None):
         from ..utils import isiterable
 
         if module is None:
@@ -142,9 +225,10 @@ class ConfigurationItem(object):
             else:
                 module = module.__name__
 
-        self.name = name
+        # self.name = name
         self.module = module
         self.description = description
+        self.__doc__ = description
 
         # now determine cfgtype if it is not given
         if cfgtype is None:
@@ -160,40 +244,37 @@ class ConfigurationItem(object):
                 cfgtype = 'integer'
             elif isinstance(defaultvalue, float):
                 cfgtype = 'float'
-            else:
+            elif isinstance(defaultvalue, six.string_types):
                 cfgtype = 'string'
                 defaultvalue = str(defaultvalue)
+            else:
+                raise TypeError("Unsupported configuration type")
 
         self.cfgtype = cfgtype
 
         self._validate_val(defaultvalue)
         self.defaultvalue = defaultvalue
 
-        # note that the actual value is stored in the ConfigObj file for this
-        # package
+        if aliases is None:
+            self.aliases = []
+        elif isinstance(aliases, six.string_types):
+            self.aliases = [aliases]
+        else:
+            self.aliases = aliases
 
-        # this checks the current value to make sure it's valid for the type
-        # as well as updating the ConfigObj with the default value, if it's not
-        # actually in the ConfigObj
-        try:
-            self()
-        except TypeError as e:
-            # make sure it's a TypeError from __call__
-            if 'Configuration value not valid:' in e.args[0]:
-                warn(InvalidConfigurationItemWarning(*e.args))
-            else:
-                raise
+    def __set__(self, obj, value):
+        return self.set(value)
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self()
 
     def set(self, value):
-        """ Sets the current value of this `ConfigurationItem`.
+        """ Sets the current value of this `ConfigItem`.
 
         This also updates the comments that give the description and type
         information.
-
-        .. note::
-            This does *not* save the value of this `ConfigurationItem` to the
-            configuration file.  To do that, use `ConfigurationItem.save` or
-            `save_config`.
 
         Parameters
         ----------
@@ -203,7 +284,7 @@ class ConfigurationItem(object):
         Raises
         ------
         TypeError
-            If the provided `value` is not valid for this `ConfigurationItem`.
+            If the provided `value` is not valid for this `ConfigItem`.
         """
         try:
             value = self._validate_val(value)
@@ -214,15 +295,14 @@ class ConfigurationItem(object):
         sec = get_config(self.module)
 
         sec[self.name] = value
-        sec.comments[self.name] = self._generate_comments()
 
     @contextmanager
     def set_temp(self, value):
         """
-        Sets this item to a specified value only inside a while loop.
+        Sets this item to a specified value only inside a with block.
 
         Use as::
-            ITEM = ConfigurationItem('ITEM', 'default', 'description')
+            ITEM = ConfigItem('ITEM', 'default', 'description')
 
             with ITEM.set_temp('newval'):
                 ... do something that wants ITEM's value to be 'newval' ...
@@ -252,7 +332,7 @@ class ConfigurationItem(object):
             format(get_config_filename(self.module)))
 
     def reload(self):
-        """ Reloads the value of this `ConfigurationItem` from the relevant
+        """ Reloads the value of this `ConfigItem` from the relevant
         configuration file.
 
         Returns
@@ -260,7 +340,8 @@ class ConfigurationItem(object):
         val
             The new value loaded from the configuration file.
         """
-        baseobj = get_config(self.module)
+        self.set(self.defaultvalue)
+        baseobj = get_config(self.module, True)
         secname = baseobj.name
 
         cobj = baseobj
@@ -270,9 +351,13 @@ class ConfigurationItem(object):
 
         newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
+            if secname not in newobj:
+                return baseobj.get(self.name)
             newobj = newobj[secname]
 
-        baseobj[self.name] = newobj[self.name]
+        if self.name in newobj:
+            baseobj[self.name] = newobj[self.name]
+        return baseobj.get(self.name)
 
     def __repr__(self):
         out = '<{0}: name={1!r} value={2!r} at 0x{3:x}>'.format(
@@ -292,7 +377,7 @@ class ConfigurationItem(object):
         return out
 
     def __call__(self):
-        """ Returns the value of this `ConfigurationItem`
+        """ Returns the value of this `ConfigItem`
 
         Returns
         -------
@@ -305,12 +390,34 @@ class ConfigurationItem(object):
         TypeError
             If the configuration value as stored is not this item's type.
         """
-
-        # get the value from the relevant `configobj.ConfigObj` object
+        options = []
         sec = get_config(self.module)
-        if self.name not in sec:
+        if self.name in sec:
+            options.append((sec[self.name], self.module, self.name))
+
+        for alias in self.aliases:
+            module, name = alias.rsplit('.', 1)
+            sec = get_config(module)
+            if name in sec:
+                warn(
+                    "Config parameter '{0}' in section [{1}] is deprecated. "
+                    "Use '{2}' in section [{3}] instead.".format(
+                        name, module, self.name, self.module),
+                    AstropyDeprecationWarning)
+                options.append((sec[name], module, name))
+
+        if len(options) == 0:
             self.set(self.defaultvalue)
-        val = sec[self.name]
+            options.append((self.defaultvalue, None, None))
+
+        if len(options) > 1:
+            warn(
+                "Config parameter '{0}' in section [{1}] is defined by "
+                "more than one alias: {2}".format(
+                    self.name, self.module,
+                    ['.'.join(x[1], x[2]) for x in options]))
+
+        val = options[0][0]
 
         try:
             return self._validate_val(val)
@@ -328,15 +435,109 @@ class ConfigurationItem(object):
         # instance or sub-class, it will be used
         return self._validator.check(self.cfgtype, val)
 
-    def _generate_comments(self):
-        comments = []
-        comments.append('')  # adds a blank line before every entry
-        if self.description is not None:
-            for line in textwrap.wrap(self.description, width=76):
-                comments.append(line)
-        if self.cfgtype.startswith('option'):
-            comments.append("Options: " + self.cfgtype[7:-1])
-        return comments
+
+class ConfigurationItem(ConfigItem):
+    """
+    A backward-compatibility layer to support the old
+    ConfigurationItem API.  The only difference between this and
+    ConfigItem is that this requires an explicit name to be set.
+    """
+    # REMOVE in astropy 0.5
+    def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
+                 module=None, aliases=None):
+        warn(
+            "ConfigurationItem has been deprecated in astropy 0.4. "
+            "Use ConfigItem objects as members of ConfigNamespace subclasses "
+            "instead.  See ConfigNamespace for an example.",
+            AstropyDeprecationWarning)
+
+        # We have to do the automatic module determination here, not
+        # just in ConfigItem, otherwise the extra stack frame will
+        # make it come up with the wrong answer.
+        if module is None:
+            module = find_current_module(2)
+            if module is None:
+                msg1 = 'Cannot automatically determine get_config module, '
+                msg2 = 'because it is not called from inside a valid module'
+                raise RuntimeError(msg1 + msg2)
+            else:
+                module = module.__name__
+
+        super(ConfigurationItem, self).__init__(
+            defaultvalue=defaultvalue,
+            description=description,
+            cfgtype=cfgtype,
+            module=module,
+            aliases=aliases)
+        self.name = name
+
+
+class ConfigAlias(ConfigItem):
+    """
+    A class that exists to support backward compatibility only.
+
+    This is an alias for a `ConfigItem` that has been moved elsewhere.
+    It inherits from `ConfigItem` only because it implements the same
+    interface, not because any of the methods are reused.
+    """
+    # REMOVE in astropy 0.5
+
+    def __init__(self, old_name, new_name, old_module=None, new_module=None):
+        if old_module is None:
+            old_module = find_current_module(2)
+            if old_module is None:
+                msg1 = 'Cannot automatically determine get_config module, '
+                msg2 = 'because it is not called from inside a valid module'
+                raise RuntimeError(msg1 + msg2)
+            else:
+                old_module = old_module.__name__
+
+        if new_module is None:
+            new_module = old_module
+
+        self._old_name = old_name
+        self._new_name = new_name
+        self._old_module = old_module
+        self._new_module = new_module
+
+    def _deprecation_warning(self):
+        warn(
+            "Config parameter '{0}.{1}' is deprecated. "
+            "Use '{2}.conf.{3}' instead.".format(
+                self._old_module, self._old_name, self._new_module,
+                self._new_name),
+            AstropyDeprecationWarning)
+
+    def _get_target(self):
+        mod = importlib.import_module(self._new_module)
+        cfg = getattr(mod, 'conf')
+        return cfg
+
+    def set(self, value):
+        self._deprecation_warning()
+        setattr(self._get_target(), self._new_name, value)
+
+    def set_temp(self, value):
+        self._deprecation_warning()
+        return self._get_target().set_temp(self._new_name, value)
+
+    def save(self, value=None):
+        self._deprecation_warning()
+        return self._get_target().save(value)
+
+    def reload(self):
+        self._deprecation_warning()
+        return self._get_target().reload(self._new_name)
+
+    def __repr__(self):
+        return repr(self._get_target().__dict__['_items'][self._new_name])
+
+    def __str__(self):
+        return str(self._get_target().__dict__['_items'][self._new_name])
+
+    def __call__(self):
+        self._deprecation_warning()
+        return getattr(self._get_target(), self._new_name)
 
 
 # this dictionary stores the master copy of the ConfigObj's for each
@@ -355,7 +556,13 @@ def get_config_filename(packageormod=None):
     return cfg.filename
 
 
-def get_config(packageormod=None):
+# This is used by testing to override the config file, so we can test
+# with various config files that exercise different features of the
+# config system.
+_override_config_file = None
+
+
+def get_config(packageormod=None, reload=False):
     """ Gets the configuration object or section associated with a particular
     package or module.
 
@@ -365,6 +572,9 @@ def get_config(packageormod=None):
         The package for which to retrieve the configuration object. If a
         string, it must be a valid package name, or if None, the package from
         which this function is called will be used.
+
+    reload : bool, optional
+        Reload the file, even if we have it cached.
 
     Returns
     -------
@@ -378,10 +588,7 @@ def get_config(packageormod=None):
     RuntimeError
         If `package` is None, but the package this item is created from cannot
         be determined.
-
     """
-    from ..utils import find_current_module
-
     if packageormod is None:
         packageormod = find_current_module(2)
         if packageormod is None:
@@ -397,13 +604,17 @@ def get_config(packageormod=None):
 
     cobj = _cfgobjs.get(rootname, None)
 
-    if cobj is None:
+    if cobj is None or reload:
         if _ASTROPY_SETUP_:
             # There's no reason to use anything but the default config
             cobj = configobj.ConfigObj(interpolation=False)
         else:
             try:
-                cfgfn = path.join(get_config_dir(), rootname + '.cfg')
+                # This feature is intended only for use by the unit tests
+                if _override_config_file is not None:
+                    cfgfn = _override_config_file
+                else:
+                    cfgfn = path.join(get_config_dir(), rootname + '.cfg')
                 cobj = configobj.ConfigObj(cfgfn, interpolation=False)
             except (IOError, OSError) as e:
                 msg = ('Configuration defaults will be used due to ')
@@ -439,7 +650,7 @@ def reload_config(packageormod=None):
     """ Reloads configuration settings from a configuration file for the root
     package of the requested package/module.
 
-    This overwrites any changes that may have been made in `ConfigurationItem`
+    This overwrites any changes that may have been made in `ConfigItem`
     objects.  This applies for any items that are based on this file, which is
     determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
     the 'astropy.config.configuration' module).
@@ -449,7 +660,7 @@ def reload_config(packageormod=None):
     packageormod : str or None
         The package or module name - see `get_config` for details.
     """
-    sec = get_config(packageormod)
+    sec = get_config(packageormod, True)
     # look for the section that is its own parent - that's the base object
     while sec.parent is not sec:
         sec = sec.parent

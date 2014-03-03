@@ -16,35 +16,62 @@ import re
 import socket
 
 # Astropy
-from ..config import ConfigurationItem
+from .. import config as _config
+from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
 from .builtin_systems import ICRS
+from ..utils import state
 
 __all__ = ["get_icrs_coordinates"]
 
-SESAME_URL = ConfigurationItem("sesame_url",
-                        ["http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
-                         "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/"],
-                        "The URL to Sesame's web-queryable database.",
-                        cfgtype='string_list')
 
-SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned',
-                                    'vizier'],
-                                    "This specifies the default database that "
-                                    "SESAME will query when using the name "
-                                    "resolve mechanism in the coordinates "
-                                    "subpackage. Default is to search all "
-                                    "databases, but this can be 'all', "
-                                    "'simbad', 'ned', or 'vizier'.")
+class sesame_url(state.ScienceState):
+    """
+    The URL(s) to Sesame's web-queryable database.
+    """
+    _value = ["http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
+              "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/"]
 
-NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 5,
-                                         "This is the maximum time to wait "
-                                         "for a response from a name resolve "
-                                         "query to SESAME in seconds.")
+    @classmethod
+    def validate(cls, value):
+        # TODO: Implement me
+        return value
+
+
+SESAME_URL = state.ScienceStateAlias("SESAME_URL", sesame_url)
+
+
+class sesame_database(state.ScienceState):
+    """
+    This specifies the default database that SESAME will query when
+    using the name resolve mechanism in the coordinates
+    subpackage. Default is to search all databases, but this can be
+    'all', 'simbad', 'ned', or 'vizier'.)
+    """
+    _value = 'all'
+
+    @classmethod
+    def validate(cls, value):
+        if isinstance(value, six.string_types):
+            value = [value]
+        for subvalue in value:
+            if subvalue not in ['all', 'simbad', 'ned', 'vizier']:
+                raise ValueError("Unknown database '{0}'".format(subvalue))
+        return value
+
+
+SESAME_DATABASE = state.ScienceStateAlias("SESAME_DATABASE", sesame_database)
+
+
+NAME_RESOLVE_TIMEOUT = _config.ConfigAlias(
+    "NAME_RESOLVE_TIMEOUT", "remote_timeout",
+    "astropy.coordinates.name_resolve", "astropy.utils.data")
+
 
 class NameResolveError(Exception):
     pass
+
 
 def _parse_response(resp_data):
     """
@@ -75,18 +102,18 @@ def _parse_response(resp_data):
 
 def get_icrs_coordinates(name):
     """
-    Retrieve an ICRS object by using an online name resolving
-    service to retrieve coordinates for the specified name. By default,
-    this will search all available databases until a match is found. If
-    you would like to specify the database, use the configuration item
-    ``name_resolve.SESAME_DATABASE``. You can also specify a list of servers
-    to use for querying Sesame using the configuration item
-    ``name_resolve.SESAME_URL``. This will try each one in order until a valid
-    response is returned. By default, this list includes the main Sesame
-    host and a mirror at vizier. A final configuration item,
-    ``name_resolve.NAME_RESOLVE_TIMEOUT``, is the number of seconds to wait
-    for a response from the server before giving up. By default this is
-    5 seconds.
+    Retrieve an ICRS object by using an online name resolving service
+    to retrieve coordinates for the specified name. By default, this
+    will search all available databases until a match is found. If you
+    would like to specify the database, use the science state
+    `name_resolve.sesame_database` . You can also specify a list of
+    servers to use for querying Sesame using the science state
+    `name_resolve.sesame_url`. This will try each one in order until a
+    valid response is returned. By default, this list includes the
+    main Sesame host and a mirror at vizier.  The configuration item
+    `astropy.utils.data.conf.remote_timeout` controls the number of
+    seconds to wait for a response from the server before giving
+    up.
 
     Parameters
     ----------
@@ -99,15 +126,16 @@ def get_icrs_coordinates(name):
         An `ICRS` instance for the object name specified.
 
     """
+    from .. import conf
 
-    database = SESAME_DATABASE()
+    database = sesame_database.get()
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
 
     # Make sure we don't have duplicates in the url list
     urls = []
     domains = []
-    for url in SESAME_URL():
+    for url in sesame_url.get():
         domain = urllib.parse.urlparse(url).netloc
 
         # Check for duplicates
@@ -122,7 +150,7 @@ def get_icrs_coordinates(name):
     for url in urls:
         try:
             # Retrieve ascii name resolve data from CDS
-            resp = urllib.request.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
+            resp = urllib.request.urlopen(url, timeout=conf.remote_timeout)
             resp_data = resp.read()
             break
         except urllib.error.URLError as e:
