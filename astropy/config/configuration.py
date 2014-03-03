@@ -199,7 +199,9 @@ class ConfigItem(property):
         called.
 
     aliases : str, or list of str, optional
-        The deprecated location(s) of this configuration item.
+        The deprecated location(s) of this configuration item.  If the
+        config item is not found at the new location, it will be
+        searched for at all of the old locations.
 
     Raises
     ------
@@ -439,10 +441,12 @@ class ConfigItem(property):
 class ConfigurationItem(ConfigItem):
     """
     A backward-compatibility layer to support the old
-    ConfigurationItem API.  The only difference between this and
-    ConfigItem is that this requires an explicit name to be set.
+    `ConfigurationItem` API.  The only difference between this and
+    `ConfigItem` is that this requires an explicit name to be set as
+    the first argument.
     """
     # REMOVE in astropy 0.5
+
     def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
                  module=None, aliases=None):
         warn(
@@ -479,10 +483,37 @@ class ConfigAlias(ConfigItem):
     This is an alias for a `ConfigItem` that has been moved elsewhere.
     It inherits from `ConfigItem` only because it implements the same
     interface, not because any of the methods are reused.
+
+    Parameters
+    ----------
+    since : str
+        The version in which the configuration item was moved.
+
+    old_name : str
+        The old name of the configuration item.  This should be the
+        name of the variable in Python, not in the configuration file.
+
+    new_name : str
+        The new name of the configuration item.  This is both the name
+        of the item in Python and in the configuration file (since as of
+        astropy 0.4, those are always the same thing).
+
+    old_module : str, optional
+        A fully-qualified, dot-separated path to the module in which
+        the configuration item used to be defined.  If not provided, it
+        is the name of the module in which `ConfigAlias` is called.
+
+    new_module : str, optional
+        A fully-qualified, dot-separated path to the module in which
+        the configuration item is now defined.  If not provided, it is
+        the name of the module in which `ConfigAlias` is called.  This
+        string should not contain the `.conf` object.  For example, if
+        the new configuration item is in `astropy.conf.use_unicode`, this
+        value only needs to be `astropy`.
     """
     # REMOVE in astropy 0.5
 
-    def __init__(self, old_name, new_name, old_module=None, new_module=None):
+    def __init__(self, since, old_name, new_name, old_module=None, new_module=None):
         if old_module is None:
             old_module = find_current_module(2)
             if old_module is None:
@@ -495,6 +526,7 @@ class ConfigAlias(ConfigItem):
         if new_module is None:
             new_module = old_module
 
+        self._since = since
         self._old_name = old_name
         self._new_name = new_name
         self._old_module = old_module
@@ -502,10 +534,11 @@ class ConfigAlias(ConfigItem):
 
     def _deprecation_warning(self):
         warn(
-            "Config parameter '{0}.{1}' is deprecated. "
-            "Use '{2}.conf.{3}' instead.".format(
-                self._old_module, self._old_name, self._new_module,
-                self._new_name),
+            "Since {0}, config parameter '{1}.{2}' is deprecated. "
+            "Use '{3}.conf.{4}' instead.".format(
+                self._since,
+                self._old_module, self._old_name,
+                self._new_module, self._new_name),
             AstropyDeprecationWarning)
 
     def _get_target(self):

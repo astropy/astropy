@@ -20,7 +20,7 @@ from .constants import SAMP_STATUS_ERROR
 from .errors import SAMPProxyError
 
 ALLOW_INTERNET = ConfigAlias(
-    'ALLOW_INTERNET', 'use_internet',
+    '0.4', 'ALLOW_INTERNET', 'use_internet',
     'astropy.vo.samp.utils', 'astropy.vo.samp')
 
 

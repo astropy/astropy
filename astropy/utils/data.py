@@ -62,17 +62,17 @@ conf = _Conf()
 
 
 DATAURL = _config.ConfigAlias(
-    'DATAURL', 'dataurl')
+    '0.4', 'DATAURL', 'dataurl')
 REMOTE_TIMEOUT = _config.ConfigAlias(
-    'REMOTE_TIMEOUT', 'remote_timeout')
+    '0.4', 'REMOTE_TIMEOUT', 'remote_timeout')
 COMPUTE_HASH_BLOCK_SIZE = _config.ConfigAlias(
-    'COMPUTE_HASH_BLOCK_SIZE', 'compute_hash_block_size')
+    '0.4', 'COMPUTE_HASH_BLOCK_SIZE', 'compute_hash_block_size')
 DOWNLOAD_CACHE_BLOCK_SIZE = _config.ConfigAlias(
-    'DOWNLOAD_CACHE_BLOCK_SIZE', 'download_block_size')
+    '0.4', 'DOWNLOAD_CACHE_BLOCK_SIZE', 'download_block_size')
 DOWNLOAD_CACHE_LOCK_ATTEMPTS = _config.ConfigAlias(
-    'DOWNLOAD_CACHE_LOCK_ATTEMPTS', 'download_cache_lock_attempts')
+    '0.4', 'DOWNLOAD_CACHE_LOCK_ATTEMPTS', 'download_cache_lock_attempts')
 DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = _config.ConfigAlias(
-    'DELETE_TEMPORARY_DOWNLOADS_AT_EXIT', 'delete_temporary_downloads_at_exit')
+    '0.4', 'DELETE_TEMPORARY_DOWNLOADS_AT_EXIT', 'delete_temporary_downloads_at_exit')
 
 
 class CacheMissingWarning(AstropyWarning):

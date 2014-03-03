@@ -32,15 +32,15 @@ from .tstquery import parse_cs
 __all__ = ['check_conesearch_sites']
 
 CS_MSTR_LIST = ConfigAlias(
-    'CS_MSTR_LIST', 'conesearch_master_list',
+    '0.4', 'CS_MSTR_LIST', 'conesearch_master_list',
     'astropy.vo.validator.validate', 'astropy.vo.validator')
 
 CS_URLS = ConfigAlias(
-    'CS_URLS', 'conesearch_urls',
+    '0.4', 'CS_URLS', 'conesearch_urls',
     'astropy.vo.validator.validate', 'astropy.vo.validator')
 
 NONCRIT_WARNINGS = ConfigAlias(
-    'NONCRIT_WARNINGS', 'noncritical_warnings',
+    '0.4', 'NONCRIT_WARNINGS', 'noncritical_warnings',
     'astropy.vo.validator.validate', 'astropy.vo.validator')
 
 _OUT_ROOT = None  # Set by check_conesearch_sites()

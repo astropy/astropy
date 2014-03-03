@@ -7,6 +7,7 @@ import warnings
 
 from ..config import ConfigItem
 from .exceptions import AstropyDeprecationWarning
+from ..utils import find_current_module
 
 
 class ScienceState(object):
@@ -45,22 +46,66 @@ class ScienceStateAlias(ConfigItem):
     """
     This is a backward compatibility layer for configuration items
     that moved to ScienceState classes in astropy 0.4.
+
+    Parameters
+    ----------
+    since : str
+        The version in which the configuration item was converted into
+        science state.
+
+    python_name : str
+        The old name of the Python variable for the configuration item.
+
+    config_name : str
+        The old name of the configuration item in the configuration file.
+
+    science_state : ScienceState subclass
+        The science state class that now manages this information.
+
+    module : str, optional
+        The module containing the old configuration item.
     """
     # REMOVE in astropy 0.5
 
-    def __init__(self, old_name, science_state):
+    def __init__(self, since, python_name, config_name, science_state,
+                 module=None):
+        # We have to do the automatic module determination here, not
+        # just in ConfigItem, otherwise the extra stack frame will
+        # make it come up with the wrong answer.
+        if module is None:
+            module = find_current_module(2)
+            if module is None:
+                msg1 = 'Cannot automatically determine get_config module, '
+                msg2 = 'because it is not called from inside a valid module'
+                raise RuntimeError(msg1 + msg2)
+            else:
+                module = module.__name__
+
         self._is_initing = True
-        self._old_name = old_name
+        self._since = since
+        self._python_name = python_name
+        self._config_name = config_name
         self._science_state = science_state
         super(ScienceStateAlias, self).__init__(
             science_state._value,
             science_state.__doc__,
-            module=science_state.__module__)
-        self.name = science_state.__name__
+            module=module)
+        self.name = config_name
+
         # Set the default value of the science state from the config
-        # file, if defined, otherwise this should just effectively be
-        # a no-op
-        science_state._value = super(ScienceStateAlias, self).__call__()
+        # file, if defined.  This is what pulls any old values in the
+        # config file and applies them to the science state.
+        value = super(ScienceStateAlias, self).__call__()
+
+        # We got a value in the config file
+        if value != science_state._value:
+            warnings.warn(
+                "Config parameter '{0}' in section [{1}] is deprecated. "
+                "Use science state {2}.{3} instead.".format(
+                    self.name, self.module, self._science_state.__module__,
+                    self._science_state.__name__),
+                AstropyDeprecationWarning)
+
         del self._is_initing
 
     def _deprecation_warning(self, extra=None):

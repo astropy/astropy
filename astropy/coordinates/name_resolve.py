@@ -39,7 +39,8 @@ class sesame_url(state.ScienceState):
         return value
 
 
-SESAME_URL = state.ScienceStateAlias("SESAME_URL", sesame_url)
+SESAME_URL = state.ScienceStateAlias(
+    "0.4", "SESAME_URL", "sesame_url", sesame_url)
 
 
 class sesame_database(state.ScienceState):
@@ -61,11 +62,12 @@ class sesame_database(state.ScienceState):
         return value
 
 
-SESAME_DATABASE = state.ScienceStateAlias("SESAME_DATABASE", sesame_database)
+SESAME_DATABASE = state.ScienceStateAlias(
+    "0.4", "SESAME_DATABASE", "sesame_database", sesame_database)
 
 
 NAME_RESOLVE_TIMEOUT = _config.ConfigAlias(
-    "NAME_RESOLVE_TIMEOUT", "remote_timeout",
+    '0.4', "NAME_RESOLVE_TIMEOUT", "remote_timeout",
     "astropy.coordinates.name_resolve", "astropy.utils.data")
 
 

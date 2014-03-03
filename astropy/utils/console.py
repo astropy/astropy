@@ -72,7 +72,7 @@ __all__ = [
 
 # Only use color by default on Windows if IPython is installed.
 USE_COLOR = ConfigAlias(
-    'USE_COLOR', 'use_color', 'astropy.utils.console', 'astropy')
+    '0.4', 'USE_COLOR', 'use_color', 'astropy.utils.console', 'astropy')
 
 
 _DEFAULT_ENCODING = 'utf-8'

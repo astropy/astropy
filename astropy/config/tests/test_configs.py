@@ -191,7 +191,7 @@ def test_alias():
 
     assert len(w) == 1
     assert str(w[0].message) == (
-        "Config parameter 'astropy.UNICODE_OUTPUT' is deprecated. "
+        "Since 0.4, config parameter 'astropy.UNICODE_OUTPUT' is deprecated. "
         "Use 'astropy.conf.unicode_output' instead.")
 
 
@@ -206,7 +206,7 @@ def test_alias2():
     assert x == 3
     assert len(w) == 1
     assert str(w[0].message) == (
-        "Config parameter "
+        "Since 0.4, config parameter "
         "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
         "Use 'astropy.utils.data.conf.remote_timeout' instead.")
 
@@ -215,7 +215,7 @@ def test_alias2():
     assert conf.remote_timeout == 10
     assert len(w) == 1
     assert str(w[0].message) == (
-        "Config parameter "
+        "Since 0.4, config parameter "
         "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
         "Use 'astropy.utils.data.conf.remote_timeout' instead.")
 
@@ -224,7 +224,7 @@ def test_alias2():
             assert conf.remote_timeout == 42
     assert len(w) == 1
     assert str(w[0].message) == (
-        "Config parameter "
+        "Since 0.4, config parameter "
         "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
         "Use 'astropy.utils.data.conf.remote_timeout' instead.")
     assert name_resolve.NAME_RESOLVE_TIMEOUT() == 10
@@ -234,7 +234,7 @@ def test_alias2():
         name_resolve.NAME_RESOLVE_TIMEOUT.reload()
     assert len(w) == 1
     assert str(w[0].message) == (
-        "Config parameter "
+        "Since 0.4, config parameter "
         "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
         "Use 'astropy.utils.data.conf.remote_timeout' instead.")
     assert x == 3

@@ -32,7 +32,7 @@ __all__ = ['VOSBase', 'VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
 __dbversion__ = 1
 
 BASEURL = ConfigAlias(
-    'BASEURL', 'vos_baseurl',
+    '0.4', 'BASEURL', 'vos_baseurl',
     'astropy.vo.client.vos_catalog', 'astropy.vo')
 
 

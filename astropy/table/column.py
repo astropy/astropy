@@ -28,7 +28,8 @@ from ..config import ConfigAlias
 NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 AUTO_COLNAME = ConfigAlias(
-    'AUTO_COLNAME', 'auto_colname', 'astropy.table.column', 'astropy.table')
+    '0.4', 'AUTO_COLNAME', 'auto_colname',
+    'astropy.table.column', 'astropy.table')
 
 ERROR_COLUMN_ARGS_MESSAGE = """
 The first argument to {class_name} is the string {first_arg}, which was probably intended

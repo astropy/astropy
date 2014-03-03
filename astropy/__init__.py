@@ -91,7 +91,7 @@ conf = _Conf()
 
 
 UNICODE_OUTPUT = _config.ConfigAlias(
-    'UNICODE_OUTPUT', 'unicode_output')
+    '0.4', 'UNICODE_OUTPUT', 'unicode_output')
 
 
 del sys

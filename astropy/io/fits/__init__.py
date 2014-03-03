@@ -45,13 +45,14 @@ conf = _Conf()
 
 
 ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
-    'ENABLE_RECORD_VALUED_KEYWORD_CARDS', 'enable_record_valued_keyword_cards')
+    '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
+    'enable_record_valued_keyword_cards')
 EXTENSION_NAME_CASE_SENSITIVE = _config.ConfigAlias(
-    'EXTENSION_NAME_CASE_SENSITIVE', 'extension_name_case_sensitive')
+    '0.4', 'EXTENSION_NAME_CASE_SENSITIVE', 'extension_name_case_sensitive')
 STRIP_HEADER_WHITESPACE = _config.ConfigAlias(
-    'STRIP_HEADER_WHITESPACE', 'strip_header_whitespace')
+    '0.4', 'STRIP_HEADER_WHITESPACE', 'strip_header_whitespace')
 USE_MEMMAP = _config.ConfigAlias(
-    'USE_MEMMAP', 'use_memmap')
+    '0.4', 'USE_MEMMAP', 'use_memmap')
 
 
 # Public API compatibility imports

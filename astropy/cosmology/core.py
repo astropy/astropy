@@ -2426,4 +2426,4 @@ def set_current(cosmo):
 
 
 DEFAULT_COSMOLOGY = ScienceStateAlias(
-    'DEFAULT_COSMOLOGY', default_cosmology)
+    '0.4', 'DEFAULT_COSMOLOGY', 'default_cosmology', default_cosmology)

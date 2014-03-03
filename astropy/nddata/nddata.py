@@ -25,7 +25,7 @@ __doctest_skip__ = ['NDData']
 
 
 WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
-    'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
+    '0.4', 'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
     'astropy.nddata.nddata', 'astropy.nddata')
 
 

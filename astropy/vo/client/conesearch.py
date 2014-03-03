@@ -29,7 +29,7 @@ __all__ = ['AsyncConeSearch', 'conesearch', 'AsyncSearchAll', 'search_all',
 __doctest_skip__ = ['AsyncConeSearch', 'AsyncSearchAll']
 
 CONESEARCH_DBNAME = ConfigAlias(
-    'CONESEARCH_DBNAME', 'conesearch_dbname',
+    '0.4', 'CONESEARCH_DBNAME', 'conesearch_dbname',
     'astropy.vo.client.conesearch', 'astropy.vo')
 
 

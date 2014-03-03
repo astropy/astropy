@@ -28,9 +28,9 @@ elif six.PY2:
 
 
 MAX_LINES = ConfigAlias(
-    'MAX_LINES', 'max_lines', 'astropy.table.pprint', 'astropy.table')
+    '0.4', 'MAX_LINES', 'max_lines', 'astropy.table.pprint', 'astropy.table')
 MAX_WIDTH = ConfigAlias(
-    'MAX_WIDTH', 'max_width', 'astropy.table.pprint', 'astropy.table')
+    '0.4', 'MAX_WIDTH', 'max_width', 'astropy.table.pprint', 'astropy.table')
 
 
 def _get_pprint_size(max_lines=None, max_width=None):

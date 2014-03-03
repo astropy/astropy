@@ -30,7 +30,8 @@ __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
 
 
 PEDANTIC = ConfigAlias(
-    'PEDANTIC', 'pedantic', 'astropy.io.votable.table', 'astropy.io.votable')
+    '0.4', 'PEDANTIC', 'pedantic',
+    'astropy.io.votable.table', 'astropy.io.votable')
 
 
 def parse(source, columns=None, invalid='exception', pedantic=None,
