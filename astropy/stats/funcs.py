@@ -241,7 +241,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     **3. A Flat prior.** This is similar to the Jeffreys interval,
     but uses a flat (uniform) prior on the binomial proportion
     over the range 0 to 1 rather than the reparametrization-invariant
-    Jeffreys prior.  The posterior density fucntion is a Beta distribution:
+    Jeffreys prior.  The posterior density function is a Beta distribution:
     Beta(k + 1, N - k + 1).  The same comments about the nature of the
     interval (equal-tailed, etc.) also apply to this option.
 
