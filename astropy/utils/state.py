@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import copy
 import warnings
 
-from ..config import ConfigurationItem
+from ..config import ConfigItem
 from .exceptions import AstropyDeprecationWarning
 
 
@@ -41,7 +41,7 @@ class ScienceState(object):
         return value
 
 
-class ScienceStateAlias(ConfigurationItem):
+class ScienceStateAlias(ConfigItem):
     """
     This is a backward compatibility layer for configuration items
     that moved to ScienceState classes in astropy 0.4.
@@ -49,19 +49,24 @@ class ScienceStateAlias(ConfigurationItem):
     # REMOVE in astropy 0.5
 
     def __init__(self, old_name, science_state):
+        self._is_initing = True
         self._old_name = old_name
         self._science_state = science_state
         super(ScienceStateAlias, self).__init__(
-            science_state.__name__,
             science_state._value,
             science_state.__doc__,
             module=science_state.__module__)
+        self.name = science_state.__name__
         # Set the default value of the science state from the config
         # file, if defined, otherwise this should just effectively be
         # a no-op
         science_state._value = super(ScienceStateAlias, self).__call__()
+        del self._is_initing
 
     def _deprecation_warning(self, extra=None):
+        if hasattr(self, '_is_initing'):
+            return
+
         message = ("'{0}.{1}' is deprecated, and is no longer defined "
                    "as a configuration item.".format(self.module, self._old_name))
         if extra is not None:
