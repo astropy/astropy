@@ -14,16 +14,16 @@ details on the implementation see :ref:`io_registry`.
 Getting started with Table I/O
 ------------------------------
 
-The :class:`~astropy.table.table.Table` class includes two methods,
+The :class:`~astropy.table.Table` class includes two methods,
 :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write`, that make it possible to read from
 and write to files. A number of formats are automatically supported (see
 `Built-in table readers/writers`_) and new file formats and extensions can be
-registered with the :class:`~astropy.table.table.Table` class (see
+registered with the :class:`~astropy.table.Table` class (see
 :ref:`io_registry`).
 
-To use this interface, first import the :class:`~astropy.table.table.Table` class, then
-simply call the :class:`~astropy.table.table.Table`
+To use this interface, first import the :class:`~astropy.table.Table` class, then
+simply call the :class:`~astropy.table.Table`
 :meth:`~astropy.table.table.Table.read` method with the name of the file and
 the file format, for instance ``'ascii.daophot'``::
 
@@ -189,7 +189,7 @@ To write to a new file::
     >>> t.write('new_table.fits')
 
 At this time, the ``meta`` attribute of the
-:class:`~astropy.table.table.Table` class is simply an ordered
+:class:`~astropy.table.Table` class is simply an ordered
 dictionary and does not fully represent the structure of a FITS
 header (for example, keyword comments are dropped). This is likely
 to change in a future release.

@@ -3,7 +3,7 @@
 String representations of units
 ===============================
 
-.. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+.. |quantity| replace:: :class:`~astropy.units.Quantity`
 
 .. |unit| replace:: :class:`~astropy.units.UnitBase`
 

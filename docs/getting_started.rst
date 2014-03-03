@@ -66,5 +66,5 @@ particular a package or object, or access their documentation using the
     >>> from astropy.units import Quantity
     >>> find_api_page(Quantity)  # doctest: +SKIP
 
-Will bring up the documentation for the `~astropy.units.quantity.Quantity` class
+Will bring up the documentation for the `~astropy.units.Quantity` class
 in your browser.

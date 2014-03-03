@@ -334,7 +334,7 @@ def parse_angle(angle, unit=None, debug=False):
         string, either at the end or as number separators.
 
     debug : bool, optional
-        If ``True``, print debugging information from the parser.
+        If `True`, print debugging information from the parser.
 
     Returns
     -------

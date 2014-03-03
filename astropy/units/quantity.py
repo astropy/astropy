@@ -853,7 +853,7 @@ class Quantity(np.ndarray):
 
         Returns
         -------
-        newq : `~astropy.units.quantity.Quantity`
+        newq : `~astropy.units.Quantity`
             A new object equal to this quantity with units decomposed.
         """
         return self._decompose(False, bases=bases)
@@ -880,7 +880,7 @@ class Quantity(np.ndarray):
 
         Returns
         -------
-        newq : `~astropy.units.quantity.Quantity`
+        newq : `~astropy.units.Quantity`
             A new object equal to this quantity with units decomposed.
 
         """

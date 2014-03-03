@@ -83,7 +83,7 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
         The attribute name
 
     unique : bool
-        Should be ``True`` if the attribute is unique and therefore this
+        Should be `True` if the attribute is unique and therefore this
         should return only one value.  Otherwise, returns a list of
         values.
 
@@ -283,7 +283,7 @@ class _IDProperty(object):
     @property
     def ID(self):
         """
-        The XML ID_ of the element.  May be ``None`` or a string
+        The XML ID_ of the element.  May be `None` or a string
         conforming to XML ID_ syntax.
         """
         return self._ID
@@ -932,7 +932,7 @@ class Values(Element, _IDProperty):
 
     @property
     def min_inclusive(self):
-        """When ``True``, the domain includes the minimum value."""
+        """When `True`, the domain includes the minimum value."""
         return self._min_inclusive
 
     @min_inclusive.setter
@@ -968,7 +968,7 @@ class Values(Element, _IDProperty):
 
     @property
     def max_inclusive(self):
-        """When ``True``, the domain includes the maximum value."""
+        """When `True`, the domain includes the maximum value."""
         return self._max_inclusive
 
     @max_inclusive.setter
@@ -1427,7 +1427,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     @property
     def values(self):
         """
-        A :class:`Values` instance (or ``None``) defining the domain
+        A :class:`Values` instance (or `None`) defining the domain
         of the column.
         """
         return self._values
@@ -1640,7 +1640,7 @@ class CooSys(SimpleElement):
     def ID(self):
         """
         [*required*] The XML ID of the COOSYS_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
+        cross-referencing.  May be `None` or a string conforming to
         XML ID_ syntax.
         """
         return self._ID

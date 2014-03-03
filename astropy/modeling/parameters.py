@@ -65,7 +65,7 @@ class Parameter(object):
     Parameter instances never store the actual value of the parameter
     directly.  Rather, each instance of a model stores its own parameters
     as either hidden attributes or (in the case of
-    `~astropy.modeling.core.ParametricModel`) in an array.  A *bound*
+    `~astropy.modeling.ParametricModel`) in an array.  A *bound*
     Parameter simply wraps the value in a Parameter proxy which provides some
     additional information about the parameter such as its constraints.
 

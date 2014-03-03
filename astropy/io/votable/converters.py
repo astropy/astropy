@@ -159,7 +159,7 @@ class Converter(object):
 
     Parameters
     ----------
-    field : `~astropy.io.votable.table.Field`
+    field : `~astropy.io.votable.tree.Field`
         object describing the datatype
 
     config : dict

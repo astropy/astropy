@@ -1,5 +1,5 @@
 .. include:: references.txt
-.. |join| replace:: :func:`~astropy.table.operations.join`
+.. |join| replace:: :func:`~astropy.table.join`
 
 .. _table_operations:
 
@@ -23,13 +23,13 @@ table from one or more input tables.  This includes:
      - `~astropy.table.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
-     - `~astropy.table.operations.vstack`
+     - `~astropy.table.vstack`
    * - `Stack horizontally`_
      - Concatenate input tables along columns
-     - `~astropy.table.operations.hstack`
+     - `~astropy.table.hstack`
    * - `Join`_
      - Database-style join of two tables
-     - `~astropy.table.operations.join`
+     - `~astropy.table.join`
 
 
 .. _grouped-operations:
@@ -363,7 +363,7 @@ Stack vertically
 ^^^^^^^^^^^^^^^^^^^^
 
 The |Table| class supports stacking tables vertically with the
-`~astropy.table.operations.vstack` function.  This process is also commonly known as
+`~astropy.table.vstack` function.  This process is also commonly known as
 concatenating or appending tables in the row direction.  It corresponds roughly
 to the `numpy.vstack` function.
 
@@ -416,7 +416,7 @@ table those values are marked as missing.  This is the default behavior and corr
 
 In the case of ``join_type='inner'``, only the common columns (the intersection) are
 present in the output table.  When ``join_type='exact'`` is specified then
-`~astropy.table.operations.vstack` requires that all the input tables
+`~astropy.table.vstack` requires that all the input tables
 have exactly the same column names.
 
 More than two tables can be stacked by supplying a list of table objects::
@@ -445,7 +445,7 @@ Stack horizontally
 ^^^^^^^^^^^^^^^^^^^^^
 
 The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
-`~astropy.table.operations.hstack` function.    It corresponds roughly
+`~astropy.table.hstack` function.    It corresponds roughly
 to the `numpy.hstack` function.
 
 For example, suppose one has the following two tables::
@@ -468,7 +468,7 @@ Now we can stack these two tables horizontally::
     2 bar 2.1 spam toast
     3 baz 2.8   --    --
 
-As with `~astropy.table.operations.vstack`, there is an optional ``join_type`` argument
+As with `~astropy.table.vstack`, there is an optional ``join_type`` argument
 that can take values ``'inner'``, ``'exact'``, and ``'outer'``.  The default is
 ``'outer'``, which effectively takes the union of available rows and masks out any missing
 values.  This is illustrated in the example above.  The other options give the
@@ -716,9 +716,9 @@ recursive algorithm with four rules:
 
 By default, a warning is emitted in the last case (both metadata values are not
 `None`). The warning can be silenced or made into an exception using the
-``metadata_conflicts`` argument to :func:`~astropy.table.operations.hstack`,
-:func:`~astropy.table.operations.vstack`, or
-:func:`~astropy.table.operations.join`. The ``metadata_conflicts`` option can be set to:
+``metadata_conflicts`` argument to :func:`~astropy.table.hstack`,
+:func:`~astropy.table.vstack`, or
+:func:`~astropy.table.join`. The ``metadata_conflicts`` option can be set to:
 
 - ``'silent'`` - no warning is emitted, the value for the last table is silently picked
 - ``'warn'`` - a warning is emitted, the value for the last table is picked

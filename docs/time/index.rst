@@ -6,7 +6,7 @@
 Time and Dates (`astropy.time`)
 ****************************************************
 
-.. |Quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
 .. |Latitude| replace:: :class:`~astropy.coordinates.Latitude`
 

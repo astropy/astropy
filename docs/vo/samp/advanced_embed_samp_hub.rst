@@ -32,7 +32,7 @@ instead likely want to open a GUI dialog.
 To do this, you will need to define a class that handles the dialog,
 and you should then pass an **instance** of the class to
 |SAMPHubServer| (not the class itself).  This class should inherit
-from `astropy.vo.samp.hub.WebProfileDialog` and add the following:
+from `astropy.vo.samp.WebProfileDialog` and add the following:
 
     1) It should have a GUI timer callback that periodically calls
        ``WebProfileDialog.handle_queue`` (available as

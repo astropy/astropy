@@ -156,7 +156,7 @@ This should update the variables with the values from the configuration file::
     6.3
 
 Or if you want to reload all astropy configuration at once, use the
-`~astropy.config.configuration.reload_config` function::
+`~astropy.config.reload_config` function::
 
     >>> config.reload_config('astropy')
 

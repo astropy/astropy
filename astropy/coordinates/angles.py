@@ -54,7 +54,7 @@ class Angle(u.Quantity):
 
     Parameters
     ----------
-    angle : `~numpy.array`, scalar, `~astropy.units.quantity.Quantity`, :class:`~astropy.coordinates.Angle`
+    angle : `~numpy.array`, scalar, `~astropy.units.Quantity`, :class:`~astropy.coordinates.Angle`
         The angle value. If a tuple, will be interpreted as ``(h, m,
         s)`` or ``(d, m, s)`` depending on ``unit``. If a string, it
         will be interpreted following the rules described above.
@@ -70,10 +70,10 @@ class Angle(u.Quantity):
         unit.
 
     dtype : `~numpy.dtype`, optional
-        See `~astropy.units.quantity.Quantity`.
+        See `~astropy.units.Quantity`.
 
     copy : bool, optional
-        See `~astropy.units.quantity.Quantity`.
+        See `~astropy.units.Quantity`.
 
     Raises
     ------
@@ -275,16 +275,16 @@ class Angle(u.Quantity):
             The level of decimal precision.  If ``decimal`` is True,
             this is the raw precision, otherwise it gives the
             precision of the last place of the sexagesimal
-            representation (seconds).  If ``None``, or not provided, the
+            representation (seconds).  If `None`, or not provided, the
             number of decimal places is determined by the value, and
             will be between 0-8 decimal places as required.
 
         alwayssign : bool, optional
-            If ``True``, include the sign no matter what.  If ``False``,
+            If `True`, include the sign no matter what.  If `False`,
             only include the sign if it is negative.
 
         pad : bool, optional
-            If ``True``, include leading zeros when needed to ensure a
+            If `True`, include leading zeros when needed to ensure a
             fixed number of characters for sexagesimal representation.
 
         fields : int, optional
@@ -415,12 +415,12 @@ class Angle(u.Quantity):
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
-        Wrap the Angle object at the given ``wrap_angle``.
+        Wrap the `Angle` object at the given ``wrap_angle``.
 
         This method forces all the angle values to be within a contiguous 360 degree
         range so that ``wrap_angle - 360d <= angle < wrap_angle``.  By default a new
-        Angle object is returned, but if the ``inplace`` argument is ``True`` then
-        the Angle object is wrapped in place and nothing is returned.
+        Angle object is returned, but if the ``inplace`` argument is `True` then
+        the `Angle` object is wrapped in place and nothing is returned.
 
         For instance::
 
@@ -443,7 +443,7 @@ class Angle(u.Quantity):
             or Angle(180, unit=u.deg).
 
         inplace : bool
-            If ``True`` then wrap the object in place instead of returning a new Angle
+            If `True` then wrap the object in place instead of returning a new Angle
 
         Returns
         -------
@@ -463,7 +463,7 @@ class Angle(u.Quantity):
         """
         Check if all angle(s) satisfy ``lower <= angle < upper``
 
-        If ``lower`` is not specified (or ``None``) then no lower bounds check is
+        If ``lower`` is not specified (or `None`) then no lower bounds check is
         performed.  Likewise ``upper`` can be left unspecified.  For example::
 
           >>> from astropy.coordinates import Angle
@@ -527,7 +527,7 @@ class Latitude(Angle):
 
     The input angle(s) can be specified either as an array, list,
     scalar, tuple (see below), string,
-    :class:`~astropy.units.quantity.Quantity` or another
+    :class:`~astropy.units.Quantity` or another
     :class:`~astropy.coordinates.Angle`.
 
     The input parser is flexible and supports all of the input formats
@@ -609,7 +609,7 @@ class Longitude(Angle):
     object will result in re-wrapping the angle values in-place.
 
     The input angle(s) can be specified either as an array, list,
-    scalar, tuple, string, :class:`~astropy.units.quantity.Quantity`
+    scalar, tuple, string, :class:`~astropy.units.Quantity`
     or another :class:`~astropy.coordinates.Angle`.
 
     The input parser is flexible and supports all of the input formats
@@ -617,7 +617,7 @@ class Longitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, `~astropy.units.quantity.Quantity`,
+    angle : array, list, scalar, `~astropy.units.Quantity`,
         :class:`~astropy.coordinates.Angle` The angle value(s). If a tuple,
         will be interpreted as ``(h, m s)`` or ``(d, m, s)`` depending
         on ``unit``. If a string, it will be interpreted following the

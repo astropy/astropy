@@ -61,7 +61,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
             - 'mask': mask out invalid values
 
     pedantic : bool, optional
-        When ``True``, raise an error when the file violates the spec,
+        When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
@@ -74,7 +74,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         memory.
 
     table_number : int, optional
-        The number of table in the file to read in.  If ``None``, all
+        The number of table in the file to read in.  If `None`, all
         tables will be read.  If a number, 0 refers to the first table
         in the file, and only that numbered table will be parsed and
         read in.  Should not be used with `table_id`.
@@ -95,7 +95,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         string, must be the name of a unit formatter. The built-in
         formats include ``generic``, ``fits``, ``cds``, and
         ``vounit``.  A custom formatter may be provided by passing a
-        `astropy.units.format.Base` instance.  If ``None`` (default),
+        `astropy.units.format.Base` instance.  If `None` (default),
         the unit format to use will be the one specified by the
         VOTable specification (which is ``cds`` up to version 1.2 of
         VOTable, and (probably) ``vounit`` in future versions of the
@@ -156,11 +156,11 @@ def parse_single_table(source, **kwargs):
 
 def writeto(table, file, tabledata_format=None):
     """
-    Writes a `~astropy.io.vo.VOTableFile` to a VOTABLE_ xml file.
+    Writes a `~astropy.io.votable.tree.VOTableFile` to a VOTABLE_ xml file.
 
     Parameters
     ----------
-    table : `~astropy.io.vo.VOTableFile` or `~astropy.table.Table` instance.
+    table : `~astropy.io.votable.tree.VOTableFile` or `~astropy.table.Table` instance.
 
     file : str or writable file-like object
         Path or file object to write to
@@ -194,12 +194,12 @@ def validate(source, output=None, xmllint=False, filename=None):
 
     output : writable file-like object, optional
         Where to output the report.  Defaults to ``sys.stdout``.
-        If ``None``, the output will be returned as a string.
+        If `None`, the output will be returned as a string.
 
     xmllint : bool, optional
-        When ``True``, also send the file to ``xmllint`` for schema and
+        When `True`, also send the file to ``xmllint`` for schema and
         DTD validation.  Requires that ``xmllint`` is installed.  The
-        default is ``False``.  ``source`` must be a file on the local
+        default is `False`.  ``source`` must be a file on the local
         filesystem in order for ``xmllint`` to work.
 
     filename : str, optional
@@ -209,8 +209,8 @@ def validate(source, output=None, xmllint=False, filename=None):
     Returns
     -------
     is_valid : bool or str
-        Returns ``True`` if no warnings were found.  If ``output`` is
-        ``None``, the return value will be a string.
+        Returns `True` if no warnings were found.  If ``output`` is
+        `None`, the return value will be a string.
     """
 
     from ...utils.console import print_code_line, color_print
@@ -320,7 +320,7 @@ def from_table(table, table_id=None):
     table : `~astropy.table.Table` instance
 
     table_id : str, optional
-        If not ``None``, set the given id on the returned
+        If not `None`, set the given id on the returned
         `~astropy.tree.Table` instance.
 
     Returns
@@ -342,7 +342,7 @@ def is_votable(source):
     Returns
     -------
     is_votable : bool
-        Returns ``True`` if the given file is a VOTable file.
+        Returns `True` if the given file is a VOTable file.
     """
     try:
         with iterparser.get_xml_iterator(source) as iterator:

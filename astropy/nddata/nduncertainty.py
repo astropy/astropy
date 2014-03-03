@@ -22,7 +22,7 @@ class IncompatibleUncertaintiesException(Exception):
 class MissingDataAssociationException(Exception):
     """
     This exception should be used to indicate that an uncertainty instance has
-    not been associated with a parent `~astropy.nddata.nddata.NDData` object.
+    not been associated with a parent `~astropy.nddata.NDData` object.
     """
     pass
 

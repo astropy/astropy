@@ -49,7 +49,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
     sep2d : `~astropy.units.quantity.Angle`
         The on-sky separation between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.quantity.Quantity`
+    dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
 
@@ -150,7 +150,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
     sep2d : `~astropy.units.quantity.Angle`
         The on-sky separation between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.quantity.Quantity`
+    dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
 

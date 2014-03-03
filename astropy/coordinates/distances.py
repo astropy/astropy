@@ -28,16 +28,16 @@ class Distance(u.Quantity):
     This can be initialized in one of four ways:
 
     * A distance ``value`` (array or float) and a ``unit``
-    * A `~astropy.units.quantity.Quantity` object
+    * A `~astropy.units.Quantity` object
     * A redshift and (optionally) a cosmology.
     * Providing a distance modulus
 
     Parameters
     ----------
-    value : scalar or `~astropy.units.quantity.Quantity`.
+    value : scalar or `~astropy.units.Quantity`.
         The value of this distance.
     unit : `~astropy.units.UnitBase`
-        The units for this distance, *if* ``value`` is not a `~astropy.units.quantity.Quantity`.
+        The units for this distance, *if* ``value`` is not a `~astropy.units.Quantity`.
         Must have dimensions of distance.
     z : float
         A redshift for this distance.  It will be converted to a distance

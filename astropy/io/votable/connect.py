@@ -24,7 +24,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
     Returns
     -------
     is_votable : bool
-        Returns ``True`` if the given file is a VOTable file.
+        Returns `True` if the given file is a VOTable file.
     """
     from . import is_votable
     if origin == 'read':
@@ -63,7 +63,7 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         the table in the file, starting at 0.
 
     use_names_over_ids : bool, optional
-        When ``True`` use the ``name`` attributes of columns as the names
+        When `True` use the ``name`` attributes of columns as the names
         of columns in the `~astropy.table.Table` instance.  Since names
         are not guaranteed to be unique, this may cause some columns
         to be renamed by appending numbers to the end.  Otherwise

@@ -65,7 +65,7 @@ class SphericalCoordinatesBase(object):
         This must be given with ``{lonnm}``.
     distance : `~astropy.coordinates.Distance`, optional
         This may be given with ``{latnm}`` and ``{lonnm}`` or ``coordstr``
-        and not ``x``, ``y``, or ``z``.  If not given, ``None`` (unit sphere)
+        and not ``x``, ``y``, or ``z``.  If not given, `None` (unit sphere)
         will be assumed.
     x : number
         The first cartesian coordinate. Must be given with ``y`` and ``z``
@@ -90,7 +90,7 @@ class SphericalCoordinatesBase(object):
             converted using `~astropy.units.Unit`.  They can also be
             None to attempt to automatically interpret the units (see
             `~astropy.coordinates.Angle` for details.) If ``unit``
-            is just ``None``, this will be interpreted the same as
+            is just `None`, this will be interpreted the same as
             ``(None, None)``.
 
         * If ``x``, ``y``, and ``z`` are given:
@@ -362,7 +362,7 @@ class SphericalCoordinatesBase(object):
         If set as a tuple, the tuple will be passed into the
         `~astropy.coordinates.Distance` constructor.
 
-        Alternatively, this may be ``None``, indicating an unknown/not given
+        Alternatively, this may be `None`, indicating an unknown/not given
         distance. Where necessary, this object will be interpreted as angles on
         the unit sphere.
         """
@@ -507,27 +507,31 @@ class SphericalCoordinatesBase(object):
             will be a coordinate object that is an array (i.e.,
             ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
-            Which closest neighbor to search for.  Typically ``1`` is desired here,
-            as that is correct for matching one set of coordinates to another.
-            The next likely use case is ``2``, for matching a coordinate catalog
-            against *itself* (``1`` is inappropriate because each point will find
+            Which closest neighbor to search for.  Typically ``1`` is
+            desired here, as that is correct for matching one set of
+            coordinates to another.  The next likely use case is
+            ``2``, for matching a coordinate catalog against *itself*
+            (``1`` is inappropriate because each point will find
             itself as the closest match).
 
         Returns
         -------
         idx : integer array
-            Indecies into ``catalogcoord`` to get the matched points for each
-            ``matchcoord``. Shape matches this coordinate.
+            Indecies into ``catalogcoord`` to get the matched points
+            for each ``matchcoord``. Shape matches this coordinate.
         sep2d : `~astropy.units.quantity.Angle`
-            The on-sky separation between the closest match for each ``matchcoord`` and
-            the ``matchcoord``. Shape matches ``matchcoord``.
-        dist3d : `~astropy.units.quantity.Quantity`
-            The 3D distance between the closest match for each ``matchcoord`` and
-            the ``matchcoord``. Shape matches this coordinate.
+            The on-sky separation between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches
+            ``matchcoord``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches this
+            coordinate.
 
         Notes
         -----
-        This method requires `SciPy <http:www.scipy.org>`_ to be installed or it will fail.
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
 
         See Also
         --------
@@ -558,18 +562,21 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         idx : integer array
-            Indecies into ``catalogcoord`` to get the matched points for each
-            ``matchcoord``. Shape matches this coordinate.
+            Indecies into ``catalogcoord`` to get the matched points
+            for each ``matchcoord``. Shape matches this coordinate.
         sep2d : `~astropy.units.quantity.Angle`
-            The on-sky separation between the closest match for each ``matchcoord`` and
-            the ``matchcoord``. Shape matches ``matchcoord``.
-        dist3d : `~astropy.units.quantity.Quantity`
-            The 3D distance between the closest match for each ``matchcoord`` and
-            the ``matchcoord``. Shape matches this coordinate.
+            The on-sky separation between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches
+            ``matchcoord``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches this
+            coordinate.
 
         Notes
         -----
-        This method requires `SciPy` to be installed or it will fail.
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
 
         See Also
         --------
@@ -592,7 +599,8 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         transcoord
-            A new object with this coordinate represented in the ``tosys`` system.
+            A new object with this coordinate represented in the
+            ``tosys`` system.
 
         Raises
         ------
@@ -729,7 +737,7 @@ class SphericalCoordinatesBase(object):
         ----------
         style : {'hmsdms', 'dms', 'decimal', None}
             The formatting specification to use. These encode the three most
-            common ways to represent coordinates. If ``None`` is passed, the
+            common ways to represent coordinates. If `None` is passed, the
             defaults for the current coordinate class is used.
         kwargs
             Keyword arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.

@@ -17,7 +17,7 @@ sometimes necessary) and new fitting algorithms may be added without changing
 the existing models.  In addition models can be combined in different ways
 using a machinery that allows assigning outputs from one model into the
 appropriate input of another in a flexible way,
-`~astropy.modeling.core.LabeledInput`.  The goal is to eventually provide a
+`~astropy.modeling.LabeledInput`.  The goal is to eventually provide a
 rich toolset of models and fitters such that most users will not need to define
 new model classes, nor special purpose fitting routines (but not making that
 hard to do if it is necessary).

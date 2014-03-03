@@ -30,7 +30,7 @@ The basic workflow is as follows:
 
     1. ``from astropy import wcs``
 
-    2. Call the `~astropy.wcs.wcs.WCS` constructor with an
+    2. Call the `~astropy.wcs.WCS` constructor with an
        `astropy.io.fits` header and/or hdulist object.
 
     3. Optionally, if the FITS file uses any deprecated or

@@ -46,7 +46,7 @@ class NDData(object):
         will always be copies by *reference* , so you should make copy
         the ``data`` before passing it in if that's the  desired behavior.
 
-    uncertainty : `~astropy.nddata.nduncertainty.NDUncertainty`, optional
+    uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
 
     mask : `~numpy.ndarray`, optional
@@ -57,7 +57,7 @@ class NDData(object):
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 
-    flags : `~numpy.ndarray` or `~astropy.nddata.flag_collection.FlagCollection`, optional
+    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
         either as a Numpy array of any type with a shape matching that of the
         data, or as a `~astropy.nddata.FlagCollection` instance which has a

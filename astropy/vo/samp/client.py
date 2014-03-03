@@ -35,8 +35,8 @@ class SAMPClient(object):
 
     Parameters
     ----------
-    hub : :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy`
-        An instance of :class:`~astropy.vo.samp.hub_proxy.SAMPHubProxy` to be
+    hub : :class:`~astropy.vo.samp.SAMPHubProxy`
+        An instance of :class:`~astropy.vo.samp.SAMPHubProxy` to be
         used for messaging with the SAMP Hub.
 
     name : str, optional
@@ -298,7 +298,7 @@ class SAMPClient(object):
         :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_notification`
         method is used to bind distinct operations to MTypes. In case of a
         customized callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        :class:`~astropy.vo.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -349,7 +349,7 @@ class SAMPClient(object):
         :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_call` method is
         used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        :class:`~astropy.vo.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return
@@ -391,7 +391,7 @@ class SAMPClient(object):
         :meth:`~astropy.vo.samp.client.SAMPClient.bind_receive_response` method
         is used to bind distinct operations to MTypes. In case of a customized
         callable client implementation that inherits from the
-        :class:`~astropy.vo.samp.client.SAMPClient` class this method should be
+        :class:`~astropy.vo.samp.SAMPClient` class this method should be
         overwritten.
 
         .. note:: When overwritten, this method must always return

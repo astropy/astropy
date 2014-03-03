@@ -105,7 +105,7 @@ class ConfigurationItem(object):
     --------
     The following example will create an item 'cfgoption = 42' in the
     '[configuration]' section of astropy.cfg (located in the directory that
-    `astropy.config.paths.get_config_dir` returns), or if the option is already
+    `astropy.config.get_config_dir` returns), or if the option is already
     set, it will take the value from the configuration file::
 
         from astropy.config import ConfigurationItem

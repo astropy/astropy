@@ -229,7 +229,7 @@ class RunTimePredictor(object):
 
         Parameters
         ----------
-        model : `astropy.modeling.core.Model`
+        model : `astropy.modeling.Model`
             Model for the expected trend of run time (Y-axis)
             w.r.t. :math:`\\textnormal{arg}^{\\textnormal{power}}` (X-axis).
             If `None`, will use `~astropy.modeling.polynomial.Polynomial1D`

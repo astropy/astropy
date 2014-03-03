@@ -565,7 +565,7 @@ class ParametricModel(Model):
 
     def set_joint_parameters(self, jparams):
         """
-        Used by the `~astropy.modeling.fitters.JointFitter` class to store
+        Used by the `~astropy.modeling.fitting.JointFitter` class to store
         parameters which are considered common for several models and are to be
         fitted together.
         """
