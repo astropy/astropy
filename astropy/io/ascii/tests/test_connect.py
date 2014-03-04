@@ -9,7 +9,7 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 @pytest.mark.parametrize('filename', ['t/cds.dat', 't/ipac.dat',
                                       't/daophot.dat', 't/latex1.tex',
-                                      't/simple_csv.csv', 'html.html'])
+                                      't/simple_csv.csv', 't/html.html'])
 def test_read_generic(filename):
     Table.read(os.path.join(ROOT, filename), format='ascii')
 

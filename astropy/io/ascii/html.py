@@ -46,6 +46,11 @@ class HTMLInputter(core.BaseInputter):
     """
 
     def process_lines(self, lines):
+        """
+        Convert the given input into a list of SoupString objects
+        for further processing.
+        """
+        
         try:
             from bs4 import BeautifulSoup
             from bs4.element import Comment
@@ -55,7 +60,8 @@ class HTMLInputter(core.BaseInputter):
         
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []
-        for x in soup.contents[0].descendants:
+        for x in soup.contents[0].descendants: # Navigate down HTML hierarchy
+            # Remove all blank elements and comments
             if str(x).strip() and not isinstance(x, Comment):
                 soup_obj = SoupString(x)
                 soup_list.append(soup_obj)
