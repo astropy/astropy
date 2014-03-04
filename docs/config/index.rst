@@ -15,8 +15,8 @@ source code to make those changes.
 
 .. note::
     The configuration system got a major overhaul in astropy 0.4 as
-    part of APE5.  See :ref:`config-transition` for information about
-    updating code to use the new API.
+    part of APE5.  See :ref:`config-0-4-transition` for information
+    about updating code to use the new API.
 
 
 Getting Started
@@ -157,8 +157,24 @@ You can also reset a configuration parameter back to its default value.  Note th
     >>> conf.dataurl
     'http://data.astropy.org/'
 
+Upgrading astropy
+-----------------
+
+Each time you upgrade to a new major version of astropy, the
+configuration parameters may have changed.
+
+If you never edited your configuration file, there is nothing for you
+to do.  It will automatically be replaced with a configuration file
+template for the newly installed version of astropy.
+
+If you did customize your configuration file, it will not be touched.
+Instead, a new configuration file template will be installed alongside
+it with the version number in the filename, for example
+``astropy.0.4.cfg``.  You can compare this file to your
+``astropy.cfg`` file to see what needs to be changed or updated.
+
 Developer Usage
----------------
+===============
 
 Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
@@ -198,7 +214,7 @@ The reference guide below describes the interface for a creating
         return conf.another_setting + ' Also, I added text.'
 
 Item Types and Validation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 If not otherwise specified, a `~astropy.config.ConfigItem` gets its
 type from the type of the ``defaultvalue`` it is given when it is
@@ -273,7 +289,7 @@ Below is a list of the valid values here for quick reference:
 * 'pass'
 
 Usage Tips
-^^^^^^^^^^
+----------
 
 Keep in mind is that `~astropy.config.ConfigurationItem` objects can
 be changed at runtime by users. So it is always recommended to read
@@ -313,6 +329,11 @@ Or, if the option needs to be available as a function parameter::
 
 See Also
 ========
+
+.. toctree::
+   :maxdepth: 2
+
+   config_0_4_transition
 
 :doc:`/logging` (overview of `astropy.logger`)
 
