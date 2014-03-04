@@ -196,7 +196,7 @@ def test_binom_conf_interval():
     result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
                                                  interval='flat')
                        for kval in k]).transpose()
-    assert_allclose(result, table, atol=1.e-3, rtol=0.)
+    assert_allclose(result, table, atol=1.e-3, rtol=0.)    
 
     # Test Wald interval
     result = funcs.binom_conf_interval(0, 5, interval='wald')
@@ -208,6 +208,32 @@ def test_binom_conf_interval():
     assert_allclose(result[0], 0.5 - 0.5 / np.sqrt(1000.))
     assert_allclose(result[1], 0.5 + 0.5 / np.sqrt(1000.))
 
+    # Test shapes
+    k = 3
+    n = 7
+    for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
+        result = funcs.binom_conf_interval(k, n, interval=interval)
+        assert result.shape == (2,)
+
+    k = np.array(k)
+    for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
+        result = funcs.binom_conf_interval(k, n, interval=interval)
+        assert result.shape == (2,)
+
+    n = np.array(n)
+    for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
+        result = funcs.binom_conf_interval(k, n, interval=interval)
+        assert result.shape == (2,)
+        
+    k = np.array([1, 3, 5])
+    for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
+        result = funcs.binom_conf_interval(k, n, interval=interval)
+        assert result.shape == (2, 3)
+
+    n = np.array([5, 5, 5])
+    for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
+        result = funcs.binom_conf_interval(k, n, interval=interval)
+        assert result.shape == (2, 3)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binned_binom_proportion():

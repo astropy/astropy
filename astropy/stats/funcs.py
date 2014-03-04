@@ -163,7 +163,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     k : int or numpy.ndarray
         Number of successes (0 <= `k` <= `n`).
     n : int or numpy.ndarray
-        Number of trials (`n` > 0).
+        Number of trials (`n` > 0).  If both k and n are arrays,
+        they must have the same shape.
     conf : float in [0, 1], optional
         Desired probability content of interval. Default is 0.68269,
         corresponding to 1 sigma in a 1-dimensional Gaussian distribution.
@@ -171,11 +172,9 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         Formula used for confidence interval. See notes for details.
         The 'wilson' and 'jeffreys' intervals generally give similar
         results, while 'flat' is somewhat different, especially for small
-        values of `n`.  'wilson' should be somewhat faster, while 'jeffreys'
-        and 'flat' are marginally superior.  The difference between the
-        latter arises from different priors.  The 'wald' interval is
-        generally not recommended.  It is provided for comparison purposes.
-        Default is 'wilson'.
+        values of `n`.  'wilson' should be somewhat faster than 'flat' or
+        'jeffreys'.  The 'wald' interval is generally not recommended.
+        It is provided for comparison purposes.  Default is 'wilson'.
 
     Returns
     -------
@@ -319,9 +318,24 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         raise ValueError('conf must be between 0. and 1.')
     alpha = 1. - conf
 
-    iskscal = np.isscalar(k)
-    k = np.atleast_1d(k).astype(np.int)
-    n = np.atleast_1d(n).astype(np.int)
+    # Giving back the right shape is difficult
+    k = np.asarray(k).astype(np.int)
+    n = np.asarray(n).astype(np.int)
+    k_scalar = np.isscalar(k) or k.shape == ()
+    n_scalar = np.isscalar(n) or n.shape == ()
+
+    if not (k_scalar or n_scalar) and k.shape != n.shape:
+        raise ValueError("k and n must have same shape if not scalar")
+
+    if k_scalar:
+        outshape = (2, ) + n.shape
+    else:
+        outshape = (2, ) + k.shape
+
+    # Now we need to promote these into real arrays because
+    #  you can't index scalar arrays in numpy
+    k = np.atleast_1d(k)
+    n = np.atleast_1d(n)
     if (n <= 0).any():
         raise ValueError('n must be positive')
     if (k < 0).any() or (k > n).any():
@@ -367,10 +381,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     else:
         raise ValueError('Unrecognized interval: {0:s}'.format(interval))
 
-    if iskscal:
-        return conf_interval.squeeze()
-    else:
-        return conf_interval
+    return conf_interval.reshape(outshape)
 
 
 #TODO Note scipy dependency (needed in binom_conf_interval)
