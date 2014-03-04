@@ -42,7 +42,7 @@ procedure is that ensures a consistent release process each time.
 
  4. Create and activate a virtualenv::
 
-        $ virtualenv --system-site-packages --distribute astropy-release
+        $ virtualenv --system-site-packages astropy-release
         $ source astropy-release/bin/activate
 
  5. Obtain a *clean* version of the Astropy repository.  That is, one
@@ -129,17 +129,27 @@ procedure is that ensures a consistent release process each time.
 
          $ python setup.py sdist upload
 
- 20. Update the "stable" branch to point to the new stable release For example::
+ 20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
+     and ensure that only the most releases in each actively maintained
+     release line are *not* marked hidden.  For example, if v0.3.1 was
+     just released, v0.3 should be hidden.  This is so that users only find
+     the latest bugfix releases.
+
+     Do not enabled "Auto-hide old releases" as that may hide bugfix releases
+     from older release lines that we may still want to make available.
+
+ 21. Update the "stable" branch to point to the new stable release For example::
 
          $ git checkout stable
          $ git reset --hard v0.1
+         $ got push origin stable --force
 
- 21. Update Readthedocs so that it builds docs for the corresponding github tag.
+ 22. Update Readthedocs so that it builds docs for the corresponding github tag.
      Also verify that the ``stable`` Readthedocs version builds correctly for
      the new version (it should trigger automatically once you've done the 
      previous step.)
 
- 22. If this was a major/minor release (not a bug fix release) create a bug fix
+ 23. If this was a major/minor release (not a bug fix release) create a bug fix
      branch for this line of release.  That is, if the version just released
      was "v<major>.<minor>.0", create bug fix branch with the name
      "v<major>.<minor>.x".  Starting from the commit tagged as the release,
@@ -162,12 +172,6 @@ procedure is that ensures a consistent release process each time.
      and "0.3.2", while allowing development of new features to continue in
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
-
- 23. Create a bug fix label on GitHub; this should have the same name as the
-     just created bug fix branch prepended with "backport-".  For the previous
-     example this would be "backport-0.3.x"  This label should be applied to
-     all issues that should be backported to the bug fix branch.  Also create a
-     milestone for the next bug fix release if it hasn't been made already.
 
  24. Update `astropy/astropy-website <https://github.com/astropy/astropy-website>`_
      for the new version.  Two files need to be updated: ``index.rst`` has two tags
