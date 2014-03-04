@@ -2,7 +2,6 @@
 A simple class to manage a piece of global science state.
 """
 from contextlib import contextmanager
-import copy
 import warnings
 
 from ..config import ConfigItem
@@ -43,7 +42,7 @@ class ScienceState(object):
             def __exit__(self, type, value, tb):
                 self._parent._value = self._value
 
-        ctx = _Context(cls, copy.copy(cls._value))
+        ctx = _Context(cls, cls._value)
         value = cls.validate(value)
         cls._value = value
         return ctx
@@ -98,7 +97,7 @@ class ScienceStateAlias(ConfigItem):
             else:
                 module = module.__name__
 
-        self._is_initing = True
+        self._dont_warn = True
         self._since = since
         self._python_name = python_name
         self._config_name = config_name
@@ -124,17 +123,20 @@ class ScienceStateAlias(ConfigItem):
                     self._science_state.__name__),
                 AstropyDeprecationWarning)
 
-        del self._is_initing
+        del self._dont_warn
 
     def _deprecation_warning(self, extra=None):
-        if hasattr(self, '_is_initing'):
+        if hasattr(self, '_dont_warn'):
             return
 
         message = ("'{0}.{1}' is deprecated, and is no longer defined "
-                   "as a configuration item.".format(self.module, self._old_name))
+                   "as a configuration item.".format(
+                       self.module, self._python_name))
         if extra is not None:
             message += " Use '{0}.{1}{2}' instead.".format(
-                self.module, self.name, extra)
+                self._science_state.__module__,
+                self._science_state.__name__,
+                extra)
         warnings.warn(message, AstropyDeprecationWarning)
 
     def set(self, value):
@@ -149,8 +151,11 @@ class ScienceStateAlias(ConfigItem):
 
     def reload(self):
         self._deprecation_warning()
-        super(ScienceStateAlias, self).reload()
-        result = super(ScienceStateAlias, self).reload()
+        self._dont_warn = True
+        try:
+            result = super(ScienceStateAlias, self).reload()
+        finally:
+            del self._dont_warn
         if result is not None:
             self._science_state.set(result)
 
