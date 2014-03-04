@@ -9,8 +9,6 @@ Bug Fixes
   - Fixed a bug where ``ConfigurationItem.set_temp()`` does not reset to
     default value when exception is raised within ``with`` block. [#2117]
 
-- ``astropy.constants``
-
 - ``astropy.convolution``
 
   - Fixed a bug where ``_truncation`` was left undefined for ``CustomKernel``.
@@ -35,8 +33,6 @@ Bug Fixes
   - Allow `sep` argument in `Angle.to_string` to be empty (resulting in no
     separators) [#1989]
 
-- ``astropy.cosmology``
-
 - ``astropy.io.ascii``
 
   - Allow passing unicode delimiters when reading or writing tables.
@@ -54,8 +50,6 @@ Bug Fixes
 
   - Fixed issues in the HDF5 Table reader/writer functions that occurred on
     Windows. [#2099]
-
-- ``astropy.io.registry``
 
 - ``astropy.io.votable``
 
@@ -77,13 +71,9 @@ Bug Fixes
 
   - Fixed bug in computation of ``Gaussian2D`` model. [#2038]
 
-- ``astropy.nddata``
-
 - ``astropy.sphinx``
 
   - Added slightly more useful debug info for AstropyAutosummary. [#2024]
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
