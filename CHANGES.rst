@@ -260,7 +260,8 @@ Other Changes and Additions
   behavior.  If unicode support of masked arrays is important to your
   application, upgrade to Numpy 1.8 or later for best results. [#2059]
 
-0.3.1 (unreleased)
+
+0.3.2 (unreleased)
 ------------------
 
 Bug Fixes
@@ -270,6 +271,7 @@ Bug Fixes
 
   - By default, floating point values are now written out using
     ``repr`` rather than ``str`` to preserve precision [#2137]
+
 
 0.3.1 (unreleased)
 ------------------
