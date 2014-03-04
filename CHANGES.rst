@@ -273,7 +273,7 @@ Bug Fixes
     ``repr`` rather than ``str`` to preserve precision [#2137]
 
 
-0.3.1 (unreleased)
+0.3.1 (2014-03-04)
 ------------------
 
 Bug Fixes
