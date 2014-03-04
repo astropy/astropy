@@ -893,3 +893,7 @@ def test_quantity_to_view():
 @raises(ValueError)
 def test_quantity_tuple_power():
     (5.0 * u.m) ** (1, 2)
+
+
+def test_inherit_docstrings():
+    assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__

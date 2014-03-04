@@ -11,11 +11,12 @@ from ..units.core import Unit, UnitsError
 from ..units.quantity import Quantity
 from ..utils import lazyproperty
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.misc import InheritDocstrings
 
 __all__ = ['Constant', 'EMConstant']
 
 
-class ConstantMeta(type):
+class ConstantMeta(InheritDocstrings):
     """Metaclass for the :class:`Constant`. The primary purpose of this is to
     wrap the double-underscore methods of :class:`Quantity` which is the
     superclass of :class:`Constant`.

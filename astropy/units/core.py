@@ -17,7 +17,7 @@ import warnings
 import numpy as np
 
 from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable
+from ..utils.misc import isiterable, InheritDocstrings
 from .utils import is_effectively_unity, validate_power
 from . import format as unit_format
 
@@ -446,6 +446,7 @@ class UnitsWarning(AstropyWarning):
     pass
 
 
+@six.add_metaclass(InheritDocstrings)
 class UnitBase(object):
     """
     Abstract base class for units.
@@ -1575,7 +1576,6 @@ class IrreducibleUnit(NamedUnit):
                 "bases".format(self))
 
         return self
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
 
 class UnrecognizedUnit(IrreducibleUnit):
@@ -1643,7 +1643,7 @@ class UnrecognizedUnit(IrreducibleUnit):
         return False
 
 
-class _UnitMetaClass(type):
+class _UnitMetaClass(InheritDocstrings):
     """
     This metaclass exists because the Unit constructor should
     sometimes return instances that already exist.  This "overrides"
@@ -1837,11 +1837,9 @@ class Unit(NamedUnit):
 
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
     def is_unity(self):
         return self._represents.is_unity()
-    is_unity.__doc__ = UnitBase.is_unity.__doc__
 
 
 class PrefixUnit(Unit):
@@ -2002,7 +2000,6 @@ class CompositeUnit(UnitBase):
         if len(bases) == 0:
             self._decomposed_cache = x
         return x
-    decompose.__doc__ = UnitBase.decompose.__doc__
 
     def is_unity(self):
         unit = self.decompose()

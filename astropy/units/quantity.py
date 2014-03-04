@@ -20,11 +20,15 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
-from ..utils.misc import isiterable
+from ..utils.misc import isiterable, InheritDocstrings
 from .utils import validate_power
 
 
 __all__ = ["Quantity"]
+
+
+# We don't want to run doctests in the docstrings we inherit from Numpy
+__doctest_skip__ = ['Quantity.*']
 
 
 def _can_cast(arg, dtype):
@@ -55,6 +59,7 @@ def _can_have_arbitrary_unit(value):
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
 
+@six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
