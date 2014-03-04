@@ -318,24 +318,9 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         raise ValueError('conf must be between 0. and 1.')
     alpha = 1. - conf
 
-    # Giving back the right shape is difficult
     k = np.asarray(k).astype(np.int)
     n = np.asarray(n).astype(np.int)
-    k_scalar = np.isscalar(k) or k.shape == ()
-    n_scalar = np.isscalar(n) or n.shape == ()
 
-    if not (k_scalar or n_scalar) and k.shape != n.shape:
-        raise ValueError("k and n must have same shape if not scalar")
-
-    if k_scalar:
-        outshape = (2, ) + n.shape
-    else:
-        outshape = (2, ) + k.shape
-
-    # Now we need to promote these into real arrays because
-    #  you can't index scalar arrays in numpy
-    k = np.atleast_1d(k)
-    n = np.atleast_1d(n)
     if (n <= 0).any():
         raise ValueError('n must be positive')
     if (k < 0).any() or (k > n).any():
@@ -375,13 +360,22 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
             upperbound = betaincinv(k + 1, n - k + 1, 1. - 0.5 * alpha)
 
         # Set lower or upper bound to k/n when k/n = 0 or 1
-        lowerbound[k == 0] = 0
-        upperbound[k == n] = 1
+        #  We have to treat the special case of k/n being scalars,
+        #  which is an ugly kludge
+        if lowerbound.ndim == 0:
+            if k == 0:
+                lowerbound = 0.
+            elif k == n:
+                upperbound = 1.
+        else:
+            lowerbound[k == 0] = 0
+            upperbound[k == n] = 1
+
         conf_interval = np.array([lowerbound, upperbound])
     else:
         raise ValueError('Unrecognized interval: {0:s}'.format(interval))
 
-    return conf_interval.reshape(outshape)
+    return conf_interval
 
 
 #TODO Note scipy dependency (needed in binom_conf_interval)
