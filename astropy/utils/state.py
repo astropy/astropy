@@ -9,6 +9,9 @@ from .exceptions import AstropyDeprecationWarning
 from ..utils import find_current_module
 
 
+__all__ = ['ScienceState', 'ScienceStateAlias']
+
+
 class ScienceState(object):
     """
     Science state subclasses are used to manage global items that can
@@ -31,6 +34,9 @@ class ScienceState(object):
 
     @classmethod
     def set(cls, value):
+        """
+        Set the current science state value.
+        """
         class _Context(object):
             def __init__(self, parent, value):
                 self._value = value
@@ -49,10 +55,13 @@ class ScienceState(object):
 
     @classmethod
     def validate(cls, value):
+        """
+        Validate the value and convert it to its native type, if
+        necessary.
+        """
         return value
 
 
-# TODO: Use InheritDocstrings
 class ScienceStateAlias(ConfigItem):
     """
     This is a backward compatibility layer for configuration items

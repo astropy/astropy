@@ -22,6 +22,7 @@ from warnings import warn
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
+from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
 
@@ -159,7 +160,8 @@ class ConfigNamespace(object):
                 item.set(item.defaultvalue)
 
 
-class ConfigItem(property):
+@six.add_metaclass(InheritDocstrings)
+class ConfigItem(object):
     """
     A setting and associated value stored in a configuration file.
 
@@ -474,7 +476,6 @@ class ConfigurationItem(ConfigItem):
             format(get_config_filename(self.module)))
 
 
-# TODO: Use InheritDocstrings
 class ConfigAlias(ConfigItem):
     """
     A class that exists to support backward compatibility only.

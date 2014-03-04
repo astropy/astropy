@@ -77,7 +77,7 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``io.fits.STRIP_HEADER_WHITESPACE``
      - unchanged
      - ``io.fits.conf.strip_header_whitespace``
-   * - ``[io.fits] use_memmap
+   * - ``[io.fits] use_memmap``
      - ``io.fits.USE_MEMMAP``
      - unchanged
      - ``io.fits.conf.use_memmap``

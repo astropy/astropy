@@ -180,14 +180,14 @@ Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
 across sessions of astropy or an affiliated package.  Options that may
 affect the results of science calculations should not be configuration
-items, but should instead be :ref:`science-state`, so it's possible to
-reproduce science results without them being affected by configuration
-parameters set in a particular environment.  Admittedly, this is only
-a guideline, as the precise cases where a configuration item is
-preferred over, say, a keyword option for a function is somewhat
-personal preference. It is the preferred form of persistent
-configuration, however, and astropy packages must all use it (and it
-is recommended for affiliated packages).
+items, but should instead be `astropy.utils.state.ScienceState`, so
+it's possible to reproduce science results without them being affected
+by configuration parameters set in a particular environment.
+Admittedly, this is only a guideline, as the precise cases where a
+configuration item is preferred over, say, a keyword option for a
+function is somewhat personal preference. It is the preferred form of
+persistent configuration, however, and astropy packages must all use
+it (and it is recommended for affiliated packages).
 
 The reference guide below describes the interface for a creating
 ``conf`` object with a number of configuration parameters::
@@ -342,4 +342,3 @@ Reference/API
 =============
 
 .. automodapi:: astropy.config
-    :no-inheritance-diagram:
