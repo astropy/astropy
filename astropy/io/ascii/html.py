@@ -50,10 +50,13 @@ def correct_table(soup, htmldict, numtable):
 
     table_id = htmldict['table_id']
 
-    if isinstance(table_id, six.stringtypes):
+    if isinstance(table_id, six.string_types):
         return 'id' in soup.attrs and soup['id'] == table_id
     elif isinstance(table_id, int):
         return table_id == numtable
+    
+    # Return False if an invalid parameter is given
+    return False
     
 
 class HTMLInputter(core.BaseInputter):
@@ -97,7 +100,7 @@ class HTMLSplitter(core.BaseSplitter):
         """
         data_found = False
         for line in lines:
-            if not hasattr(line, 'soup'):
+            if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             if soup.name == 'tr':
@@ -120,7 +123,7 @@ class HTMLHeader(core.BaseHeader):
         tables = 0
         
         for i, line in enumerate(lines):
-            if not hasattr(line, 'soup'):
+            if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             if soup.name == 'table':
@@ -139,7 +142,7 @@ class HTMLData(core.BaseData):
         tables = 0
         
         for i, line in enumerate(lines):
-            if not hasattr(line, 'soup'):
+            if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             
@@ -162,7 +165,7 @@ class HTMLData(core.BaseData):
         tables = 0
         
         for i, line in enumerate(lines):
-            if not hasattr(line, 'soup'):
+            if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             if soup.name == 'table':
