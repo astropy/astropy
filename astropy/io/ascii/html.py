@@ -37,6 +37,25 @@ class ListWriter:
     def write(self, data):
         self.out.append(data)
 
+def correct_table(soup, htmldict, numtable):
+    """
+    Checks whether the given BeautifulSoup tag is the table
+    the user intends to process.
+    """
+
+    if soup.name != 'table':
+        return False
+    if 'table_id' not in htmldict:
+        return numtable == 1
+
+    table_id = htmldict['table_id']
+
+    if isinstance(table_id, six.stringtypes):
+        return 'id' in soup.attrs and soup['id'] == table_id
+    elif isinstance(table_id, int):
+        return table_id == numtable
+    
+
 class HTMLInputter(core.BaseInputter):
     """
     Input lines of HTML in a valid form.
@@ -60,7 +79,7 @@ class HTMLInputter(core.BaseInputter):
         
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []
-        for x in soup.contents[0].descendants: # Navigate down HTML hierarchy
+        for x in soup.descendants: # Navigate down HTML hierarchy
             # Remove all blank elements and comments
             if str(x).strip() and not isinstance(x, Comment):
                 soup_obj = SoupString(x)
@@ -81,7 +100,7 @@ class HTMLSplitter(core.BaseSplitter):
             if not hasattr(line, 'soup'):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name in ('table', 'tr'):
+            if soup.name == 'tr':
                 data_found = True
                 header_elements = soup.find_all('th')
                 if header_elements:
@@ -98,12 +117,17 @@ class HTMLHeader(core.BaseHeader):
         """
         Return the line number at which header data begins.
         """
+        tables = 0
+        
         for i, line in enumerate(lines):
             if not hasattr(line, 'soup'):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr':
+            if soup.name == 'table':
+                tables += 1
+            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
                 return i
+        
         raise core.InconsistentTableError('HTML tables must contain at least '
                                               'one <tr> tag')
 
@@ -112,15 +136,22 @@ class HTMLData(core.BaseData):
         """
         Return the line number at which table data begins.
         """
+        tables = 0
+        
         for i, line in enumerate(lines):
             if not hasattr(line, 'soup'):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr' and soup.td is not None:
+            
+            if soup.name == 'table':
+                tables += 1
+            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables) \
+                                                and soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
                                 'have headings and data in the same row')
                 return i
+        
         raise core.InconsistentTableError('HTML tables must contain '
                                             'at least one data row')
     def end_line(self, lines):
@@ -128,17 +159,38 @@ class HTMLData(core.BaseData):
         Return the line number at which table data ends.
         """
         last_index = -1
+        tables = 0
+        
         for i, line in enumerate(lines):
             if not hasattr(line, 'soup'):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr':
+            if soup.name == 'table':
+                tables += 1
+            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
                 last_index = i
+
         return last_index + 1
 
 class HTML(core.BaseReader):
     """
     Read and write HTML tables.
+
+    In order to customize input and output, a dict of parameters may
+    be passed to this class holding specific customizations.
+
+    **htmldict** : Dictionary of parameters for HTML input/output.
+
+        * css : Customized styling
+            If present, this parameter will be included in a <style>
+            tag and will define stylistic attributes of the output.
+
+        * table_id : ID for the input table
+            If a string, this defines the HTML id of the table to be processed.
+            If an integer, this specificies the index of the input table in the
+            available tables. Unless this parameter is given, the reader will
+            use the first table found in the input file.
+    
     """
     
     _format_name = 'html'
