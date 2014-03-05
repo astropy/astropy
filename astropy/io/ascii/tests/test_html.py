@@ -53,6 +53,30 @@ def test_listwriter():
 
     assert lst == [0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e']
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_correct_table():
+    """
+    Test to make sure that correct_table() returns whether the
+    given BeautifulSoup tag is the correct table to process.
+    """
+
+    # Should return False on non-tables
+    soup = BeautifulSoup('<html><body></body></html>')
+    assert html.correct_table(soup, {}, 0) is False
+
+    soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
+                         '<td>B</td></tr></table>').table
+    assert html.correct_table(soup, {}, 2) is False
+    assert html.correct_table(soup, {}, 1) is True # Default index of 1
+
+    # Same tests, but with explicit parameter
+    assert html.correct_table(soup, {'table_id': 2}, 1) is False
+    assert html.correct_table(soup, {'table_id': 1}, 1) is True
+
+    # Test identification by string ID
+    assert html.correct_table(soup, {'table_id': 'bar'}, 1) is False
+    assert html.correct_table(soup, {'table_id': 'foo'}, 1) is True
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
@@ -76,8 +100,36 @@ def test_htmlinputter():
     lines = ['<html>', '<body>', '<a href="http://www.astropy.org/">Link',
              '</a><br></br>', '</body>', '<!--Comment-->', '</html>']
     soup_list = inputter.process_lines(lines)
-    expected_soups = ['<body><a href="http://www.astropy.org/">Link' \
+    expected_soups = ['<html><body><a href="http://www.astropy.org/">Link</a><br/>' \
+        '</body><!--Comment--></html>', '<body><a href="http://www.astropy.org/">Link' \
         '</a><br/></body>', '<a href="http://www.astropy.org/">Link</a>',
         'Link', '<br/>']
     for soup, expected_soup in izip(soup_list, expected_soups):
         assert str(soup).replace('\n', '') == expected_soup
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_htmlsplitter():
+    """
+    Test to make sure that HTMLSplitter correctly inputs lines
+    of type SoupString to return a generator that gives all
+    header and data elements.
+    """
+
+    splitter = html.HTMLSplitter()
+
+    lines = [html.SoupString(BeautifulSoup('<a href="http://www.astropy.org/">Link</a>').a),
+                html.SoupString(BeautifulSoup('<tr><th>Col 1</th><th>Col 2</th></tr>').tr),
+                html.SoupString(BeautifulSoup('<tr><td>Data 1</td><td>Data 2</td></tr>').tr)]
+    expected_data = [['Col 1', 'Col 2'], ['Data 1', 'Data 2']]
+    assert list(splitter(lines)) == expected_data
+
+    # Make sure the presence of a non-SoupString triggers a TypeError
+    lines.append('<tr><td>Data 3</td><td>Data 4</td></tr>')
+    with pytest.raises(TypeError):
+        list(splitter(lines))
+
+    # Make sure that not having a <tr> tag in lines triggers an error
+    lines = [html.SoupString(BeautifulSoup('<a href="http://www.astropy.org/">Link</a>').a),
+                html.SoupString(BeautifulSoup('<p>Text</p>').p)]
+    with pytest.raises(core.InconsistentTableError):
+        list(splitter(lines))
