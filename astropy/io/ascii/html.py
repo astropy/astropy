@@ -131,8 +131,7 @@ class HTMLHeader(core.BaseHeader):
             elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
                 return i
         
-        raise core.InconsistentTableError('HTML tables must contain at least '
-                                              'one <tr> tag')
+        raise core.InconsistentTableError('No start line found for HTML header')
 
 class HTMLData(core.BaseData):
     def start_line(self, lines):
@@ -155,8 +154,7 @@ class HTMLData(core.BaseData):
                                 'have headings and data in the same row')
                 return i
         
-        raise core.InconsistentTableError('HTML tables must contain '
-                                            'at least one data row')
+        raise core.InconsistentTableError('No start line found for HTML data')
     def end_line(self, lines):
         """
         Return the line number at which table data ends.
@@ -173,6 +171,8 @@ class HTMLData(core.BaseData):
             elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
                 last_index = i
 
+        if last_index == -1:
+            return None
         return last_index + 1
 
 class HTML(core.BaseReader):
