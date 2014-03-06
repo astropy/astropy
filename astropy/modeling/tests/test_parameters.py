@@ -11,7 +11,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import ParametricModel
+from ..core import ParametricModel, Model
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -33,7 +33,7 @@ class TestParModel(ParametricModel):
         pass
 
 
-class MockModel(ParametricModel):
+class MockModel(Model):
     def __call__(self):
         pass
 
@@ -41,15 +41,13 @@ class MockModel(ParametricModel):
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
 
-    # It is possible to test some Parameter functionality by binding it to a
-    # dummy model and giving it a default value
-    p = Parameter(name='alpha', default=42, model=MockModel())
-
-    assert p.name == 'alpha'
+    model = TestParModel(coeff=2, e=1)
+    p = model.coeff
+    assert p.name == 'coeff'
 
     # Parameter names are immutable
     with pytest.raises(AttributeError):
-        p.name = 'beta'
+        p.name = 'coeff'
 
     assert p.fixed == False
     p.fixed = True
@@ -207,7 +205,6 @@ class TestParameters(object):
         Uses an iraf example.
         """
         new_model = self.linear_fitter(self.model, self.x, self.y)
-        print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,

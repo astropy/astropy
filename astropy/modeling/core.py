@@ -181,7 +181,7 @@ class Model(object):
 
     def __init__(self, param_dim=1, **params):
         self._param_dim = param_dim
-        if params is not None:
+        if params:
             self._param_metrics, self._param_total_size = self._create_param_metrics(params)
         else:
             self._param_metrics = None
