@@ -28,6 +28,7 @@ def get_package_data():
                                    't/sextractor.dat',
                                    't/daophot.dat.gz',
                                    't/fill_values.txt',
+                                   't/html.html',
                                    't/ipac.dat',
                                    't/ipac.dat.bz2',
                                    't/latex1.tex',
