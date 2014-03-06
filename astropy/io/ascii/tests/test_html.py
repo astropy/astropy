@@ -133,3 +133,92 @@ def test_htmlsplitter():
                 html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     with pytest.raises(core.InconsistentTableError):
         list(splitter(lines))
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_htmlheader_start():
+    """
+    Test to ensure that the start_line method of HTMLHeader
+    returns the first line of header data. Uses t/html.html
+    for sample input.
+    """
+
+    f = 't/html.html'
+    with open(f) as fd:
+        table = fd.read()
+
+    inputter = html.HTMLInputter()
+    
+    # Create a list of SoupStrings from raw text
+    lines = inputter.get_lines(table)
+    header = html.HTMLHeader()
+    header.html = {}
+    
+    # In absence of table_id, defaults to the first line of the first table
+    assert str(lines[header.start_line(lines)]) == \
+           '<tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>'
+    header.html = {'table_id': 'second'}
+    assert str(lines[header.start_line(lines)]) == \
+           '<tr><th>Column A</th><th>Column B</th><th>Column C</th></tr>'
+    header.html = {'table_id': 3}
+    assert str(lines[header.start_line(lines)]) == \
+           '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
+
+    # Should raise an error if the desired table is not found
+    header.html = {'table_id': 4}
+    with pytest.raises(core.InconsistentTableError):
+        header.start_line(lines)
+
+    # Should raise an error if a non-SoupString is present
+    lines.append('<tr><th>Header</th></tr>')
+    with pytest.raises(TypeError):
+        header.start_line(lines)
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_htmldata():
+    """
+    Test to ensure that the start_line and end_lines methods
+    of HTMLData returns the first line of table data. Uses
+    t/html.html for sample input.
+    """
+
+    f = 't/html.html'
+    with open(f) as fd:
+        table = fd.read()
+
+    inputter = html.HTMLInputter()
+
+    # Create a list of SoupStrings from raw text
+    lines = inputter.get_lines(table)
+    data = html.HTMLData()
+    data.html = {}
+
+    # In absence of table_id, defaults to the first table
+    assert str(lines[data.start_line(lines)]) == \
+           '<tr><td>1</td><td>a</td><td>1.05</td></tr>'
+    # end_line returns the index of the last data element
+    assert str(lines[data.end_line(lines)]) == '<td>3</td>'
+    
+    data.html = {'table_id': 'second'}
+    assert str(lines[data.start_line(lines)]) == \
+           '<tr><td>4</td><td>d</td><td>10.5</td></tr>'
+    assert str(lines[data.end_line(lines)]) == '<td>6</td>'
+    
+    data.html = {'table_id': 3}
+    assert str(lines[data.start_line(lines)]) == \
+           '<tr><td>7</td><td>g</td><td>105.0</td></tr>'
+    assert str(lines[data.end_line(lines)]) == '<td>9</td>'
+    
+    # start_line should raise an error if the desired table is not found
+    data.html = {'table_id': 'foo'}
+    with pytest.raises(core.InconsistentTableError):
+        data.start_line(lines)
+
+    # end_line should return None if the desired table is not found
+    assert data.end_line(lines) is None
+
+    # Should raise an error if a non-SoupString is present
+    lines.append('<tr><td>Data</td></tr>')
+    with pytest.raises(TypeError):
+        data.start_line(lines)
+    with pytest.raises(TypeError):
+        data.end_line(lines)
