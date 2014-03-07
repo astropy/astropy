@@ -12,7 +12,7 @@ from __future__ import absolute_import, division, print_function
 from ...extern import six
 
 from . import core
-from ...table import Table
+from ...table import Table, Column
 from ...utils.xml import writer
 
 class SoupString(str):
@@ -245,10 +245,21 @@ class HTML(core.BaseReader):
                 with w.tag('table'):
                     with w.tag('tr'):
                         for col in cols:
-                            w.start('th')
+                            if len(col.shape) > 1:
+                                w.start('th', colspan=col.shape[1])
+                            else:
+                                w.start('th')
                             w.data(col.name)
                             w.end(indent=False)
-                    col_str_iters = [col.iter_str_vals() for col in cols]
+                    col_str_iters = []
+                    for col in cols:
+                        if len(col.shape) > 1:
+                            span = col.shape[1]
+                            for i in range(span):
+                                new_col = Column([el[i] for el in col])
+                                col_str_iters.append(new_col.iter_str_vals())
+                        else:
+                            col_str_iters.append(col.iter_str_vals())
                     for row in zip(*col_str_iters):
                         with w.tag('tr'):
                             for el in row:
