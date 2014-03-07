@@ -16,6 +16,10 @@ New Features
     regular tuples, and added `Angle.signed_dms` attribute that gives the
     absolute value of the `d`, `m`, and `s` along with the sign.  [#1988]
 
+  - By default, `Distance` objects are now required to be positive. To
+    allow negative values, set ``allow_negative=True`` in the `Distance`
+    constructor when creating a `Distance` instance.
+
 - ``astropy.cosmology``
 
   - `age` and `comoving_volume` convenience functions have been added to
@@ -61,8 +65,8 @@ New Features
     configuration options to write out what `automidapi` and
     `automodsumm` generate, mainly for debugging purposes. [#1975, #2022]
 
-  - Reference documentation now shows functions/class docstrings at the 
-    inteded user-facing API location rather than the actual file where 
+  - Reference documentation now shows functions/class docstrings at the
+    inteded user-facing API location rather than the actual file where
     the implementation is found. [#1826]
   - The `automodsumm` extension configuration was changed to generate
     documentation of class `__call__` member functions. [#1817, #2135]
