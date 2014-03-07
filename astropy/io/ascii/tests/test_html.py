@@ -15,7 +15,10 @@ from ....tests.helper import pytest
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 
-from itertools import izip
+try:
+    from itertools import izip
+except ImportError:
+    izip = zip
 
 # Check to see if the BeautifulSoup dependency is present.
 
