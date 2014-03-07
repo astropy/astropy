@@ -356,6 +356,20 @@ class NonLinearLSQFitter(Fitter):
     model : a fittable `~astropy.modeling.ParametricModel`
         model to fit to data
 
+    Attributes
+    ----------
+    fit_info : dict
+        This dictionary contains the values returned by `scipy.optimize.leastsq`
+        for the most recent fit, including the values inside  the `infodict`
+        dictionary. See the  `scipy.optimize.leastsq` documentation for details
+        on the meaning of the elements. Note that the `x` return values is not
+        included (as it is instead the parameter values of the returned model),
+        'cov_x' is renamed 'param_jac'.  Additionally, one additional element is
+        computed whenever a model is fit, assigned to the key 'param_cov': the
+        covariance matrix of the parameters.  The order of the matrix elements
+        matches the order of the parameters in the fitted model (i.e., the order
+        that ``model.param_names`` shows).
+
     Raises
     ------
     ModelLinearityError
