@@ -972,7 +972,7 @@ class Card(_Verify):
 
         if m is None:
             raise VerifyError("Unparsable card (%s), fix it first with "
-                              ".verify('fix')." % self.key)
+                              ".verify('fix')." % self.keyword)
 
         if m.group('bool') is not None:
             value = m.group('bool') == 'T'
