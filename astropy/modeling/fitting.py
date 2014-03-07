@@ -373,7 +373,8 @@ class NonLinearLSQFitter(Fitter):
                          'qtf': None,
                          'message': None,
                          'ierr': None,
-                         'param_jac': None}
+                         'param_jac': None,
+                         'param_cov': None}
 
         super(NonLinearLSQFitter, self).__init__()
 
@@ -476,6 +477,15 @@ class NonLinearLSQFitter(Fitter):
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+
+        #now try to compute the true covariance matrix
+        if (len(y) > len(init_values)) and param_jac is not None:
+            sum_sqrs = np.sum(self.errorfunc(fitparams)**2)
+            dof = len(y) - len(init_values)
+            self.fit_info['param_cov'] = param_jac * sum_sqrs / dof
+        else:
+            self.fit_info['param_cov'] = None
+
         return model_copy
 
     @staticmethod
