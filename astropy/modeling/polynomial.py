@@ -989,7 +989,7 @@ class Legendre2D(OrthoPolynomialBase):
         return np.rollaxis(d, 0, d.ndim)
 
 
-class _SIP1D(Model):
+class _SIP1D(PolynomialBase):
     """
     This implements the Simple Imaging Polynomial Model (SIP) in 1D.
 
@@ -1028,7 +1028,10 @@ class _SIP1D(Model):
 
             self._validate_params(ndim=2, **params)
 
-        super(_SIP1D, self).__init__(param_dim=param_dim, **params)
+        super(_SIP1D, self).__init__(param_dim=param_dim)
+
+        for name, value in params.items():
+            setattr(self, name, value)
 
     def __repr__(self):
         return self._format_repr(args=[self.order, self.coeff_prefix])
@@ -1069,15 +1072,15 @@ class _SIP1D(Model):
     def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            attr = '_{0}_{1}_{2}'.format(coeff_prefix, i, 0)
+            attr = '{0}_{1}_{2}'.format(coeff_prefix, i, 0)
             mat[i, 0] = getattr(self, attr).value
         for i in range(2, self.order + 1):
-            attr = '_{0}_{1}_{2}'.format(coeff_prefix, 0, i)
+            attr = '{0}_{1}_{2}'.format(coeff_prefix, 0, i)
             mat[0, i] = getattr(self, attr).value
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    attr = '_{0}_{1}_{2}'.format(coeff_prefix, i, j)
+                    attr = '{0}_{1}_{2}'.format(coeff_prefix, i, j)
                     mat[i, j] = getattr(self, attr).value
         return mat
 
