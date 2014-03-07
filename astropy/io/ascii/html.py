@@ -245,14 +245,16 @@ class HTML(core.BaseReader):
                 with w.tag('table'):
                     with w.tag('tr'):
                         for col in cols:
-                            with w.tag('th'):
-                                w.data(col.name)
+                            w.start('th')
+                            w.data(col.name)
+                            w.end(indent=False)
                     col_str_iters = [col.iter_str_vals() for col in cols]
                     for row in zip(*col_str_iters):
                         with w.tag('tr'):
                             for el in row:
-                               with w.tag('td'):
-                                   w.data(el)
+                                w.start('td')
+                                w.data(el)
+                                w.end(indent=False)
 
         # Fixes XMLWriter's insertion of unwanted line breaks
         return [''.join(lines)]
