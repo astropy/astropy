@@ -246,6 +246,7 @@ class HTML(core.BaseReader):
                     with w.tag('tr'):
                         for col in cols:
                             if len(col.shape) > 1:
+                                # Set colspan attribute for multicolumns
                                 w.start('th', colspan=col.shape[1])
                             else:
                                 w.start('th')
@@ -256,6 +257,7 @@ class HTML(core.BaseReader):
                         if len(col.shape) > 1:
                             span = col.shape[1]
                             for i in range(span):
+                                # Split up multicolumns into separate columns
                                 new_col = Column([el[i] for el in col])
                                 col_str_iters.append(new_col.iter_str_vals())
                         else:

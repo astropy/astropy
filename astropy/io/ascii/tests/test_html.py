@@ -10,6 +10,7 @@ to be installed.
 
 from .. import html
 from .. import core
+from ....table import Table
 
 from ....tests.helper import pytest
 from .common import (raises, assert_equal, assert_almost_equal,
@@ -225,3 +226,57 @@ def test_htmldata():
         data.start_line(lines)
     with pytest.raises(TypeError):
         data.end_line(lines)
+
+def test_multidimensional_columns():
+    """
+    Test to make sure that the HTML writer writes multimensional
+    columns (those with iterable elements) using the colspan
+    attribute of <th>.
+    """
+
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('a', 'a', 'a'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+    table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    expected = """\
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
+ </head>
+ <body>
+  <table>
+   <tr>
+    <th>C1</th>
+    <th colspan="2">C2</th>
+    <th colspan="3">C3</th>
+   </tr>
+   <tr>
+    <td>1</td>
+    <td>1.0</td>
+    <td>1.0</td>
+    <td>a</td>
+    <td>a</td>
+    <td>a</td>
+   </tr>
+   <tr>
+    <td>2</td>
+    <td>2.0</td>
+    <td>2.0</td>
+    <td>b</td>
+    <td>b</td>
+    <td>b</td>
+   </tr>
+   <tr>
+    <td>3</td>
+    <td>3.0</td>
+    <td>3.0</td>
+    <td>c</td>
+    <td>c</td>
+    <td>c</td>
+   </tr>
+  </table>
+ </body>
+</html>
+    """
+    assert html.HTML().write(table)[0].strip() == expected.strip()
