@@ -373,7 +373,7 @@ class NonLinearLSQFitter(Fitter):
                          'qtf': None,
                          'message': None,
                          'ierr': None,
-                         'status': None}
+                         'param_jac': None}
 
         super(NonLinearLSQFitter, self).__init__()
 
@@ -463,13 +463,13 @@ class NonLinearLSQFitter(Fitter):
         else:
             dfunc = self._wrap_deriv
         init_values, _ = model_copy._model_to_fit_params()
-        fitparams, status, dinfo, mess, ierr = optimize.leastsq(
+        fitparams, param_jac, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
         self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
-        self.fit_info['status'] = status
+        self.fit_info['param_jac'] = param_jac
         self.fit_info['message'] = mess
         self.fit_info['ierr'] = ierr
         if ierr not in [1, 2, 3, 4]:
