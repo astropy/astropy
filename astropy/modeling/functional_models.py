@@ -21,7 +21,7 @@ __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
     'Box2D', 'Const1D', 'Const2D', 'Disk2D',
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Shift',
+    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
     'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
     'custom_model_1d'
 ])
@@ -433,6 +433,50 @@ class Scale(Model):
         """
 
         return self.factors * x
+
+
+class Redshift(Fittable1DModel):
+    """
+    One dimensional redshift model.
+
+    Parameters
+    ----------
+    z : float or a list of floats
+        Redshift value(s).
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
+
+    """
+    z = Parameter('z')
+
+    def __init__(self, z, **constraints):
+        if not isinstance(z, collections.Sequence):
+            param_dim = 1
+        else:
+            param_dim = len(z)
+        super(Redshift, self).__init__(param_dim=param_dim, z=z, **constraints)
+
+    @staticmethod
+    def eval(x, z):
+        """One dimensional Redshift model function"""
+        return (1 + z) * x
+
+    @staticmethod
+    def fit_deriv(x, z):
+        """One dimensional Redshift model derivative"""
+        d_z = x
+        return [d_z]
+
+    def inverse(self):
+        """Inverse Redshift model"""
+        if self.param_dim == 1:
+            return Redshift(z = 1.0 / (1.0 + self.z) - 1.0)
+        else:
+            return Redshift(z = [1.0 / (1.0 + z) - 1.0 for z in self.z])
 
 
 class Sine1D(Fittable1DModel):

@@ -93,6 +93,8 @@ New Features
 
   - Added ``GaussianAbsorption1D`` model. [#2215]
 
+  - New ``Redshift`` model [#2176].
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
