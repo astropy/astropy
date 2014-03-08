@@ -281,6 +281,7 @@ def test_multicolumn_write():
     """
     assert html.HTML().write(table)[0].strip() == expected.strip()
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_multicolumn_read():
     """
     Test to make sure that the HTML reader inputs multimensional
