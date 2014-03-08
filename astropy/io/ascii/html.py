@@ -107,13 +107,49 @@ class HTMLSplitter(core.BaseSplitter):
                 data_found = True
                 header_elements = soup.find_all('th')
                 if header_elements:
-                    yield [el.string.strip() for el in header_elements]
+                    # Return multicolumns as tuples for HTMLHeader handling
+                    yield [(el.string.strip(), el['colspan']) if el.has_attr('colspan')
+                           else el.string.strip() for el in header_elements]
                 data_elements = soup.find_all('td')
                 if data_elements:
                     yield [el.string.strip() for el in data_elements]
         if not data_found:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')
+
+class HTMLOutputter(core.TableOutputter):
+    """
+    Output the HTML data as an ``astropy.table.Table`` object.
+
+    This subclass allows for the final table to contain
+    multidimensional columns (defined using the colspan attribute
+    of <th>).
+    """
+
+    def __call__(self, cols, meta):
+        """
+        Process the data in multidimensional columns.
+        """
+        self._convert_vals(cols)
+        new_cols = []
+        col_num = 0
+
+        while col_num < len(cols):
+            col = cols[col_num]
+            if hasattr(col, 'colspan'):
+                # Join elements of spanned columns together into tuples
+                data = [tuple([cols[i].data[row] for i in range(col_num,
+                    col_num + col.colspan)]) for row in range(len(col.data))]
+                new_col = core.Column(col.name)
+                new_col.data = data
+                new_cols.append(new_col)
+                col_num += col.colspan
+            else:
+                new_cols.append(col)
+                col_num += 1
+
+        return core.TableOutputter.__call__(self, new_cols, meta)
+        
 
 class HTMLHeader(core.BaseHeader):
     def start_line(self, lines):
@@ -132,6 +168,30 @@ class HTMLHeader(core.BaseHeader):
                 return i
         
         raise core.InconsistentTableError('No start line found for HTML header')
+
+    def _set_cols_from_names(self):
+        """
+        Set columns from header names, handling multicolumns appropriately.
+        """
+        self.cols = []
+        new_names = []
+
+        for name in self.names:
+            if isinstance(name, tuple):
+                col = core.Column(name=name[0])
+                col.colspan = int(name[1])
+                self.cols.append(col)
+                new_names.append(name[0])
+                for i in range(1, int(name[1])):
+                    # Add dummy columns
+                    self.cols.append(core.Column(''))
+                    new_names.append('')
+            else:
+                self.cols.append(core.Column(name=name))
+                new_names.append(name)
+
+        self.names = new_names
+    
 
 class HTMLData(core.BaseData):
     def start_line(self, lines):
@@ -155,6 +215,7 @@ class HTMLData(core.BaseData):
                 return i
         
         raise core.InconsistentTableError('No start line found for HTML data')
+
     def end_line(self, lines):
         """
         Return the line number at which table data ends.
@@ -219,6 +280,14 @@ class HTML(core.BaseReader):
         self.header.html = self.html
         self.data.html = self.html
 
+    def read(self, table):
+        """
+        Read the ``table`` in HTML format and return a resulting ``Table``.
+        """
+
+        self.outputter = HTMLOutputter()
+        return core.BaseReader.read(self, table)
+    
     def write(self, table):
         """
         Return data in ``table`` converted to HTML as a list of strings.

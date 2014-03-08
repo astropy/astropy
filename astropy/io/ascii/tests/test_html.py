@@ -227,7 +227,7 @@ def test_htmldata():
     with pytest.raises(TypeError):
         data.end_line(lines)
 
-def test_multidimensional_columns():
+def test_multicolumn_write():
     """
     Test to make sure that the HTML writer writes multimensional
     columns (those with iterable elements) using the colspan
@@ -280,3 +280,16 @@ def test_multidimensional_columns():
 </html>
     """
     assert html.HTML().write(table)[0].strip() == expected.strip()
+
+def test_multicolumn_read():
+    """
+    Test to make sure that the HTML reader inputs multimensional
+    columns (those with iterable elements) using the colspan
+    attribute of <th>.
+    """
+
+    table = Table.read('t/html2.html', format='ascii.html')
+    col1 = [(1, 2)]
+    col2 = [3]
+    expected = Table([col1, col2], names=('A', 'B'))
+    assert table == expected
