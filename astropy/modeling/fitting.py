@@ -363,12 +363,12 @@ class NonLinearLSQFitter(Fitter):
         for the most recent fit, including the values inside  the `infodict`
         dictionary. See the  `scipy.optimize.leastsq` documentation for details
         on the meaning of the elements. Note that the `x` return values is not
-        included (as it is instead the parameter values of the returned model),
-        'cov_x' is renamed 'param_jac'.  Additionally, one additional element is
-        computed whenever a model is fit, assigned to the key 'param_cov': the
-        covariance matrix of the parameters.  The order of the matrix elements
-        matches the order of the parameters in the fitted model (i.e., the order
-        that ``model.param_names`` shows).
+        included (as it is instead the parameter values of the returned model).
+        Additionally, one additional element is computed whenever a model is
+        fit, assigned to the key 'param_cov': the covariance matrix of the
+        parameters.  The order of the matrix elements matches the order of the
+        parameters in the fitted model (i.e., the order that
+        ``model.param_names`` shows).
 
     Raises
     ------
@@ -478,13 +478,13 @@ class NonLinearLSQFitter(Fitter):
         else:
             dfunc = self._wrap_deriv
         init_values, _ = model_copy._model_to_fit_params()
-        fitparams, param_jac, dinfo, mess, ierr = optimize.leastsq(
+        fitparams, cov_x, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
         self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
-        self.fit_info['param_jac'] = param_jac
+        self.fit_info['cov_x'] = cov_x
         self.fit_info['message'] = mess
         self.fit_info['ierr'] = ierr
         if ierr not in [1, 2, 3, 4]:
@@ -493,10 +493,10 @@ class NonLinearLSQFitter(Fitter):
                           AstropyUserWarning)
 
         #now try to compute the true covariance matrix
-        if (len(y) > len(init_values)) and param_jac is not None:
+        if (len(y) > len(init_values)) and cov_x is not None:
             sum_sqrs = np.sum(self.errorfunc(fitparams, *farg)**2)
             dof = len(y) - len(init_values)
-            self.fit_info['param_cov'] = param_jac * sum_sqrs / dof
+            self.fit_info['param_cov'] = cov_x * sum_sqrs / dof
         else:
             self.fit_info['param_cov'] = None
 
