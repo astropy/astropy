@@ -2484,7 +2484,6 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         # Can an extension by specified by the EXTNAME+EXTVER keywords?
         hf = fitsheader.HeaderFormatter(self.data('test0.fits'))
         assert "EXTNAME = 'SCI" in hf.parse('SCI,2')
-        assert "EXTNAME = 'SCI" in hf.parse(u'SCI,2')  # Try with unicode
         # fitsheader should only print the compressed header when asked
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'))
         assert "XTENSION= 'IMAGE" in hf.parse(1)  # decompressed
