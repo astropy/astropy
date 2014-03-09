@@ -7,8 +7,6 @@ import numpy as np
 
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
-from matplotlib.collections import PathCollection
-from matplotlib.text import Text
 from matplotlib.patches import PathPatch
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
@@ -16,7 +14,6 @@ from .ticks import Ticks
 from .ticklabels import TickLabels
 from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
-from .utils import get_pixels_to_data_scales
 
 from . import six
 
@@ -219,11 +216,11 @@ class CoordinateHelper(object):
 
     @property
     def locator(self):
-        return _formatter_locator.locator
+        return self._formatter_locator.locator
 
     @property
     def formatter(self):
-        return _formatter_locator.formatter
+        return self._formatter_locator.formatter
 
     def _draw(self, renderer, bboxes):
 
