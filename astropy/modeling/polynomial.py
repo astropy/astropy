@@ -1049,8 +1049,9 @@ class _SIP1D(PolynomialBase):
         if self.order < 2 or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
 
-        nmixed = comb(self.order - 1, ndim)
-        numc = self.order * ndim + nmixed + 1
+        nmixed = comb(self.order, ndim)
+        # remove 3 terms because SIP deg >= 2
+        numc = self.order * ndim + nmixed - 2
         return numc
 
     def _generate_coeff_names(self, coeff_prefix):

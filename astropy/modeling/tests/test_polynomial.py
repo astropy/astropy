@@ -6,15 +6,18 @@ Tests for polynomial models.
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
+import os
 import numpy as np
 
 from numpy.testing import utils
 from .. import fitting
 from ...tests.helper import pytest
+from ... import wcs
+from ...io import fits
 from ..polynomial import (Chebyshev1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Legendre2D, Polynomial2D)
+                          Chebyshev2D, Legendre2D, Polynomial2D, SIP)
 from ..functional_models import Linear1D
+from ...utils.data import get_pkg_data_filename
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -103,3 +106,27 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
+
+
+def test_sip_hst():
+    """
+    Test SIP againts astropy.wcs
+    """
+    test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
+    hdr=fits.Header.fromfile(test_file, endcard=False, padding=False, sep='\n')
+    crpix1 = hdr['CRPIX1']
+    crpix2 = hdr['CRPIX2']
+    wobj = wcs.WCS(hdr)
+    a_pars = {}
+    b_pars = {}
+    a_cards = hdr.cards['A_*']
+    b_cards = hdr.cards['B_*']
+    for card in a_cards:
+        a_pars[card.keyword] = card.value
+    for card in b_cards:
+        b_pars[card.keyword] = card.value
+    a_order = a_pars.pop('A_ORDER')
+    b_order = b_pars.pop('B_ORDER')
+    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars)
+    astwcs_result = wobj.sip_pix2foc([[1, 1]], 1)[0] - [1, 1]
+    utils.assert_allclose(sip(1, 1), astwcs_result)
