@@ -6,8 +6,6 @@ python:
     - 3.2
     - 3.3
 env:
-    global:
-        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --use-wheel --use-mirrors"
     matrix:
         - MPL_VERSION=1.3.0 NUMPY_VERSION=1.7.1
 
@@ -31,10 +29,10 @@ before_install:
     - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install python-numpy; fi
 
 install:
-    - $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"
-    - $PIP_WHEEL_COMMAND "matplotlib==$MPL_VERSION"
-    - $PIP_WHEEL_COMMAND "pytest==2.5.1"
-    - $PIP_WHEEL_COMMAND "astropy==0.3"
+    - pip install --upgrade "numpy==$NUMPY_VERSION"
+    - pip install "matplotlib==$MPL_VERSION"
+    - pip install "pytest==2.5.1"
+    - pip install "astropy==0.3"
 
 script:
     - py.test wcsaxes
