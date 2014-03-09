@@ -272,7 +272,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
         if SCAL_RE.match(value) is not None:
             if '.' in value:
-                self._precision = len(value) - value.index('.')
+                self._precision = len(value) - value.index('.') - 1
             else:
                 self._precision = 0
         else:
@@ -295,7 +295,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values)
+            return np.asarray(self.values), 1.1
 
         else:
 
@@ -321,8 +321,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
             # We now find the interval values as multiples of the spacing and generate the tick
             # positions from this
-            imin = np.floor(value_min / spacing)
-            imax = np.ceil(value_max / spacing)
+            imin = np.ceil(value_min / spacing)
+            imax = np.floor(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
             return values, spacing
 
