@@ -82,51 +82,27 @@ class TestAngleFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [35., 36.])
 
-    def test_format(self):
+    expected_formatted = {}
+    expected_formatted['dd'] = u'15d'
+    expected_formatted['dd:mm'] = u'15d24m'
+    expected_formatted['dd:mm:ss'] = u'15d23m32s'
+    expected_formatted['dd:mm:ss.s'] = u'15d23m32.0s'
+    expected_formatted['dd:mm:ss.ssss'] = u'15d23m32.0316s'
+    expected_formatted['hh'] = u'1h'
+    expected_formatted['hh:mm'] = u'1h02m'
+    expected_formatted['hh:mm:ss'] = u'1h01m34s'
+    expected_formatted['hh:mm:ss.s'] = u'1h01m34.1s'
+    expected_formatted['hh:mm:ss.ssss'] = u'1h01m34.1354s'
+    expected_formatted['d'] = u'15'
+    expected_formatted['d.d'] = u'15.4'
+    expected_formatted['d.dd'] = u'15.39'
+    expected_formatted['d.ddd'] = u'15.392'
 
-        fl = AngleFormatterLocator(number=5)
-
-        fl.format = 'dd'
-        assert fl.formatter([3.], None)[0] == u'3d'
-
-        fl.format = 'dd:mm'
-        assert fl.formatter([3.1], None)[0] == u'3d06m'
-
-        fl.format = 'dd:mm:ss'
-        assert fl.formatter([3.12], None)[0] == u'3d07m12s'
-
-        fl.format = 'dd:mm:ss.s'
-        assert fl.formatter([3.12], None)[0] == u'3d07m12.0s'
-
-        fl.format = 'dd:mm:ss.ssss'
-        assert fl.formatter([3.12], None)[0] == u'3d07m12.0000s'
-
-        fl.format = 'hh'
-        assert fl.formatter([15.], None)[0] == u'1h'
-
-        fl.format = 'hh:mm'
-        assert fl.formatter([15.5], None)[0] == u'1h02m'
-
-        fl.format = 'hh:mm:ss'
-        assert fl.formatter([15.55], None)[0] == u'1h02m12s'
-
-        fl.format = 'hh:mm:ss.s'
-        assert fl.formatter([15.55], None)[0] == u'1h02m12.0s'
-
-        fl.format = 'hh:mm:ss.ssss'
-        assert fl.formatter([15.55], None)[0] == u'1h02m12.0000s'
-
-        fl.format = 'd'
-        assert fl.formatter([15.392231], None)[0] == u'15'
-
-        fl.format = 'd.d'
-        assert fl.formatter([15.392231], None)[0] == u'15.4'
-
-        fl.format = 'd.dd'
-        assert fl.formatter([15.392231], None)[0] == u'15.39'
-
-        fl.format = 'd.ddd'
-        assert fl.formatter([15.392231], None)[0] == u'15.392'
+    @pytest.mark.parametrize(('format', 'string'),
+                             [(x, expected_formatted[x]) for x in expected_formatted])
+    def test_format(self, format, string):
+        fl = AngleFormatterLocator(number=5, format=format)
+        assert fl.formatter([15.392231], None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
@@ -135,30 +111,18 @@ class TestAngleFormatterLocator(object):
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
 
-    def test_base_spacing(self):
+    expected_spacing = {}
+    expected_spacing['dd'] = 1. * u.deg
+    expected_spacing['dd:mm'] = 1. * u.arcmin
+    expected_spacing['dd:mm:ss'] = 1. * u.arcsec
+    expected_spacing['dd:mm:ss.ss'] = 0.01 * u.arcsec
+    expected_spacing['hh'] = 15. * u.deg
+    expected_spacing['hh:mm'] = 15. * u.arcmin
+    expected_spacing['hh:mm:ss'] = 15. * u.arcsec
+    expected_spacing['hh:mm:ss.ss'] = 0.15 * u.arcsec
 
-        fl = AngleFormatterLocator(number=5)
-
-        fl.format = 'dd'
-        assert fl.base_spacing == 1 * u.deg
-
-        fl.format = 'dd:mm'
-        assert fl.base_spacing == 1 * u.arcmin
-
-        fl.format = 'dd:mm:ss'
-        assert fl.base_spacing == 1 * u.arcsec
-
-        fl.format = 'dd:mm:ss.ss'
-        assert fl.base_spacing == 0.01 * u.arcsec
-
-        fl.format = 'hh'
-        assert fl.base_spacing == 15. * u.deg
-
-        fl.format = 'hh:mm'
-        assert fl.base_spacing == 15. * u.arcmin
-
-        fl.format = 'hh:mm:ss'
-        assert fl.base_spacing == 15. * u.arcsec
-
-        fl.format = 'hh:mm:ss.ss'
-        assert fl.base_spacing == 0.15 * u.arcsec
+    @pytest.mark.parametrize(('format', 'base_spacing'),
+                             [(x, expected_spacing[x]) for x in expected_spacing])
+    def test_base_spacing(self, format, base_spacing):
+        fl = AngleFormatterLocator(number=5, format=format)
+        assert fl.base_spacing == base_spacing
