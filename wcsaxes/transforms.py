@@ -100,6 +100,15 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         xp, yp = xp + 1, yp + 1
         xw, yw = self.wcs.wcs_pix2world(xp, yp, 1)
+
+        # At the moment, one has to manually check that the transformation
+        # round-trips, otherwise it should be considered invalid.
+        xp_check, yp_check = self.wcs.wcs_world2pix(xw, yw, 1)
+        invalid = ((np.abs(xp_check - xp) > 1.) |
+                   (np.abs(yp_check - yp) > 1.))
+        xw[invalid] = np.nan
+        yw[invalid] = np.nan
+
         world = np.concatenate((xw[:, np.newaxis], yw[:, np.newaxis]), 1)
 
         return world
