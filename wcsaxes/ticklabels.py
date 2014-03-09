@@ -86,8 +86,6 @@ class TickLabels(Text):
 
         text_size = renderer.points_to_pixels(self.get_size())
 
-        pad = text_size * 0.4
-
         for axis in self.get_visible_axes():
 
             for i in range(len(self.world[axis])):
@@ -97,24 +95,24 @@ class TickLabels(Text):
                 # TODO: do something smarter for arbitrary directions
                 if np.abs(self.angle[axis][i]) < 45.:
                     ha = 'right'
-                    va = 'center'
-                    dx = -pad
-                    dy = 0.
+                    va = 'bottom'
+                    dx = - text_size * 0.5
+                    dy = - text_size * 0.5
                 elif np.abs(self.angle[axis][i] - 90.) < 45:
                     ha = 'center'
-                    va = 'top'
+                    va = 'bottom'
                     dx = 0
-                    dy = -pad
+                    dy = - text_size * 1.5
                 elif np.abs(self.angle[axis][i] - 180.) < 45:
                     ha = 'left'
-                    va = 'center'
-                    dx = pad
-                    dy = 0
+                    va = 'bottom'
+                    dx = text_size * 0.5
+                    dy = - text_size * 0.5
                 else:
                     ha = 'center'
                     va = 'bottom'
                     dx = 0
-                    dy = pad
+                    dy = text_size * 0.2
 
                 x, y = self.pixel[axis][i]
 
