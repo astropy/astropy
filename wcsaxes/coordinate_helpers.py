@@ -48,7 +48,7 @@ class CoordinateHelper(object):
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
         # Initialize tick labels
-        self.ticklabels = TickLabels(transform=parent_axes.transData,
+        self.ticklabels = TickLabels(transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
         # Initialize axis labels
@@ -351,15 +351,11 @@ class CoordinateHelper(object):
                                    axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
-                                        pixel=(x_pix_i, y_pix_i),
+                                        pixel=tuple(self.parent_axes.transData.transform((x_pix_i, y_pix_i)).tolist()),
                                         world=world,
                                         angle=normal_angle[imin],
                                         text=self._formatter_locator.formatter([world], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
-
-        xscale, yscale = get_pixels_to_data_scales(self.parent_axes)
-
-        self.ticklabels.set_pixel_to_data_scaling(xscale, yscale)
 
     def _update_grid(self):
 
