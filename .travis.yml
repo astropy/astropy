@@ -5,9 +5,6 @@ python:
     - 2.7
     - 3.2
     - 3.3
-env:
-    matrix:
-        - MPL_VERSION=1.3.0 NUMPY_VERSION=1.7.1
 
 before_install:
 
@@ -29,10 +26,10 @@ before_install:
     - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install python-numpy; fi
 
 install:
-    - pip install --upgrade "numpy==$NUMPY_VERSION"
-    - pip install "matplotlib==$MPL_VERSION"
-    - pip install "pytest==2.5.1"
-    - pip install "astropy==0.3"
+    - pip install --upgrade numpy
+    - pip install matplotlib
+    - pip install pytest
+    - pip install astropy
 
 script:
     - py.test wcsaxes
