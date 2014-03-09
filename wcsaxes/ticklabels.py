@@ -11,8 +11,6 @@ class TickLabels(Text):
 
     def __init__(self, *args, **kwargs):
         self.clear()
-        self._x_pixel_to_data = 1.
-        self._y_pixel_to_data = 1.
         super(TickLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
@@ -73,10 +71,6 @@ class TickLabels(Text):
                 else:
                     self.text[axis][i] = self.text[axis][i][start:]
 
-    def set_pixel_to_data_scaling(self, xscale, yscale):
-        self._x_pixel_to_data = xscale
-        self._y_pixel_to_data = yscale
-
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
 
@@ -121,9 +115,6 @@ class TickLabels(Text):
                     va = 'bottom'
                     dx = 0
                     dy = pad
-
-                dx *= self._x_pixel_to_data
-                dy *= self._y_pixel_to_data
 
                 x, y = self.pixel[axis][i]
 
