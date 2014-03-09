@@ -1,19 +1,14 @@
-import sys
-import numpy as np
-
 from matplotlib.axes import Axes
-from matplotlib.lines import Line2D
 from matplotlib.transforms import Affine2D, Bbox
 
 from astropy.wcs import WCS
-from astropy.utils import OrderedDict
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
-
+from .frame import RectangularFrame
 
 __all__ = ['WCSAxes']
 
@@ -42,7 +37,11 @@ class WCSAxes(Axes):
 
         # Here determine all the coordinate axes that should be shown.
 
+        self.frame = RectangularFrame(self, None)
+
         self.coords = CoordinatesMap(self, self.wcs)
+
+        self.frame.transform = self.coords._transform
 
         self._all_coords = [self.coords]
 
@@ -51,50 +50,6 @@ class WCSAxes(Axes):
         self.coords[1].set_axislabel_position('l')
         self.coords[0].set_ticklabel_position('b')
         self.coords[1].set_ticklabel_position('l')
-
-    def _get_bounding_frame(self):
-        """
-        Return the bounding frame of the axes.
-
-        Returns
-        -------
-        bounding_frame : dict
-            The bounding frame of the axes, as a dictionary containing
-            different axes with different names. This allows the user to then
-            specify which axis should contain ticks and labels.
-        """
-
-        xmin, xmax = self.get_xlim()
-        ymin, ymax = self.get_ylim()
-
-        frame = OrderedDict()
-        frame['b'] = ([xmin, xmax], [ymin, ymin])
-        frame['r'] = ([xmax, xmax], [ymin, ymax])
-        frame['t'] = ([xmax, xmin], [ymax, ymax])
-        frame['l'] = ([xmin, xmin], [ymax, ymin])
-
-        return frame
-
-    def _sample_bounding_frame(self, n_samples):
-        """
-        Return n points equally spaced around the frame.
-
-        Returns
-        -------
-        bounding_frame : dict
-            The bounding frame of the axes, as a dictionary containing
-            different axes with different names. This allows the user to then
-            specify which axis should contain ticks and labels. The frame
-            returns from this method is over-sampled.
-        """
-        frame = self._get_bounding_frame()
-        new_frame = OrderedDict()
-        for axis in frame:
-            x, y = frame[axis]
-            p = np.linspace(0., 1., len(x))
-            p_new = np.linspace(0., 1., n_samples)
-            new_frame[axis] = np.interp(p_new, p, x), np.interp(p_new, p, y)
-        return new_frame
 
     def get_coord_range(self, transform):
         xmin, xmax = self.get_xlim()
@@ -107,6 +62,8 @@ class WCSAxes(Axes):
     def draw(self, renderer, inframe=False):
 
         super(WCSAxes, self).draw(renderer, inframe)
+
+        self.frame.update()
 
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
@@ -123,11 +80,7 @@ class WCSAxes(Axes):
             coords[0]._draw_axislabels(renderer, bboxes=self._bboxes)
             coords[1]._draw_axislabels(renderer, bboxes=self._bboxes)
 
-        frame = self._get_bounding_frame()
-        for axis in frame:
-            x, y = frame[axis]
-            line = Line2D(x, y, transform=self.transData, color='black', zorder=1000)
-            line.draw(renderer)
+        self.frame.draw(renderer)
 
     def get_coords_overlay(self, frame, equinox=None, obstime=None):
 

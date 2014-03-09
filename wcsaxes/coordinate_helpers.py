@@ -52,8 +52,8 @@ class CoordinateHelper(object):
                                      figure=parent_axes.get_figure())
 
         # Initialize axis labels
-        self.axislabels = AxisLabels(parent_axes._get_bounding_frame(),
-                                     transform=parent_axes.transData,
+        self.axislabels = AxisLabels(parent_axes.frame,
+                                     transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
         # Initialize container for the grid lines
@@ -243,12 +243,13 @@ class CoordinateHelper(object):
 
         renderer.open_group('axis labels')
 
-        self.axislabels._frame = self.parent_axes._get_bounding_frame()
         self.axislabels.draw(renderer, bboxes=bboxes)
 
         renderer.close_group('axis labels')
 
     def _update_ticks(self, renderer):
+
+        # TODO: this method should be optimized for speed
 
         # Here we should determine the location and rotation of all the ticks.
         # For each axis, we can check the intersections for the specific
@@ -263,50 +264,21 @@ class CoordinateHelper(object):
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
-        frame = self.parent_axes._sample_bounding_frame(1000)
-
-        # TODO: the above could be abstracted to work with any line, which
-        # could then be re-used for floating axes1
+        frame = self.parent_axes.frame.sample(100)
 
         self.ticks.clear()
         self.ticklabels.clear()
 
-        for axis in frame:
+        for axis, spine in frame.iteritems():
 
-            # Get the frame in data coordinates
-            x_data, y_data = frame[axis]
-
-            # Convert to display pixel coordinates
-            xy_pix = self.parent_axes.transData.transform(np.vstack([x_data, y_data]).transpose())
-            x_pix = xy_pix[:,0]
-            y_pix = xy_pix[:,1]
-
-            # Find angle normal to border and inwards
-            # TODO: this makes assumptions about the direction of rotation of the axes.
-            dx = x_pix[1:] - x_pix[:-1]
-            dy = y_pix[1:] - y_pix[:-1]
-            normal_angle = np.degrees(np.arctan2(dx, -dy))
-
-            # Transform to world coordinates
-            data = np.vstack([x_data, y_data]).transpose()
-            world = self.transform.inverted().transform(data)
-
-            # We need to catch cases where the pixel coordinates don't
-            # round-trip as this indicates coordinates that are outside the
-            # valid projection region
-            data_check = self.transform.transform(world)
-            invalid = ((np.abs(data_check[:,0] - data[:,0]) > 1.) |
-                       (np.abs(data_check[:,1] - data[:,1]) > 1.))
-            world[invalid,:] = np.nan
-
-            # Determine tick rotation
-            # TODO: optimize!
-            world_off = world.copy()
+            # Determine tick rotation in display coordinates and compare to
+            # the normal angle in display coordinates.
+            world_off = spine.world.copy()
             world_off[:, (self.coord_index + 1) % 2] += 1.e-5
-            data_off = self.transform.transform(world_off)
-            dpix_off = data_off - data
+            pixel_off = self.parent_axes.transData.transform(self.transform.transform(world_off))
+            dpix_off = pixel_off - spine.pixel
             tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
-            normal_angle_full = np.hstack([normal_angle, normal_angle[-1]])
+            normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
                     ((tick_angle - normal_angle_full) % 360 > 90.))
             tick_angle[reset] -= 180.
@@ -314,8 +286,8 @@ class CoordinateHelper(object):
             # We find for each interval the starting and ending coordinate,
             # ensuring that we take wrapping into account correctly for
             # longitudes.
-            w1 = world[:-1, self.coord_index]
-            w2 = world[1:, self.coord_index]
+            w1 = spine.world[:-1, self.coord_index]
+            w2 = spine.world[1:, self.coord_index]
             if self.coord_type == 'longitude':
                 w1 = w1 % 360.
                 w2 = w2 % 360.
@@ -342,10 +314,10 @@ class CoordinateHelper(object):
                     imax = imin + 1
 
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_data_i = x_data[imin] + frac * (x_data[imax] - x_data[imin])
-                    y_data_i = y_data[imin] + frac * (y_data[imax] - y_data[imin])
-                    x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
-                    y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
+                    x_data_i = spine.data[imin,0] + frac * (spine.data[imax,0] - spine.data[imax,0])
+                    y_data_i = spine.data[imin,1] + frac * (spine.data[imax,1] - spine.data[imax,1])
+                    x_pix_i = spine.pixel[imin,0] + frac * (spine.pixel[imax,0] - spine.pixel[imax,0])
+                    y_pix_i = spine.pixel[imin,1] + frac * (spine.pixel[imax,1] - spine.pixel[imax,1])
                     angle_i = tick_angle[imin] + frac * (tick_angle[imax] - tick_angle[imin])
 
                     if self.coord_type == 'longitude':
@@ -362,7 +334,7 @@ class CoordinateHelper(object):
                     self.ticklabels.add(axis=axis,
                                         pixel=(x_pix_i, y_pix_i),
                                         world=world,
-                                        angle=normal_angle[imin],
+                                        angle=spine.normal_angle[imin],
                                         text=self._formatter_locator.formatter([world], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
 

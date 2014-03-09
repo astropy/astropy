@@ -7,17 +7,11 @@ class AxisLabels(Text):
 
     def __init__(self, frame, *args, **kwargs):
         self._frame = frame
-        self._x_pixel_to_data = 1.
-        self._y_pixel_to_data = 1.
         super(AxisLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self.set_ha('center')
         self.set_va('center')
-
-    def set_pixel_to_data_scaling(self, xscale, yscale):
-        self._x_pixel_to_data = xscale
-        self._y_pixel_to_data = yscale
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
@@ -37,18 +31,18 @@ class AxisLabels(Text):
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            x, y = self._frame[axis]
-            d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x)**2 + np.diff(y)**2))])
-            xcen = np.interp(d[-1]/2., d, x)
-            ycen = np.interp(d[-1]/2., d, y)
+            x_disp, y_disp = self._frame[axis].pixel[:,0], self._frame[axis].pixel[:,1]
+            d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp)**2 + np.diff(y_disp)**2))])
+            xcen = np.interp(d[-1]/2., d, x_disp)
+            ycen = np.interp(d[-1]/2., d, y_disp)
 
             # Find segment along which the mid-point lies
             imin = np.searchsorted(d, d[-1] / 2.) - 1
 
             # Find normal of the axis label facing outwards on that segment
-            normal_angle = np.arctan2(x[imin+1] - x[imin], -(y[imin+1] - y[imin])) + np.pi
+            normal_angle = self._frame[axis].normal_angle[imin] + 180.
 
-            label_angle = (np.degrees(normal_angle) - 90.) % 360.
+            label_angle = (normal_angle - 90.) % 360.
             if label_angle < 225 and label_angle > 135:
                 label_angle += 180
             self.set_rotation(label_angle)
@@ -58,8 +52,8 @@ class AxisLabels(Text):
             # labels. Obviously this could be optimized if needed.
             for pad in range(2, 20):
 
-                xlabel = xcen + np.cos(normal_angle) * pad * text_size * self._x_pixel_to_data
-                ylabel = ycen + np.sin(normal_angle) * pad * text_size * self._y_pixel_to_data
+                xlabel = xcen + np.cos(np.radians(normal_angle)) * pad * text_size
+                ylabel = ycen + np.sin(np.radians(normal_angle)) * pad * text_size
 
                 self.set_position((xlabel, ylabel))
 
