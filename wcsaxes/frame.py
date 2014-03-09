@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.utils import OrderedDict
-from matplotlib.lines import Line2D
+from matplotlib.lines import Line2D, Path
 
 # TODO: once we want to start writing more complex frames, use an abstract base
 # class.
@@ -118,6 +118,14 @@ class RectangularFrame(OrderedDict):
                                           np.interp(p_new, p, data[:,1])]).transpose()
 
         return spines
+
+    @property
+    def path(self):
+        x, y = [], []
+        for axis in self:
+            x.append(self[axis].pixel[:,0])
+            y.append(self[axis].pixel[:,1])
+        return Path(np.vstack([np.hstack(x), np.hstack(y)]).transpose())
 
     def draw(self, renderer):
         for axis in self:

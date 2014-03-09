@@ -27,8 +27,8 @@ def get_lon_lat_path(ax, transform, lon_lat):
     """
 
     # Get pixel limits
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
+    # xlim = ax.get_xlim()
+    # ylim = ax.get_ylim()
 
     # Transform line to pixel coordinates
     pixel = transform.transform(lon_lat)
@@ -52,9 +52,11 @@ def get_lon_lat_path(ax, transform, lon_lat):
     mask = mask | np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
 
     # Mask values outside the viewport
-    outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
-               (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
-    mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
+    # This has now been disabled because it assumes specifically rectangular
+    # axes, and also doesn't work if the coordinate direction is flipped.
+    # outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
+    #            (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
+    # mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
 
     # We can now start to set up the codes for the Path.
     codes = np.zeros(lon_lat.shape[0], dtype=np.uint8)
@@ -110,8 +112,8 @@ def get_gridline_path(ax, transform, world):
     """
 
     # Get pixel limits
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
+    # xlim = ax.get_xlim()
+    # ylim = ax.get_ylim()
 
     # Transform line to pixel coordinates
     pixel = transform.transform(world)
@@ -120,9 +122,11 @@ def get_gridline_path(ax, transform, world):
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
 
     # Mask values outside the viewport
-    outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
-               (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
-    mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
+    # This has now been disabled because it assumes specifically rectangular
+    # axes, and also doesn't work if the coordinate direction is flipped.
+    # outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
+    #            (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
+    # mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
 
     # We can now start to set up the codes for the Path.
     codes = np.zeros(world.shape[0], dtype=np.uint8)
