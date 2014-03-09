@@ -137,7 +137,7 @@ class CoordinateHelper(object):
             self._formatter_locator.number = number
 
         if size is not None:
-            self.ticks.set_size(size)
+            self.ticks.set_ticksize(size)
 
         if color is not None:
             self.ticks.set_color(color)
@@ -273,31 +273,38 @@ class CoordinateHelper(object):
 
         for axis in frame:
 
-            x_pix, y_pix = frame[axis]
+            # Get the frame in data coordinates
+            x_data, y_data = frame[axis]
+
+            # Convert to display pixel coordinates
+            xy_pix = self.parent_axes.transData.transform(np.vstack([x_data, y_data]).transpose())
+            x_pix = xy_pix[:,0]
+            y_pix = xy_pix[:,1]
 
             # Find angle normal to border and inwards
+            # TODO: this makes assumptions about the direction of rotation of the axes.
             dx = x_pix[1:] - x_pix[:-1]
             dy = y_pix[1:] - y_pix[:-1]
             normal_angle = np.degrees(np.arctan2(dx, -dy))
 
             # Transform to world coordinates
-            pixel = np.vstack([x_pix, y_pix]).transpose()
-            world = self.transform.inverted().transform(pixel)
+            data = np.vstack([x_data, y_data]).transpose()
+            world = self.transform.inverted().transform(data)
 
             # We need to catch cases where the pixel coordinates don't
             # round-trip as this indicates coordinates that are outside the
             # valid projection region
-            pixel_check = self.transform.transform(world)
-            invalid = ((np.abs(pixel_check[:,0] - pixel[:,0]) > 1.) |
-                       (np.abs(pixel_check[:,1] - pixel[:,1]) > 1.))
+            data_check = self.transform.transform(world)
+            invalid = ((np.abs(data_check[:,0] - data[:,0]) > 1.) |
+                       (np.abs(data_check[:,1] - data[:,1]) > 1.))
             world[invalid,:] = np.nan
 
             # Determine tick rotation
             # TODO: optimize!
             world_off = world.copy()
             world_off[:, (self.coord_index + 1) % 2] += 1.e-5
-            pixel_off = self.transform.transform(world_off)
-            dpix_off = pixel_off - pixel
+            data_off = self.transform.transform(world_off)
+            dpix_off = data_off - data
             tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
             normal_angle_full = np.hstack([normal_angle, normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
@@ -335,6 +342,8 @@ class CoordinateHelper(object):
                     imax = imin + 1
 
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
+                    x_data_i = x_data[imin] + frac * (x_data[imax] - x_data[imin])
+                    y_data_i = y_data[imin] + frac * (y_data[imax] - y_data[imin])
                     x_pix_i = x_pix[imin] + frac * (x_pix[imax] - x_pix[imin])
                     y_pix_i = y_pix[imin] + frac * (y_pix[imax] - y_pix[imin])
                     angle_i = tick_angle[imin] + frac * (tick_angle[imax] - tick_angle[imin])
@@ -345,13 +354,13 @@ class CoordinateHelper(object):
                         world = t
 
                     self.ticks.add(axis=axis,
-                                   pixel=(x_pix_i, y_pix_i),
+                                   pixel=(x_data_i, y_data_i),
                                    world=world,
                                    angle=angle_i,
                                    axis_displacement=imin + frac)
 
                     self.ticklabels.add(axis=axis,
-                                        pixel=tuple(self.parent_axes.transData.transform((x_pix_i, y_pix_i)).tolist()),
+                                        pixel=(x_pix_i, y_pix_i),
                                         world=world,
                                         angle=normal_angle[imin],
                                         text=self._formatter_locator.formatter([world], spacing=spacing)[0],
