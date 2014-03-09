@@ -8,7 +8,6 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
 from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
-from .frame import RectangularFrame
 
 __all__ = ['WCSAxes']
 

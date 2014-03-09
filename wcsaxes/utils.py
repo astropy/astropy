@@ -122,12 +122,3 @@ def coord_type_from_ctype(ctype):
         return 'latitude'
     else:
         return 'scalar'
-
-
-def get_pixels_to_data_scales(axes):
-    extent = axes.get_window_extent()
-    xmin, xmax = axes.get_xlim()
-    ymin, ymax = axes.get_ylim()
-    xscale = abs((xmax - xmin) / extent.width)
-    yscale = abs((ymax - ymin) / extent.height)
-    return xscale, yscale

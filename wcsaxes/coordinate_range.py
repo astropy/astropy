@@ -30,12 +30,6 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
         ``'scalar'`` value.
     '''
 
-    # Initialize the ranges
-    wmin = np.repeat(np.inf, 2)
-    wmax = np.repeat(-np.inf, 2)
-    vmin = np.repeat(np.inf, 4).reshape(2, 2)
-    vmax = np.repeat(-np.inf, 4).reshape(2, 2)
-
     # Sample coordinates on a 50 x 50 grid.
     NX = NY = 50
     x = np.linspace(extent[0], extent[1], NX + 1)
