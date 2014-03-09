@@ -9,7 +9,7 @@ env:
     global:
         - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --use-wheel --use-mirrors"
     matrix:
-        - MPL_VERSION=1.3.0 NUMPY_VERSION=1.8.0
+        - MPL_VERSION=1.3.0 NUMPY_VERSION=1.7.1
 
 before_install:
 
@@ -34,6 +34,7 @@ install:
     - $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"
     - $PIP_WHEEL_COMMAND "matplotlib==$MPL_VERSION"
     - $PIP_WHEEL_COMMAND "pytest==2.5.1"
+    - $PIP_WHEEL_COMMAND "astropy==0.3"
 
 script:
     - py.test wcsaxes
