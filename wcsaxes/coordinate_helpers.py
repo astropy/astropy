@@ -26,13 +26,14 @@ __all__ = ['CoordinateHelper']
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar'):
+                 coord_type='scalar', frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
         self.transform = transform
         self.coord_index = coord_index
         self.coord_type = coord_type
+        self.frame = frame
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
@@ -52,7 +53,7 @@ class CoordinateHelper(object):
                                      figure=parent_axes.get_figure())
 
         # Initialize axis labels
-        self.axislabels = AxisLabels(parent_axes.frame,
+        self.axislabels = AxisLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
@@ -60,7 +61,8 @@ class CoordinateHelper(object):
         self.grid_lines = []
         self.grid_lines_kwargs = {'visible':False,
                                   'facecolor':'none',
-                                  'transform':self.parent_axes.transData}
+                                  'transform':self.parent_axes.transData,
+                                  'clip_on': True}
 
     def grid(self, draw_grid=True, **kwargs):
         """
@@ -264,7 +266,7 @@ class CoordinateHelper(object):
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
-        frame = self.parent_axes.frame.sample(100)
+        frame = self.frame.sample(1000)
 
         self.ticks.clear()
         self.ticklabels.clear()

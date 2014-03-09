@@ -1,6 +1,7 @@
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSWorld2PixelTransform
 from .utils import coord_type_from_ctype
+from .frame import RectangularFrame
 
 from . import six
 
@@ -19,6 +20,8 @@ class CoordinatesMap(object):
         else:
             self._transform = transform
 
+        self.frame = RectangularFrame(axes, self._transform)
+
         # Set up coordinates
         self._coords = {}
         for coord_index in [0, 1]:
@@ -26,7 +29,8 @@ class CoordinatesMap(object):
             self._coords[coord_index] = CoordinateHelper(parent_axes=axes,
                                                          transform=self._transform,
                                                          coord_index=coord_index,
-                                                         coord_type=coord_type)
+                                                         coord_type=coord_type,
+                                                         frame=self.frame)
 
 
         # Set up aliases for coordinates

@@ -37,11 +37,7 @@ class WCSAxes(Axes):
 
         # Here determine all the coordinate axes that should be shown.
 
-        self.frame = RectangularFrame(self, None)
-
         self.coords = CoordinatesMap(self, self.wcs)
-
-        self.frame.transform = self.coords._transform
 
         self._all_coords = [self.coords]
 
@@ -63,8 +59,6 @@ class WCSAxes(Axes):
 
         super(WCSAxes, self).draw(renderer, inframe)
 
-        self.frame.update()
-
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
 
@@ -72,6 +66,7 @@ class WCSAxes(Axes):
 
         for coords in self._all_coords:
 
+            coords.frame.update()
             coords[0]._draw(renderer, bboxes=self._bboxes)
             coords[1]._draw(renderer, bboxes=self._bboxes)
 
@@ -80,7 +75,7 @@ class WCSAxes(Axes):
             coords[0]._draw_axislabels(renderer, bboxes=self._bboxes)
             coords[1]._draw_axislabels(renderer, bboxes=self._bboxes)
 
-        self.frame.draw(renderer)
+        self.coords.frame.draw(renderer)
 
     def get_coords_overlay(self, frame, equinox=None, obstime=None):
 
