@@ -33,7 +33,7 @@ before_install:
 install:
     - $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"
     - $PIP_WHEEL_COMMAND "matplotlib==$MPL_VERSION"
-    - $PIP_WHEEL_COMMAND "pytest==2.5.1"; fi
+    - $PIP_WHEEL_COMMAND "pytest==2.5.1"
 
 script:
     - py.test wcsaxes
