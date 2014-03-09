@@ -9,7 +9,7 @@ env:
     global:
         - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --use-wheel --use-mirrors"
     matrix:
-        - MPL_VERSION=1.3.0
+        - MPL_VERSION=1.3.0 NUMPY_VERSION=1.8.0
 
 before_install:
 
