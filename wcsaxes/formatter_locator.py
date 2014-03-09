@@ -27,13 +27,19 @@ class BaseFormatterLocator(object):
 
     def __init__(self, values=None, number=None, spacing=None, format=None):
 
-        self._values = values
-        self._number = number
-        self._spacing = spacing
-        self.format = format
+        if (values, number, spacing).count(None) < 2:
+            raise ValueError("At most one of values/number/spacing can be specifed")
 
-        if values is None and number is None and spacing is None:
-            self._number = 5
+        if values is not None:
+            self.values = values
+        elif number is not None:
+            self.number = number
+        elif spacing is not None:
+            self.spacing = spacing
+        else:
+            self.number = 5
+
+        self.format = format
 
     @property
     def values(self):
@@ -61,8 +67,6 @@ class BaseFormatterLocator(object):
 
     @spacing.setter
     def spacing(self, spacing):
-        if not isinstance(spacing, u.Quantity):
-            raise TypeError("spacing should be a quantity")
         self._number = None
         self._spacing = spacing
         self._values = None
@@ -79,6 +83,19 @@ class AngleFormatterLocator(BaseFormatterLocator):
                                                     number=number,
                                                     spacing=spacing,
                                                     format=format)
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @spacing.setter
+    def spacing(self, spacing):
+        if spacing is not None and (not isinstance(spacing, u.Quantity)
+                                    or spacing.unit.physical_type != 'angle'):
+            raise TypeError("spacing should be an astropy.units.Quantity instance with units of angle")
+        self._number = None
+        self._spacing = spacing
+        self._values = None
 
     @property
     def format(self):
@@ -105,7 +122,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             self._decimal = False
             self._unit = u.hourangle
             if '.' in value:
-                self._precision = len(value) - value.index('.')
+                self._precision = len(value) - value.index('.') - 1
                 self._fields = 3
             else:
                 self._precision = 0
@@ -115,7 +132,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             self._unit = u.degree
             self._fields = 1
             if '.' in value:
-                self._precision = len(value) - value.index('.')
+                self._precision = len(value) - value.index('.') - 1
             else:
                 self._precision = 0
         else:
@@ -188,10 +205,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         spacing_deg = select_step_hour(dv).to(u.degree).value
 
 
-            # We now find the interval values as multiples of the spacing and generate the tick
-            # positions from this
-            imin = np.floor(value_min / spacing_deg)
-            imax = np.ceil(value_max / spacing_deg)
+            # We now find the interval values as multiples of the spacing and
+            # generate the tick positions from this.
+            imin = np.ceil(value_min / spacing_deg)
+            imax = np.floor(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
             return values, spacing_deg * u.degree
 
