@@ -60,7 +60,7 @@ class HeaderFormatter(object):
         try:
             self.hdulist = fits.open(filename)
         except IOError as e:
-            raise FormattingException(e.message)
+            raise FormattingException(str(e))
         self.compressed = compressed
 
     def parse(self, extension=None):
@@ -87,6 +87,7 @@ class HeaderFormatter(object):
                 # The user can specify "EXTNAME" or "EXTNAME,EXTVER" as well
                 parts = extension.split(',')
                 if len(parts) > 1:
+                    # We use str() below to avoid issue #2184
                     extname = str(','.join(parts[0:-1]))
                     extver = int(parts[-1])
                     hdukeys = [(extname, extver)]
@@ -110,23 +111,23 @@ class HeaderFormatter(object):
                                       format(self.hdulist.filename(), hdukey))
         except KeyError as e:
             raise FormattingException('{0}: {1}'.format(
-                                      self.hdulist.filename(), e.message))
+                                      self.hdulist.filename(), str(e)))
 
     def _format_hdulist(self, hdukeys):
         """Returns the formatted version of the header; the important bit."""
-        text = ''
+        text = []
         for i, key in enumerate(hdukeys):
             if i > 0:
                 prefix = '\n\n'  # Separate HDUs by a blank line
             else:
                 prefix = ''
-            text += '{prefix}# HDU {key} in {filename}:\n{header}'.format(
-                    prefix=prefix,
-                    key=key,
-                    filename=self.hdulist.filename(),
-                    header=self._get_header(key).tostring(sep='\n',
-                                                          padding=False))
-        return text
+            text.append('{prefix}# HDU {key} in {filename}:\n{header}'.format(
+                        prefix=prefix,
+                        key=key,
+                        filename=self.hdulist.filename(),
+                        header=self._get_header(key).tostring(sep='\n',
+                                                              padding=False)))
+        return ''.join(text)
 
 
 def main(args=None):
