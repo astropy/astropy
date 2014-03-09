@@ -61,8 +61,7 @@ class CoordinateHelper(object):
         self.grid_lines = []
         self.grid_lines_kwargs = {'visible':False,
                                   'facecolor':'none',
-                                  'transform':self.parent_axes.transData,
-                                  'clip_on': True}
+                                  'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, **kwargs):
         """
@@ -237,7 +236,9 @@ class CoordinateHelper(object):
 
         if self.grid_lines_kwargs['visible']:
             for path in self.grid_lines:
-                PathPatch(path, **self.grid_lines_kwargs).draw(renderer)
+                p = PathPatch(path, **self.grid_lines_kwargs)
+                p.set_clip_path(self.frame.path, Affine2D())
+                p.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
