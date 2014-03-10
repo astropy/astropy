@@ -218,8 +218,14 @@ class ColumnGroups(BaseGroups):
     def aggregate(self, func):
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
+
+        if func is np.sum:
+            func = np.add
         try:
-            vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
+            if hasattr(func, 'reduceat') and not hasattr(par_col, 'mask'):
+                vals = func.reduceat(par_col, i0s)
+            else:
+                vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
         except Exception:
             raise TypeError("Cannot aggregate column '{0}'"
                             .format(par_col.name))
