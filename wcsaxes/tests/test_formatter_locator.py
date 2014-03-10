@@ -83,24 +83,20 @@ class TestAngleFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [35., 36.])
 
-    expected_formatted = {}
-    expected_formatted['dd'] = u'15d'
-    expected_formatted['dd:mm'] = u'15d24m'
-    expected_formatted['dd:mm:ss'] = u'15d23m32s'
-    expected_formatted['dd:mm:ss.s'] = u'15d23m32.0s'
-    expected_formatted['dd:mm:ss.ssss'] = u'15d23m32.0316s'
-    expected_formatted['hh'] = u'1h'
-    expected_formatted['hh:mm'] = u'1h02m'
-    expected_formatted['hh:mm:ss'] = u'1h01m34s'
-    expected_formatted['hh:mm:ss.s'] = u'1h01m34.1s'
-    expected_formatted['hh:mm:ss.ssss'] = u'1h01m34.1354s'
-    expected_formatted['d'] = u'15'
-    expected_formatted['d.d'] = u'15.4'
-    expected_formatted['d.dd'] = u'15.39'
-    expected_formatted['d.ddd'] = u'15.392'
-
-    @pytest.mark.parametrize(('format', 'string'),
-                             [(x, expected_formatted[x]) for x in expected_formatted])
+    @pytest.mark.parametrize(('format', 'string'), [('dd', '15d'),
+                                                    ('dd:mm', '15d24m'),
+                                                    ('dd:mm:ss', '15d23m32s'),
+                                                    ('dd:mm:ss.s', '15d23m32.0s'),
+                                                    ('dd:mm:ss.ssss', '15d23m32.0316s'),
+                                                    ('hh', '1h'),
+                                                    ('hh:mm', '1h02m'),
+                                                    ('hh:mm:ss', '1h01m34s'),
+                                                    ('hh:mm:ss.s', '1h01m34.1s'),
+                                                    ('hh:mm:ss.ssss', '1h01m34.1354s'),
+                                                    ('d', '15'),
+                                                    ('d.d', '15.4'),
+                                                    ('d.dd', '15.39'),
+                                                    ('d.ddd', '15.392')])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.formatter([15.392231], None)[0] == string
@@ -112,18 +108,14 @@ class TestAngleFormatterLocator(object):
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
 
-    expected_spacing = {}
-    expected_spacing['dd'] = 1. * u.deg
-    expected_spacing['dd:mm'] = 1. * u.arcmin
-    expected_spacing['dd:mm:ss'] = 1. * u.arcsec
-    expected_spacing['dd:mm:ss.ss'] = 0.01 * u.arcsec
-    expected_spacing['hh'] = 15. * u.deg
-    expected_spacing['hh:mm'] = 15. * u.arcmin
-    expected_spacing['hh:mm:ss'] = 15. * u.arcsec
-    expected_spacing['hh:mm:ss.ss'] = 0.15 * u.arcsec
-
-    @pytest.mark.parametrize(('format', 'base_spacing'),
-                             [(x, expected_spacing[x]) for x in expected_spacing])
+    @pytest.mark.parametrize(('format', 'base_spacing'), [('dd', 1. * u.deg),
+                                                          ('dd:mm', 1. * u.arcmin),
+                                                          ('dd:mm:ss', 1. * u.arcsec),
+                                                          ('dd:mm:ss.ss', 0.01 * u.arcsec),
+                                                          ('hh', 15. * u.deg),
+                                                          ('hh:mm', 15. * u.arcmin),
+                                                          ('hh:mm:ss', 15. * u.arcsec),
+                                                          ('hh:mm:ss.ss', 0.15 * u.arcsec)])
     def test_base_spacing(self, format, base_spacing):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
@@ -201,14 +193,10 @@ class TestScalarFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [35., 36.])
 
-    expected_formatted = {}
-    expected_formatted['x'] = u'15'
-    expected_formatted['x.x'] = u'15.4'
-    expected_formatted['x.xx'] = u'15.39'
-    expected_formatted['x.xxx'] = u'15.392'
-
-    @pytest.mark.parametrize(('format', 'string'),
-                             [(x, expected_formatted[x]) for x in expected_formatted])
+    @pytest.mark.parametrize(('format', 'string'), [('x', '15'),
+                                                    ('x.x', '15.4'),
+                                                    ('x.xx', '15.39'),
+                                                    ('x.xxx', '15.392')])
     def test_format(self, format, string):
         fl = ScalarFormatterLocator(number=5, format=format)
         assert fl.formatter([15.392231], None)[0] == string
@@ -220,13 +208,9 @@ class TestScalarFormatterLocator(object):
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
 
-    expected_spacing = {}
-    expected_spacing['x'] = 1.
-    expected_spacing['x.x'] = 0.1
-    expected_spacing['x.xxx'] = 0.001
-
-    @pytest.mark.parametrize(('format', 'base_spacing'),
-                             [(x, expected_spacing[x]) for x in expected_spacing])
+    @pytest.mark.parametrize(('format', 'base_spacing'), [('x', 1.),
+                                                          ('x.x', 0.1),
+                                                          ('x.xxx', 0.001)])
     def test_base_spacing(self, format, base_spacing):
         fl = ScalarFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
