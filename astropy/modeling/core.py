@@ -293,12 +293,6 @@ class Model(object):
                 # defaults of None should attempt to use the default provided
                 # by their Parameter descriptor
                 params[name] = getattr(self, name).default
-            # this if statement covers the case when one of the parameters
-            # is in self.param_names as a user convenience (i.e. optional=True)
-            # but internally the model works with a different parameter
-            # example is rotations.MatrixRotation2D.angle 
-            if params[name] is None:
-                continue
             value, shape = _tofloat(params[name])
             
             if shape == ():
@@ -829,7 +823,7 @@ class SerialCompositeModel(_CompositeModel):
         >>> import numpy as np
         >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
         >>> y, x = np.mgrid[:5, :5]
-        >>> rotation = models.MatrixRotation2D(angle=23.5)
+        >>> rotation = models.RotateByAngle2D(angle=23.5)
         >>> offset_x = models.Shift(-4.23)
         >>> offset_y = models.Shift(2)
         >>> labeled_input = LabeledInput([x, y], ["x", "y"])

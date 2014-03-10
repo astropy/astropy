@@ -100,11 +100,7 @@ class Parameter(object):
     model : object
         an instance of a Model class; this should only be used internally for
         creating bound Parameters
-    optional : bool
-        indicates that the parameter is to be considered alternative when describing a model
-        it is not used internally by the model
-        example is a rotation model with a "rotation_matrix" parameter 
-        (used internally) and "angle" parameter for the user API
+
     """
 
     # See the _nextid classmethod
@@ -112,7 +108,7 @@ class Parameter(object):
 
     def __init__(self, name, description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None, optional=False):
+                 model=None):
         super(Parameter, self).__init__()
         self._name = name
         self.__doc__ = description.strip()
@@ -126,7 +122,6 @@ class Parameter(object):
 
         self._order = None
         self._model = model
-        self._optional = optional
 
         # The getter/setter functions take one or two arguments: The first
         # argument is always the value itself (either the value returned or the
@@ -142,7 +137,7 @@ class Parameter(object):
         else:
             self._setter = None
 
-        if model is not None and self._optional == False:
+        if model is not None:
             try:
                 _, _shape = self._validate_value(model, self.value)
             except AttributeError:

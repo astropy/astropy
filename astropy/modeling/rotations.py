@@ -27,7 +27,7 @@ from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
-           'MatrixRotation2D']
+           'RotateByAngle2D']
 
 
 class EulerAngleRotation(Model):
@@ -134,17 +134,12 @@ class RotateCelestial2Native(EulerAngleRotation):
         return nphi, ntheta
 
 
-class MatrixRotation2D(Model):
+class RotateByAngle2D(Model):
     """
-    Perform a clockwise 2D matrix rotation given either an angle or a
-    rotation matrix.
-
-    If both matrix and angle are given, angle will be ignored.
+    Perform clockwise rotation through an angle.
 
     Parameters
     ----------
-    matrix : ndarray
-        rotation matrix
     angle : float
         angle of rotation in deg
     """
@@ -159,37 +154,15 @@ class MatrixRotation2D(Model):
 
         return np.deg2rad(angle)
 
-    def _validate_matrix(matrix):
-        """Validates that the input matrix is a 2D array."""
-
-        matrix = np.array(matrix)
-        if matrix.ndim != 2:
-            raise ValueError("Expected rotation matrix to be a 2D array")
-        return matrix
-
-    # By default n_inputs = n_outputs = 2 but this may differ depending
-    # on the size of any supplied rotation matrix
     n_inputs = 2
     n_outputs = 2
 
-    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle, optional=True)
-    matrix = Parameter('matrix', setter=_validate_matrix)
+    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle)
 
-    def __init__(self, matrix=None, angle=None):
-        if matrix is None and angle is None:
-            raise InputParameterError("Expected at least one argument - "
-                                      "a rotation matrix or an angle")
-        if matrix is not None:
-            # TODO: Why +0.0?
-            matrix = np.asarray(matrix) + 0.0
-            self.n_inputs = self.n_outputs = matrix.shape[0]
-            super(MatrixRotation2D, self).__init__(matrix=matrix, angle=angle)
-            self.matrix = np.asarray(matrix) + 0.0
-        else:
-            # The computed rotation matrix is 2x2, naturally
-            super(MatrixRotation2D, self).__init__(matrix=matrix, angle=angle)
-            self.angle = angle
-            self.matrix = self._compute_matrix(self._angle)
+    def __init__(self, angle, param_dim=1):
+        super(RotateByAngle2D, self).__init__(angle=angle, param_dim=param_dim)
+        self.angle = angle
+        self._matrix = self._compute_matrix(self._angle)
 
     def _compute_matrix(self, angle):
         return np.array([[math.cos(angle), math.sin(angle)],
@@ -197,8 +170,7 @@ class MatrixRotation2D(Model):
                         dtype=np.float64)
 
     def inverse(self):
-        nrot = np.linalg.inv(self.matrix.value)
-        return MatrixRotation2D(matrix=nrot)
+        return RotateByAngle2D(angle=-np.rad2deg(self._angle))
 
     def __call__(self, x, y):
         """
@@ -214,7 +186,7 @@ class MatrixRotation2D(Model):
         shape = x.shape
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
         assert inarr.shape[0] == 2 and inarr.ndim == 2, \
-            "Incompatible shape in MatrixRotation"
+            "Incompatible shape of input in RotateByAngle2D, expected (2, n)"
         result = np.dot(self._matrix, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:
