@@ -43,7 +43,7 @@ New Features
 
 - ``astropy.io.fits``
 
-  - Included a new command-line script called ``fitshead`` to display the
+  - Included a new command-line script called ``fitsheader`` to display the
     header(s) of a FITS file from the command line. [#2092]
 
 - ``astropy.io.misc``
