@@ -171,7 +171,6 @@ as a whole, see :doc:`development/vision`.
    :maxdepth: 1
 
    development/workflow/development_workflow
-   development/workflow/maintainer_workflow
    development/codeguide
    development/docguide
    development/testguide
@@ -179,6 +178,7 @@ as a whole, see :doc:`development/vision`.
    development/building
    development/ccython
    development/releasing
+   development/workflow/maintainer_workflow
    changelog
 
 ******************
