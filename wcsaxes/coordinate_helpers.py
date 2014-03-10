@@ -318,7 +318,12 @@ class CoordinateHelper(object):
                     y_data_i = spine.data[imin,1] + frac * (spine.data[imax,1] - spine.data[imax,1])
                     x_pix_i = spine.pixel[imin,0] + frac * (spine.pixel[imax,0] - spine.pixel[imax,0])
                     y_pix_i = spine.pixel[imin,1] + frac * (spine.pixel[imax,1] - spine.pixel[imax,1])
-                    angle_i = tick_angle[imin] + frac * (tick_angle[imax] - tick_angle[imin])
+                    delta_angle = tick_angle[imax] - tick_angle[imin]
+                    if delta_angle > 180.:
+                        delta_angle -= 360.
+                    elif delta_angle < -180.:
+                        delta_angle += 360.
+                    angle_i = tick_angle[imin] + frac * delta_angle
 
                     if self.coord_type == 'longitude':
                         world = t % 360.
