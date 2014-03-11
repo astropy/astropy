@@ -276,6 +276,11 @@ Bug Fixes
   - By default, floating point values are now written out using
     ``repr`` rather than ``str`` to preserve precision [#2137]
 
+- ``astropy.stats``
+
+  - Ensure the ``axis`` keyword in :func:`astropy.stats.funcs` can now
+    be used for all axes. [#2173]
+
 
 0.3.1 (2014-03-04)
 ------------------
