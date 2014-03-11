@@ -229,7 +229,6 @@ class ConfigItem(object):
             else:
                 module = module.__name__
 
-        # self.name = name
         self.module = module
         self.description = description
         self.__doc__ = description
