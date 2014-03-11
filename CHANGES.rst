@@ -307,6 +307,10 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Ensure the ``axis`` keyword in
+    :func:`astropy.stats.funcs.median_absolute_deviation` can now be
+    used for all axes. [#2173]
+
 - ``astropy.table``
 
 - ``astropy.time``
