@@ -19,14 +19,15 @@ import warnings
 
 import numpy as np
 
-from ...extern.six import PY3, string_types, integer_types, text_type, next
+from ...extern import six
+from ...extern.six import string_types, integer_types, text_type, next
 from ...extern.six.moves import zip
 from ...utils.exceptions import AstropyUserWarning
 
 
-if PY3:
+if six.PY3:
     cmp = lambda a, b: (a > b) - (a < b)
-else:
+elif six.PY2:
     cmp = cmp
 
 
@@ -163,7 +164,7 @@ def isreadable(f):
     sense approximation of io.IOBase.readable.
     """
 
-    if PY3 and hasattr(f, 'readable'):
+    if six.PY3 and hasattr(f, 'readable'):
         return f.readable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -187,7 +188,7 @@ def iswritable(f):
     sense approximation of io.IOBase.writable.
     """
 
-    if PY3 and hasattr(f, 'writable'):
+    if six.PY3 and hasattr(f, 'writable'):
         return f.writable()
 
     if hasattr(f, 'closed') and f.closed:
@@ -205,7 +206,7 @@ def iswritable(f):
     return True
 
 
-if PY3:
+if six.PY3:
     def isfile(f):
         """
         Returns True if the given object represents an OS-level file (that is,
@@ -222,7 +223,7 @@ if PY3:
         elif hasattr(f, 'raw'):
             return isfile(f.raw)
         return False
-else:
+elif six.PY2:
     def isfile(f):
         """
         Returns True if the given object represents an OS-level file (that is,
@@ -235,7 +236,7 @@ else:
         return isinstance(f, file)
 
 
-if PY3:
+if six.PY3:
     def fileobj_open(filename, mode):
         """
         A wrapper around the `open()` builtin.
@@ -249,7 +250,7 @@ if PY3:
         """
 
         return open(filename, mode, buffering=0)
-else:
+elif six.PY2:
     def fileobj_open(filename, mode):
         """
         A wrapper around the `open()` builtin.
@@ -515,7 +516,7 @@ def fileobj_is_binary(f):
         return True
 
 
-if PY3:
+if six.PY3:
     maketrans = str.maketrans
 
     def translate(s, table, deletechars):
@@ -524,7 +525,7 @@ if PY3:
             for c in deletechars:
                 table[ord(c)] = None
         return s.translate(table)
-else:
+elif six.PY2:
     maketrans = string.maketrans
 
     def translate(s, table, deletechars):

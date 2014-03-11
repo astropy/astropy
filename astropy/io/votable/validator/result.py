@@ -107,7 +107,7 @@ class Result:
             if six.PY3:
                 r = urllib.request.urlopen(
                     self.url.decode('ascii'), timeout=self.timeout)
-            else:
+            elif six.PY2:
                 r = urllib.request.urlopen(self.url, timeout=self.timeout)
         except urllib.error.URLError as e:
             if hasattr(e, 'reason'):

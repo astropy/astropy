@@ -2848,7 +2848,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 while new_name in unique_names:
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
-                if sys.version_info[0] < 3:
+                if six.PY2:
                     new_name = new_name.encode(
                         sys.getdefaultencoding(), 'replace')
                 unique_names.append(new_name)

@@ -48,7 +48,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
 
     """
 
-    if usecPickle and sys.version_info[0] < 3:  # pragma: py2
+    if usecPickle and six.PY2:
         import cPickle as pickle
     else:
         import pickle
@@ -105,7 +105,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
     """
 
-    if usecPickle and sys.version_info[0] < 3:  # pragma: py2
+    if usecPickle and six.PY2:
         import cPickle as pickle
     else:
         import pickle

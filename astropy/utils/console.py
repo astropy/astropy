@@ -69,9 +69,6 @@ USE_COLOR = ConfigurationItem(
 from ..import UNICODE_OUTPUT
 
 
-IS_PY3 = sys.version_info[0] == 3
-
-
 _DEFAULT_ENCODING = 'utf-8'
 
 
@@ -255,7 +252,7 @@ def color_print(*args, **kwargs):
             # Some file objects support writing unicode sensibly on some Python
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
-            if not IS_PY3 and isinstance(msg, bytes):
+            if not six.PY3 and isinstance(msg, bytes):
                 msg = _decode_preferred_encoding(msg)
 
             write = _write_with_fallback(msg, write, file)
@@ -264,7 +261,7 @@ def color_print(*args, **kwargs):
     else:
         for i in range(0, len(args), 2):
             msg = args[i]
-            if not IS_PY3 and isinstance(msg, bytes):
+            if not six.PY3 and isinstance(msg, bytes):
                 # Support decoding bytes to unicode on Python 2; use the
                 # preferred encoding for the locale (which is *sometimes*
                 # sensible)

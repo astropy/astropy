@@ -5,6 +5,8 @@ data/cache files used by Astropy should be placed.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ..extern import six
+
 import os
 import sys
 
@@ -27,9 +29,9 @@ def _find_home():
 
     # this is used below to make fix up encoding issues that sometimes crop up
     # in py2.x but not in py3.x
-    if sys.version_info[0] < 3:  # pragma: py3
+    if six.PY2:
         decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
-    else:  # pragma: py2
+    elif six.PY3:
         decodepath = lambda pth: pth
 
     # First find the home directory - this is inspired by the scheme ipython

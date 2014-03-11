@@ -10,6 +10,7 @@ from io import StringIO, BytesIO
 
 import numpy as np
 
+from ....extern import six
 from ....extern.six import u, iterkeys, itervalues, iteritems
 from ....extern.six.moves import zip
 from ....io import fits
@@ -21,9 +22,6 @@ from .util import ignore_warnings
 from ..card import _pad
 from ..header import _pad_length, BLOCK_SIZE
 from ..util import encode_ascii
-
-
-PY3 = sys.version_info[0] >= 3
 
 
 class TestOldApiHeaderFunctions(FitsTestCase):
@@ -1880,10 +1878,10 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header()
-        if PY3:
+        if six.PY3:
             pytest.raises(ValueError, h.set, 'TEST',
                           bytes('Hello', encoding='ascii'))
-        else:
+        elif six.PY2:
             pytest.raises(ValueError, h.set, 'TEST', str('ñ'))
 
     def test_header_strip_whitespace(self):

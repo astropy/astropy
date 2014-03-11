@@ -651,7 +651,7 @@ class Table(object):
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
-            for units only if one or more columns has a defined value 
+            for units only if one or more columns has a defined value
             for the unit.
         """
 
@@ -765,7 +765,7 @@ class Table(object):
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
-            for units only if one or more columns has a defined value 
+            for units only if one or more columns has a defined value
             for the unit.
 
         html : bool
@@ -815,7 +815,7 @@ class Table(object):
 
         show_unit : bool
             Include a header row for unit.  Default is to show a row
-            for units only if one or more columns has a defined value 
+            for units only if one or more columns has a defined value
             for the unit.
         """
         _more_tabcol(self, max_lines, max_width, show_name,
@@ -908,7 +908,7 @@ class Table(object):
         else:
             raise StopIteration
 
-    if sys.version_info[0] < 3:  # pragma: py2
+    if six.PY2:
         next = __next__
 
     def field(self, item):
@@ -1771,19 +1771,19 @@ class Table(object):
     def __lt__(self, other):
         if six.PY3:
             return super(Table, self).__lt__(other)
-        else:
+        elif six.PY2:
             raise TypeError("unorderable types: Table() < {0}".format(str(type(other))))
 
     def __gt__(self, other):
         if six.PY3:
             return super(Table, self).__gt__(other)
-        else:
+        elif six.PY2:
             raise TypeError("unorderable types: Table() > {0}".format(str(type(other))))
 
     def __le__(self, other):
         if six.PY3:
             return super(Table, self).__le__(other)
-        else:
+        elif six.PY2:
             raise TypeError("unorderable types: Table() <= {0}".format(str(type(other))))
 
     def __ge__(self, other):

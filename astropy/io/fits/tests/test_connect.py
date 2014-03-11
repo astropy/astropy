@@ -12,7 +12,6 @@ from .... import log
 from ....tests.helper import pytest, catch_warnings
 from astropy.units.format.fits import UnitScaleError
 
-PY3 = sys.version_info[0] >= 3
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -233,4 +232,3 @@ def test_scale_error():
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits',format='fits', overwrite=True)
     assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
-

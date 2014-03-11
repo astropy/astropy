@@ -42,14 +42,14 @@ if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
 else:
     from ..extern import pytest as extern_pytest
 
-    if sys.version_info >= (3, 0):
+    if six.PY3:
         exec("def do_exec_def(co, loc): exec(co, loc)\n")
         extern_pytest.do_exec = do_exec_def
 
         unpacked_sources = extern_pytest.sources.encode("ascii")
         unpacked_sources = pickle.loads(
             zlib.decompress(base64.decodebytes(unpacked_sources)), encoding='utf-8')
-    else:
+    elif six.PY2:
         exec("def do_exec_def(co, loc): exec co in loc\n")
         extern_pytest.do_exec = do_exec_def
 
@@ -63,7 +63,7 @@ else:
     # argparse before importing py.test, since it isn't in the
     # standard library, and py.test's workaround doesn't appear to
     # work with the "absolute imports" of Python 3.x.
-    if sys.version_info[0] == 3 and sys.version_info[1] <= 1:
+    if six.PY3 and sys.version_info[1] <= 1:
         argparse = importer.load_module(str('argparse'))
     pytest = importer.load_module(str('pytest'))
 
@@ -401,9 +401,9 @@ class astropy_test(Command, object):
                 # as being specifically for Python 2 or Python 3
                 with open(coveragerc, 'r') as fd:
                     coveragerc_content = fd.read()
-                if sys.version_info[0] >= 3:
+                if six.PY3:
                     ignore_python_version = '2'
-                else:
+                elif six.PY2:
                     ignore_python_version = '3'
                 coveragerc_content = coveragerc_content.replace(
                     "{ignore_python_version}", ignore_python_version)
@@ -422,9 +422,9 @@ class astropy_test(Command, object):
                     '_save_coverage(cov, result, "{0}", "{1}");'.format(
                         os.path.abspath('.'), testing_path))
 
-            if sys.version_info[0] >= 3:
+            if six.PY3:
                 set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
-            else:
+            elif six.PY2:
                 set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
 
             cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('

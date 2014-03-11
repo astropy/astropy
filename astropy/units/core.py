@@ -480,13 +480,13 @@ class UnitBase(object):
     def __bytes__(self):
         """Return string representation for unit"""
         return unit_format.Generic().to_string(self).encode('ascii')
-    if sys.version_info[0] < 3:
+    if six.PY2:
         __str__ = __bytes__
 
     def __unicode__(self):
         """Return string representation for unit"""
         return unit_format.Generic().to_string(self)
-    if sys.version_info[0] >= 3:
+    if six.PY3:
         __str__ = __unicode__
 
     def __repr__(self):
@@ -655,7 +655,7 @@ class UnitBase(object):
         from .quantity import Quantity
         return m * Quantity(1, self)
 
-    if sys.version_info[0] >= 3:  # pragma: no cover
+    if six.PY3:
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -1599,12 +1599,12 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
-    if sys.version_info[0] < 3:
+    if six.PY2:
         __str__ = __bytes__
 
     def __unicode__(self):
         return self.name
-    if sys.version_info[0] >= 3:
+    if six.PY3:
         __str__ = __unicode__
 
     def to_string(self, format='generic'):
@@ -1699,8 +1699,9 @@ class _UnitMetaClass(InheritDocstrings):
                 format = 'generic'
 
             f = unit_format.get_format(format)
-            if sys.version_info[0] >= 3 and isinstance(s, bytes):
-                s = s.decode('ascii')
+            if six.PY3:
+                if isinstance(s, bytes):
+                    s = s.decode('ascii')
 
             try:
                 return f.parse(s)

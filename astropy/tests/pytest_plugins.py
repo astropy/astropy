@@ -594,9 +594,9 @@ def pytest_pycollect_makemodule(path, parent):
     # from __future__ import unicode_literals
 
     # On Python 3, just do the regular thing that py.test does
-    if sys.version_info[0] == 3:
+    if six.PY3:
         return pytest.Module(path, parent)
-    else:
+    elif six.PY2:
         return Pair(path, parent)
 
 

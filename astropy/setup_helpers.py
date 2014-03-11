@@ -1263,11 +1263,10 @@ def get_numpy_include_path():
     # install, since Numpy may still think it's in "setup mode", when
     # in fact we're ready to use it to build astropy now.
 
-    if sys.version_info[0] >= 3:
+    if PY3:
         import builtins
         if hasattr(builtins, '__NUMPY_SETUP__'):
             del builtins.__NUMPY_SETUP__
-        import imp
         import numpy
         imp.reload(numpy)
     else:
