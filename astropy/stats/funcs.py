@@ -572,9 +572,7 @@ def median_absolute_deviation(a, axis=None):
 
     #re-broadcast the output median array to subtract it
     if axis is not None:
-        shape = list(a_median.shape)
-        shape.append(1)
-        a_median = a_median.reshape(shape)
+        a_median = np.expand_dims(a_median, axis=axis)
 
     #calculated the median average deviation
     return np.median(np.abs(a - a_median), axis=axis)

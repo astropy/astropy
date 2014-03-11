@@ -35,6 +35,9 @@ Bug Fixes
 
 - ``astropy.stats``
 
+  - Ensure the ``axis`` keyword in :func:`astropy.stats.funcs` can now
+    be used for all axes. [#2173]
+
 - ``astropy.table``
 
 - ``astropy.time``
