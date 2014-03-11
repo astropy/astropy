@@ -1,21 +1,59 @@
 0.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
-
-0.3.1 (2014-03-04)
-------------------
-
 Bug Fixes
 ^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
 
 - ``astropy.io.votable``
 
   - By default, floating point values are now written out using
     ``repr`` rather than ``str`` to preserve precision [#2137]
 
-0.3.1 (unreleased)
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.sphinx``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+- Misc
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+0.3.1 (2014-03-04)
 ------------------
 
 Bug Fixes
