@@ -61,6 +61,8 @@ class Distance(u.Quantity):
     ValueError
         If ``z`` is provided with a ``unit`` or ``cosmology`` is provided when ``z`` is
         *not* given, or ``value`` is given as well as ``z``
+    ValueError
+        If value specified is less than 0 and `allow_negative=False`.
 
     Examples
     --------
@@ -79,7 +81,7 @@ class Distance(u.Quantity):
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, dtype=None, copy=True):
+                distmod=None, dtype=None, copy=True, allow_negative=False):
         from ..cosmology import get_current
 
         if isinstance(value, u.Quantity):
@@ -148,6 +150,10 @@ class Distance(u.Quantity):
 
         if value.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
+
+        if np.any(value < 0) and not allow_negative:
+            raise ValueError("Distance must be >= 0. Set the kwarg "
+                            "'allow_negative=True' to allow negative values.")
 
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)

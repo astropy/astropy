@@ -28,6 +28,17 @@ automatically convert to a `~astropy.coordinates.Distance`::
     >>> ICRS('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
+By default, `~astropy.coordinates.Distance` values must be non-negative. For some cosmologies,
+distance metrics may become zero or negative; negative distance values are supported
+by setting the ``allow_negative`` keyword argument to ``True``::
+
+    >>> d = Distance(-42., u.kpc)
+    Traceback (most recent call last):
+    ...
+    ValueError: Distance must be >= 0. Set the kwarg 'allow_negative=True' to
+    allow negative values.
+    >>> d = Distance(-42., u.kpc, allow_negative=True)
+
 If a ``distance`` is present, the coordinate can be converted into Cartesian
 coordinates using the ``x``/``y``/``z`` attributes (which are
 `~astropy.units.Quantity` objects)::
