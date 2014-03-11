@@ -14,7 +14,6 @@ from ..extern import six
 
 from contextlib import contextmanager
 import hashlib
-import importlib
 import io
 from os import path
 from warnings import warn
@@ -22,6 +21,7 @@ from warnings import warn
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
+from ..utils.compat import importlib
 from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
