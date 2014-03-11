@@ -5,8 +5,8 @@ Coordinates can also have line-of-sight distances.  If these are provided, a
 coordinate object becomes a full-fledged point in three-dimensional space.
 
 The `~astropy.coordinates.Distance` class is provided to represent a
-line-of-sight distance for a coordinate.  It must include a length unit to be
-valid.::
+line-of-sight distance for a coordinate.  It must include a length unit to
+be valid.::
 
     >>> from astropy.coordinates import Distance, ICRS
     >>> from astropy import units as u
@@ -21,9 +21,10 @@ valid.::
     >>> c
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
-Because `~astropy.coordinates.Distance` is a subclass of `~astropy.units.Quantity`, in general a
-`~astropy.units.Quantity` with units of length may be provided and it will
-automatically convert to a `~astropy.coordinates.Distance`::
+Because `~astropy.coordinates.Distance` is a subclass of
+`~astropy.units.Quantity`, in general a `~astropy.units.Quantity` with units
+of length may be provided and it will automatically convert to a
+`~astropy.coordinates.Distance`::
 
     >>> ICRS('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
     <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
@@ -40,7 +41,9 @@ by setting the ``allow_negative`` keyword argument to ``True``::
     >>> d = Distance(-42., u.kpc, allow_negative=True)
 
 If a ``distance`` is present, the coordinate can be converted into Cartesian
-coordinates using the ``x``/``y``/``z`` attributes (which are
+coordinates using the :attr:`~astropy.coordinates.CartesianPoints.x` /
+:attr:`~astropy.coordinates.CartesianPoints.y` /
+:attr:`~astropy.coordinates.CartesianPoints.z` attributes (which are
 `~astropy.units.Quantity` objects)::
 
     >>> c.x
@@ -90,7 +93,8 @@ additional capabilities like arithmetic operations::
     <CartesianPoints [ 0., 0., 0.] kpc>
 
 This Cartesian representation can also be used to create a new coordinate
-object, either directly or through a `~astropy.coordinates.CartesianPoints` object::
+object, either directly or through a `~astropy.coordinates.CartesianPoints`
+object::
 
     >>> from astropy.coordinates import CartesianPoints
     >>> ICRS(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)

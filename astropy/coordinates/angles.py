@@ -60,7 +60,7 @@ class Angle(u.Quantity):
         will be interpreted following the rules described above.
 
         If ``angle`` is a sequence or array of strings, the resulting
-        values will be in the given ``unit``, or if None is provided,
+        values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
     unit : `~astropy.units.UnitBase`, str, optional
@@ -77,7 +77,7 @@ class Angle(u.Quantity):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError
         If a unit is not provided or it is not an angular unit.
     """
     _include_easy_conversion_members = True
@@ -259,7 +259,7 @@ class Angle(u.Quantity):
             used.
 
         decimal : bool, optional
-            If True, a decimal respresentation will be used, otherwise
+            If `True`, a decimal respresentation will be used, otherwise
             the returned string will be in sexagesimal form.
 
         sep : str, optional
@@ -272,7 +272,7 @@ class Angle(u.Quantity):
             degrees, or 'hms' if the unit is hours.
 
         precision : int, optional
-            The level of decimal precision.  If ``decimal`` is True,
+            The level of decimal precision.  If ``decimal`` is `True`,
             this is the raw precision, otherwise it gives the
             precision of the last place of the sexagesimal
             representation (seconds).  If `None`, or not provided, the
@@ -437,19 +437,21 @@ class Angle(u.Quantity):
 
         Parameters
         ----------
-        wrap_angle : str, Angle, angular Quantity
+        wrap_angle : str, `Angle`, angular `~astropy.units.Quantity`
             Specifies a single value for the wrap angle.  This can be any
-            object that can initialize an Angle object, e.g. ``'180d'``, 180 * u.deg,
-            or Angle(180, unit=u.deg).
+            object that can initialize an `Angle` object, e.g. ``'180d'``,
+            180 * u.deg, or Angle(180, unit=u.deg).
 
         inplace : bool
-            If `True` then wrap the object in place instead of returning a new Angle
+            If `True` then wrap the object in place instead of returning
+            a new `Angle`
 
         Returns
         -------
-        out : Angle or None
-            If ``inplace is False`` (default), return new Angle object with angles
-            wrapped accordingly.  Otherwise wrap in place and return None.
+        out : Angle or `None`
+            If ``inplace is False`` (default), return new `Angle` object
+            with angles wrapped accordingly.  Otherwise wrap in place and
+            return `None`.
         """
         wrap_angle = Angle(wrap_angle)  # Convert to an Angle
         wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
@@ -478,19 +480,19 @@ class Angle(u.Quantity):
 
         Parameters
         ----------
-        lower : str, Angle, angular Quantity, None
+        lower : str, `Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies lower bound for checking.  This can be any object
-            that can initialize an Angle object, e.g. ``'180d'``, 180 * u.deg,
-            or Angle(180, unit=u.deg).
-        upper : str, Angle, angular Quantity, None
+            that can initialize an `Angle` object, e.g. ``'180d'``,
+            180 * u.deg, or Angle(180, unit=u.deg).
+        upper : str, `Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies upper bound for checking.  This can be any object
-            that can initialize an Angle object, e.g. ``'180d'``, 180 * u.deg,
-            or Angle(180, unit=u.deg).
+            that can initialize an `Angle` object, e.g. ``'180d'``,
+            180 * u.deg, or Angle(180, unit=u.deg).
 
         Returns
         -------
         is_within_bounds : bool
-            True if all angles satisfy ``lower <= angle < upper``
+            `True` if all angles satisfy ``lower <= angle < upper``
         """
         ok = True
         if lower is not None:
@@ -523,7 +525,8 @@ class Latitude(Angle):
 
       -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
-    Any attempt to set a value outside that range will result in a ``ValueError``.
+    Any attempt to set a value outside that range will result in a
+    `~.exceptions.ValueError`.
 
     The input angle(s) can be specified either as an array, list,
     scalar, tuple (see below), string,
@@ -535,14 +538,14 @@ class Latitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, Quantity, Angle The angle
-        value(s). If a tuple, will be interpreted as ``(h, m, s)`` or
+    angle : array, list, scalar, `~astropy.units.Quantity`, `Angle`. The
+        angle value(s). If a tuple, will be interpreted as ``(h, m, s)`` or
         ``(d, m, s)`` depending on ``unit``. If a string, it will be
         interpreted following the rules described for
         :class:`~astropy.coordinates.Angle`.
 
         If ``angle`` is a sequence or array of strings, the resulting
-        values will be in the given ``unit``, or if None is provided,
+        values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
     unit : :class:`~astropy.units.UnitBase`, str, optional
@@ -553,7 +556,7 @@ class Latitude(Angle):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, **kwargs):
@@ -624,7 +627,7 @@ class Longitude(Angle):
         rules described for :class:`~astropy.coordinates.Angle`.
 
         If ``angle`` is a sequence or array of strings, the resulting
-        values will be in the given `unit`, or if None is provided,
+        values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
     unit : :class:`~astropy.units.UnitBase`, str, optional
@@ -638,7 +641,7 @@ class Longitude(Angle):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
@@ -652,8 +655,8 @@ class Longitude(Angle):
 
     def _wrap_internal(self):
         """
-        Wrap the internal values in the Longitude object.  Using the
-        :class:`~astropy.coordinates.Angle` wrap_at() method causes
+        Wrap the internal values in the Longitude object. Using the
+        :meth:`~astropy.coordinates.Angle.wrap_at` method causes
         recursion.
         """
         # Convert the wrap angle and 360 degrees to the native unit of
@@ -718,7 +721,7 @@ def rotation_matrix(angle, axis='z', unit=None):
 
     Parameters
     ----------
-    angle : convertible to Angle
+    angle : convertible to `Angle`
         The amount of rotation this matrix should represent.
 
     axis : str or 3-sequence
@@ -798,7 +801,7 @@ def angle_axis(matrix, unit=None):
 
     Returns
     -------
-    angle : Angle
+    angle : `Angle`
         The angle of rotation for this matrix.
 
     axis : array (length 3)

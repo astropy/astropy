@@ -43,10 +43,11 @@ class ICRS(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  If `None`, it will be taken
+        to be the same as the ``equinox``.
 
+    
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to ICRS and used as this
     coordinate.
@@ -107,12 +108,12 @@ class FK5(SphericalCoordinatesBase):
     {params}
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to J2000.
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  If `None`, it will be taken
+        to be the same as the ``equinox``.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `FK5` and used as this
+    can be provided, and will be converted to FK5 and used as this
     coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
@@ -166,8 +167,8 @@ class FK5(SphericalCoordinatesBase):
 
     def precess_to(self, newequinox):
         """
-        Precesses the coordinates from their current `equinox` to a new equinox and
-        returns the resulting coordinate.
+        Precesses the coordinates from their current ``equinox`` to a new
+        equinox and returns the resulting coordinate.
 
         Parameters
         ----------
@@ -203,9 +204,9 @@ class FK4(SphericalCoordinatesBase):
     {params}
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to B1950.
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  If `None`, it will be taken
+        to be the same as the ``equinox``.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4` and used as this
@@ -262,7 +263,7 @@ class FK4(SphericalCoordinatesBase):
 
     def precess_to(self, newequinox):
         """
-        Precesses the coordinates from their current `equinox` to a new equinox.
+        Precesses the coordinates from their current ``equinox`` to a new equinox.
 
         Parameters
         ----------
@@ -298,12 +299,12 @@ class FK4NoETerms(SphericalCoordinatesBase):
     {params}
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to B1950.
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  If `None`, it will be taken
+        to be the same as the ``equinox``.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `FK4NoETerms` and used as this
+    can be provided, and will be converted to FK4NoETerms and used as this
     coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
@@ -357,7 +358,7 @@ class FK4NoETerms(SphericalCoordinatesBase):
 
     def precess_to(self, newequinox):
         """
-        Precesses the coordinates from their current `equinox` to a new equinox.
+        Precesses the coordinates from their current ``equinox`` to a new equinox.
 
         Parameters
         ----------
@@ -392,21 +393,20 @@ class Galactic(SphericalCoordinatesBase):
         Transformations from Galactic Coordinates to other systems are
         not well-defined because of ambiguities in the definition of
         Galactic Coordinates. See
-        `Lie et al. 2011 <http://dx.doi.org/10.1051/0004-6361/201014961>`
+        `Lie et al. 2011 <http://dx.doi.org/10.1051/0004-6361/201014961>`_
         for more details on this.  Here, we use the
-        `Reid & Brunthaler 2004 <http://dx.doi.org/10.1086/424960>`
-        definition for converting to/from FK5, and assume the IAU
-        definition applies for converting to FK4 *without* e-terms.
+        `Reid & Brunthaler 2004 <http://dx.doi.org/10.1086/424960>`_
+        definition for converting to/from `FK5`, and assume the IAU
+        definition applies for converting to `FK4` *without* e-terms.
 
     Parameters
     ----------
     {params}
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `Galactic` and
+    can be provided, and will be converted to Galactic and
     used as this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='l', latnm='b'))
@@ -463,12 +463,12 @@ class AltAz(SphericalCoordinatesBase):
     {params}
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to J2000.
-    obstime : `~astropy.time.Time` or None
-        The time of observation for this coordinate.  If None, it will be taken
-        to be the same as the `equinox`.
+    obstime : `~astropy.time.Time` or `None`
+        The time of observation for this coordinate.  If `None`, it will be taken
+        to be the same as the ``equinox``.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `AltAz` and used
+    can be provided, and will be converted to AltAz and used
     as this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='az', latnm='el'))

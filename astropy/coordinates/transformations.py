@@ -58,7 +58,7 @@ class TransformGraph(object):
         Raises
         ------
         TypeError
-            If `fromsys` or `tosys` are not classes or `transform` is
+            If ``fromsys`` or ``tosys`` are not classes or ``transform`` is
             not callable.
         """
 
@@ -78,17 +78,17 @@ class TransformGraph(object):
 
         Parameters
         ----------
-        fromsys : class or None
-            The coordinate system *class* to start from. If None,
-            `transform` will be searched for and removed (`tosys` must
-            also be None).
-        tosys : class or None
-            The coordinate system *class* to transform into. If None,
-            `transform` will be searched for and removed (`fromsys` must
-            also be None).
-        transform : callable or None
-            The transformation object to be removed or None.  If None
-            and `tosys` and `fromsys` are supplied, there will be no
+        fromsys : class or `None`
+            The coordinate system *class* to start from. If `None`,
+            ``transform`` will be searched for and removed (``tosys`` must
+            also be `None`).
+        tosys : class or `None`
+            The coordinate system *class* to transform into. If `None`,
+            ``transform`` will be searched for and removed (``fromsys`` must
+            also be `None`).
+        transform : callable or `None`
+            The transformation object to be removed or `None`.  If `None`
+            and ``tosys`` and ``fromsys`` are supplied, there will be no
             check to ensure the correct object is removed.
         """
         if fromsys is None or tosys is None:
@@ -134,13 +134,13 @@ class TransformGraph(object):
 
         Returns
         -------
-        path : list of classes or None
-            The path from `fromsys` to `tosys` as an in-order sequence
-            of classes.  This list includes *both* `fromsys` and
-            `tosys`. Is None if there is no possible path.
+        path : list of classes or `None`
+            The path from ``fromsys`` to ``tosys`` as an in-order sequence
+            of classes.  This list includes *both* ``fromsys`` and
+            ``tosys``. Is `None` if there is no possible path.
         distance : number
-            The total distance/priority from `fromsys` to `tosys`.  If
-            priorities are not set this is the number of trasnforms
+            The total distance/priority from ``fromsys`` to ``tosys``.  If
+            priorities are not set this is the number of transforms
             needed. Is `inf` if there is no possible path.
         """
 
@@ -256,9 +256,9 @@ class TransformGraph(object):
 
         Returns
         -------
-        trans : `CoordinateTransform` or None
-            If there is a path from `fromsys` to `tosys`, this is a transform
-            object for that path.  If None, no path could be found.
+        trans : `CoordinateTransform` or `None`
+            If there is a path from ``fromsys`` to ``tosys``, this is a 
+            transform object for that path.  If `None`, no path could be found.
         """
         if tosys in self._graph[fromsys]:
             return self._graph[fromsys][tosys]
@@ -284,7 +284,7 @@ class TransformGraph(object):
         """
         Adds an alias for a coordinate, primarily for allowing
         attribute-style access of coordinate transformations (e.g.,
-        ``coordasgal = coord.galactic``).
+        ``'coordasgal = coord.galactic'``).
 
         Parameters
         ----------
@@ -297,7 +297,7 @@ class TransformGraph(object):
         Raises
         ------
         ValueError
-            If `coordcls` already has a name assigned.
+            If ``coordcls`` already has a name assigned.
         """
         for key, val in six.iteritems(self._clsaliases):
             if val == coordcls:
@@ -317,7 +317,7 @@ class TransformGraph(object):
         Returns
         -------
         coordcls
-            The coordinate class corresponding to the `name` or None if
+            The coordinate class corresponding to the ``name`` or `None` if
             no such class exists.
         """
         return self._clsaliases.get(name, None)
@@ -344,22 +344,22 @@ class TransformGraph(object):
         Parameters
         ----------
         priorities : bool
-            If True, show the priority values for each transform.  Otherwise,
+            If `True`, show the priority values for each transform.  Otherwise,
             the will not be included in the graph.
         addnodes : sequence of str
             Additional coordinate systems to add (this can include systems
             already in the transform graph, but they will only appear once).
-        savefn : None or str
-            The file name to save this graph to or None to not save
+        savefn : `None` or str
+            The file name to save this graph to or `None` to not save
             to a file.
         savelayout : str
             The graphviz program to use to layout the graph (see
             graphviz_ for details) or 'plain' to just save the DOT graph
-            content. Ignored if `savefn` is None.
+            content. Ignored if ``savefn`` is `None`.
         saveformat : str
             The graphviz output format. (e.g. the ``-Txxx`` option for
             the command line program - see graphviz docs for details).
-            Ignored if `savefn` is None.
+            Ignored if `savefn` is `None`.
 
         Returns
         -------
@@ -528,7 +528,7 @@ class FunctionTransform(CoordinateTransform):
     func : callable
         The transformation function.
     copyobstime : bool
-        If True (default) the value of the  `_obstime` attribute will be copied
+        If `True` (default) the value of the  ``_obstime`` attribute will be copied
         to the newly-produced coordinate.
 
     priority : number
@@ -541,9 +541,9 @@ class FunctionTransform(CoordinateTransform):
     Raises
     ------
     TypeError
-        If `func` is not callable.
+        If ``func`` is not callable.
     ValueError
-        If `func` cannot accept one argument.
+        If ``func`` cannot accept one argument.
 
 
     """
@@ -633,8 +633,8 @@ class StaticMatrixTransform(CoordinateTransform):
 
 class CompositeStaticMatrixTransform(StaticMatrixTransform):
     """
-    A `MatrixTransform` constructed by combining a sequence of matricies
-    together.  See `MatrixTransform` for syntax details.
+    A ``MatrixTransform`` constructed by combining a sequence of matricies
+    together.  See ``MatrixTransform`` for syntax details.
 
     Parameters
     ----------
@@ -685,7 +685,7 @@ class DynamicMatrixTransform(CoordinateTransform):
     Raises
     ------
     TypeError
-        If `matrix_func` is not callable
+        If ``matrix_func`` is not callable
 
     """
     def __init__(self, fromsys, tosys, matrix_func, priority=1, register=True):
@@ -716,8 +716,8 @@ class DynamicMatrixTransform(CoordinateTransform):
 
 class CompositeTransform(CoordinateTransform):
     """
-    A `MatrixTransform` constructed by combining a sequence of matricies
-    together.  See `MatrixTransform` for syntax details.
+    A ``MatrixTransform`` constructed by combining a sequence of matricies
+    together.  See ```MatrixTransform`` for syntax details.
 
     Parameters
     ----------
@@ -760,7 +760,7 @@ def transform_function(fromsys, tosys, copyobstime=True, priority=1):
     tosys : class
         The coordinate system this function results in.
     copyobstime : bool
-        If True (default) the value of the  `_obstime` attribute will be
+        If `True` (default) the value of the  ``_obstime`` attribute will be
         copied to the newly-produced coordinate.
     priority : number
         The priority if this transform when finding the shortest
@@ -843,8 +843,8 @@ def coordinate_alias(name, coordcls=None):
     name : str
         The short alias to use for this coordinate class. Should be a
         valid python identifier.
-    coordcls : class or None
-        Either the coordinate class to register or None to use this as a
+    coordcls : class or `None`
+        Either the coordinate class to register or `None` to use this as a
         decorator.
 
     Examples
