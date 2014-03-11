@@ -168,4 +168,4 @@ class WCSAxes(Axes):
             _bbox = Bbox.union(bb)
             return _bbox
         else:
-            return None
+            return []

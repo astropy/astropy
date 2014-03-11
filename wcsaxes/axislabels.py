@@ -50,10 +50,13 @@ class AxisLabels(Text):
             # Find label position, by trying to move it successively further
             # away from the axis and then checking for intersection with tick
             # labels. Obviously this could be optimized if needed.
-            for pad in range(2, 20):
+            dx = np.cos(np.radians(normal_angle)) * text_size
+            dy = np.sin(np.radians(normal_angle)) * text_size
 
-                xlabel = xcen + np.cos(np.radians(normal_angle)) * pad * text_size
-                ylabel = ycen + np.sin(np.radians(normal_angle)) * pad * text_size
+            for pad in np.linspace(0.8, 8.8, 21):
+
+                xlabel = xcen + dx * pad
+                ylabel = ycen + dy * pad
 
                 self.set_position((xlabel, ylabel))
 
@@ -62,5 +65,8 @@ class AxisLabels(Text):
                 if bb.count_overlaps(bboxes) == 0:
                     break
 
+            self.set_position((xlabel + dx * pad * 0.3, ylabel + dy * pad * 0.3))
             super(AxisLabels, self).draw(renderer)
+
+            bb = super(AxisLabels, self).get_window_extent(renderer)
             bboxes.append(bb)
