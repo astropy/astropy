@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import json
 import os
+import pickle
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
@@ -102,6 +103,44 @@ def test_deprecated_attribute():
         dummy.set_private()
 
     assert len(w) == 0
+
+
+# This needs to be defined outside of the test function, because we
+# want to try to pickle it.
+@misc.deprecated('100.0')
+class TestA(object):
+    """
+    This is the class docstring.
+    """
+    def __init__(self):
+        """
+        This is the __init__ docstring
+        """
+        pass
+
+
+def test_deprecated_class():
+    orig_A = TestA.__bases__[0]
+
+    # The only thing that should be different about the new class
+    # is __doc__, __init__, __bases__ and __subclasshook__.
+    for x in dir(orig_A):
+        if x not in ('__doc__', '__init__', '__bases__', '__dict__',
+                     '__subclasshook__'):
+            assert getattr(TestA, x) == getattr(orig_A, x)
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        TestA()
+
+    assert len(w) == 1
+    assert 'function' not in TestA.__doc__
+    assert 'deprecated' in TestA.__doc__
+    assert 'function' not in TestA.__init__.__doc__
+    assert 'deprecated' in TestA.__init__.__doc__
+
+    # Make sure the object is picklable
+    pickle.dumps(TestA)
+
 
 @remote_data
 def test_api_lookup():
