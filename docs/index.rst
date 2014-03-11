@@ -6,19 +6,22 @@
 Welcome to WCSAxes's documentation!
 ===================================
 
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-
 WCSAxes is a framework for making plots of Astronomical data in Matplotlib. It
 is affiliated with the `Astropy <http://www.astropy.org>`_ project and is
 intended for inclusion in the Astropy package once stable.
 
+.. toctree::
+   :maxdepth: 2
+
+   installation.rst
+   getting_started.rst
+   ticks_labels_grid.rst
+   overlays.rst
+
+
 Reference/API
 =============
 
-.. automodapi:: wcsaxes.coordinate_helpers
+.. automodapi:: wcsaxes
    :no-inheritance-diagram:
 

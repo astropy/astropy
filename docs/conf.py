@@ -42,6 +42,38 @@ extensions = [
     'astropy.sphinx.ext.tocdepthfix',
     ]
 
+import matplotlib
+print(matplotlib.__path__)
+import matplotlib.sphinxext.plot_directive
+extensions += [matplotlib.sphinxext.plot_directive.__name__]
+plot_include_source = True
+plot_rcparams = {'figure.figsize': (6,6),
+                 'savefig.facecolor':'none',
+                 'savefig.bbox':'tight',
+                 'font.family':'Arial'}
+plot_apply_rcparams = True
+plot_template = """
+{{ source_code }}
+
+{{ only_html }}
+
+   {% for img in images %}
+   .. figure:: {{ build_dir }}/{{ img.basename }}.png
+      {%- for option in options %}
+      {{ option }}
+      {% endfor %}
+
+      {{ caption }}
+   {% endfor %}
+
+{{ only_latex }}
+
+   {% for img in images %}
+   .. image:: {{ build_dir }}/{{ img.basename }}.pdf
+   {% endfor %}
+
+"""
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -271,7 +303,14 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/', None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
+    'matplotlib': ('http://matplotlib.sourceforge.net/', None),
+    'astropy': ('http://docs.astropy.org/en/stable/', None),
+    'h5py': ('http://docs.h5py.org/en/latest/', None)
+    }
 
 # on_rtd is whether we are on readthedocs.org
 import os
