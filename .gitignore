@@ -1,1 +1,5 @@
 build
+docs/_build
+__pycache__
+htmlcov
+*.pyc
