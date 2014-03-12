@@ -90,6 +90,18 @@ def test_g0():
     assert g0.unit.physical_type == 'acceleration'
 
 
+def test_b_wien():
+    """b_wien should give the correct peak wavelength for
+    given blackbody temperature. The Sun is used in this test.
+
+    """
+    from .. import b_wien
+    from ... import units as u
+    t = 5778 * u.K
+    w = (b_wien / t).to(u.nm)
+    assert round(w.value) == 502
+
+
 def test_unit():
 
     from ... import units as u

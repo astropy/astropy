@@ -8,6 +8,9 @@ New Features
 
 - ``astropy.constants``
 
+  - Added ``b_wien`` to represent Wien wavelength displacement law constant.
+    [#2194]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
