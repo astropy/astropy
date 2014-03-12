@@ -88,7 +88,7 @@ class HeaderFormatter(object):
                 parts = extension.split(',')
                 if len(parts) > 1:
                     # We use str() below to avoid issue #2184
-                    extname = str(','.join(parts[0:-1]))
+                    extname = ','.join(parts[0:-1])
                     extver = int(parts[-1])
                     hdukeys = [(extname, extver)]
                 else:
