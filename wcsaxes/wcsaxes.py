@@ -182,4 +182,5 @@ class WCSAxes(Axes):
         draw_grid : bool
             Whether to show the gridlines
         """
-        self.coords.grid(draw_grid=draw_grid, **kwargs)
+        if draw_grid:
+            self.coords.grid(draw_grid=draw_grid, **kwargs)
