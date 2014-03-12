@@ -192,6 +192,42 @@ class FITS_rec(np.recarray):
         self.formats = None
         return self
 
+    def __setstate__(self, state):
+        meta = state[-1]
+        column_state = state[-2]
+        state = state[:-2]
+
+        super(FITS_rec, self).__setstate__(state)
+
+        for i in range(len(meta)):
+            setattr(self,  meta[i],  column_state[i])
+
+    def __reduce__(self):
+        """
+        Return a 3-tuple for pickling a FITS_rec. Use the super-class
+        functionality but then add in a tuple of FITS_rec-specific
+        values that get used in __setstate__.
+        """
+        super_class = np.ndarray
+        reconst_func, reconst_func_args, state = super_class.__reduce__(self)
+
+        # Define FITS_rec-specific attrs that get added to state
+        column_state = []
+        meta = []
+
+        for attrs in set(dir(self))-set(dir(self.__class__)):
+            # _coldefs can be Delayed, and file objects cannot be
+            # picked, it needs to be deepcopied first
+            if attrs is '_coldefs':
+                column_state.append(self._coldefs.__deepcopy__(None))
+            else:
+                column_state.append(getattr(self, attrs))
+            meta.append(attrs)
+
+        state = state + (column_state, meta)
+
+        return reconst_func, reconst_func_args, state
+
     def __array_finalize__(self, obj):
         if obj is None:
             return
