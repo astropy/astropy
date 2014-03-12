@@ -169,3 +169,17 @@ class WCSAxes(Axes):
             return _bbox
         else:
             return []
+
+    def grid(self, draw_grid=True, **kwargs):
+        """
+        Plot gridlines for both coordinates.
+
+        Standard matplotlib appearance options (color, alpha, etc.) can be
+        passed as keyword arguments.
+
+        Parameters
+        ----------
+        draw_grid : bool
+            Whether to show the gridlines
+        """
+        self.coords.grid(draw_grid=draw_grid, **kwargs)
