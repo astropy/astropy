@@ -183,30 +183,30 @@ table,th,td{border:1px solid black;  </style>
     <th>PERROR</th>
    </tr>
    <tr>
-    <td>14       </td>
-    <td>138.538   </td>
-    <td>256.405   </td>
-    <td>15.461      </td>
-    <td>0.003         </td>
-    <td>34.85955       </td>
-    <td>4     </td>
-    <td>-0.032                 </td>
-    <td>0.802       </td>
-    <td>0     </td>
-    <td>No_error     </td>
+    <td>14</td>
+    <td>138.538</td>
+    <td>256.405</td>
+    <td>15.461</td>
+    <td>0.003</td>
+    <td>34.85955</td>
+    <td>4</td>
+    <td>-0.032</td>
+    <td>0.802</td>
+    <td>0</td>
+    <td>No_error</td>
    </tr>
    <tr>
-    <td>18       </td>
-    <td>18.114    </td>
-    <td>280.170   </td>
-    <td>22.329      </td>
-    <td>0.206         </td>
-    <td>30.12784       </td>
-    <td>4     </td>
-    <td>-2.544                 </td>
-    <td>1.104       </td>
-    <td>0     </td>
-    <td>No_error     </td>
+    <td>18</td>
+    <td>18.114</td>
+    <td>280.170</td>
+    <td>22.329</td>
+    <td>0.206</td>
+    <td>30.12784</td>
+    <td>4</td>
+    <td>-2.544</td>
+    <td>1.104</td>
+    <td>0</td>
+    <td>No_error</td>
    </tr>
   </table>
  </body>

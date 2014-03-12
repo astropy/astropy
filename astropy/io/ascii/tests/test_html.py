@@ -13,6 +13,7 @@ from .. import core
 from ....table import Table
 
 from ....tests.helper import pytest
+from ....extern.six.moves import zip as izip
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 

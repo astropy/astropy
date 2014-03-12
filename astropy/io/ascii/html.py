@@ -10,6 +10,7 @@ This requires `BeautifulSoup
 
 from __future__ import absolute_import, division, print_function
 from ...extern import six
+from ...extern.six.moves import zip as izip
 
 from . import core
 from ...table import Table, Column
@@ -319,7 +320,7 @@ class HTML(core.BaseReader):
                                 w.start('th', colspan=col.shape[1])
                             else:
                                 w.start('th')
-                            w.data(col.name)
+                            w.data(col.name.strip())
                             w.end(indent=False)
                     col_str_iters = []
                     for col in cols:
@@ -331,11 +332,12 @@ class HTML(core.BaseReader):
                                 col_str_iters.append(new_col.iter_str_vals())
                         else:
                             col_str_iters.append(col.iter_str_vals())
-                    for row in zip(*col_str_iters):
+
+                    for row in izip(*col_str_iters):
                         with w.tag('tr'):
                             for el in row:
                                 w.start('td')
-                                w.data(el)
+                                w.data(el.strip())
                                 w.end(indent=False)
 
         # Fixes XMLWriter's insertion of unwanted line breaks
