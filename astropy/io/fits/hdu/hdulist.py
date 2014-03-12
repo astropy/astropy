@@ -17,6 +17,7 @@ from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
+from ....extern.six import string_types
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 
@@ -481,7 +482,7 @@ class HDUList(list, _Verify):
             _key = key
             _ver = None
 
-        if not isinstance(_key, str):
+        if not isinstance(_key, string_types):
             raise KeyError(key)
         _key = (_key.strip()).upper()
 
@@ -489,7 +490,7 @@ class HDUList(list, _Verify):
         found = None
         for idx, hdu in enumerate(self):
             name = hdu.name
-            if isinstance(name, str):
+            if isinstance(name, string_types):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
             if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
