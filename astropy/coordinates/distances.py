@@ -89,7 +89,7 @@ class Distance(u.Quantity):
         if isinstance(value, u.Quantity):
             # This includes Distances as well
             if z is not None or distmod is not None:
-                raise ValueError('"value" was given along with "z" or "distmod"'
+                raise ValueError('`value` was given along with `z` or `distmod`'
                                  ' in Quantity constructor.')
 
             if unit is not None:
@@ -100,7 +100,7 @@ class Distance(u.Quantity):
         elif value is None:
             if z is not None:
                 if distmod is not None:
-                    raise ValueError('both "z" and "distmod" given in Distance '
+                    raise ValueError('Both `z` and `distmod` given in Distance '
                                      'constructor')
 
                 if cosmology is None:
@@ -128,16 +128,16 @@ class Distance(u.Quantity):
                 else:
                     value = u.Quantity(value, u.parsec).to(unit).value
             else:
-                raise ValueError('none of "value", "z", or "distmod" were given'
+                raise ValueError('none of `value`, `z`, or `distmod` were given'
                                  ' to Distance constructor')
 
                 value = ld.value
                 unit = ld.unit
         elif z is not None:  # and value is not None based on above
-            raise ValueError('Both "z" and a "value" were provided in Distance '
+            raise ValueError('Both `z` and a `value` were provided in Distance '
                              'constructor')
         elif cosmology is not None:
-            raise ValueError('A "cosmology" was given but "z" was not provided '
+            raise ValueError('A `cosmology` was given but `z` was not provided '
                              'in Distance constructor')
         elif unit is None:
             raise u.UnitsError('No unit was provided for Distance')

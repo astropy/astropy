@@ -77,7 +77,7 @@ class Angle(u.Quantity):
 
     Raises
     ------
-    UnitsError
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     _include_easy_conversion_members = True
@@ -417,10 +417,11 @@ class Angle(u.Quantity):
         """
         Wrap the `Angle` object at the given ``wrap_angle``.
 
-        This method forces all the angle values to be within a contiguous 360 degree
-        range so that ``wrap_angle - 360d <= angle < wrap_angle``.  By default a new
-        Angle object is returned, but if the ``inplace`` argument is `True` then
-        the `Angle` object is wrapped in place and nothing is returned.
+        This method forces all the angle values to be within a contiguous
+        360 degree range so that ``wrap_angle - 360d <= angle <
+        wrap_angle``. By default a new Angle object is returned, but if the
+        ``inplace`` argument is `True` then the `Angle` object is wrapped in
+        place and nothing is returned.
 
         For instance::
 
@@ -440,7 +441,7 @@ class Angle(u.Quantity):
         wrap_angle : str, `Angle`, angular `~astropy.units.Quantity`
             Specifies a single value for the wrap angle.  This can be any
             object that can initialize an `Angle` object, e.g. ``'180d'``,
-            180 * u.deg, or Angle(180, unit=u.deg).
+            ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
 
         inplace : bool
             If `True` then wrap the object in place instead of returning
@@ -483,11 +484,11 @@ class Angle(u.Quantity):
         lower : str, `Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies lower bound for checking.  This can be any object
             that can initialize an `Angle` object, e.g. ``'180d'``,
-            180 * u.deg, or Angle(180, unit=u.deg).
+            ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
         upper : str, `Angle`, angular `~astropy.units.Quantity`, `None`
             Specifies upper bound for checking.  This can be any object
             that can initialize an `Angle` object, e.g. ``'180d'``,
-            180 * u.deg, or Angle(180, unit=u.deg).
+            ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
 
         Returns
         -------
@@ -556,7 +557,7 @@ class Latitude(Angle):
 
     Raises
     ------
-    UnitsError
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, **kwargs):
@@ -641,7 +642,7 @@ class Longitude(Angle):
 
     Raises
     ------
-    UnitsError
+    `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):

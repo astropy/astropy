@@ -34,8 +34,8 @@ include lists of multiple coordinates in one object::
     <ICRS RA=10.68458 deg, Dec=41.26917 deg>
     >>> ICRS('00h42m44.3s +41d16m9s')
     <ICRS RA=10.68458 deg, Dec=41.26917 deg>
-    >>> ICRS(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], \
-    >>>      unit=(u.degree, u.degree))
+    >>> ICRS(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111],
+    ...      unit=(u.degree, u.degree))
     <ICRS RA=[ 10.68458 83.82208] deg, Dec=[41.26917 -5.39111] deg>
 
 The individual components of a coordinate are `~astropy.coordinates.Longitude`

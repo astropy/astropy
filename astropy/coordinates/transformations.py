@@ -257,7 +257,7 @@ class TransformGraph(object):
         Returns
         -------
         trans : `CoordinateTransform` or `None`
-            If there is a path from ``fromsys`` to ``tosys``, this is a 
+            If there is a path from ``fromsys`` to ``tosys``, this is a
             transform object for that path.  If `None`, no path could be found.
         """
         if tosys in self._graph[fromsys]:
@@ -284,7 +284,7 @@ class TransformGraph(object):
         """
         Adds an alias for a coordinate, primarily for allowing
         attribute-style access of coordinate transformations (e.g.,
-        ``'coordasgal = coord.galactic'``).
+        ``coordasgal = coord.galactic``).
 
         Parameters
         ----------
@@ -717,7 +717,7 @@ class DynamicMatrixTransform(CoordinateTransform):
 class CompositeTransform(CoordinateTransform):
     """
     A ``MatrixTransform`` constructed by combining a sequence of matricies
-    together.  See ```MatrixTransform`` for syntax details.
+    together.  See ``MatrixTransform`` for syntax details.
 
     Parameters
     ----------

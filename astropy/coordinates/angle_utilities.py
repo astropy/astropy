@@ -616,9 +616,8 @@ def angular_separation(lon1, lat1, lon2, lat2):
     Parameters
     ----------
     lon1, lat1, lon2, lat2 : `Angle`, `~astropy.units.Quantity` or float
-        `~astropy.coordinates.Longitude` and `~astropy.coordinates.Latitude`
-        of the two points.  Quantities should be in angular units; floats
-        in radians.
+        Longitude and latitude of the two points. Quantities should be in
+        angular units; floats in radians.
 
     Returns
     -------

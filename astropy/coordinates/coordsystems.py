@@ -554,9 +554,9 @@ class SphericalCoordinatesBase(object):
             ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
             Which closest neighbor to search for.  Typically ``1`` is
-            desired here, as that is correct for matching one set of 
+            desired here, as that is correct for matching one set of
             coordinates to another. The next likely use case is ``2``,
-            for matching a coordinate catalog against *itself* (``1`` 
+            for matching a coordinate catalog against *itself* (``1``
             is inappropriate because each point will find itself as the
             closest match).
 
@@ -697,14 +697,14 @@ class SphericalCoordinatesBase(object):
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
         url, and  query timeout can be set through configuration items in
-        ``name_resolve`` -- see docstring for
+        ``astropy.coordinates.name_resolve`` -- see docstring for
         `~astropy.coordinates.get_icrs_coordinates` for more
         information.
 
         Parameters
         ----------
         name : str
-            The name of the object to get coordinates for, e.g. ``'M42'``".
+            The name of the object to get coordinates for, e.g. ``'M42'``.
 
         Returns
         -------
