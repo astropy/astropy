@@ -16,12 +16,12 @@ from contextlib import contextmanager
 import hashlib
 import io
 from os import path
+import sys
 from warnings import warn
 
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
-from ..utils.compat import importlib
 from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
@@ -541,7 +541,9 @@ class ConfigAlias(ConfigItem):
             AstropyDeprecationWarning)
 
     def _get_target(self):
-        mod = importlib.import_module(self._new_module)
+        if self._new_module not in sys.modules:
+            __import__(self._new_module)
+        mod = sys.modules[self._new_module]
         cfg = getattr(mod, 'conf')
         return cfg
 
