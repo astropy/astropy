@@ -65,7 +65,7 @@ class TestSerialComposite(object):
 
     def test_labeledinput_2(self):
         labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        rot = models.MatrixRotation2D(angle=23.4)
+        rot = models.RotateByAngle2D(angle=23.4)
         offx = models.Shift(-2)
         offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
@@ -80,7 +80,7 @@ class TestSerialComposite(object):
 
     def test_labeledinput_3(self):
         labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
-        rot = models.MatrixRotation2D(angle=23.4)
+        rot = models.RotateByAngle2D(angle=23.4)
         offx = models.Shift(-2)
         offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
@@ -94,7 +94,7 @@ class TestSerialComposite(object):
         utils.assert_almost_equal(y, result.y)
 
     def test_multiple_input(self):
-        rot = models.MatrixRotation2D(angle=-60)
+        rot = models.RotateByAngle2D(angle=-60)
         model = SerialCompositeModel([rot, rot])
         xx, yy = model(self.x, self.y)
         inverse_model = model.inverse()
@@ -179,7 +179,7 @@ def test_custom_model(amplitude=4, frequency=1):
     SineModel = models.custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
 
     x = np.linspace(0, 4, 50)
-    sin_model = SineModel()
+    sin_model = SineModel(4, 1)
 
     y = sin_model.eval(x, 5., 2.)
     y_prime = sin_model.fit_deriv(x, 5., 2.)
@@ -213,7 +213,7 @@ def test_custom_model_defaults():
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
 
-    sin_model = SineModel()
+    sin_model = SineModel(4, 1)
     assert SineModel.amplitude.default == 4
     assert SineModel.frequency.default == 1
 

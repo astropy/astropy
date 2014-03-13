@@ -55,7 +55,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 
-from .parameters import Parameter, InputParameterError
+from .parameters import (Parameter, InputParameterError, _tofloat)
 
 __all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
@@ -179,8 +179,13 @@ class Model(object):
     fittable = False
     linear = True
 
-    def __init__(self, param_dim=1):
+    def __init__(self, param_dim=1, **params):
         self._param_dim = param_dim
+        if params:
+            self._param_metrics, self._param_total_size = self._create_param_metrics(params)
+        else:
+            self._param_metrics = None
+            self._param_total_size = 0
 
     @property
     def param_dim(self):
@@ -220,11 +225,9 @@ class Model(object):
 
         This is an array where each column represents one parameter set.
         """
-
-        parameters = [getattr(self, attr) for attr in self.param_names]
-        values = [par.value for par in parameters]
-        shapes = [par.shape for par in parameters]
-        n_dims = np.asarray([len(p.shape) for p in parameters])
+        values = [getattr(self, attr).value for attr in self.param_names]
+        shapes = [self._param_metrics[name][1] for name in self.param_names]
+        n_dims = np.asarray([len(shape) for shape in shapes])
 
         if (n_dims > 1).any():
             if () in shapes:
@@ -280,6 +283,39 @@ class Model(object):
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this")
 
+    def _create_param_metrics(self, params):
+        _param_metrics = {}
+        total_size = 0
+        for name in self.param_names:
+            #is there a use case for this???
+            if params.get(name) is None:
+                # parameters that were not supplied at all or that have
+                # defaults of None should attempt to use the default provided
+                # by their Parameter descriptor
+                params[name] = getattr(self, name).default
+            value, shape = _tofloat(params[name])
+            
+            if shape == ():
+                param_len = 1
+            else:
+                param_len = len(value)
+            #if param_len < self.param_dim:
+            if self.param_dim > 1 and param_len != self.param_dim:
+                raise InputParameterError("Parameter {0} value inconsistent with n_models attribute {1}".format(name, self.param_dim))
+            param_size = np.size(value)
+            param_shape = shape
+
+            if self.param_dim == 1:
+                param_shape = shape
+            elif self.param_dim > 1:
+                _, param_shape = _tofloat(value[0])
+            else:
+                raise ValueError("Model param_dim must be 1 or greater.")
+
+            param_slice = slice(total_size, total_size + param_size)
+            _param_metrics[name] = (param_slice, param_shape)
+            total_size += param_size
+        return _param_metrics, total_size
 
 class ParametricModel(Model):
     """
@@ -376,36 +412,24 @@ class ParametricModel(Model):
         eqcons = kwargs.pop('eqcons', None)
         ineqcons = kwargs.pop('ineqcons', None)
 
-        # Pop off the param_dims
-        param_dim = kwargs.pop('param_dim', None)
+        # Pop off param_dim
+        param_dim = kwargs.pop('param_dim', 1)
 
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
         # distinguish them
         params = kwargs
 
-        # Determine the number of parameter sets: This will be based
-        # on the size of any parameters whose values have been specified
-        # or the default of 1 is used
         # This loop also checks that all the supplied parameter names are
         # valid
         param_names = set(self.param_names)
 
-        max_param_dim = 1
-        for name, value in params.items():
-            if param_dim is None:
-                # Determine the best param_dims, if not already specified,
-                # based on the sizes of the input parameter values
-                max_param_dim = max(max_param_dim, np.size(value))
-
+        for name in params:
             if name not in param_names:
                 raise TypeError(
                     "Unrecognized parameter: {0}".format(name))
 
-        if param_dim is None:
-            param_dim = max_param_dim
-
-        super(ParametricModel, self).__init__(param_dim=param_dim)
+        super(ParametricModel, self).__init__(param_dim=param_dim, **params)
 
         # Initialize the constraints for each parameter
         if eqcons is None:
@@ -496,12 +520,18 @@ class ParametricModel(Model):
                 param_slice, param_shape = self._param_metrics[param_name]
                 value = self._parameters[param_slice]
                 if self.param_dim == 1:
-                    return value[0]
-                else:
                     if param_shape:
                         return value.reshape(param_shape)
                     else:
                         return value[0]
+                else:
+                    if param_shape:
+                        param_size = len(value) // self.param_dim
+                        return [value[param_size * i:param_size * i + 
+                                      param_size].reshape(param_shape)
+                                for i in range(self.param_dim)]
+                    else:
+                        return value
 
         raise AttributeError(attr)
 
@@ -510,7 +540,6 @@ class ParametricModel(Model):
                 hasattr(self, '_param_metrics')):
             param_name = attr[1:]
             if param_name in self._param_metrics:
-                # TODO: Maybe handle exception on invalid input shape
                 param_slice = self._param_metrics[param_name][0]
                 self._parameters[param_slice] = np.array(value).ravel()
                 return
@@ -575,65 +604,12 @@ class ParametricModel(Model):
     def _initialize_parameters(self, params):
         """
         Initialize the _parameters array that stores raw parameter values for
-        all parameter sets for use with vectorized fitting algorithms; on
+        all parameter sets for use with fitting algorithms; on
         ParametricModels the _param_name attributes actually just reference
         slices of this array.
         """
-
-        # First we need to determine how much array space is needed by all the
-        # parameters based on the number of parameters, the shape each input
-        # parameter, and the param_dim
-        self._param_metrics = {}
-        total_size = 0
-        for name in self.param_names:
-
-            if params.get(name) is None:
-                # parameters that were not supplied at all or that have
-                # defaults of None should attempt to use the default provided
-                # by their Parameter descriptor
-                params[name] = getattr(self, name).default
-
-            value = params[name]
-
-            param_size = np.size(value)
-            param_shape = np.shape(value)
-
-            if self.param_dim == 1:
-                pass
-            elif self.param_dim > 1:
-                if param_size == 1:
-                    param_size = self.param_dim
-                    # Update the value for this param to the new repeated
-                    # version
-                    value = params[name] = np.repeat(value, param_size)
-                    param_shape = value.shape
-            else:
-                raise ValueError("Model param_dim must be 1 or greater.")
-
-            if (param_size > 1 and param_size != self.param_dim and
-                    len(value) != self.param_dim):
-                # The len(value) == self.param_dim case is a special case
-                # (see #1680) where the parameter has compound values (like [1,
-                # 2]) but we're passing in two (or more) param sets, so we want
-                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
-                # having values for 2 param sets, not 4.
-
-                # For now all parameter values must have a number of elements
-                # equal to param_dim (the number of param sets) or it is
-                # invalid.  The *only* exception is, again, a scalar value is
-                # allowed to be repeated across param sets
-                raise InputParameterError(
-                    "The input value for {0!r} has too many elements for "
-                    "param_dim={1}.  Parameter values must either match the "
-                    "model's param_dim in size, or may be a scalar value, in "
-                    "which case the value is repeated accross parameter "
-                    "sets.".format(name, self.param_dim))
-
-            param_slice = slice(total_size, total_size + param_size)
-            self._param_metrics[name] = (param_slice, param_shape)
-            total_size += param_size
-
-        self._parameters = np.empty(total_size, dtype=np.float64)
+       
+        self._parameters = np.empty(self._param_total_size, dtype=np.float64)
 
         # Now set the parameter values (this will also fill
         # self._parameters)
@@ -847,7 +823,7 @@ class SerialCompositeModel(_CompositeModel):
         >>> import numpy as np
         >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
         >>> y, x = np.mgrid[:5, :5]
-        >>> rotation = models.MatrixRotation2D(angle=23.5)
+        >>> rotation = models.RotateByAngle2D(angle=23.5)
         >>> offset_x = models.Shift(-4.23)
         >>> offset_y = models.Shift(2)
         >>> labeled_input = LabeledInput([x, y], ["x", "y"])

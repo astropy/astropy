@@ -94,7 +94,7 @@ class Gaussian1D(Parametric1DModel):
     mean = Parameter('mean')
     stddev = Parameter('stddev')
 
-    def __init__(self, amplitude, mean, stddev, **constraints):
+    def __init__(self, amplitude, mean, stddev, param_dim=1, **constraints):
         try:
             param_dim = len(amplitude)
         except TypeError:
@@ -297,7 +297,7 @@ class Shift(Model):
 
         self._offsets = offsets
 
-        super(Shift, self).__init__(param_dim=param_dim)
+        super(Shift, self).__init__(param_dim=param_dim, offsets=offsets)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -339,7 +339,7 @@ class Scale(Model):
 
         self._factors = factors
 
-        super(Scale, self).__init__(param_dim=param_dim)
+        super(Scale, self).__init__(param_dim=param_dim, factors=factors)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -1249,7 +1249,7 @@ def custom_model_1d(func, func_fit_deriv=None):
 
     Create an instance of the custom model and evaluate it:
 
-        >>> model = SineModel()
+        >>> model = SineModel(1., 1)
         >>> model(0.25)
         1.0
 

@@ -11,7 +11,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import ParametricModel
+from ..core import ParametricModel, Model
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -33,7 +33,7 @@ class TestParModel(ParametricModel):
         pass
 
 
-class MockModel(ParametricModel):
+class MockModel(Model):
     def __call__(self):
         pass
 
@@ -41,15 +41,13 @@ class MockModel(ParametricModel):
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
 
-    # It is possible to test some Parameter functionality by binding it to a
-    # dummy model and giving it a default value
-    p = Parameter(name='alpha', default=42, model=MockModel())
-
-    assert p.name == 'alpha'
+    model = TestParModel(coeff=2, e=1)
+    p = model.coeff
+    assert p.name == 'coeff'
 
     # Parameter names are immutable
     with pytest.raises(AttributeError):
-        p.name = 'beta'
+        p.name = 'coeff'
 
     assert p.fixed == False
     p.fixed = True
@@ -207,7 +205,6 @@ class TestParameters(object):
         Uses an iraf example.
         """
         new_model = self.linear_fitter(self.model, self.x, self.y)
-        print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,
@@ -323,7 +320,19 @@ class TestMultipleParameterSets(object):
             TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
 
     def test_wrong_number_of_params2(self):
-        # This *should* work--if param_dim > 1 and one of the parameter values
-        # is given as a scalar, repeat that value across all param sets
-        m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
-        utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
+        with pytest.raises(InputParameterError):
+            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
+    
+    def test_array_parameter1(self):
+        with pytest.raises(InputParameterError):
+            t=TestParModel(np.array([[1,2], [3,4]]), 1, param_dim=2)
+
+    def test_array_parameter2(self):
+        t=TestParModel(np.array([[1,2], [3,4]]), 1, param_dim=1)
+        utils.assert_almost_equal(t.parameters, [ 1.,  2.,  3.,  4.,  1.])
+    
+    def test_array_parameter3(self):
+        with pytest.raises(InputParameterError):
+            TestParModel(np.array([[1,2], [3,4]]), (1,1,11), param_dim=2)
+
+

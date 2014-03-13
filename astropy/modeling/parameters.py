@@ -100,6 +100,7 @@ class Parameter(object):
     model : object
         an instance of a Model class; this should only be used internally for
         creating bound Parameters
+
     """
 
     # See the _nextid classmethod
@@ -120,7 +121,6 @@ class Parameter(object):
         self._default_max = max
 
         self._order = None
-        self._shape = None
         self._model = model
 
         # The getter/setter functions take one or two arguments: The first
@@ -139,7 +139,7 @@ class Parameter(object):
 
         if model is not None:
             try:
-                _, self._shape = self._validate_value(model, self.value)
+                _, _shape = self._validate_value(model, self.value)
             except AttributeError:
                 # This can happen if the paramter's value has not been set yet
                 pass
@@ -159,9 +159,13 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
+        if obj.param_dim != 1:
+            # If multiple parameter sets, then value is a list of parameters.
+            # use the shape of the first one to compare with the shape of the original parameter
+            _, shape = _tofloat(value[0])
         # Compare the shape against the previous value's shape, if it exists
         if hasattr(obj, self._attr):
-            current_shape = getattr(obj, self.name).shape
+            current_shape = obj._param_metrics[self.name][1]
             if shape != current_shape:
                 raise InputParameterError(
                     "Input value for parameter '{0}' does not have the "
@@ -265,13 +269,7 @@ class Parameter(object):
                 val = self._setter(val)
             setattr(self._model, self._attr, val)
         raise AttributeError('Cannot set a value on a parameter definition')
-
-    @property
-    def shape(self):
-        """The shape of this parameter's value array."""
-
-        return self._shape
-
+ 
     @property
     def size(self):
         """The size of this parameter's value array."""
@@ -415,7 +413,10 @@ class Parameter(object):
         if model is None:
             return
 
-        param_dim = model.param_dim
+        try:
+            param_dim = model.param_dim
+        except AttributeError:
+            return
         if param_dim == 1:
             # Just validate the value with _tofloat
             return _tofloat(value)
