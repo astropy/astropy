@@ -57,7 +57,7 @@ class Distance(u.Quantity):
 
     Raises
     ------
-    UnitsError
+    `~astropy.units.UnitsError`
         If the ``unit`` is not a distance.
     ValueError
         If value specified is less than 0 and ``allow_negative=False``.
@@ -128,7 +128,7 @@ class Distance(u.Quantity):
                 else:
                     value = u.Quantity(value, u.parsec).to(unit).value
             else:
-                raise ValueError('none of `value`, `z`, or `distmod` were given'
+                raise ValueError('None of `value`, `z`, or `distmod` were given'
                                  ' to Distance constructor')
 
                 value = ld.value
@@ -249,7 +249,7 @@ class CartesianPoints(u.Quantity):
     def __new__(cls, x, y=None, z=None, unit=None, dtype=None, copy=True):
         if y is None and z is None:
             if len(x) != 3:
-                raise ValueError('input to CartesianPoints is not length 3')
+                raise ValueError('Input to CartesianPoints is not length 3')
 
             qarr = x
             if unit is None and hasattr(qarr, 'unit'):
@@ -260,8 +260,8 @@ class CartesianPoints(u.Quantity):
                 for coo in (x, y, z):
                     if hasattr(coo, 'unit'):
                         if unit is not None and coo.unit != unit:
-                            raise u.UnitsError('Units for x, y, and z do '
-                                               'not match in CartesianPoints')
+                            raise u.UnitsError('Units for `x`, `y`, and `z` do '
+                                               'not match in CartesianPoints   ')
                         unit = coo.unit
                 #if `unit`  is still None at this point, it means none were
                 #Quantties, which is fine, because it means the user wanted
@@ -277,11 +277,11 @@ class CartesianPoints(u.Quantity):
 
             qarr = [np.asarray(coo) for coo in (x, y, z)]
             if not (qarr[0].shape == qarr[1].shape == qarr[2].shape):
-                raise ValueError("shapes for x,y, and z don't match in "
+                raise ValueError("Shapes for `x`, `y`, and `z` don't match in "
                                  "CartesianPoints")
                 #let the unit be whatever it is
         else:
-            raise TypeError('Must give all of x,y, and z or just array in '
+            raise TypeError('Must give all of `x`, `y`, and `z` or just array in '
                             'CartesianPoints')
         try:
             unit = _convert_to_and_validate_length_unit(unit, True)
