@@ -482,10 +482,23 @@ class astropy_test(Command, object):
             # Run the tests in a subprocess--this is necessary since
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
+
+            # On Python 3.x prior to 3.3, the creation of .pyc files
+            # is not atomic.  py.test jumps through some hoops to make
+            # this work by parsing import statements and carefully
+            # importing files atomically.  However, it can't detect
+            # when __import__ is used, so its carefulness still fails.
+            # The solution here (admittedly a bit of a hack), is to
+            # turn off the generation of .pyc files altogether by
+            # passing the `-B` switch to `python`.  This does mean
+            # that each core will have to compile .py file to bytecode
+            # itself, rather than getting lucky and borrowing the work
+            # already done by another core.  Compilation is an
+            # insignificant fraction of total testing time, though, so
+            # it's probably not worth worrying about.
             retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
                                       cwd=testing_path, close_fds=False)
         finally:
-
             # Remove temporary directory
             shutil.rmtree(tmp_dir)
 
