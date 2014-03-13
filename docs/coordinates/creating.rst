@@ -23,12 +23,12 @@ Note that if you do not provide units explicitly, this will fail::
         ...
     UnitsError: No unit was specified
 
-While the above example uses python numerical types, you can also
-provide strings to create coordinates.  If the ``unit`` parameter is
-``(None, None)`` (the default), strings will be interpreted using the
-`~astropy.coordinates.Angle` class' parsing scheme, and has a guiding principal of being
-able to interpret any *unambiguous* string specifying an angle. For
-the exact rules for how each string is parsed, see the
+While the above example uses python numerical types, you can also provide
+strings to create coordinates.  If the ``unit`` parameter is ``(None,
+None)`` (the default), strings will be interpreted using the
+`~astropy.coordinates.Angle` class' parsing scheme, and has a guiding
+principal of being able to interpret any *unambiguous* string specifying an
+angle. For the exact rules for how each string is parsed, see the
 `~astropy.coordinates.Angle` documentation.  Some examples::
 
     >>> ICRS("3h36m29.7888s -41d08m15.162342s", unit=(None, None))
@@ -54,8 +54,8 @@ ambiguities in parsing the angle strings::
     >>> ICRS('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
     <ICRS RA=46.02083 deg, Dec=6.11889 deg>
 
-It's also possible to create coordinates using lists or `numpy` arrays.  The same
-unit rules apply as for scalar angles.::
+It's also possible to create coordinates using lists or `numpy` arrays.  The
+same unit rules apply as for scalar angles.::
 
     >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654], unit=(u.degree, u.degree))
     <ICRS RA=[ 187.70592  123.45678] deg, Dec=[ 12.39112   9.87654] deg>
@@ -65,10 +65,10 @@ unit rules apply as for scalar angles.::
     UnitsError: No unit was specified
 
 .. warning::
-    If you try to create an angle using a tuple for each angle instead of a list or
-    `numpy` array, it will be interpreted aa ``(hours, minutes, seconds)`` or
-    ``(degrees, arcmin, arcsec)``.  So if you actually want multiple coordinates from
-    a tuple, convert it to a list or array.
+    If you try to create an angle using a tuple for each angle instead of a
+    list or `numpy` array, it will be interpreted as ``(hours, minutes,
+    seconds)`` or ``(degrees, arcmin, arcsec)``.  So if you actually want
+    multiple coordinates from a tuple, convert it to a list or array.
 
 One final way to create coordinates is to copy them from an already
 existing coordinate object::

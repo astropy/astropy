@@ -5,17 +5,18 @@
 Working with Angles
 -------------------
 
-The angular components of a coordinate are represented by objects of the |Angle|
-class. These objects can be instantiated on their own wherever a representation of an
-angle is needed.
+The angular components of a coordinate are represented by objects of the
+|Angle| class. These objects can be instantiated on their own wherever a
+representation of an angle is needed.
 
 Creation
 ^^^^^^^^
 
-The creation of an |Angle| object is quite flexible and supports a wide variety of
-input object types and formats.  The type of the input angle(s) can an array, scalar,
-tuple, string, `~astropy.units.Quantity` or another |Angle|.  This is best illustrated with a number of
-examples of valid ways to create an |Angle|::
+The creation of an |Angle| object is quite flexible and supports a wide
+variety of input object types and formats.  The type of the input angle(s)
+can an array, scalar, tuple, string, `~astropy.units.Quantity` or another
+|Angle|.  This is best illustrated with a number of examples of valid ways
+to create an |Angle|::
 
     >>> import numpy as np
     >>> from astropy import units as u
@@ -48,8 +49,8 @@ examples of valid ways to create an |Angle|::
 Representation
 ^^^^^^^^^^^^^^
 
-The |Angle| object also supports a variety of ways of representing the value of the angle,
-both as a floating point number as a string::
+The |Angle| object also supports a variety of ways of representing the value
+of the angle, both as a floating point number as a string::
 
     >>> a = Angle(1, u.radian)
     >>> a
@@ -112,34 +113,35 @@ Wrapping and bounds
 ^^^^^^^^^^^^^^^^^^^
 
 There are two utility methods that simplify working with angles that should
-have bounds.  The `~astropy.coordinates.Angle.wrap_at()` method allows
+have bounds.  The :meth:`~astropy.coordinates.Angle.wrap_at` method allows
 taking an angle or angles and wrapping to be within a single 360 degree slice.
-The `~astropy.coordinates.Angle.is_within_bounds()` method returns a
+The :meth:`~astropy.coordinates.Angle.is_within_bounds` method returns a
 boolean indicating whether an angle or angles is within the specified bounds.
 
 
 Longitude and Latitude objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-|Longitude| and |Latitude| are two specialized subclasses of the |Angle| class that are
-used for all of the spherical coordinate classes.  |Longitude| is used to represent values
-like right ascension, Galactic longitude, and azimuth (for ecliptic, Galactic, and Alt-Az
-coordinates, respectively).  |Latitude| is used for declination, Galactic latitude, and
+|Longitude| and |Latitude| are two specialized subclasses of the |Angle|
+class that are used for all of the spherical coordinate classes.
+|Longitude| is used to represent values like right ascension, Galactic
+longitude, and azimuth (for ecliptic, Galactic, and Alt-Az coordinates,
+respectively).  |Latitude| is used for declination, Galactic latitude, and
 elevation.
 
 Longitude
 """""""""
 
-A |Longitude| object is distinguished from a pure |Angle| by virtue
-of a ``wrap_angle`` property.  The ``wrap_angle`` specifies that all angle values
+A |Longitude| object is distinguished from a pure |Angle| by virtue of a
+``wrap_angle`` property.  The ``wrap_angle`` specifies that all angle values
 represented by the object will be in the range::
 
   wrap_angle - 360 * u.deg <= angle(s) < wrap_angle
 
-The default ``wrap_angle`` is 360 deg.  Setting ``wrap_angle=180 * u.deg`` would
-instead result in values between -180 and +180 deg.  Setting the ``wrap_angle``
-attribute of an existing ``Longitude`` object will result in re-wrapping the
-angle values in-place.  For example::
+The default ``wrap_angle`` is 360 deg.  Setting ``'wrap_angle=180 * u.deg'``
+would instead result in values between -180 and +180 deg.  Setting the
+``wrap_angle`` attribute of an existing ``Longitude`` object will result in
+re-wrapping the angle values in-place.  For example::
 
     >>> from astropy.coordinates import Longitude
     >>> a = Longitude([-20, 150, 350, 360] * u.deg)
@@ -157,4 +159,5 @@ of being bounded so that::
 
   -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
 
-Any attempt to set a value outside that range will result in a `ValueError`.
+Any attempt to set a value outside that range will result in a
+`~.exceptions.ValueError`.

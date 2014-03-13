@@ -27,14 +27,14 @@ class SphericalCoordinatesBase(object):
 
     Notes
     -----
-    Subclasses must implement `__init__`, and define the `latangle` and
+    Subclasses must implement ``__init__``, and define the `latangle` and
     `lonangle` properties.  They may also override the `equinox`
     property, or leave it unaltered to indicate the coordinates are
     equinoxless.
 
     ``_initialize_latlon`` is provided to implement typical
     initialization features, and should be called from a subclass'
-    `__init__`.  See the classes in
+    ``__init__``.  See the classes in
     `~astropy.coordinates` for examples of this.
     """
 
@@ -88,7 +88,7 @@ class SphericalCoordinatesBase(object):
             ``{lonnm}`` and ``{latnm}``, respectively. They can be either
             `~astropy.units.UnitBase` objects or strings that will be
             converted using `~astropy.units.Unit`.  They can also be
-            None to attempt to automatically interpret the units (see
+            `None` to attempt to automatically interpret the units (see
             `~astropy.coordinates.Angle` for details.) If ``unit``
             is just `None`, this will be interpreted the same as
             ``(None, None)``.
@@ -349,7 +349,7 @@ class SphericalCoordinatesBase(object):
     @property
     def equinox(self):
         """
-        The equinox of this system, or None to indicate no equinox specified.
+        The equinox of this system, or `None` to indicate no equinox specified.
         """
         return None
 
@@ -519,7 +519,7 @@ class SphericalCoordinatesBase(object):
         idx : integer array
             Indecies into ``catalogcoord`` to get the matched points
             for each ``matchcoord``. Shape matches this coordinate.
-        sep2d : `~astropy.units.quantity.Angle`
+        sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the closest match for each
             ``matchcoord`` and the ``matchcoord``. Shape matches
             ``matchcoord``.
@@ -553,18 +553,19 @@ class SphericalCoordinatesBase(object):
             will be a coordinate object that is an array (i.e.,
             ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
-            Which closest neighbor to search for.  Typically ``1`` is desired here,
-            as that is correct for matching one set of coordinates to another.
-            The next likely use case is ``2``, for matching a coordinate catalog
-            against *itself* (``1`` is inappropriate because each point will find
-            itself as the closest match).
+            Which closest neighbor to search for.  Typically ``1`` is
+            desired here, as that is correct for matching one set of
+            coordinates to another. The next likely use case is ``2``,
+            for matching a coordinate catalog against *itself* (``1``
+            is inappropriate because each point will find itself as the
+            closest match).
 
         Returns
         -------
         idx : integer array
             Indecies into ``catalogcoord`` to get the matched points
             for each ``matchcoord``. Shape matches this coordinate.
-        sep2d : `~astropy.units.quantity.Angle`
+        sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the closest match for each
             ``matchcoord`` and the ``matchcoord``. Shape matches
             ``matchcoord``.
@@ -632,7 +633,7 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         transformable : bool or str
-            True if this can be trasnformed to ``tosys``, False if not. The
+            `True` if this can be trasnformed to ``tosys``, `False` if not. The
             string 'same' if ``tosys`` is the same system as this object
             (i.e. no transformation is needed).
         """
@@ -682,8 +683,8 @@ class SphericalCoordinatesBase(object):
     @property
     def isscalar(self):
         """
-        True if this coordinate contains scalar angles/distances, or False if
-        they are array-like
+        `True` if this coordinate contains scalar angles/distances, or
+        `False` if they are array-like
         """
         #assumes input-validation occurs and thus lat/lon/dist consistent
         return self.lonangle.isscalar
@@ -696,20 +697,20 @@ class SphericalCoordinatesBase(object):
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
         url, and  query timeout can be set through configuration items in
-        `~astropy.coordinates.name_resolve` -- see docstring for
+        ``astropy.coordinates.name_resolve`` -- see docstring for
         `~astropy.coordinates.get_icrs_coordinates` for more
         information.
 
         Parameters
         ----------
         name : str
-            The name of the object to get coordinates for, e.g. m42.
+            The name of the object to get coordinates for, e.g. ``'M42'``.
 
         Returns
         -------
         coord : SphericalCoordinatesBase
             Instance of a Coordinates class, specified by the class this is
-            called on, e.g. if `Galactic.from_name('m42')`, will
+            called on, e.g. if ``'Galactic.from_name('m42')'``, will
             get an instance of `Galactic` representing the
             position of M42.
         """
@@ -728,19 +729,20 @@ class SphericalCoordinatesBase(object):
         """
         A string representation of the coordinates.
 
-        See :meth:`~astropy.coordinates.Angle.to_string` for details and keyword
-        arguments (the two angles forming the coordinates are are both
-        :class:`~astropy.coordinates.Angle` instances). Keyword arguments are passed to
-        :meth:`~astropy.coordinates.Angle.to_string`.
+        See :meth:`~astropy.coordinates.Angle.to_string` for details and
+        keyword arguments (the two angles forming the coordinates are are
+        both :class:`~astropy.coordinates.Angle` instances). Keyword
+        arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.
 
         Parameters
         ----------
-        style : {'hmsdms', 'dms', 'decimal', None}
+        style : {'hmsdms', 'dms', 'decimal', `None`}
             The formatting specification to use. These encode the three most
             common ways to represent coordinates. If `None` is passed, the
             defaults for the current coordinate class is used.
         kwargs
-            Keyword arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.
+            Keyword arguments are passed to
+            :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
         if style is None:

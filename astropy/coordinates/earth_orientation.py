@@ -137,7 +137,7 @@ def precession_matrix_Capitaine(fromepoch, toepoch):
     Returns
     -------
     pmatrix : 3x3 array
-        Precession matrix to get from `fromepoch` to `toepoch`
+        Precession matrix to get from ``fromepoch`` to ``toepoch``
 
     References
     ----------
@@ -182,7 +182,7 @@ def _precession_matrix_besselian(epoch1, epoch2):
     computes the precession matrix from one Besselian epoch to another using
     Newcomb's method.
 
-    `epoch1` and `epoch2` are in besselian year numbers
+    ``epoch1`` and ``epoch2`` are in besselian year numbers
     """
     from .angles import rotation_matrix
 

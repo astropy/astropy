@@ -46,16 +46,17 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
     idx : integer array
         Indecies into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
-    sep2d : `~astropy.units.quantity.Angle`
-        The on-sky separation between the closest match for each ``matchcoord`` and
-        the ``matchcoord``. Shape matches ``matchcoord``.
+    sep2d : `~astropy.coordinates.Angle`
+        The on-sky separation between the closest match for each ``matchcoord``
+        and the ``matchcoord``. Shape matches ``matchcoord``.
     dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed 
+    or it will fail.
     """
     from warnings import warn
 
@@ -147,16 +148,17 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
     idx : integer array
         Indecies into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
-    sep2d : `~astropy.units.quantity.Angle`
-        The on-sky separation between the closest match for each ``matchcoord`` and
-        the ``matchcoord``. Shape matches ``matchcoord``.
+    sep2d : `~astropy.coordinates.Angle`
+        The on-sky separation between the closest match for each 
+        ``matchcoord`` and the ``matchcoord``. Shape matches ``matchcoord``.
     dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed or it will fail.
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed 
+    or it will fail.
     """
     dcoo = matchcoord._distance
     cpcoo = matchcoord._cartpoint

@@ -55,7 +55,8 @@ accessed using aptly named attributes::
     >>> c.dec.radian
     0.7202828960652683
 
-Coordinates can easily be converted to strings using the ``to_string`` method::
+Coordinates can easily be converted to strings using the
+:meth:`~astropy.coordinates.Angle.to_string` method::
 
     >>> c.to_string()
     '0h42m44.2992s 41d16m09.012s'
@@ -64,10 +65,11 @@ Coordinates can easily be converted to strings using the ``to_string`` method::
     >>> c.to_string(precision=1, sep=' ')
     '0 42 44.3 41 16 09.0'
 
-To convert to some other coordinate system, the easiest method is to
-use attribute-style access with short names for the built-in systems,
-but explicit transformations via the `transform_to` method are also
-available::
+To convert to some other coordinate system, the easiest method is to use
+attribute-style access with short names for the built-in systems, but
+explicit transformations via the
+:meth:`~astropy.coordinates.SphericalCoordinatesBase.transform_to` method
+are also available::
 
     >>> c.galactic
     <Galactic l=121.17430 deg, b=-21.57280 deg>
@@ -116,10 +118,11 @@ arrays::
 The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects (if you have an active internet
 connection). All subclasses of
-`~astropy.coordinates.SphericalCoordinatesBase` have a
-special class method, `from_name()`, that accepts a string and queries
-`Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
-coordinates for that object::
+`~astropy.coordinates.SphericalCoordinatesBase` have a special class method,
+:meth:`~astropy.coordinates.SphericalCoordinatesBase.from_name`, that
+accepts a string and queries `Sesame
+<http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates for that
+object::
 
     >>> c = ICRS.from_name("M42")  # doctest: +REMOTE_DATA
     >>> c.ra, c.dec  # doctest: +SKIP
@@ -143,7 +146,8 @@ This works for any subclass of
 Using `astropy.coordinates`
 ===========================
 
-More details of using `astropy.coordinates` are provided in the following sections:
+More details of using `astropy.coordinates` are provided in the following
+sections:
 
 .. toctree::
    :maxdepth: 1
@@ -160,10 +164,11 @@ More details of using `astropy.coordinates` are provided in the following sectio
 
 
 In addition, another resource for the capabilities of this package is the
-`astropy.coordinates.tests.test_api` testing file. It showcases most of the
-major capabilities of the package, and hence is a useful supplement to this
-document.  You can see it by either looking at it directly if you downloaded a
-copy of the astropy source code, or typing the following in an IPython session::
+``'astropy.coordinates.tests.test_api'`` testing file. It showcases most of
+the major capabilities of the package, and hence is a useful supplement to
+this document.  You can see it by either looking at it directly if you
+downloaded a copy of the astropy source code, or typing the following in an
+IPython session::
 
     In [1]: from astropy.coordinates.tests import test_api
     In [2]: test_api??
@@ -199,4 +204,5 @@ Reference/API
   :skip: GalacticCoordinates
   :skip: HorizontalCoordinates
 
-.. the ":skip:"s above are to not document the v0.3 backwards-compatibility names.  They will be removed in the next version
+.. the ":skip:"s above are to not document the v0.3 backwards-compatibility
+.. names.  They will be removed in the next version
