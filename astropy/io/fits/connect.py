@@ -218,9 +218,9 @@ def write_table_fits(input, output, overwrite=False):
 
     # Create a new HDU object
     if input.masked:
-        #float column's default mask value needs to be Nan 
+        #float column's default mask value needs to be Nan
         for column in six.itervalues(input.columns):
-            if column.dtype.kind == 'f' and column.get_fill_value() == 1e20:
+            if column.dtype.kind == 'f' and np.allclose(column.get_fill_value(), 1e20):
                 column.set_fill_value(np.nan)
 
         table_hdu = BinTableHDU(np.array(input.filled()))
