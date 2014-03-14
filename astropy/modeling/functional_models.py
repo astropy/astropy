@@ -204,7 +204,7 @@ class Gaussian2D(Parametric2DModel):
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
-            theta = np.arctan2(y_vec[1], y_vec[0])
+            theta = -np.arctan2(y_vec[1], y_vec[0])
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
