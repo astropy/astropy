@@ -529,8 +529,12 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
 
     if not sep:  # empty string, False, or None, etc.
         sep = ('', '', '')
-    elif len(sep) == 1:
+    elif len(sep) == 1 and fields == 3:
         sep = sep + (sep[0], '')
+    elif len(sep) == 1 and fields == 2:
+        sep = sep + ('','')
+    elif len(sep) == 1 and fields == 1:
+        sep = ('','','')
     elif len(sep) == 2:
         sep = sep + ('',)
     elif len(sep) != 3:
