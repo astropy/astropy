@@ -62,25 +62,25 @@ def test_listwriter():
 def test_identify_table():
     """
     Test to make sure that identify_table() returns whether the
-    given BeautifulSoup tag is the correct table to process.
+    given BeautifulSoup tag is in the correct table to process.
     """
 
-    # Should return False on non-tables
+    # Should return False on tags with no <table> parents
     soup = BeautifulSoup('<html><body></body></html>')
-    assert html.identify_table(soup, {}, 0) is False
+    assert html.identify_table(soup.body, {}, 0) is False
 
     soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
                          '<td>B</td></tr></table>').table
-    assert html.identify_table(soup, {}, 2) is False
-    assert html.identify_table(soup, {}, 1) is True # Default index of 1
+    assert html.identify_table(soup.tr, {}, 2) is False
+    assert html.identify_table(soup.tr, {}, 1) is True # Default index of 1
 
     # Same tests, but with explicit parameter
-    assert html.identify_table(soup, {'table_id': 2}, 1) is False
-    assert html.identify_table(soup, {'table_id': 1}, 1) is True
+    assert html.identify_table(soup.tr, {'table_id': 2}, 1) is False
+    assert html.identify_table(soup.tr, {'table_id': 1}, 1) is True
 
     # Test identification by string ID
-    assert html.identify_table(soup, {'table_id': 'bar'}, 1) is False
-    assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
+    assert html.identify_table(soup.tr, {'table_id': 'bar'}, 1) is False
+    assert html.identify_table(soup.tr, {'table_id': 'foo'}, 1) is True
 
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
@@ -168,10 +168,9 @@ def test_htmlheader_start():
     assert str(lines[header.start_line(lines)]) == \
            '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
 
-    # Should raise an error if the desired table is not found
+    # start_line should return None if no valid header is found
     header.html = {'table_id': 4}
-    with pytest.raises(core.InconsistentTableError):
-        header.start_line(lines)
+    assert header.start_line(lines) is None
 
     # Should raise an error if a non-SoupString is present
     lines.append('<tr><th>Header</th></tr>')
