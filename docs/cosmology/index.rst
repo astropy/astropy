@@ -20,7 +20,7 @@ Getting Started
 
 There are many functions available to calculate cosmological
 quantities as a function of redshift. For example, the two cases below
-calculate the Hubble constant at z=0 (i.e., `H0`), and the number of
+calculate the Hubble constant at z=0 (i.e., ``H0``), and the number of
 transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
@@ -63,7 +63,7 @@ the 5-year WMAP parameters:
 
 An important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
-`Om`, you need to make a new instance of the class.  Also note that
+``Om``, you need to make a new instance of the class.  Also note that
 the built in cosmologies are instances of classes as described below,
 not functions.
 
@@ -88,13 +88,13 @@ arguments giving the Hubble parameter and omega matter (both at z=0):
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
                 Neff=3.04, m_nu=[ 0.  0.  0.] eV)
 
-This can also be done more explicity using units, which is recommended:
+This can also be done more explicitly using units, which is recommended:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
   >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.3)
 
-However, most of the parameters that accept units (`H0`, `Tcmb0`)
+However, most of the parameters that accept units (``H0``, ``Tcmb0``)
 have default units, so unit quantities do not have to be used.
 The exception are neutrino masses, where you must supply a
 units if you want massive neutrinos.
@@ -175,13 +175,13 @@ methods available if you work directly with the cosmology object.
 
 These functions will perform calculations using the "current"
 cosmology. This is a specific cosmology that is currently active in
-`astropy` and it's described further in the following section. They
-can also be explicitly given a cosmology using the `cosmo` keyword
+``astropy`` and it's described further in the following section. They
+can also be explicitly given a cosmology using the ``cosmo`` keyword
 argument. A full list of convenience functions is included below, in
 the `Reference/API`_ section.
 
 Finally, if you know a cosmological quantity and you want to know the
-redshift which it corresponds to, you can use `z_at_value`:
+redshift which it corresponds to, you can use ``z_at_value``:
 
 .. doctest-requires:: scipy
 
@@ -191,7 +191,7 @@ redshift which it corresponds to, you can use `z_at_value`:
   3.1981...
 
 For some quantities there can be more than one redshift that satisfies
-a value. In this case you can use the `zmin` and `zmax` keywords to
+a value. In this case you can use the ``zmin`` and ``zmax`` keywords to
 restrict the search range.
 
 
@@ -250,7 +250,7 @@ the WMAP and Planck satellite data. For example,
   <Quantity 15932.668054... Mpc>
 
 A full list of the pre-defined cosmologies is given by
-`cosmology.parameters.available`, and summarized below:
+``cosmology.parameters.available``, and summarized below:
 
 ========  ============================= ====  ===== =======
 Name      Source                        H0    Om    Flat
@@ -274,7 +274,7 @@ are available in the document tag for each object:
 Using `cosmology` inside Astropy
 --------------------------------
 
-If you are writing code for the `astropy` core or an affiliated
+If you are writing code for the Astropy core or an affiliated
 package, it is strongly recommended that you use the current cosmology
 through the `~astropy.cosmology.get_current` function. It is also
 recommended that you provide an override option something like the
@@ -301,7 +301,7 @@ and `~astropy.cosmology.LambdaCDM` assume that dark
 energy is a cosmological constant, and should be the most commonly
 used cases; the former assumes a flat Universe, the latter allows
 for spatial curvature.  `~astropy.cosmology.FlatwCDM` and
-`~astropy.cosmology.wCDM` assum a constant dark
+`~astropy.cosmology.wCDM` assume a constant dark
 energy equation of state parameterized by :math:`w_{0}`. Two forms of a
 variable dark energy equation of state are provided: the simple first
 order linear expansion :math:`w(z) = w_{0} + w_{z} z` by
@@ -321,11 +321,11 @@ The cosmology classes include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
 massless.  The three parameters controlling the proporties of these
 species, which are arguments to the initializers of all the
-cosmological classes, are `Tcmb0` (the temperature of the CMB at z=0),
-`Neff`, the effective number of neutrino species, and `m_nu`, the rest
-mass of the neutrino species.  `Tcmb0` and `m_nu` should be expressed
+cosmological classes, are ``Tcmb0`` (the temperature of the CMB at z=0),
+``Neff``, the effective number of neutrino species, and ``m_nu``, the rest
+mass of the neutrino species.  ``Tcmb0`` and ``m_nu`` should be expressed
 as unit Quantities.  All three have standard default values (2.725 K,
-3.04, and 0 eV respectively; the reason that `Neff` is not 3 primarily
+3.04, and 0 eV respectively; the reason that ``Neff`` is not 3 primarily
 has to do with a small bump in the neutrino energy spectrum due to
 electron-positron annihilation, but is also affected by weak
 interaction physics).
@@ -351,7 +351,7 @@ can be found as a function of redshift:
    array([  3.442154...e-05,   1.895678...e-04,   3.451212...e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
-simply set `Tcmb0` to 0:
+simply set ``Tcmb0`` to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
@@ -359,7 +359,7 @@ simply set `Tcmb0` to 0:
   >>> cos.Ogamma0, cos.Onu0
   (0.0, 0.0)
 
-Neutrinos can be removed (while leaving photons) by setting `Neff` to 0:
+Neutrinos can be removed (while leaving photons) by setting ``Neff`` to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
@@ -367,11 +367,11 @@ Neutrinos can be removed (while leaving photons) by setting `Neff` to 0:
   (array([  4.98569497e-05,   2.74623215e-04,   5.00051839e-04]),
    array([0, 0, 0]))
 
-The number of neutrino species is assumed to be the floor of `Neff`,
+The number of neutrino species is assumed to be the floor of ``Neff``,
 which in the default case is 3.  Therefore, if non-zero neutrino masses
 are desired, then 3 masses should be provided.  However, if only one
 value is provided, all the species are assumed to have the same mass.
-`Neff` is assumed to be shared equally between each species.
+``Neff`` is assumed to be shared equally between each species.
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
