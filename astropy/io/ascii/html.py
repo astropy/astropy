@@ -4,8 +4,8 @@
 html.py:
   Classes to read and write HTML tables
 
-This requires `BeautifulSoup
-        <http://www.crummy.com/software/BeautifulSoup/>`_ to be installed.
+`BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
+must be installed to read HTML tables.
 """
 
 from __future__ import absolute_import, division, print_function
@@ -38,7 +38,7 @@ class ListWriter:
     def write(self, data):
         self.out.append(data)
 
-def correct_table(soup, htmldict, numtable):
+def identify_table(soup, htmldict, numtable):
     """
     Checks whether the given BeautifulSoup tag is the table
     the user intends to process.
@@ -165,7 +165,7 @@ class HTMLHeader(core.BaseHeader):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
+            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables):
                 return i
         
         raise core.InconsistentTableError('No start line found for HTML header')
@@ -208,7 +208,7 @@ class HTMLData(core.BaseData):
             
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables) \
+            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables) \
                                                 and soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
@@ -230,7 +230,7 @@ class HTMLData(core.BaseData):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and correct_table(soup.parent, self.html, tables):
+            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables):
                 last_index = i
 
         if last_index == -1:
