@@ -51,6 +51,10 @@ New Features
   - An option was added to guess the start of data for CDS format files when
     they do not strictly conform to the format standard. [#2241]
 
+  - Added an HTML reader and writer to the ``astropy.io.ascii`` package.
+    Parsing requires the installation of BeautifulSoup and is therefore
+    an optional feature. [#2160]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
