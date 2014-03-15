@@ -315,9 +315,3 @@ def test_empty_sep():
 
     assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
 
-def test_colon():
-    a = Angle(1.113355, unit=u.deg)
-    assert a.to_string(fields=2, sep=':') == '1:07'
-    assert a.to_string(fields=2, sep='dms') == '1d07m'
-    assert a.to_string(fields=3, sep=':') == '1:06:48.078'
-    assert a.to_string(fields=1, sep=':') == '1'
