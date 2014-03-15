@@ -16,8 +16,8 @@ Astropy also depends on other packages for optional features:
 - `h5py <http://alfven.org/wp/hdf5-for-python/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files
 
-- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read/write
-  :class:`~astropy.table.table.Table` objects from/to HTML files
+- `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
+  :class:`~astropy.table.table.Table` objects from HTML files
 
 - `scipy <http://www.scipy.org/>`_: To power a variety of features (currently
   mainly cosmology-related functionality)
