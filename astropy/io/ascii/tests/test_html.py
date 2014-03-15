@@ -281,6 +281,52 @@ def test_multicolumn_write():
     """
     assert html.HTML().write(table)[0].strip() == expected.strip()
 
+def test_write_no_multicols():
+    """
+    Test to make sure that the HTML writer will not use
+    multi-dimensional columns if the multicol parameter
+    is False.
+    """
+
+    col1 = [1, 2, 3]
+    col2 = [(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)]
+    col3 = [('a', 'a', 'a'), ('b', 'b', 'b'), ('c', 'c', 'c')]
+    table = Table([col1, col2, col3], names=('C1', 'C2', 'C3'))
+    expected = """\
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
+ </head>
+ <body>
+  <table>
+   <tr>
+    <th>C1</th>
+    <th>C2</th>
+    <th>C3</th>
+   </tr>
+   <tr>
+    <td>1</td>
+    <td>1.0 .. 1.0</td>
+    <td>a .. a</td>
+   </tr>
+   <tr>
+    <td>2</td>
+    <td>2.0 .. 2.0</td>
+    <td>b .. b</td>
+   </tr>
+   <tr>
+    <td>3</td>
+    <td>3.0 .. 3.0</td>
+    <td>c .. c</td>
+   </tr>
+  </table>
+ </body>
+</html>
+    """
+    assert html.HTML({'multicol':False}).write(table)[0].strip() == \
+                                                   expected.strip()
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_multicolumn_read():
     """

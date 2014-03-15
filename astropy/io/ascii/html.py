@@ -260,6 +260,12 @@ class HTML(core.BaseReader):
             If an integer, this specificies the index of the input table in the
             available tables. Unless this parameter is given, the reader will
             use the first table found in the input file.
+
+        * multicol : Use multi-dimensional columns for output
+            The writer will output tuples as elements of multi-dimensional
+            columns if this parameter is true, and if not then it will
+            use the syntax 1.36583e-13 .. 1.36583e-13 for output. If not
+            present, this parameter will be true by default.
     
     """
     
@@ -283,6 +289,8 @@ class HTML(core.BaseReader):
         self.data.header = self.header
         self.header.data = self.data
         self.html = htmldict
+        if 'multicol' not in htmldict:
+            self.html['multicol'] = True
         self.header.html = self.html
         self.data.html = self.html
 
@@ -320,7 +328,7 @@ class HTML(core.BaseReader):
                 with w.tag('table'):
                     with w.tag('tr'):
                         for col in cols:
-                            if len(col.shape) > 1:
+                            if len(col.shape) > 1 and self.html['multicol']:
                                 # Set colspan attribute for multicolumns
                                 w.start('th', colspan=col.shape[1])
                             else:
@@ -329,7 +337,7 @@ class HTML(core.BaseReader):
                             w.end(indent=False)
                     col_str_iters = []
                     for col in cols:
-                        if len(col.shape) > 1:
+                        if len(col.shape) > 1 and self.html['multicol']:
                             span = col.shape[1]
                             for i in range(span):
                                 # Split up multicolumns into separate columns
