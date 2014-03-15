@@ -78,8 +78,8 @@ class HTMLInputter(core.BaseInputter):
             from bs4 import BeautifulSoup
             from bs4.element import Comment
         except ImportError:
-            raise ImportError('BeautifulSoup must be installed '
-                                        'to read HTML tables')
+            raise core.OptionalTableImportError('BeautifulSoup must be '
+                                        'installed to read HTML tables')
         
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []

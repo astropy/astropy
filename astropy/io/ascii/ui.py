@@ -178,7 +178,8 @@ def _guess(table, read_kwargs):
                 raise ValueError
             return dat
 
-        except (core.InconsistentTableError, ValueError, TypeError, ImportError):
+        except (core.InconsistentTableError, ValueError, TypeError,
+                                        core.OptionalTableImportError):
             failed_kwargs.append(guess_kwargs)
             pass
     else:
@@ -186,7 +187,8 @@ def _guess(table, read_kwargs):
         try:
             reader = get_reader(**read_kwargs)
             return reader.read(table)
-        except (core.InconsistentTableError, ValueError, ImportError):
+        except (core.InconsistentTableError, ValueError, ImportError,
+                                            core.OptionalTableImportError):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table for with the guesses listed below:']
             for kwargs in failed_kwargs:
