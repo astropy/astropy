@@ -85,12 +85,12 @@ def test_identify_table():
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
-    This should return an InconsistentTableError if BeautifulSoup
+    This should return an ImportError if BeautifulSoup
     is not installed.
     """
 
     inputter = html.HTMLInputter()
-    with pytest.raises(core.InconsistentTableError):
+    with pytest.raises(ImportError):
         inputter.process_lines([])
     
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
