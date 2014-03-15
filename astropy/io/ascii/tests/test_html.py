@@ -59,28 +59,28 @@ def test_listwriter():
     assert lst == [0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e']
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
-def test_correct_table():
+def test_identify_table():
     """
-    Test to make sure that correct_table() returns whether the
+    Test to make sure that identify_table() returns whether the
     given BeautifulSoup tag is the correct table to process.
     """
 
     # Should return False on non-tables
     soup = BeautifulSoup('<html><body></body></html>')
-    assert html.correct_table(soup, {}, 0) is False
+    assert html.identify_table(soup, {}, 0) is False
 
     soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
                          '<td>B</td></tr></table>').table
-    assert html.correct_table(soup, {}, 2) is False
-    assert html.correct_table(soup, {}, 1) is True # Default index of 1
+    assert html.identify_table(soup, {}, 2) is False
+    assert html.identify_table(soup, {}, 1) is True # Default index of 1
 
     # Same tests, but with explicit parameter
-    assert html.correct_table(soup, {'table_id': 2}, 1) is False
-    assert html.correct_table(soup, {'table_id': 1}, 1) is True
+    assert html.identify_table(soup, {'table_id': 2}, 1) is False
+    assert html.identify_table(soup, {'table_id': 1}, 1) is True
 
     # Test identification by string ID
-    assert html.correct_table(soup, {'table_id': 'bar'}, 1) is False
-    assert html.correct_table(soup, {'table_id': 'foo'}, 1) is True
+    assert html.identify_table(soup, {'table_id': 'bar'}, 1) is False
+    assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
 
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():

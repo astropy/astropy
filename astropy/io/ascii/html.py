@@ -78,8 +78,8 @@ class HTMLInputter(core.BaseInputter):
             from bs4 import BeautifulSoup
             from bs4.element import Comment
         except ImportError:
-            raise core.InconsistentTableError('BeautifulSoup must be '
-                                        'installed to read HTML tables')
+            raise ImportError('BeautifulSoup must be installed '
+                                        'to read HTML tables')
         
         soup = BeautifulSoup('\n'.join(lines))
         soup_list = []
@@ -165,7 +165,7 @@ class HTMLHeader(core.BaseHeader):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables):
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html, tables):
                 return i
         
         raise core.InconsistentTableError('No start line found for HTML header')
@@ -208,7 +208,7 @@ class HTMLData(core.BaseData):
             
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables) \
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html, tables) \
                                                 and soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
@@ -230,7 +230,7 @@ class HTMLData(core.BaseData):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and find_table(soup.parent, self.html, tables):
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html, tables):
                 last_index = i
 
         if last_index == -1:
