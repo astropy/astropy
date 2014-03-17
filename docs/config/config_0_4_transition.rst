@@ -65,6 +65,18 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``coordinates.name_resolve.NAME_RESOLVE_TIMEOUT``
      - ``[astropy.utils.data] remote_timeout``
      - ``astropy.utils.data.conf.remote_timeout``
+   * - ``[coordinates.name_resolve] sesame_url``
+     - ``coordinates.name_resolve.SESAME_URL``
+     - removed
+     - ``coordinates.name_resolve.sesame_url.get/set``
+   * - ``[coordinates.name_resolve] sesame_database``
+     - ``coordinates.name_resolve.SESAME_DATABASE``
+     - removed
+     - ``coordinates.name_resolve.sesame_database.get/set``
+   * - ``[cosmology.core] default_cosmology``
+     - ``cosmology.core.DEFAULT_COSMOLOGY``
+     - removed
+     - ``cosmology.default_cosmology.get/set``
    * - ``[io.fits] enable_record_valued_keyword_cards``
      - ``io.fits.ENABLE_RECORD_VALUED_KEYWORD_CARDS``
      - unchanged
