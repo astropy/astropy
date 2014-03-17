@@ -13,9 +13,9 @@ The config file
 ^^^^^^^^^^^^^^^
 
 If you never edited the configuration file in
-``~/.astropy/config/astropy.cfg``, there is nothing for you to do.  It
-will automatically be replaced with the configuration file template
-for astropy 0.4.
+``~/.astropy/config/astropy.cfg``, there is nothing for you to do.
+The first time you import astropy 0.4, it will automatically be
+replaced with the configuration file template for astropy 0.4.
 
 If you did edit the configuration file, it will be left untouched.
 However, the template for astropy 0.4 will be installed as
