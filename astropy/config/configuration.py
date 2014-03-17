@@ -564,10 +564,10 @@ class ConfigAlias(ConfigItem):
         return self._get_target().reload(self._new_name)
 
     def __repr__(self):
-        return repr(self._get_target().__dict__['_items'][self._new_name])
+        return repr(getattr(self._get_target().__class__, self._new_name))
 
     def __str__(self):
-        return str(self._get_target().__dict__['_items'][self._new_name])
+        return str(getattr(self._get_target().__class__, self._new_name))
 
     def __call__(self):
         self._deprecation_warning()
