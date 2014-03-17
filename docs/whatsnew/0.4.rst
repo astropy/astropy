@@ -11,6 +11,15 @@ Overview
 
 xxx
 
+Inspecting FITS headers from the command line
+---------------------------------------------
+
+The :ref:`astropy-io-fits` sub-package now provides a command line script for
+inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run 
+``fitsheader file.fits`` in your terminal to print the header information to
+the screen in a human-readable format. Run ``fitsheader --help`` to see the
+full usage documentation.
+
 Documentation/Sphinx extension changes
 --------------------------------------
 
@@ -25,7 +34,6 @@ this URL points to the v0.3 location of the
 http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.html
 while the appropriate URL for v0.4 and later is:
 http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
-
 
 Deprecation and backward-incompatible changes
 ---------------------------------------------

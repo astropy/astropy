@@ -2,6 +2,8 @@
 
 .. currentmodule:: astropy.io.fits
 
+.. _astropy-io-fits:
+
 **************************************
 FITS File handling (`astropy.io.fits`)
 **************************************
