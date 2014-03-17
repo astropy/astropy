@@ -44,19 +44,15 @@ def identify_table(soup, htmldict, numtable):
     the user intends to process.
     """
 
-    for parent in soup.parents:
-        if parent.name == 'table':
-            table_soup = parent
-            break
-    else: # Tag is not inside any table
-        return False
+    if soup.parent.name != 'table':
+        return False # Tag is not inside a table
     if 'table_id' not in htmldict:
         return numtable == 1
 
     table_id = htmldict['table_id']
 
     if isinstance(table_id, six.string_types):
-        return 'id' in table_soup.attrs and table_soup['id'] == table_id
+        return 'id' in soup.parent.attrs and soup.parent['id'] == table_id
     elif isinstance(table_id, int):
         return table_id == numtable
     
