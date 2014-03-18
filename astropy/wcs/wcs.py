@@ -52,6 +52,8 @@ except ImportError:
 
 from ..utils import deprecated, deprecated_attribute
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..coordinates import coordsystems
+from ..coordinates import angle_utilities
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -1061,8 +1063,14 @@ naxis kwarg.
             return result
 
         if len(args) == 2:
+            xy, origin = args
+            if isinstance(xy, coordsystems.SphericalCoordinatesBase):
+                x = angle_utilities.parse_angle(xy.lonangle.to_string(sep='dms'))
+                y = angle_utilities.parse_angle(xy.latangle.to_string(sep='dms'))
+                xy = [[angle_utilities.dms_to_degrees(*x[0]),
+                       angle_utilities.dms_to_degrees(*y[0])]]
+
             try:
-                xy, origin = args
                 xy = np.asarray(xy)
                 origin = int(origin)
             except:
