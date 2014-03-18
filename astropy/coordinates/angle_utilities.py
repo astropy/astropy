@@ -527,19 +527,24 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     if not isinstance(sep, tuple):
         sep = tuple(sep)
 
+    if fields < 1 or fields > 3:
+        raise ValueError(
+            "fields must be 1, 2, or 3")
+
     if not sep:  # empty string, False, or None, etc.
         sep = ('', '', '')
     elif len(sep) == 1:
-        sep = sep + (sep[0], '')
+        if fields == 3:
+            sep = sep + (sep[0], '')
+        elif fields == 2:
+            sep = sep + ('', '')
+        else:
+            sep = ('', '', '')
     elif len(sep) == 2:
         sep = sep + ('',)
     elif len(sep) != 3:
         raise ValueError(
             "Invalid separator specification for converting angle to string.")
-
-    if fields < 1 or fields > 3:
-        raise ValueError(
-            "fields must be 1, 2, or 3")
 
     # Simplify the expression based on the requested precision.  For
     # example, if the seconds will round up to 60, we should convert

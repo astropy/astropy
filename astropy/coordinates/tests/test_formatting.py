@@ -148,3 +148,9 @@ def test_sexagesimal_round_down():
     from .. import ICRS
     c = ICRS(1, 2, unit=('deg', 'deg'))
     assert c.to_string() == '0h04m00s 2d00m00s'
+
+def test_to_string_fields_colon():
+    a = Angle(1.113355, unit=u.deg)
+    assert a.to_string(fields=2, sep=':') == '1:07'
+    assert a.to_string(fields=3, sep=':') == '1:06:48.078'
+    assert a.to_string(fields=1, sep=':') == '1'

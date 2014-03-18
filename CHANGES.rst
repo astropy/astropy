@@ -285,6 +285,10 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - if ``sep`` argument is specified to be a single character in
+    ``sexagisimal_to_string``, it now includes seperators only between
+    items [#2183]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

@@ -314,3 +314,4 @@ def test_empty_sep():
     a = Angle('05h04m31.93830s')
 
     assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
+
