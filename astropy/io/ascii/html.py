@@ -40,19 +40,19 @@ class ListWriter:
 
 def identify_table(soup, htmldict, numtable):
     """
-    Checks whether the given BeautifulSoup tag is inside the table
+    Checks whether the given BeautifulSoup tag is the table
     the user intends to process.
     """
 
-    if soup.parent.name != 'table':
-        return False # Tag is not inside a table
+    if soup is None or soup.name != 'table':
+        return False # Tag is not a <table>
     if 'table_id' not in htmldict:
         return numtable == 1
 
     table_id = htmldict['table_id']
 
     if isinstance(table_id, six.string_types):
-        return 'id' in soup.parent.attrs and soup.parent['id'] == table_id
+        return 'id' in soup.attrs and soup['id'] == table_id
     elif isinstance(table_id, int):
         return table_id == numtable
     
@@ -165,8 +165,8 @@ class HTMLHeader(core.BaseHeader):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and identify_table(soup, self.html, tables) \
-                                             and soup.th is not None:
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
+                                            tables) and soup.th is not None:
                 return i
 
         return None
@@ -209,8 +209,8 @@ class HTMLData(core.BaseData):
             
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and identify_table(soup, self.html, tables) \
-                                                and soup.td is not None:
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
+                                            tables) and soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
                                 'have headings and data in the same row')
@@ -231,7 +231,8 @@ class HTMLData(core.BaseData):
             soup = line.soup
             if soup.name == 'table':
                 tables += 1
-            elif soup.name == 'tr' and identify_table(soup, self.html, tables):
+            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
+                                                      tables):
                 last_index = i
 
         if last_index == -1:
