@@ -1717,9 +1717,9 @@ class TimeString(TimeUnique):
             # floating fraction of a second.
 
             # Handle trailing 'Z' for UTC time
-            if timestr[-1] == 'Z':
+            if timestr.endswith('Z'):
                 if self.scale != 'utc':
-                    raise ValueError('Time terminating in Z must be UTC')
+                    raise ValueError("Time input terminating in 'Z' must have scale='UTC'")
                 timestr = timestr[:-1]
 
             try:
