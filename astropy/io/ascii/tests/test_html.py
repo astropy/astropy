@@ -98,20 +98,42 @@ def test_htmlinputter_no_bs4():
 def test_htmlinputter():
     """
     Test to ensure that HTMLInputter correctly converts input
-    into a list of valid SoupString objects.
+    into a list of SoupStrings representing table elements.
     """
 
+    f = 't/html.html'
+    with open(f) as fd:
+        table = fd.read()
+
     inputter = html.HTMLInputter()
+    inputter.html = {}
     
-    lines = ['<html>', '<body>', '<a href="http://www.astropy.org/">Link',
-             '</a><br></br>', '</body>', '<!--Comment-->', '</html>']
-    soup_list = inputter.process_lines(lines)
-    expected_soups = ['<html><body><a href="http://www.astropy.org/">Link</a><br/>' \
-        '</body><!--Comment--></html>', '<body><a href="http://www.astropy.org/">Link' \
-        '</a><br/></body>', '<a href="http://www.astropy.org/">Link</a>',
-        'Link', '<br/>']
-    for soup, expected_soup in izip(soup_list, expected_soups):
-        assert str(soup).replace('\n', '') == expected_soup
+    # In absence of table_id, defaults to the first table
+    expected = ['<tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>',
+                '<tr><td>1</td><td>a</td><td>1.05</td></tr>',
+                '<tr><td>2</td><td>b</td><td>2.75</td></tr>',
+                '<tr><td>3</td><td>c</td><td>-1.25</td></tr>']
+    assert [str(x) for x in inputter.get_lines(table)] == expected
+    
+    # get_lines should return [] if the table is not found
+    inputter.html = {'table_id': 4}
+    assert inputter.get_lines(table) == []
+
+    # Identification by string ID
+    inputter.html['table_id'] = 'second'
+    expected = ['<tr><th>Column A</th><th>Column B</th><th>Column C</th></tr>',
+                '<tr><td>4</td><td>d</td><td>10.5</td></tr>',
+                '<tr><td>5</td><td>e</td><td>27.5</td></tr>',
+                '<tr><td>6</td><td>f</td><td>-12.5</td></tr>']
+    assert [str(x) for x in inputter.get_lines(table)] == expected
+
+    # Identification by integer index
+    inputter.html['table_id'] = 3
+    expected = ['<tr><th>C1</th><th>C2</th><th>C3</th></tr>',
+                '<tr><td>7</td><td>g</td><td>105.0</td></tr>',
+                '<tr><td>8</td><td>h</td><td>275.0</td></tr>',
+                '<tr><td>9</td><td>i</td><td>-125.0</td></tr>']
+    assert [str(x) for x in inputter.get_lines(table)] == expected
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlsplitter():
@@ -153,24 +175,24 @@ def test_htmlheader_start():
         table = fd.read()
 
     inputter = html.HTMLInputter()
-    
-    # Create a list of SoupStrings from raw text
-    lines = inputter.get_lines(table)
+    inputter.html = {}
     header = html.HTMLHeader()
-    header.html = {}
-    
-    # In absence of table_id, defaults to the first line of the first table
+
+    lines = inputter.get_lines(table)
     assert str(lines[header.start_line(lines)]) == \
            '<tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>'
-    header.html = {'table_id': 'second'}
+    inputter.html['table_id'] = 'second'
+    lines = inputter.get_lines(table)
     assert str(lines[header.start_line(lines)]) == \
            '<tr><th>Column A</th><th>Column B</th><th>Column C</th></tr>'
-    header.html = {'table_id': 3}
+    inputter.html['table_id'] = 3
+    lines = inputter.get_lines(table)
     assert str(lines[header.start_line(lines)]) == \
            '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
 
     # start_line should return None if no valid header is found
-    header.html = {'table_id': 4}
+    lines = [html.SoupString(BeautifulSoup('<tr><td>Data</td></tr>').tr),
+             html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     assert header.start_line(lines) is None
 
     # Should raise an error if a non-SoupString is present
@@ -191,34 +213,37 @@ def test_htmldata():
         table = fd.read()
 
     inputter = html.HTMLInputter()
-
-    # Create a list of SoupStrings from raw text
-    lines = inputter.get_lines(table)
+    inputter.html = {}
     data = html.HTMLData()
-    data.html = {}
 
-    # In absence of table_id, defaults to the first table
+    lines = inputter.get_lines(table)
     assert str(lines[data.start_line(lines)]) == \
            '<tr><td>1</td><td>a</td><td>1.05</td></tr>'
-    # end_line returns the index of the last data element
-    assert str(lines[data.end_line(lines)]) == '<td>3</td>'
-    
-    data.html = {'table_id': 'second'}
+    # end_line returns the index of the last data element + 1
+    assert str(lines[data.end_line(lines) - 1]) == \
+           '<tr><td>3</td><td>c</td><td>-1.25</td></tr>'
+
+    inputter.html['table_id'] = 'second'
+    lines = inputter.get_lines(table)
     assert str(lines[data.start_line(lines)]) == \
            '<tr><td>4</td><td>d</td><td>10.5</td></tr>'
-    assert str(lines[data.end_line(lines)]) == '<td>6</td>'
+    assert str(lines[data.end_line(lines) - 1]) == \
+           '<tr><td>6</td><td>f</td><td>-12.5</td></tr>'
     
-    data.html = {'table_id': 3}
+    inputter.html['table_id'] = 3
+    lines = inputter.get_lines(table)
     assert str(lines[data.start_line(lines)]) == \
            '<tr><td>7</td><td>g</td><td>105.0</td></tr>'
-    assert str(lines[data.end_line(lines)]) == '<td>9</td>'
+    assert str(lines[data.end_line(lines) - 1]) == \
+           '<tr><td>9</td><td>i</td><td>-125.0</td></tr>'
     
-    # start_line should raise an error if the desired table is not found
-    data.html = {'table_id': 'foo'}
+    # start_line should raise an error if no table data exists
+    lines = [html.SoupString(BeautifulSoup('<tr></tr>').tr),
+             html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     with pytest.raises(core.InconsistentTableError):
         data.start_line(lines)
 
-    # end_line should return None if the desired table is not found
+    # end_line should return None if no table data exists
     assert data.end_line(lines) is None
 
     # Should raise an error if a non-SoupString is present

@@ -70,7 +70,7 @@ class HTMLInputter(core.BaseInputter):
 
     def process_lines(self, lines):
         """
-        Convert the given input into a list of SoupString objects
+        Convert the given input into a list of SoupString rows
         for further processing.
         """
         
@@ -82,9 +82,16 @@ class HTMLInputter(core.BaseInputter):
                                         'installed to read HTML tables')
         
         soup = BeautifulSoup('\n'.join(lines))
+        tables = soup.find_all('table')
+        for i, possible_table in enumerate(tables):
+            if identify_table(possible_table, self.html, i + 1):
+                table = possible_table # Find the correct table
+                break
+        else:
+            return [] # The correct table was not found
+        
         soup_list = []
-        for x in soup.descendants: # Navigate down HTML hierarchy
-            # Remove all blank elements and comments
+        for x in table.children:
             if str(x).strip() and not isinstance(x, Comment):
                 soup_obj = SoupString(x)
                 soup_list.append(soup_obj)
@@ -157,16 +164,12 @@ class HTMLHeader(core.BaseHeader):
         """
         Return the line number at which header data begins.
         """
-        tables = 0
         
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'table':
-                tables += 1
-            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
-                                            tables) and soup.th is not None:
+            if soup.name == 'tr' and soup.th is not None:
                 return i
 
         return None
@@ -200,17 +203,13 @@ class HTMLData(core.BaseData):
         """
         Return the line number at which table data begins.
         """
-        tables = 0
         
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             
-            if soup.name == 'table':
-                tables += 1
-            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
-                                            tables) and soup.td is not None:
+            if soup.name == 'tr' and soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
                                 'have headings and data in the same row')
@@ -223,16 +222,12 @@ class HTMLData(core.BaseData):
         Return the line number at which table data ends.
         """
         last_index = -1
-        tables = 0
         
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'table':
-                tables += 1
-            elif soup.name == 'tr' and identify_table(soup.parent, self.html,
-                                                      tables):
+            if soup.name == 'tr' and soup.td is not None:
                 last_index = i
 
         if last_index == -1:
@@ -288,8 +283,7 @@ class HTML(core.BaseReader):
         self.html = htmldict
         if 'multicol' not in htmldict:
             self.html['multicol'] = True
-        self.header.html = self.html
-        self.data.html = self.html
+        self.inputter.html = self.html
 
     def read(self, table):
         """
