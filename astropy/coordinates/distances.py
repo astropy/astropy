@@ -161,8 +161,13 @@ class Distance(u.Quantity):
                                             copy=copy)
 
     def __quantity_view__(self, obj, unit):
-        unit = _convert_to_and_validate_length_unit(unit)
-        return super(Distance, self).__quantity_view__(obj, unit)
+        # When two distance instances are compared, unit is None.
+        # When two of them are divided, unit is "".
+        if (unit is None) or (unit == ""):
+            return obj.view(u.Quantity)
+        else:
+            unit = _convert_to_and_validate_length_unit(unit)
+            return super(Distance, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = _convert_to_and_validate_length_unit(unit)

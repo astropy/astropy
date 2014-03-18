@@ -285,6 +285,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Distance instances can now be compared in the same way two Quantity instances representing length do. [#2206]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
