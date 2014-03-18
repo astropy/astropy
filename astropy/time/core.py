@@ -1715,6 +1715,13 @@ class TimeString(TimeUnique):
         for i, timestr in enumerate(val1):
             # Assume that anything following "." on the right side is a
             # floating fraction of a second.
+
+            # Handle trailing 'Z' for UTC time
+            if timestr[-1] == 'Z':
+                if self.scale != 'utc':
+                    raise ValueError('Time terminating in Z must be UTC')
+                timestr = timestr[:-1]
+
             try:
                 idot = timestr.rindex('.')
             except:
@@ -1807,7 +1814,7 @@ class TimeISO(TimeString):
     """
     ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
     For example, 2000-01-01 00:00:00.000 is midnight on January 1, 2000.
-    
+
     The allowed subformats are:
 
     - 'date_hms': date + hours, mins, secs (and optional fractional secs)
