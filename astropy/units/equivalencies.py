@@ -17,7 +17,7 @@ from . import dimensionless_unscaled
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic']
+           'logarithmic', 'temperature']
 
 
 def dimensionless_angles():
@@ -458,3 +458,15 @@ def brightness_temperature(beam_area, disp):
         return (x_K * beam / factor)
 
     return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
+
+
+def temperature():
+    """Convert between Kelvin, Celcius, and Fahrenheit here because
+    Unit and CompositeUnit cannot do addition or subtraction properly.
+    """
+    from .imperial import deg_C, deg_F
+    return [
+        (si.K, deg_C, lambda x: x - 273.15, lambda x: x + 273.15),
+        (deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
+        (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
+         lambda x: ((x - 32.0) / 1.8) + 273.15)]
