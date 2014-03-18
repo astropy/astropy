@@ -62,25 +62,26 @@ def test_listwriter():
 def test_identify_table():
     """
     Test to make sure that identify_table() returns whether the
-    given BeautifulSoup tag is in the correct table to process.
+    given BeautifulSoup tag is the correct table to process.
     """
 
-    # Should return False on tags with no <table> parents
+    # Should return False on non-<table> tags and None
     soup = BeautifulSoup('<html><body></body></html>')
-    assert html.identify_table(soup.body, {}, 0) is False
+    assert html.identify_table(soup, {}, 0) is False
+    assert html.identify_table(None, {}, 0) is False
 
     soup = BeautifulSoup('<table id="foo"><tr><th>A</th></tr><tr>' \
                          '<td>B</td></tr></table>').table
-    assert html.identify_table(soup.tr, {}, 2) is False
-    assert html.identify_table(soup.tr, {}, 1) is True # Default index of 1
+    assert html.identify_table(soup, {}, 2) is False
+    assert html.identify_table(soup, {}, 1) is True # Default index of 1
 
     # Same tests, but with explicit parameter
-    assert html.identify_table(soup.tr, {'table_id': 2}, 1) is False
-    assert html.identify_table(soup.tr, {'table_id': 1}, 1) is True
+    assert html.identify_table(soup, {'table_id': 2}, 1) is False
+    assert html.identify_table(soup, {'table_id': 1}, 1) is True
 
     # Test identification by string ID
-    assert html.identify_table(soup.tr, {'table_id': 'bar'}, 1) is False
-    assert html.identify_table(soup.tr, {'table_id': 'foo'}, 1) is True
+    assert html.identify_table(soup, {'table_id': 'bar'}, 1) is False
+    assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
 
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
@@ -340,3 +341,15 @@ def test_multicolumn_read():
     col2 = [3]
     expected = Table([col1, col2], names=('A', 'B'))
     assert table == expected
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.slow
+def test_reading_output(tmpdir):
+    """
+    Input a VOTable, output the VOTable in HTML, then input the HTML.
+    """
+
+    votable = Table.read('t/samplevotable.xml')
+    path = str(tmpdir.join('sample.html'))
+    votable.write(path)
+    Table.read(path) # Make sure the input does not raise an error
