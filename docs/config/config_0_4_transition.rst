@@ -199,10 +199,37 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``vo.validator.conf.noncritical_warnings``
 
 For affiliated package authors
-==============================
+------------------------------
 
-The use of `astropy.config.ConfigurationItem` has been deprecated, but
-will continue to work for the astropy 0.4 cycle.
+For an affiliated package to support both astropy 0.3 and 0.4,
+following the astropy 0.3 config instructions should continue to work.
+Note that saving of configuration items has been removed entirely from
+astropy 0.4 without a deprecation cycle, so if saving configuration
+programmatically is important to your package, you may want to
+consider another method to save that state.
+
+However, by the release of astropy 0.5, the astropy 0.3 config API
+will no longer work.  The following describes how to transition an
+affiliated package written for astropy 0.3 to support astropy 0.4 and
+later.  It will not be possible to support astropy 0.3, 0.4 and 0.5
+simultaneously.  Below ``pkgname`` is the name of your affiliated
+package.
+
+The automatic generation of configuration files from the
+``ConfigurationItem`` objects that it finds has been removed.
+Instead, the project should include a hard-coded "template"
+configuration file in ``pkgname/pkgname.cfg``.  By convention, and to
+ease upgrades for end users, all of the values should be commented
+out.  For example:
+
+.. code-block:: ini
+
+    [nddata]
+
+    ## Whether to issue a warning if NDData arithmetic is performed with
+    ## uncertainties and the uncertainties do not support the propagation of
+    ## correlated uncertainties.
+    # warn_unsupported_correlated = True
 
 Affiliated packages should transition to using
 `astropy.config.ConfigItem` objects as members of
@@ -243,3 +270,47 @@ The above, converted to the new method, looks like::
             'If True, extension names (i.e. the ``EXTNAME`` keyword) should be '
             'treated as case-sensitive.')
     conf = Conf()
+
+
+Moving/renaming configuration items in Python
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``ConfigAlias`` objects can be used when a configuration item has been
+moved from an astropy 0.3-style ``ConfigurationItem`` to an astropy
+0.4-style ``ConfigItem`` inside of a ``ConfigNamespace``.
+
+In the above example, the following adds backward-compatible hooks so the
+old Python locations of the configuration items will continue to work from user code::
+
+    ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
+        '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
+        'enable_record_valued_keyword_cards')
+
+Moving/renaming configuration items in the config file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a configuration item is moved or renamed within the configuration
+file, the ``aliases`` kwarg to ``ConfigItem`` can be used so that the
+old location will continue to be used as a fallback.  For example, if
+the old location of an item was:
+
+.. code-block:: ini
+
+    [coordinates.name_resolve]
+    sesame_url = http://somewhere.com
+
+One might want to drop the fact that that is implemented in the module
+``name_resolve`` and just store the configuration in ``coordinates``:
+
+.. code-block:: ini
+
+    [coordinates]
+    sesame_url = http://somewhere.com
+
+When defining the ``ConfigItem`` for this entry, the ``aliases`` kwarg
+can list the old location(s) of the configuration item::
+
+    sesame_url = _config.ConfigItem(
+        ["http://somewhere.com"],
+        """Docstring""",
+        aliases=['astropy.coordinates.name_resolve.sesame_url'])

@@ -528,6 +528,16 @@ def generate_build_ext_command(packagename, release):
 
             invalidate_caches()
 
+        # REMOVE: in astropy 0.5
+        if not self.distribution.is_pure() and os.path.isdir(self.build_lib):
+            # Finally, generate the default astropy.cfg; this can only be done
+            # after extension modules are built as some extension modules
+            # include config items.  We only do this if it's not pure python,
+            # though, because if it is, we already did it in build_py
+            generate_default_config(
+                os.path.abspath(self.build_lib),
+                self.distribution.packages[0], self)
+
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
     attrs['force_rebuild'] = False
@@ -591,6 +601,69 @@ class AstropyBuildPy(SetuptoolsBuildPy):
     def run(self):
         # first run the normal build_py
         SetuptoolsBuildPy.run(self)
+
+        # REMOVE: in astropy 0.5
+        if self.distribution.is_pure():
+            # Generate the default astropy.cfg - we only do this here if it's
+            # pure python.  Otherwise, it'll happen at the end of build_exp
+            generate_default_config(
+                os.path.abspath(self.build_lib),
+                self.distribution.packages[0], self)
+
+
+# REMOVE: in astropy 0.5
+def generate_default_config(build_lib, package, command):
+    config_path = os.path.relpath(package)
+    filename = os.path.join(config_path, package + '.cfg')
+
+    if os.path.exists(filename):
+        return
+
+    log.info('generating default {0}.cfg file in {1}'.format(package, filename))
+
+    if PY3:
+        builtins = 'builtins'
+    else:
+        builtins = '__builtin__'
+
+    # astropy may have been built with a numpy that setuptools
+    # downloaded and installed into the current directory for us.
+    # Therefore, we need to extend the sys.path of the subprocess
+    # that's generating the config file, with the sys.path of this
+    # process.
+
+    subproccode = (
+        'import sys; sys.path.extend({paths!r});'
+        'import {builtins};{builtins}._ASTROPY_SETUP_ = True;'
+        'from astropy.config.configuration import generate_all_config_items;'
+        'generate_all_config_items({pkgnm!r}, True, filename={filenm!r})')
+    subproccode = subproccode.format(builtins=builtins,
+                                     pkgnm=package,
+                                     filenm=os.path.abspath(filename),
+                                     paths=sys.path)
+
+    # Note that cwd=build_lib--we're importing astropy from the build/ dir
+    # but using the astropy/ source dir as the config directory
+    proc = subprocess.Popen([sys.executable, '-c', subproccode],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             cwd=build_lib)
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode == 0 and os.path.exists(filename):
+        default_cfg = os.path.relpath(filename)
+        command.copy_file(default_cfg,
+                          os.path.join(command.build_lib, default_cfg),
+                          preserve_mode=False)
+    else:
+        msg = ('Generation of default configuration item failed! Stdout '
+               'and stderr are shown below.\n'
+               'Stdout:\n{stdout}\nStderr:\n{stderr}')
+        if isinstance(msg, bytes):
+            msg = msg.decode('UTF-8')
+        log.error(msg.format(stdout=stdout.decode('UTF-8'),
+                             stderr=stderr.decode('UTF-8')))
+        raise RuntimeError()
+
 
 
 def add_command_option(command, name, doc, is_bool=False):

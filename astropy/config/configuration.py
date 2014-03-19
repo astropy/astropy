@@ -14,9 +14,13 @@ from ..extern import six
 
 from contextlib import contextmanager
 import hashlib
+import inspect
 import io
 from os import path
+import pkgutil
+import re
 import sys
+import types
 from warnings import warn
 
 from ..extern.configobj import configobj, validate
@@ -834,3 +838,190 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             return True
 
     return False
+
+
+# DEPRECATED FUNCTIONALITY ----------------------------------------
+# Everything below this point should be removed in astropy 0.5
+
+def get_config_items(packageormod=None):
+    """ Returns the `ConfigurationItem` objects associated with a particular
+    module.
+
+    Parameters
+    ----------
+    packageormod : str or None
+        The package or module name or None to get the current module's items.
+
+    Returns
+    -------
+    configitems : dict
+        A dictionary where the keys are the name of the items as the are named
+        in the module, and the values are the associated `ConfigurationItem`
+        objects.
+
+    """
+
+    from ..utils import find_current_module
+
+    if packageormod is None:
+        packageormod = find_current_module(2)
+        if packageormod is None:
+            msg1 = 'Cannot automatically determine get_config module, '
+            msg2 = 'because it is not called from inside a valid module'
+            raise RuntimeError(msg1 + msg2)
+    elif isinstance(packageormod, six.string_types):
+        __import__(packageormod)
+        packageormod = sys.modules[packageormod]
+    elif inspect.ismodule(packageormod):
+        pass
+    else:
+        raise TypeError('packageormod in get_config_items is invalid')
+
+    configitems = {}
+    for n, obj in six.iteritems(packageormod.__dict__):
+        # if it's not a new-style object, it's certainly not a ConfigurationItem
+        if hasattr(obj, '__class__'):
+            fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
+            if fqn == 'astropy.config.configuration.ConfigurationItem':
+                configitems[n] = obj
+
+    return configitems
+
+
+def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
+    """
+    Adds a blank line to the comments of any sections in the requested sections,
+    recursing into subsections if `recurse` is True. If `gotoroot` is True,
+    this first goes to the root of the requested section, just like
+    `save_config` and `reload_config` - this does nothing if `sec` is a
+    configobj already.
+    """
+
+    if not hasattr(sec, 'sections'):
+        sec = get_config(sec)
+
+        # look for the section that is its own parent - that's the base object
+        if gotoroot:
+            while sec.parent is not sec:
+                sec = sec.parent
+
+    for isec, snm in enumerate(sec.sections):
+        comm = sec.comments[snm]
+        if len(comm) == 0 or comm[-1] != '':
+            if sec.parent is sec and isec == 0:
+                pass  # don't do it for first section
+            else:
+                comm.append('')
+        if recurse:
+            _fix_section_blank_lines(sec[snm], True, False)
+
+
+def _save_config(packageormod=None, filename=None):
+    """ Saves all configuration settings to the configuration file for the
+    root package of the requested package/module.
+
+    This overwrites any configuration items that have been changed in
+    `ConfigurationItem` objects that are based on the configuration file
+    determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
+    the 'astropy.config.configuration' module).
+
+    .. note::
+        To save only a single item, use the `ConfigurationItem.save` method -
+        this will save all options in the current session that may have been
+        changed.
+
+    Parameters
+    ----------
+    packageormod : str or None
+        The package or module name - see `get_config` for details.
+
+    filename : str, optional
+        Save the config to a given filename instead of to the default location.
+
+    """
+
+    sec = get_config(packageormod)
+    # look for the section that is its own parent - that's the base object
+    while sec.parent is not sec:
+        sec = sec.parent
+    if filename is not None:
+        with open(filename, 'w') as f:
+            sec.write(outfile=f)
+    else:
+        sec.write()
+
+
+_unsafe_import_regex = [r'.*.setup_package']
+_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
+_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
+
+
+def generate_all_config_items(pkgornm=None, reset_to_default=False,
+                              filename=None):
+    """ Given a root package name or package, this function walks
+    through all the subpackages and modules, which should populate any
+    ConfigurationItem objects defined at the module level. If
+    `reset_to_default` is True, it also sets all of the items to their default
+    values, regardless of what the file's value currently is. It then saves the
+    `ConfigObj`.
+
+    Parameters
+    ----------
+    pkgname : str, module, or None
+        The package for which to generate configuration items.  If None,
+        the package of the function that calls this one will be used.
+
+    reset_to_default : bool
+        If True, the configuration items will all be set to their defaults.
+
+    filename : str, optional
+        Save the generated config items to the given filename instead of to
+        the default config file path.
+
+    Returns
+    -------
+    cfgfn : str
+        The filename of the generated configuration item.
+
+    """
+
+    from ..utils import find_current_module
+
+    if pkgornm is None:
+        pkgornm = find_current_module(1).__name__.split('.')[0]
+
+    if isinstance(pkgornm, six.string_types):
+        package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
+    elif (isinstance(pkgornm, types.ModuleType) and
+            '__init__' in pkgornm.__file__):
+        package = pkgornm
+    else:
+        msg = 'generate_all_config_items was not given a package/package name'
+        raise TypeError(msg)
+
+    if hasattr(package, '__path__'):
+        pkgpath = package.__path__
+    elif hasattr(package, '__file__'):
+        pkgpath = path.split(package.__file__)[0]
+    else:
+        raise AttributeError('package to generate config items for does not '
+                             'have __file__ or __path__')
+
+    prefix = package.__name__ + '.'
+    for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
+        if nm == 'astropy.config.tests.test_configs':
+            continue
+        if not _unsafe_import_regex.match(nm):
+            imper.find_module(nm)
+            if reset_to_default:
+                for cfgitem in six.itervalues(get_config_items(nm)):
+                    cfgitem.set(cfgitem.defaultvalue)
+
+    _fix_section_blank_lines(package.__name__, True, True)
+
+    _save_config(package.__name__, filename=filename)
+
+    if filename is None:
+        return get_config(package.__name__).filename
+    else:
+        return filename
