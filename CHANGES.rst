@@ -261,6 +261,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Added ``GaussianAbsorption1D`` model. [#2215]
+
 - ``astropy.nddata``
 
   - Change construction of result of arithmetic and unit conversion to allow

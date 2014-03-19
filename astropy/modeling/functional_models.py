@@ -20,7 +20,7 @@ from ..extern import six
 __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
     'Box2D', 'Const1D', 'Const2D', 'Disk2D',
-    'Gaussian1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
     'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Shift',
     'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
     'custom_model_1d'
@@ -120,6 +120,51 @@ class Gaussian1D(Fittable1DModel):
         d_mean = amplitude * d_amplitude * (x - mean) / stddev ** 2
         d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev ** 3
         return [d_amplitude, d_mean, d_stddev]
+
+
+class GaussianAbsorption1D(Fittable1DModel):
+    """
+    One dimensional Gaussian absorption line model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the gaussian absorption.
+    mean : float
+        Mean of the gaussian.
+    stddev : float
+        Standard deviation of the gaussian.
+
+    Notes
+    -----
+
+    Model formula:
+
+        .. math:: f(x) = 1 - A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
+    See Also
+    --------
+    Gaussian1D
+    """
+    amplitude = Parameter('amplitude')
+    mean = Parameter('mean')
+    stddev = Parameter('stddev')
+
+    def __init__(self, amplitude, mean, stddev, **constraints):
+        try:
+            param_dim = len(amplitude)
+        except TypeError:
+            param_dim = 1
+        super(GaussianAbsorption1D, self).__init__(
+            param_dim=param_dim, amplitude=amplitude, mean=mean, stddev=stddev,
+            **constraints)
+
+    @staticmethod
+    def eval(x, amplitude, mean, stddev):
+        """
+        GaussianAbsorption1D model function.
+        """
+        return 1.0 - amplitude * np.exp(-0.5 * (x - mean) ** 2 / stddev ** 2)
 
 
 class Gaussian2D(Fittable2DModel):
