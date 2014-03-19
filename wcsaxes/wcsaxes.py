@@ -1,5 +1,5 @@
 from matplotlib.axes import Axes
-from matplotlib.transforms import Affine2D, Bbox
+from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.wcs import WCS
 
@@ -83,7 +83,7 @@ class WCSAxes(Axes):
         if isinstance(frame, WCS):
             coords = CoordinatesMap(self, frame)
         else:
-            transform = self.get_transform(frame, equinox=equinox, obstime=obstime) - self.transData
+            transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
             coords = CoordinatesMap(self, self.wcs, transform=transform)
 
         self._all_coords.append(coords)
@@ -97,6 +97,44 @@ class WCSAxes(Axes):
         return coords
 
     def get_transform(self, frame, equinox=None, obstime=None):
+        """
+        Return a transform from the specified frame to display coordinates.
+
+        This does not include the transData transformation
+
+        Parameters
+        ----------
+        frame : :class:`~astropy.wcs.WCS` or :class:`~matplotlib.transforms.Transform` or str
+            The ``frame`` parameter can have several possible types:
+                * :class:`~astropy.wcs.WCS` instance: assumed to be a
+                  transformation from pixel to world coordinates, where the
+                  world coordinates are the same as those in the WCS
+                  transformation used for this ``WCSAxes`` instance. This is
+                  used for example to show contours, since this involves
+                  plotting an array in pixel coordinates that are not the
+                  final data coordinate and have to be transformed to the
+                  common world coordinate system first.
+                * :class:`~matplotlib.transforms.Transform` instance: it is
+                  assumed to be a transform to the world coordinates that are
+                  part of the WCS used to instantiate this ``WCSAxes``
+                  instance.
+                * ``'pixel'`` or ``'world'``: return a transformation that
+                  allows users to plot in pixel/data coordinates (essentially
+                  an identity transform) and ``world`` (the default
+                  world-to-pixel transformation used to instantiate the
+                  ``WCSAxes`` instance).
+                * ``'fk5'`` or ``'galactic'``: return a transformation from
+                  the specified frame to the pixel/data coordinates.
+        """
+        return self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime) + self.transData
+
+    def _get_transform_no_transdata(self, frame, equinox=None, obstime=None):
+        """
+        Return a transform from the specified frame to data coordinates.
+
+        As for :meth:`wcsaxes.wcsaxes.WCSAxes.get_transform` but does not
+        include the last transformation from data to display coordinates.
+        """
 
         if self.wcs is None and frame != 'pixel':
             raise ValueError('No WCS specified, so only pixel coordinates are available')
@@ -109,25 +147,29 @@ class WCSAxes(Axes):
             if coord_in == coord_out:
 
                 return (WCSPixel2WorldTransform(frame)
-                        + WCSWorld2PixelTransform(self.wcs)
-                        + self.transData)
+                        + WCSWorld2PixelTransform(self.wcs))
 
             else:
 
                 return (WCSPixel2WorldTransform(frame)
                         + CoordinateTransform(coord_in, coord_out)
-                        + WCSWorld2PixelTransform(self.wcs)
-                        + self.transData)
+                        + WCSWorld2PixelTransform(self.wcs))
 
         elif frame == 'pixel':
 
-            return Affine2D() + self.transData
+            return Affine2D()
+
+        elif isinstance(frame, Transform):
+
+            world2pixel = WCSWorld2PixelTransform(self.wcs)
+
+            return frame + world2pixel
 
         else:
 
             from astropy.coordinates import FK5, Galactic
 
-            world2pixel = WCSWorld2PixelTransform(self.wcs) + self.transData
+            world2pixel = WCSWorld2PixelTransform(self.wcs)
 
             if frame == 'world':
 
