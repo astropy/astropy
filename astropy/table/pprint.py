@@ -210,7 +210,8 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     n_header = 0
     if show_name:
         i_centers.append(n_header)
-        col_name = str(col.name)
+        # Get column name (or 'None' if not set)
+        col_name = six.text_type(col.name)
         if multidims:
             col_name += ' [{0}]'.format(
                 ','.join(six.text_type(n) for n in multidims))

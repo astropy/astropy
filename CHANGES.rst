@@ -211,8 +211,6 @@ Bug Fixes
 
 - ``astropy.table``
 
-  - Ensure nameless columns can be printed, using "None" for the header. [#2213]
-
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is
@@ -318,6 +316,8 @@ Bug Fixes
     be used for all axes. [#2173]
 
 - ``astropy.table``
+
+  - Ensure nameless columns can be printed, using 'None' for the header. [#2213]
 
 - ``astropy.time``
 
