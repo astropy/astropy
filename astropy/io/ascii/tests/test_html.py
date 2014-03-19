@@ -145,9 +145,8 @@ def test_htmlsplitter():
 
     splitter = html.HTMLSplitter()
 
-    lines = [html.SoupString(BeautifulSoup('<a href="http://www.astropy.org/">Link</a>').a),
-                html.SoupString(BeautifulSoup('<tr><th>Col 1</th><th>Col 2</th></tr>').tr),
-                html.SoupString(BeautifulSoup('<tr><td>Data 1</td><td>Data 2</td></tr>').tr)]
+    lines = [html.SoupString(BeautifulSoup('<tr><th>Col 1</th><th>Col 2</th></tr>').tr),
+            html.SoupString(BeautifulSoup('<tr><td>Data 1</td><td>Data 2</td></tr>').tr)]
     expected_data = [['Col 1', 'Col 2'], ['Data 1', 'Data 2']]
     assert list(splitter(lines)) == expected_data
 
@@ -156,11 +155,9 @@ def test_htmlsplitter():
     with pytest.raises(TypeError):
         list(splitter(lines))
 
-    # Make sure that not having a <tr> tag in lines triggers an error
-    lines = [html.SoupString(BeautifulSoup('<a href="http://www.astropy.org/">Link</a>').a),
-                html.SoupString(BeautifulSoup('<p>Text</p>').p)]
+    # Make sure that passing an empty list triggers an error
     with pytest.raises(core.InconsistentTableError):
-        list(splitter(lines))
+        list(splitter([]))
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlheader_start():
@@ -366,15 +363,3 @@ def test_multicolumn_read():
     col2 = [3]
     expected = Table([col1, col2], names=('A', 'B'))
     assert table == expected
-
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
-@pytest.mark.slow
-def test_reading_output(tmpdir):
-    """
-    Input a VOTable, output the VOTable in HTML, then input the HTML.
-    """
-
-    votable = Table.read('t/samplevotable.xml')
-    path = str(tmpdir.join('sample.html'))
-    votable.write(path)
-    Table.read(path) # Make sure the input does not raise an error

@@ -92,7 +92,7 @@ class HTMLInputter(core.BaseInputter):
         
         soup_list = []
         for x in table.children:
-            if str(x).strip() and not isinstance(x, Comment):
+            if str(x).strip() and x.name == 'tr':
                 soup_obj = SoupString(x)
                 soup_list.append(soup_obj)
         return soup_list
@@ -106,22 +106,19 @@ class HTMLSplitter(core.BaseSplitter):
         """
         Return HTML data from lines as a generator.
         """
-        data_found = False
         for line in lines:
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr':
-                data_found = True
-                header_elements = soup.find_all('th')
-                if header_elements:
-                    # Return multicolumns as tuples for HTMLHeader handling
-                    yield [(el.string.strip(), el['colspan']) if el.has_attr('colspan')
-                           else el.string.strip() for el in header_elements]
-                data_elements = soup.find_all('td')
-                if data_elements:
-                    yield [el.string.strip() for el in data_elements]
-        if not data_found:
+            header_elements = soup.find_all('th')
+            if header_elements:
+                # Return multicolumns as tuples for HTMLHeader handling
+                yield [(el.string.strip(), el['colspan']) if el.has_attr('colspan')
+                        else el.string.strip() for el in header_elements]
+            data_elements = soup.find_all('td')
+            if data_elements:
+                yield [el.string.strip() for el in data_elements]
+        if len(lines) == 0:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')
 
@@ -169,7 +166,7 @@ class HTMLHeader(core.BaseHeader):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr' and soup.th is not None:
+            if soup.th is not None:
                 return i
 
         return None
@@ -209,7 +206,7 @@ class HTMLData(core.BaseData):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
             
-            if soup.name == 'tr' and soup.td is not None:
+            if soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
                                 'have headings and data in the same row')
@@ -227,7 +224,7 @@ class HTMLData(core.BaseData):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            if soup.name == 'tr' and soup.td is not None:
+            if soup.td is not None:
                 last_index = i
 
         if last_index == -1:
