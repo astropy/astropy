@@ -116,9 +116,9 @@ def coord_type_from_ctype(ctype):
     Determine whether a particular WCS ctype corresponds to an angle or scalar
     coordinate.
     """
-    if ctype[:4] == 'RA--' or ctype[1:4] == 'LON':
+    if ctype[:4] in ['RA--', 'HPLN'] or ctype[1:4] == 'LON':
         return 'longitude'
-    elif ctype[:4] == 'DEC-' or ctype[1:4] == 'LAT':
+    elif ctype[:4] in ['DEC-', 'HPLT'] or ctype[1:4] == 'LAT':
         return 'latitude'
     else:
         return 'scalar'
