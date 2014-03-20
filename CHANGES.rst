@@ -44,6 +44,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Ensure nameless columns can be printed, using 'None' for the header. [#2213]
+
 - ``astropy.time``
 
 - ``astropy.units``

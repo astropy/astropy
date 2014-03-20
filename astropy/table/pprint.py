@@ -201,17 +201,16 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
         multidim1 = tuple(n - 1 for n in multidims)
         trivial_multidims = np.prod(multidims) == 1
 
-    col_strs = []  # List of formatted column values
     i_dashes = None
     i_centers = []  # Line indexes where content should be centered
     n_header = 0
     if show_name:
         i_centers.append(n_header)
+        # Get column name (or 'None' if not set)
+        col_name = six.text_type(col.name)
         if multidims:
-            col_name = col.name + ' [{0}]'.format(
+            col_name += ' [{0}]'.format(
                 ','.join(six.text_type(n) for n in multidims))
-        else:
-            col_name = col.name
         n_header += 1
         yield col_name
     if show_unit:
