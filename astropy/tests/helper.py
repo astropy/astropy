@@ -458,7 +458,7 @@ class astropy_test(Command, object):
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
             try:
-                retcode = subprocess.call([sys.executable, '-c', cmd],
+                retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
                                           cwd=testing_path, close_fds=False)
             finally:
                 # kill the temporary dirs
