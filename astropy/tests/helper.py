@@ -409,7 +409,7 @@ class astropy_test(Command, object):
             os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
             try:
-                retcode = subprocess.call([sys.executable, '-c', cmd],
+                retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
                                           cwd=testing_path, close_fds=False)
             finally:
                 # kill the temporary dirs
