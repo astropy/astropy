@@ -27,7 +27,7 @@ This object has a few attributes in common with Numpy:
     >>> ndd.dtype
     dtype('float64')
 
-The underlying Numpy array can be accessed via the `data` attribute::
+The underlying Numpy array can be accessed via the ``data`` attribute::
 
     >>> ndd.data
     array([[[ 0.,  0.,  0., ...
@@ -35,7 +35,7 @@ The underlying Numpy array can be accessed via the `data` attribute::
 Mask
 ----
 
-Values can be masked using the `mask` attribute, which should be a boolean
+Values can be masked using the ``mask`` attribute, which should be a boolean
 Numpy array with the same dimensions as the data, e.g.::
 
      >>> ndd.mask = ndd.data > 0.9
@@ -46,7 +46,7 @@ value of `False` indicates a valid value.
 Flags
 -----
 
-Values can be assigned one or more flags. The `flags` attribute is used to
+Values can be assigned one or more flags. The ``flags`` attribute is used to
 store either a single Numpy array (of any type) with dimensions matching that
 of the data, or a `~astropy.nddata.FlagCollection`, which is
 essentially a dictionary of Numpy arrays (of any type) with the same shape as
@@ -73,7 +73,7 @@ and flags can easily be used to set the mask::
 Uncertainties
 -------------
 
-`~astropy.nddata.NDData` objects have an `uncertainty` attribute that can be
+`~astropy.nddata.NDData` objects have an ``uncertainty`` attribute that can be
 used to set the uncertainty on the data values. This is done by using classes
 to represent the uncertainties of a given type. For example, to set standard
 deviation uncertainties on the pixel values, you can do::
@@ -130,13 +130,13 @@ numpy arrays::
     >>> np.all(arr == mydataarray)  # doctest: +SKIP
     True
 
-If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
+If a ``mask`` is defined, this will result in a `~numpy.ma.MaskedArray`, so
 in all cases a useable `numpy.ndarray` or subclass will result. This allows
 straightforward plotting of `~astropy.nddata.NDData` objects with 1-
-and 2-dimensional datasets using `matplotlib`::
+and 2-dimensional datasets using ``matplotlib``::
 
     >>> from matplotlib import pyplot as plt  # doctest: +SKIP
     >>> plt.plot(ndd)  # doctest: +SKIP
 
-This works because the `matplotlib` plotting functions automatically convert
+This works because the ``matplotlib`` plotting functions automatically convert
 their inputs using `numpy.array`.

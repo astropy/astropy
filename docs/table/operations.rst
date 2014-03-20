@@ -97,7 +97,7 @@ can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
 - List of string values with table column names
-- Another `Table` or `Table` column with same length as table
+- Another ``Table`` or ``Table`` column with same length as table
 - Numpy structured array with same length as table
 - Numpy homogeneous array with same length as table
 
@@ -197,13 +197,13 @@ One can iterate over the group sub-tables and corresponding keys with::
 Column Groups
 ~~~~~~~~~~~~~~
 
-Like `Table` objects, `Column` objects can also be grouped for subsequent
+Like ``Table`` objects, ``Column`` objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
-`Table` or bare `Column` objects.
+``Table`` or bare ``Column`` objects.
 
-As for `Table`, the grouping is generated with the `group_by()` method.  The
+As for ``Table``, the grouping is generated with the `~astropy.table.table.Table.group_by` method.  The
 difference here is that there is no option of providing one or more column
-names since that doesn't make sense for a `Column`.
+names since that doesn't make sense for a ``Column``.
 
 Examples::
 
@@ -304,7 +304,7 @@ Table groups can be filtered by means of the
 supplying a function which is called for each group.  The function
 which is passed to this method must accept two arguments:
 
-- ``table`` : `Table` object
+- ``table`` : |Table| object
 - ``key_colnames`` : list of columns in ``table`` used as keys for grouping
 
 It must then return either `True` or `False`.  As an example, the following

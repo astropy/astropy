@@ -1,7 +1,7 @@
 .. _astropy_nddata:
 
 *****************************************
-N-dimensional datasets (`astropy.nddata`)
+N-dimensional datasets (``astropy.nddata``)
 *****************************************
 
 Introduction
@@ -36,13 +36,13 @@ This object has a few attributes in common with Numpy:
     >>> ndd.dtype
     dtype('float64')
 
-The underlying Numpy array can be accessed via the `data` attribute::
+The underlying Numpy array can be accessed via the ``data`` attribute::
 
     >>> ndd.data
     array([[[ 0., 0., 0., ...
     ...
 
-Values can be masked using the `mask` attribute, which should be a boolean
+Values can be masked using the ``mask`` attribute, which should be a boolean
 Numpy array with the same dimensions as the data, e.g.::
 
      >>> ndd.mask = ndd.data > 0.9
@@ -55,7 +55,7 @@ uncertainties, and the `~astropy.nddata.NDData` class includes methods to
 combine datasets with arithmetic operations (which include uncertainties propagation).
 These are described in :doc:`nddata`.
 
-Using `nddata`
+Using ``nddata``
 ==============
 
 .. toctree::
