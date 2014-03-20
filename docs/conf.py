@@ -40,7 +40,7 @@ import astropy
 # the benefit of affiliated packages who want to refer to objects in
 # the astropy core.  However, we don't want to cyclically reference
 # astropy in its own build so we remove it here.
-nitpicky = True
+
 
 del intersphinx_mapping['astropy']
 
