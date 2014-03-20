@@ -164,7 +164,16 @@ class GaussianAbsorption1D(Fittable1DModel):
         """
         GaussianAbsorption1D model function.
         """
-        return 1.0 - amplitude * np.exp(-0.5 * (x - mean) ** 2 / stddev ** 2)
+        return 1.0 - Gaussian1D.eval(x, amplitude, mean, stddev)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, mean, stddev):
+        """
+        GaussianAbsorption1D model function derivatives.
+        """
+        import operator
+        return map(
+            operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev))
 
 
 class Gaussian2D(Fittable2DModel):
