@@ -52,7 +52,7 @@ class TestMultiD():
                          '   1 .. 20',
                          '   3 .. 40',
                          '   5 .. 60']
-                         
+
     def test_fake_multidim(self, table_type):
         """Test printing with 'fake' multidimensional column"""
         arr = [np.array([[(1,)],
@@ -229,8 +229,8 @@ class TestPprint():
         for max_lines in range(130):
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(6, min(102, max_lines))
-        
-            
+
+
 
 @pytest.mark.usefixtures('table_type')
 class TestFormat():
@@ -324,3 +324,11 @@ def test_pprint_py3_bytes():
     dat = np.array([(val,)], dtype=[(str('col'), 'S3')])
     t = table.Table(dat)
     assert t['col'].pformat() == ['col', '---', 'val']
+
+
+def test_pprint_nameless_col():
+    """Regression test for #2213, making sure a nameless column can be printed
+    using None as the name.
+    """
+    col = table.Column([1.,2.])
+    assert str(col).startswith('None')
