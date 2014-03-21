@@ -113,6 +113,25 @@ def test_missing_data():
     assert dat['A'].dtype.kind == 'i'
 
 
+def test_identify_table_fail():
+    """
+    Raise an exception with an informative error message if table_id
+    is not found.
+    """
+    table_in = ['<table id="foo"><tr><th>A</th></tr>',
+                '<tr><td>B</td></tr></table>']
+
+    with pytest.raises(core.InconsistentTableError) as err:
+        Table.read(table_in, format='ascii.html', htmldict={'table_id': 'bad_id'},
+                   guess=False)
+    assert str(err) == "ERROR: HTML table id 'bad_id' not found"
+
+    with pytest.raises(core.InconsistentTableError) as err:
+        Table.read(table_in, format='ascii.html', htmldict={'table_id': 3},
+                   guess=False)
+    assert str(err) == "ERROR: HTML table number 3 not found"
+
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
