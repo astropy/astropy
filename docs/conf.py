@@ -51,7 +51,7 @@ plot_rcparams = {'figure.figsize': (6,6),
                  'savefig.facecolor':'none',
                  'savefig.bbox':'tight',
                  'font.family':'Arial'}
-plot_apply_rcparams = True
+plot_apply_rcparams = False
 plot_template = """
 {{ source_code }}
 
