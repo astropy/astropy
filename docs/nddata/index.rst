@@ -1,8 +1,8 @@
 .. _astropy_nddata:
 
 *****************************************
-N-dimensional datasets (``astropy.nddata``)
-*****************************************
+N-dimensional datasets (`astropy.nddata`)
+*************************************************
 
 Introduction
 ============
@@ -56,7 +56,7 @@ combine datasets with arithmetic operations (which include uncertainties propaga
 These are described in :doc:`nddata`.
 
 Using ``nddata``
-==============
+================
 
 .. toctree::
    :maxdepth: 2

@@ -41,7 +41,6 @@ import astropy
 # the astropy core.  However, we don't want to cyclically reference
 # astropy in its own build so we remove it here.
 
-
 del intersphinx_mapping['astropy']
 
 # List of patterns, relative to source directory, that match files and
