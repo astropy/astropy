@@ -113,11 +113,11 @@ class HTMLSplitter(core.BaseSplitter):
             header_elements = soup.find_all('th')
             if header_elements:
                 # Return multicolumns as tuples for HTMLHeader handling
-                yield [(el.string.strip(), el['colspan']) if el.has_attr('colspan')
-                        else el.string.strip() for el in header_elements]
+                yield [(el.text.strip(), el['colspan']) if el.has_attr('colspan')
+                        else el.text.strip() for el in header_elements]
             data_elements = soup.find_all('td')
             if data_elements:
-                yield [el.string.strip() for el in data_elements]
+                yield [el.text.strip() for el in data_elements]
         if len(lines) == 0:
             raise core.InconsistentTableError('HTML tables must contain data '
                                               'in a <table> tag')

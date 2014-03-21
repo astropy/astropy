@@ -85,6 +85,34 @@ def test_identify_table():
     assert html.identify_table(soup, {'table_id': 'bar'}, 1) is False
     assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
 
+
+def test_missing_data():
+    """
+    Test reading a table with missing data
+    """
+    # First with default where blank => '0'
+    table_in = ['<table>',
+                '<tr><th>A</th></tr>',
+                '<tr><td></td></tr>',
+                '<tr><td>1</td></tr>',
+                '</table>']
+    dat = Table.read(table_in, format='ascii.html')
+    assert dat.masked is True
+    assert np.all(dat['A'].mask == [True, False])
+    assert dat['A'].dtype.kind == 'i'
+
+    # Now with a specific value '...' => missing
+    table_in = ['<table>',
+                '<tr><th>A</th></tr>',
+                '<tr><td>...</td></tr>',
+                '<tr><td>1</td></tr>',
+                '</table>']
+    dat = Table.read(table_in, format='ascii.html', fill_values=[('...', '0')])
+    assert dat.masked is True
+    assert np.all(dat['A'].mask == [True, False])
+    assert dat['A'].dtype.kind == 'i'
+
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
