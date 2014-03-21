@@ -12,6 +12,8 @@ from .. import html
 from .. import core
 from ....table import Table
 
+import numpy as np
+
 from ....tests.helper import pytest
 from ....extern.six.moves import zip as izip
 from .common import (raises, assert_equal, assert_almost_equal,
@@ -356,10 +358,13 @@ def test_multicolumn_read():
     Test to make sure that the HTML reader inputs multimensional
     columns (those with iterable elements) using the colspan
     attribute of <th>.
+
+    Ensure that any string element within a multidimensional column
+    casts all elements to string prior to type conversion operations.
     """
 
     table = Table.read('t/html2.html', format='ascii.html')
-    col1 = [(1, 2)]
-    col2 = [3]
-    expected = Table([col1, col2], names=('A', 'B'))
-    assert table == expected
+    expected = Table(np.array([(['1', '2.5000000000000000001'], 3),
+                               (['1a', '1'], 3.5)],
+                              dtype=[('A', 'S21', (2,)), ('B', '<f8')]))
+    assert np.all(table == expected)

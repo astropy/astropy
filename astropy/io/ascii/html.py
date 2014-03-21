@@ -12,6 +12,8 @@ from __future__ import absolute_import, division, print_function
 from ...extern import six
 from ...extern.six.moves import zip as izip
 
+import numpy as np
+
 from . import core
 from ...table import Table, Column
 from ...utils.xml import writer
@@ -135,18 +137,16 @@ class HTMLOutputter(core.TableOutputter):
         """
         Process the data in multidimensional columns.
         """
-        self._convert_vals(cols)
         new_cols = []
         col_num = 0
 
         while col_num < len(cols):
             col = cols[col_num]
             if hasattr(col, 'colspan'):
-                # Join elements of spanned columns together into tuples
-                data = [tuple([cols[i].data[row] for i in range(col_num,
-                    col_num + col.colspan)]) for row in range(len(col.data))]
+                # Join elements of spanned columns together into list of tuples
+                span_cols = cols[col_num:col_num + col.colspan]
                 new_col = core.Column(col.name)
-                new_col.data = data
+                new_col.str_vals = list(izip(*[x.str_vals for x in span_cols]))
                 new_cols.append(new_col)
                 col_num += col.colspan
             else:
