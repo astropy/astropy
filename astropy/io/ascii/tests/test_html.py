@@ -113,6 +113,44 @@ def test_missing_data():
     assert dat['A'].dtype.kind == 'i'
 
 
+def test_rename_cols():
+    """
+    Test reading a table and renaming cols
+    """
+    table_in = ['<table>',
+                '<tr><th>A</th> <th>B</th></tr>',
+                '<tr><td>1</td><td>2</td></tr>',
+                '</table>']
+
+    # Swap column names
+    dat = Table.read(table_in, format='ascii.html', names=['B', 'A'])
+    assert dat.colnames == ['B', 'A']
+    assert len(dat) == 1
+
+    # Swap column names and only include A (the renamed version)
+    dat = Table.read(table_in, format='ascii.html', names=['B', 'A'], include_names=['A'])
+    assert dat.colnames == ['A']
+    assert len(dat) == 1
+    assert np.all(dat['A'] == 2)
+
+
+def test_no_names():
+    """
+    Test reading a table witn no column header
+    """
+    table_in = ['<table>',
+                '<tr><td>1</td></tr>',
+                '<tr><td>2</td></tr>',
+                '</table>']
+    dat = Table.read(table_in, format='ascii.html')
+    assert dat.colnames == ['col1']
+    assert len(dat) == 2
+
+    dat = Table.read(table_in, format='ascii.html', names=['a'])
+    assert dat.colnames == ['a']
+    assert len(dat) == 2
+
+
 def test_identify_table_fail():
     """
     Raise an exception with an informative error message if table_id
