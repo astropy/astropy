@@ -17,7 +17,7 @@ resources together and not duplicating efforts.
 
 
 ``astropy`` Core Package
-======================
+========================
 
 The ``astropy`` package (alternatively known as the "core" package)
 contains various classes, utilities, and a packaging framework intended
