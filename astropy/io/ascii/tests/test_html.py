@@ -86,6 +86,7 @@ def test_identify_table():
     assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
 
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_missing_data():
     """
     Test reading a table with missing data
@@ -113,6 +114,7 @@ def test_missing_data():
     assert dat['A'].dtype.kind == 'i'
 
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_rename_cols():
     """
     Test reading a table and renaming cols
@@ -134,6 +136,7 @@ def test_rename_cols():
     assert np.all(dat['A'] == 2)
 
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_no_names():
     """
     Test reading a table witn no column header
@@ -151,6 +154,7 @@ def test_no_names():
     assert len(dat) == 2
 
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_identify_table_fail():
     """
     Raise an exception with an informative error message if table_id
