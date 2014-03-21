@@ -12,10 +12,8 @@ from __future__ import absolute_import, division, print_function
 from ...extern import six
 from ...extern.six.moves import zip as izip
 
-import numpy as np
-
 from . import core
-from ...table import Table, Column
+from ...table import Column
 from ...utils.xml import writer
 
 class SoupString(str):
@@ -78,7 +76,6 @@ class HTMLInputter(core.BaseInputter):
         
         try:
             from bs4 import BeautifulSoup
-            from bs4.element import Comment
         except ImportError:
             raise core.OptionalTableImportError('BeautifulSoup must be '
                                         'installed to read HTML tables')
