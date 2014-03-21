@@ -212,7 +212,7 @@ Formatted printing
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
 
-- `print` statement (Python 2) or `print()<http://docs.python.org/3.0/library/functions.html#print>`_. function (Python 3).
+- `print` statement (Python 2) or `print()` function (Python 3).
 - Table :func:`~astropy.table.table.Table.more` or Column
   :func:`~astropy.table.table.Column.more` methods to interactively scroll
   through table values.
