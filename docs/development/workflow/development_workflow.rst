@@ -193,7 +193,7 @@ given in the following sections.
   documentation follows the guidelines (see :ref:`documentation-guidelines`).
 
 * Once your code is ready to be accepted, please add an entry to the changelog
-  (see :ref:`changelog-format`).  If you're sure where to put this, please at
+  (see :ref:`changelog-format`).  If you're unsure where to put this, please at
   least suggest a brief (one or two sentence) description of your change so
   that another Astropy developer can add it to the changelog.
 
