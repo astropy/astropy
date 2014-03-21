@@ -92,11 +92,9 @@ class HTMLInputter(core.BaseInputter):
         else:
             return [] # The correct table was not found
         
-        soup_list = []
-        for x in table.children:
-            if str(x).strip() and x.name == 'tr':
-                soup_obj = SoupString(x)
-                soup_list.append(soup_obj)
+        # Get all table rows
+        soup_list = [SoupString(x) for x in table.find_all('tr')]
+
         return soup_list
         
 class HTMLSplitter(core.BaseSplitter):
