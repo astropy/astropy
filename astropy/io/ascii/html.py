@@ -46,6 +46,8 @@ def identify_table(soup, htmldict, numtable):
 
     if soup is None or soup.name != 'table':
         return False # Tag is not a <table>
+    elif 'table_id' not in htmldict:
+        return numtable == 1
 
     table_id = htmldict['table_id']
 
