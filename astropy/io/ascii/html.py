@@ -46,8 +46,6 @@ def identify_table(soup, htmldict, numtable):
 
     if soup is None or soup.name != 'table':
         return False # Tag is not a <table>
-    if 'table_id' not in htmldict:
-        return numtable == 1
 
     table_id = htmldict['table_id']
 
@@ -87,7 +85,12 @@ class HTMLInputter(core.BaseInputter):
                 table = possible_table # Find the correct table
                 break
         else:
-            return [] # The correct table was not found
+            if isinstance(self.html['table_id'], int):
+                err_descr = 'number {0}'.format(self.html['table_id'])
+            else:
+                err_descr = "id '{0}'".format(self.html['table_id'])
+            raise core.InconsistentTableError(
+                'ERROR: HTML table {0} not found'.format(err_descr))
         
         # Get all table rows
         soup_list = [SoupString(x) for x in table.find_all('tr')]
@@ -275,6 +278,8 @@ class HTML(core.BaseReader):
         self.html = htmldict
         if 'multicol' not in htmldict:
             self.html['multicol'] = True
+        if 'table_id' not in htmldict:
+            self.html['table_id'] = 1
         self.inputter.html = self.html
 
     def read(self, table):
