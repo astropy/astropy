@@ -1050,8 +1050,9 @@ class SAMPHubServer(object):
                          recipient_public_id))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            tries = 10
 
-            self._make_ten_attempts_(self,recipient_private_key,recipient_public_id,sender_public_id,message,None)
+            self._retry_method_(self, tries, recipient_private_key,recipient_public_id,sender_public_id,message,None)
 
         except Exception as exc:
             warnings.warn("%s notification from client %s to client %s failed [%s]"
@@ -1120,8 +1121,9 @@ class SAMPHubServer(object):
                          recipient_public_id, message["samp.mtype"]))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            tries = 10
 
-            self._make_ten_attempts_(self, "call",recipient_private_key,sender_public_id,message,msg_id)
+            self._retry_method_(self, tries, "call",recipient_private_key,sender_public_id,message,msg_id)
 
         except Exception as exc:
             warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
@@ -1230,8 +1232,9 @@ class SAMPHubServer(object):
             else:
 
                 recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+                tries = 10
 
-                self._make_ten_attempts_(self, "reply", recipient_private_key, recipient_public_id,
+                self._retry_method_(self, tries, "reply", recipient_private_key, recipient_public_id,
                                          responder_public_id, response,msg_id)
 
         except Exception as exc:
@@ -1240,13 +1243,13 @@ class SAMPHubServer(object):
                              recipient_public_id, exc),
                           SAMPWarning)
 
-    def _make_ten_attempts_(self, method_name, recipient_private_key, recipient_public_id,
+    def _retry_method_(self, tries, method_name, recipient_private_key, recipient_public_id,
                             sender_or_responder_public_id, message_or_response, msg_tag_or_id):
 
         if recipient_private_key is None:
             raise SAMPHubError("Invalid client ID")
 
-        for attempt in range(10):
+        for attempt in range(tries):
 
             if not self._is_running:
                 time.sleep(0.01)
