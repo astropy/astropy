@@ -166,12 +166,12 @@ def test_identify_table_fail():
     with pytest.raises(core.InconsistentTableError) as err:
         Table.read(table_in, format='ascii.html', htmldict={'table_id': 'bad_id'},
                    guess=False)
-    assert str(err) == "ERROR: HTML table id 'bad_id' not found"
+    assert str(err).endswith("ERROR: HTML table id 'bad_id' not found")
 
     with pytest.raises(core.InconsistentTableError) as err:
         Table.read(table_in, format='ascii.html', htmldict={'table_id': 3},
                    guess=False)
-    assert str(err) == "ERROR: HTML table number 3 not found"
+    assert str(err).endswith("ERROR: HTML table number 3 not found")
 
 
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
