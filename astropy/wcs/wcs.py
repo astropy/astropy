@@ -53,7 +53,6 @@ except ImportError:
 from ..utils import deprecated, deprecated_attribute
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 from ..coordinates import coordsystems
-from ..coordinates import angle_utilities
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -1021,7 +1020,7 @@ naxis kwarg.
             out[:, 1] = sky[:, self.wcs.lat]
             return out
 
-    def _array_converter(self, func, sky, *args, **kwargs):
+    def _array_converter(self, func, sky, is_world, *args, **kwargs):
         """
         A helper function to support reading either a pair of arrays
         or a single Nx2 array.
@@ -1065,11 +1064,18 @@ naxis kwarg.
         if len(args) == 2:
             xy, origin = args
             if isinstance(xy, coordsystems.SphericalCoordinatesBase):
-                x = angle_utilities.parse_angle(xy.lonangle.to_string(sep='dms'))
-                y = angle_utilities.parse_angle(xy.latangle.to_string(sep='dms'))
-                xy = [[angle_utilities.dms_to_degrees(*x[0]),
-                       angle_utilities.dms_to_degrees(*y[0])]]
-
+                if is_world:
+                    is_SphericalCoord = True
+                    if self.wcs.lng == 0:
+                        xy = [xy.lonangle.degree, xy.latangle.degree]
+                    else:
+                        xy = [xy.latangle.degree, xy.lonangle.degree]
+                else:
+                    raise TypeError(
+                        "Coordinate objects cannot be passed as "
+                        "arguments to this function")
+            else:
+                is_SphericalCoord = False
             try:
                 xy = np.asarray(xy)
                 origin = int(origin)
@@ -1079,7 +1085,10 @@ naxis kwarg.
                     "(coords[N][{0}], origin)".format(self.naxis))
             if self.naxis == 1 and len(xy.shape) == 1:
                 return _return_list_of_arrays([xy], origin)
-            return _return_single_array(xy, origin)
+            if not is_SphericalCoord:
+                return _return_single_array(xy, origin)
+            else:
+                return _return_list_of_arrays(xy, origin)
 
         elif len(args) == self.naxis + 1:
             axes = args[:-1]
@@ -1103,7 +1112,7 @@ naxis kwarg.
 
     def all_pix2world(self, *args, **kwargs):
         return self._array_converter(
-            self._all_pix2world, 'output', *args, **kwargs)
+            self._all_pix2world, 'output', False, *args, **kwargs)
     all_pix2world.__doc__ = """
         Transforms pixel coordinates to world coordinates.
 
@@ -1178,7 +1187,7 @@ naxis kwarg.
             raise ValueError("No basic WCS settings were created.")
         return self._array_converter(
             lambda xy, o: self.wcs.p2s(xy, o)['world'],
-            'output', *args, **kwargs)
+            'output', False, *args, **kwargs)
     wcs_pix2world.__doc__ = """
         Transforms pixel coordinates to world coordinates by doing
         only the basic `wcslib`_ transformation.
@@ -1273,7 +1282,7 @@ naxis kwarg.
         tolerance = kwargs.pop('tolerance', 1e-6)
         return self._array_converter(lambda *args, **kwargs:
             self._all_world2pix(*args, tolerance=tolerance, **kwargs),
-            'input', *args,
+            'input', True, *args,
             **kwargs)
     all_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using numerical
@@ -1344,7 +1353,7 @@ naxis kwarg.
             raise ValueError("No basic WCS settings were created.")
         return self._array_converter(
             lambda xy, o: self.wcs.s2p(xy, o)['pixcrd'],
-            'input', *args, **kwargs)
+            'input', True, *args, **kwargs)
     wcs_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using only
         the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
@@ -1407,7 +1416,8 @@ naxis kwarg.
         return self.wcs_world2pix(*args, **kwargs)
 
     def pix2foc(self, *args):
-        return self._array_converter(self._pix2foc, None, *args)
+        return self._array_converter(self._pix2foc, None, 
+                                     False, *args)
     pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention and `Paper IV`_
@@ -1434,7 +1444,8 @@ naxis kwarg.
                    __.RETURNS('focal coordinates', 8))
 
     def p4_pix2foc(self, *args):
-        return self._array_converter(self._p4_pix2foc, None, *args)
+        return self._array_converter(self._p4_pix2foc, None, 
+                                     False, *args)
     p4_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
@@ -1460,7 +1471,7 @@ naxis kwarg.
                    __.RETURNS('focal coordinates', 8))
 
     def det2im(self, *args):
-        return self._array_converter(self._det2im, None, *args)
+        return self._array_converter(self._det2im, None, False, *args)
     det2im.__doc__ = """
         Convert detector coordinates to image plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
@@ -1493,7 +1504,8 @@ naxis kwarg.
                 return args[:2]
             else:
                 raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.pix2foc, None, *args)
+        return self._array_converter(self.sip.pix2foc, None, 
+                                     False, *args)
     sip_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention.
@@ -1532,7 +1544,8 @@ naxis kwarg.
                 return args[:2]
             else:
                 raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.foc2pix, None, *args)
+        return self._array_converter(self.sip.foc2pix, None, 
+                                     False, *args)
     sip_foc2pix.__doc__ = """
         Convert focal plane coordinates to pixel coordinates using the
         `SIP`_ polynomial distortion convention.
