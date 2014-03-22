@@ -206,9 +206,10 @@ def test_htmlinputter():
                 '<tr><td>3</td><td>c</td><td>-1.25</td></tr>']
     assert [str(x) for x in inputter.get_lines(table)] == expected
     
-    # get_lines should return [] if the table is not found
+    # Should raise an InconsistentTableError if the table is not found
     inputter.html = {'table_id': 4}
-    assert inputter.get_lines(table) == []
+    with pytest.raises(core.InconsistentTableError):
+        inputter.get_lines(table)
 
     # Identification by string ID
     inputter.html['table_id'] = 'second'
