@@ -184,7 +184,7 @@ class CdsData(core.BaseData):
                 continue
             return self.splitter(bottom_lines[i:]) # First valid line found
             
-        raise [] # No data found
+        return [] # No data found
 
 
 class Cds(core.BaseReader):
