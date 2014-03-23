@@ -7,7 +7,7 @@ from ....table import Table, Column
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
-@pytest.mark.parametrize('filename', ['t/cds.dat', 't/ipac.dat',
+@pytest.mark.parametrize('filename', ['t/cds.dat', 't/cds3.dat', 't/ipac.dat',
                                       't/daophot.dat', 't/latex1.tex',
                                       't/simple_csv.csv'])
 def test_read_generic(filename):
@@ -27,6 +27,7 @@ def test_read_ipac():
 
 def test_read_cds():
     Table.read(os.path.join(ROOT, 't/cds.dat'), format='cds')
+    Table.read(os.path.join(ROOT, 't/cds3.dat'), format='cds')
 
 
 def test_read_dapphot():

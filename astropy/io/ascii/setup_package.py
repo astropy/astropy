@@ -18,6 +18,7 @@ def get_package_data():
                                    't/cds/multi/ReadMe',
                                    't/cds/multi/lhs2065.dat',
                                    't/cds2.dat',
+                                   't/cds3.dat',
                                    't/commented_header.dat',
                                    't/commented_header2.dat',
                                    't/continuation.dat',
