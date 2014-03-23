@@ -1,0 +1,68 @@
+
+Appendix Table 1: Planet Candidate Characteristics:  Cumulative Catalog
+================================================================================
+Byte-by-byte Description of file: appendixTable1.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units Label  Explanations
+--------------------------------------------------------------------------------
+   1-  7 F7.2   ---      KOI    Kepler Object of Interest number
+   9- 17 I9     ---      KIC    Kepler Input Catalog Identifier
+  19- 25 F7.3   mag      Kp     Kepler magnitude
+  27- 36 F10.5  d        t0     Time of a transit center; BJD-2454900 (1)
+  38- 45 F8.5   d      e_t0     Uncertainty in t0
+  47- 58 F12.7  d        Per    Average interval between transits (1)
+  60- 69 F10.7  d      e_Per    Uncertainty in Per
+  71- 76 F6.2   ---      Rad    Planetary radius in Earth radii=6378 km (2)
+  78- 83 F6.3   AU       a      Semi-major axis of orbit (3)
+  85- 89 I5     K        Teq    Equilibrium temperature of planet (4)
+  91- 98 F8.4   h        Dur    Transit duration, first contact to last contact
+ 100-105 I6     ---      Depth  Transit depth at center of transit; part per million
+ 107-117 F11.6  ---      d/R*   Ratio of planet-star separation to stellar radius (5)
+ 119-129 F11.6  ---    e_d/R*   Uncertainty in d/R*
+ 131-138 F8.5   ---      r/R*   Ratio of planet radius to stellar radius
+ 140-147 F8.5   ---    e_r/R*   Uncertainty in r/R*
+ 149-156 F8.5   ---      b      Impact parameter of transit (6)
+ 158-165 F8.5   ---    e_b      Uncertainty in b
+ 167-172 F6.1   ---      SNR    Total SNR of all transits detected (7)
+ 174-178 F5.2   ---      chi    Goodness of fit metric
+ 180-184 I5     K        Teff   Stellar effective temperature
+ 186-190 F5.2   cm/s2    log(g) Log of stellar surface gravity
+ 192-197 F6.2   solRad   StRad   Stellar radius
+ 199-200 I2     ---    f_Teff    Flag on Teff (8)
+--------------------------------------------------------------------------------
+Note (1): Based on a linear fit to all observed transits.
+          For candidates with only one observed transit, the period is estimated
+          from the duration and knowledge of the stellar radius; values are then
+          rounded to the nearest integer and multiplied by -1.
+Note (2): Product of r/R* and the stellar radius given in Table 1.
+Note (3): Based on Newton's generalization of Kepler's third law and the
+          stellar mass in Table 1.
+Note (4): See main text for discussion.
+Note (5): Ratio of the planet-star separation at the time of transit to the stellar
+          radius. In the special case of zero eccentricity, it is the ratio of the
+          semi-major axis to the stellar radius.
+Note (6): Note that there is a strong co-variance between b and a/R*.
+Note (7): SNR of the phase folded transit signal computed from modeling of Quarter 1
+          through Quarter 8 data.
+Note (8): f_Teff = 0: Teff,log(g), and Rad are derived using KIC J-K
+                      color and linear interpolation of luminosity class V
+                      stellar properties of Schmidt-Kaler (1982).
+          f_Teff = 1: KIC Teff and log(g) are used as initial values for MCMC
+                      parameter search of Yonsei-Yale stellar evolution models
+                      yielding Teff, log(g), and Rad.
+          f_Teff = 2: Teff, log(g), and Rad are derived using SPC spectral
+                      synthesis and interpolation of the Yale-Yonsei evolutionary
+                      tracks.
+          f_Teff = 3: Teff, log(g), and Rad are derived using SME spectral
+                      synthesis and interpolation of the Yale-Yonsei evolutionary
+                      tracks.
+   1.01  11446443  11.338   55.76257  0.00001    2.4706132  0.0000001  14.42  0.036  1394   1.7320  14224    8.411780    0.037850  0.12432  0.00008  0.82200  0.03460 5921.0  7.26  5814  4.38   1.06 2
+   2.01  10666592  10.463   54.35780  0.00002    2.2047354  0.0000001  22.29  0.039  2303   3.8775   6686    4.681108    0.017120  0.07545  0.00002  0.12820  0.04900 4528.6  2.78  6264  3.79   2.71 2
+   3.01  10748390   9.147   57.81254  0.00004    4.8878003  0.0000006   4.67  0.052   794   2.3684   4281   16.680768    0.931670  0.05770  0.00037  0.02860  0.21700 2086.3 13.35  4766  4.59   0.74 2
+   4.01   3861595  11.432   90.52592  0.00037    3.8493724  0.0000044  11.79  0.056  1923   2.9278   1313    4.481014    0.065540  0.04152  0.00020  0.94620  0.04360  220.4  1.51  6391  3.81   2.60 2
+   5.01   8554498  11.665   65.97325  0.00022    4.7803287  0.0000030   5.65  0.058  1279   2.0117    944    7.560420    0.431120  0.03651  0.00026  0.95070  0.06630  338.1  1.07  5861  4.19   1.42 3
+   5.02   8554498  11.665   66.36690  0.01456    7.0518564  0.0002848   0.66  0.075  1124   3.6882     20    9.797375    0.558680  0.00428  0.00038  0.74970  0.29480    8.5  1.40  5861  4.19   1.42 3
+   7.01  11853905  12.211   56.61154  0.00041    3.2136641  0.0000042   3.72  0.044  1386   4.1109    740    4.485987    0.069720  0.02692  0.00007  0.71400  0.07070  277.7  1.35  5858  4.28   1.27 3
+  10.01   6922244  13.563   54.11860  0.00007    3.5224991  0.0000007  15.88  0.047  1532   3.1984   9245    7.504738    0.182030  0.09328  0.00018  0.63960  0.09950 1503.0  1.49  6025  4.11   1.56 3
+  12.01   5812701  11.353   79.59692  0.00021   17.8551488  0.0000100  13.23  0.144   876   7.4066   9271   20.040346    0.317650  0.08805  0.00011  0.02980  0.10770  898.6  2.47  6419  4.26   1.38 1
+  13.01   9941662   9.958   53.56513  0.00001    1.7635877  0.0000010  22.77  0.037  3320   3.1666   4646    4.395695    1.701810  0.07799  0.00020  0.34750  0.31620 3609.0  1.44  8848  3.94   2.68 1
