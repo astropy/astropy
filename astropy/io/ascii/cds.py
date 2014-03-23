@@ -154,19 +154,37 @@ class CdsData(core.BaseData):
     """
     splitter_class = fixedwidth.FixedWidthSplitter
 
-    def process_lines(self, lines):
-        """Skip over CDS header by finding the last section delimiter"""
+    def get_str_vals(self):
+        """Return valid rows following the last section delimiter as strings"""
         # If the header has a ReadMe and data has a filename
-        # then no need to skip, as the data lines do not have header
+        # then just use data_lines, as the data lines do not have header
         # info. The ``read`` method adds the table_name to the ``data``
         # attribute.
         if self.header.readme and self.table_name:
-            return lines
-        i_sections = [i for (i, x) in enumerate(lines)
+            return self.splitter(self.data_lines)
+        i_sections = [i for (i, x) in enumerate(self.data_lines)
                       if x.startswith('------') or x.startswith('=======')]
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
-        return lines[i_sections[-1]+1:]
+
+        bottom_lines = self.data_lines[i_sections[-1] + 1:]
+        type_map = {core.FloatType:float, core.IntType:int, core.StrType:str}
+        self.splitter.cols = self.header.cols
+
+        # Check lines below final delimiter for first valid row
+        for i, vals in enumerate(self.splitter(bottom_lines)):
+            if len(vals) != len(self.header.cols): # Incorrect number of columns
+                continue
+            try:
+                for j, val in enumerate(vals):
+                    if val: # Skip empty strings
+                        col_type = self.header.get_col_type(self.header.cols[j])
+                        type_map[col_type](val)
+            except ValueError: # One or more values were of incorrect type
+                continue
+            return self.splitter(bottom_lines[i:]) # First valid line found
+            
+        raise [] # No data found
 
 
 class Cds(core.BaseReader):
@@ -266,6 +284,7 @@ class Cds(core.BaseReader):
         core.BaseReader.__init__(self)
         self.header = CdsHeader(readme)
         self.data = CdsData()
+        self.data.header = self.header
 
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""
