@@ -209,25 +209,29 @@ def test_roundtrip_fits():
 
 
 def test_roundtrip_cds():
-    def _test_roundtrip_cds(unit, skip_decompose):
+    def _test_roundtrip_cds(unit):
         a = core.Unit(unit.to_string('cds'), format='cds')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
-        if skip_decompose:
+        try:
+            b = core.Unit(unit.decompose().to_string('cds'), format='cds')
+        except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
             return
-        b = core.Unit(unit.decompose().to_string('cds'), format='cds')
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     x = u_format.CDS()
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
-            yield _test_roundtrip_cds, val, val in (u.mag,)
+            yield _test_roundtrip_cds, val
 
 
 def test_roundtrip_ogip():
     def _test_roundtrip_ogip(unit):
         a = core.Unit(unit.to_string('ogip'), format='ogip')
-        b = core.Unit(unit.decompose().to_string('ogip'), format='ogip')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        try:
+            b = core.Unit(unit.decompose().to_string('ogip'), format='ogip')
+        except ValueError:  # skip mag: decomposes into dex, unknown to OGIP
+            return
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     x = u_format.OGIP()
