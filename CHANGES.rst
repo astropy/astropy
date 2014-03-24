@@ -48,9 +48,6 @@ New Features
   - A new ``csv`` format was added as a convenience for handling CSV (comma-
     separated values) data. [#1935]
 
-  - The CDS reader in ``astropy.io.ascii`` can now handle multiple description
-    lines in ReadMe files. [#2225]
-
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
@@ -295,6 +292,9 @@ Bug Fixes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
+
+  - The CDS reader in ``astropy.io.ascii`` can now handle multiple
+    description lines in ReadMe files. [#2225]
 
 - ``astropy.io.fits``
 
