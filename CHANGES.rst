@@ -105,6 +105,8 @@ New Features
 
   - Added `one` as a shortcut to `dimensionless_unscaled`. [#1980]
 
+  - Added `dex` and `dB` units. [#1628]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
