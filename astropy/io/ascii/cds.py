@@ -88,12 +88,17 @@ class CdsHeader(core.BaseHeader):
                                 break
 
             else:
-                raise core.InconsistentTableError("Cant' find table {0} in {1}".format(
+                raise core.InconsistentTableError("Can't find table {0} in {1}".format(
                     self.data.table_name, self.readme))
             f.close()
 
+        found_line = False
+
         for i_col_def, line in enumerate(lines):
             if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
+                found_line = True
+            elif found_line: # First line after list of file descriptions
+                i_col_def -= 1 # Set i_col_def to last description line
                 break
 
         re_col_def = re.compile(r"""\s*
