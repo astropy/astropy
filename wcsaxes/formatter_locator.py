@@ -255,11 +255,20 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 decimal = self._decimal
                 unit = self._unit
 
+            if decimal:
+                sep = None
+            else:
+                if unit == u.degree:
+                    sep=(u'\xb0', "'", '"')[:fields]
+                else:
+                    sep=('h', 'm', 's')[:fields]
+
             angles = Angle(np.asarray(values), unit=u.deg)
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
-                                      fields=fields).tolist()
+                                      fields=fields,
+                                      sep=sep).tolist()
             return string
         else:
             return []
