@@ -91,6 +91,8 @@ New Features
     scale is taken from the object one adds to or subtracts from).
     This allows, e.g., to work consistently in TDB.  [#1932]
 
+  - `Time` now supports ISO format strings that end in "Z". [#2211, #2203]
+
 - ``astropy.units``
 
   - Support for the unit format `Office of Guest Investigator Programs
