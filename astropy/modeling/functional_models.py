@@ -1025,10 +1025,6 @@ class AiryDisk2D(Parametric2DModel):
         y position of the maximum of the Airy function.
     radius : float
         The radius of the Airy disk (radius of the first zero).
-        For an optical system, the radius of the first zero represents
-        the limiting angular resolution and is approximately
-        1.22 * lambda / D, where lambda is the wavelength of the light
-        and D is the diameter of the aperture.
 
     See Also
     --------
@@ -1038,12 +1034,18 @@ class AiryDisk2D(Parametric2DModel):
     -----
     Model formula:
 
-        .. math:: f(r) = A \\left[\\frac{2 J_1(\\frac{\\pi r}{R/1.22})}{\\frac{\\pi r}{R/1.22}}\\right]^2
+        .. math:: f(r) = A \\left[\\frac{2 J_1(\\frac{\\pi r}{R/R_z})}{\\frac{\\pi r}{R/R_z}}\\right]^2
 
-    Where :math:`J_1` is the first order Bessel function of the first kind,
-    :math:`r` is radial distance from the maximum of the Airy function
-    (:math:`r = \\sqrt{(x - x_0)^2 + (y - y_0)^2}`), and :math:`R` is the
-    input ``radius`` parameter.
+    Where :math:`J_1` is the first order Bessel function of the first
+    kind, :math:`r` is radial distance from the maximum of the Airy
+    function (:math:`r = \\sqrt{(x - x_0)^2 + (y - y_0)^2}`), :math:`R`
+    is the input ``radius`` parameter, and :math:`R_z =
+    1.2196698912665045`).
+
+    For an optical system, the radius of the first zero represents the
+    limiting angular resolution and is approximately 1.22 * lambda / D,
+    where lambda is the wavelength of the light and D is the diameter of
+    the aperture.
     """
 
     amplitude = Parameter()
