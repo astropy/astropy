@@ -1053,6 +1053,12 @@ class AiryDisk2D(Parametric2DModel):
     limiting angular resolution and is approximately 1.22 * lambda / D,
     where lambda is the wavelength of the light and D is the diameter of
     the aperture.
+
+    See [1]_ for more details about the Airy disk.
+
+    References
+    ----------
+    .. [1] http://en.wikipedia.org/wiki/Airy_disk
     """
 
     amplitude = Parameter()
