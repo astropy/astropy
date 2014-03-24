@@ -29,6 +29,12 @@ def test_multi_header():
         assert_equal(len(table), 18)
         assert_almost_equal(table['Lambda'][-1], 6479.32)
         assert_equal(table['Fnu'][-1], '0.285937')
+    data = 't/cds/multi/lp944-20.dat'
+    for read_table in (read_table1, read_table2, read_table3):
+        table = read_table(readme, data)
+        assert_equal(len(table), 18)
+        assert_almost_equal(table['Lambda'][0], 0.342236)
+        assert_equal(table['Fnu'][-1], '0.489005')
 
 
 def test_glob_header():

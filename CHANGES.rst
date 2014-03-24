@@ -20,6 +20,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - The CDS reader in ``astropy.io.ascii`` can now handle multiple
+    description lines in ReadMe files. [#2225]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
