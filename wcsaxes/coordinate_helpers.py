@@ -20,10 +20,14 @@ from . import six
 __all__ = ['CoordinateHelper']
 
 
+def wrap_angle_at(values, coord_wrap):
+    return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
+
+
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar', frame=None):
+                 coord_type='scalar', coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -31,6 +35,13 @@ class CoordinateHelper(object):
         self.coord_index = coord_index
         self.coord_type = coord_type
         self.frame = frame
+
+        if coord_type == 'longitude' and coord_wrap is None:
+            self.coord_wrap = 360
+        elif coord_type != 'longitude' and coord_wrap is not None:
+            raise NotImplementedError('coord_wrap is not yet supported for non-longitude coordinates')
+        else:
+            self.coord_wrap = coord_wrap
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
@@ -289,8 +300,8 @@ class CoordinateHelper(object):
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
             if self.coord_type == 'longitude':
-                w1 = w1 % 360.
-                w2 = w2 % 360.
+                w1 = wrap_angle_at(w1, self.coord_wrap)
+                w2 = wrap_angle_at(w2, self.coord_wrap)
                 w1[w2 - w1 > 180.] += 360
                 w2[w1 - w2 > 180.] += 360
 
@@ -326,7 +337,7 @@ class CoordinateHelper(object):
                     angle_i = tick_angle[imin] + frac * delta_angle
 
                     if self.coord_type == 'longitude':
-                        world = t % 360.
+                        world = wrap_angle_at(t, self.coord_wrap)
                     else:
                         world = t
 
