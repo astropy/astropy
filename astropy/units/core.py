@@ -13,7 +13,6 @@ if six.PY2:
     import cmath
 
 import inspect
-import numbers
 import textwrap
 import warnings
 import numpy as np
@@ -661,7 +660,7 @@ class UnitBase(object):
         from .quantity import Quantity
         return m * Quantity(1, self)
 
-    if six.PY3:  # pragma: no cover
+    if six.PY3:
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -2099,7 +2098,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 names.append(prefix + alias)
 
         if len(names):
-            PrefixUnit(names, CompositeUnit(factor, [u], [1], _error_check=False),
+            PrefixUnit(names, CompositeUnit(factor, [u], [1],
+                                            _error_check=False),
                        namespace=namespace, format=format)
 
 
