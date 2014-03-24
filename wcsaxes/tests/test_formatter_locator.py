@@ -96,7 +96,14 @@ class TestAngleFormatterLocator(object):
                                                     ('d', '15'),
                                                     ('d.d', '15.4'),
                                                     ('d.dd', '15.39'),
-                                                    ('d.ddd', '15.392')])
+                                                    ('d.ddd', '15.392'),
+                                                    ('m', '924'),
+                                                    ('m.m', '923.5'),
+                                                    ('m.mm', '923.53'),
+                                                    ('s', '55412'),
+                                                    ('s.s', '55412.0'),
+                                                    ('s.ss', '55412.03'),
+                                                    ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.formatter([15.392231], None)[0] == string
@@ -115,7 +122,18 @@ class TestAngleFormatterLocator(object):
                                                           ('hh', 15. * u.deg),
                                                           ('hh:mm', 15. * u.arcmin),
                                                           ('hh:mm:ss', 15. * u.arcsec),
-                                                          ('hh:mm:ss.ss', 0.15 * u.arcsec)])
+                                                          ('hh:mm:ss.ss', 0.15 * u.arcsec),
+                                                          ('d', 1. * u.deg),
+                                                          ('d.d', 0.1 * u.deg),
+                                                          ('d.dd', 0.01 * u.deg),
+                                                          ('d.ddd', 0.001 * u.deg),
+                                                          ('m', 1. * u.arcmin),
+                                                          ('m.m', 0.1 * u.arcmin),
+                                                          ('m.mm', 0.01 * u.arcmin),
+                                                          ('s', 1. * u.arcsec),
+                                                          ('s.s', 0.1 * u.arcsec),
+                                                          ('s.ss', 0.01 * u.arcsec),
+                                                          ])
     def test_base_spacing(self, format, base_spacing):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
