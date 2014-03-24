@@ -101,9 +101,6 @@ def_unit(['R', 'Rayleigh', 'rayleigh'],
          namespace=_ns, prefixes=True,
          doc="Rayleigh: photon flux")
 
-def_unit(['mag'], namespace=_ns, prefixes=True,
-         doc="Astronomical magnitude.")
-
 
 ###########################################################################
 # MISCELLANEOUS
@@ -129,9 +126,23 @@ def_unit(['chan'], namespace=_ns)
 def_unit(['bin'], namespace=_ns)
 def_unit(['vox', 'voxel'], namespace=_ns)
 def_unit((['bit', 'b'], ['bit']), namespace=_ns, prefixes=True)
-def_unit((['byte', 'B'], ['byte']), namespace=_ns, prefixes=True)
+def_unit((['byte', 'B'], ['byte']), namespace=_ns, prefixes=True,
+         exclude_prefixes=['d'])
 def_unit(['adu'], namespace=_ns)
 def_unit(['beam'], namespace=_ns)
+
+
+###########################################################################
+# Logarithmic units
+
+def_unit(['dex'], namespace=_ns, prefixes=False,
+         doc="Dex: Base 10 logarithmic unit")
+
+def_unit(['dB', 'decibel'], 0.1 * dex, namespace=_ns, prefixes=False,
+         doc="Decibel: ten per base 10 logarithmic unit")
+
+def_unit(['mag'], -0.4 * dex, namespace=_ns, prefixes=True,
+         doc="Astronomical magnitude: -2.5 per base 10 logarithmic unit")
 
 
 ###########################################################################

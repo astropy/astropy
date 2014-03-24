@@ -9,16 +9,17 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip
+if six.PY2:
+    import cmath
 
 import inspect
-import sys
 import textwrap
 import warnings
 import numpy as np
 
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
-from .utils import is_effectively_unity, validate_power
+from .utils import is_effectively_unity, sanitize_scale, validate_power
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -490,7 +491,11 @@ class UnitBase(object):
         __str__ = __unicode__
 
     def __repr__(self):
-        return 'Unit("' + unit_format.Generic().to_string(self) + '")'
+        string = unit_format.Generic().to_string(self)
+        if six.PY2:
+            string = string.encode('unicode_escape')
+
+        return 'Unit("{0}")'.format(string)
 
     def _get_physical_type_id(self):
         """
@@ -1699,9 +1704,8 @@ class _UnitMetaClass(InheritDocstrings):
                 format = 'generic'
 
             f = unit_format.get_format(format)
-            if six.PY3:
-                if isinstance(s, bytes):
-                    s = s.decode('ascii')
+            if six.PY3 and isinstance(s, bytes):
+                s = s.decode('ascii')
 
             try:
                 return f.parse(s)
@@ -1884,11 +1888,11 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            if is_effectively_unity(scale):
-                scale = 1.0
+            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
-                    raise TypeError("bases must be sequence of UnitBase instances")
+                    raise TypeError(
+                        "bases must be sequence of UnitBase instances")
             powers = [validate_power(p, support_tuples=True) for p in powers]
 
         self._scale = scale
@@ -1940,8 +1944,15 @@ class CompositeUnit(UnitBase):
                 for base in bases:
                     try:
                         scale *= unit._to(base) ** power
-                    except:
+                    except UnitsError:
                         pass
+                    except ValueError:
+                        # on python2, sqrt(negative number) does not
+                        # automatically lead to a complex number, but this is
+                        # needed for the corner case of mag=-0.4*dex
+                        scale *= cmath.exp(power * cmath.log(unit._to(base)))
+                        unit = base
+                        break
                     else:
                         unit = base
                         break
@@ -1960,7 +1971,13 @@ class CompositeUnit(UnitBase):
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
-                scale *= b._scale ** p
+                try:
+                    scale *= b._scale ** p
+                except ValueError:
+                    # on python2, sqrt(negative number) does not
+                    # automatically lead to a complex number, but this is
+                    # needed for the corner case of mag=-0.4*dex
+                    scale *= cmath.exp(p * cmath.log(b._scale))
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     scale = add_unit(b_sub, p_sub * p, scale)
             else:
@@ -1970,12 +1987,9 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [validate_power(x[1], support_tuples=True) for x in new_parts]
-
-        if is_effectively_unity(scale):
-            scale = 1.0
-
-        self._scale = scale
+        self._powers = [validate_power(x[1], support_tuples=True)
+                        for x in new_parts]
+        self._scale = sanitize_scale(scale)
 
     def __copy__(self):
         """
@@ -2084,7 +2098,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 names.append(prefix + alias)
 
         if len(names):
-            PrefixUnit(names, CompositeUnit(factor, [u], [1], _error_check=False),
+            PrefixUnit(names, CompositeUnit(factor, [u], [1],
+                                            _error_check=False),
                        namespace=namespace, format=format)
 
 

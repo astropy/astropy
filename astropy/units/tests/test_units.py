@@ -548,6 +548,7 @@ def test_composite_unit_get_format_name():
     assert (str(u.CompositeUnit(1, [unit1, unit2], [1, -1])) ==
             'nrad / (Hz(1/2) s)')
 
+
 def test_unicode_policy():
     from ...tests.helper import assert_follows_unicode_guidelines
 
@@ -612,3 +613,9 @@ def test_fractional_powers():
 
 def test_inherit_docstrings():
     assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__
+
+
+def test_sqrt_mag():
+    sqrt_mag = u.mag ** 0.5
+    assert hasattr(sqrt_mag.decompose().scale, 'imag')
+    assert (sqrt_mag.decompose())**2 == u.mag

@@ -57,12 +57,17 @@ class Fits(generic.Generic):
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
+        special_cases = {'dbyte': u.Unit(0.1*u.byte)}
+
         for base in bases + deprecated_bases:
             for prefix in prefixes:
                 key = prefix + base
                 if keyword.iskeyword(key):
                     continue
-                names[key] = getattr(u, key)
+                elif key in special_cases:
+                    names[key] = special_cases[key]
+                else:
+                    names[key] = getattr(u, key)
         for base in deprecated_bases:
             for prefix in prefixes:
                 deprecated_names.add(prefix + base)
