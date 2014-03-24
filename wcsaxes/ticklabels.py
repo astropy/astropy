@@ -64,7 +64,7 @@ class TickLabels(Text):
                 for j in range(len(t1)):
                     if t1[j] != t2[j]:
                         break
-                    if t1[j] not in '0123456789.':
+                    if t1[j] not in '-0123456789.':
                         start = j + 1
                 if start == 0:
                     t1 = self.text[axis][i]
