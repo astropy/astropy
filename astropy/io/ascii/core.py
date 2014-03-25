@@ -640,7 +640,7 @@ class BaseOutputter(object):
                         raise TypeError()
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
-                except (TypeError, ValueError):
+                except (TypeError, ValueError, OverflowError):
                     col.converters.pop(0)
                 except IndexError:
                     raise ValueError('Column %s failed to convert' % col.name)

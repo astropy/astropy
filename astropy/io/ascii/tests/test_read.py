@@ -16,6 +16,17 @@ from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 from ....tests.helper import pytest
 
+
+def test_int_overflow():
+    """
+    Test reading an extremely large integer, which falls through to
+    float due to an overflow error (#2234).  In this case the actual
+    float value is nan, but that doesn't matter.
+    """
+    dat = ascii.read(['a', '1' * 10000], format='basic', guess=False)
+    assert dat['a'].dtype.kind == 'f'
+
+
 def test_guess_with_names_arg():
     """
     Make sure reading a table with guess=True gives the expected result when
