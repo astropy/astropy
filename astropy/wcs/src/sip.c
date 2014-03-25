@@ -186,6 +186,9 @@ sip_compute(
     const unsigned int n,
     /*@null@*/ const double* b,
     const double* crpix /* [2] */,
+    /*indicator if it's a forward or inverse transformation */
+    /* 1 = forward (pix2foc, 0 = inverse foc2pix */
+    const unsigned int forward,
     /*@null@*/ double* tmp,
     /*@null@*/ const double* input /* [NAXES][nelem] */,
     /*@null@*/ double* output /* [NAXES][nelem] */) {
@@ -222,9 +225,14 @@ sip_compute(
   input_ptr = input;
   output_ptr = output;
   for (i = 0; i < nelem; ++i) {
-    x = *input_ptr++ - crpix[0];
-    y = *input_ptr++ - crpix[1];
-
+    if (forward == 1) {
+        x = *input_ptr++ - crpix[0];
+        y = *input_ptr++ - crpix[1];
+    }
+    else{
+      x = *input_ptr++;
+      y = *input_ptr++;
+      }
     for (j = 0; j <= (int)m; ++j) {
       tmp[j] = lu(m, a, (int)m-j, j);
       for (k = j-1; k >= 0; --k) {
@@ -270,7 +278,7 @@ sip_pix2deltas(
   return sip_compute(naxes, nelem,
                      sip->a_order, sip->a,
                      sip->b_order, sip->b,
-                     sip->crpix,
+                     sip->crpix, 1,
                      (double *)sip->scratch,
                      pix, deltas);
 }
@@ -290,7 +298,7 @@ sip_foc2deltas(
   return sip_compute(naxes, nelem,
                      sip->ap_order, sip->ap,
                      sip->bp_order, sip->bp,
-                     sip->crpix,
+                     sip->crpix, 0,
                      (double *)sip->scratch,
                      foc, deltas);
 }
