@@ -122,6 +122,10 @@ class TickLabels(Text):
 
                 bb = super(TickLabels, self).get_window_extent(renderer)
 
+                # TODO: the problem here is that we might get rid of a label
+                # that has a key starting bit such as -0:30 where the -0
+                # might be dropped from all other labels.
+
                 if bb.count_overlaps(bboxes) == 0:
                     super(TickLabels, self).draw(renderer)
                     bboxes.append(bb)

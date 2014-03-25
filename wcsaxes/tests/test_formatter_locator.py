@@ -1,8 +1,11 @@
+# -*- coding: utf8 -*-
+
 import pytest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
 from astropy import units as u
+from .. import six
 
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
@@ -83,11 +86,11 @@ class TestAngleFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [35., 36.])
 
-    @pytest.mark.parametrize(('format', 'string'), [('dd', '15d'),
-                                                    ('dd:mm', '15d24m'),
-                                                    ('dd:mm:ss', '15d23m32s'),
-                                                    ('dd:mm:ss.s', '15d23m32.0s'),
-                                                    ('dd:mm:ss.ssss', '15d23m32.0316s'),
+    @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15°')),
+                                                    ('dd:mm', six.u('15°24\'')),
+                                                    ('dd:mm:ss', six.u('15°23\'32"')),
+                                                    ('dd:mm:ss.s', six.u('15°23\'32.0"')),
+                                                    ('dd:mm:ss.ssss', six.u('15°23\'32.0316"')),
                                                     ('hh', '1h'),
                                                     ('hh:mm', '1h02m'),
                                                     ('hh:mm:ss', '1h01m34s'),
