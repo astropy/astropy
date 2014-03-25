@@ -24,6 +24,10 @@ New Features
   - Added `astropy.cosmology.z_at_value` to find the redshift at which a
     cosmology function matches a desired value. [#1909]
 
+  - Added `differential_comoving_volume` function to give the differential
+    comoving volume at redshift z. [#2103]
+
+
 - ``astropy.io.ascii``
 
   - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a
