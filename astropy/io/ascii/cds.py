@@ -171,13 +171,16 @@ class CdsData(core.BaseData):
         type_map = {core.FloatType:float, core.IntType:int, core.StrType:str}
         self.splitter.cols = self.header.cols
 
+        # Need fill values. Usually done later, so set here for splitter cols
+        self._set_fill_values(self.splitter.cols)
+
         # Check lines below final delimiter for first valid row
         for i, vals in enumerate(self.splitter(bottom_lines)):
             if len(vals) != len(self.header.cols): # Incorrect number of columns
                 continue
             try:
                 for j, val in enumerate(vals):
-                    if val: # Skip empty strings
+                    if val not in self.splitter.cols[j].fill_values:
                         col_type = self.header.get_col_type(self.header.cols[j])
                         type_map[col_type](val)
             except ValueError: # One or more values were of incorrect type
