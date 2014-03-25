@@ -84,8 +84,7 @@ class Angle(u.Quantity):
 
     def __new__(cls, angle, unit=None, dtype=None, copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
-        if (unit is not None and
-            not unit.is_equivalent(u.radian)):
+        if (unit is not None and not unit.is_equivalent(u.radian)):
             raise u.UnitsError(
                 "Given unit {0} is not convertible to an angle".format(
                     unit))
@@ -99,8 +98,8 @@ class Angle(u.Quantity):
                 unit = cls._convert_unit_to_angle_unit(unit)
                 if not unit.is_equivalent(u.radian):
                     raise u.UnitsError(
-                        "Given quantity {0} is not convertible to an angle".format(
-                            angle))
+                        "Given quantity {0} is not convertible to an "
+                        "angle".format(angle))
 
                 angle = angle.value
 
@@ -138,7 +137,7 @@ class Angle(u.Quantity):
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
 
         if unit is None:
-            raise u.UnitsError("No unit was specified")
+            raise u.UnitsError("No unit specified - must be some kind of angle")
 
         self = super(Angle, cls).__new__(
             cls, angle, unit, dtype=dtype, copy=copy)
