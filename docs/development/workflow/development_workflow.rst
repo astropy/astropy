@@ -133,6 +133,9 @@ Astropy Guidelines for `git`
 * Make frequent commits, and always include a commit message. Each commit
   should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
+* Never merge changes from ``astropy/master`` into your feature branch. If
+  changes in the development version require changes to our code you can
+  :ref:`rebase`. 
 
 In addition there are a couple of `git` naming conventions used in this
 document:
@@ -443,7 +446,7 @@ If you run into any problems, do not hesitate to ask. A more detailed conceptual
 discussing of rebasing is at :ref:`rebase-on-trunk`.
 
 Once your rebase is successfully pushed to GitHub you can delete the backup
-branch you made:
+branch you made::
 
     git branch -D tmp
 
