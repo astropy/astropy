@@ -13,6 +13,8 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import Angle
 
+from . import six
+
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')
@@ -259,7 +261,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 sep = None
             else:
                 if unit == u.degree:
-                    sep=(u'\xb0', "'", '"')[:fields]
+                    sep=(six.u('\xb0'), "'", '"')[:fields]
                 else:
                     sep=('h', 'm', 's')[:fields]
 
