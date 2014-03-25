@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 import pytest
 
 import numpy as np
@@ -86,11 +84,11 @@ class TestAngleFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [35., 36.])
 
-    @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15°')),
-                                                    ('dd:mm', six.u('15°24\'')),
-                                                    ('dd:mm:ss', six.u('15°23\'32"')),
-                                                    ('dd:mm:ss.s', six.u('15°23\'32.0"')),
-                                                    ('dd:mm:ss.ssss', six.u('15°23\'32.0316"')),
+    @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
+                                                    ('dd:mm', six.u('15\xb024\'')),
+                                                    ('dd:mm:ss', six.u('15\xb023\'32"')),
+                                                    ('dd:mm:ss.s', six.u('15\xb023\'32.0"')),
+                                                    ('dd:mm:ss.ssss', six.u('15\xb023\'32.0316"')),
                                                     ('hh', '1h'),
                                                     ('hh:mm', '1h02m'),
                                                     ('hh:mm:ss', '1h01m34s'),
