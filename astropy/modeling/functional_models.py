@@ -27,13 +27,6 @@ __all__ = sorted([
 ])
 
 
-try:
-    from scipy.special import jn_zeros
-    AIRYDISK2D_RZ = jn_zeros(1, 1)[0] / np.pi    # 1.2196698912665045
-except (ValueError, ImportError):
-    pass
-
-
 class Gaussian1D(Parametric1DModel):
     """
     One dimensional Gaussian model.
@@ -1070,8 +1063,9 @@ class AiryDisk2D(Parametric2DModel):
     def __init__(self, amplitude, x_0, y_0, radius, **constraints):
         if self._j1 is None:
             try:
-                from scipy.special import j1
+                from scipy.special import j1, jn_zeros
                 self.__class__._j1 = j1
+                self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
             # add a ValueError here for python3 + scipy < 0.12
             except (ValueError, ImportError):
                 raise ImportError("AiryDisk2D model requires scipy > 0.11.")
@@ -1094,7 +1088,7 @@ class AiryDisk2D(Parametric2DModel):
     def eval(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
 
-        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / AIRYDISK2D_RZ)
+        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
