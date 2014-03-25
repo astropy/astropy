@@ -495,7 +495,7 @@ def get_testfiles(name=None):
                   'AK',
                   'Fit'),
          'name': 't/cds.dat',
-         'nrows': 1,
+         'nrows': 2,
          'opts': {'Reader': asciitable.Cds}},
         {'cols': ('KOI',
                   'KIC',
