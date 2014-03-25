@@ -474,7 +474,7 @@ The `git` commands, without their output, are::
     git add astropy/coordinates/tests/test_arrays.py
     git commit -m"Add tests of len() for scalar coordinate and length 1 coordinate"
 
-EDIT THE CHANGELOG
+Edit the changelog
 ------------------
 
 Keeping the list of changes up to date is nearly impossible unless each
