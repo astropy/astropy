@@ -398,6 +398,21 @@ class NonLinearLSQFitter(Fitter):
         super(NonLinearLSQFitter, self).__init__()
 
     def errorfunc(self, fps, *args):
+        """
+        Computes and returns the residuals of the model from the data.
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            input coordinates
+
+        Returns
+        -------
+        res : array
+            1D array of residuals
+        """
         model = args[0]
         self._fitter_to_model_params(model, fps)
         meas = args[-1]
