@@ -354,27 +354,37 @@ class NonLinearLSQFitter(Fitter):
     Attributes
     ----------
     fit_info : dict
-        This dictionary contains the values returned by `scipy.optimize.leastsq`
-        for the most recent fit, including the values inside  the `infodict`
-        dictionary. See the  `scipy.optimize.leastsq` documentation for details
-        on the meaning of the elements. Note that the `x` return values is not
-        included (as it is instead the parameter values of the returned model).
-        Additionally, one additional element is computed whenever a model is
-        fit, assigned to the key 'param_cov': the covariance matrix of the
-        parameters.  The order of the matrix elements matches the order of the
-        parameters in the fitted model (i.e., the order that
-        ``model.param_names`` shows).
+        The `scipy.optimize.leastsq` result for the most recent fit (see notes).
+
 
     Raises
     ------
     ModelLinearityError
-        A linear model is passed to a nonlinear fitter
+        If a linear model is passed to a nonlinear fitter.
+
+    Notes
+    -----
+    The `fit_info` dictionary contains the values returned by
+    `scipy.optimize.leastsq` for the most recent fit, including the values
+    inside  the `infodict` dictionary. See the `scipy.optimize.leastsq`
+    documentation for details on the meaning of these values. Note that the `x`
+    return value is *not* included (as it is instead the parameter values of the
+    returned model).
+
+    Additionally, one additional element of `fit_info` is computed whenever a
+    model is fit, with the key 'param_cov'. The corresponding value is the
+    covariance matrix of the parameters as a 2D numpy array.  The order of the
+    matrix elements matches the order of the parameters in the fitted model
+    (i.e., the same order as ``model.param_names``).
+
     """
 
     supported_constraints = ['fixed', 'tied', 'bounds']
+    """
+    The valid constaints of this fitter class.
+    """
 
     def __init__(self):
-
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
