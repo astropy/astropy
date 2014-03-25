@@ -28,6 +28,8 @@ from distutils.core import Command
 from distutils.command.sdist import sdist as DistutilsSdist
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 from setuptools.command.build_py import build_py as SetuptoolsBuildPy
+from setuptools.command.install import install as SetuptoolsInstall
+from setuptools.command.install_lib import install_lib as SetuptoolsInstallLib
 
 from setuptools.command.register import register as SetuptoolsRegister
 from setuptools import find_packages
@@ -362,19 +364,25 @@ def register_commands(package, version, release):
     _registered_commands = {
         'test': generate_test_command(package),
 
-         # Use distutils' sdist because it respects package_data.
-         # setuptools/distributes sdist requires duplication of information in
-         # MANIFEST.in
-         'sdist': DistutilsSdist,
+        # Use distutils' sdist because it respects package_data.
+        # setuptools/distributes sdist requires duplication of information in
+        # MANIFEST.in
+        'sdist': DistutilsSdist,
 
-         # The exact form of the build_ext command depends on whether or not
-         # we're building a release version
-         'build_ext': generate_build_ext_command(package, release),
+        # The exact form of the build_ext command depends on whether or not
+        # we're building a release version
+        'build_ext': generate_build_ext_command(package, release),
 
-         # We have a custom build_py to generate the default configuration file
-         'build_py': AstropyBuildPy,
+        # We have a custom build_py to generate the default configuration file
+        'build_py': AstropyBuildPy,
 
-         'register': AstropyRegister
+        # Since install can (in some circumstances) be run without
+        # first building, we also need to override install and
+        # install_lib.  See #2223
+        'install': AstropyInstall,
+        'install_lib': AstropyInstallLib,
+
+        'register': AstropyRegister
     }
 
     try:
@@ -542,6 +550,29 @@ def generate_build_ext_command(packagename, release):
     return type('build_ext', (basecls, object), attrs)
 
 
+def _get_platlib_dir(cmd):
+    plat_specifier = '.{0}-{1}'.format(cmd.plat_name, sys.version[0:3])
+    return os.path.join(cmd.build_base, 'lib' + plat_specifier)
+
+
+class AstropyInstall(SetuptoolsInstall):
+
+    def finalize_options(self):
+        build_cmd = self.get_finalized_command('build')
+        platlib_dir = _get_platlib_dir(build_cmd)
+        self.build_lib = platlib_dir
+        SetuptoolsInstall.finalize_options(self)
+
+
+class AstropyInstallLib(SetuptoolsInstallLib):
+
+    def finalize_options(self):
+        build_cmd = self.get_finalized_command('build')
+        platlib_dir = _get_platlib_dir(build_cmd)
+        self.build_dir = platlib_dir
+        SetuptoolsInstallLib.finalize_options(self)
+
+
 class AstropyBuildPy(SetuptoolsBuildPy):
 
     def finalize_options(self):
@@ -550,22 +581,12 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         # for projects with only pure-Python source (this is desirable
         # specifically for support of multiple Python version).
         build_cmd = self.get_finalized_command('build')
-        plat_specifier = '.{0}-{1}'.format(build_cmd.plat_name,
-                                           sys.version[0:3])
-        # Do this unconditionally
-        build_purelib = os.path.join(build_cmd.build_base,
-                                     'lib' + plat_specifier)
-        build_cmd.build_purelib = build_purelib
-        build_cmd.build_lib = build_purelib
+        platlib_dir = _get_platlib_dir(build_cmd)
 
-        # Ugly hack: We also need to 'fix' the build_lib option on the
-        # install command--it would be better just to override that command
-        # entirely, but we can get around that extra effort by doing it here
-        install_cmd = self.get_finalized_command('install')
-        install_cmd.build_lib = build_purelib
-        install_lib_cmd = self.get_finalized_command('install_lib')
-        install_lib_cmd.build_dir = build_purelib
-        self.build_lib = build_purelib
+        build_cmd.build_purelib = platlib_dir
+        build_cmd.build_lib = platlib_dir
+        self.build_lib = platlib_dir
+
         SetuptoolsBuildPy.finalize_options(self)
 
     def run_2to3(self, files, doctests=False):
