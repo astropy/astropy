@@ -315,3 +315,13 @@ def test_empty_sep():
 
     assert a.to_string(sep='', precision=2, pad=True) == '050431.94'
 
+def test_create_tuple():
+    """
+    Tests creation of an angle with a (d,m,s) or (h,m,s) tuple
+    """
+    a1 = Angle((1, 30, 0), unit=u.degree)
+    assert a1.value == 1.5
+
+    a1 = Angle((1, 30, 0), unit=u.hourangle)
+    assert a1.value == 1.5
+
