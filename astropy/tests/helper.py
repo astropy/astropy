@@ -135,6 +135,7 @@ class TestRunner(object):
                 warnings.warn(
                     "Can not test .rst docs, since docs path "
                     "({0}) does not exist.".format(docs_path))
+                docs_path = None
 
         if test_path:
             base, ext = os.path.splitext(test_path)
