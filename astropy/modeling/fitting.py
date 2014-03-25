@@ -351,11 +351,6 @@ class NonLinearLSQFitter(Fitter):
     A class performing non-linear least squares fitting using the
     Levenberg-Marquardt algorithm implemented in `scipy.optimize.leastsq`.
 
-    Parameters
-    ----------
-    model : a fittable `~astropy.modeling.ParametricModel`
-        model to fit to data
-
     Attributes
     ----------
     fit_info : dict
