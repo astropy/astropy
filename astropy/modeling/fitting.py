@@ -351,21 +351,40 @@ class NonLinearLSQFitter(Fitter):
     A class performing non-linear least squares fitting using the
     Levenberg-Marquardt algorithm implemented in `scipy.optimize.leastsq`.
 
-    Parameters
+    Attributes
     ----------
-    model : a fittable `~astropy.modeling.ParametricModel`
-        model to fit to data
+    fit_info : dict
+        The `scipy.optimize.leastsq` result for the most recent fit (see notes).
+
 
     Raises
     ------
     ModelLinearityError
-        A linear model is passed to a nonlinear fitter
+        If a linear model is passed to a nonlinear fitter.
+
+    Notes
+    -----
+    The `fit_info` dictionary contains the values returned by
+    `scipy.optimize.leastsq` for the most recent fit, including the values
+    inside  the `infodict` dictionary. See the `scipy.optimize.leastsq`
+    documentation for details on the meaning of these values. Note that the `x`
+    return value is *not* included (as it is instead the parameter values of the
+    returned model).
+
+    Additionally, one additional element of `fit_info` is computed whenever a
+    model is fit, with the key 'param_cov'. The corresponding value is the
+    covariance matrix of the parameters as a 2D numpy array.  The order of the
+    matrix elements matches the order of the parameters in the fitted model
+    (i.e., the same order as ``model.param_names``).
+
     """
 
     supported_constraints = ['fixed', 'tied', 'bounds']
+    """
+    The valid constaints of this fitter class.
+    """
 
     def __init__(self):
-
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -373,11 +392,27 @@ class NonLinearLSQFitter(Fitter):
                          'qtf': None,
                          'message': None,
                          'ierr': None,
-                         'status': None}
+                         'param_jac': None,
+                         'param_cov': None}
 
         super(NonLinearLSQFitter, self).__init__()
 
     def errorfunc(self, fps, *args):
+        """
+        Computes and returns the residuals of the model from the data.
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            input coordinates
+
+        Returns
+        -------
+        res : array
+            1D array of residuals
+        """
         model = args[0]
         self._fitter_to_model_params(model, fps)
         meas = args[-1]
@@ -463,19 +498,28 @@ class NonLinearLSQFitter(Fitter):
         else:
             dfunc = self._wrap_deriv
         init_values, _ = model_copy._model_to_fit_params()
-        fitparams, status, dinfo, mess, ierr = optimize.leastsq(
+        fitparams, cov_x, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
         self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
-        self.fit_info['status'] = status
+        self.fit_info['cov_x'] = cov_x
         self.fit_info['message'] = mess
         self.fit_info['ierr'] = ierr
         if ierr not in [1, 2, 3, 4]:
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+
+        #now try to compute the true covariance matrix
+        if (len(y) > len(init_values)) and cov_x is not None:
+            sum_sqrs = np.sum(self.errorfunc(fitparams, *farg)**2)
+            dof = len(y) - len(init_values)
+            self.fit_info['param_cov'] = cov_x * sum_sqrs / dof
+        else:
+            self.fit_info['param_cov'] = None
+
         return model_copy
 
     @staticmethod

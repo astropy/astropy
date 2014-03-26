@@ -228,3 +228,33 @@ class TestNonLinearFitters(object):
         # test, take np.abs()
         utils.assert_allclose(model.parameters, np.abs(slsqp_model.parameters),
                               rtol=10 ** (-4))
+
+    def test_param_cov(self):
+        """
+        Tests that the 'param_cov' fit_info entry gets the right answer for
+        *linear* least squares, where the answer is exact
+        """
+        rs = RandomState(1234567890)
+
+        a = 2
+        b = 100
+
+        x = np.linspace(0, 1, 100)
+        # y scatter is amplitude ~1 to make sure covarience is non-negligible
+        y = x*a + b + rs.randn(len(x))
+
+        #first compute the ordinary least squares covariance matrix
+        X = np.matrix(np.vstack([x, np.ones(len(x))]).T)
+        beta = np.linalg.inv(X.T * X) * X.T * np.matrix(y).T
+        s2 = np.sum((y - (X * beta).A.ravel())**2) / (len(y) - len(beta))
+        olscov = np.linalg.inv(X.T * X) * s2
+
+        #now do the non-linear least squares fit
+        mod = models.Linear1D(a, b)
+        fitter = fitting.NonLinearLSQFitter()
+
+        fmod = fitter(mod, x, y)
+
+        utils.assert_allclose(fmod.parameters, beta.A.ravel())
+        utils.assert_allclose(olscov, fitter.fit_info['param_cov'])
+
