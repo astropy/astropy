@@ -16,7 +16,7 @@ import numpy as np
 from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
-from ..utils import deprecated
+from ..utils import deprecated, isiterable
 
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
@@ -103,46 +103,61 @@ class Angle(u.Quantity):
 
                 angle = angle.value
 
+        # this does nothing if it's not a tuple
         angle = cls._tuple_to_float(angle, unit)
 
-        try:
-            angle = np.asarray(angle)
-        except ValueError as e:
-            raise TypeError(str(e))
+        if (isinstance(angle, six.string_types) or
+            (isiterable(angle) and
+             len(angle) > 0 and
+             isinstance(angle[0], six.string_types))):
+            # this if statement is entered if `angle` is either a single string
+            # or a non-tuple sequence of strings
+            try:
+                angle = np.asarray(angle)
+            except ValueError as e:
+                raise TypeError(str(e))
+            angle, unit = cls._convert_string_array_to_angles(angle, unit)
 
-        if angle.dtype.type in (np.string_, np.unicode_):
-            # We need to modify this value from within
-            # convert_string_to_angle, and the only way to do that
-            # across Python 2.6 - 3.3 is to use this "store it in a
-            # list" trick.
-            determined_unit = [unit]
+        self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
+                                         copy=copy)
 
-            def convert_string_to_angle(x):
-                ang, new_unit = util.parse_angle(six.text_type(x), unit)
-                if determined_unit[0] is None:
-                    determined_unit[0] = new_unit
-                if new_unit is not None:
-                    return new_unit.to(
-                        determined_unit[0], cls._tuple_to_float(ang, new_unit))
-                else:
-                    return cls._tuple_to_float(ang, determined_unit[0])
+        if self.unit is None:
+            raise u.UnitsError("No unit was given - must be some kind of angle")
 
-            convert_string_to_angle_ufunc = np.vectorize(
-                convert_string_to_angle,
-                otypes=[np.float_])
-            angle = convert_string_to_angle_ufunc(angle)
-            unit = determined_unit[0]
-
-        elif angle.dtype.kind not in 'iuf':
-            raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
-
-        if unit is None:
-            raise u.UnitsError("No unit specified - must be some kind of angle")
-
-        self = super(Angle, cls).__new__(
-            cls, angle, unit, dtype=dtype, copy=copy)
+        if self.dtype.kind not in 'iuf':
+                raise TypeError("Unsupported dtype for "
+                                "Angle:'{0}'".format(angle.dtype))
 
         return self
+
+    @classmethod
+    def _convert_string_array_to_angles(cls, angle, unit):
+        """
+        Used in the initializer to convert an angle specified as a string to
+        an array in a given unit.
+        """
+
+        # We need to modify this value from within
+        # convert_string_to_angle, and the only way to do that
+        # across Python 2.6 - 3.3 is to use this "store it in a
+        # list" trick.
+        determined_unit = [unit]
+
+        def convert_string_to_angle(x):
+            ang, new_unit = util.parse_angle(six.text_type(x), unit)
+            if determined_unit[0] is None:
+                determined_unit[0] = new_unit
+            if new_unit is not None:
+                return new_unit.to(
+                    determined_unit[0], cls._tuple_to_float(ang, new_unit))
+            else:
+                return cls._tuple_to_float(ang, determined_unit[0])
+
+        convert_string_to_angle_ufunc = np.vectorize(
+            convert_string_to_angle,
+            otypes=[np.float_])
+
+        return convert_string_to_angle_ufunc(angle), determined_unit[0]
 
     @staticmethod
     def _tuple_to_float(angle, unit):
