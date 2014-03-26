@@ -17,14 +17,13 @@ from .common import (raises, assert_equal, assert_almost_equal,
 from ....tests.helper import pytest
 
 
-def test_int_overflow():
+def test_convert_overflow():
     """
     Test reading an extremely large integer, which falls through to
-    float due to an overflow error (#2234).  In this case the actual
-    float value is nan, but that doesn't matter.
+    string due to an overflow error (#2234).
     """
     dat = ascii.read(['a', '1' * 10000], format='basic', guess=False)
-    assert dat['a'].dtype.kind == 'f'
+    assert dat['a'].dtype.kind in ('S', 'U')
 
 
 def test_guess_with_names_arg():
