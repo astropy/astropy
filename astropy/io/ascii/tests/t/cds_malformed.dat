@@ -1,0 +1,37 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
+Title: Spitzer Observations of NGC 1333: A Study of Structure and Evolution 
+       in a Nearby Embedded Cluster 
+Authors: Gutermuth R.A., Myers P.C., Megeath S.T., Allen L.E., Pipher J.L., 
+         Muzerolle J., Porras A., Winston E., Fazio G. 
+Table: Spitzer-identified YSOs: Addendum
+================================================================================
+Byte-by-byte Description of file: datafile3.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units  Label  Explanations
+--------------------------------------------------------------------------------
+   1-  3 I3     ---    Index  Running identification number
+   5-  6 I2     h      RAh    Hour of Right Ascension (J2000) 
+   8-  9 I2     min    RAm    Minute of Right Ascension (J2000) 
+  11- 15 F5.2   s      RAs    Second of Right Ascension (J2000) 
+                              - continuation of description
+      17 A1     ---    DE-    Sign of the Declination (J2000)
+  18- 19 I2     deg    DEd    Degree of Declination (J2000) 
+  21- 22 I2     arcmin DEm    Arcminute of Declination (J2000) 
+  24- 27 F4.1   arcsec DEs    Arcsecond of Declination (J2000) 
+  29- 68 A40    ---    Match  Literature match 
+  70- 75 A6     ---    Class  Source classification (1)
+  77-80  F4.2   mag    AK     ? The K band extinction (2) 
+  82-86  F5.2   ---    Fit    ? Fit of IRAC photometry (3)
+--------------------------------------------------------------------------------
+Note (1): Asterisks mark "deeply embedded" sources with questionable IRAC 
+          colors or incomplete IRAC photometry and relatively bright 
+          MIPS 24 micron photometry. 
+Note (2): Only provided for sources with valid JHK_S_ photometry. 
+Note (3): Defined as the slope of the linear least squares fit to the 
+          3.6 - 8.0 micron SEDs in log{lambda} F_{lambda} vs log{lambda} space.
+          Extinction is not accounted for in these values.  High extinction can
+          bias Fit to higher values. 
+  1 03 28 39.09 +31 06 01.9                                          I*           1.35 
