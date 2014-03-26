@@ -1,3 +1,5 @@
+:orphan:
+
 .. _terminal_cast:
 
 Terminal-cast of worked example

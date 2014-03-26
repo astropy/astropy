@@ -1,3 +1,5 @@
+:orphan:
+
 .. _command_history:
 
 Condensed example of contributing code to Astropy

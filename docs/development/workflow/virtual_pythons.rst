@@ -1,3 +1,5 @@
+:orphan:
+
 .. _virtual_envs:
 
 ===========================
@@ -39,12 +41,6 @@ accomplish each step are given for both `conda` and `virtualenvwrapper`:
     + You **cannot** use `virtualenvwrapper` or `virtualenv` within anadoncda.
     + `virtualenvwrapper` works with bash and bash-like shells; see 
       :ref:`using-virtualenv` for alternatives.
-
-.. hidden toctree below to silence warnings
-.. toctree::
-  :hidden:
-
-  virtualenv_detail
 
 .. _setup_for_env:
 

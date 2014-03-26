@@ -1,3 +1,5 @@
+:orphan:
+
 .. _additional-git:
 
 Some other things you might want to do

@@ -1,3 +1,5 @@
+:orphan:
+
 .. _astropy-fix-example:
 
 ==============================================
@@ -23,12 +25,6 @@ You should  have `pull request 1917`_ open as you read the commands so you can
 see the edits made to the code.
 
 There is also a very exciting terminal-cast at :ref:`terminal_cast`.
-
-.. toctree::
-  :hidden:
-
-  terminal_cast
-  command_history
 
 Before you begin
 ----------------

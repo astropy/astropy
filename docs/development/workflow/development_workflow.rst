@@ -30,12 +30,6 @@ development version or stable version is the active one.
 :ref:`virtual_envs` offer a better solution and take only a few minutes to set
 up. It is well worth your time.
 
-.. hidden toctree to the file that contains virtual_envs to silence sphinx warning
-.. toctree::
-  :hidden:
-
-  virtual_pythons
-
 Not sure what your first contribution should be? Take a look at the `Astropy
 issue list`_ and grab one labeled "easy"...but note that even your first "easy"
 fix is likely to take a while if you are not familiar with the Astropy source
@@ -57,12 +51,6 @@ minutes to look at these resources:
 In practice, you need only a handful of `git` commands to make contributions
 to Astropy. There is a more extensive list of :ref:`git-resources` if you
 want more background.
-
-.. hidden toctree to suppress sphinx warnings
-.. toctree::
-  :hidden:
-
-  git_resources
 
 Double check your setup
 -----------------------
@@ -121,12 +109,6 @@ to Astropy:
 .. note::    
     A good graphical interface to git makes some of these steps much
     easier. Some options are described in :ref:`git_gui_options`.
-
-.. hidden toctree to silence sphinx warning -- this file is in the :ref: above
-.. toctree::
-  :hidden:
-
-  git_install
 
 If something goes wrong
 -----------------------
@@ -189,14 +171,6 @@ A worked example that follows these steps for fixing an Astropy issue is at
 :ref:`astropy-fix-example`.
 
 Some additional topics related to `git` are in :ref:`additional-git`.
-
-.. hidden toctree below to silence sphinx warnings
-
-.. toctree::
-  :hidden:
-
-  git_edit_workflow_examples
-  additional_git_topics
 
 .. _fetch-latest:
 
