@@ -150,10 +150,28 @@ class CdsHeader(core.BaseHeader):
 
 
 class CdsData(core.BaseData):
-    """CDS table data reader
+    """
+    CDS table data reader.
+
+    Attributes
+    ----------
+    start_line : int or str
+        If an int, gives the line number at which table data begins.
+        It can also be the string 'guess' if the user intends
+        for the reader to loop over data lines in order to find the
+        location of table data. If start_line is None (as it is by
+        default), then the reader will treat input as strict CDS and
+        will simply begin inputting data after the appropriate delimiter.
+        This attribute can be set through the data_start parameter for
+        table reading.
     """
     splitter_class = fixedwidth.FixedWidthSplitter
+    start_line = None
 
+    def get_data_lines(self, lines):
+        """Create data_lines using the default reader processing."""
+        self.data_lines = self.process_lines(lines)
+            
     def get_str_vals(self):
         """Return valid rows following the last section delimiter as strings"""
         # If the header has a ReadMe and data has a filename
@@ -162,12 +180,23 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return self.splitter(self.data_lines)
+        elif isinstance(self.start_line, int):
+            # Split beginning at the specified line (start_line = 1, 2, ...)
+            return self.splitter(self.data_lines[self.start_line - 1:])
+        elif self.start_line is not None and self.start_line != 'guess':
+            return core.InconsistentTableError(
+                "Invalid value for start_line: '{0}'".format(self.start_line))
+            
         i_sections = [i for (i, x) in enumerate(self.data_lines)
                       if x.startswith('------') or x.startswith('=======')]
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
 
         bottom_lines = self.data_lines[i_sections[-1] + 1:]
+
+        if self.start_line is None:
+            return self.splitter(bottom_lines) # Return data after delimiter
+        # Begin guessing the row at which table data starts
         type_map = {core.FloatType:float, core.IntType:int, core.StrType:str}
         self.splitter.cols = self.header.cols
 

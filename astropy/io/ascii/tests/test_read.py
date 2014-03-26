@@ -523,7 +523,7 @@ def get_testfiles(name=None):
                   'f_Teff'),
          'name': 't/cds3.dat',
          'nrows': 10,
-         'opts': {'Reader': asciitable.Cds}},
+         'opts': {'Reader': asciitable.Cds, 'data_start':'guess'}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header.dat',
          'nrows': 2,
