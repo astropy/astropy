@@ -53,7 +53,7 @@ In detail
     git config --global user.email you@yourdomain.example.com
 
    This is only necessary if you haven't already done this, and you haven't
-   followed :ref:`configure-git`.
+   checked to :ref:`check_git_install`.
 
 #. If you don't already have one, clone a copy of the
    Astropy_ repository::

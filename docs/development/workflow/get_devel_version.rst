@@ -318,7 +318,7 @@ You should really confirm it is deactivated by **changing to a different
 directory outside of the astropy distribution** and running this in python::
 
     >>> import astropy
-    >>> astropy.__version__
+    >>> astropy.__version__  # doctest: +SKIP
     '0.2.5'
 
 The actual version number you see will likely be different than this example,
