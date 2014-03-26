@@ -194,9 +194,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
-  - When reading a table with very large integer values that overflow the
-    native C int type, fall through to using float.  Previously this generated
-    an exception [#2234].
+  - When reading a table with values that generate an overflow error
+    during type conversion (e.g. overflowing the native C long type), fall
+    through to using string. Previously this generated an exception [#2234].
 
 - ``astropy.io.fits``
 
