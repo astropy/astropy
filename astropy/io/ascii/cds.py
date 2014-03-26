@@ -155,22 +155,26 @@ class CdsData(core.BaseData):
 
     Attributes
     ----------
-    start_line : int or str
+    data_line : int or str
         If an int, gives the line number at which table data begins.
         It can also be the string 'guess' if the user intends
         for the reader to loop over data lines in order to find the
-        location of table data. If start_line is None (as it is by
+        location of table data. If data_line is None (as it is by
         default), then the reader will treat input as strict CDS and
         will simply begin inputting data after the appropriate delimiter.
-        This attribute can be set through the data_start parameter for
-        table reading.
     """
     splitter_class = fixedwidth.FixedWidthSplitter
-    start_line = None
+    data_line = None
 
-    def get_data_lines(self, lines):
-        """Create data_lines using the default reader processing."""
-        self.data_lines = self.process_lines(lines)
+    def __init__(self, data_line=None):
+        """Initialize CDS data reader.
+
+        :param data_line: A parameter specifying how CdsData should
+        look for the beginning of table data.
+        :type data_line: int, str, or None
+        """
+        core.BaseData.__init__(self)
+        self.data_line = data_line
             
     def get_str_vals(self):
         """Return valid rows following the last section delimiter as strings"""
@@ -180,12 +184,12 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return self.splitter(self.data_lines)
-        elif isinstance(self.start_line, int):
+        elif isinstance(self.data_line, int):
             # Split beginning at the specified line (start_line = 1, 2, ...)
-            return self.splitter(self.data_lines[self.start_line - 1:])
-        elif self.start_line is not None and self.start_line != 'guess':
+            return self.splitter(self.data_lines[self.data_line - 1:])
+        elif self.data_line is not None and self.data_line != 'guess':
             return core.InconsistentTableError(
-                "Invalid value for start_line: '{0}'".format(self.start_line))
+                "Invalid value for start_line: '{0}'".format(self.data_line))
             
         i_sections = [i for (i, x) in enumerate(self.data_lines)
                       if x.startswith('------') or x.startswith('=======')]
@@ -194,7 +198,7 @@ class CdsData(core.BaseData):
 
         bottom_lines = self.data_lines[i_sections[-1] + 1:]
 
-        if self.start_line is None:
+        if self.data_line is None:
             return self.splitter(bottom_lines) # Return data after delimiter
         # Begin guessing the row at which table data starts
         type_map = {core.FloatType:float, core.IntType:int, core.StrType:str}
@@ -312,10 +316,10 @@ class Cds(core.BaseReader):
     _io_registry_can_write = False
     _description = 'CDS format table'
 
-    def __init__(self, readme=None):
+    def __init__(self, readme=None, data_line=None):
         core.BaseReader.__init__(self)
         self.header = CdsHeader(readme)
-        self.data = CdsData()
+        self.data = CdsData(data_line)
         self.data.header = self.header
 
     def write(self, table=None):
