@@ -168,13 +168,11 @@ Parameters
 ----------
 pix2world : bool, optional
     When `True`, enable bounds checking for the pixel-to-world (p2x)
-    transformation for the ``HPX`` and ``XPH`` projections.  Default
-    is `False`.
+    transformations.  Default is `True`.
 
 world2pix : bool, optional
     When `True`, enable bounds checking for the world-to-pixel (s2x)
-    transformation for the ``AZP``, ``SZP``, ``TAN``, ``SIN``, ``ZPN``
-    and ``COP`` projections.  Default is `False`.
+    transformations.  Default is `True`.
 
 Notes
 -----

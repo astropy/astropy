@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.20 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2013, Mark Calabretta
+  WCSLIB 4.21 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
+  $Id: wcs.h,v 4.21 2014/03/24 05:12:27 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.20 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.21 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -373,24 +373,28 @@
 *                         1: Null wcsprm pointer passed.
 *
 *
-* wcsbchk() - Enable/disable strict bounds checking
-* -------------------------------------------------
-* wcsbchk() is used to control strict bounds checking in the projection
-* routines.  Note that wcsset() always enables strict bounds checking.
-* wcsbchk() will invoke wcsset() on the wcsprm struct beforehand if necessary.
+* wcsbchk() - Enable/disable bounds checking
+* ------------------------------------------
+* wcsbchk() is used to control bounds checking in the projection routines.
+* Note that wcsset() always enables bounds checking.  wcsbchk() will invoke
+* wcsset() on the wcsprm struct beforehand if necessary.
 *
 * Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.
 *
 * Given:
-*   bounds    int       If bounds&1 then enable bounds checking for the
-*                       sky-to-pixel (s2x) transformation for the AZP, SZP,
-*                       TAN, SIN, ZPN, and COP projections.
+*   bounds    int       If bounds&1 then enable strict bounds checking for the
+*                       spherical-to-Cartesian (s2x) transformation for the
+*                       AZP, SZP, TAN, SIN, ZPN, and COP projections.
 *
-*                       If bounds&2 then enable bounds checking for the
-*                       pixel-to-sky transformation for the HPX and XPH
-*                       projections.
+*                       If bounds&2 then enable strict bounds checking for the
+*                       Cartesian-to-spherical (x2s) transformation for the
+*                       HPX and XPH projections.
+*
+*                       If bounds&4 then enable bounds checking on the native
+*                       coordinates returned by the Cartesian-to-spherical
+*                       (x2s) transformations using prjchk().
 *
 *                       Zero it to disable all checking.
 *

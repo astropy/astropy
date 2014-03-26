@@ -119,6 +119,15 @@ New Features
 
 - ``astropy.wcs``
 
+  - astropy now requires wcslib version 4.20 or later.  The version of
+    wcslib included with astropy has been updated to version 4.21.
+
+  - Bounds checking is now performed on native spherical
+    coordinates.  Any out-of-bounds values will be returned as
+    ``NaN``, and marked in the ``stat`` array, if using the
+    low-level ``wcslib`` interface such as
+    ``astropy.wcs.Wcsprm.p2s``. [#2107]
+
 API Changes
 ^^^^^^^^^^^
 
@@ -229,11 +238,21 @@ Bug Fixes
 - ``astropy.wcs``
 
   - astropy now requires wcslib version 4.20 or later.  The version of
-    wcslib included with astropy has likewise been updated to version
-    4.20.
+    wcslib included with astropy has been updated to version 4.21.  The
+    following is the relevant parts of the ``wcslib`` changelog:
 
     - This version of wcslib brings some bugfixes from the astropy
       project (described below) and tighter bounds checking.
+
+    - Bug fixes in the projection routines: in ``hpxx2s`` [the
+      cartesian-to-spherical operation of the ``HPX`` projection]
+      relating to bounds checking, bug introduced at wcslib 4.20,
+      reported by Michael Droettboom; in ``parx2s`` and molx2s`` [the
+      cartesion-to-spherical operation of the ``PAR`` and ``MOL``
+      projections respectively] relating to setting the stat vector;
+      in ``hpxx2s`` relating to implementation of the vector API; and
+      in ``xphx2s`` relating to setting an out-of-bounds value of
+      *phi*.
 
   - A new method, `astropy.wcs.Wcsprm.bounds_check` (corresponding to
     wcslib's ``wcsbchk``) has been added to control what bounds
@@ -247,6 +266,7 @@ Bug Fixes
     import for any reason, ``import astropy.wcs`` will result in an
     `ImportError`, rather than getting obscure errors once the
     `astropy.wcs` is used. [#2061]
+
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
