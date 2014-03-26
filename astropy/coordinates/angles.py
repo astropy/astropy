@@ -85,9 +85,8 @@ class Angle(u.Quantity):
     def __new__(cls, angle, unit=None, dtype=None, copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and not unit.is_equivalent(u.radian)):
-            raise u.UnitsError(
-                "Given unit {0} is not convertible to an angle".format(
-                    unit))
+            raise u.UnitsError("Requested unit {0} is not convertible to an "
+                               "angle".format(unit))
 
         if isinstance(angle, u.Quantity):
             # This includes Angle subclasses as well
@@ -121,8 +120,10 @@ class Angle(u.Quantity):
         self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
                                          copy=copy)
 
-        if self.unit is None:
+        if self.unit is u.dimensionless_unscaled:
             raise u.UnitsError("No unit was given - must be some kind of angle")
+        elif not self.unit.is_equivalent(u.radian):
+            raise u.UnitsError("Unit {0} is not an angle".format(self.unit))
 
         if self.dtype.kind not in 'iuf':
                 raise TypeError("Unsupported dtype for "
