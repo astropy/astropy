@@ -241,7 +241,7 @@ To make sure it has been activated **change to a different directory outside of
 the astropy distribution** and try this in python::
 
     >>> import astropy
-    >>> astropy.__version__
+    >>> astropy.__version__  # doctest: +SKIP
     '0.3.dev6272'
 
 The actual version number will be different than in this example, but it

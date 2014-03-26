@@ -46,7 +46,8 @@ accomplish each step are given for both `conda` and `virtualenvwrapper`:
 Set up for virtual environments
 -------------------------------
 
-* `virtualenvwrapper`: 
+* `virtualenvwrapper`:
+
   + First, install `virtualenvwrapper`, which will also install `virtualenv`,
     with ``pip install virtualenvwrapper``.
   + From the `documentation for virtualenvwrapper`_, you also need to::

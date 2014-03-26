@@ -24,7 +24,7 @@ Strongly Recommended, but not required
 
 You cannot easily work on the development version of astropy in a python
 environment in which you also use the stable version. It can be done |emdash|
-but can only be done *succesfully* if you always remember whether the
+but can only be done *successfully* if you always remember whether the
 development version or stable version is the active one.
 
 :ref:`virtual_envs` offer a better solution and take only a few minutes to set
