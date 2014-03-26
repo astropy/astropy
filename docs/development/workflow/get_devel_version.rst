@@ -58,7 +58,7 @@ In the language of `GitHub`_, making a copy of someone's code is called making
 a *fork*. A fork is a complete copy of the code and all of its revision
 history.
 
-#. Log into your GitHub_ account.
+#. Log into your `GitHub`_ account.
 
 #. Go to the `Astropy GitHub`_ home page.
 
@@ -325,8 +325,7 @@ The actual version number you see will likely be different than this example,
 but it should not have `dev` in it.
 
 
-.. include:: ../workflow/git_links.inc
-.. include:: ../workflow/this_project.inc
+.. include:: links.inc
 .. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git#set-up-git
 .. _astropy issues page: http://github.com/astropy/astropy/issues

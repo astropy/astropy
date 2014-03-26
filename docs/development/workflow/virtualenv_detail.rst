@@ -74,7 +74,7 @@ your default Python version:
    ``pip``, ``easy_install``, or by manually running ``python setup.py
    install`` will automatically install into your virtualenv instead of the
    system site-packages.  Consider installing Astropy in develop mode into the
-   virtualenv as described :ref:`above<develop-mode>`.
+   virtualenv as described :ref:`activate_development_astropy`.
 
 Using virtualenv with IPython
 -----------------------------
@@ -157,3 +157,5 @@ functionality was finally added to the standard library in Python 3.3 under
 the name `venv`_.  venv has not gained wide use yet and is not explicitly
 supported by tools like virtualenvwrapper, but it is expected to see wider
 adoption in the future.
+
+.. include:: links.inc

@@ -15,7 +15,7 @@ Pre-requisites
 
 Before following the steps in this document you need:
 
-+ an account on `GitHub <https://github.com>`_
++ an account on `GitHub`_
 + a local copy of the astropy source. Instructions for doing that, including the
   basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
@@ -240,7 +240,7 @@ Install your branch
 ===================
 
 Ideally you should set up a python virtual environment just for this fix;
-instructions for doing to are at :ref:`virtual_pythons`. Doing so ensures you
+instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
 will not corrupt your main astropy install and makes it very easy to recover
 from mistakes.
 
