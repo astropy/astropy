@@ -26,7 +26,7 @@
 # be accessible, and the documentation will not build correctly.
 
 # Load all of the global Astropy configuration
-from astropy.sphinx.conf import *
+from astropy_helpers.sphinx.conf import *
 
 import astropy
 
@@ -36,10 +36,10 @@ import astropy
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.1'
 
-# The intersphinx_mapping in astropy.sphinx.conf refers to astropy for
-# the benefit of affiliated packages who want to refer to objects in
-# the astropy core.  However, we don't want to cyclically reference
-# astropy in its own build so we remove it here.
+# The intersphinx_mapping in astropy_helpers.sphinx.conf refers to astropy for
+# the benefit of affiliated packages who want to refer to objects in the
+# astropy core.  However, we don't want to cyclically reference astropy in its
+# own build so we remove it here.
 del intersphinx_mapping['astropy']
 
 # List of patterns, relative to source directory, that match files and
@@ -151,7 +151,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 
 # -- Options for the edit_on_github extension ----------------------------------------
 
-extensions += ['astropy.sphinx.ext.edit_on_github']
+extensions += ['astropy_helpers.sphinx.ext.edit_on_github']
 
 # Don't import the module as "version" or it will override the
 # "version" configuration parameter

@@ -49,7 +49,8 @@ DIST_NAME = 'astropy-helpers'
 PACKAGE_NAME = 'astropy_helpers'
 
 
-def use_astropy_helpers(path=None, download_if_needed=True, index_url=None):
+def use_astropy_helpers(path=None, download_if_needed=True, index_url=None,
+                        use_git=True):
     """
     Ensure that the `astropy_helpers` module is available and is importable.
     This supports automatic submodule initialization if astropy_helpers is
@@ -99,7 +100,7 @@ def use_astropy_helpers(path=None, download_if_needed=True, index_url=None):
     elif not os.path.exists(path):
         # Even if the given path does not exist on the filesystem, if it *is* a
         # submodule, `git submodule init` will create it
-        is_submodule = _check_submodule(path)
+        is_submodule = use_git and _check_submodule(path)
         if is_submodule and _directory_import(path, download_if_needed,
                                               is_submodule=is_submodule):
             # Successfully imported from submodule
@@ -114,7 +115,7 @@ def use_astropy_helpers(path=None, download_if_needed=True, index_url=None):
                 'Error: The requested path {0!r} for importing '
                 'astropy_helpers does not exist.'.format(path))
     elif os.path.isdir(path):
-        if _directory_import(path, download_if_needed):
+        if _directory_import(path, download_if_needed, is_submodule=use_git):
             return
     elif os.path.isfile(path):
         # Handle importing from a source archive; this also uses setup_requires
