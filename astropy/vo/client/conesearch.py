@@ -498,11 +498,12 @@ def _validate_coord(center):
 
     # RA has tendency to go negative in Longitude class.
     ra_sign = '{0:+}'.format(ra)[0]
-    if ra_sign == '-' and ra == 0:  # -0 is okay
-        ra = 0
-    else:  # pragma: no cover
-        raise ConeSearchError('Cone Search cannot accept negative RA value '
-                              '({0} deg)'.format(ra))
+    if ra_sign == '-':
+        if ra == 0:  # -0 is okay
+            ra = 0
+        else:  # pragma: no cover
+            raise ConeSearchError('Cone Search cannot accept negative RA '
+                                  'value ({0} deg)'.format(ra))
 
     return ra, dec
 
