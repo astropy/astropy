@@ -380,7 +380,9 @@ def test_masking_Cds():
     data = asciitable.read(f,
                            **testfile['opts'])
     assert_true(data['AK'].mask[0])
-    assert_true(not data['Fit'].mask[0])
+    assert_true(data['AK'].mask[1])
+    assert_true(data['Fit'].mask[0])
+    assert_true(not data['Fit'].mask[1])
 
 
 def test_null_Ipac():
@@ -750,3 +752,27 @@ def test_overlapping_names():
     """
     t = ascii.read(['a b', '1 2'], names=['b', 'a'])
     assert t.colnames == ['b', 'a']
+
+def test_cds_data_start():
+    """
+    Make sure that data_start works as expected for the CDS reader -- ints
+    specify a line number, 'guess' tells the reader to find the line itself,
+    and None (by default) calls for the first line after the last delimiter.
+    """
+
+    # By default, table data begins after the last delimiter, so malformed
+    # files like this one should raise an error.
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read('t/cds3.dat', format='cds')
+
+    # Correct specified beginning of table data
+    t = ascii.read('t/cds3.dat', format='cds', data_start=58)
+    assert t['KOI'][0] == 1.01
+
+    # Use the second line instead
+    t = ascii.read('t/cds3.dat', format='cds', data_start=59)
+    assert t['KOI'][0] == 2.01
+
+    # Have the CDS reader guess
+    t = ascii.read('t/cds3.dat', format='cds', data_start='guess')
+    assert t['KOI'][0] == 1.01
