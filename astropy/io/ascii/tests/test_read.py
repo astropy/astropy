@@ -11,10 +11,27 @@ from ....tests.helper import pytest
 from ... import ascii as asciitable  # TODO: delete this line, use ascii.*
 from ... import ascii
 from ....table import Table
+from distutils import version
 
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 from ....tests.helper import pytest
+
+_NUMPY_VERSION = version.LooseVersion(np.__version__)
+
+def test_convert_overflow():
+    """
+    Test reading an extremely large integer, which falls through to
+    string due to an overflow error (#2234).
+    """
+    # Before Numpy 1.6 the exception from np.array(['1' * 10000], dtype=np.int)
+    # is exactly the same as np.array(['abc'], dtype=np.int).  In this case
+    # it falls through to float, so we just accept this as a known issue for
+    # numpy < 1.6.
+    expected_kind = ('f',) if _NUMPY_VERSION < version.LooseVersion('1.6') else ('S', 'U')
+    dat = ascii.read(['a', '1' * 10000], format='basic', guess=False)
+    assert dat['a'].dtype.kind in expected_kind
+
 
 def test_guess_with_names_arg():
     """
