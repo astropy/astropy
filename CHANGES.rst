@@ -18,6 +18,8 @@ Bug Fixes
 
 - ``astropy.cosmology``
 
+  - Fixed ``format()`` compatibility with Python 2.6. [#2129]
+
 - ``astropy.io.ascii``
 
   - The CDS reader in ``astropy.io.ascii`` can now handle multiple
@@ -56,6 +58,8 @@ Bug Fixes
 - ``astropy.utils``
 
 - ``astropy.vo``
+
+  - Fixed ``format()`` compatibility with Python 2.6. [#2129]
 
 - ``astropy.wcs``
 
