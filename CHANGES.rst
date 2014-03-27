@@ -64,6 +64,9 @@ New Features
 
 - ``astropy.modeling``
 
+  - Fixed bug in the computation of the ``Gaussian2D`` model when defined
+    by a covariance matrix. [#2199]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
