@@ -43,6 +43,23 @@ def test_Gaussian2D():
     assert_allclose(g, g_ref, rtol=0, atol=1e-6)
 
 
+def test_Gaussian2DCovariance():
+    """
+    Test rotated elliptical Gaussian2D model when cov_matrix is input.
+    https://github.com/astropy/astropy/pull/2199
+    """
+    cov_matrix = [[49., -16.], [-16., 9.]]
+    model = models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
+    y, x = np.mgrid[0:5, 0:5]
+    g = model(x, y)
+    g_ref = [[4.3744505, 5.8413977, 7.42988694, 9.00160175, 10.38794269],
+             [8.83290201, 10.81772851, 12.61946384, 14.02225593, 14.84113227],
+             [13.68528889, 15.37184621, 16.44637743, 16.76048705, 16.26953638],
+             [16.26953638, 16.76048705, 16.44637743, 15.37184621, 13.68528889],
+             [14.84113227, 14.02225593, 12.61946384, 10.81772851, 8.83290201]]
+    assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+
+
 def test_Gaussian2DRotation():
     amplitude = 42
     x_mean, y_mean = 0, 0
