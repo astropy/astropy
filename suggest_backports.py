@@ -4,9 +4,12 @@
 # just used the GitHub API directly.  If someone would like to rewrite this
 # using a library please be my guest
 
+from __future__ import unicode_literals
+
 import argparse
 import base64
 import getpass
+import io
 import json
 import logging
 import os
@@ -344,7 +347,8 @@ def main(argv):
     for pr, sha in suggester.iter_suggested_prs():
         # If sys.stdout's default encoding has a limited codepage this blows up if
         # the PR title contains unencodable characters =_=
-        title = pr['title'].encode(sys.stdout.encoding, errors='replace').decode()
+        title = pr['title'].encode('ascii',
+                errors='replace').decode('ascii')
         log.info(pr_format.format(pr['number'], sha, title))
         suggestions.append((pr, sha))
 
@@ -362,7 +366,7 @@ def main(argv):
         script_lines.append('git cherry-pick -m 1 {0} || exit 1'.format(sha))
 
     if args.file:
-        with open(args.file, 'w') as f:
+        with io.open(args.file, 'w', encoding='utf8') as f:
             f.writelines(line + '\n' for line in script_lines)
         os.chmod(args.file, stat.S_IRWXU)
     else:
