@@ -203,10 +203,6 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
-  - When reading a table with values that generate an overflow error
-    during type conversion (e.g. overflowing the native C long type), fall
-    through to using string. Previously this generated an exception [#2234].
-
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
@@ -327,6 +323,10 @@ Bug Fixes
 
   - The CDS reader in ``astropy.io.ascii`` can now handle multiple
     description lines in ReadMe files. [#2225]
+
+  - When reading a table with values that generate an overflow error during
+    type conversion (e.g. overflowing the native C long type), fall through to
+    using string. Previously this generated an exception [#2234].
 
 - ``astropy.io.fits``
 
