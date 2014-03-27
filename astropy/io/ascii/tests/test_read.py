@@ -497,6 +497,7 @@ def get_testfiles(name=None):
          'name': 't/cds.dat',
          'nrows': 1,
          'opts': {'Reader': asciitable.Cds}},
+        # Test malformed CDS file (issues #2241 #467)
         {'cols': ('Index',
                   'RAh',
                   'RAm',
