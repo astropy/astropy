@@ -225,6 +225,13 @@ class Cds(core.BaseReader):
       >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
       >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
 
+    If the header (ReadMe) and data are stored in a single file and there
+    is content between the header and the data (for instance Notes), then the
+    parsing process may fail.  In this case you can instruct the reader to
+    guess the actual start of the data by supplying ``data_start='guess'`` in the
+    call to the ``ascii.read()`` function.  You should verify that the output
+    data table matches expectation based on the input CDS file.
+
     **Using a reader object**
 
     When ``Cds`` reader object is created with a ``readme`` parameter
