@@ -128,7 +128,7 @@ processed automatically.
 
 Other Extensions
 ^^^^^^^^^^^^^^^^
-`astropy.spinx.ext` includes a few other extensions that are primarily
+`astropy.sphinx.ext` includes a few other extensions that are primarily
 helpers for the other extensions or workarounds for undesired behavior.
 Their APIs are not included here because we may change them in the
 future.
