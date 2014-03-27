@@ -21,7 +21,7 @@ Note that if you do not provide units explicitly, this will fail::
     >>> ICRS(23, 1)
     Traceback (most recent call last):
         ...
-    UnitsError: No unit was specified
+    UnitsError: No unit was given - must be some kind of angle
 
 While the above example uses python numerical types, you can also provide
 strings to create coordinates.  If the ``unit`` parameter is ``(None,
@@ -62,7 +62,7 @@ same unit rules apply as for scalar angles.::
     >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654])
     Traceback (most recent call last):
         ...
-    UnitsError: No unit was specified
+    UnitsError: No unit was given - must be some kind of angle
 
 .. warning::
     If you try to create an angle using a tuple for each angle instead of a
