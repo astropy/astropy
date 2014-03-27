@@ -1,233 +1,199 @@
 .. _development-workflow:
 
-=======================
-Workflow for Developers
-=======================
+===============================
+How to make a code contribution
+===============================
 
-In this document, we refer to the Astropy ``master`` branch as the *trunk*.
+This document outlines the process for contributing code to the Astropy
+project.
 
-.. _forking:
+**Already experienced with git? Contributed before?** Jump right to 
+:ref:`astropy-git`.
 
-Creating a fork
-===============
+Pre-requisites
+==============
 
-You need to do this only once for each package you want to contribute to. The
-instructions here are very similar to the instructions at
-http://help.github.com/fork-a-repo/ |emdash| please see that page for more
-details. We're repeating some of it here just to give the specifics for the
-Astropy_ project, and to suggest some default names.
+Before following the steps in this document you need:
 
-Set up and configure a GitHub account
--------------------------------------
++ an account on `GitHub`_
++ a local copy of the astropy source. Instructions for doing that, including the
+  basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
-If you don't have a GitHub account, go to the GitHub_ page and make one.
+Strongly Recommended, but not required
+======================================
 
-You then need to configure your account to allow write access |emdash| see
-the `Generating SSH keys
-<http://help.github.com/articles/generating-ssh-keys>`_ help on `GitHub Help`_.
+You cannot easily work on the development version of astropy in a python
+environment in which you also use the stable version. It can be done |emdash|
+but can only be done *successfully* if you always remember whether the
+development version or stable version is the active one.
 
-Create your own fork of a repository
-------------------------------------
+:ref:`virtual_envs` offer a better solution and take only a few minutes to set
+up. It is well worth your time.
 
-The following example shows how to fork the core ``astropy`` repository, but
-the same applies to other packages:
+Not sure what your first contribution should be? Take a look at the `Astropy
+issue list`_ and grab one labeled "easy"...but note that even your first "easy"
+fix is likely to take a while if you are not familiar with the Astropy source
+code! The developers are friendly and want you to help, so don't be shy about
+asking questions on the `astropy-dev mailing list`_.
 
-#. Log into your GitHub_ account.
+New to `git`?
+=============
 
-#. Go to the `Astropy GitHub`_ home page.
+Some `git` resources
+--------------------
 
-#. Click on the *fork* button:
+If you have never used git or have limited experience with it, take a few
+minutes to look at these resources:
 
-   .. image:: forking_button.png
+* `Interactive tutorial`_ that runs in a browser
+* `Git Basics`_, part of a much longer `git book`_.
 
-   After a short pause and an animation of Octocat scanning a book on a flatbed
-   scanner, you should find yourself at the home page for your own forked copy
-   of Astropy_.
+In practice, you need only a handful of `git` commands to make contributions
+to Astropy. There is a more extensive list of :ref:`git-resources` if you
+want more background.
 
-Setting up the fork to work on
-------------------------------
+Double check your setup
+-----------------------
 
-.. _linking-to-upstream:
+Before going further, make sure you have set up astropy as described in
+:ref:`get_devel`. 
 
-Overview
-^^^^^^^^
+In a terminal window, change directory to the one containing your clone of
+Astropy. Then, run ``git remote``; the output should look something like this::
 
-This is done using::
+    your-github-username
+    astropy
 
-    git clone git@github.com:your-user-name/astropy.git
-    cd astropy
-    git remote add upstream git://github.com/astropy/astropy.git
+If that works, also run ``git fetch --all``. If it runs without errors then 
+your installation is working and you have a complete list of all branches in
+your clone, ``your-github-username`` and ``astropy``.
 
-In detail
-^^^^^^^^^
+About names in `git`
+--------------------
 
-#. Clone your fork to the local computer::
+`git` is designed to be a *distributed* version control system. Each clone of
+a repository is, itself, a repository. That can lead to some confusion,
+especially for the branch called ``master``. If you list all of the branches
+your clone of git knows about with ``git branch -a`` you will see there are
+*three* different branches called ``master``::
 
-    git clone git@github.com:your-user-name/astropy.git
+    * master                              # this is master in your local repo
+    remotes/your-github-username/master   # master on your fork of Astropy on GitHub
+    remotes/astropy/master                # the official development branch of Astropy
 
-#. Change directory to your new repo::
+The naming scheme used by `git` will also be used here. A plain branch name,
+like ``master`` means a branch in your local copy of Astropy. A branch on a
+remote, like ``astropy`` , is labeled by that remote, ``astropy/master``. 
 
-    cd astropy
+This duplication of names can get very confusing for maintainers when trying
+to merge code contributions into the official master branch,
+``astropy/master``. As a result, you should never do any work in your master
+branch, ``master``. Always work on a branch instead.
 
-   Then type::
+Essential `git` commands
+------------------------
 
-    git branch -a
+A full `git` tutorial is beyond the scope of this document but this list
+describes the few ``git`` commands you are likely to encounter in contributing
+to Astropy:
 
-   to show you all branches.  You'll get something like::
+* ``git fetch`` gets the latest development version of Astropy, which you will
+  use as the basis for making your changes.
+* ``git branch`` makes a logically separate copy of Astropy to keep track of
+  your changes.
+* ``git add`` stages files you have changed or created for addition to `git`.
+* ``git commit`` adds your staged changes to the repository. 
+* ``git push`` copies the changes you committed to GitHub
+* ``git status`` to see a list of files that have been modified or created.
 
-    * master
-    remotes/origin/master
+.. note::    
+    A good graphical interface to git makes some of these steps much
+    easier. Some options are described in :ref:`git_gui_options`.
 
-   This tells you that you are currently on the ``master`` branch, and
-   that you also have a ``remote`` connection to ``origin/master``.
-   What remote repository is ``remote/origin``? Try ``git remote -v`` to
-   see the URLs for the remote connections.  They will point to your GitHub
-   fork.
+If something goes wrong
+-----------------------
 
-   Now connect to the Astropy repository, so you can merge in changes from the
-   trunk::
+`git` provides a number of ways to recover from errors. If you end up making a
+`git` mistake, do not hesitate to ask for help. An additional resource that
+walks you through recovering from `git` mistakes is the
+`git choose-your-own-adventure`_.
 
-    cd astropy
-    git remote add upstream git://github.com/astropy/astropy.git
+.. _astropy-git:
 
-   ``upstream`` is just the arbitrary name we're using to refer to the main
-   Astropy_ repository.
+Astropy Guidelines for `git`
+============================
 
-   Note that we've used ``git://`` for the URL rather than ``git@``. The
-   ``git://`` URL is read only. This means that we can't accidentally (or
-   deliberately) write to the upstream repo, and we are only going to use it
-   to merge into our own code.
-
-   Just for your own satisfaction, show yourself that you now have a new
-   remote connection with ``git remote -v show``, which should give you
-   something like::
-
-    upstream   git://github.com/astropy/astropy.git (fetch)
-    upstream   git://github.com/astropy/astropy.git (push)
-    origin     git@github.com:your-user-name/astropy.git (fetch)
-    origin     git@github.com:your-user-name/astropy.git (push)
-
-   Your fork is now set up correctly, and you are ready to hack away.
-
-.. _develop-mode:
-
-Installing Astropy in develop mode
-==================================
-
-Astropy is designed so that it can generally be used directly out of the source
-tree by using ``import astropy`` when running Python in the source of an
-Astropy repository clone.
-
-#. Install Astropy_ in develop mode::
-
-       $ python setup.py develop
-
-   This semi-permanently installs Astropy on your path in such a way that
-   ``astropy`` is always imported from your repository clone regardless of your
-   working directory.  This way any edits you make to the code in your
-   repository will always be immediately available next time you start a Python
-   interpreter and ``import astropy``.
-
-#. Develop mode can be easily disabled again by running
-   ``python setup.py develop -u``.  Without having the package installed in
-   develop mode, if you change directories from the root of the repository
-   clone the ``astropy`` package will no longer be importable, and other
-   features may not work properly.
-
-   Another useful technique to avoid having to switch develop mode on and off
-   without disrupting production use of Astropy is to use virtualenv as
-   explained :ref:`below<using-virtualenv>`.
-
-   It should be noted that ``python setup.py develop`` will *not* work with
-   Python 3, as Astropy currently uses ``2to3`` to convert the source code to a
-   format compatible with Python 3.  Because of this it is not possible to
-   ``import astropy`` directly from a source checkout with Python 3.  In the
-   future Astropy may move to a cross-compatible coding style that works
-   natively in both Python 2 and 3.
-
-.. note::
-
-    When switching branches it is not *generally* required to re-run
-    ``python setup.py develop``, though it may be necessary to run
-    ``python setup.py build_ext --inplace`` to build C extensions in "inplace"
-    mode (which copies the built shared libraries into the source tree) in case
-    you think there might be differences in the C extensions between the two
-    branches.
-
-To check that the installation worked correctly, run the
-:ref:`Astropy tests<testing_installed_astropy>`.
-
-Workflow summary
-================
-
-This section gives a summary of the workflow to follow once you have
-successfully forked the repository. The details for each of these steps are
-given in the following sections.
-
-* Don't use your ``master`` branch for anything.  Consider deleting it.
-
-* When you are starting a new set of changes, fetch any changes from the
-  trunk, then start a new *feature branch* from that.
-
-* Make a new branch for each separable set of changes |emdash| "one task, one
-  branch" (`ipython git workflow`_).
-
+* Don't use your ``master`` branch for anything.
+* Make a new branch, called a *feature branch*, for each separable set of
+  changes: "one task, one branch" (`ipython git workflow`_).
+* Start that new *feature branch* from the most current development version
+  of astropy (instructions are below).
 * Name your branch for the purpose of the changes, for example 
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
-
-* If you can possibly avoid it, don't merge the trunk or any other branches into
-  your feature branch while you are working.
-
-* If you do find yourself merging from the trunk, consider
-  :ref:`rebase-on-trunk`
-
+* Make frequent commits, and always include a commit message. Each commit
+  should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
+* Never merge changes from ``astropy/master`` into your feature branch. If
+  changes in the development version require changes to our code you can
+  :ref:`rebase`. 
 
-* Once your code is nearing completion, run the test suite to ensure
-  you have not accidentally caused regressions, and add new tests to ensure
-  your contribution behaves correctly (see :ref:`testing-guidelines`).
+In addition there are a couple of `git` naming conventions used in this
+document:
 
-* Issue a pull request on github!
+* Change the name of the remote ``origin`` to ``your-github-username``.
+* Name the remote that is the primary Astropy repository 
+  ``astropy``; in prior versions of this documentation it was referred to as
+  ``upstream``.
 
-* As the code is converging to a final state, ensure your
-  documentation follows the guidelines (see :ref:`documentation-guidelines`).
+Workflow
+========
 
-* Once your code is ready to be accepted, please add an entry to the changelog
-  (see :ref:`changelog-format`).  If you're unsure where to put this, please at
-  least suggest a brief (one or two sentence) description of your change so
-  that another Astropy developer can add it to the changelog.
+These, conceptually, are the steps you will follow in contributing to Astropy:
+
+#. :ref:`fetch-latest`
+#. :ref:`make-feature-branch`; you will make your changes on this branch.
+#. :ref:`install-branch`
+#. Follow :ref:`edit-flow` to write/edit/document/test code - make
+   frequent, small commits.
+#. :ref:`add-changelog`
+#. :ref:`push-to-github`
+#. From GitHub, :ref:`pull-request` to let the Astropy maintainers know
+   you have contributions to review.
+#. :ref:`revise and push` in response to comments on the pull
+   request. Pushing those changes to GitHub automatically updates the
+   pull request.
 
 This way of working helps to keep work well organized, with readable history.
 This in turn makes it easier for project maintainers (that might be you) to
 see what you've done, and why you did it.
 
-See `linux git workflow`_ and `ipython git workflow`_ for some explanation.
+A worked example that follows these steps for fixing an Astropy issue is at
+:ref:`astropy-fix-example`.
 
-Deleting your master branch
-===========================
+Some additional topics related to `git` are in :ref:`additional-git`.
 
-It may sound strange, but deleting your own ``master`` branch can help reduce
-confusion about which branch you are on.  See `deleting master on github`_ for
-details.
+.. _fetch-latest:
 
-.. _update-mirror-trunk:
+Fetch the latest Astropy
+========================
 
-Updating the mirror of trunk
-============================
+From time to time you should fetch the development version (i.e. Astropy 
+``astropy/master``) changes from GitHub::
 
-From time to time you should fetch the upstream (trunk) changes from GitHub::
-
-   git fetch upstream
+   git fetch astropy
 
 This will pull down any commits you don't have, and set the remote branches to
-point to the right commit. For example, 'trunk' is the branch referred to by
-(remote/branchname) ``upstream/master``, and if there have been commits since
-you last checked, ``upstream/master`` will change after you do the fetch.
+point to the latest commit. For example, 'trunk' is the branch referred to by
+``astropy/master``, and if there have been commits since
+you last checked, ``astropy/master`` will change after you do the fetch.
 
 .. _make-feature-branch:
 
-Making a new feature branch
-===========================
+Make a new feature branch
+=========================
+
+Make the new branch
+-------------------
 
 When you are ready to make some changes to the code, you should start a new
 branch. Branches that are for a collection of related edits are often called
@@ -236,118 +202,183 @@ branch. Branches that are for a collection of related edits are often called
 Making a new branch for each set of related changes will make it easier for
 someone reviewing your branch to see what you are doing.
 
-Choose an informative name for the branch to remind yourself and the rest of
-us what the changes in the branch are for. For example ``add-ability-to-fly``,
-or ``buxfix-for-issue-42``.
+Choose an informative name for the branch to remind yourself and the rest of us
+what the changes in the branch are for. Branch names like ``add-ability-to-fly``
+or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
 
-::
+Always make your branch from ``astropy/master`` so that you are basing your
+changes on the latest version of Astropy::
 
     # Update the mirror of trunk
-    git fetch upstream
+    git fetch astropy
 
-    # Make new feature branch starting at current trunk
-    git branch my-new-feature upstream/master
+    # Make new feature branch starting at astropy/master
+    git branch my-new-feature astropy/master
     git checkout my-new-feature
 
-Generally, you will want to keep your feature branches on your public GitHub_
-fork. To do this, you `git push`_ this new branch up to your
-github repo. Generally (if you followed the instructions in these pages, and
-by default), git will have a link to your GitHub repo, called ``origin``. You
-push up to your own repo on GitHub with::
+Connect the branch to GitHub
+----------------------------
 
-   git push origin my-new-feature
+At this point you have made and checked out a new branch, but `git` does not
+know it should be connected to your fork on GitHub. You need that connection
+for your proposed changes to be managed by the Astropy maintainers on GitHub.
 
-In git >= 1.7 you can ensure that the link is correctly set by using the
-``--set-upstream`` option::
+To connect your local branch to GitHub, you `git push`_ this new branch up to
+your GitHub repo with the ``--set-upstream`` option::
 
-   git push --set-upstream origin my-new-feature
+   git push --set-upstream your-github-username my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
-``my-new-feature`` branch in the GitHub repo.
+``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
+
+You will still need to ``git push`` your changes to GitHub periodically. The
+setup in this section will make that easier.
+
+.. _install-branch:
+
+Install your branch
+===================
+
+Ideally you should set up a python virtual environment just for this fix;
+instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
+will not corrupt your main astropy install and makes it very easy to recover
+from mistakes.
+
+Once you have activated that environment you need to install the version of
+Astropy you are working on. Do that with:
+
+.. code-block:: bash
+
+    python setup.py develop  # typically python 2.x, not python 3
+
+or:
+
+.. code-block:: bash
+
+    python3 setup.py install # python 3...
+    # ...though python3 may be called python3.3 or just python,
+    # depending on your system.
+
+If you are using python 3 you will need to re-install after making changes to
+the Astropy source code. Re-installing goes much faster than the initial install
+because it typically does not require new compilation.
 
 .. _edit-flow:
 
 The editing workflow
 ====================
 
-Overview
---------
+Conceptually, you will:
 
-Make changes, test, and::
+#. Make changes to one or more files and/or add a new file.
+#. Check that your changes do not break existing code.
+#. Add documentation to your code and, as appropriate, to the Astropy
+   documentation.
+#. Ideally, also make sure your changes do not break the documentation.
+#. Add tests of the code you contribute.
+#. Commit your changes in `git`
+#. Repeat as necessary.
 
-   git add my_new_file
-   git commit -m 'NF - some message'
-   git push
 
 In more detail
 --------------
 
-#. Make some changes
+#. Make some changes to one or more files. You should follow the Astropy 
+   :ref:`code-guide`. Each logical set of changes should be treated as one
+   commit. For example, if you are fixing a known bug in Astropy and notice
+   a different bug while implementing your fix, implement the fix to that new
+   bug as a different set of changes. 
 
-#. Once you are a bit further along, test your changes do not lead to
-   regressions, and add new tests (see :ref:`testing-guidelines`). For example,
-   if you are working on ``time``:: 
+#. Test that your changes do not lead to *regressions*, i.e. that your
+   changes do not break existing code, by running the Astropy tests. You can
+   run all of the Astropy tests from ipython with:: 
+
+     import astropy
+     astropy.test()
+
+   If your change involves only a small part of Astropy, e.g. Time, you can
+   run just those tests::
 
      import astropy
      astropy.test('time')
 
-   If you have sphinx installed, you can also check that the documentation
-   builds and looks correct:: 
+#. Make sure your code includes appropriate docstrings, described at
+   :ref:`doc-rules`. If appropriate, as when you are adding a new feature,
+   you should update the appropriate documentation in the ``docs`` directory;
+   a detailed description is in :ref:`documentation-guidelines`.
+
+#. If you have sphinx installed, you can also check that
+   the documentation builds and looks correct by running, from the
+   ``astropy`` directory:: 
 
      python setup.py build_sphinx
 
    The last line should just state ``build succeeded``, and should not mention
    any warnings.  (For more details, see :ref:`documentation-guidelines`.)
 
-#. See which files have changed with ``git status`` (see `git status`_).
-   You'll see a listing like this one::
+#. Add tests of your new code, if appropriate. Some changes (e.g. to
+   documentation) do not need tests. Detailed instructions are at
+   :ref:`testing-guidelines`, but if you have no experience writing tests or
+   with the `py.test` testing framework submit your changes without adding
+   tests, but mention in the pull request that you have not written tests. An 
+   example of writing a test is in :ref:`astropy-fix-example`.
 
-     # On branch ny-new-feature
-     # Changed but not updated:
-     #   (use "git add <file>..." to update what will be committed)
-     #   (use "git checkout -- <file>..." to discard changes in working directory)
-     #
-     #    modified:   README
-     #
-     # Untracked files:
-     #   (use "git add <file>..." to include in what will be committed)
-     #
-     #    INSTALL
-     no changes added to commit (use "git add" and/or "git commit -a")
+#. Stage your changes using ``git add`` and commit them using ``git commit``.
+   An example of doing that, based on the fix for an actual Astropy issue, is
+   at :ref:`astropy-fix-example`.
 
-#. Check what the actual changes are with ``git diff`` (see `git diff`_).
+   .. note::
+        Make your `git` commit messages short and descriptive. If a commit
+        fixes an issue, include, on the second or later line of the commit
+        message, the issue number in the commit message, like this: 
+        ``Closes #123``. Doing so will automatically close the issue when the
+        pull request is accepted.
 
-#. Add any new files to version control with ``git add new_file_name`` (see
-   `git add`_).
+#. Some modifications require more than one commit; if in doubt, break
+   your changes into a few, smaller, commits rather than one large commit
+   that does many things at once. Repeat the steps above as necessary!
 
-#. Add any modified files that you want to commit using
-   ``git add modified_file_name``  (see `git add`_).
+.. _add-changelog:
 
-#. Once you are ready to commit, check with ``git status`` which files are
-   about to be committed:: 
+Add a changelog entry
+=====================
 
-    # Changes to be committed:
-    #   (use "git reset HEAD <file>..." to unstage)
-    #
-    #    modified:   README
+Add an entry to the file ``CHANGES.rst`` briefly describing the change you
+made. Include the pull request number if the change fixes an issue. An
+example entry, for the changes which fixed 
+`issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
-   Then use ``git commit -m 'A commit message'``. The ``m`` flag just
-   signals that you're going to type a message on the command line. The `git
-   commit`_ manual page might also be useful.
+  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
+    being ignored when none was present in the FITS file. [#1845]
 
-#. Push the changes up to your forked repo on GitHub with ``git push`` (see
-   `git push`_).
+If the change is a new feature, rather than an existing issue, you will not be
+able to put in the issue number until *after* you make the pull request.
 
-Asking for your changes to be reviewed or merged
-================================================
+.. _push-to-github:
 
-When you are ready to ask for someone to review your code and consider a merge:
+Copy your changes to GitHub
+===========================
 
-#. Go to the URL of your forked repo, e.g.,
-   ``http://github.com/your-user-name/astropy``.
+This step is easy because of the way you created the feature branch. Just::
 
-#. Use the 'Switch Branches' dropdown menu near the top left of the page to
-   select the branch with your changes:
+    git push
+
+.. _pull-request:
+
+Ask for your changes to be reviewed
+===================================
+
+A *pull request* on GitHub is a request to merge the changes you have made into
+another repository.
+
+When you are ready to ask for someone to review your code and consider merging
+it into Astropy:
+
+#. Go to the URL of your fork of Astropy, e.g.,
+   ``https://github.com/your-user-name/astropy``.
+
+#. Use the 'Switch Branches' dropdown menu to select the branch with your
+   changes:
 
    .. image:: branch_dropdown.png
 
@@ -364,464 +395,65 @@ When you are ready to ask for someone to review your code and consider a merge:
    pull request message.  This is still a good way to start a preliminary
    code review.
 
-.. _using-virtualenv:
+.. _revise and push:
 
-Using virtualenv
-================
+Revise and push as necessary
+============================
 
-`virtualenv`_ is a tool for creating and activating isolated Python
-environments that allow installing and experimenting with Python packages
-without disrupting your production Python environment.  When using commands
-such as ``python setup.py develop``, for example, it is strongly recommended to
-do so within a virtualenv.  This is generally preferable to installing a
-development version of Astropy into your system site-packages and having to
-keep track of whether or not your environment is in a "known good"
-configuration for production/science use.
+You may be asked to make changes in the discussion of the pull request. Make
+those changes in your local copy, commit them to your local repo and push them
+to GitHub. GitHub will automatically update your pull request.
 
-Using a virtualenv is also a good way to try out new versions of software that
-you're not actively doing development work on without disrupting your normal
-production environment.
+.. _rebase:
 
-We won't provide a full tutorial on using virtualenv here |emdash| the
-virtualenv documentation linked to above is a better place to start.  But here
-is a quick overview on how to set up a virtualenv for Astropy development with
-your default Python version:
+Rebase, but only if asked
+=========================
 
-#. Install virtualenv::
+Sometimes the maintainers of Astropy will ask you to *rebase* your changes
+before they are merged into the main Astropy repository.
 
-       $ pip install virtualenv
+Conceptually, rebasing means taking your changes and applying them to the latest
+version of the development branch of the official astropy as though that was the
+version you had originally branched from.
 
-   or::
+Behind the scenes, `git` is deleting the changes and branch you made, making the
+changes others made to the development branch of Astropy, then re-making your
+branch from the development branch and applying your changes to your branch.
+This results in re-writing the history of commits, which is why you should do it
+only if asked.
 
-       $ easy_install virtualenv
+It is easier to make mistakes rebasing than other areas of `git`, so before you
+start make a branch to serve as a backup copy of your work::
 
-   or (on Debian/Ubuntu)::
+    git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-       $ sudo apt-get install python-virtualenv
+The actual rebasing is usually easy::
 
-   etc.
+    git fetch astropy/master  # get the latest development astropy
+    git rebase astropy/master my-new-feature
 
-#. (Recommended) Create a root directory for all your virtualenvs under a path
-   you have write access to.  For example::
+You are more likely to run into *conflics* here--places where the changes you
+made conflict with changes that someone else made--than anywhere else. Ask for
+help if you need it.
 
-       $ mkdir ~/.virtualenvs
+After the rebase you need to push your changes to GitHub; you will need force
+the push because `git` objects to re-writing the history of the respository
+after you have pushed it somewhere::
 
-#. Create the Astropy virtualenv::
+    git push -f
 
-       $ virtualenv --distribute --system-site-packages ~/.virtualenvs/astropy-dev
+If you run into any problems, do not hesitate to ask. A more detailed conceptual
+discussing of rebasing is at :ref:`rebase-on-trunk`.
 
-   The ``--system-site-packages`` option inherits all packages already
-   installed in your system site-packages directory; this frees you from having
-   to reinstall packages like Numpy and Scipy in the virtualenv.  However, if
-   you would like your virtualenv to use a development version of Numpy, for
-   example, you can still install Numpy into the virtualenv and it will take
-   precedence over the version installed in site-packages.
+Once your rebase is successfully pushed to GitHub you can delete the backup
+branch you made::
 
-#. Activate the virtualenv::
-
-       $ source ~/.virtualenvs/astropy-dev/bin/activate
-
-   or if you're using a csh-variant::
-
-       $ source ~/.virtualenvs/astropy-dev/bin/activate.csh
-
-   virtualenv works on Windows too |emdash| see the documentation for details.
-
-#. If the virtualenv successfully activated its name should appear in your
-   shell prompt::
-
-       (astropy-dev) $
-
-   The virtualenv can be disabled at any time by entering::
-
-       (astropy-dev) $ deactivate
-
-#. Now as long as the virtualenv is activated, packages you install with
-   ``pip``, ``easy_install``, or by manually running ``python setup.py
-   install`` will automatically install into your virtualenv instead of the
-   system site-packages.  Consider installing Astropy in develop mode into the
-   virtualenv as described :ref:`above<develop-mode>`.
-
-Using virtualenv with IPython
------------------------------
-
-.. note::
-
-    As of IPython 0.13 this functionality is built into IPython and these steps
-    are not necessary for IPython to recognize that it's running with a
-    virtualenv enabled.
-
-Each virtualenv has its own ``bin/``, and as IPython is written in pure Python
-one can always install IPython directly into a virtualenv.  However, if you
-would rather not have to install IPython every time you create a virtualenv, it
-also suffices to make IPython virtualenv-aware.
-
-1. Check to see if you already have an IPython profile in
-   ``~/.ipython/profile_default/``; if not, create one::
-
-       $ ipython profile create
-
-2. Edit ``~/.ipython/profile_default/ipython_config.py`` and add the
-   following to the end::
-
-       import os
-
-       execfile(os.path.join(os.environ['HOME'], '.ipython', 'virtualenv.py'))
-
-3. Finally, create the ``~/.ipython/virtualenv.py`` module::
-
-    import site
-    from os import environ
-    from os.path import join
-    from sys import version_info
-
-    if 'VIRTUAL_ENV' in environ:
-        virtual_env = join(environ.get('VIRTUAL_ENV'),
-                           'lib',
-                           'python%d.%d' % version_info[:2],
-                           'site-packages')
-        site.addsitedir(virtual_env)
-        print 'VIRTUAL_ENV ->', virtual_env
-        del virtual_env
-    del site, environ, join, version_info
-
-Now IPython will import all packages from your virtualenv where applicable.
-
-.. note::
-
-    This is not magic. If you switch to a virtualenv that uses a different
-    Python version from your main IPython installation this won't help you
-    |emdash| instead use the appropriate IPython installation for the Python
-    version in question.
-
-virtualenvwrapper
------------------
-
-`virtualenvwrapper`_ is a set of enhancements to virtualenv mostly implemented
-through simple shell scripts and aliases.  It automatically organizes all your
-virtualenvs under a single directory (as suggested above). To create a new
-virtualenv you can just use the `mkvirtualenv <env_name>` command and it will
-automatically create a new virtualenv of that name in the default location.
-
-To activate a virtualenv with virtualenvwrapper you don't need to think about
-the environment's location of the filesystem or which activate script to run.
-Simply run `workon <env_name>`.  You can also list all virtualenvs with
-`lsvirtualenv`.  That just scratches the surface of the goodies included with
-virtualenvwrapper.
-
-The one caveat is that it does not support csh-like shells.  For csh-like
-shells there exists `virtualenvwrapper-csh`_, which implements most of the
-virtualenvwrapper functionality and is otherwise compatible with the original.
-There also exists `virtualenvwrapper-win`_, which ports virtualenvwrapper to
-Windows batch scripts.
-
-venv
-----
-
-virtualenv is so commonly used in the Python development community that its
-functionality was finally added to the standard library in Python 3.3 under
-the name `venv`_.  venv has not gained wide use yet and is not explicitly
-supported by tools like virtualenvwrapper, but it is expected to see wider
-adoption in the future.
-
-Some other things you might want to do
-======================================
-
-Delete a branch on GitHub
--------------------------
-
-::
-
-   # change to the master branch (if you still have one, otherwise change to
-   # another branch)
-   git checkout master
-
-   # delete branch locally
-   git branch -D my-unwanted-branch
-
-   # delete branch on GitHub
-   git push origin :my-unwanted-branch
-
-(Note the colon ``:`` before ``test-branch``.  See also:
-http://github.com/guides/remove-a-remote-branch
-
-Several people sharing a single repository
-------------------------------------------
-
-If you want to work on some stuff with other people, where you are all
-committing into the same repository, or even the same branch, then just
-share it via GitHub.
-
-First fork Astropy into your account, as from :ref:`forking`.
-
-Then, go to your forked repository GitHub page, e.g.,
-``http://github.com/your-user-name/astropy``
-
-Click on the 'Admin' button, and add anyone else to the repo as a
-collaborator:
-
-   .. image:: pull_button.png
-
-Now all those people can do::
-
-    git clone git@githhub.com:your-user-name/astropy.git
-
-Remember that links starting with ``git@`` use the ssh protocol and are
-read-write; links starting with ``git://`` are read-only.
-
-Your collaborators can then commit directly into that repo with the
-usual::
-
-     git commit -am 'ENH - much better code'
-     git push origin master # pushes directly into your repo
-
-Explore your repository
------------------------
-
-To see a graphical representation of the repository branches and
-commits::
-
-   gitk --all
-
-To see a linear list of commits for this branch::
-
-   git log
-
-You can also look at the `network graph visualizer`_ for your GitHub
-repo.
-
-Finally the :ref:`fancy-log` ``lg`` alias will give you a reasonable
-text-based graph of the repository.
-
-.. _rebase-on-trunk:
-
-Rebasing on trunk
------------------
-
-Let's say you thought of some work you'd like to do. You
-:ref:`update-mirror-trunk` and :ref:`make-feature-branch` called
-``cool-feature``. At this stage trunk is at some commit, let's call it E. Now
-you make some new commits on your ``cool-feature`` branch, let's call them A,
-B, C. Maybe your changes take a while, or you come back to them after a while.
-In the meantime, trunk has progressed from commit E to commit (say) G::
-
-          A---B---C cool-feature
-         /
-    D---E---F---G trunk
-
-At this stage you consider merging trunk into your feature branch, and you
-remember that this here page sternly advises you not to do that, because the
-history will get messy. Most of the time you can just ask for a review, and
-not worry that trunk has got a little ahead. But sometimes, the changes in
-trunk might affect your changes, and you need to harmonize them. In this
-situation you may prefer to do a rebase.
-
-Rebase takes your changes (A, B, C) and replays them as if they had been made
-to the current state of ``trunk``. In other words, in this case, it takes the
-changes represented by A, B, C and replays them on top of G. After the rebase,
-your history will look like this::
-
-                  A'--B'--C' cool-feature
-                 /
-    D---E---F---G trunk
-
-See `rebase without tears`_ for more detail.
-
-To do a rebase on trunk::
-
-    # Update the mirror of trunk
-    git fetch upstream
-
-    # Go to the feature branch
-    git checkout cool-feature
-
-    # Make a backup in case you mess up
-    git branch tmp cool-feature
-
-    # Rebase cool-feature onto trunk
-    git rebase --onto upstream/master upstream/master cool-feature
-
-In this situation, where you are already on branch ``cool-feature``, the last
-command can be written more succinctly as::
-
-    git rebase upstream/master
-
-When all looks good you can delete your backup branch::
-
-   git branch -D tmp
-
-If it doesn't look good you may need to have a look at
-:ref:`recovering-from-mess-up`.
-
-If you have made changes to files that have also changed in trunk, this may
-generate merge conflicts that you need to resolve - see the `git rebase`_ man
-page for some instructions at the end of the "Description" section. There is
-some related help on merging in the git user manual - see `resolving a
-merge`_.
-
-If your feature branch is already on GitHub and you rebase, you will have to
-force push the branch; a normal push would give an error. If the branch you
-rebased is called ``cool-feature`` and your GitHub fork is available as the
-remote called ``origin``, you use this command to force-push::
-
-   git push -f origin cool-feature
-
-Note that this will overwrite the branch on GitHub, i.e. this is one of the few
-ways you can actually lose commits with git. Also note that it is never allowed
-to force push to the main astropy repo (typically called ``upstream``), because
-this would re-write commit history and thus cause problems for all others.
-
-.. _recovering-from-mess-up:
-
-Recovering from mess-ups
-------------------------
-
-Sometimes, you mess up merges or rebases. Luckily, in git it is relatively
-straightforward to recover from such mistakes.
-
-If you mess up during a rebase::
-
-   git rebase --abort
-
-If you notice you messed up after the rebase::
-
-   # Reset branch back to the saved point
-   git reset --hard tmp
-
-If you forgot to make a backup branch::
-
-   # Look at the reflog of the branch
-   git reflog show cool-feature
-
-   8630830 cool-feature@{0}: commit: BUG: io: close file handles immediately
-   278dd2a cool-feature@{1}: rebase finished: refs/heads/my-feature-branch onto 11ee694744f2552d
-   26aa21a cool-feature@{2}: commit: BUG: lib: make seek_gzip_factory not leak gzip obj
-   ...
-
-   # Reset the branch to where it was before the botched rebase
-   git reset --hard cool-feature@{2}
-
-.. _rewriting-commit-history:
-
-Rewriting commit history
-------------------------
-
-.. note::
-
-   Do this only for your own feature branches.
-
-There's an embarrassing typo in a commit you made? Or perhaps the you
-made several false starts you would like the posterity not to see.
-
-This can be done via *interactive rebasing*.
-
-Suppose that the commit history looks like this::
-
-    git log --oneline
-    eadc391 Fix some remaining bugs
-    a815645 Modify it so that it works
-    2dec1ac Fix a few bugs + disable
-    13d7934 First implementation
-    6ad92e5 * masked is now an instance of a new object, MaskedConstant
-    29001ed Add pre-nep for a couple of structured_array_extensions.
-    ...
-
-and ``6ad92e5`` is the last commit in the ``cool-feature`` branch. Suppose we
-want to make the following changes:
-
-* Rewrite the commit message for ``13d7934`` to something more sensible.
-* Combine the commits ``2dec1ac``, ``a815645``, ``eadc391`` into a single one.
-
-We do as follows::
-
-    # make a backup of the current state
-    git branch tmp HEAD
-    # interactive rebase
-    git rebase -i 6ad92e5
-
-This will open an editor with the following text in it::
-
-    pick 13d7934 First implementation
-    pick 2dec1ac Fix a few bugs + disable
-    pick a815645 Modify it so that it works
-    pick eadc391 Fix some remaining bugs
-
-    # Rebase 6ad92e5..eadc391 onto 6ad92e5
-    #
-    # Commands:
-    #  p, pick = use commit
-    #  r, reword = use commit, but edit the commit message
-    #  e, edit = use commit, but stop for amending
-    #  s, squash = use commit, but meld into previous commit
-    #  f, fixup = like "squash", but discard this commit's log message
-    #
-    # If you remove a line here THAT COMMIT WILL BE LOST.
-    # However, if you remove everything, the rebase will be aborted.
-    #
-
-To achieve what we want, we will make the following changes to it::
-
-    r 13d7934 First implementation
-    pick 2dec1ac Fix a few bugs + disable
-    f a815645 Modify it so that it works
-    f eadc391 Fix some remaining bugs
-
-This means that (i) we want to edit the commit message for ``13d7934``, and
-(ii) collapse the last three commits into one. Now we save and quit the
-editor.
-
-Git will then immediately bring up an editor for editing the commit message.
-After revising it, we get the output::
-
-    [detached HEAD 721fc64] FOO: First implementation
-     2 files changed, 199 insertions(+), 66 deletions(-)
-    [detached HEAD 0f22701] Fix a few bugs + disable
-     1 files changed, 79 insertions(+), 61 deletions(-)
-    Successfully rebased and updated refs/heads/my-feature-branch.
-
-and the history looks now like this::
-
-     0f22701 Fix a few bugs + disable
-     721fc64 ENH: Sophisticated feature
-     6ad92e5 * masked is now an instance of a new object, MaskedConstant
-
-If it went wrong, recovery is again possible as explained :ref:`above
-<recovering-from-mess-up>`.
-
-Converting a GitHub issue to a pull request
--------------------------------------------
-
-Sometimes you have a branch in your own GitHub repository designed to
-fix one particular issue.  If that issue is listed on GitHub, a natural
-way to address it is to convert the issue to a pull request by
-attaching code containing the fix for the issue. This can currently only be
-done using the GitHub API (there's no button or anything on the web
-site that does it, at least as of 2/6/2012). There are two options to do this:
-
-* You can use the script at https://gist.github.com/1750715, which will
-  do this for you automatically |emdash| just download the script and run it as
-  a python command-line script, using the ``python issue2pr.py --help``
-  option to determine the precise usage.
-
-* You can use the ``hub`` command-line utility provided `here
-  <https://github.com/defunkt/hub>`_ by GitHub. Once installed, you can
-  attach a branch to a pull request by doing::
-
-          hub pull-request -i <ID> -b astropy:master -h <USER>:<BRANCH>
-
-  where ``<ID>`` is the ID of the issue, ``<USER>`` is the username, and
-  ``<BRANCH>`` is the name of the branch you want to attach to the
-  issue. For example::
-
-          hub pull-request -i 42 -b astropy:master -h galahad:feature
-
-  will attach the ``feature`` branch from ``galahad``'s Astropy
-  repository to issue 42.
-
-  The ``hub`` command can do a lot more to interact with GitHub, so be
-  sure to read their documentation. For example, you can fetch all
-  branches of a repository for a given user by doing::
-
-          hub fetch <USER>
+    git branch -D tmp
 
 .. include:: links.inc
+
+.. _Interactive tutorial: http://try.github.io/
+.. _Git Basics: http://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _git book: http://git-scm.com/book/
+.. _Astropy issue list: https://github.com/astropy/astropy/issues
+.. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html

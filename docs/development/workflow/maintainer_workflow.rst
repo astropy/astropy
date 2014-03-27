@@ -22,7 +22,7 @@ Make sure that pull requests do not contain a messy history with merges, etc. If
 Integrating changes manually
 ****************************
 
-First, check out the ``astropy`` repository. The instructions in :ref:`linking-to-upstream` add a remote that has read-only
+First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_master` add a remote that has read-only
 access to the upstream repo.  Being a maintainer, you've got read-write access.
 
 It's good to have your upstream remote have a scary name, to remind you that
