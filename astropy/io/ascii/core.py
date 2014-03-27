@@ -36,7 +36,9 @@ import csv
 import itertools
 import functools
 import numpy
+import warnings
 
+from ...utils.exceptions import AstropyWarning
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
@@ -653,6 +655,12 @@ class BaseOutputter(object):
                     col.type = converter_type
                 except (TypeError, ValueError):
                     col.converters.pop(0)
+                except OverflowError:
+                    # Overflow during conversion (most likely an int that doesn't fit in native C long).
+                    # Put string at the top of the converters list for the next while iteration.
+                    warnings.warn("OverflowError converting to {0} for column {1}, using string instead."
+                                  .format(converter_type.__name__, col.name), AstropyWarning)
+                    col.converters.insert(0, convert_numpy(numpy.str))
                 except IndexError:
                     raise ValueError('Column %s failed to convert' % col.name)
 
