@@ -203,7 +203,7 @@ Coding Style/Conventions
   implementation code. ``__init__.py`` can contain docstrings and code for
   organizing the module layout, however (e.g. ``from submodule import *``
   in accord with the guideline above). If a module is small enough that
-  it fits in one file, it should simple be a single file, rather than a
+  it fits in one file, it should simply be a single file, rather than a
   directory with an ``__init__.py`` file.
 
 * When ``try...except`` blocks are used to catch exceptions, the ``as``
