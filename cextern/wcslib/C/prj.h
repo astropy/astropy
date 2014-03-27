@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.20 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2013, Mark Calabretta
+  WCSLIB 4.21 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 4.20 2013/12/18 05:42:49 mcalabre Exp $
+  $Id: prj.h,v 4.21 2014/03/24 05:12:27 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.20 - C routines that implement the spherical map projections
+* WCSLIB 4.21 - C routines that implement the spherical map projections
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -48,7 +48,8 @@
 *
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store
-* an error message, and prjprt() prints its contents.
+* an error message, and prjprt() prints its contents.  prjbchk() performs
+* bounds checking on native spherical coordinates.
 *
 * Setup routines for each projection with names of the form ???set(), where
 * "???" is the down-cased three-letter projection code, compute intermediate
@@ -66,7 +67,9 @@
 *
 * In summary, the routines are:
 *   - prjini()                Initialization routine for the prjprm struct.
-*   - prjprt()                Routine to print the prjprm struct.
+*   - prjfree()               Reclaim memory allocated for error messages.
+*   - prjprt()                Print the prjprm struct.
+*   - prjbchk()               Bounds checking on native coordinates.
 *
 *   - prjset(), prjx2s(), prjs2x():   Generic driver routines
 *
@@ -119,8 +122,11 @@
 * ------------------------------------------
 * Error checking on the projected coordinates (x,y) is limited to that
 * required to ascertain whether a solution exists.  Where a solution does
-* exist no check is made that the value of phi and theta obtained lie within
-* the ranges [-180,180] for phi, and [-90,90] for theta.
+* exist, an optional check is made that the value of phi and theta obtained
+* lie within the ranges [-180,180] for phi, and [-90,90] for theta.  This
+* check, performed by prjbchk(), is enabled by default.  It may be disabled by
+* setting prjprm::bounds%4 to 0 (rather than 1); the projections need not be
+* reinitialized.
 *
 * Accuracy:
 * ---------
@@ -179,6 +185,43 @@
 *                         1: Null prjprm pointer passed.
 *
 *
+* prjbchk() - Bounds checking on native coordinates
+* -------------------------------------------------
+* prjbchk() performs bounds checking on native spherical coordinates.  As
+* returned by the deprojection (x2s) routines, native longitude is expected
+* to lie in the closed interval [-180,180], with latitude in [-90,90].
+*
+* A tolerance may be specified to provide a small allowance for numerical
+* imprecision.  Values that lie outside the allowed range by not more than
+* the specified tolerance will be adjusted back into range.
+*
+* If prjprm::bounds&4 is set, as it is by prjini(), then prjbchk() will be
+* invoked automatically by the Cartesian-to-spherical deprojection (x2s)
+* routines with an appropriate tolerance set for each projection.
+*
+* Given:
+*   tol       double    Tolerance for the bounds check [deg].
+*
+*   nphi,
+*   ntheta    int       Vector lengths.
+*
+*   spt       int       Vector stride.
+*
+* Given and returned:
+*   phi,theta double[]  Native longitude and latitude (phi,theta) [deg].
+*
+* Returned:
+*   stat      int[]     Status value for each vector element:
+*                         0: Valid value of (phi,theta).
+*                         1: Invalid value.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: One or more of the (phi,theta) coordinates
+*                            were, invalid, as indicated by the stat vector.
+*
+*
 * prjset() - Generic setup routine for the prjprm struct
 * ------------------------------------------------------
 * prjset() sets up a prjprm struct according to information supplied within
@@ -232,7 +275,7 @@
 *   phi,theta double[]  Longitude and latitude (phi,theta) of the projected
 *                       point in native spherical coordinates [deg].
 *
-*   stat      int[]     Status return value for each vector element:
+*   stat      int[]     Status value for each vector element:
 *                         0: Success.
 *                         1: Invalid value of (x,y).
 *
@@ -272,7 +315,7 @@
 * Returned:
 *   x,y       double[]  Projected coordinates.
 *
-*   stat      int[]     Status return value for each vector element:
+*   stat      int[]     Status value for each vector element:
 *                         0: Success.
 *                         1: Invalid value of (phi,theta).
 *
@@ -328,7 +371,7 @@
 *   phi,theta double[]  Longitude and latitude of the projected point in
 *                       native spherical coordinates [deg].
 *
-*   stat      int[]     Status return value for each vector element:
+*   stat      int[]     Status value for each vector element:
 *                         0: Success.
 *                         1: Invalid value of (x,y).
 *
@@ -366,7 +409,7 @@
 * Returned:
 *   x,y       double[]  Projected coordinates.
 *
-*   stat      int[]     Status return value for each vector element:
+*   stat      int[]     Status value for each vector element:
 *                         0: Success.
 *                         1: Invalid value of (phi,theta).
 *
@@ -433,12 +476,15 @@
 *     projection-specific default.
 *
 *   int bounds
-*     (Given) Controls strict bounds checking.  If bounds&1 then enable bounds
-*     checking for the sky-to-pixel (s2x) transformation for the AZP, SZP,
-*     TAN, SIN, ZPN, and COP projections.  If bounds&2 then enable bounds
-*     checking for the pixel-to-sky transformation for the HPX and XPH
-*     projections.  Set to 3 by prjini() by default which enables both.  Zero
-*     it to disable all checking.
+*     (Given) Controls bounds checking.  If bounds&1 then enable strict bounds
+*     checking for the spherical-to-Cartesian (s2x) transformation for the
+*     AZP, SZP, TAN, SIN, ZPN, and COP projections.  If bounds&2 then enable
+*     strict bounds checking for the Cartesian-to-spherical transformation
+*     (x2s) for the HPX and XPH projections.  If bounds&4 then the Cartesian-
+*     to-spherical transformations (x2s) will invoke prjbchk() to perform
+*     bounds checking on the computed native coordinates, with a tolerance set
+*     to suit each projection.  bounds is set to 7 by prjini() by default
+*     which enables all checks.  Zero it to disable all checking.
 *
 * The remaining members of the prjprm struct are maintained by the setup
 * routines and must not be modified elsewhere:
@@ -600,7 +646,7 @@ struct prjprm {
   double r0;			/* Radius of the generating sphere.         */
   double pv[PVN];		/* Projection parameters.                   */
   double phi0, theta0;		/* Fiducial native coordinates.             */
-  int    bounds;		/* Enable strict bounds checking.           */
+  int    bounds;		/* Controls bounds checking.                */
 
   /* Information derived from the parameters supplied.                      */
   /*------------------------------------------------------------------------*/
@@ -636,6 +682,8 @@ struct prjprm {
 int prjini(struct prjprm *prj);
 int prjfree(struct prjprm *prj);
 int prjprt(const struct prjprm *prj);
+int prjbchk(double tol, int nx, int ny, int spt, double phi[], double theta[],
+           int stat[]);
 
 int prjset(struct prjprm *prj);
 int prjx2s(PRJX2S_ARGS);

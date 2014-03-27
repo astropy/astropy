@@ -594,3 +594,19 @@ def test_error_message():
         # whereas 0.3 and earlier did not.
         w = wcs.WCS(header, _do_set=False)
         c = w.all_pix2world([[536.0, 894.0]], 0)
+
+
+def test_out_of_bounds():
+    # See #2107
+    header = get_pkg_data_contents('data/zpn-hole.hdr', encoding='binary')
+    w = wcs.WCS(header)
+
+    ra, dec = w.wcs_pix2world(110, 110, 0)
+
+    assert np.isnan(ra)
+    assert np.isnan(dec)
+
+    ra, dec = w.wcs_pix2world(0, 0, 0)
+
+    assert not np.isnan(ra)
+    assert not np.isnan(dec)

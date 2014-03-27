@@ -456,8 +456,8 @@ PyWcsprm_bounds_check(
     PyObject* args,
     PyObject* kwds) {
 
-  unsigned char pix2sky    = 0;
-  unsigned char sky2pix    = 0;
+  unsigned char pix2sky    = 1;
+  unsigned char sky2pix    = 1;
   int           bounds     = 0;
   int           status     = 0;
   const char*   keywords[] = {"pix2world", "world2pix", NULL};
@@ -469,7 +469,7 @@ PyWcsprm_bounds_check(
   }
 
   if (pix2sky) {
-      bounds |= 2;
+      bounds |= 2|4;
   }
 
   if (sky2pix) {

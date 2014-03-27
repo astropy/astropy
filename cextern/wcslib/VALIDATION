@@ -1,6 +1,15 @@
 Platforms on which the installation procedures and test suite were exercised
 
 
+WCSLIB version 4.21 (2014/03/24)
+--------------------------------
+
+* Dell Latitude D620 (Intel Centrino, i686) running Debian linux 7.0 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+
 WCSLIB version 4.20 (2013/12/18)
 --------------------------------
 
@@ -272,4 +281,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 4.20 2013/12/18 05:42:50 mcalabre Exp $
+$Id: VALIDATION,v 4.21 2014/03/24 05:12:29 mcalabre Exp $

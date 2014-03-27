@@ -1,3 +1,28 @@
+WCSLIB version 4.21 (2014/03/24)
+--------------------------------
+
+* C library
+
+  - New function prjbchk() performs bounds checking on native spherical
+    coordinates.  It is invoked automatically by the deprojection (x2s)
+    routines if prjprm::bounds&4 is set.  Documented the new bounds
+    checking implemented by prjbchk() in the prologue entry for
+    wcsbchk().  Improvements to tprj1 to test the vector API of prjx2s()
+    and to deal better with out-of-bounds native coordinates returned by
+    it.
+
+  - Bug fixes in the projection routines: in hpxx2s() relating to bounds
+    checking, bug introduced at 4.20, reported by Michael Droettboom; in
+    parx2s() and molx2s() relating to setting the stat vector; in
+    hpxx2s() relating to implementation of the vector API; and in
+    xphx2s() relating to setting an out-of-bounds value of phi.
+
+* Fortran wrappers
+
+  - Wrapper for prjbchk().  Modified tprj1.f to track changes to the C
+    version.
+
+
 WCSLIB version 4.20 (2013/12/18)
 --------------------------------
 
@@ -9,7 +34,7 @@ WCSLIB version 4.20 (2013/12/18)
   - Enable bounds checking in the pixel-to-sky (x2s) direction for HPX
     and XPH if prjprm::bounds&2.  Tightened bounds checking in xphx2s().
     prjini() now sets prjprm::bounds = 3 to enable all bounds checking
-    by default. 
+    by default.
 
   - Fixed an incorrect error message in wcs_units().  Also report
     potentially unsafe units translations in unitfix() - both
@@ -2073,4 +2098,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.20 2013/12/18 05:42:50 mcalabre Exp $
+$Id: CHANGES,v 4.21 2014/03/24 05:12:29 mcalabre Exp $
