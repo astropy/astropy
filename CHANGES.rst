@@ -270,6 +270,8 @@ Other Changes and Additions
   behavior.  If unicode support of masked arrays is important to your
   application, upgrade to Numpy 1.8 or later for best results. [#2059]
 
+- The developer documentation has been extensively rearranged and
+  rewritten. [#1712]
 
 0.3.2 (unreleased)
 ------------------
