@@ -292,11 +292,7 @@ class GithubSuggestBackports(object):
         # requesting one at a time. This would also be easier if the API
         # supported sorting on PR lists
         for pr in self.iter_pull_requests(state='closed'):
-            if (pr['number'] not in milestone_issues or not pr['merged_at'] or
-                pr['merged_at'] < last_tag_date):
-                # If pull request was merged before the last tag we don't
-                # search for it; the script assumes that the previous release
-                # correctly contained all relevant backports
+            if (pr['number'] not in milestone_issues or not pr['merged_at']):
                 continue
 
             merge_commit = self.get_pull_request_merge_commit(pr['number'])
