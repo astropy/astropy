@@ -27,6 +27,7 @@ def test_read_ipac():
 
 def test_read_cds():
     Table.read(os.path.join(ROOT, 't/cds.dat'), format='cds')
+    Table.read(os.path.join(ROOT, 't/cds3.dat'), format='cds', data_line='guess')
 
 
 def test_read_dapphot():

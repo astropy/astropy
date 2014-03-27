@@ -24,7 +24,7 @@ Byte-by-byte Description of file: datafile3.txt
   29- 68 A40    ---    Match  Literature match 
   70- 75 A6     ---    Class  Source classification (1)
   77-80  F4.2   mag    AK     ? The K band extinction (2) 
-  82-86  F5.2   ---    Fit    ? Fit of IRAC photometry (3)
+  82-86  F5.2   ---    Fit    ?=... Fit of IRAC photometry (3)
 --------------------------------------------------------------------------------
 Note (1): Asterisks mark "deeply embedded" sources with questionable IRAC 
           colors or incomplete IRAC photometry and relatively bright 
@@ -35,4 +35,5 @@ Note (3): Defined as the slope of the linear least squares fit to the
           Extinction is not accounted for in these values.  High extinction can
           bias Fit to higher values. 
 --------------------------------------------------------------------------------
+  1 03 28 39.09 +31 06 01.9                                          I*           ...
   1 03 28 39.09 +31 06 01.9                                          I*           1.35 

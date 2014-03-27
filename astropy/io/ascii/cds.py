@@ -155,23 +155,77 @@ class CdsHeader(core.BaseHeader):
 
 
 class CdsData(core.BaseData):
-    """CDS table data reader
+    """
+    CDS table data reader.
+
+    Attributes
+    ----------
+    data_line : int or str
+        If an int, gives the line number at which table data begins.
+        It can also be the string 'guess' if the user intends
+        for the reader to loop over data lines in order to find the
+        location of table data. If data_line is None (as it is by
+        default), then the reader will treat input as strict CDS and
+        will simply begin inputting data after the appropriate delimiter.
     """
     splitter_class = fixedwidth.FixedWidthSplitter
+    data_line = None
 
-    def process_lines(self, lines):
-        """Skip over CDS header by finding the last section delimiter"""
+    def __init__(self, data_line=None):
+        """Initialize CDS data reader.
+
+        :param data_line: A parameter specifying how CdsData should
+        look for the beginning of table data.
+        :type data_line: int, str, or None
+        """
+        core.BaseData.__init__(self)
+        self.data_line = data_line
+            
+    def get_str_vals(self):
+        """Return valid rows following the last section delimiter as strings"""
         # If the header has a ReadMe and data has a filename
-        # then no need to skip, as the data lines do not have header
+        # then just use data_lines, as the data lines do not have header
         # info. The ``read`` method adds the table_name to the ``data``
         # attribute.
         if self.header.readme and self.table_name:
-            return lines
-        i_sections = [i for (i, x) in enumerate(lines)
+            return self.splitter(self.data_lines)
+        elif isinstance(self.data_line, int):
+            # Split beginning at the specified line (start_line = 1, 2, ...)
+            return self.splitter(self.data_lines[self.data_line - 1:])
+        elif self.data_line is not None and self.data_line != 'guess':
+            return core.InconsistentTableError(
+                "Invalid value for start_line: '{0}'".format(self.data_line))
+            
+        i_sections = [i for (i, x) in enumerate(self.data_lines)
                       if x.startswith('------') or x.startswith('=======')]
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
-        return lines[i_sections[-1]+1:]
+
+        bottom_lines = self.data_lines[i_sections[-1] + 1:]
+
+        if self.data_line is None:
+            return self.splitter(bottom_lines) # Return data after delimiter
+        # Begin guessing the row at which table data starts
+        type_map = {core.FloatType:float, core.IntType:int, core.StrType:str}
+        self.splitter.cols = self.header.cols
+
+        # Need fill values. Usually done later, so set here for splitter cols
+        self._set_fill_values(self.splitter.cols)
+
+        # Check lines below final delimiter for first valid row
+        for i, vals in enumerate(self.splitter(bottom_lines)):
+            if len(vals) != len(self.header.cols): # Incorrect number of columns
+                continue
+            try:
+                for j, val in enumerate(vals):
+                    if val not in self.splitter.cols[j].fill_values:
+                        col_type = self.header.get_col_type(self.header.cols[j])
+                        type_map[col_type](val)
+            except ValueError: # One or more values were of incorrect type
+                continue
+            return self.splitter(bottom_lines[i:]) # First valid line found
+            
+        return [] # No data found
 
 
 class Cds(core.BaseReader):
@@ -267,10 +321,11 @@ class Cds(core.BaseReader):
     _io_registry_can_write = False
     _description = 'CDS format table'
 
-    def __init__(self, readme=None):
+    def __init__(self, readme=None, data_line=None):
         core.BaseReader.__init__(self)
         self.header = CdsHeader(readme)
-        self.data = CdsData()
+        self.data = CdsData(data_line)
+        self.data.header = self.header
 
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""

@@ -380,7 +380,9 @@ def test_masking_Cds():
     data = asciitable.read(f,
                            **testfile['opts'])
     assert_true(data['AK'].mask[0])
-    assert_true(not data['Fit'].mask[0])
+    assert_true(data['AK'].mask[1])
+    assert_true(data['Fit'].mask[0])
+    assert_true(not data['Fit'].mask[1])
 
 
 def test_null_Ipac():
@@ -495,8 +497,35 @@ def get_testfiles(name=None):
                   'AK',
                   'Fit'),
          'name': 't/cds.dat',
-         'nrows': 1,
+         'nrows': 2,
          'opts': {'Reader': asciitable.Cds}},
+        {'cols': ('KOI',
+                  'KIC',
+                  'Kp',
+                  't0',
+                  'e_t0',
+                  'Per',
+                  'e_Per',
+                  'Rad',
+                  'a',
+                  'Teq',
+                  'Dur',
+                  'Depth',
+                  'd/R*',
+                  'e_d/R*',
+                  'r/R*',
+                  'e_r/R*',
+                  'b',
+                  'e_b',
+                  'SNR',
+                  'chi',
+                  'Teff',
+                  'log(g)',
+                  'StRad',
+                  'f_Teff'),
+         'name': 't/cds3.dat',
+         'nrows': 10,
+         'opts': {'Reader': asciitable.Cds, 'data_line':'guess'}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header.dat',
          'nrows': 2,
@@ -723,3 +752,27 @@ def test_overlapping_names():
     """
     t = ascii.read(['a b', '1 2'], names=['b', 'a'])
     assert t.colnames == ['b', 'a']
+
+def test_cds_data_line():
+    """
+    Make sure that data_line works as expected for the CDS reader -- ints
+    specify a line number, 'guess' tells the reader to find the line itself,
+    and None (by default) calls for the first line after the last delimiter.
+    """
+
+    # By default, table data begins after the last delimiter, so malformed
+    # files like this one should raise an error.
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read('t/cds3.dat', format='cds')
+
+    # Correct specified beginning of table data
+    t = ascii.read('t/cds3.dat', format='cds', data_line=58)
+    assert t['KOI'][0] == 1.01
+
+    # Use the second line instead
+    t = ascii.read('t/cds3.dat', format='cds', data_line=59)
+    assert t['KOI'][0] == 2.01
+
+    # Have the CDS reader guess
+    t = ascii.read('t/cds3.dat', format='cds', data_line='guess')
+    assert t['KOI'][0] == 1.01
