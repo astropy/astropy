@@ -173,12 +173,12 @@ files should be automatically identified as such based on the header of the
 file, but if not, or if writing to disk, then the format should be explicitly
 specified.
 
-If a FITS table file only contains a single table, then it can be read in
+If a FITS table file contains only a single table, then it can be read in
 with::
 
     >>> t = Table.read('data.fits')
 
-If more that one table are present in the file, the first table found will be
+If more than one table is present in the file, the first table found will be
 read in and a warning will be emitted::
 
     >>> t = Table.read('data.fits')
@@ -245,11 +245,11 @@ tables should be automatically identified as such based on the header of the
 file, but if not, or if writing to disk, then the format should be explicitly
 specified.
 
-If a VO table file only contains a single table, then it can be read in with::
+If a VO table file contains only a single table, then it can be read in with::
 
     >>> t = Table.read('aj285677t3_votable.xml')
 
-If more that one table are present in the file, an error will be raised,
+If more than one table is present in the file, an error will be raised,
 unless the table ID is specified via the ``table_id=`` argument::
 
     >>> t = Table.read('catalog.xml')
