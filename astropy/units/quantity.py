@@ -64,7 +64,7 @@ class QuantityIterator(object):
     Flat iterator object to iterate over Quantities
 
     A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
-    `q`. It allows iterating over the array as if it were a 1-D array,
+    ``q``.  It allows iterating over the array as if it were a 1-D array,
     either in a for-loop or by calling its `next` method.
 
     Iteration is done in C-contiguous style, with the last index varying the
@@ -78,33 +78,33 @@ class QuantityIterator(object):
     Notes
     -----
     `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.
-    It is not exported by the `units` module. Instead of
-    instantiating a `QuantityIterator` directly, use `Quantity.flat`.
+    It is not exported by the `units` module.  Instead of instantiating a
+    `QuantityIterator` directly, use `Quantity.flat`.
     """
     def __init__(self, q):
-        self.quantity = q
-        self.dataiter = q.view(np.ndarray).flat
+        self._quantity = q
+        self._dataiter = q.view(np.ndarray).flat
 
     def __iter__(self):
         return self
 
     def __getitem__(self, indx):
-        out = self.dataiter.__getitem__(indx)
+        out = self._dataiter.__getitem__(indx)
         if not isinstance(out, np.ndarray):
             out = out.__array__()
-        out = out.view(type(self.quantity))
-        out._unit = self.quantity.unit
+        out = out.view(type(self._quantity))
+        out._unit = self._quantity.unit
         return out
 
     def __setitem__(self, index, value):
-        self.dataiter[index] = self.quantity._to_own_unit(value)
+        self._dataiter[index] = self._quantity._to_own_unit(value)
 
     def __next__(self):
         """
         Return the next value, or raise StopIteration.
         """
-        out = next(self.dataiter)
-        return self.quantity.__quantity_instance__(out, self.quantity.unit)
+        out = next(self._dataiter)
+        return self._quantity.__quantity_instance__(out, self._quantity.unit)
 
     next = __next__
 
@@ -1018,18 +1018,23 @@ class Quantity(np.ndarray):
         self.view(np.ndarray).fill(self._to_own_unit(value))
 
     # Shape manipulation: resize cannot be done (does not own data), but
-    # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.
-    def _get_flat(self):
-        "Return a flat iterator."
+    # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.  Only
+    # the flat iterator needs to be overwritten, otherwise single items are
+    # returned as numbers.
+    @property
+    def flat(self):
+        """A 1-D iterator over the Quantity array.
+
+        This returns a `QuantityIterator` instance, which behaves the same as
+        the `~np.flatiter` instance returned by `~np.ndarray.flat`, and is
+        similar to, but not a subclass of, Python's built-in iterator object.
+        """
         return QuantityIterator(self)
 
-    def _set_flat(self, value):
-        "Set a flattened version of self to value."
+    @flat.setter
+    def flat(self, value):
         y = self.ravel()
         y[:] = value
-
-    flat = property(fget=_get_flat, fset=_set_flat,
-                    doc="Flat version of the Quantity array.")
 
     # Item selection and manipulation
     # take, repeat, sort, compress, diagonal OK
