@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 import fnmatch
 import itertools
 import re
+import os
 
 from . import core
 from . import fixedwidth
@@ -229,6 +230,13 @@ class Cds(core.BaseReader):
       >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
       >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
 
+    If the header (ReadMe) and data are stored in a single file and there
+    is content between the header and the data (for instance Notes), then the
+    parsing process may fail.  In this case you can instruct the reader to
+    guess the actual start of the data by supplying ``data_start='guess'`` in the
+    call to the ``ascii.read()`` function.  You should verify that the output
+    data table matches expectation based on the input CDS file.
+
     **Using a reader object**
 
     When ``Cds`` reader object is created with a ``readme`` parameter
@@ -275,3 +283,35 @@ class Cds(core.BaseReader):
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""
         raise NotImplementedError
+
+    def read(self, table):
+        # If the read kwarg `data_start` is 'guess' then the table may have extraneous
+        # lines between the end of the header and the beginning of data.
+        if self.data.start_line == 'guess':
+            # Replicate the first part of BaseReader.read up to the point where
+            # the table lines are initially read in.
+            try:
+                if os.linesep not in table + '':
+                    self.data.table_name = os.path.basename(table)
+            except TypeError:
+                # Not a string.
+                pass
+
+            self.data.header = self.header
+            self.header.data = self.data
+
+            # Get a list of the lines (rows) in the table
+            lines = self.inputter.get_lines(table)
+
+            # Now try increasing data.start_line by one until the table reads successfully.
+            # For efficiency use the in-memory list of lines instead of `table`, which
+            # could be a file.
+            for data_start in range(len(lines)):
+                self.data.start_line = data_start
+                try:
+                    table = super(Cds, self).read(lines)
+                    return table
+                except:
+                    pass
+        else:
+            return super(Cds, self).read(table)

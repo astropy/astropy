@@ -13,6 +13,7 @@ def get_package_data():
                                    't/bad.txt',
                                    't/bars_at_ends.txt',
                                    't/cds.dat',
+                                   't/cds_malformed.dat',
                                    't/cds/glob/ReadMe',
                                    't/cds/glob/lmxbrefs.dat',
                                    't/cds/multi/ReadMe',

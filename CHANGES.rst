@@ -48,6 +48,9 @@ New Features
   - A new ``csv`` format was added as a convenience for handling CSV (comma-
     separated values) data. [#1935]
 
+  - An option was added to guess the start of data for CDS format files when
+    they do not strictly conform to the format standard. [#2241]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
