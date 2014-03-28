@@ -255,7 +255,6 @@ def write_table_fits(input, output, overwrite=False):
                     "is not recognized by the FITS standard. Either scale "
                     "the data or change the units.".format(col.name, str(scale)))
 
-    # why isn't below in the constructor of BinTableHDU?
     for key, value in input.meta.items():
 
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
