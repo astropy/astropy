@@ -42,9 +42,9 @@ class PowerLaw1D(Parametric1DModel):
 
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    alpha = Parameter('alpha')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    alpha = Parameter()
 
     def __init__(self, amplitude, x_0, alpha, **constraints):
         super(PowerLaw1D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -104,10 +104,10 @@ class BrokenPowerLaw1D(Parametric1DModel):
                    \\right.
     """
 
-    amplitude = Parameter('amplitude')
-    x_break = Parameter('x_break')
-    alpha_1 = Parameter('alpha_1')
-    alpha_2 = Parameter('alpha_2')
+    amplitude = Parameter()
+    x_break = Parameter()
+    alpha_1 = Parameter()
+    alpha_2 = Parameter()
 
     def __init__(self, amplitude, x_break, alpha_1, alpha_2, **constraints):
         super(BrokenPowerLaw1D, self).__init__(
@@ -165,10 +165,10 @@ class ExponentialCutoffPowerLaw1D(Parametric1DModel):
 
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    alpha = Parameter('alpha')
-    x_cutoff = Parameter('x_cutoff')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    alpha = Parameter()
+    x_cutoff = Parameter()
 
     def __init__(self, amplitude, x_0, alpha, x_cutoff, **constraints):
         super(ExponentialCutoffPowerLaw1D, self).__init__(
@@ -224,10 +224,10 @@ class LogParabola1D(Parametric1DModel):
 
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    alpha = Parameter('alpha')
-    beta = Parameter('beta')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    alpha = Parameter()
+    beta = Parameter()
 
     def __init__(self, amplitude, x_0, alpha, beta, **constraints):
         super(LogParabola1D, self).__init__(

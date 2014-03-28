@@ -11,7 +11,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import ParametricModel
+from ..core import ParametricModel, ModelDefinitionError
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -22,8 +22,8 @@ class TestParModel(ParametricModel):
     A toy model to test parameters machinery
     """
 
-    coeff = Parameter('coeff')
-    e = Parameter('e')
+    coeff = Parameter()
+    e = Parameter()
 
     def __init__(self, coeff, e, param_dim=1):
         super(TestParModel, self).__init__(
@@ -94,6 +94,29 @@ def test_parameter_operators():
     assert par == par
     assert -par == -num
     assert abs(par) == abs(num)
+
+
+def test_parameter_name_attribute_mismatch():
+    """It should not be possible to define Parameters on a model with different
+    names from the attributes they are assigned to.
+    """
+
+    def make_bad_class():
+        class BadModel(ParametricModel):
+            foo = Parameter('bar')
+
+            def __call__(self): pass
+
+    def make_good_class():
+        class GoodModel(ParametricModel):
+            # This is redundant but okay
+            foo = Parameter('foo')
+
+            def __call__(self): pass
+
+    make_good_class()
+    pytest.raises(ModelDefinitionError, make_bad_class)
+
 
 class TestParameters(object):
 

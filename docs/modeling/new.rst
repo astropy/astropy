@@ -58,11 +58,14 @@ from `~astropy.modeling.ParametricModel`; if not it should subclass
 
 If the model takes parameters they should be specified as class attributes in
 the model's class definition using the `~astropy.modeling.Parameter`
-descriptor.  The first argument for defining the parameter must be a unique (
-to that model) name of the parameter, and it must be identical to the class
-attribute being assigned that parameter.  Subsequent arguments are optional,
-and may include a default value for that parameter as well default constraints
-and custom getters/setters for the parameter value.
+descriptor.  All arguments to the Parameter constructor are optional, and may
+include a default value for that parameter as well default constraints and
+custom getters/setters for the parameter value.  If the first argument ``name``
+is specified it must be identical to the class attribute being assigned that
+Parameter.  As such, Parameters take their name from this attribute by default.
+In other words, ``amplitude = Parameter('amplitude')`` is equivalent to
+``amplitude = Parameter()``.  This differs from Astropy v0.3.x, where it was
+necessary to provide the name twice.
 
 .. note::
 
@@ -76,9 +79,9 @@ and custom getters/setters for the parameter value.
     from astropy.modeling import *
 
     class Gaussian1DModel(ParametricModel):
-        amplitude = Parameter('amplitude')
-        mean = Parameter('mean')
-        stddev = Parameter('stddev')
+        amplitude = Parameter()
+        mean = Parameter()
+        stddev = Parameter()
 
 At a minimum, the ``__init__`` method takes all parameters and the number of
 parameter sets, `~astropy.modeling.Model.param_dim`::
@@ -163,8 +166,8 @@ A full example of a LineModel
     import numpy as np
 
     class LineModel(models.PolynomialModel):
-        slope = Parameter('slope')
-        intercept = Parameter('intercept')
+        slope = Parameter()
+        intercept = Parameter()
         linear = True
 
     def __init__(self, slope, intercept, param_dim=1, **constraints):

@@ -15,7 +15,7 @@ from .. import models
 class NonFittableModel(Model):
     """An example class directly subclassing Model for testing"""
 
-    a = Parameter('a')
+    a = Parameter()
 
     def __init__(self, a):
         if not isinstance(a, collections.Sequence):

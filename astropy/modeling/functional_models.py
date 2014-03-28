@@ -90,9 +90,9 @@ class Gaussian1D(Parametric1DModel):
     Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
 
-    amplitude = Parameter('amplitude')
-    mean = Parameter('mean')
-    stddev = Parameter('stddev')
+    amplitude = Parameter()
+    mean = Parameter()
+    stddev = Parameter()
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:
@@ -175,12 +175,12 @@ class Gaussian2D(Parametric2DModel):
     Gaussian1D, Box2D, Beta2D
     """
 
-    amplitude = Parameter('amplitude')
-    x_mean = Parameter('x_mean')
-    y_mean = Parameter('y_mean')
-    x_stddev = Parameter('x_stddev')
-    y_stddev = Parameter('y_stddev')
-    theta = Parameter('theta')
+    amplitude = Parameter()
+    x_mean = Parameter()
+    y_mean = Parameter()
+    x_stddev = Parameter()
+    y_stddev = Parameter()
+    theta = Parameter()
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
                  theta=0.0, cov_matrix=None, **constraints):
@@ -287,7 +287,7 @@ class Shift(Model):
         column in the input coordinate array
     """
 
-    offsets = Parameter('offsets')
+    offsets = Parameter()
 
     def __init__(self, offsets, param_dim=1):
         if not isinstance(offsets, collections.Sequence):
@@ -329,7 +329,7 @@ class Scale(Model):
         scale for a coordinate
     """
 
-    factors = Parameter('factors')
+    factors = Parameter()
 
     def __init__(self, factors, param_dim=1):
         if not isinstance(factors, collections.Sequence):
@@ -384,8 +384,8 @@ class Sine1D(Parametric1DModel):
         .. math:: f(x) = A \\sin(2 \\pi f x)
     """
 
-    amplitude = Parameter('amplitude')
-    frequency = Parameter('frequency')
+    amplitude = Parameter()
+    frequency = Parameter()
 
     def __init__(self, amplitude, frequency, **constraints):
         super(Sine1D, self).__init__(amplitude=amplitude,
@@ -431,8 +431,8 @@ class Linear1D(Parametric1DModel):
         .. math:: f(x) = a x + b
     """
 
-    slope = Parameter('slope')
-    intercept = Parameter('intercept')
+    slope = Parameter()
+    intercept = Parameter()
     linear = True
 
     def __init__(self, slope, intercept, **constraints):
@@ -480,9 +480,9 @@ class Lorentz1D(Parametric1DModel):
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    fwhm = Parameter('fwhm')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    fwhm = Parameter()
 
     def __init__(self, amplitude, x_0, fwhm, **constraints):
         super(Lorentz1D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -526,7 +526,7 @@ class Const1D(Parametric1DModel):
         .. math:: f(x) = A
     """
 
-    amplitude = Parameter('amplitude')
+    amplitude = Parameter()
 
     def __init__(self, amplitude, **constraints):
         super(Const1D, self).__init__(amplitude=amplitude, **constraints)
@@ -565,7 +565,7 @@ class Const2D(Parametric2DModel):
         .. math:: f(x, y) = A
     """
 
-    amplitude = Parameter('amplitude')
+    amplitude = Parameter()
 
     def __init__(self, amplitude, **constraints):
         super(Const2D, self).__init__(amplitude=amplitude, **constraints)
@@ -610,10 +610,10 @@ class Disk2D(Parametric2DModel):
                    \\right.
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    R_0 = Parameter('R_0')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    R_0 = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, R_0, **constraints):
         super(Disk2D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -667,11 +667,11 @@ class Ring2D(Parametric2DModel):
     Where :math:`r_{out} = r_{in} + r_{width}`.
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    r_in = Parameter('r_in')
-    width = Parameter('width')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    r_in = Parameter()
+    width = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, r_in, width=None, r_out=None,
                  **constraints):
@@ -738,9 +738,9 @@ class Box1D(Parametric1DModel):
                    \\right.
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    width = Parameter('width')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    width = Parameter()
 
     def __init__(self, amplitude, x_0, width, **constraints):
         super(Box1D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -801,11 +801,11 @@ class Box2D(Parametric2DModel):
 
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    x_width = Parameter('x_width')
-    y_width = Parameter('y_width')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    x_width = Parameter()
+    y_width = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, x_width, y_width, **constraints):
         super(Box2D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -842,10 +842,10 @@ class Trapezoid1D(Parametric1DModel):
     Box1D, Gaussian1D, Beta1D
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    width = Parameter('width')
-    slope = Parameter('slope')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    width = Parameter()
+    slope = Parameter()
 
     def __init__(self, amplitude, x_0, width, slope, **constraints):
         super(Trapezoid1D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -894,11 +894,11 @@ class TrapezoidDisk2D(Parametric2DModel):
     Disk2D, Box2D
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    R_0 = Parameter('R_0')
-    slope = Parameter('slope')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    R_0 = Parameter()
+    slope = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, R_0, slope, **constraints):
         super(TrapezoidDisk2D, self).__init__(amplitude=amplitude,
@@ -945,9 +945,9 @@ class MexicanHat1D(Parametric1DModel):
 
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    sigma = Parameter('sigma')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    sigma = Parameter()
 
     def __init__(self, amplitude, x_0, sigma, **constraints):
         super(MexicanHat1D, self).__init__(amplitude=amplitude,
@@ -993,10 +993,10 @@ class MexicanHat2D(Parametric2DModel):
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    sigma = Parameter('sigma')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    sigma = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, sigma, **constraints):
         super(MexicanHat2D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -1040,10 +1040,10 @@ class AiryDisk2D(Parametric2DModel):
     Where J1 is the first order Bessel function of first kind.
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    width = Parameter('width')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    width = Parameter()
 
     _j1 = None
 
@@ -1112,10 +1112,10 @@ class Beta1D(Parametric1DModel):
         f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    gamma = Parameter('gamma')
-    alpha = Parameter('alpha')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    gamma = Parameter()
+    alpha = Parameter()
 
     def __init__(self, amplitude, x_0, gamma, alpha, **constraints):
         super(Beta1D, self).__init__(amplitude=amplitude, x_0=x_0,
@@ -1172,11 +1172,11 @@ class Beta2D(Parametric2DModel):
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
     """
 
-    amplitude = Parameter('amplitude')
-    x_0 = Parameter('x_0')
-    y_0 = Parameter('y_0')
-    gamma = Parameter('gamma')
-    alpha = Parameter('alpha')
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    gamma = Parameter()
+    alpha = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, gamma, alpha, **constraints):
         super(Beta2D, self).__init__(amplitude=amplitude, x_0=x_0,
