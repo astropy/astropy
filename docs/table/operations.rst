@@ -197,9 +197,9 @@ One can iterate over the group sub-tables and corresponding keys with::
 Column Groups
 ~~~~~~~~~~~~~~
 
-Like ``Table`` objects, ``Column`` objects can also be grouped for subsequent
+Like |Table| objects, |Column| objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
-``Table`` or bare ``Column`` objects.
+"Table| or bare |Column| objects.
 
 As for ``Table``, the grouping is generated with the `~astropy.table.table.Table.group_by` method.  The
 difference here is that there is no option of providing one or more column

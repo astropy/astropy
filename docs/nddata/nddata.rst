@@ -133,10 +133,10 @@ numpy arrays::
 If a ``mask`` is defined, this will result in a `~numpy.ma.MaskedArray`, so
 in all cases a useable `numpy.ndarray` or subclass will result. This allows
 straightforward plotting of `~astropy.nddata.NDData` objects with 1-
-and 2-dimensional datasets using ``matplotlib``::
+and 2-dimensional datasets using Matplotlib::
 
     >>> from matplotlib import pyplot as plt  # doctest: +SKIP
     >>> plt.plot(ndd)  # doctest: +SKIP
 
-This works because the ``matplotlib`` plotting functions automatically convert
+This works because the Matplotlib plotting functions automatically convert
 their inputs using `numpy.array`.
