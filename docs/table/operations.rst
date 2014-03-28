@@ -97,7 +97,7 @@ can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
 - List of string values with table column names
-- Another ``Table`` or ``Table`` column with same length as table
+- Another |Table| or |Table| column with same length as table
 - Numpy structured array with same length as table
 - Numpy homogeneous array with same length as table
 
