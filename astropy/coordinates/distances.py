@@ -161,13 +161,19 @@ class Distance(u.Quantity):
                                             copy=copy)
 
     def __quantity_view__(self, obj, unit):
-        unit = _convert_to_and_validate_length_unit(unit)
-        return super(Distance, self).__quantity_view__(obj, unit)
+        try:
+            unit = _convert_to_and_validate_length_unit(unit)
+            return obj.view(self.__class__)
+        except u.UnitsError:
+            return super(Distance, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
-        unit = _convert_to_and_validate_length_unit(unit)
-        return super(Distance, self).__quantity_instance__(val, unit, **kwargs)
-
+        try:
+            unit = _convert_to_and_validate_length_unit(unit)
+            return self.__class__(val, unit=unit, **kwargs)
+        except u.UnitsError:
+            return super(Distance, self).__quantity_instance__(
+                val, unit, **kwargs)
 
     @property
     def z(self):
@@ -375,11 +381,13 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
     """
     raises UnitsError if not a length unit
     """
-    unit = u.Unit(unit)
+    try:
+        unit = u.Unit(unit)
+        assert (unit.is_equivalent(u.kpc) or
+                allow_dimensionless and unit == u.dimensionless_unscaled)
+    except (TypeError, AssertionError):
+        raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
 
-    if not unit.is_equivalent(u.kpc):
-        if not (allow_dimensionless and unit == u.dimensionless_unscaled):
-            raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
     return unit
 
 #<------------transformation-related utility functions----------------->

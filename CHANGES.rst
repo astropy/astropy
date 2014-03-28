@@ -193,6 +193,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Ensure ``Distance`` objects can be compared. [#2206, #2250]
+
 - ``astropy.cosmology``
 
   - The distance modulus function in ``astropy.cosmology`` can now handle

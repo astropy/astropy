@@ -14,11 +14,10 @@ from numpy import testing as npt
 
 from ...tests.helper import pytest
 from ... import units as u
-
+from .. import Longitude, Latitude, ICRS, Distance, CartesianPoints
 
 
 def test_distance_change():
-    from .. import Longitude, Latitude, ICRS, Distance
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
@@ -39,8 +38,6 @@ def test_distance_is_quantity():
     """
     test that distance behaves like a proper quantity
     """
-
-    from .. import Distance
 
     Distance(2 * u.kpc)
 
@@ -63,7 +60,6 @@ def test_distance_is_quantity():
 
 
 def test_distmod():
-    from .. import Distance
 
     d = Distance(10, u.pc)
     assert d.distmod.value == 0
@@ -81,12 +77,12 @@ def test_distmod():
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
 
+
 def test_distance_in_coordinates():
     """
     test that distances can be created from quantities and that CartesianPoints
     can be built from them sucessfully
     """
-    from .. import Longitude, Latitude, ICRS, CartesianPoints
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
@@ -112,8 +108,6 @@ def test_creating_cartesian_single():
     test building cartesian points with the single-argument constructor
     """
 
-    from .. import CartesianPoints
-
     CartesianPoints(np.ones((3, 10)), unit=u.kpc)
 
     #allow dimensionless, too
@@ -138,8 +132,6 @@ def test_creating_cartesian_triple():
     test building cartesian points with the ``x``,``y``,``z`` constructor
     """
 
-    from .. import CartesianPoints
-
     #make sure scalars are scalars
     c = CartesianPoints(1, 2, 3, unit=u.kpc)
 
@@ -157,7 +149,9 @@ def test_creating_cartesian_triple():
     c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10) * u.kpc,
                         unit=u.Mpc)
     assert c.unit == u.Mpc
-    assert c[2][0].value < .1  # conversion of kpc to Mpc should give much smaller, but do this for round-off
+    # conversion of kpc to Mpc should give much smaller difference,
+    # but do this for round-off
+    assert c[2][0].value < .1
 
     with pytest.raises(u.UnitsError):
         CartesianPoints(np.ones(10) * u.Mpc, np.ones(10), np.ones(10) * u.kpc)
@@ -167,9 +161,6 @@ def test_cartesian_operations():
     """
     more tests of CartesianPoints beyond those in test_api
     """
-
-    from .. import Longitude, Latitude
-    from .. import CartesianPoints
 
     c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
 
@@ -199,8 +190,6 @@ def test_cartesian_view():
     test that the cartesian subclass properly deals with new views
     """
 
-    from .. import CartesianPoints
-
     c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
 
     c2 = CartesianPoints(c, copy=False)
@@ -211,10 +200,9 @@ def test_cartesian_view():
     assert not np.all(asarr == 1)
     assert not c.x[0] == 2
 
+
 def test_negative_distance():
     """ Test optional kwarg allow_negative """
-
-    from .. import Distance
 
     with pytest.raises(ValueError):
         d = Distance([-2, 3.1], u.kpc)
@@ -225,5 +213,14 @@ def test_negative_distance():
     with pytest.raises(ValueError):
         d = Distance(-2, u.kpc)
 
-
     d = Distance(-2, u.kpc, allow_negative=True)
+    assert d.value == -2
+
+
+def test_distance_comparison():
+    """Ensure comparisons of distances work (#2206, #2250)"""
+    a = Distance(15*u.kpc)
+    b = Distance(15*u.kpc)
+    assert a == b
+    c = Distance(1.*u.Mpc)
+    assert a < c
