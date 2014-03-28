@@ -117,16 +117,40 @@ def test_sip_hst():
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
     wobj = wcs.WCS(hdr)
-    a_pars = {}
-    b_pars = {}
-    a_cards = hdr.cards['A_*']
-    b_cards = hdr.cards['B_*']
-    for card in a_cards:
-        a_pars[card.keyword] = card.value
-    for card in b_cards:
-        b_pars[card.keyword] = card.value
+    a_pars = dict(**hdr['A_*'])
+    b_pars = dict(**hdr['B_*'])
     a_order = a_pars.pop('A_ORDER')
     b_order = b_pars.pop('B_ORDER')
     sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars)
     astwcs_result = wobj.sip_pix2foc([[1, 1]], 1)[0] - [1, 1]
     utils.assert_allclose(sip(1, 1), astwcs_result)
+
+
+def test_sip_irac():
+    """
+    Test forward and inverse SIP againts astropy.wcs
+    """
+    test_file = get_pkg_data_filename(os.path.join('./data', 'irac_sip.hdr'))
+    hdr=fits.Header.fromfile(test_file, padding=False)
+    crpix1 = hdr['CRPIX1']
+    crpix2 = hdr['CRPIX2']
+    wobj = wcs.WCS(hdr)
+    a_pars = dict(**hdr['A_*'])
+    b_pars = dict(**hdr['B_*'])
+    ap_pars = dict(**hdr['AP_*'])
+    bp_pars = dict(**hdr['BP_*'])
+    a_order = a_pars.pop('A_ORDER')
+    b_order = b_pars.pop('B_ORDER')
+    ap_order = ap_pars.pop('AP_ORDER')
+    bp_order = bp_pars.pop('BP_ORDER')
+    _ = a_pars.pop('A_DMAX')
+    _ = b_pars.pop('B_DMAX')
+    pix = [200, 200]
+    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars,
+              ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
+              bp_coeff=bp_pars)
+    invsip = sip.inverse()
+    foc = wobj.sip_pix2foc([pix], 1) - pix
+    newpix = (wobj.sip_foc2pix(foc, 1) - foc)[0]
+    utils.assert_allclose(sip(*pix), foc[0])
+    utils.assert_allclose(invsip(*foc[0]), newpix)
