@@ -54,6 +54,16 @@ class TestQuantityArrayCopy(object):
         q2[10,0] = -9*u.m/u.s
         assert np.all(q2.flatten() == q)
 
+    def test_flat(self):
+        q = u.Quantity(np.arange(9.).reshape(3, 3), "m/s")
+        assert q.flat[8] == 8. * u.m / u.s
+        assert np.all(q.flat[0:2] == np.arange(2.) * u.m / u.s)
+        q_flat = u.Quantity([_q for _q in q.flat])
+        assert np.all(q_flat ==
+                      u.Quantity([_a for _a in q.value.flat], q.unit))
+        q.flat[8] = -1. * u.km / u.s
+        assert q.flat[8] == -1. * u.km / u.s
+
 
 class TestQuantityStatsFuncs(object):
     """

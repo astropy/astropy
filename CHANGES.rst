@@ -243,6 +243,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Ensure ``Quantity.flat`` always returns ``Quantity``. [#2251]
+
 - ``astropy.utils``
 
 - ``astropy.vo``

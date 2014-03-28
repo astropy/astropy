@@ -59,6 +59,56 @@ def _can_have_arbitrary_unit(value):
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
 
+class QuantityIterator(object):
+    """
+    Flat iterator object to iterate over Quantities
+
+    A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
+    `q`. It allows iterating over the array as if it were a 1-D array,
+    either in a for-loop or by calling its `next` method.
+
+    Iteration is done in C-contiguous style, with the last index varying the
+    fastest. The iterator can also be indexed using basic slicing or
+    advanced indexing.
+
+    See Also
+    --------
+    Quantity.flatten : Returns a flattened copy of an array.
+
+    Notes
+    -----
+    `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.
+    It is not exported by the `units` module. Instead of
+    instantiating a `QuantityIterator` directly, use `Quantity.flat`.
+    """
+    def __init__(self, q):
+        self.quantity = q
+        self.dataiter = q.view(np.ndarray).flat
+
+    def __iter__(self):
+        return self
+
+    def __getitem__(self, indx):
+        out = self.dataiter.__getitem__(indx)
+        if not isinstance(out, np.ndarray):
+            out = out.__array__()
+        out = out.view(type(self.quantity))
+        out._unit = self.quantity.unit
+        return out
+
+    def __setitem__(self, index, value):
+        self.dataiter[index] = self.quantity._to_own_unit(value)
+
+    def __next__(self):
+        """
+        Return the next value, or raise StopIteration.
+        """
+        out = next(self.dataiter)
+        return self.quantity.__quantity_instance__(out, self.quantity.unit)
+
+    next = __next__
+
+
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
@@ -969,6 +1019,17 @@ class Quantity(np.ndarray):
 
     # Shape manipulation: resize cannot be done (does not own data), but
     # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.
+    def _get_flat(self):
+        "Return a flat iterator."
+        return QuantityIterator(self)
+
+    def _set_flat(self, value):
+        "Set a flattened version of self to value."
+        y = self.ravel()
+        y[:] = value
+
+    flat = property(fget=_get_flat, fset=_set_flat,
+                    doc="Flat version of the Quantity array.")
 
     # Item selection and manipulation
     # take, repeat, sort, compress, diagonal OK
