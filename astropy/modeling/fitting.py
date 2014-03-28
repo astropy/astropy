@@ -132,7 +132,7 @@ class Fitter(object):
         raise NotImplementedError("Subclasses should implement this")
 
     def _fitter_to_model_params(self, model, fps):
-        _fit_params, _fit_param_indices = model._model_to_fit_params()
+        _fit_params, _fit_param_indices = self._model_to_fit_params(model)
         if any(model.fixed.values()) or any(model.tied.values()):
             model.parameters[_fit_param_indices] = fps
             for idx, name in enumerate(model.param_names):
@@ -151,6 +151,30 @@ class Fitter(object):
                     setattr(model, name, par)
         else:
             model.parameters = fps
+
+    @staticmethod
+    def _model_to_fit_params(model):
+        """
+        Convert a model instance's parameter array to an array that can be used
+        with a fitter that doesn't natively support fixed or tied parameters.
+        In particular, it removes fixed/tied parameters from the parameter
+        array.
+
+        These may be a subset of the model parameters, if some of them are held
+        constant or tied.
+        """
+
+        fitparam_indices = list(range(len(model.param_names)))
+        if any(model.fixed.values()) or any(model.tied.values()):
+            params = list(model.parameters)
+            for idx, name in list(enumerate(model.param_names))[::-1]:
+                if model.fixed[name] or model.tied[name]:
+                    sl = model._param_metrics[name][0]
+                    del params[sl]
+                    del fitparam_indices[idx]
+            return (np.array(params), fitparam_indices)
+        else:
+            return (model.parameters, fitparam_indices)
 
 
 class LinearLSQFitter(Fitter):
@@ -255,7 +279,7 @@ class LinearLSQFitter(Fitter):
         self._validate_constraints(model)
         multiple = False
         model_copy = model.copy()
-        _, fitparam_indices = model_copy._model_to_fit_params()
+        _, fitparam_indices = self._model_to_fit_params(model_copy)
         self._weights = weights
         if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
@@ -497,7 +521,7 @@ class NonLinearLSQFitter(Fitter):
             dfunc = None
         else:
             dfunc = self._wrap_deriv
-        init_values, _ = model_copy._model_to_fit_params()
+        init_values, _ = self._model_to_fit_params(model_copy)
         fitparams, cov_x, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
@@ -667,7 +691,7 @@ class SLSQPFitter(Fitter):
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        p0, param_indices = model_copy._model_to_fit_params()
+        p0, param_indices = self._model_to_fit_params(model_copy)
         pars = [getattr(model_copy, name) for name in model_copy.param_names]
         bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
 

@@ -656,35 +656,6 @@ class ParametricModel(Model):
             setattr(self, name, value)
 
 
-    def _model_to_fit_params(self):
-        """
-        Create a set of parameters to be fitted.
-
-        These may be a subset of the model parameters, if some of them are held
-        constant or tied.
-
-        This is an adapter of the model parameters to fitters, none of which
-        currently support parameters with tied/fixed constraints.
-
-        TODO: It may make more sense to make this adaptation on the Fitter end,
-        since one could conceivably implement a fitter from scratch (for
-        Astropy specifically) that understands how to use tied constraints, for
-        example.
-        """
-
-        fitparam_indices = list(range(len(self.param_names)))
-        if any(self.fixed.values()) or any(self.tied.values()):
-            params = list(self.parameters)
-            for idx, name in list(enumerate(self.param_names))[::-1]:
-                if self.fixed[name] or self.tied[name]:
-                    sl = self._param_metrics[name][0]
-                    del params[sl]
-                    del fitparam_indices[idx]
-            return (np.array(params), fitparam_indices)
-        else:
-            return (self.parameters, fitparam_indices)
-
-
 class LabeledInput(dict):
     """
     Create a container with all input data arrays, assigning labels for
