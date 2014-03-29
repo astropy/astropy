@@ -12,6 +12,7 @@ from ..representation import (SphericalRepresentation,
 def assert_allclose_quantity(q1, q2):
     assert_allclose(q1.value, q2.to(q1.unit).value)
 
+
 class TestSphericalRepresentation(object):
 
     def test_empty_init(self):
@@ -83,14 +84,17 @@ class TestSphericalRepresentation(object):
 
     def test_init_array_nocopy(self):
 
-        lon = [8, 9] * u.hourangle
-        lat = [5, 6] * u.deg
+        lon = Longitude([8, 9] * u.hourangle)
+        lat = Latitude([5, 6] * u.deg)
+
+        lon_id = id(lon.value)
+        lat_id = id(lat.value)
 
         s1 = SphericalRepresentation(lon=lon, lat=lat, copy=False)
 
         # Not sure if we can expect this to work
-        assert s1.lon is lon
-        assert s1.lat is lat
+        assert id(s1.lon.value) == lon_id
+        assert id(s1.lat.value) == lat_id
 
     def test_init_str(self):
 
@@ -225,12 +229,16 @@ class TestCartesianRepresentation(object):
         y = [5, 6, 7] * u.Mpc
         z = [2, 3, 4] * u.kpc
 
+        id_x = id(x.value)
+        id_y = id(y.value)
+        id_z = id(z.value)
+
         s1 = CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
         # Not sure if we can expect this to work
-        assert s1.x is x
-        assert s1.y is y
-        assert s1.z is z
+        assert id(s1.x.value) == id_x
+        assert id(s1.y.value) == id_y
+        assert id(s1.z.value) == id_z
 
     def test_reprobj(self):
 
