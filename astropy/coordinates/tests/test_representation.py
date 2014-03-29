@@ -142,3 +142,155 @@ class TestSphericalRepresentation(object):
         assert s1.lat.unit == u.deg and s1.lon.unit == u.hourangle
         assert_allclose(s1.lon[1].hourangle, 9)
         assert_allclose(s1.lat[1].degree, 6)
+
+    def test_readonly(self):
+
+        s1 = SphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
+                                     lat=[5*u.deg, (6*np.pi/180)*u.rad])
+
+        with pytest.raises(AttributeError):
+            s1.lon = 1. * u.deg
+
+        with pytest.raises(AttributeError):
+            s1.lat = 1. * u.deg
+
+        with pytest.raises(AttributeError):
+            s1.distance = 1. * u.kpc
+
+
+class TestCartesianRepresentation(object):
+
+    def test_empty_init(self):
+        with pytest.raises(ValueError) as exc:
+            s = CartesianRepresentation()
+        assert exc.value.args[0] == "x, y, and z are required to instantiate a cartesians representation"
+
+    def test_init_quantity(self):
+
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        assert s1.x.unit is u.kpc
+        assert s1.y.unit is u.kpc
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.x.value,1)
+        assert_allclose(s1.y.value,2)
+        assert_allclose(s1.z.value,3)
+
+    def test_init_singleunit(self):
+
+        s1 = CartesianRepresentation(x=1,y=2,z=3,unit=u.kpc)
+
+        assert s1.x.unit is u.kpc
+        assert s1.y.unit is u.kpc
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.x.value,1)
+        assert_allclose(s1.y.value,2)
+        assert_allclose(s1.z.value,3)
+
+    def test_init_override_unit(self):
+
+        s1 = CartesianRepresentation(x=1 * u.pc,y=2 * u.Mpc,z=3 * u.kpc,unit=u.kpc)
+
+        assert s1.x.unit is u.kpc
+        assert s1.y.unit is u.kpc
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.x.value,0.001)
+        assert_allclose(s1.y.value,2000)
+        assert_allclose(s1.z.value,3)
+
+    def test_init_array(self):
+
+        s1 = CartesianRepresentation(x=[1,2,3] * u.pc,
+                                     y=[2,3,4]* u.Mpc,
+                                     z=[3,4,5] * u.kpc)
+
+        assert s1.x.unit is u.pc
+        assert s1.y.unit is u.Mpc
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.x.value,[1,2,3])
+        assert_allclose(s1.y.value,[2,3,4])
+        assert_allclose(s1.z.value,[3,4,5])
+
+    def test_init_array_nocopy(self):
+
+        x = [8, 9, 10] * u.pc
+        y = [5, 6, 7] * u.Mpc
+        z = [2, 3, 4] * u.kpc
+
+        s1 = CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+        # Not sure if we can expect this to work
+        assert s1.x is x
+        assert s1.y is y
+        assert s1.z is z
+
+    def test_reprobj(self):
+
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        s2 = CartesianRepresentation(representation=s1)
+
+        assert s2.x == 1 * u.kpc
+        assert s2.y == 2 * u.kpc
+        assert s2.z == 3 * u.kpc
+
+    def test_reprobj_invalid(self):
+
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc, representation=s1)
+        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
+
+    def test_broadcasting(self):
+
+        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=5 * u.kpc)
+
+        assert s1.x.unit == u.kpc
+        assert s1.y.unit == u.kpc
+        assert s1.z.unit == u.kpc
+
+        assert_allclose(s1.x.value, [1, 2])
+        assert_allclose(s1.y.value, [3, 4])
+        assert_allclose(s1.z.value, [5, 6])
+
+    def test_broadcasting_mismatch(self):
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6,7] * u.kpc)
+        assert exc.value.args[0] == "Input arrays cannot be broadcast"
+
+    def test_mixed_units(self):
+
+        # It's also possible to pass in scalar quantity lists with mixed
+        # units. These are converted to array quantities following the same
+        # rule as `Quantity`: all elements are converted to match the first
+        # element's units.
+
+        s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
+                                     y=[3 * u.kpc, 4 * u.pc] ,
+                                     z=[5. * u.cm, 6 * u.m])
+
+        assert s1.x.unit == u.kpc
+        assert s1.y.unit == u.kpc
+        assert s1.z.unit == u.cm
+        assert_allclose(s1.x.value, [1, 2000])
+        assert_allclose(s1.y.value, [3, 0.004])
+        assert_allclose(s1.z.value, [5, 600])
+
+    def test_readonly(self):
+
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
+
+        with pytest.raises(AttributeError):
+            s1.x = 1. * u.kpc
+
+        with pytest.raises(AttributeError):
+            s1.y = 1. * u.kpc
+
+        with pytest.raises(AttributeError):
+            s1.z = 1. * u.kpc
