@@ -238,3 +238,16 @@ class TestErrorResponse(object):
         xml = 'conesearch_error{0}.xml'.format(id)
         msg = self.conesearch_errmsg[xml]
         self.conesearch_compare(xml, msg)
+
+
+def test_validate_coord():
+    """Valid coordinates should not raise an error."""
+    result = conesearch._validate_coord(
+        ICRS(6.02233, -72.08144, unit=(u.degree, u.degree)))
+    np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
+
+    result = conesearch._validate_coord((-0, 0))
+    np.testing.assert_array_equal(result, [0, 0])
+
+    result = conesearch._validate_coord((-1, -1))
+    np.testing.assert_array_equal(result, [359, -1])

@@ -492,18 +492,7 @@ def _validate_coord(center):
     else:
         icrscoord = ICRS(*center, unit=(u.degree, u.degree))
 
-    ra = icrscoord.ra.degree
-    dec = icrscoord.dec.degree
-
-    # RA has tendency to go negative in Longitude class.
-    ra_sign = '{0:+}'.format(ra)[0]
-    if ra_sign == '-' and ra == 0:  # -0 is okay
-        ra = 0
-    else:  # pragma: no cover
-        raise ConeSearchError('Cone Search cannot accept negative RA value '
-                              '({0} deg)'.format(ra))
-
-    return ra, dec
+    return icrscoord.ra.degree, icrscoord.dec.degree
 
 
 def _validate_sr(radius):

@@ -64,6 +64,8 @@ Bug Fixes
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
+  - Cone Search validation no longer raises ``ConeSearchError`` for positive RA.
+    [#2240, #2242]
 
 - ``astropy.wcs``
 
