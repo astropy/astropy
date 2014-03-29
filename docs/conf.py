@@ -40,12 +40,9 @@ extensions = [
     'astropy.sphinx.ext.automodsumm',
     'astropy.sphinx.ext.automodapi',
     'astropy.sphinx.ext.tocdepthfix',
+    'plot_directive'
     ]
 
-import matplotlib
-print(matplotlib.__path__)
-import matplotlib.sphinxext.plot_directive
-extensions += [matplotlib.sphinxext.plot_directive.__name__]
 plot_rcparams = {'figure.figsize': (6,6),
                  'savefig.facecolor':'none',
                  'savefig.bbox':'tight',

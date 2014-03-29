@@ -1,5 +1,5 @@
 numpy
-six
-git+git://github.com/astrofrog/matplotlib.git@combined-fixes
+matplotlib
 astropy
+git+git://github.com/astrofrog/wcsaxes-plot-directive.git#egg=plot_directive
 
