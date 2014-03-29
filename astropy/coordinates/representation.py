@@ -98,7 +98,7 @@ class CartesianRepresentation(BaseRepresentation):
         return self._z
         
     @classmethod
-    def from_cartesian(self, other):
+    def from_cartesian(cls, other):
         return other
 
     def to_cartesian(self):
@@ -167,7 +167,8 @@ class SphericalRepresentation(BaseRepresentation):
         
         return CartesianRepresentation(x=x, y=y, z=z)
     
-    def from_cartesian(self, cartesian_representation):
+    @classmethod
+    def from_cartesian(cls, cartesian_representation):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
@@ -231,7 +232,8 @@ class CylindricalRepresentation(BaseRepresentation):
     def z(self):
         return self._z
     
-    def from_cartesian(self, cartesian_representation):
+    @classmethod
+    def from_cartesian(cls, cartesian_representation):
         rho = np.sqrt(cartesian_representation.x**2 + cartesian_representation.y**2)
 
         if cartesian_representation.x == 0 and cartesian_representation.y == 0:
