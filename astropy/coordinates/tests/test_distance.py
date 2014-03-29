@@ -224,3 +224,15 @@ def test_distance_comparison():
     assert a == b
     c = Distance(1.*u.Mpc)
     assert a < c
+
+
+def test_distance_to_quantity_when_not_units_of_length():
+    """Any operatation that leaves units other than those of length
+    should turn a distance into a quantity (#2206, #2250)"""
+    d = Distance(15*u.kpc)
+    twice = 2.*d
+    assert isinstance(twice, Distance)
+    area = 4.*np.pi*d**2
+    assert area.unit.is_equivalent(u.m**2)
+    assert not isinstance(area, Distance)
+    assert type(area) is u.Quantity

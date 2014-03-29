@@ -193,8 +193,6 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
-  - Ensure ``Distance`` objects can be compared. [#2206, #2250]
-
 - ``astropy.cosmology``
 
   - The distance modulus function in ``astropy.cosmology`` can now handle
@@ -316,6 +314,10 @@ Bug Fixes
   - if ``sep`` argument is specified to be a single character in
     ``sexagisimal_to_string``, it now includes seperators only between
     items [#2183]
+
+  - Ensure comparisons involving ``Distance`` objects do not raise exceptions;
+    also ensure operations that lead to units other than length return
+    ``Quantity``. [#2206, #2250]
 
 - ``astropy.cosmology``
 
