@@ -9,6 +9,9 @@ from ..representation import (SphericalRepresentation,
                               CartesianRepresentation)
 
 
+def assert_allclose_quantity(q1, q2):
+    assert_allclose(q1.value, q2.to(q1.unit).value)
+
 class TestSphericalRepresentation(object):
 
     def test_empty_init(self):
@@ -294,3 +297,24 @@ class TestCartesianRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.z = 1. * u.kpc
+
+
+def test_cartesian_spherical_roundtrip():
+
+    s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
+                                 y=[3 * u.kpc, 4 * u.pc] ,
+                                 z=[5. * u.cm, 6 * u.m])
+
+    s2 = SphericalRepresentation(representation=s1)
+
+    s3 = CartesianRepresentation(representation=s2)
+
+    s4 = SphericalRepresentation(representation=s3)
+
+    assert_allclose_quantity(s1.x, s3.x)
+    assert_allclose_quantity(s1.y, s3.y)
+    assert_allclose_quantity(s1.z, s3.z)
+
+    assert_allclose_quantity(s2.lon, s4.lon)
+    assert_allclose_quantity(s2.lat, s4.lat)
+    assert_allclose_quantity(s2.distance, s4.distance)
