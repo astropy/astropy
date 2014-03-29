@@ -95,16 +95,6 @@ option to :ref:`set default equivalencies <equivalency-context>`.
 Spectral Units
 ^^^^^^^^^^^^^^
 
-:func:`~astropy.units.equivalencies.spectral` is a function that returns an
-equivalency list to handle conversions between wavelength, frequency
-and energy.
-
-As mentioned above with parallax units, we simply pass the proper
-conversion function (in this case
-:meth:`~astropy.units.equivalencies.spectral`) as the third argument to the
-:meth:`~astropy.units.core.UnitBase.to` method and wavelength, frequency
-and energy can be converted.
-
 :func:`~astropy.units.equivalencies.spectral` is a function that returns
 an equivalency list to handle conversions between wavelength,
 frequency, energy, and wave number.
