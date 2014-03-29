@@ -1,4 +1,4 @@
 numpy
-matplotlib
+git+git://github.com/astrofrog/matplotlib.git@combined-fixes
 astropy
 
