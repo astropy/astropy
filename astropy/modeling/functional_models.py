@@ -1023,64 +1023,78 @@ class AiryDisk2D(Parametric2DModel):
         x position of the maximum of the Airy function.
     y_0 : float
         y position of the maximum of the Airy function.
-    width : float
-        Width of the Airy function.
+    radius : float
+        The radius of the Airy disk (radius of the first zero).
 
     See Also
     --------
     Box2D, TrapezoidDisk2D, Gaussian2D
 
-
     Notes
     -----
     Model formula:
 
-        .. math:: f(r) = A \\frac{J_1(2 \\pi r)}{\\pi r}
+        .. math:: f(r) = A \\left[\\frac{2 J_1(\\frac{\\pi r}{R/R_z})}{\\frac{\\pi r}{R/R_z}}\\right]^2
 
-    Where J1 is the first order Bessel function of first kind.
+    Where :math:`J_1` is the first order Bessel function of the first
+    kind, :math:`r` is radial distance from the maximum of the Airy
+    function (:math:`r = \\sqrt{(x - x_0)^2 + (y - y_0)^2}`), :math:`R`
+    is the input ``radius`` parameter, and :math:`R_z =
+    1.2196698912665045`).
+
+    For an optical system, the radius of the first zero represents the
+    limiting angular resolution and is approximately 1.22 * lambda / D,
+    where lambda is the wavelength of the light and D is the diameter of
+    the aperture.
+
+    See [1]_ for more details about the Airy disk.
+
+    References
+    ----------
+    .. [1] http://en.wikipedia.org/wiki/Airy_disk
     """
 
     amplitude = Parameter()
     x_0 = Parameter()
     y_0 = Parameter()
-    width = Parameter()
-
+    radius = Parameter()
     _j1 = None
 
-    def __init__(self, amplitude, x_0, y_0, width, **constraints):
+    def __init__(self, amplitude, x_0, y_0, radius, **constraints):
         if self._j1 is None:
             try:
-                from scipy.special import j1
+                from scipy.special import j1, jn_zeros
                 self.__class__._j1 = j1
+                self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
             # add a ValueError here for python3 + scipy < 0.12
             except (ValueError, ImportError):
                 raise ImportError("AiryDisk2D model requires scipy > 0.11.")
+
         super(AiryDisk2D, self).__init__(amplitude=amplitude, x_0=x_0,
-                                         y_0=y_0, width=width,
+                                         y_0=y_0, radius=radius,
                                          **constraints)
 
     def __deepcopy__(self, memo):
         new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.width.value)
+                                   self.y_0.value, self.radius.value)
         return new_model
 
     def __copy__(self):
         new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.width.value)
+                                   self.y_0.value, self.radius.value)
         return new_model
 
     @classmethod
-    def eval(cls, x, y, amplitude, x_0, y_0, width):
+    def eval(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
 
-        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
-
+        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
         # Since r can be zero, we have to take care to treat that case
-        # separately so as not to raise a Numpy warning
+        # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
-        z[r > 0] = (amplitude * (cls._j1(2 * np.pi * r[r > 0]) /
-                    (np.pi * r[r > 0])) ** 2)
-
+        rt = np.pi * r[r > 0]
+        z[r > 0] = (2.0 * cls._j1(rt) / rt)**2
+        z *= amplitude
         return z
 
 
