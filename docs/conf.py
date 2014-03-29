@@ -45,8 +45,7 @@ extensions = [
 
 plot_rcparams = {'figure.figsize': (6,6),
                  'savefig.facecolor':'none',
-                 'savefig.bbox':'tight',
-                 'font.family':'Arial'}
+                 'savefig.bbox':'tight'}
 plot_apply_rcparams = True
 plot_template = """
 {{ source_code }}
