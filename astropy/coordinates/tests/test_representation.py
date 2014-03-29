@@ -17,7 +17,7 @@ class TestSphericalRepresentation(object):
     def test_empty_init(self):
         with pytest.raises(ValueError) as exc:
             s = SphericalRepresentation()
-        assert exc.value.args[0] == "lon and lat are required to instantiate a spherical representation"
+        assert exc.value.args[0] == "lon and lat are required to instantiate SphericalRepresentation"
 
     def test_init_quantity(self):
 
@@ -104,9 +104,9 @@ class TestSphericalRepresentation(object):
 
         s2 = SphericalRepresentation(representation=s1)
 
-        assert s2.lon == 8. * u.hourangle
-        assert s2.lat == 5. * u.deg
-        assert s2.distance == 10 * u.kpc
+        assert_allclose_quantity(s2.lon, 8. * u.hourangle)
+        assert_allclose_quantity(s2.lat, 5. * u.deg)
+        assert_allclose_quantity(s2.distance, 10 * u.kpc)
 
     def test_reprobj_invalid(self):
 
@@ -122,16 +122,16 @@ class TestSphericalRepresentation(object):
                                      lat=[5, 6]*u.deg,
                                      distance=10*u.kpc)
 
-        assert_allclose(s1.lon.degree, [120, 135])
-        assert_allclose(s1.lat.degree, [5, 6])
-        assert_allclose(s1.distance.kpc, [10, 10])
+        assert_allclose_quantity(s1.lon, [120, 135] * u.degree)
+        assert_allclose_quantity(s1.lat, [5, 6] * u.degree)
+        assert_allclose_quantity(s1.distance, [10, 10] * u.kpc)
 
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
             s1 = SphericalRepresentation(lon=[8, 9, 10]*u.hourangle,
                                          lat=[5, 6]*u.deg)
-        assert exc.value.args[0] == "Input arrays cannot be broadcast"
+        assert exc.value.args[0] == "Input parameters lon, lat, and distance cannot be broadcast"
 
     def test_mixed_units(self):
 
@@ -142,9 +142,10 @@ class TestSphericalRepresentation(object):
 
         s1 = SphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
                                      lat=[5*u.deg, (6*np.pi/180)*u.rad])
-        assert s1.lat.unit == u.deg and s1.lon.unit == u.hourangle
-        assert_allclose(s1.lon[1].hourangle, 9)
-        assert_allclose(s1.lat[1].degree, 6)
+        assert s1.lat.unit == u.deg
+        assert s1.lon.unit == u.hourangle
+        assert_allclose(s1.lon.value, [8,9])
+        assert_allclose(s1.lat.value, [5,6])
 
     def test_readonly(self):
 
@@ -166,7 +167,7 @@ class TestCartesianRepresentation(object):
     def test_empty_init(self):
         with pytest.raises(ValueError) as exc:
             s = CartesianRepresentation()
-        assert exc.value.args[0] == "x, y, and z are required to instantiate a cartesians representation"
+        assert exc.value.args[0] == "x, y, and z are required to instantiate CartesianRepresentation"
 
     def test_init_quantity(self):
 
@@ -259,13 +260,13 @@ class TestCartesianRepresentation(object):
 
         assert_allclose(s1.x.value, [1, 2])
         assert_allclose(s1.y.value, [3, 4])
-        assert_allclose(s1.z.value, [5, 6])
+        assert_allclose(s1.z.value, [5, 5])
 
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
             s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6,7] * u.kpc)
-        assert exc.value.args[0] == "Input arrays cannot be broadcast"
+        assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
 
     def test_mixed_units(self):
 
