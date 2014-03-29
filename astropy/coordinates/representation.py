@@ -128,6 +128,10 @@ class SphericalRepresentation(BaseRepresentation):
     """
 
     def __init__(self, lon=None, lat=None, distance=None, representation=None, copy=True):
+
+        if representation is not None:
+            return
+
         # Let the Longitude and Latitude classes deal with e.g. parsing
         self._lon = Longitude(lon, copy=copy)
         self._lat = Latitude(lat, copy=copy)
@@ -181,8 +185,8 @@ class SphericalRepresentation(BaseRepresentation):
         r = (xsq + ysq + zsq) ** 0.5
         s = (xsq + ysq) ** 0.5
         
-        lon = np.arctan2(y, x)
-        lat = np.arctan2(z, s)
+        lon = np.arctan2(cartesian_representation.y, cartesian_representation.x)
+        lat = np.arctan2(cartesian_representation.z, s)
         
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
@@ -212,7 +216,10 @@ class CylindricalRepresentation(BaseRepresentation):
     """
 
     def __init__(self, rho=None, phi=None, z=None, representation=None, copy=True):
-        
+
+        if representation is not None:
+            return
+
         self._rho = Distance(rho)
         self._phi = Angle(phi)
         
