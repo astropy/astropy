@@ -44,8 +44,11 @@ class BaseRepresentation(object):
             return cls.from_representation(representation)
 
     def represent_as(self, other_class):
-        # The default is to convert via cartesian coordinates
-        return other_class.from_cartesian(self.to_cartesian())
+        if other_class == self.__class__:
+            return self
+        else:
+            # The default is to convert via cartesian coordinates
+            return other_class.from_cartesian(self.to_cartesian())
 
     @classmethod
     def from_representation(cls, representation):
@@ -202,6 +205,13 @@ class SphericalRepresentation(BaseRepresentation):
         """ Radius Value """
         return self._distance
 
+    def represent_as(self, other_class):
+        # Take a short cut if the other clsss is a spherical representation
+        if other_class is PhysicsSphericalRepresentation:
+            return PhysicsSphericalRepresentation(phi=self.lon, theta=self.lat, distance=self.distance)
+        else:
+            return super(SphericalRepresentation, self).represent_as(other_class)
+
     def to_cartesian(self):
         """
         Converts spherical polar coordinates to 3D rectangular cartesian
@@ -236,6 +246,115 @@ class SphericalRepresentation(BaseRepresentation):
         lat = np.arctan2(cartesian_representation.z, s)
 
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
+
+
+class PhysicsSphericalRepresentation(BaseRepresentation):
+    """
+    Spherical Representation of a point based on phi (azimuth), theta (elevation) and Radius
+
+    Parameters
+    ----------
+    phi: Longitude
+        A Longitude object or a parameter to be parsed by Longitude.
+
+    theta: Latitude
+        A Latitude object or a parameter to be parsed by Latitude.
+
+    distance: Distance
+        Distance (Radius), either a Distance object or a parameter to be passed by Distance.
+
+    representation: BaseRepresentation
+        A pre-existing Representation object to convert to PhysicsSphericalRepresentation
+
+    copy: bool
+        If True arrays will be copied rather than referenced.
+    """
+
+    def __init__(self, phi=None, theta=None, distance=None, representation=None, copy=True):
+
+        if representation is not None:
+            return
+
+        if phi is None or theta is None:
+            raise ValueError('phi and theta are required to instantiate PhysicsSphericalRepresentation')
+
+        # Let the Longitude and Latitude classes deal with e.g. parsing
+        phi = Longitude(phi, copy=copy)
+        theta = Latitude(theta, copy=copy)
+
+        if distance is not None:
+            distance = Distance(distance, copy=copy)
+        else:
+            distance = None
+
+        try:
+            if distance is None:
+                phi, theta = broadcast_quantity(phi, theta)
+            else:
+                phi, theta, distance = broadcast_quantity(phi, theta, distance)
+        except ValueError:
+            raise ValueError("Input parameters phi, theta, and distance cannot be broadcast")
+
+        self._phi = phi
+        self._theta = theta
+        self._distance = distance
+
+    @property
+    def phi(self):
+        """ Azimuth Value """
+        return self._phi
+
+    @property
+    def theta(self):
+        """ Elevation Value """
+        return self._theta
+
+    @property
+    def distance(self):
+        """ Radius Value """
+        return self._distance
+
+    def represent_as(self, other_class):
+        # Take a short cut if the other clsss is a spherical representation
+        if other_class is SphericalRepresentation:
+            return SphericalRepresentation(lon=self.phi, lat=self.theta, distance=self.distance)
+        else:
+            return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
+
+    def to_cartesian(self):
+        """
+        Converts spherical polar coordinates to 3D rectangular cartesian
+        coordinates.
+        """
+
+        if self.distance is None:
+            raise ValueError("can only convert to cartesian coordinates if distance is set")
+
+        # We need to convert Distance to Quantity to allow negative values
+        x = self.distance.value * self.distance.unit * np.cos(self.theta) * np.cos(self.phi)
+        y = self.distance.value * self.distance.unit * np.cos(self.theta) * np.sin(self.phi)
+        z = self.distance.value * self.distance.unit * np.sin(self.theta)
+
+        return CartesianRepresentation(x=x, y=y, z=z)
+
+    @classmethod
+    def from_cartesian(cls, cartesian_representation):
+        """
+        Converts 3D rectangular cartesian coordinates to spherical polar
+        coordinates.
+        """
+
+        xsq = cartesian_representation.x ** 2
+        ysq = cartesian_representation.y ** 2
+        zsq = cartesian_representation.z ** 2
+
+        r = (xsq + ysq + zsq) ** 0.5
+        s = (xsq + ysq) ** 0.5
+
+        phi = np.arctan2(cartesian_representation.y, cartesian_representation.x)
+        theta = np.arctan2(cartesian_representation.z, s)
+
+        return PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=r)
 
 
 class CylindricalRepresentation(BaseRepresentation):
