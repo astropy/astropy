@@ -270,8 +270,8 @@ class CylindricalRepresentation(BaseRepresentation):
         if rho is None or phi is None or z is None:
             raise ValueError('rho, phi, and z are required to instantiate CylindricalRepresentation')
 
-        rho = Distance(rho)
-        phi = Angle(phi)
+        rho = u.Quantity(rho, copy=copy)
+        phi = Angle(phi, copy=copy)
 
         if isinstance(z, u.Quantity) and z.unit.physical_type != 'length':
             raise u.UnitsError("z should have units of length")
@@ -301,14 +301,11 @@ class CylindricalRepresentation(BaseRepresentation):
 
     @classmethod
     def from_cartesian(cls, cartesian_representation):
+
         rho = np.sqrt(cartesian_representation.x**2 + cartesian_representation.y**2)
 
-        if cartesian_representation.x == 0 and cartesian_representation.y == 0:
-            phi = 0
-        elif cartesian_representation.x >= 0:
-            phi = np.arcsin(cartesian_representation.y / rho)
-        else: #x < 0
-            phi = -1 * np.arcsin(cartesian_representation.y / rho) + np.pi
+        phi = np.zeros(cartesian_representation.x.shape) * u.deg
+        phi[rho > 0] = np.arctan2(cartesian_representation.y, cartesian_representation.x)
 
         z = cartesian_representation.z
 

@@ -6,7 +6,8 @@ from ...tests.helper import pytest
 from ..angles import Longitude, Latitude
 from ..distances import Distance
 from ..representation import (SphericalRepresentation,
-                              CartesianRepresentation)
+                              CartesianRepresentation,
+                              CylindricalRepresentation)
 
 
 def assert_allclose_quantity(q1, q2):
@@ -308,6 +309,124 @@ class TestCartesianRepresentation(object):
             s1.z = 1. * u.kpc
 
 
+class TestCylindricalRepresentation(object):
+
+    def test_empty_init(self):
+        with pytest.raises(ValueError) as exc:
+            s = CylindricalRepresentation()
+        assert exc.value.args[0] == "rho, phi, and z are required to instantiate CylindricalRepresentation"
+
+    def test_init_quantity(self):
+
+        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
+
+        assert s1.rho.unit is u.kpc
+        assert s1.phi.unit is u.deg
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.rho.value,1)
+        assert_allclose(s1.phi.value,2)
+        assert_allclose(s1.z.value,3)
+
+    def test_init_array(self):
+
+        s1 = CylindricalRepresentation(rho=[1,2,3] * u.pc,
+                                     phi=[2,3,4]* u.deg,
+                                     z=[3,4,5] * u.kpc)
+
+        assert s1.rho.unit is u.pc
+        assert s1.phi.unit is u.deg
+        assert s1.z.unit is u.kpc
+
+        assert_allclose(s1.rho.value,[1,2,3])
+        assert_allclose(s1.phi.value,[2,3,4])
+        assert_allclose(s1.z.value,[3,4,5])
+
+    def test_init_array_nocopy(self):
+
+        rho = [8, 9, 10] * u.pc
+        phi = [5, 6, 7] * u.deg
+        z = [2, 3, 4] * u.kpc
+
+        id_rho = id(rho.value)
+        id_phi = id(phi.value)
+        id_z = id(z.value)
+
+        s1 = CylindricalRepresentation(rho=rho, phi=phi, z=z, copy=False)
+
+        # Not sure if we can expect this to work
+        assert id(s1.rho.value) == id_rho
+        assert id(s1.phi.value) == id_phi
+        assert id(s1.z.value) == id_z
+
+    def test_reprobj(self):
+
+        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
+
+        s2 = CylindricalRepresentation(representation=s1)
+
+        assert s2.rho == 1 * u.kpc
+        assert s2.phi == 2 * u.deg
+        assert s2.z == 3 * u.kpc
+
+    def test_reprobj_invalid(self):
+
+        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc, representation=s1)
+        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
+
+    def test_broadcasting(self):
+
+        s1 = CylindricalRepresentation(rho=[1,2] * u.kpc, phi=[3,4] * u.deg, z=5 * u.kpc)
+
+        assert s1.rho.unit == u.kpc
+        assert s1.phi.unit == u.deg
+        assert s1.z.unit == u.kpc
+
+        assert_allclose(s1.rho.value, [1, 2])
+        assert_allclose(s1.phi.value, [3, 4])
+        assert_allclose(s1.z.value, [5, 5])
+
+    def test_broadcasting_mismatch(self):
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CylindricalRepresentation(rho=[1,2] * u.kpc, phi=[3,4] * u.deg, z=[5,6,7] * u.kpc)
+        assert exc.value.args[0] == "Input parameters rho, phi, and z cannot be broadcast"
+
+    def test_mixed_units(self):
+
+        # It's also possible to pass in scalar quantity lists with mixed
+        # units. These are converted to array quantities following the same
+        # rule as `Quantity`: all elements are converted to match the first
+        # element's units.
+
+        s1 = CylindricalRepresentation(rho=[1 * u.kpc,2 * u.Mpc],
+                                     phi=[3 * u.deg, 4 * u.arcmin] ,
+                                     z=[5. * u.cm, 6 * u.m])
+
+        assert s1.rho.unit == u.kpc
+        assert s1.phi.unit == u.deg
+        assert s1.z.unit == u.cm
+        assert_allclose(s1.rho.value, [1, 2000])
+        assert_allclose(s1.phi.value, [3, 4./60.])
+        assert_allclose(s1.z.value, [5, 600])
+
+    def test_readonly(self):
+
+        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=20 * u.deg, z=3 * u.kpc)
+
+        with pytest.raises(AttributeError):
+            s1.rho = 1. * u.kpc
+
+        with pytest.raises(AttributeError):
+            s1.phi = 20 * u.deg
+
+        with pytest.raises(AttributeError):
+            s1.z = 1. * u.kpc
+
+
 def test_cartesian_spherical_roundtrip():
 
     s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
@@ -327,3 +446,24 @@ def test_cartesian_spherical_roundtrip():
     assert_allclose_quantity(s2.lon, s4.lon)
     assert_allclose_quantity(s2.lat, s4.lat)
     assert_allclose_quantity(s2.distance, s4.distance)
+
+
+def test_cartesian_cylindrical_roundtrip():
+
+    s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
+                                 y=[3 * u.kpc, 4 * u.pc] ,
+                                 z=[5. * u.cm, 6 * u.m])
+
+    s2 = CylindricalRepresentation(representation=s1)
+
+    s3 = CartesianRepresentation(representation=s2)
+
+    s4 = CylindricalRepresentation(representation=s3)
+
+    assert_allclose_quantity(s1.x, s3.x)
+    assert_allclose_quantity(s1.y, s3.y)
+    assert_allclose_quantity(s1.z, s3.z)
+
+    assert_allclose_quantity(s2.rho, s4.rho)
+    assert_allclose_quantity(s2.phi, s4.phi)
+    assert_allclose_quantity(s2.z, s4.z)
