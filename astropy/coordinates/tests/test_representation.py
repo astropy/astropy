@@ -461,6 +461,15 @@ class TestCartesianRepresentation(object):
         with pytest.raises(AttributeError):
             s1.z = 1. * u.kpc
 
+    def test_xyz(self):
+
+        s1 = CartesianRepresentation(x=1,y=2,z=3,unit=u.kpc)
+
+        assert isinstance(s1.xyz, u.Quantity)
+        assert s1.xyz.unit is u.kpc
+
+        assert_allclose(s1.xyz.value,[1,2,3])
+
 
 class TestCylindricalRepresentation(object):
 

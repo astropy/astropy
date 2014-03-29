@@ -134,6 +134,10 @@ class CartesianRepresentation(BaseRepresentation):
     def z(self):
         return self._z
 
+    @property
+    def xyz(self):
+        return u.Quantity((self._x, self._y, self._z))
+
     @classmethod
     def from_cartesian(cls, other):
         return other
