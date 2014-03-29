@@ -46,12 +46,11 @@ import matplotlib
 print(matplotlib.__path__)
 import matplotlib.sphinxext.plot_directive
 extensions += [matplotlib.sphinxext.plot_directive.__name__]
-plot_include_source = True
 plot_rcparams = {'figure.figsize': (6,6),
                  'savefig.facecolor':'none',
                  'savefig.bbox':'tight',
                  'font.family':'Arial'}
-plot_apply_rcparams = False
+plot_apply_rcparams = True
 plot_template = """
 {{ source_code }}
 

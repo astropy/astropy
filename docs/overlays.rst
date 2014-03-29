@@ -2,6 +2,30 @@
 Plotting overlays
 =================
 
+For the example in the following page we start from the example introduced in
+:doc:`getting_started`.
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    hdu = fits.open('msx.fits')[0]
+    wcs = WCS(hdu.header)
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+
+    from wcsaxes import WCSAxes
+
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    fig.add_axes(ax)  # note that the axes have to be added to the figure
+
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+              origin='lower')
+
+
 Transforms
 ==========
 
