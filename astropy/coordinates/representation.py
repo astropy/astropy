@@ -18,6 +18,9 @@ from .distances import Distance
 from ..extern import six
 
 
+__all__ = ["CartesianRepresentation", "SphericalRepresentation",
+           "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
+
 def broadcast_quantity(*args):
     new_arrays = np.broadcast_arrays(*args)
     new_quantities = []
