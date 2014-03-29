@@ -33,7 +33,6 @@ created above:
     import matplotlib.pyplot as plt
     fig = plt.figure()
 
-    from astropy.wcs import WCS
     from wcsaxes import WCSAxes
 
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
