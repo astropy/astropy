@@ -318,6 +318,10 @@ Bug Fixes
     ``sexagisimal_to_string``, it now includes seperators only between
     items [#2183]
 
+  - Ensure comparisons involving ``Distance`` objects do not raise exceptions;
+    also ensure operations that lead to units other than length return
+    ``Quantity``. [#2206, #2250]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
