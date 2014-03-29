@@ -19,7 +19,7 @@ class BaseRepresentation(object):
         representation = kwargs.pop('representation', None)
 
         if representation is None:
-            return super(BaseRepresentation, cls).__new__(cls, *args, **kwargs)
+            return super(BaseRepresentation, cls).__new__(cls)
         else:
             if any([x is not None for x in kwargs.values()]):
                 raise ValueError("If representation is passed, no other arguments can be passed")
@@ -132,7 +132,7 @@ class SphericalRepresentation(BaseRepresentation):
         self._lon = Longitude(lon, copy=copy)
         self._lat = Latitude(lat, copy=copy)
         
-        if r is not None:
+        if distance is not None:
             self._distance = Distance(distance, copy=copy)
         else:
             self._distance = None
@@ -158,8 +158,8 @@ class SphericalRepresentation(BaseRepresentation):
         coordinates.
         """
         
-        if self.r is None:
-            raise ValueError("can only convert to cartesian coordinates if r is set")
+        if self.distance is None:
+            raise ValueError("can only convert to cartesian coordinates if distance is set")
 
         x = self.distance * np.cos(self.lat) * np.cos(self.lon)
         y = self.distance * np.cos(self.lat) * np.sin(self.lon)
