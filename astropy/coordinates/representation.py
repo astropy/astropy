@@ -132,8 +132,8 @@ class SphericalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    lon: Londitude
-        A Londitude object or a parameter to be parsed by Londitude.
+    lon: Longitude
+        A Longitude object or a parameter to be parsed by Longitude.
 
     lat: Latitude
         A Latitude object or a parameter to be parsed by Latitude.
