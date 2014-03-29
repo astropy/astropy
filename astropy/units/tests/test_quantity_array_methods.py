@@ -56,13 +56,24 @@ class TestQuantityArrayCopy(object):
 
     def test_flat(self):
         q = u.Quantity(np.arange(9.).reshape(3, 3), "m/s")
-        assert q.flat[8] == 8. * u.m / u.s
-        assert np.all(q.flat[0:2] == np.arange(2.) * u.m / u.s)
-        q_flat = u.Quantity([_q for _q in q.flat])
-        assert np.all(q_flat ==
+        q_flat = q.flat
+        # check that a single item is a quantity (with the right value)
+        assert q_flat[8] == 8. * u.m / u.s
+        # and that getting a range works as well
+        assert np.all(q_flat[0:2] == np.arange(2.) * u.m / u.s)
+        # as well as getting items via iteration
+        q_flat_list = [_q for _q in q.flat]
+        assert np.all(u.Quantity(q_flat_list) ==
                       u.Quantity([_a for _a in q.value.flat], q.unit))
-        q.flat[8] = -1. * u.km / u.s
-        assert q.flat[8] == -1. * u.km / u.s
+        # check that flat works like a view of the real array
+        q_flat[8] = -1. * u.km / u.s
+        assert q_flat[8] == -1. * u.km / u.s
+        assert q[2,2] == -1. * u.km / u.s
+        # while if one goes by an iterated item, a copy is made
+        q_flat_list[8] = -2 * u.km / u.s
+        assert q_flat_list[8] == -2. * u.km / u.s
+        assert q_flat[8] == -1. * u.km / u.s
+        assert q[2,2] == -1. * u.km / u.s
 
 
 class TestQuantityStatsFuncs(object):
