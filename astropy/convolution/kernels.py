@@ -674,12 +674,12 @@ class AiryDisk2DKernel(Kernel2D):
 
     Parameters
     ----------
-    width : number
-        Width of the filter kernel.
+    radius : float
+        The radius of the Airy disk kernel (radius of the first zero).
     x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = 8 * radius.
     y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+        Size in y direction of the kernel array. Default = 8 * radius.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -720,9 +720,9 @@ class AiryDisk2DKernel(Kernel2D):
     """
     _is_bool = False
 
-    def __init__(self, width, **kwargs):
-        self._model = models.AiryDisk2D(1, 0, 0, width)
-        self._default_size = _round_up_to_odd_integer(8 * width)
+    def __init__(self, radius, **kwargs):
+        self._model = models.AiryDisk2D(1, 0, 0, radius)
+        self._default_size = _round_up_to_odd_integer(8 * radius)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
         self.normalize()
         self._truncation = None
