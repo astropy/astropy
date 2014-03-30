@@ -281,7 +281,7 @@ class SphericalRepresentation(BaseRepresentation):
         # We need to convert Distance to Quantity to allow negative values.
         # At the moment, there is no easy way to convert Distance objects to
         # Quantity objects (https://github.com/astropy/astropy/issues/2259)
-        d = self.distance.value * self.distance.unit
+        d = self.distance.view(u.Quantity)
 
         x = d * np.cos(self.lat) * np.cos(self.lon)
         y = d * np.cos(self.lat) * np.sin(self.lon)
@@ -408,7 +408,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # We need to convert Distance to Quantity to allow negative values.
         # At the moment, there is no easy way to convert Distance objects to
         # Quantity objects (https://github.com/astropy/astropy/issues/2259)
-        d = self.distance.value * self.distance.unit
+        d = self.distance.view(u.Quantity)
 
         x = d * np.cos(self.theta) * np.cos(self.phi)
         y = d * np.cos(self.theta) * np.sin(self.phi)
