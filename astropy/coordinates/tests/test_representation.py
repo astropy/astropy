@@ -89,14 +89,13 @@ class TestSphericalRepresentation(object):
         lon = Longitude([8, 9] * u.hourangle)
         lat = Latitude([5, 6] * u.deg)
 
-        lon_id = id(lon.value)
-        lat_id = id(lat.value)
-
         s1 = SphericalRepresentation(lon=lon, lat=lat, copy=False)
 
-        # Not sure if we can expect this to work
-        assert id(s1.lon.value) == lon_id
-        assert id(s1.lat.value) == lat_id
+        lon[:] = [1,2] * u.rad
+        lat[:] = [3,4] * u.arcmin
+
+        assert_allclose_quantity(lon, s1.lon)
+        assert_allclose_quantity(lat, s1.lat)
 
     def test_init_str(self):
 
@@ -241,14 +240,13 @@ class TestPhysicsSphericalRepresentation(object):
         phi = Longitude([8, 9] * u.hourangle)
         theta = Latitude([5, 6] * u.deg)
 
-        phi_id = id(phi.value)
-        theta_id = id(theta.value)
-
         s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, copy=False)
 
-        # Not sure if we can expect this to work
-        assert id(s1.phi.value) == phi_id
-        assert id(s1.theta.value) == theta_id
+        phi[:] = [1,2] * u.rad
+        theta[:] = [3,4] * u.arcmin
+
+        assert_allclose_quantity(phi, s1.phi)
+        assert_allclose_quantity(theta, s1.theta)
 
     def test_init_str(self):
 
@@ -409,16 +407,15 @@ class TestCartesianRepresentation(object):
         y = [5, 6, 7] * u.Mpc
         z = [2, 3, 4] * u.kpc
 
-        id_x = id(x.value)
-        id_y = id(y.value)
-        id_z = id(z.value)
-
         s1 = CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
-        # Not sure if we can expect this to work
-        assert id(s1.x.value) == id_x
-        assert id(s1.y.value) == id_y
-        assert id(s1.z.value) == id_z
+        x[:] = [1,2,3] * u.kpc
+        y[:] = [9,9,8] * u.kpc
+        z[:] = [1,2,1] * u.kpc
+
+        assert_allclose_quantity(x, s1.x)
+        assert_allclose_quantity(y, s1.y)
+        assert_allclose_quantity(z, s1.z)
 
     def test_reprobj(self):
 
@@ -536,16 +533,15 @@ class TestCylindricalRepresentation(object):
         phi = [5, 6, 7] * u.deg
         z = [2, 3, 4] * u.kpc
 
-        id_rho = id(rho.value)
-        id_phi = id(phi.value)
-        id_z = id(z.value)
-
         s1 = CylindricalRepresentation(rho=rho, phi=phi, z=z, copy=False)
 
-        # Not sure if we can expect this to work
-        assert id(s1.rho.value) == id_rho
-        assert id(s1.phi.value) == id_phi
-        assert id(s1.z.value) == id_z
+        rho[:] = [9,2,3] * u.kpc
+        phi[:] = [1, 2, 3] * u.arcmin
+        z[:] = [-2, 3, 8] * u.kpc
+
+        assert_allclose_quantity(rho, s1.rho)
+        assert_allclose_quantity(phi, s1.phi)
+        assert_allclose_quantity(z, s1.z)
 
     def test_reprobj(self):
 

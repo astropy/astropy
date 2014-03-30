@@ -31,14 +31,14 @@ __all__ = ["CartesianRepresentation", "SphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
 
-def broadcast_quantity(*args):
+def broadcast_quantity(*args, **kwargs):
     """
     A Quantity-aware version of np.broadcast_arrays
     """
     new_arrays = np.broadcast_arrays(*args)
     new_quantities = []
     for i in range(len(new_arrays)):
-        new_quantities.append(args[i].__class__(new_arrays[i] * args[i].unit))
+        new_quantities.append(args[i].__class__(new_arrays[i], unit=args[i].unit, **kwargs))
     return tuple(new_quantities)
 
 
@@ -140,7 +140,7 @@ class CartesianRepresentation(BaseRepresentation):
         z = u.Quantity(z, unit=unit, copy=copy)
 
         try:
-            x, y, z = broadcast_quantity(x, y, z)
+            x, y, z = broadcast_quantity(x, y, z, copy=copy)
         except ValueError:
             raise ValueError("Input parameters x, y, and z cannot be broadcast")
 
@@ -229,9 +229,9 @@ class SphericalRepresentation(BaseRepresentation):
 
         try:
             if distance is None:
-                lon, lat = broadcast_quantity(lon, lat)
+                lon, lat = broadcast_quantity(lon, lat, copy=copy)
             else:
-                lon, lat, distance = broadcast_quantity(lon, lat, distance)
+                lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
         except ValueError:
             raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
 
@@ -356,9 +356,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
         try:
             if distance is None:
-                phi, theta = broadcast_quantity(phi, theta)
+                phi, theta = broadcast_quantity(phi, theta, copy=copy)
             else:
-                phi, theta, distance = broadcast_quantity(phi, theta, distance)
+                phi, theta, distance = broadcast_quantity(phi, theta, distance, copy=copy)
         except ValueError:
             raise ValueError("Input parameters phi, theta, and distance cannot be broadcast")
 
@@ -476,7 +476,7 @@ class CylindricalRepresentation(BaseRepresentation):
         z = u.Quantity(z, copy=copy)
 
         try:
-            rho, phi, z = broadcast_quantity(rho, phi, z)
+            rho, phi, z = broadcast_quantity(rho, phi, z, copy=copy)
         except ValueError:
             raise ValueError("Input parameters rho, phi, and z cannot be broadcast")
 
