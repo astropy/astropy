@@ -273,10 +273,14 @@ class SphericalRepresentation(BaseRepresentation):
         if self.distance is None:
             raise ValueError("can only convert to cartesian coordinates if distance is set")
 
-        # We need to convert Distance to Quantity to allow negative values
-        x = self.distance.value * self.distance.unit * np.cos(self.lat) * np.cos(self.lon)
-        y = self.distance.value * self.distance.unit * np.cos(self.lat) * np.sin(self.lon)
-        z = self.distance.value * self.distance.unit * np.sin(self.lat)
+        # We need to convert Distance to Quantity to allow negative values.
+        # At the moment, there is no easy way to convert Distance objects to
+        # Quantity objects (https://github.com/astropy/astropy/issues/2259)
+        d = self.distance.value * self.distance.unit
+
+        x = d * np.cos(self.lat) * np.cos(self.lon)
+        y = d * np.cos(self.lat) * np.sin(self.lon)
+        z = d * np.sin(self.lat)
 
         return CartesianRepresentation(x=x, y=y, z=z)
 
@@ -396,10 +400,14 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         if self.distance is None:
             raise ValueError("can only convert to cartesian coordinates if distance is set")
 
-        # We need to convert Distance to Quantity to allow negative values
-        x = self.distance.value * self.distance.unit * np.cos(self.theta) * np.cos(self.phi)
-        y = self.distance.value * self.distance.unit * np.cos(self.theta) * np.sin(self.phi)
-        z = self.distance.value * self.distance.unit * np.sin(self.theta)
+        # We need to convert Distance to Quantity to allow negative values.
+        # At the moment, there is no easy way to convert Distance objects to
+        # Quantity objects (https://github.com/astropy/astropy/issues/2259)
+        d = self.distance.value * self.distance.unit
+
+        x = d * np.cos(self.theta) * np.cos(self.phi)
+        y = d * np.cos(self.theta) * np.sin(self.phi)
+        z = d * np.sin(self.theta)
 
         return CartesianRepresentation(x=x, y=y, z=z)
 
