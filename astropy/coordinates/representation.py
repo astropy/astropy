@@ -114,8 +114,11 @@ class CartesianRepresentation(BaseRepresentation):
         if representation is not None:
             return
 
-        if x is None or y is None or z is None:
-            raise ValueError('x, y, and z are required to instantiate CartesianRepresentation')
+        if y is None or z is None:
+            if x is None:
+                raise ValueError('x, y, and z are required to instantiate CartesianRepresentation')
+            else:
+                x, y, z = x
 
         if unit is not None:
             unit = u.Unit(unit)

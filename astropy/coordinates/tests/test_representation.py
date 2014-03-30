@@ -377,6 +377,18 @@ class TestCartesianRepresentation(object):
         assert_allclose(s1.y.value,[2,3,4])
         assert_allclose(s1.z.value,[3,4,5])
 
+    def test_init_one_array(self):
+
+        s1 = CartesianRepresentation(x=[1,2,3] * u.pc)
+
+        assert s1.x.unit is u.pc
+        assert s1.y.unit is u.pc
+        assert s1.z.unit is u.pc
+
+        assert_allclose(s1.x.value,1)
+        assert_allclose(s1.y.value,2)
+        assert_allclose(s1.z.value,3)
+
     def test_init_array_nocopy(self):
 
         x = [8, 9, 10] * u.pc
