@@ -250,7 +250,7 @@ class Quantity(np.ndarray):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
-            result = self  # no need for a view since we are returning the object itself
+            result = self  # no view needed since we return the object itself
 
             # in principle, if self is also an argument, it could be rescaled
             # here, since it won't be needed anymore.  But maybe not change
@@ -411,16 +411,16 @@ class Quantity(np.ndarray):
         return Quantity(val, unit, **kwargs)
 
     def __reduce__(self):
-        # patch to pickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+        # patch to pickle Quantity objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         object_state = list(super(Quantity, self).__reduce__())
         object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
     def __setstate__(self, state):
-        # patch to unpickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+        # patch to unpickle Quantity objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         nd_state, own_state = state
         super(Quantity, self).__setstate__(nd_state)
@@ -651,10 +651,10 @@ class Quantity(np.ndarray):
         result_tuple = super(Quantity, self.__class__).__divmod__(
             self.view(np.ndarray), other_value)
 
-        return (self.__quantity_instance__(
-                result_tuple[0], dimensionless_unscaled, copy=False),
-                self.__quantity_instance__(
-                result_tuple[1], self.unit, copy=False))
+        return (self.__quantity_instance__(result_tuple[0],
+                                           dimensionless_unscaled, copy=False),
+                self.__quantity_instance__(result_tuple[1],
+                                           self.unit, copy=False))
 
     def __pos__(self):
         """
@@ -773,7 +773,7 @@ class Quantity(np.ndarray):
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
         if self.unit is None:
-            unitstr = _UNIT_NOT_INITIALIZED
+            unitstr = _UNIT_NOT_INITIALISED
         else:
             unitstr = self.unit.to_string()
 
@@ -785,7 +785,7 @@ class Quantity(np.ndarray):
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
         arrstr = np.array2string(self.view(np.ndarray), separator=',',
-            prefix=prefixstr)
+                                 prefix=prefixstr)
         if self.unit is None:
             unitstr = _UNIT_NOT_INITIALISED
         else:
@@ -837,9 +837,10 @@ class Quantity(np.ndarray):
             value = self.value
             full_format_spec = format_spec
         return format("{0} {1:s}".format(value,
-                                  self.unit.to_string() if
-                                  self.unit is not None
-                                  else _UNIT_NOT_INITIALISED), full_format_spec)
+                                         self.unit.to_string()
+                                         if self.unit is not None
+                                         else _UNIT_NOT_INITIALISED),
+                      full_format_spec)
 
     def decompose(self, bases=[]):
         """
