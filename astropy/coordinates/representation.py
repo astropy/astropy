@@ -26,6 +26,8 @@ from ..extern import six
 #
 # - change PhysicistSphericalRepresentation to PhysicsSphericalRepresentation
 # (implemented below).
+#
+# - add a rotated() method that can rotate the 3D coordinates
 
 __all__ = ["CartesianRepresentation", "SphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
