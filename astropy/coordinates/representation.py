@@ -469,6 +469,9 @@ class CylindricalRepresentation(BaseRepresentation):
         if rho is None or phi is None or z is None:
             raise ValueError('rho, phi, and z are required to instantiate CylindricalRepresentation')
 
+        if isinstance(rho, u.Quantity) and rho.unit.physical_type != 'length':
+            raise u.UnitsError("rho should have units of length")
+
         rho = u.Quantity(rho, copy=copy)
         phi = Angle(phi, copy=copy)
 

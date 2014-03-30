@@ -658,12 +658,17 @@ class TestCylindricalRepresentation(object):
         with pytest.raises(AttributeError):
             s1.z = 1. * u.kpc
                     
-    def test_z_non_length(self):
+    def test_rho_z_non_length(self):
         
+        Qlen = u.Quantity([1], u.kpc)
         Qnonlen = u.Quantity([1], u.kg)
         
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CylindricalRepresentation(rho=10*u.km, phi=10*u.deg, z=Qnonlen)
+            s1 = CylindricalRepresentation(rho=Qnonlen, phi=10*u.deg, z=Qlen)
+        assert exc.value.args[0] == "rho should have units of length"
+
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CylindricalRepresentation(rho=Qlen, phi=10*u.deg, z=Qnonlen)
         assert exc.value.args[0] == "z should have units of length"
 
 
