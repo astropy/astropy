@@ -389,6 +389,20 @@ class TestCartesianRepresentation(object):
         assert_allclose(s1.y.value,2)
         assert_allclose(s1.z.value,3)
 
+    def test_init_one_array_size_fail(self):
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CartesianRepresentation(x=[1,2,3,4] * u.pc)
+
+        assert exc.value.args[0] == "too many values to unpack (expected 3)"
+
+    def test_init_one_array_yz_fail(self):
+
+        with pytest.raises(ValueError) as exc:
+            s1 = CartesianRepresentation(x=[1,2,3,4] * u.pc, y=[1,2]* u.pc)
+        
+        assert exc.value.args[0] == "x, y, and z are required to instantiate CartesianRepresentation"
+
     def test_init_array_nocopy(self):
 
         x = [8, 9, 10] * u.pc
