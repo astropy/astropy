@@ -165,6 +165,16 @@ class TestSphericalRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
+    
+    def test_no_distance_to_cartesian(self):
+        
+        s1 = SphericalRepresentation(Longitude(8, u.hour),
+                             Latitude(5, u.deg))
+        
+        with pytest.raises(ValueError) as exc:
+            s1.to_cartesian()
+        
+        assert exc.value.args[0] == "can only convert to cartesian coordinates if distance is set"
 
 class TestPhysicsSphericalRepresentation(object):
 
@@ -316,6 +326,16 @@ class TestPhysicsSphericalRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
+    
+    def test_no_distance_to_cartesian(self):
+        
+        s1 = PhysicsSphericalRepresentation(Longitude(8, u.hour),
+                                            Latitude(5, u.deg))
+        
+        with pytest.raises(ValueError) as exc:
+            s1.to_cartesian()
+        
+        assert exc.value.args[0] == "can only convert to cartesian coordinates if distance is set"
 
 
 class TestCartesianRepresentation(object):
@@ -493,6 +513,33 @@ class TestCartesianRepresentation(object):
         assert s1.xyz.unit is u.kpc
 
         assert_allclose(s1.xyz.value,[1,2,3])
+    
+    def test_non_length(self):
+        
+        Qlen = u.Quantity([1], u.kpc)
+        Qnonlen = u.Quantity([1], u.kg)
+        
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CartesianRepresentation(x=Qnonlen, y=Qlen, z=Qlen)
+        assert exc.value.args[0] == "x should have units of length"
+        
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CartesianRepresentation(x=Qlen, y=Qnonlen, z=Qlen)
+        assert exc.value.args[0] == "y should have units of length"
+        
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CartesianRepresentation(x=Qlen, y=Qlen, z=Qnonlen)
+        assert exc.value.args[0] == "z should have units of length"
+        
+    def test_unit_non_length(self):
+        
+        Qnonlen = u.Quantity([1], u.kg)
+        
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CartesianRepresentation(x=1, y=2, z=3, unit=Qnonlen)
+        assert exc.value.args[0] == "unit should be a unit of length"
+        
+        
 
 
 class TestCylindricalRepresentation(object):
@@ -610,6 +657,14 @@ class TestCylindricalRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.z = 1. * u.kpc
+                    
+    def test_z_non_length(self):
+        
+        Qnonlen = u.Quantity([1], u.kg)
+        
+        with pytest.raises(u.UnitsError) as exc:
+            s1 = CylindricalRepresentation(rho=10*u.km, phi=10*u.deg, z=Qnonlen)
+        assert exc.value.args[0] == "z should have units of length"
 
 
 def test_cartesian_spherical_roundtrip():
