@@ -21,7 +21,11 @@ from ..extern import six
 __all__ = ["CartesianRepresentation", "SphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
+
 def broadcast_quantity(*args):
+    """
+    A Quantity-aware version of np.broadcast_arrays
+    """
     new_arrays = np.broadcast_arrays(*args)
     new_quantities = []
     for i in range(len(new_arrays)):
@@ -32,7 +36,7 @@ def broadcast_quantity(*args):
 @six.add_metaclass(abc.ABCMeta)
 class BaseRepresentation(object):
     """
-    Base Representation object, for representing a point in a 3D system
+    Base Representation object, for representing a point in a 3D coordinate system
     """
 
     def __new__(cls, *args, **kwargs):
@@ -57,30 +61,41 @@ class BaseRepresentation(object):
     def from_representation(cls, representation):
         return representation.represent_as(cls)
 
+    # Should be replaced by abstractclassmethod once we support only Python 3
+    @abc.abstractmethod
+    def from_cartesian(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def to_cartesian(self):
+        raise NotImplementedError()
+
 
 class CartesianRepresentation(BaseRepresentation):
     """
-    Representation of a point on three cartesian axes, x, y and z
+    Representation of points in 3D cartesian coordinates.
 
     Parameters
     ----------
-    x: Quantity or float
-        The x value, either a quanity or a value to be passed to Quantity with unit.
+    x, y, z : `~astropy.units.Quantity` or float or `~numpy.ndarray`, optional
+        The x, y, and z coordinates of the point(s), which should either be
+        `~astropy.units.Quantity` instances, or can be passed as
+        float or `numpy.ndarray` provided that the ``unit`` parameter is
+        specified. If ``x``, ``y``, and ``z`` have different shapes, they
+        should be broadcastable.
 
-    y: Quantity or float
-        The y value, either a quanity or a value to be passed to Quantity with unit.
+    unit : `~astropy.units.Unit`, optional
+        If ``x``, ``y``, or ``z`` are specified as float or
+        ``numpy.ndarray``, then ``unit`` should be specified to indicate the
+        units for these parameters. If ``x``, ``y``, or ``z`` are
+        `~astropy.units.Quantity` instances, and ``unit`` is specified, they
+        are converted to ``unit``.
 
-    z: Quantity or float
-        The z value, either a quanity or a value to be passed to Quantity with unit.
+    representation : BaseRepresentation, optional
+        A pre-existing Representation object to convert to cartesian
+        coordinates.
 
-    unit: Unit
-        Unit to initilize x, y and z with, if specified x, y and z will all be
-        converted to this unit.
-
-    representation: BaseRepresentation
-        A pre-existing Representation object to convert to Cartesian
-
-    copy: bool
+    copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
@@ -121,17 +136,25 @@ class CartesianRepresentation(BaseRepresentation):
         self._y = y
         self._z = z
 
-
     @property
     def x(self):
+        """
+        The x position of the point(s).
+        """
         return self._x
 
     @property
     def y(self):
+        """
+        The y position of the point(s).
+        """
         return self._y
 
     @property
     def z(self):
+        """
+        The z position of the point(s).
+        """
         return self._z
 
     @property
@@ -148,23 +171,30 @@ class CartesianRepresentation(BaseRepresentation):
 
 class SphericalRepresentation(BaseRepresentation):
     """
-    Spherical Representation of a point based on Longitude, Latitude and Radius
+    Representation of points in 3D spherical coordinates.
 
     Parameters
     ----------
-    lon: Longitude
-        A Longitude object or a parameter to be parsed by Longitude.
+    lon, lat : `~astropy.units.Quantity` or str, optional
+        The longitude and latitude of the point(s). The input values are
+        passed to the `~astropy.coordinates.Longitude` and
+        `~astropy.coordinates.Latitude` class respectively, so any valid
+        input for these classes is acceptable. This includes
+        `~astropy.units.Quantity` instances, strings, lists of strings, and
+        so on. `~astropy.coordinates.Longitude` instances can only be passed
+        to ``lon``, and `~astropy.coordinates.Latitude` instances can only be
+        passed to ``lat``.
 
-    lat: Latitude
-        A Latitude object or a parameter to be parsed by Latitude.
+    distance : `~astropy.units.Quantity`, optional
+        The distance to the point(s). The input value is passed to the
+        `~astropy.coordinates.Distance` class, so any valid input to that
+        class is acceptable.
 
-    distance: Distance
-        Distance (Radius), either a Distance object or a parameter to be passed by Distance.
+    representation : BaseRepresentation, optional
+        A pre-existing Representation object to convert to spherical
+        coordinates.
 
-    representation: BaseRepresentation
-        A pre-existing Representation object to convert to Spherical
-
-    copy: bool
+    copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
@@ -199,17 +229,23 @@ class SphericalRepresentation(BaseRepresentation):
 
     @property
     def lon(self):
-        """ Longitude Value """
+        """
+        The longitude of the point(s).
+        """
         return self._lon
 
     @property
     def lat(self):
-        """ Latitude Value """
+        """
+        The latitude of the point(s).
+        """
         return self._lat
 
     @property
     def distance(self):
-        """ Radius Value """
+        """
+        The distance from the origin to the point(s).
+        """
         return self._distance
 
     def represent_as(self, other_class):
@@ -236,44 +272,52 @@ class SphericalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z)
 
     @classmethod
-    def from_cartesian(cls, cartesian_representation):
+    def from_cartesian(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
 
-        xsq = cartesian_representation.x ** 2
-        ysq = cartesian_representation.y ** 2
-        zsq = cartesian_representation.z ** 2
+        xsq = cart.x ** 2
+        ysq = cart.y ** 2
+        zsq = cart.z ** 2
 
         r = (xsq + ysq + zsq) ** 0.5
         s = (xsq + ysq) ** 0.5
 
-        lon = np.arctan2(cartesian_representation.y, cartesian_representation.x)
-        lat = np.arctan2(cartesian_representation.z, s)
+        lon = np.arctan2(cart.y, cart.x)
+        lat = np.arctan2(cart.z, s)
 
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """
-    Spherical Representation of a point based on phi (azimuth), theta (elevation) and Radius
+    Representation of points in 3D spherical coordinates (using the physics
+    convention of using ``phi`` and ``theta`` for longitude and latitude).
 
     Parameters
     ----------
-    phi: Longitude
-        A Longitude object or a parameter to be parsed by Longitude.
+    phi, theta : `~astropy.units.Quantity` or str, optional
+        The longitude and latitude of the point(s). The input values are
+        passed to the `~astropy.coordinates.Longitude` and
+        `~astropy.coordinates.Latitude` class respectively, so any valid
+        input for these classes is acceptable. This includes
+        `~astropy.units.Quantity` instances, strings, lists of strings, and
+        so on. `~astropy.coordinates.Longitude` instances can only be passed
+        to ``phi``, and `~astropy.coordinates.Latitude` instances can only be
+        passed to ``theta``.
 
-    theta: Latitude
-        A Latitude object or a parameter to be parsed by Latitude.
+    distance : `~astropy.units.Quantity`, optional
+        The distance to the point(s). The input value is passed to the
+        `~astropy.coordinates.Distance` class, so any valid input to that
+        class is acceptable.
 
-    distance: Distance
-        Distance (Radius), either a Distance object or a parameter to be passed by Distance.
+    representation : BaseRepresentation, optional
+        A pre-existing Representation object to convert to spherical
+        coordinates.
 
-    representation: BaseRepresentation
-        A pre-existing Representation object to convert to PhysicsSphericalRepresentation
-
-    copy: bool
+    copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
@@ -308,17 +352,23 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
     @property
     def phi(self):
-        """ Azimuth Value """
+        """
+        The azimuth of the point(s).
+        """
         return self._phi
 
     @property
     def theta(self):
-        """ Elevation Value """
+        """
+        The elevation of the point(s).
+        """
         return self._theta
 
     @property
     def distance(self):
-        """ Radius Value """
+        """
+        The distance from the origin to the point(s).
+        """
         return self._distance
 
     def represent_as(self, other_class):
@@ -345,46 +395,47 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z)
 
     @classmethod
-    def from_cartesian(cls, cartesian_representation):
+    def from_cartesian(cls, cart):
         """
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
 
-        xsq = cartesian_representation.x ** 2
-        ysq = cartesian_representation.y ** 2
-        zsq = cartesian_representation.z ** 2
+        xsq = cart.x ** 2
+        ysq = cart.y ** 2
+        zsq = cart.z ** 2
 
         r = (xsq + ysq + zsq) ** 0.5
         s = (xsq + ysq) ** 0.5
 
-        phi = np.arctan2(cartesian_representation.y, cartesian_representation.x)
-        theta = np.arctan2(cartesian_representation.z, s)
+        phi = np.arctan2(cart.y, cart.x)
+        theta = np.arctan2(cart.z, s)
 
         return PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=r)
 
 
 class CylindricalRepresentation(BaseRepresentation):
     """
-    Representation of a point in a Cylindrical system as rho, phi and z
+    Representation of points in 3D cylindrical coordinates.
 
     Parameters
     ----------
-    rho: Distance
-        The distance from the axis to the point. A Distance instance or a parameter to
-        be parsed by Distance.
+    rho : `~astropy.units.Quantity`, optional
+        The distance from the z axis to the point(s).
 
-    phi: Angle
-        Angle around the axis. A Angle instance or a parameter to be parsed by
-        angle.
+    phi : `~astropy.units.Quantity` or str, optional
+        The azimuth of the point(s). The input is passed to the
+        `~astropy.coordinates.Angle` class, so any valid input for that class
+        is acceptable
 
-    z: Quantity
-        Coordinate along the axis, a Quantity object.
+    z : `~astropy.units.Quantity`, optional
+        The z coordinate(s) of the point(s)
 
-    representation: BaseRepresentation
-        A pre-existing Representation object to convert to Cylindrical
+    representation : BaseRepresentation, optional
+        A pre-existing Representation object to convert to cylindrical
+        coordinates.
 
-    copy: bool
+    copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
@@ -415,29 +466,46 @@ class CylindricalRepresentation(BaseRepresentation):
 
     @property
     def rho(self):
+        """
+        The distance of the point(s) from the z-axis.
+        """
         return self._rho
 
     @property
     def phi(self):
+        """
+        The azimuth of the point(s).
+        """
         return self._phi
 
     @property
     def z(self):
+        """
+        The height of the point(s).
+        """
         return self._z
 
     @classmethod
-    def from_cartesian(cls, cartesian_representation):
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates to cylindrical polar
+        coordinates.
+        """
 
-        rho = np.sqrt(cartesian_representation.x**2 + cartesian_representation.y**2)
+        rho = np.sqrt(cart.x ** 2 + cart.y ** 2)
 
-        phi = np.zeros(cartesian_representation.x.shape) * u.deg
-        phi[rho > 0] = np.arctan2(cartesian_representation.y, cartesian_representation.x)
+        phi = np.zeros(cart.x.shape) * u.deg
+        phi[rho > 0] = np.arctan2(cart.y, cart.x)
 
-        z = cartesian_representation.z
+        z = cart.z
 
         return CylindricalRepresentation(rho=rho, phi=phi, z=z)
 
     def to_cartesian(self):
+        """
+        Converts cylindrical polar coordinates to 3D rectangular cartesian
+        coordinates.
+        """
         x = self.rho * np.cos(self.phi)
         y = self.rho * np.sin(self.phi)
         z = self.z
