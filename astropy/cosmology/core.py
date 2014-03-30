@@ -126,20 +126,14 @@ class FLRW(Cosmology):
         self.name = name
 
         # Tcmb may have units
-        if isinstance(Tcmb0, u.Quantity):
-            if not Tcmb0.isscalar:
-                raise ValueError("Tcmb0 is a non-scalar quantity")
-            self._Tcmb0 = Tcmb0.to(u.K)
-        else:
-            self._Tcmb0 = float(Tcmb0) * u.K
+        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K, dtype=np.float)
+        if not self._Tcmb0.isscalar:
+            raise ValueError("Tcmb0 is a non-scalar quantity")
 
         # Hubble parameter at z=0, km/s/Mpc
-        if isinstance(H0, u.Quantity):
-            if not H0.isscalar:
-                raise ValueError("H0 is a non-scalar quantity")
-            self._H0 = H0.to(u.km / u.s / u.Mpc)
-        else:
-            self._H0 = float(H0) * u.km / u.s / u.Mpc
+        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc, dtype=np.float)
+        if not self._H0.isscalar:
+            raise ValueError("H0 is a non-scalar quantity")
 
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
         self._h = self._H0.value / 100.
@@ -155,7 +149,8 @@ class FLRW(Cosmology):
                                    (8. * pi * const.G.cgs)).cgs
 
         # Load up neutrino masses.
-        self._nneutrinos = int(floor(self._Neff))
+        self._nneutrinos = int(floor(self._Neff))  # In Py2.x, floor is floating
+
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
         # because propertly calculating it is a) complicated b) depends
@@ -166,6 +161,8 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
+            # We can't use the u.Quantity constructor as we do above
+            # because it doesn't understand equivalencies
             if not isinstance(m_nu, u.Quantity):
                 raise ValueError("m_nu must be a Quantity")
 
@@ -312,13 +309,16 @@ class FLRW(Cosmology):
             return None
         if not self._massivenu:
             # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
+            return u.Quantity(np.zeros(self._nmasslessnu), u.eV,
+                              dtype=np.float)
         if self._nmasslessnu == 0:
             # Only massive
-            return u.Quantity(self._massivenu_mass, u.eV)
+            return u.Quantity(self._massivenu_mass, u.eV,
+                              dtype=np.float)
         # A mix -- the most complicated case
-        return u.Quantity(np.append(np.zeros(self._nmasslessnu),
-                                    self._massivenu_mass.value), u.eV)
+        numass = np.append(np.zeros(self._nmasslessnu),
+                           self._massivenu_mass.value)
+        return u.Quantity(numass, u.eV, dtype=np.float)
 
     @property
     def h(self):
@@ -410,12 +410,15 @@ class FLRW(Cosmology):
           The equivalent density parameter for curvature at each redshift.
         """
 
-        if self._Ok0 == 0:
-            # Common enough case to be worth checking
-            return np.zeros_like(z)
-
         if isiterable(z):
             z = np.asarray(z)
+            # Common enough case to be worth checking explicitly
+            if self._Ok0 == 0:
+                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+        else:
+            if self._Ok0 == 0:
+                return 0.0
+
         return self._Ok0 * (1. + z) ** 2 * self.inv_efunc(z) ** 2
 
     def Ode(self, z):
@@ -433,8 +436,14 @@ class FLRW(Cosmology):
           density at each redshift.
         """
 
-        if self._Ode0 == 0:
-            return np.zeros_like(z)
+        if isiterable(z):
+            z = np.asarray(z)
+            # Common case worth checking
+            if self._Ode0 == 0:
+                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+        else:
+            if self._Ode0 == 0:
+                return 0.0
 
         return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
@@ -452,11 +461,6 @@ class FLRW(Cosmology):
           The energy density of photons relative to the critical
           density at each redshift.
         """
-
-        if self._Ogamma0 == 0:
-            # Common enough case to be worth checking (although it clearly
-            # doesn't represent any real universe)
-            return np.zeros_like(z)
 
         if isiterable(z):
             z = np.asarray(z)
@@ -480,13 +484,14 @@ class FLRW(Cosmology):
           which does not include kinetic energy.
         """
 
-        if self._Onu0 == 0:
-            # Common enough case to be worth checking (although it clearly
-            # doesn't represent any real universe)
-            return np.zeros_like(z)
-
         if isiterable(z):
             z = np.asarray(z)
+            if self._Onu0 == 0:
+                return np.zeros(np.asanyarray(z).shape, dtype=np.float)
+        else:
+            if self._Onu0 == 0:
+                return 0.0
+
         return self.Ogamma(z) * self.nu_relative_density(z)
 
     def Tcmb(self, z):
@@ -505,7 +510,7 @@ class FLRW(Cosmology):
 
         if isiterable(z):
             z = np.asarray(z)
-        return self._Tcmb0 * (1.0 + z)
+        return self._Tcmb0 * (1. + z)
 
     def Tnu(self, z):
         """ Return the neutrino temperature at redshift `z`.
@@ -523,7 +528,7 @@ class FLRW(Cosmology):
 
         if isiterable(z):
             z = np.asarray(z)
-        return self._Tnu0 * (1.0 + z)
+        return self._Tnu0 * (1. + z)
 
     def nu_relative_density(self, z):
         """ Neutrino density function relative to the energy density in
@@ -573,24 +578,26 @@ class FLRW(Cosmology):
         # The massive and massless contribution must be handled seperately
         # But check for common cases first
         if not self._massivenu:
-            return prefac * self._Neff * np.ones_like(z)
+            if np.isscalar(z):
+                return prefac * self._Neff
+            else:
+                return prefac * self._Neff *\
+                    np.ones(np.asanyarray(z).shape, dtype=np.float)
 
         p = 1.83
-        invp = 1.0 / 1.83
+        invp = 1.0 / p
         if np.isscalar(z):
             curr_nu_y = self._nu_y / (1.0 + z)  # only includes massive ones
             rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
-            return prefac * self._neff_per_nu * rel_mass
         else:
             z = np.asarray(z)
             retarr = np.empty_like(z)
-            for i, redshift in enumerate(z):
-                curr_nu_y = self._nu_y / (1.0 + redshift)
-                rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
-                rel_mass = rel_mass_per.sum() + self._nmasslessnu
-                retarr[i] = prefac * self._neff_per_nu * rel_mass
-            return retarr
+            curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
+            rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
+            rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
+            
+        return prefac * self._neff_per_nu * rel_mass
 
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
@@ -808,7 +815,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar
 
         Returns
         -------
@@ -833,7 +840,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -879,7 +886,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -905,7 +912,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -942,7 +949,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -965,7 +972,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1061,7 +1068,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1090,7 +1097,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1120,7 +1127,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1150,7 +1157,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1168,7 +1175,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1186,7 +1193,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1204,7 +1211,7 @@ class FLRW(Cosmology):
         Parameters
         ----------
         z : array_like
-          Input redshifts.
+          Input redshifts.  Must be 1D or scalar.
 
         Returns
         -------
@@ -1290,7 +1297,10 @@ class LambdaCDM(FLRW):
         :math:`w(z) = -1`.
         """
 
-        return -1.0 * np.ones_like(z)
+        if np.isscalar(z):
+            return -1.0
+        else:
+            return -1.0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -1311,7 +1321,10 @@ class LambdaCDM(FLRW):
         and in this case is given by :math:`I = 1`.
         """
 
-        return np.ones_like(z)
+        if np.isscalar(z):
+            return 1.
+        else:
+            return np.ones(np.asanyarray(z).shape, dtype=np.float)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1338,7 +1351,7 @@ class LambdaCDM(FLRW):
         # form for a cosmological constant
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
@@ -1480,7 +1493,7 @@ class FlatLambdaCDM(LambdaCDM):
             z = np.asarray(z)
         Om0, Ode0 = self._Om0, self._Ode0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
@@ -1579,7 +1592,10 @@ class wCDM(FLRW):
         :math:`w(z) = w_0`.
         """
 
-        return self._w0 * np.ones_like(z)
+        if np.isscalar(z):
+            return self._w0
+        else:
+            return self._w0 * np.ones(np.asanyarray(z).shape, dtype=np.float)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -1603,7 +1619,7 @@ class wCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        return (1.0 + z) ** (3 * (1 + self._w0))
+        return (1. + z) ** (3. * (1. + self._w0))
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1627,13 +1643,13 @@ class wCDM(FLRW):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                       Ode0 * zp1 ** (3.0 * (1 + w0)))
+                       Ode0 * zp1 ** (3. * (1. + w0)))
 
     def inv_efunc(self, z):
         r""" Function used to calculate :math:`\frac{1}{H_z}`.
@@ -1657,13 +1673,13 @@ class wCDM(FLRW):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
         return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                             Ode0 * zp1 ** (3 * (1 + w0)))
+                             Ode0 * zp1 ** (3. * (1. + w0)))
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
@@ -1753,13 +1769,13 @@ class FlatwCDM(wCDM):
             z = np.asarray(z)
         Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
-        zp1 = 1.0 + z
+        zp1 = 1. + z
 
         return np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
-                       Ode0 * zp1 ** (3.0 * (1 + w0)))
+                       Ode0 * zp1 ** (3. * (1 + w0)))
 
     def inv_efunc(self, z):
         r""" Function used to calculate :math:`\frac{1}{H_z}`.
@@ -1783,13 +1799,13 @@ class FlatwCDM(wCDM):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
             Or = self._Ogamma0 + self._Onu0
-        zp1 = 1.0 + z
+        zp1 = 1. + z
 
-        return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
-                             Ode0 * zp1 ** (3 * (1 + w0)))
+        return 1. / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
+                            Ode0 * zp1 ** (3. * (1. + w0)))
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
@@ -2062,7 +2078,7 @@ class wpwaCDM(FLRW):
     Examples
     --------
     >>> from astropy.cosmology import wpwaCDM
-    >>> cosmo = wpwaCDM(H0=70,Om0=0.3,Ode0=0.7,wp=-0.9,wa=0.2,zp=0.4)
+    >>> cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.7, wp=-0.9, wa=0.2, zp=0.4)
 
     The comoving distance in Mpc at redshift z:
 
@@ -2151,10 +2167,10 @@ class wpwaCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        zp1 = 1.0 + z
-        apiv = 1.0 / (1.0 + self._zp)
-        return zp1 ** (3 * (1 + self._wp + apiv * self._wa)) * \
-            np.exp(-3 * self._wa * z / zp1)
+        zp1 = 1. + z
+        apiv = 1. / (1. + self._zp)
+        return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * \
+            np.exp(-3. * self._wa * z / zp1)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, wp={4:.3g}, "\
@@ -2297,9 +2313,9 @@ class w0wzCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        zp1 = 1.0 + z
-        return zp1 ** (3 * (1 + self._w0 - self._wz)) *\
-            np.exp(-3 * self._wz * z)
+        zp1 = 1. + z
+        return zp1 ** (3. * (1. + self._w0 - self._wz)) *\
+            np.exp(-3. * self._wz * z)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\

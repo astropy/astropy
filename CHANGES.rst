@@ -1,4 +1,4 @@
-0.4 (unreleased)
+-0.4 (unreleased)
 ----------------
 
 New Features
@@ -325,6 +325,8 @@ Bug Fixes
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
+
+  - Be more carful about converting to floating point internally [#1815, #1818]
 
 - ``astropy.io.ascii``
 
