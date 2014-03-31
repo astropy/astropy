@@ -143,7 +143,8 @@ class Gaussian2D(Parametric2DModel):
         x_stddev and y_stddev must be specified unless a covariance
         matrix (cov_matrix) is input.
     theta : float, optional
-        Rotation angle in radians. The rotation angle increases clockwise.
+        Rotation angle in radians. The rotation angle increases
+        counterclockwise.
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the x_stddev,
         y_stddev, and theta specification.
@@ -163,7 +164,7 @@ class Gaussian2D(Parametric2DModel):
             a = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
             \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
 
-            b = \\left(\\frac{-\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}} +
+            b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}} -
             \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
 
             c = \\left(\\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
@@ -204,7 +205,7 @@ class Gaussian2D(Parametric2DModel):
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
-            theta = -np.arctan2(y_vec[1], y_vec[0])
+            theta = np.arctan2(y_vec[1], y_vec[0])
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
@@ -222,7 +223,7 @@ class Gaussian2D(Parametric2DModel):
         xdiff = x - x_mean
         ydiff = y - y_mean
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
-        b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
+        b = 0.5 * ((sin2t / xstd2) - (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
         return amplitude * np.exp(-((a * xdiff ** 2) + (b * xdiff * ydiff) +
                                     (c * ydiff ** 2)))
@@ -246,16 +247,16 @@ class Gaussian2D(Parametric2DModel):
         xdiff2 = xdiff ** 2
         ydiff2 = ydiff ** 2
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
-        b = 0.5 * (-(sin2t / xstd2) + (sin2t / ystd2))
+        b = 0.5 * ((sin2t / xstd2) - (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
         g = amplitude * np.exp(-((a * xdiff2) + (b * xdiff * ydiff) +
                                  (c * ydiff2)))
         da_dtheta = (sint * cost * ((1. / ystd2) - (1. / xstd2)))
         da_dx_stddev = -cost2 / xstd3
         da_dy_stddev = -sint2 / ystd3
-        db_dtheta = (-cos2t / xstd2) + (cos2t / ystd2)
-        db_dx_stddev = sin2t / xstd3
-        db_dy_stddev = -sin2t / ystd3
+        db_dtheta = (cos2t / xstd2) - (cos2t / ystd2)
+        db_dx_stddev = -sin2t / xstd3
+        db_dy_stddev = sin2t / ystd3
         dc_dtheta = -da_dtheta
         dc_dx_stddev = -sint2 / xstd3
         dc_dy_stddev = -cost2 / ystd3
