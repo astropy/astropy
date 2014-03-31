@@ -136,18 +136,18 @@ class Gaussian2D(Parametric2DModel):
         Mean of the Gaussian in y.
     x_stddev : float
         Standard deviation of the Gaussian in x.
-        x_stddev and y_stddev must be specified unless a covariance
-        matrix (cov_matrix) is input.
+        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
+        matrix (``cov_matrix``) is input.
     y_stddev : float
         Standard deviation of the Gaussian in y.
-        x_stddev and y_stddev must be specified unless a covariance
-        matrix (cov_matrix) is input.
+        ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
+        matrix (``cov_matrix``) is input.
     theta : float, optional
         Rotation angle in radians. The rotation angle increases
         counterclockwise.
     cov_matrix : ndarray, optional
-        A 2x2 covariance matrix. If specified, overrides the x_stddev,
-        y_stddev, and theta specification.
+        A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
+        ``y_stddev``, and ``theta`` specification.
 
     Notes
     -----
@@ -170,10 +170,30 @@ class Gaussian2D(Parametric2DModel):
             c = \\left(\\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}} +
             \\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}}\\right)
 
+    If using a ``cov_matrix``, the model is of the form:
+        .. math::
+            f(x, y) = A e^{-0.5 \\left(\\vec{x} - \\vec{x}_{0}\\right)^{T} \\Sigma^{-1} \\left(\\vec{x} - \\vec{x}_{0}\\right)}
+
+    where :math:`\\vec{x} = [x, y]`, :math:`\\vec{x}_{0} = [x_{0}, y_{0}]`,
+    and :math:`\\Sigma` is the covariance matrix:
+
+        .. math::
+            \\Sigma = \\left[[\\sigma_x^2, \\rho \\sigma_x \\sigma_y], [\\rho \\sigma_x \\sigma_y, \\sigma_y^2]\\right]
+
+    :math:`\\rho` is the correlation between `x` and `y`, which should
+    be between -1 and +1.  Positive correlation corresponds to a
+    ``theta`` in the range 0 to 90 degrees.  Negative correlation
+    corresponds to a ``theta`` in the range of 0 to -90 degrees.
+
+    See [1]_ for more details about the 2D Gaussian function.
 
     See Also
     --------
     Gaussian1D, Box2D, Beta2D
+
+    References
+    ----------
+    .. [1] http://en.wikipedia.org/wiki/Gaussian_function
     """
 
     amplitude = Parameter()
