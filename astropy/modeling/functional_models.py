@@ -178,7 +178,10 @@ class Gaussian2D(Parametric2DModel):
     and :math:`\\Sigma` is the covariance matrix:
 
         .. math::
-            \\Sigma = \\left[[\\sigma_x^2, \\rho \\sigma_x \\sigma_y], [\\rho \\sigma_x \\sigma_y, \\sigma_y^2]\\right]
+            \\Sigma = \\left(\\begin{array}{ccc}
+            \\sigma_x^2               & \\rho \\sigma_x \\sigma_y \\\\
+            \\rho \\sigma_x \\sigma_y & \\sigma_y^2
+            \end{array}\\right)
 
     :math:`\\rho` is the correlation between `x` and `y`, which should
     be between -1 and +1.  Positive correlation corresponds to a
