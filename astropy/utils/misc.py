@@ -1026,3 +1026,15 @@ class InheritDocstrings(type):
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+
+
+# TODO for Apr 1, 2015: Support referee response.
+def _generate_referee_comments(seed=None, num=1):
+    import numpy as np
+    from .data import get_pkg_data_filename
+    filename = get_pkg_data_filename('data/ref_comments.txt')
+    with open(filename) as f:
+        all_comments = np.array([line.strip() for line in f])
+    np.random.seed(seed)
+    i = np.random.randint(all_comments.size, size=num)
+    return all_comments[i]
