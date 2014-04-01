@@ -17,6 +17,7 @@ def get_extensions():
 def get_package_data():
     # Installs the testing data files
     return {
+        'astropy.utils': ['data/*.txt'],
         'astropy.utils.tests': [
             'data/test_package/*.py',
             'data/test_package/data/*.txt',

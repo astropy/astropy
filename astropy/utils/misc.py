@@ -510,3 +510,24 @@ class InheritDocstrings(type):
                         break
 
         super(InheritDocstrings, cls).__init__(name, bases, dct)
+
+
+def _run_referee_run(seed=None, num=1, datafile=''):
+    import numpy as np
+    from .data import get_pkg_data_filename
+    filename = get_pkg_data_filename(datafile)
+    with open(filename) as f:
+        all_comments = np.array([line.strip() for line in f])
+    np.random.seed(seed)
+    i = np.random.randint(all_comments.size, size=num)
+    return all_comments[i]
+
+
+def _generate_referee_comments(seed=None, num=1):
+    return _run_referee_run(
+        seed=seed, num=num, datafile='data/ref_comments.txt')
+
+
+def _generate_referee_response(seed=None, num=1):
+    return _run_referee_run(
+        seed=seed, num=num, datafile='data/ref_response.txt')
