@@ -714,7 +714,7 @@ class JointFitter(object):
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
-            modelfit = model.eval(margs[:-1], *mparams)
+            modelfit = model.evaluate(margs[:-1], *mparams)
             fitted.extend(modelfit - margs[-1])
         return np.ravel(fitted)
 

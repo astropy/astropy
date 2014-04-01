@@ -301,7 +301,7 @@ def test_default_constraints():
         b = Parameter(default=0, min=0, fixed=True)
 
         @staticmethod
-        def eval(x, a, b):
+        def evaluate(x, a, b):
             return x * a + b
 
     assert MyModel.a.default == 1
@@ -378,7 +378,7 @@ def test_fit_with_bound_constraints_estimate_jacobian():
         b = Parameter(default=2)
 
         @staticmethod
-        def eval(x, a, b):
+        def evaluate(x, a, b):
             return a * x + b
 
     m_real = MyModel(a=1.5, b=-3)

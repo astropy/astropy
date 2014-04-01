@@ -51,7 +51,7 @@ class PowerLaw1D(Fittable1DModel):
                                          alpha=alpha, **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_0, alpha):
+    def evaluate(x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
 
         xx = x / x_0
@@ -115,7 +115,7 @@ class BrokenPowerLaw1D(Fittable1DModel):
             alpha_2=alpha_2, **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_break, alpha_1, alpha_2):
+    def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
         """One dimensional broken power law model function"""
 
         alpha = np.where(x < x_break, alpha_1, alpha_2)
@@ -176,7 +176,7 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
             **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_0, alpha, x_cutoff):
+    def evaluate(x, amplitude, x_0, alpha, x_cutoff):
         """One dimensional exponential cutoff power law model function"""
 
         xx = x / x_0
@@ -235,7 +235,7 @@ class LogParabola1D(Fittable1DModel):
             **constraints)
 
     @staticmethod
-    def eval(x, amplitude, x_0, alpha, beta):
+    def evaluate(x, amplitude, x_0, alpha, beta):
         """One dimenional log parabola model function"""
 
         xx = x / x_0

@@ -13,7 +13,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import Model, ModelDefinitionError
+from ..core import Model, FittableModel, ModelDefinitionError
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -30,7 +30,14 @@ class TestParModel(Model):
     def __init__(self, coeff, e, **kwargs):
         super(TestParModel, self).__init__(coeff=coeff, e=e, **kwargs)
 
-    def __call__(self):
+    @staticmethod
+    def evaluate(coeff, e):
+        pass
+
+
+class MockModel(FittableModel):
+    @staticmethod
+    def evaluate():
         pass
 
 
