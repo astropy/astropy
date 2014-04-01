@@ -798,14 +798,20 @@ class Quantity(np.ndarray):
 
     def _repr_latex_(self):
         """
-        Generate latex representation of unit name.  This is used by
-        the IPython notebook to show it all latexified.
+        Generate latex representation of the quantity and its unit.
+        This is used by the IPython notebook to show it all latexified.
+        It only works for scalar quantities; for arrays, the standard
+        reprensation is returned.
 
         Returns
         -------
         lstr
             LaTeX string
         """
+
+        if not self.isscalar:
+            raise NotImplementedError('Cannot represent Quantity arrays '
+                                      'in LaTex format')
 
         # Format value
         latex_value = "{0:g}".format(self.value)
