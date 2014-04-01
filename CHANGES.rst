@@ -13,6 +13,9 @@ New Features
 
 - ``astropy.convolution``
 
+  - Changed the input parameter in ``Gaussian1DKernel`` and
+    ``Gaussian2DKernel`` from ``width`` to ``stddev`` [#2085].
+
 - ``astropy.coordinates``
 
   - Updated `Angle.dms` and `Angle.hms` to return `namedtuple`s instead of
