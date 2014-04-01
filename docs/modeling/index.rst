@@ -1,7 +1,7 @@
 .. _astropy-modeling:
 
 ***************************************
-Models And Fitting (`astropy.modeling`)
+Models and Fitting (`astropy.modeling`)
 ***************************************
 
 Introduction
