@@ -18,7 +18,7 @@ from ..extern.six.moves import xrange
 
 __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd','bootstrap']
+           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap']
 
 
 __doctest_skip__ = ['binned_binom_proportion']
@@ -163,15 +163,18 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     k : int or numpy.ndarray
         Number of successes (0 <= `k` <= `n`).
     n : int or numpy.ndarray
-        Number of trials (`n` > 0).
+        Number of trials (`n` > 0).  If both k and n are arrays,
+        they must have the same shape.
     conf : float in [0, 1], optional
-        Desired probability content of interval. Default is 0.68269.
-    interval : {'wilson', 'jeffreys', 'wald'}, optional
+        Desired probability content of interval. Default is 0.68269,
+        corresponding to 1 sigma in a 1-dimensional Gaussian distribution.
+    interval : {'wilson', 'jeffreys', 'flat', 'wald'}, optional
         Formula used for confidence interval. See notes for details.
-        The 'wilson' and 'jeffreys' intervals generally give similar results.
-        'wilson' should be somewhat faster, while 'jeffreys' is marginally
-        superior. The 'wald' interval is generally not recommended.
-        It is provided for comparison purposes. Default is 'wilson'.
+        The 'wilson' and 'jeffreys' intervals generally give similar
+        results, while 'flat' is somewhat different, especially for small
+        values of `n`.  'wilson' should be somewhat faster than 'flat' or
+        'jeffreys'.  The 'wald' interval is generally not recommended.
+        It is provided for comparison purposes.  Default is 'wilson'.
 
     Returns
     -------
@@ -189,7 +192,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     as a reasonable best estimate of the true probability
     :math:`\epsilon`. However, deriving an accurate confidence
     interval on :math:`\epsilon` is non-trivial. There are several
-    formulas for this interval (see [1]_). Three intervals are implemented
+    formulas for this interval (see [1]_). Four intervals are implemented
     here:
 
     **1. The Wilson Interval.** This interval, attributed to Wilson [2]_,
@@ -221,6 +224,8 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
         f(\epsilon) = \pi^{-1} \epsilon^{-1/2}(1-\epsilon)^{-1/2}.
 
+    The justification for this prior is that it is invariant under
+    reparameterizations of the binomial proportion.
     The posterior density function is also a Beta distribution: Beta(k
     + 1/2, N - k + 1/2). The interval is then chosen so that it is
     *equal-tailed*: Each tail (outside the interval) contains
@@ -232,7 +237,14 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     and the interval itself contains 1 - :math:`\alpha`/2 rather than
     the nominal 1 - :math:`\alpha`.
 
-    **3. The Wald Interval.** This interval is given by
+    **3. A Flat prior.** This is similar to the Jeffreys interval,
+    but uses a flat (uniform) prior on the binomial proportion
+    over the range 0 to 1 rather than the reparametrization-invariant
+    Jeffreys prior.  The posterior density function is a Beta distribution:
+    Beta(k + 1, N - k + 1).  The same comments about the nature of the
+    interval (equal-tailed, etc.) also apply to this option.
+
+    **4. The Wald Interval.** This interval is given by
 
     .. math::
 
@@ -282,6 +294,10 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     array([[ 0.        ,  0.0842525 ,  0.21789949,  0.82788246],
            [ 0.17211754,  0.42218001,  0.61753691,  1.        ]])
 
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='flat')
+    array([[ 0.        ,  0.12139799,  0.24309021,  0.73577037],
+           [ 0.26422963,  0.45401727,  0.61535699,  1.        ]])
+
     In contrast, the Wald interval gives poor results for small k, N.
     For k = 0 or k = N, the interval always has zero length.
 
@@ -304,6 +320,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
     k = np.asarray(k).astype(np.int)
     n = np.asarray(n).astype(np.int)
+
     if (n <= 0).any():
         raise ValueError('n must be positive')
     if (k < 0).any() or (k > n).any():
@@ -326,27 +343,39 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
             # Correct intervals out of range due to floating point errors.
             conf_interval[conf_interval < 0.] = 0.
             conf_interval[conf_interval > 1.] = 1.
-            return conf_interval
-
         else:
             midpoint = p
             halflength = kappa * np.sqrt(p * (1. - p) / n)
-            return np.array([midpoint - halflength, midpoint + halflength])
+            conf_interval = np.array([midpoint - halflength,
+                                      midpoint + halflength])
 
-    elif interval == 'jeffreys':
+    elif interval == 'jeffreys' or interval == 'flat':
         from scipy.special import betaincinv
 
-        lowerbound = betaincinv(k + 0.5, n - k + 0.5, alpha / 2.)
-        upperbound = betaincinv(k + 0.5, n - k + 0.5, 1. - alpha / 2.)
+        if interval == 'jeffreys':
+            lowerbound = betaincinv(k + 0.5, n - k + 0.5, 0.5 * alpha)
+            upperbound = betaincinv(k + 0.5, n - k + 0.5, 1. - 0.5 * alpha)
+        else:
+            lowerbound = betaincinv(k + 1, n - k + 1, 0.5 * alpha)
+            upperbound = betaincinv(k + 1, n - k + 1, 1. - 0.5 * alpha)
 
-        # Set lower or upper bound to k/n when k/n = 0 or 1.
-        lowerbound[k == 0] = 0.
-        upperbound[k == n] = 1.
+        # Set lower or upper bound to k/n when k/n = 0 or 1
+        #  We have to treat the special case of k/n being scalars,
+        #  which is an ugly kludge
+        if lowerbound.ndim == 0:
+            if k == 0:
+                lowerbound = 0.
+            elif k == n:
+                upperbound = 1.
+        else:
+            lowerbound[k == 0] = 0
+            upperbound[k == n] = 1
 
-        return np.array([lowerbound, upperbound])
-
+        conf_interval = np.array([lowerbound, upperbound])
     else:
         raise ValueError('Unrecognized interval: {0:s}'.format(interval))
+
+    return conf_interval
 
 
 #TODO Note scipy dependency (needed in binom_conf_interval)
@@ -381,12 +410,13 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
         Desired probability content in the confidence
         interval ``(p - perr[0], p + perr[1])`` in each bin. Default is
         0.68269.
-    interval : {'wilson', 'jeffreys', 'wald'}, optional
+    interval : {'wilson', 'jeffreys', 'flat', 'wald'}, optional
         Formula used to calculate confidence interval on the
         binomial proportion in each bin. See `binom_conf_interval` for
-        definition of the intervals.  The 'wilson' and 'jeffreys'
-        intervals generally give similar results.  'wilson' should be
-        somewhat faster, while 'jeffreys' is marginally superior.
+        definition of the intervals.  The 'wilson', 'jeffreys',
+        and 'flat' intervals generally give similar results.  'wilson'
+        should be somewhat faster, while 'jeffreys' and 'flat' are
+        marginally superior, but differ in the assumed prior.
         The 'wald' interval is generally not recommended.
         It is provided for comparison purposes. Default is 'wilson'.
 
@@ -582,8 +612,8 @@ def biweight_location(a, c=6.0, M=None):
     """Compute the biweight location for an array.
 
     Returns the biweight location for the array elements.
-    The biweight is a robust statistic for determining the central location of a
-    distribution.
+    The biweight is a robust statistic for determining the central
+    location of a distribution.
 
     The biweight location is given by the following equation
 
@@ -656,8 +686,8 @@ def biweight_midvariance(a, c=9.0, M=None):
     """Compute the biweight midvariance for an array.
 
     Returns the biweight midvariance for the array elements.
-    The biweight midvariance is a robust statistic for determining the midvariance (i.e. the
-    standard deviation) of a distribution.
+    The biweight midvariance is a robust statistic for determining
+    the midvariance (i.e. the standard deviation) of a distribution.
 
     The biweight location is given by the following equation
 
@@ -727,7 +757,8 @@ def biweight_midvariance(a, c=9.0, M=None):
         / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
 
 
-def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
+def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
+                            gain=1.0):
     """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
 
@@ -764,7 +795,8 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0
         Signal to noise ratio calculated from the inputs
     """
     signal = t*source_eps*gain
-    noise = np.sqrt(t*(source_eps*gain + npix*(sky_eps*gain + dark_eps)) + npix*rd**2 )
+    noise = np.sqrt(t * (source_eps * gain + npix *
+                         (sky_eps * gain + dark_eps)) + npix * rd**2)
     return signal / noise
 
 
@@ -814,7 +846,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         boot = np.empty(resultdims)
 
     for i in xrange(bootnum):
-        bootarr = np.random.randint(low=0,high=data.shape[0],size=samples)
+        bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
         if bootfunc is None:
             boot[i] = data[bootarr]
         else:
