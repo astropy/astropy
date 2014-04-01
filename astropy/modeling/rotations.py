@@ -136,17 +136,17 @@ class RotateCelestial2Native(EulerAngleRotation):
 
 class MatrixRotation2D(Model):
     """
-    Perform a clockwise 2D matrix rotation given either an angle or a
-    rotation matrix.
+    Perform a 2D matrix rotation given either an angle or a rotation
+    matrix.
 
     If both matrix and angle are given, angle will be ignored.
 
     Parameters
     ----------
     matrix : ndarray
-        rotation matrix
+        2D (2x2) rotation matrix.
     angle : float
-        angle of rotation in deg
+        Angle of counterclockwise rotation in degrees.
     """
 
     def _validate_angle(angle):
@@ -156,7 +156,6 @@ class MatrixRotation2D(Model):
 
         if not isinstance(angle, numbers.Number):
             raise TypeError("Expected angle to be a number")
-
         return np.deg2rad(angle)
 
     def _validate_matrix(matrix):
@@ -184,7 +183,7 @@ class MatrixRotation2D(Model):
             matrix = np.asarray(matrix) + 0.0
             self.n_inputs = self.n_outputs = matrix.shape[0]
             super(MatrixRotation2D, self).__init__(param_dim=1)
-            self.matrix = np.asarray(matrix) + 0.0
+            self.matrix = matrix
         else:
             # The computed rotation matrix is 2x2, naturally
             super(MatrixRotation2D, self).__init__(param_dim=1)
@@ -192,8 +191,8 @@ class MatrixRotation2D(Model):
             self.matrix = self._compute_matrix(self._angle)
 
     def _compute_matrix(self, angle):
-        return np.array([[math.cos(angle), math.sin(angle)],
-                         [-math.sin(angle), math.cos(angle)]],
+        return np.array([[math.cos(angle), -math.sin(angle)],
+                         [math.sin(angle), math.cos(angle)]],
                         dtype=np.float64)
 
     def inverse(self):
@@ -205,7 +204,7 @@ class MatrixRotation2D(Model):
         Parameters
         ----------
         x, y : 1D array or list
-              x and y coordinates
+            x and y coordinates
         """
 
         x = np.asarray(x)
