@@ -64,6 +64,9 @@ New Features
 
 - ``astropy.modeling``
 
+  - Changed ``MatrixRotation2D`` model such that ``angle`` now
+    increases counterclockwise. [#2266]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
