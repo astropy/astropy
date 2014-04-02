@@ -67,6 +67,16 @@ New Features
   - Changed ``Gaussian2D`` model such that ``theta`` now increases
     counterclockwise. [#2199]
 
+  - Replaced the ``MatrixRotation2D`` model with a new model called simply
+    ``Rotation2D`` which requires only an angle to specify the rotation.
+    The new ``Rotation2D`` rotates in a counter-clockwise sense whereas
+    the old ``MatrixRotation2D`` increased the angle clockwise.
+    [#2266, #2269]
+
+  - Added a new ``AffineTransformation2D`` model which serves as a
+    replacement for the capability of ``MatrixRotation2D`` to accept an
+    arbitrary matrix, while also adding a translation capability. [#2269]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
