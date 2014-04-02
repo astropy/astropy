@@ -67,9 +67,9 @@ def test_Gaussian2DRotation():
     theta = Angle(10, 'deg')
     pars = dict(amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
                 x_stddev=x_stddev, y_stddev=y_stddev)
-    rotation_matrix = models.MatrixRotation2D(angle=-theta.degree)
+    rotation = models.Rotation2D(angle=-theta.degree)
     point1 = (x_mean + 2 * x_stddev, y_mean + 2 * y_stddev)
-    point2 = rotation_matrix(*point1)
+    point2 = rotation(*point1)
     g1 = models.Gaussian2D(theta=0, **pars)
     g2 = models.Gaussian2D(theta=theta.radian, **pars)
     value1 = g1(*point1)
