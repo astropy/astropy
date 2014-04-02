@@ -170,7 +170,7 @@ class Rotation2D(Model):
         return np.deg2rad(angle)
 
     def inverse(self):
-        return Rotation2D(angle=-self.angle)
+        return self.__class__(angle=-self.angle)
 
     def __call__(self, x, y):
         """
@@ -186,7 +186,7 @@ class Rotation2D(Model):
         shape = x.shape
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
         assert inarr.shape[0] == 2 and inarr.ndim == 2, \
-            "Incompatible shape in MatrixRotation"
+            "Incompatible input shapes"
         result = np.dot(self._matrix, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:

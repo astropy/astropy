@@ -21,7 +21,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from .core import Model
-from .parameters import Parameter
+from .parameters import Parameter, InputParameterError
 
 
 projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
@@ -32,7 +32,8 @@ __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
            'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 'Sky2Pix_STG',
-           'Pix2Sky_TAN', 'Sky2Pix_TAN']
+           'Pix2Sky_TAN', 'Sky2Pix_TAN',
+           'AffineTransformation2D']
 
 
 class Projection(Model):
@@ -502,3 +503,107 @@ class Sky2Pix_MER(Cylindrical):
         theta = np.asarray(np.deg2rad(theta))
         y = self.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
         return x, y
+
+
+class AffineTransformation2D(Model):
+    """
+    Perform an affine transformation in 2 dimensions given a linear
+    transformation matrix and/or a translation vector.
+    """
+
+    n_inputs = 2
+    n_outputs = 2
+
+    matrix = Parameter(
+        setter=lambda m: AffineTransformation2D.validate_matrix(m),
+        default=[[1.0, 0.0], [0.0, 1.0]])
+    translation = Parameter(
+        setter=lambda t: AffineTransformation2D.validate_vector(t),
+        default=[0.0, 0.0])
+
+    def __init__(self, matrix=matrix.default,
+                 translation=translation.default):
+        super(AffineTransformation2D, self).__init__()
+        self.matrix = matrix
+        self.translation = translation
+        self._augmented_matrix = self._create_augmented_matrix(
+            self.matrix.value, self.translation.value)
+
+    def inverse(self):
+        det = np.linalg.det(self.matrix.value)
+
+        if det == 0:
+            raise InputParameterError(
+                "Transformation matrix is singular; {0} model does not "
+                "have an inverse".format(self.__class__.__name__))
+
+        matrix = np.linalg.inv(self.matrix.value)
+        translation = -np.dot(matrix, self.translation.value)
+
+        return self.__class__(matrix=matrix, translation=translation)
+
+    def __call__(self, x, y):
+        """
+        Parameters
+        ----------
+        x, y : 1D array or list
+              x and y coordinates
+        """
+
+        x = np.asarray(x)
+        y = np.asarray(y)
+        assert x.shape == y.shape
+
+        shape = x.shape
+        inarr = np.vstack([x.flatten(), y.flatten(), np.ones(x.size)])
+
+        assert inarr.shape[0] == 3 and inarr.ndim == 2, \
+            "Incompatible input shapes"
+
+        result = np.dot(self._augmented_matrix, inarr)
+
+        x, y = result[0], result[1]
+
+        if x.shape != shape:
+            x.shape = shape
+            y.shape = shape
+
+        return x, y
+
+    @staticmethod
+    def validate_matrix(matrix):
+        """Validates that the input matrix is a 2x2 2D array."""
+
+        matrix = np.array(matrix)
+        if matrix.shape != (2, 2):
+            raise ValueError(
+                "Expected transformation matrix to be a 2x2 array")
+        return matrix
+
+    @staticmethod
+    def validate_vector(vector):
+        """
+        Validates that the translation vector is a 2D vector.  This allows
+        either a "row" vector or a "column" vector where in the latter case the
+        resultant Numpy array has ``ndim=2`` but the shape is ``(1, 2)``.
+        """
+
+        vector = np.array(vector)
+
+        if vector.ndim == 1:
+            vector = vector[:, np.newaxis]
+
+        if vector.shape != (2, 1):
+            raise ValueError(
+                "Expected translation vector to be a 2 element row or column "
+                "vector array")
+
+        return vector
+
+    @staticmethod
+    def _create_augmented_matrix(matrix, translation):
+        augmented_matrix = np.empty((3, 3), dtype=np.float)
+        augmented_matrix[0:2,0:2] = matrix
+        augmented_matrix[0:2, 2:] = translation
+        augmented_matrix[2] = [0, 0, 1]
+        return augmented_matrix

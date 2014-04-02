@@ -9,6 +9,8 @@ import os.path
 import numpy as np
 from numpy.testing import utils
 from .. import projections
+from ..parameters import InputParameterError
+
 from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
@@ -146,3 +148,40 @@ class TestCYP(object):
         x, y = self.azpinv(wcslibout['phi'], wcslibout['theta'])
         utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+
+
+def test_AffineTransformation2D():
+    # Simple test with a scale and translation
+    model = projections.AffineTransformation2D(
+        matrix=[[2, 0], [0, 2]], translation=[1, 1])
+
+    # Coordinates for vertices of a rectangle
+    rect = [[0, 0], [1, 0], [0, 3], [1, 3]]
+
+    x, y = zip(*rect)
+
+    new_rect = np.vstack(model(x, y)).T
+
+    assert np.all(new_rect == [[1, 1], [3, 1], [1, 7], [3, 7]])
+
+
+def test_AffineTransformation2D_inverse():
+    # Test non-invertible model
+    model1 = projections.AffineTransformation2D(
+        matrix=[[1, 1], [1, 1]])
+
+    with pytest.raises(InputParameterError):
+        model1.inverse()
+
+    model2 = projections.AffineTransformation2D(
+        matrix=[[1.2, 3.4], [5.6, 7.8]], translation=[9.1, 10.11])
+    inverse = model2.inverse()
+
+    # Coordinates for vertices of a rectangle
+    rect = [[0, 0], [1, 0], [0, 3], [1, 3]]
+
+    x, y = zip(*rect)
+
+    x_new, y_new = inverse(*model2(x, y))
+
+    utils.assert_allclose([x, y], [x_new, y_new], atol=1e-10)
