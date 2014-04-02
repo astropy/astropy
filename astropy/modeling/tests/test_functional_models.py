@@ -31,15 +31,32 @@ def test_Gaussian2D():
     Test rotated elliptical Gaussian2D model.
     https://github.com/astropy/astropy/pull/2038
     """
-    model = models.Gaussian2D(100, 1.7, 3.1, x_stddev=3.3, y_stddev=5.0,
+    model = models.Gaussian2D(4.2, 1.7, 3.1, x_stddev=5.1, y_stddev=3.3,
                               theta=np.pi/6.)
     y, x = np.mgrid[0:5, 0:5]
     g = model(x, y)
-    g_ref = [[77.86787722, 79.8450774, 75.66323816, 66.26262987, 53.6289606],
-             [86.01743889, 90.20335997, 87.419011, 78.29536082, 64.80568981],
-             [90.11888627, 96.6492347, 95.79172412, 87.74139348, 74.27249818],
-             [89.54601432, 98.21442091, 99.55228375, 93.25543692, 80.73169335],
-             [84.38744554, 94.65710923, 98.12408063, 94.00369635, 83.22642276]]
+    g_ref = [[3.01907812, 2.99051889, 2.81271552, 2.5119566, 2.13012709],
+             [3.55982239, 3.6086023, 3.4734158, 3.17454575, 2.75494838],
+             [3.88059142, 4.0257528, 3.96554926, 3.70908389, 3.29410187],
+             [3.91095768, 4.15212857, 4.18567526, 4.00652015, 3.64146544],
+             [3.6440466, 3.95922417, 4.08454159, 4.00113878, 3.72161094]]
+    assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+
+
+def test_Gaussian2DCovariance():
+    """
+    Test rotated elliptical Gaussian2D model when cov_matrix is input.
+    https://github.com/astropy/astropy/pull/2199
+    """
+    cov_matrix = [[49., -16.], [-16., 9.]]
+    model = models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
+    y, x = np.mgrid[0:5, 0:5]
+    g = model(x, y)
+    g_ref = [[4.3744505, 5.8413977, 7.42988694, 9.00160175, 10.38794269],
+             [8.83290201, 10.81772851, 12.61946384, 14.02225593, 14.84113227],
+             [13.68528889, 15.37184621, 16.44637743, 16.76048705, 16.26953638],
+             [16.26953638, 16.76048705, 16.44637743, 15.37184621, 13.68528889],
+             [14.84113227, 14.02225593, 12.61946384, 10.81772851, 8.83290201]]
     assert_allclose(g, g_ref, rtol=0, atol=1e-6)
 
 
@@ -50,7 +67,7 @@ def test_Gaussian2DRotation():
     theta = Angle(10, 'deg')
     pars = dict(amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
                 x_stddev=x_stddev, y_stddev=y_stddev)
-    rotation_matrix = models.MatrixRotation2D(angle=theta.degree)
+    rotation_matrix = models.MatrixRotation2D(angle=-theta.degree)
     point1 = (x_mean + 2 * x_stddev, y_mean + 2 * y_stddev)
     point2 = rotation_matrix(*point1)
     g1 = models.Gaussian2D(theta=0, **pars)

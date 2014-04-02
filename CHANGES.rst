@@ -64,6 +64,9 @@ New Features
 
 - ``astropy.modeling``
 
+  - Changed ``Gaussian2D`` model such that ``theta`` now increases
+    counterclockwise. [#2199]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
