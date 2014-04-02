@@ -139,6 +139,20 @@ class Quantity(np.ndarray):
         to speed up initialization where a copy is known to have been made.
         Use with care.)
 
+    order : {'C', 'F', 'A'}, optional
+        Specify the order of the array.  As in `~numpy.array`.  This parameter
+        is ignored if the input is a `Quantity` and ``copy=False``.
+
+    subok : bool, optional
+        If True, then sub-classes will be passed-through, otherwise
+        the returned array will be forced to be a Quantity (default).
+
+    ndmin : int, optional
+        Specifies the minimum number of dimensions that the resulting array
+        should have.  Ones will be pre-pended to the shape as needed to meet
+        this requirement.  This parameter is ignored if the input is a
+        `Quantity` and ``copy=False``.
+
     Raises
     ------
     TypeError
@@ -153,7 +167,8 @@ class Quantity(np.ndarray):
 
     __array_priority__ = 10000
 
-    def __new__(cls, value, unit=None, dtype=None, copy=True):
+    def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
+                subok=False, ndmin=0):
 
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
@@ -173,7 +188,11 @@ class Quantity(np.ndarray):
                 if not np.can_cast(np.float32, value.dtype):
                     dtype = np.float
 
-            return np.array(value, dtype=dtype, copy=copy, subok=True)
+            if not subok:
+                value = value.view(cls)
+
+            return np.array(value, dtype=dtype, copy=copy, order=order,
+                            subok=True, ndmin=ndmin)
 
         # Maybe list/tuple of Quantity? short-circuit array for speed
         if(not isinstance(value, np.ndarray) and isiterable(value) and
@@ -187,7 +206,8 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = dimensionless_unscaled
 
-        value = np.array(value, dtype=dtype, copy=copy)
+        value = np.array(value, dtype=dtype, copy=copy, order=order,
+                         subok=False, ndmin=ndmin)
 
         # check that array contains numbers or long int objects
         if (value.dtype.kind in 'OSU' and
