@@ -16,6 +16,8 @@ from . import core
 from ...table import Column
 from ...utils.xml import writer
 
+from copy import deepcopy
+
 class SoupString(str):
     """
     Allows for strings to hold BeautifulSoup data.
@@ -153,7 +155,7 @@ class HTMLOutputter(core.TableOutputter):
                 new_cols.append(col)
                 col_num += 1
 
-        return core.TableOutputter.__call__(self, new_cols, meta)
+        return super(HTMLOutputter, self).__call__(new_cols, meta)
         
 
 class HTMLHeader(core.BaseHeader):
@@ -277,7 +279,7 @@ class HTML(core.BaseReader):
         self.data.inputter = HTMLInputter()
         self.data.header = self.header
         self.header.data = self.data
-        self.html = htmldict
+        self.html = deepcopy(htmldict)
         if 'multicol' not in htmldict:
             self.html['multicol'] = True
         if 'table_id' not in htmldict:
