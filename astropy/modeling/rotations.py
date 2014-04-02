@@ -177,7 +177,7 @@ class Rotation2D(Model):
         Parameters
         ----------
         x, y : 1D array or list
-              x and y coordinates
+            x and y coordinates
         """
 
         x = np.asarray(x)
@@ -196,6 +196,6 @@ class Rotation2D(Model):
 
     @staticmethod
     def _compute_matrix(angle):
-        return np.array([[math.cos(angle), math.sin(angle)],
-                         [-math.sin(angle), math.cos(angle)]],
+        return np.array([[math.cos(angle), -math.sin(angle)],
+                         [math.sin(angle), math.cos(angle)]],
                         dtype=np.float64)
