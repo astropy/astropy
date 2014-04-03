@@ -20,7 +20,7 @@ table from one or more input tables.  This includes:
      - Function
    * - `Grouped operations`_
      - Group tables and columns by keys
-     - `~astropy.table.table.Table.group_by`
+     - `~astropy.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
      - `~astropy.table.vstack`
@@ -59,7 +59,7 @@ Table groups
 ~~~~~~~~~~~~~~
 
 Now suppose we want the mean magnitudes for each object.  We first group the data by the
-``name`` column with the :func:`~astropy.table.table.Table.group_by` method.  This returns
+``name`` column with the :meth:`~astropy.table.Table.group_by` method.  This returns
 a new table sorted by ``name`` which has a ``groups`` property specifying the unique
 values of ``name`` and the corresponding table rows::
 
@@ -92,7 +92,7 @@ It defines how the table is grouped via an array of the unique row key values an
 indices of the group boundaries for those key values.  The groups here correspond to the
 row slices ``0:4``, ``4:7``, and ``7:10`` in the ``obs_by_name`` table.
 
-The initial argument (``keys``) for the `~astropy.table.table.Table.group_by` function
+The initial argument (``keys``) for the `~astropy.table.Table.group_by` function
 can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
@@ -201,7 +201,7 @@ Like |Table| objects, |Column| objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
 "Table| or bare |Column| objects.
 
-As for ``Table``, the grouping is generated with the `~astropy.table.table.Table.group_by` method.  The
+As for ``Table``, the grouping is generated with the `~astropy.table.Table.group_by` method.  The
 difference here is that there is no option of providing one or more column
 names since that doesn't make sense for a ``Column``.
 
