@@ -508,3 +508,10 @@ def test_equivalency_context_manager():
                     set(base_registry.all_units))
 
     assert base_registry is u.get_current_unit_registry()
+
+
+def test_temperature():
+    from ..imperial import deg_F
+    t_k = 0 * u.K
+    assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
+    assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)

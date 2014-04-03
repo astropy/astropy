@@ -461,12 +461,12 @@ def brightness_temperature(beam_area, disp):
 
 
 def temperature():
-    """Convert between Kelvin, Celcius, and Fahrenheit here because
+    """Convert between Kelvin, Celsius, and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
-    from .imperial import deg_C, deg_F
+    from .imperial import deg_F
     return [
-        (si.K, deg_C, lambda x: x - 273.15, lambda x: x + 273.15),
-        (deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
+        (si.K, si.deg_C, lambda x: x - 273.15, lambda x: x + 273.15),
+        (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
          lambda x: ((x - 32.0) / 1.8) + 273.15)]

@@ -23,6 +23,7 @@ rad = si.rad
 sr = si.sr
 cd = si.cd
 K = si.K
+deg_C = si.deg_C
 mol = si.mol
 
 
@@ -113,7 +114,7 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, namespace=_ns, prefixes=True,
 ###########################################################################
 # BASES
 
-bases = set([cm, g, s, C, rad, cd, K, mol])
+bases = set([cm, g, s, C, rad, cd, K, deg_C, mol])
 
 
 ###########################################################################

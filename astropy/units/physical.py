@@ -80,7 +80,7 @@ for unit, name in [
     (si.g, 'mass'),
     (si.mol, 'amount of substance'),
     (si.K, 'temperature'),
-    (imperial.deg_C, 'temperature'),
+    (si.deg_C, 'temperature'),
     (imperial.deg_F, 'temperature'),
     (si.N, 'force'),
     (si.J, 'energy'),

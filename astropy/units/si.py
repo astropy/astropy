@@ -130,6 +130,9 @@ def_unit(['mol', 'mole'], namespace=_ns, prefixes=True,
 def_unit(
     ['K', 'Kelvin'], namespace=_ns, prefixes=True,
     doc="Kelvin: temperature with a null point at absolute zero.")
+def_unit(
+    ['deg_C', 'Celsius'], namespace=_ns, doc='Degrees Celsius',
+    format={'latex': r'{}^{\circ}C', 'unicode': '°C'})
 
 
 ###########################################################################
@@ -210,7 +213,7 @@ def_unit(['Ci', 'curie'], Bq / 3.7e10, namespace=_ns, prefixes=False,
 ###########################################################################
 # BASES
 
-bases = set([m, s, kg, A, cd, rad, K, mol])
+bases = set([m, s, kg, A, cd, rad, K, deg_C, mol])
 
 
 ###########################################################################
