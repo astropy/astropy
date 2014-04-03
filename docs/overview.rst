@@ -7,19 +7,19 @@ Here we describe a broad overview of the Astropy project and its parts.
 Astropy Project Concept
 =======================
 
-The "Astropy Project" is distinct from the `astropy` package. The
+The "Astropy Project" is distinct from the ``astropy`` package. The
 Astropy Project is a process intended to facilitate communication and
 interoperability of python packages/codes in astronomy and astrophysics.
-The project thus encompasses the `astropy` core package (which provides
+The project thus encompasses the ``astropy`` core package (which provides
 a common framework), all "affiliated packages" (described below in
-`Affiliated Packages`), and a general community aimed at bringing
+`Affiliated Packages_`), and a general community aimed at bringing
 resources together and not duplicating efforts.
 
 
-`astropy` Core Package
-======================
+``astropy`` Core Package
+========================
 
-The `astropy` package (alternatively known as the "core" package)
+The ``astropy`` package (alternatively known as the "core" package)
 contains various classes, utilities, and a packaging framework intended
 to provide commonly-used astronomy tools. It is divided into a variety
 of sub-packages, which are documented in the remainder of this
@@ -37,11 +37,11 @@ Affiliated Packages
 
 The Astropy project includes the concept of "affiliated packages." An
 affiliated package is an astronomy-related python package that is not
-part of the `astropy` core source code, but has requested to be included
+part of the ``astropy`` core source code, but has requested to be included
 in the general community effort of the Astropy project. Such a package
-may be a candidate for eventual inclusion in the main `astropy` package
+may be a candidate for eventual inclusion in the main ``astropy`` package
 (although this is not required). Until then, however, it is a separate
-package, and may not be in the `astropy` namespace.
+package, and may not be in the ``astropy`` namespace.
 
 The authoritative list of current affiliated packages is available at
 http://affiliated.astropy.org, including a machine-readable `JSON file
@@ -49,7 +49,7 @@ http://affiliated.astropy.org, including a machine-readable `JSON file
 
 If you are interested in starting an affiliated package, or have a
 package you are interested in making more compatible with astropy, the
-`astropy` core package includes features that simplify and homogenize
+``astropy`` core package includes features that simplify and homogenize
 package management. Astropy provides a `package template
 <http://github.com/astropy/package-template>`_ that provides a common
 way to organize a package, to make your life simpler. You can use this

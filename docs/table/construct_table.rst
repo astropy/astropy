@@ -71,7 +71,7 @@ keyword or they will be auto-generated as ``col<N>``.
 
 **Make a new table using columns from the first table**
 
-Once you have a `Table` then you can make new table by selecting columns
+Once you have a |Table| then you can make new table by selecting columns
 and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
   >>> Table([t['c'], t['a']])
@@ -442,7 +442,7 @@ then it must be a list with the same length as the number of columns.  The
 values must be valid ``numpy.dtype`` initializers or ``None``.  Any list
 elements with value ``None`` fall back to the default type.
 
-In the case where `data` is provided as dict of columns, the ``dtype`` argument
+In the case where ``data`` is provided as dict of columns, the ``dtype`` argument
 must be accompanied by a corresponding ``names`` argument in order to uniquely
 specify the column ordering.
 
