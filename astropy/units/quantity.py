@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import re
 import numbers
 
 import numpy as np
@@ -32,6 +33,9 @@ __all__ = ["Quantity"]
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
 __doctest_skip__ = ['Quantity.*']
+
+#Used in _repr_latex_
+_ARRAY_REPR_EXP_PATTERN = re.compile(r'e([+-]\d*)(,?)')
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
@@ -927,8 +931,6 @@ class Quantity(np.ndarray):
         """
         Generate latex representation of the quantity and its unit.
         This is used by the IPython notebook to show it all latexified.
-        It only works for scalar quantities; for arrays, the standard
-        reprensation is returned.
 
         Returns
         -------
@@ -936,14 +938,24 @@ class Quantity(np.ndarray):
             LaTeX string
         """
 
-        if not self.isscalar:
-            raise NotImplementedError('Cannot represent Quantity arrays '
-                                      'in LaTex format')
+        if self.isscalar:
+            # Format value
+            latex_value = "{0:g}".format(self.value)
+            if "e" in latex_value:
+                latex_value = latex_value.replace('e', '\\times 10^{') + '}'
+        else:
+            # Not quite as good as {0:g} because 1 comes out as 1.00000, but
+            # better than nothing
+            latex_value = np.array2string(self.value, max_line_width=np.inf,
+                                          separator=',')
 
-        # Format value
-        latex_value = "{0:g}".format(self.value)
-        if "e" in latex_value:
-            latex_value = latex_value.replace('e', '\\times 10^{') + '}'
+            if "e" in latex_value:
+                latex_value_split = _ARRAY_REPR_EXP_PATTERN.split(latex_value)
+                for i in range(len(latex_value_split)//3):
+                    idx = i*3 + 1
+                    latex_value_split[idx] = ('\\times 10^{' +
+                                              latex_value_split[idx] + '}')
+                latex_value = ''.join(latex_value_split)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
