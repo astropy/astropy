@@ -295,6 +295,97 @@ class SphericalRepresentation(BaseRepresentation):
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
 
+class UnitSphericalRepresentation(BaseRepresentation):
+    """
+    Representation of points on a unit sphere
+
+    Parameters
+    ----------
+    lon, lat : `~astropy.units.Quantity` or str
+        The longitude and latitude of the point(s). The input values are
+        passed to the `~astropy.coordinates.Longitude` and
+        `~astropy.coordinates.Latitude` class respectively, so any valid
+        input for these classes is acceptable. This includes
+        `~astropy.units.Quantity` instances, strings, lists of strings, and
+        so on. `~astropy.coordinates.Longitude` instances can only be passed
+        to ``lon``, and `~astropy.coordinates.Latitude` instances can only be
+        passed to ``lat``.
+
+    representation : BaseRepresentation, optional
+        A pre-existing Representation object to convert to spherical
+        coordinates.
+
+    copy : bool, optional
+        If True arrays will be copied rather than referenced.
+    """
+
+    def __init__(self, lon=None, lat=None, distance=None, representation=None, copy=True):
+
+        if representation is not None:
+            return
+
+        if lon is None or lat is None:
+            raise ValueError('lon and lat are required to instantiate UnitSphericalRepresentation')
+
+        # Let the Longitude and Latitude classes deal with e.g. parsing
+        lon = Longitude(lon, copy=copy)
+        lat = Latitude(lat, copy=copy)
+
+        try:
+            lon, lat = broadcast_quantity(lon, lat, copy=copy)
+        except ValueError:
+            raise ValueError("Input parameters lon and lat cannot be broadcast")
+
+        self._lon = lon
+        self._lat = lat
+
+    @property
+    def lon(self):
+        """
+        The longitude of the point(s).
+        """
+        return self._lon
+
+    @property
+    def lat(self):
+        """
+        The latitude of the point(s).
+        """
+        return self._lat
+
+    # TODO: implement represent_as for efficient transformations
+
+    def to_cartesian(self):
+        """
+        Converts spherical polar coordinates to 3D rectangular cartesian
+        coordinates.
+        """
+
+        x = u.one * np.cos(self.lat) * np.cos(self.lon)
+        y = u.one * np.cos(self.lat) * np.sin(self.lon)
+        z = u.one * np.sin(self.lat)
+
+        return CartesianRepresentation(x=x, y=y, z=z)
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates to spherical polar
+        coordinates.
+        """
+
+        xsq = cart.x ** 2
+        ysq = cart.y ** 2
+        zsq = cart.z ** 2
+
+        s = (xsq + ysq) ** 0.5
+
+        lon = np.arctan2(cart.y, cart.x)
+        lat = np.arctan2(cart.z, s)
+
+        return UnitSphericalRepresentation(lon=lon, lat=lat)
+
+
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """
     Representation of points in 3D spherical coordinates (using the physics

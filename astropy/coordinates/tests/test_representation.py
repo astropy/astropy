@@ -6,6 +6,7 @@ from ...tests.helper import pytest
 from ..angles import Longitude, Latitude
 from ..distances import Distance
 from ..representation import (SphericalRepresentation,
+                              UnitSphericalRepresentation,
                               CartesianRepresentation,
                               CylindricalRepresentation,
                               PhysicsSphericalRepresentation)
@@ -151,6 +152,122 @@ class TestSphericalRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
+
+
+class TestUnitSphericalRepresentation(object):
+
+    def test_empty_init(self):
+        with pytest.raises(ValueError) as exc:
+            s = UnitSphericalRepresentation()
+        assert exc.value.args[0] == "lon and lat are required to instantiate UnitSphericalRepresentation"
+
+    def test_init_quantity(self):
+
+        s3 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
+        assert s3.lon == 8. * u.hourangle
+        assert s3.lat == 5. * u.deg
+
+        assert isinstance(s3.lon, Longitude)
+        assert isinstance(s3.lat, Latitude)
+
+    def test_init_lonlat(self):
+
+        s2 = UnitSphericalRepresentation(Longitude(8, u.hour),
+                                     Latitude(5, u.deg))
+
+        assert s2.lon == 8. * u.hourangle
+        assert s2.lat == 5. * u.deg
+
+        assert isinstance(s2.lon, Longitude)
+        assert isinstance(s2.lat, Latitude)
+
+    def test_init_array(self):
+
+        s1 = UnitSphericalRepresentation(lon=[8, 9] * u.hourangle,
+                                     lat=[5, 6] * u.deg)
+
+        assert_allclose(s1.lon.degree, [120, 135])
+        assert_allclose(s1.lat.degree, [5, 6])
+
+        assert isinstance(s1.lon, Longitude)
+        assert isinstance(s1.lat, Latitude)
+
+    def test_init_array_nocopy(self):
+
+        lon = Longitude([8, 9] * u.hourangle)
+        lat = Latitude([5, 6] * u.deg)
+
+        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
+
+        lon[:] = [1,2] * u.rad
+        lat[:] = [3,4] * u.arcmin
+
+        assert_allclose_quantity(lon, s1.lon)
+        assert_allclose_quantity(lat, s1.lat)
+
+    def test_init_str(self):
+
+        s1 = UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
+        assert_allclose(s1.lon.degree, 31.513749999999995)
+        assert_allclose(s1.lat.degree, 5.729577951308233)
+
+    def test_reprobj(self):
+
+        s1 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
+
+        s2 = UnitSphericalRepresentation(representation=s1)
+
+        assert_allclose_quantity(s2.lon, 8. * u.hourangle)
+        assert_allclose_quantity(s2.lat, 5. * u.deg)
+
+    def test_reprobj_invalid(self):
+
+        s1 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
+
+        with pytest.raises(ValueError) as exc:
+            s2 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, representation=s1)
+        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
+
+    def test_broadcasting(self):
+
+        s1 = UnitSphericalRepresentation(lon=[8, 9]*u.hourangle,
+                                     lat=[5, 6]*u.deg)
+
+        assert_allclose_quantity(s1.lon, [120, 135] * u.degree)
+        assert_allclose_quantity(s1.lat, [5, 6] * u.degree)
+
+    def test_broadcasting_mismatch(self):
+
+        with pytest.raises(ValueError) as exc:
+            s1 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle,
+                                         lat=[5, 6]*u.deg)
+        assert exc.value.args[0] == "Input parameters lon and lat cannot be broadcast"
+
+    def test_mixed_units(self):
+
+        # It's also possible to pass in scalar quantity lists with mixed
+        # units. These are converted to array quantities following the same
+        # rule as `Quantity`: all elements are converted to match the first
+        # element's units.
+
+        s1 = UnitSphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
+                                     lat=[5*u.deg, (6*np.pi/180)*u.rad])
+
+        assert s1.lon.unit == u.hourangle
+        assert s1.lat.unit == u.deg
+        assert_allclose(s1.lon.value, [8,9])
+        assert_allclose(s1.lat.value, [5,6])
+
+    def test_readonly(self):
+
+        s1 = UnitSphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
+                                     lat=[5*u.deg, (6*np.pi/180)*u.rad])
+
+        with pytest.raises(AttributeError):
+            s1.lon = 1. * u.deg
+
+        with pytest.raises(AttributeError):
+            s1.lat = 1. * u.deg
 
 
 class TestPhysicsSphericalRepresentation(object):
