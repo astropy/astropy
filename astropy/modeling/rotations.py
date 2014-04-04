@@ -147,27 +147,12 @@ class Rotation2D(Model):
     n_inputs = 2
     n_outputs = 2
 
-    angle = Parameter(getter=np.rad2deg,
-                      setter=lambda a: Rotation2D._validate_angle(a),
-                      default=0.0)
+    angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, angle=angle.default):
         super(Rotation2D, self).__init__()
         self.angle = angle
         self._matrix = self._compute_matrix(self._angle)
-
-    @staticmethod
-    def _validate_angle(angle):
-        """Validates that an input angle is a number and converts it from
-        degrees to radians.
-        """
-
-        # TODO: I think this is superfluous?  We already require all parameter
-        # values to be numeric...
-        if not isinstance(angle, numbers.Number):
-            raise TypeError("Expected angle to be a number")
-
-        return np.deg2rad(angle)
 
     def inverse(self):
         return self.__class__(angle=-self.angle)
