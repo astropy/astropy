@@ -731,13 +731,13 @@ class AiryDisk2DKernel(Kernel2D):
 
 class Model1DKernel(Kernel1D):
     """
-    Create kernel from `astropy.modeling.Parametric1DModel`.
+    Create kernel from 1D model.
 
     The model has to be centered on x = 0.
 
     Parameters
     ----------
-    model : Parametric1DModel
+    model : `~astropy.modeling.Parametric1DModel`
         Kernel response function model
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
@@ -761,11 +761,11 @@ class Model1DKernel(Kernel1D):
     Raises
     ------
     TypeError
-        If model is not an instance of `astropy.modeling.Parametric1DModel`
+        If model is not an instance of `~astropy.modeling.Parametric1DModel`
 
     See also
     --------
-    Model2DKernel : Create kernel from `astropy.modeling.Parametric2DModel`
+    Model2DKernel : Create kernel from `~astropy.modeling.Parametric2DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -795,13 +795,13 @@ class Model1DKernel(Kernel1D):
 
 class Model2DKernel(Kernel2D):
     """
-    Create kernel from `astropy.modeling.Parametric1DModel`.
+    Create kernel from 2D model.
 
-    The model has to be centered on x = 0 and y= 0.
+    The model has to be centered on x = 0 and y = 0.
 
     Parameters
     ----------
-    model : Parametric2DModel
+    model : `~astropy.modeling.Parametric2DModel`
         Kernel response function model
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
@@ -827,11 +827,11 @@ class Model2DKernel(Kernel2D):
     Raises
     ------
     TypeError
-        If model is not an instance of astropy.models.Parametric2DModel
+        If model is not an instance of `~astropy.modeling.Parametric2DModel`
 
     See also
     --------
-    Model1DKernel : Create kernel from astropy.models.Parametric1DModel
+    Model1DKernel : Create kernel from `~astropy.modeling.Parametric1DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
