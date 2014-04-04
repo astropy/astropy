@@ -30,7 +30,8 @@ from ..extern import six
 # - add a rotated() method that can rotate the 3D coordinates
 
 __all__ = ["CartesianRepresentation", "SphericalRepresentation",
-           "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
+           "UnitSphericalRepresentation", "PhysicsSphericalRepresentation",
+           "CylindricalRepresentation"]
 
 
 def broadcast_quantity(*args, **kwargs):
@@ -120,26 +121,17 @@ class CartesianRepresentation(BaseRepresentation):
             x, y, z = x
         elif x is None or y is None or z is None:
             raise ValueError('x, y, and z are required to instantiate CartesianRepresentation')
-                
+
 
         if unit is not None:
             unit = u.Unit(unit)
 
-        if isinstance(x, u.Quantity) and x.unit.physical_type != 'length':
-            raise u.UnitsError("x should have units of length")
-
-        if isinstance(y, u.Quantity) and y.unit.physical_type != 'length':
-            raise u.UnitsError("y should have units of length")
-
-        if isinstance(z, u.Quantity) and z.unit.physical_type != 'length':
-            raise u.UnitsError("z should have units of length")
-
-        if unit is not None and unit.physical_type != 'length':
-            raise u.UnitsError("unit should be a unit of length")
-
         x = u.Quantity(x, unit=unit, copy=copy)
         y = u.Quantity(y, unit=unit, copy=copy)
         z = u.Quantity(z, unit=unit, copy=copy)
+
+        if not (x.unit.physical_type == y.unit.physical_type == z.unit.physical_type):
+            raise u.UnitsError("x, y, and z should have matching physical types")
 
         try:
             x, y, z = broadcast_quantity(x, y, z, copy=copy)
@@ -189,7 +181,7 @@ class SphericalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    lon, lat : `~astropy.units.Quantity` or str, optional
+    lon, lat : `~astropy.units.Quantity` or str
         The longitude and latitude of the point(s). The input values are
         passed to the `~astropy.coordinates.Longitude` and
         `~astropy.coordinates.Latitude` class respectively, so any valid
@@ -199,10 +191,10 @@ class SphericalRepresentation(BaseRepresentation):
         to ``lon``, and `~astropy.coordinates.Latitude` instances can only be
         passed to ``lat``.
 
-    distance : `~astropy.units.Quantity`, optional
-        The distance to the point(s). The input value is passed to the
-        `~astropy.coordinates.Distance` class, so any valid input to that
-        class is acceptable.
+    distance : `~astropy.units.Quantity`
+        The distance to the point(s). If the distance is a length, it is
+        passed to the :class:`~astropy.coordinates.Distance` class, otherwise
+        it is passed to the :class:`~astropy.units.Quantity` class.
 
     representation : BaseRepresentation, optional
         A pre-existing Representation object to convert to spherical
@@ -217,23 +209,20 @@ class SphericalRepresentation(BaseRepresentation):
         if representation is not None:
             return
 
-        if lon is None or lat is None:
-            raise ValueError('lon and lat are required to instantiate SphericalRepresentation')
+        if lon is None or lat is None or distance is None:
+            raise ValueError('lon, lat, and distance are required to instantiate SphericalRepresentation')
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         lon = Longitude(lon, copy=copy)
         lat = Latitude(lat, copy=copy)
 
-        if distance is not None:
+        if isinstance(distance, u.Quantity) and distance.unit.physical_type == 'length':
             distance = Distance(distance, copy=copy)
         else:
-            distance = None
+            distance = u.Quantity(distance, copy=copy)
 
         try:
-            if distance is None:
-                lon, lat = broadcast_quantity(lon, lat, copy=copy)
-            else:
-                lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
+            lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
         except ValueError:
             raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
 
@@ -274,9 +263,6 @@ class SphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
-        if self.distance is None:
-            raise ValueError("can only convert to cartesian coordinates if distance is set")
 
         # We need to convert Distance to Quantity to allow negative values.
         # At the moment, there is no easy way to convert Distance objects to
@@ -326,10 +312,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         to ``phi``, and `~astropy.coordinates.Latitude` instances can only be
         passed to ``theta``.
 
-    distance : `~astropy.units.Quantity`, optional
-        The distance to the point(s). The input value is passed to the
-        `~astropy.coordinates.Distance` class, so any valid input to that
-        class is acceptable.
+    distance : `~astropy.units.Quantity`
+        The distance to the point(s). If the distance is a length, it is
+        passed to the :class:`~astropy.coordinates.Distance` class, otherwise
+        it is passed to the :class:`~astropy.units.Quantity` class.
 
     representation : BaseRepresentation, optional
         A pre-existing Representation object to convert to spherical
@@ -344,23 +330,20 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         if representation is not None:
             return
 
-        if phi is None or theta is None:
-            raise ValueError('phi and theta are required to instantiate PhysicsSphericalRepresentation')
+        if phi is None or theta is None or distance is None:
+            raise ValueError('phi, theta, and distance are required to instantiate PhysicsSphericalRepresentation')
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         phi = Longitude(phi, copy=copy)
         theta = Latitude(theta, copy=copy)
 
-        if distance is not None:
+        if isinstance(distance, u.Quantity) and distance.unit.physical_type == 'length':
             distance = Distance(distance, copy=copy)
         else:
-            distance = None
+            distance = u.Quantity(distance, copy=copy)
 
         try:
-            if distance is None:
-                phi, theta = broadcast_quantity(phi, theta, copy=copy)
-            else:
-                phi, theta, distance = broadcast_quantity(phi, theta, distance, copy=copy)
+            phi, theta, distance = broadcast_quantity(phi, theta, distance, copy=copy)
         except ValueError:
             raise ValueError("Input parameters phi, theta, and distance cannot be broadcast")
 
@@ -401,9 +384,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
-        if self.distance is None:
-            raise ValueError("can only convert to cartesian coordinates if distance is set")
 
         # We need to convert Distance to Quantity to allow negative values.
         # At the moment, there is no easy way to convert Distance objects to
@@ -469,16 +449,12 @@ class CylindricalRepresentation(BaseRepresentation):
         if rho is None or phi is None or z is None:
             raise ValueError('rho, phi, and z are required to instantiate CylindricalRepresentation')
 
-        if isinstance(rho, u.Quantity) and rho.unit.physical_type != 'length':
-            raise u.UnitsError("rho should have units of length")
-
         rho = u.Quantity(rho, copy=copy)
         phi = Angle(phi, copy=copy)
-
-        if isinstance(z, u.Quantity) and z.unit.physical_type != 'length':
-            raise u.UnitsError("z should have units of length")
-
         z = u.Quantity(z, copy=copy)
+
+        if not (rho.unit.physical_type == z.unit.physical_type):
+            raise u.UnitsError("rho and z should have matching physical types")
 
         try:
             rho, phi, z = broadcast_quantity(rho, phi, z, copy=copy)
