@@ -116,7 +116,6 @@ class Parameter(object):
         self._name = name
         self.__doc__ = description.strip()
         self._default = default
-        self._attr = '_' + name
 
         self._default_fixed = fixed
         self._default_tied = tied
@@ -145,7 +144,8 @@ class Parameter(object):
             try:
                 _, self._shape = self._validate_value(model, self.value)
             except AttributeError:
-                # This can happen if the paramter's value has not been set yet
+                # This could occur early in the model initialization if the
+                # parameter values haven't been set yet.
                 pass
         else:
             # Only Parameters declared as class-level descriptors require
@@ -163,19 +163,12 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
-        # Compare the shape against the previous value's shape, if it exists
-        if hasattr(obj, self._attr):
-            current_shape = getattr(obj, self.name).shape
-            if shape != current_shape:
-                raise InputParameterError(
-                    "Input value for parameter '{0}' does not have the "
-                    "required shape {1}".format(self.name, current_shape))
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
             value = setter(value)
 
-        setattr(obj, self._attr, value)
+        self._set_model_value(obj, value)
 
     def __len__(self):
         if self._model is None:
@@ -247,28 +240,26 @@ class Parameter(object):
     def value(self):
         """The unadorned value proxied by this parameter"""
 
-        if self._model is not None:
-            if not hasattr(self._model, self._attr):
-                if self._default is not None:
-                    value = self.default
-                else:
-                    raise AttributeError(
-                        "Parameter value for '{0}' not set".format(self._name))
-            else:
-                value = getattr(self._model, self._attr)
-            if self._getter is None:
-                return value
-            else:
-                return self._getter(value)
-        raise AttributeError('Parameter definition does not have a value')
+        if self._model is None:
+            raise AttributeError('Parameter definition does not have a value')
+
+        value = self._get_model_value(self._model)
+
+        if self._getter is None:
+            return value
+        else:
+            return self._getter(value)
 
     @value.setter
-    def value(self, val):
-        if self._model is not None:
-            if self._setter is not None:
-                val = self._setter(val)
-            setattr(self._model, self._attr, val)
-        raise AttributeError('Cannot set a value on a parameter definition')
+    def value(self, value):
+        if self._model is None:
+            raise AttributeError('Cannot set a value on a parameter '
+                                 'definition')
+
+        if self._setter is not None:
+            val = self._setter(value)
+
+        self._set_model_value(self._model, value)
 
     @property
     def shape(self):
@@ -409,6 +400,52 @@ class Parameter(object):
         nextid = cls._nextid
         cls._nextid += 1
         return nextid
+
+    def _get_model_value(self, model):
+        """
+        This method implements how to retrieve the value of this parameter from
+        the model instance.  See also `Parameter._set_model_value`.
+
+        These methods take an explicit model argument rather than using
+        self._model so that they can be used from unbound `Parameter`
+        instances.
+        """
+
+        if not hasattr(model, '_parameters'):
+            # The _parameters array hasn't been initialized yet; just translate
+            # this to an AttributeError
+            raise AttributeError(self._name)
+
+        # Use the _param_metrics to extract the parameter value from the
+        # _parameters array
+        param_slice, param_shape = model._param_metrics[self._name]
+        value = model._parameters[param_slice]
+        if param_shape:
+            value = value.reshape(param_shape)
+        else:
+            value = value[0]
+        return value
+
+    def _set_model_value(self, model, value):
+        """
+        This method implements how to store the value of a parameter on the
+        model instance.
+
+        Currently there is only one storage mechanism (via the ._parameters
+        array) but other mechanisms may be desireable, in which case really the
+        model class itself should dictate this and *not* `Parameter` itself.
+        """
+
+        # TODO: Maybe handle exception on invalid input shape
+        param_slice, param_shape = model._param_metrics[self._name]
+        param_size = np.prod(param_shape)
+
+        if np.size(value) != param_size:
+            raise InputParameterError(
+                "Input value for parameter {0!r} does not have {1} elements "
+                "as the current value does".format(self._name, param_size))
+
+        model._parameters[param_slice] = np.array(value).ravel()
 
     def _validate_value(self, model, value):
         if model is None:

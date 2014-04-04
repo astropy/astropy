@@ -46,10 +46,7 @@ class EulerAngleRotation(Model):
     psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, phi, theta, psi):
-        super(EulerAngleRotation, self).__init__()
-        self.phi = phi
-        self.theta = theta
-        self.psi = psi
+        super(EulerAngleRotation, self).__init__(phi, theta, psi)
 
 
 class RotateNative2Celestial(EulerAngleRotation):
@@ -70,9 +67,13 @@ class RotateNative2Celestial(EulerAngleRotation):
     def __call__(self, nphi, ntheta):
         nphi = np.deg2rad(nphi)
         ntheta = np.deg2rad(ntheta)
-        phi = self._phi
-        psi = self._psi
-        theta = self._theta
+        # TODO: Unfortunately right now this superfluously converts from
+        # radians to degrees back to radians again--this will be addressed in a
+        # future change
+        phi = np.deg2rad(self.phi)
+        psi = np.deg2rad(self.psi)
+        theta = np.deg2rad(self.theta)
+
         calpha = np.rad2deg(
             phi +
             np.arctan2(-np.cos(ntheta) * np.sin(nphi - psi),
@@ -110,9 +111,13 @@ class RotateCelestial2Native(EulerAngleRotation):
     def __call__(self, calpha, cdelta):
         calpha = np.deg2rad(calpha)
         cdelta = np.deg2rad(cdelta)
-        psi = self._psi
-        phi = self._phi
-        theta = self._theta
+
+        # TODO: Unfortunately right now this superfluously converts from
+        # radians to degrees back to radians again--this will be addressed in a
+        # future change
+        phi = np.deg2rad(self.phi)
+        psi = np.deg2rad(self.psi)
+        theta = np.deg2rad(self.theta)
 
         nphi = np.rad2deg(
             psi +
@@ -151,9 +156,8 @@ class Rotation2D(Model):
     angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, angle=angle.default):
-        super(Rotation2D, self).__init__()
-        self.angle = angle
-        self._matrix = self._compute_matrix(self._angle)
+        super(Rotation2D, self).__init__(angle, param_dim=1)
+        self._matrix = self._compute_matrix(np.deg2rad(angle))
 
     def inverse(self):
         """Inverse rotation."""

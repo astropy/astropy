@@ -180,12 +180,82 @@ class Model(object):
 
     This is an abstract class and should not be instantiated directly.
 
-    Notes
-    -----
-    Models which are not meant to be fit to data should subclass this class.
+    This class sets the constraints and other properties for all individual
+    parameters and performs parameter validation.
 
-    This class sets the properties for all individual parameters and performs
-    parameter validation.
+    Parameters
+    ----------
+    param_dim : int
+        Number of parameter sets
+    fixed : dict
+        Dictionary ``{parameter_name: bool}`` setting the fixed constraint
+        for one or more parameters.  `True` means the parameter is held fixed
+        during fitting and is prevented from updates once an instance of the
+        model has been created.
+
+        Alternatively the `~astropy.modeling.Parameter.fixed` property of a
+        parameter may be used to lock or unlock individual parameters.
+    tied : dict
+        Dictionary ``{parameter_name: callable}`` of parameters which are
+        linked to some other parameter. The dictionary values are callables
+        providing the linking relationship.
+
+        Alternatively the `~astropy.modeling.Parameter.tied` property of a
+        parameter may be used to set the ``tied`` constraint on individual
+        parameters.
+    bounds : dict
+        Dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
+        parameters. Keys are parameter names. Values are a list of length 2
+        giving the desired range for the parameter.
+
+        Alternatively the `~astropy.modeling.Parameter.min` and
+        `~astropy.modeling.Parameter.max` or
+        ~astropy.modeling.Parameter.bounds` properties of a parameter may be
+        used to set bounds on individual parameters.
+    eqcons : list
+        List of functions of length n such that ``eqcons[j](x0, *args) == 0.0``
+        in a successfully optimized problem.
+    ineqcons : list
+        List of functions of length n such that ``ieqcons[j](x0, *args) >=
+        0.0`` is a successfully optimized problem.
+
+    Examples
+    --------
+    >>> from astropy.modeling import models
+    >>> def tie_center(model):
+    ...         mean = 50 * model.stddev
+    ...         return mean
+    >>> tied_parameters = {'mean': tie_center}
+
+    Specify that ``'mean'`` is a tied parameter in one of two ways:
+
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
+    ...                        tied=tied_parameters)
+
+    or
+
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
+    >>> g1.mean.tied
+    False
+    >>> g1.mean.tied = tie_center
+    >>> g1.mean.tied
+    <function tie_center at 0x...>
+
+    Fixed parameters:
+
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
+    ...                        fixed={'stddev': True})
+    >>> g1.stddev.fixed
+    True
+
+    or
+
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
+    >>> g1.stddev.fixed
+    False
+    >>> g1.stddev.fixed = True
+    >>> g1.stddev.fixed
+    True
     """
 
     param_names = []
@@ -194,14 +264,13 @@ class Model(object):
     fittable = False
     linear = True
 
-    def __init__(self, param_dim=1):
-        self._param_dim = param_dim
-
-    @property
-    def param_dim(self):
-        """Number of parameter sets in a model."""
-
-        return self._param_dim
+    def __init__(self, *args, **kwargs):
+        super(Model, self).__init__()
+        self._initialize_constraints(kwargs)
+        # Remaining keyword args are either parameter values or invalid
+        # Parameter values must be passed in as keyword arguments in order to
+        # distinguish them
+        self._initialize_parameters(args, kwargs)
 
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
@@ -228,6 +297,16 @@ class Model(object):
 
         return dedent(fmt[1:])
 
+    @abc.abstractmethod
+    def __call__(self, *args, **kwargs):
+        """Evaluate the model on some input variables."""
+
+    @property
+    def param_dim(self):
+        """Number of parameter sets in a model."""
+
+        return self._param_dim
+
     @property
     def param_sets(self):
         """
@@ -250,6 +329,65 @@ class Model(object):
             psets = np.asarray(values)
             psets.shape = (len(self.param_names), self.param_dim)
         return psets
+
+    @property
+    def parameters(self):
+        """
+        A flattened array of all parameter values in all parameter sets
+
+        Fittable parameters maintain this list and fitters modify it.
+        """
+
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        """
+        Assigning to this attribute updates the parameters array rather than
+        replacing it.
+        """
+
+        try:
+            value = np.array(value).reshape(self._parameters.shape)
+        except ValueError as e:
+            raise InputParameterError(
+                "Input parameter values not compatible with the model "
+                "parameters array: {0}".format(e))
+
+        self._parameters[:] = value
+
+    @property
+    def fixed(self):
+        """
+        A dictionary mapping parameter names to their fixed constraint
+        """
+
+        return dict((name, getattr(self, name).fixed)
+                    for name in self.param_names)
+
+    @property
+    def tied(self):
+        """
+        A dictionary mapping parameter names to their tied constraint
+        """
+
+        return dict((name, getattr(self, name).tied)
+                    for name in self.param_names)
+
+    @property
+    def bounds(self):
+        return dict((name, getattr(self, name).bounds)
+                    for name in self.param_names)
+
+    @property
+    def eqcons(self):
+        """List of parameter equality constraints."""
+        return self._eqcons
+
+    @property
+    def ineqcons(self):
+        """List of parameter inequality constraints."""
+        return self._ineqcons
 
     def inverse(self):
         """Returns a callable object which performs the inverse transform."""
@@ -291,99 +429,12 @@ class Model(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    @abc.abstractmethod
-    def __call__(self):
-        raise NotImplementedError("Subclasses should implement this")
+    def _initialize_constraints(self, kwargs):
+        """
+        Pop parameter constraint values off the keyword arguments passed to
+        `Model.__init__` and store them in private instance attributes.
+        """
 
-
-class ParametricModel(Model):
-    """
-    Base class for all fittable models.
-
-    Notes
-    -----
-    All models which can be fit to data should subclass this class.
-
-    Sets the ``parameters`` attributes.
-
-    Parameters
-    ----------
-    param_dim : int
-        Number of parameter sets
-    fixed : dict
-        Dictionary ``{parameter_name: boolean}`` of parameters to not be
-        varied during fitting. True means the parameter is held fixed.
-        Alternatively the `~astropy.modeling.Parameter.fixed`
-        property of a parameter may be used.
-    tied : dict
-        Dictionary ``{parameter_name: callable}`` of parameters which are
-        linked to some other parameter. The dictionary values are callables
-        providing the linking relationship.
-        Alternatively the `~astropy.modeling.Parameter.tied`
-        property of a parameter may be used.
-    bounds : dict
-        Dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
-        parameters. Keys are parameter names. Values are a list of length 2
-        giving the desired range for the parameter.  Alternatively the
-        `~astropy.modeling.Parameter.min` and
-        `~astropy.modeling.Parameter.max` properties of a parameter
-        may be used.
-    eqcons : list
-        List of functions of length n such that ``eqcons[j](x0, *args) == 0.0``
-        in a successfully optimized problem.
-    ineqcons : list
-        List of functions of length n such that ``ieqcons[j](x0, *args) >=
-        0.0`` is a successfully optimized problem.
-
-    Examples
-    --------
-    >>> from astropy.modeling import models
-    >>> def tie_center(model):
-    ...         mean = 50 * model.stddev
-    ...         return mean
-    >>> tied_parameters = {'mean': tie_center}
-
-    Specify that ``'mean'`` is a tied parameter in one of two ways:
-
-    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
-    ...                             tied=tied_parameters)
-
-    or
-
-    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
-    >>> g1.mean.tied
-    False
-    >>> g1.mean.tied = tie_center
-    >>> g1.mean.tied
-    <function tie_center at 0x...>
-
-    Fixed parameters:
-
-    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
-    ...                             fixed={'stddev': True})
-    >>> g1.stddev.fixed
-    True
-
-    or
-
-    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
-    >>> g1.stddev.fixed
-    False
-    >>> g1.stddev.fixed = True
-    >>> g1.stddev.fixed
-    True
-    """
-
-    linear = False
-    # derivative with respect to parameters
-    fit_deriv = None
-    # Flag that indicates if the model derivatives with respect to parameters
-    # are given in columns or rows
-    col_fit_deriv = True
-    fittable = True
-
-
-    def __init__(self, **kwargs):
         # Pop any constraints off the keyword arguments
         bounds = kwargs.pop('bounds', None)
         fixed = kwargs.pop('fixed', None)
@@ -391,36 +442,9 @@ class ParametricModel(Model):
         eqcons = kwargs.pop('eqcons', None)
         ineqcons = kwargs.pop('ineqcons', None)
 
-        # Pop off the param_dims
-        param_dim = kwargs.pop('param_dim', None)
 
-        # Remaining keyword args are either parameter values or invalid
-        # Parameter values must be passed in as keyword arguments in order to
-        # distinguish them
-        params = kwargs
-
-        # Determine the number of parameter sets: This will be based
-        # on the size of any parameters whose values have been specified
-        # or the default of 1 is used
-        # This loop also checks that all the supplied parameter names are
-        # valid
-        param_names = set(self.param_names)
-
-        max_param_dim = 1
-        for name, value in params.items():
-            if param_dim is None:
-                # Determine the best param_dims, if not already specified,
-                # based on the sizes of the input parameter values
-                max_param_dim = max(max_param_dim, np.size(value))
-
-            if name not in param_names:
-                raise TypeError(
-                    "Unrecognized parameter: {0}".format(name))
-
-        if param_dim is None:
-            param_dim = max_param_dim
-
-        super(ParametricModel, self).__init__(param_dim=param_dim)
+        # TODO: Is there a particular reason eqcons and ineqcons are stored
+        # separately from the other constraint types?
 
         # Initialize the constraints for each parameter
         if eqcons is None:
@@ -442,99 +466,143 @@ class ParametricModel(Model):
         if bounds:
             self._constraints['bounds'] = bounds
 
-        self._initialize_parameters(params)
-
-
-    @property
-    def fixed(self):
+    def _initialize_parameters(self, args, kwargs):
         """
-        A dictionary mapping parameter names to their fixed constraint
-        """
-
-        return dict((name, getattr(self, name).fixed)
-                    for name in self.param_names)
-
-    @property
-    def tied(self):
-        """
-        A dictionary mapping parameter names to their tied constraint
+        Initialize the _parameters array that stores raw parameter values for
+        all parameter sets for use with vectorized fitting algorithms; on
+        ParametricModels the _param_name attributes actually just reference
+        slices of this array.
         """
 
-        return dict((name, getattr(self, name).tied)
-                    for name in self.param_names)
+        # Pop off the param_dims
+        param_dim = kwargs.pop('param_dim', None)
 
-    @property
-    def bounds(self):
-        return dict((name, getattr(self, name).bounds)
-                    for name in self.param_names)
+        # Process positional arguments by matching them up with the
+        # corresponding parameters in self.param_names--if any also appear as
+        # keyword arguments this presents a conflict
+        params = {}
+        if len(args) > len(self.param_names):
+            raise TypeError(
+                "{0}.__init__() takes at most {1} positional arguments ({2} "
+                "given)".format(self.__class__.__name__, len(self.param_names),
+                                len(args)))
 
-    @property
-    def eqcons(self):
-        """List of parameter equality constraints."""
-        return self._eqcons
+        for idx, arg in enumerate(args):
+            params[self.param_names[idx]] = arg
 
-    @property
-    def ineqcons(self):
-        """List of parameter inequality constraints."""
-        return self._ineqcons
+        # At this point the only remaining keyword arguments should be
+        # parameter names; any others are in error.
+        for param_name in self.param_names:
+            if param_name in kwargs:
+                if param_name in params:
+                    raise TypeError(
+                        "{0}.__init__() got multiple values for parameter "
+                        "{1!r}".format(self.__class__.__name__, param_name))
+                params[param_name] = kwargs.pop(param_name)
 
-    @property
-    def parameters(self):
-        """
-        A flattened array of all parameter values in all parameter sets
+        if kwargs:
+            # If any keyword arguments were left over at this point they are
+            # invalid--the base class should only be passed the parameter
+            # values, constraints, and param_dim
+            for kwarg in kwargs:
+                # Just raise an error on the first unrecognized argument
+                raise TypeError(
+                    '{0}.__init__() got an unrecognized parameter '
+                    '{1!r}'.format(self.__class__.__name__, kwarg))
 
-        Fittable parameters maintain this list and fitters modify it.
-        """
+        # Determine the number of parameter sets: This will be based
+        # on the size of any parameters whose values have been specified
+        # or the default of 1 is used
+        if param_dim is None:
+            max_param_dim = 1
+            for name, value in params.items():
+                # Determine the best param_dims, if not already specified,
+                # based on the sizes of the input parameter values
+                max_param_dim = max(max_param_dim, np.size(value))
 
-        return self._parameters
+            param_dim = max_param_dim
 
-    @parameters.setter
-    def parameters(self, value):
-        """
-        Assigning to this attribute updates the parameters array rather than
-        replacing it.
-        """
+        # First we need to determine how much array space is needed by all the
+        # parameters based on the number of parameters, the shape each input
+        # parameter, and the param_dim
+        self._param_dim = param_dim
+        self._param_metrics = {}
+        total_size = 0
+        for name in self.param_names:
+            if params.get(name) is None:
+                # parameters that were not supplied at all or that have
+                # defaults of None should attempt to use the default provided
+                # by their Parameter descriptor
+                default = getattr(self, name).default
 
-        try:
-            value = np.array(value).reshape(self._parameters.shape)
-        except ValueError as e:
-            raise InputParameterError(
-                "Input parameter values not compatible with the model "
-                "parameters array: {0}".format(e))
-
-        self._parameters[:] = value
-
-    def __getattr__(self, attr):
-        if len(attr) > 1 and attr[0] == '_' and attr != '_param_metrics':
-            param_name = attr[1:]
-            if param_name in self._param_metrics:
-                param_slice, param_shape = self._param_metrics[param_name]
-                value = self._parameters[param_slice]
-                if self.param_dim == 1:
-                    return value[0]
+                if default is None:
+                    # No value was supplied for the parameter, and the
+                    # parameter does not have a default--therefor the model is
+                    # underspecified
+                    raise TypeError(
+                        "{0}.__init__() requires a value for parameter "
+                        "{1!r}".format(self.__class__.__name__, name))
                 else:
-                    if param_shape:
-                        return value.reshape(param_shape)
-                    else:
-                        return value[0]
+                    params[name] = default
 
-        raise AttributeError(attr)
+            value = params[name]
 
-    def __setattr__(self, attr, value):
-        if (len(attr) > 1 and attr[0] == '_' and
-                hasattr(self, '_param_metrics')):
-            param_name = attr[1:]
-            if param_name in self._param_metrics:
-                # TODO: Maybe handle exception on invalid input shape
-                param_slice = self._param_metrics[param_name][0]
-                self._parameters[param_slice] = np.array(value).ravel()
-                return
+            param_size = np.size(value)
+            param_shape = np.shape(value)
 
-        super(ParametricModel, self).__setattr__(attr, value)
+            if param_dim == 1:
+                pass
+            elif param_dim > 1:
+                if param_size == 1:
+                    param_size = param_dim
+                    # Update the value for this param to the new repeated
+                    # version
+                    value = params[name] = np.repeat(value, param_size)
+                    param_shape = value.shape
+            else:
+                raise ValueError("Model param_dim must be 1 or greater.")
+
+            if param_size > 1 and param_dim > 1 and len(value) != param_dim:
+                # The len(value) == self.param_dim case is a special case
+                # (see #1680) where the parameter has compound values (like [1,
+                # 2]) but we're passing in two (or more) param sets, so we want
+                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
+                # having values for 2 param sets, not 4.
+
+                # For now all parameter values must have a number of elements
+                # equal to param_dim (the number of param sets) or it is
+                # invalid.  The *only* exception is, again, a scalar value is
+                # allowed to be repeated across param sets
+                raise InputParameterError(
+                    "The input value for {0!r} has too many elements for "
+                    "param_dim={1}.  Parameter values must either match the "
+                    "model's param_dim in size, or may be a scalar value, in "
+                    "which case the value is repeated accross parameter "
+                    "sets.".format(name, param_dim))
+
+            param_slice = slice(total_size, total_size + param_size)
+            self._param_metrics[name] = (param_slice, param_shape)
+            total_size += param_size
+
+        self._parameters = np.empty(total_size, dtype=np.float64)
+        # Now set the parameter values (this will also fill
+        # self._parameters)
+        for name, value in params.items():
+            setattr(self, name, value)
+
+
+class ParametricModel(Model):
+    linear = True
+    # derivative with respect to parameters
+    fit_deriv = None
+    # Flag that indicates if the model derivatives with respect to parameters
+    # are given in columns or rows
+    col_fit_deriv = True
+    fittable = True
 
     def __repr__(self):
         try:
-            degree = str(self.deg)
+            degree = str(self.degree)
         except AttributeError:
             degree = ""
         try:
@@ -586,74 +654,6 @@ class ParametricModel(Model):
         """
 
         self.joint = jparams
-
-    def _initialize_parameters(self, params):
-        """
-        Initialize the _parameters array that stores raw parameter values for
-        all parameter sets for use with vectorized fitting algorithms; on
-        ParametricModels the _param_name attributes actually just reference
-        slices of this array.
-        """
-
-        # First we need to determine how much array space is needed by all the
-        # parameters based on the number of parameters, the shape each input
-        # parameter, and the param_dim
-        self._param_metrics = {}
-        total_size = 0
-        for name in self.param_names:
-
-            if params.get(name) is None:
-                # parameters that were not supplied at all or that have
-                # defaults of None should attempt to use the default provided
-                # by their Parameter descriptor
-                params[name] = getattr(self, name).default
-
-            value = params[name]
-
-            param_size = np.size(value)
-            param_shape = np.shape(value)
-
-            if self.param_dim == 1:
-                pass
-            elif self.param_dim > 1:
-                if param_size == 1:
-                    param_size = self.param_dim
-                    # Update the value for this param to the new repeated
-                    # version
-                    value = params[name] = np.repeat(value, param_size)
-                    param_shape = value.shape
-            else:
-                raise ValueError("Model param_dim must be 1 or greater.")
-
-            if (param_size > 1 and param_size != self.param_dim and
-                    len(value) != self.param_dim):
-                # The len(value) == self.param_dim case is a special case
-                # (see #1680) where the parameter has compound values (like [1,
-                # 2]) but we're passing in two (or more) param sets, so we want
-                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
-                # having values for 2 param sets, not 4.
-
-                # For now all parameter values must have a number of elements
-                # equal to param_dim (the number of param sets) or it is
-                # invalid.  The *only* exception is, again, a scalar value is
-                # allowed to be repeated across param sets
-                raise InputParameterError(
-                    "The input value for {0!r} has too many elements for "
-                    "param_dim={1}.  Parameter values must either match the "
-                    "model's param_dim in size, or may be a scalar value, in "
-                    "which case the value is repeated accross parameter "
-                    "sets.".format(name, self.param_dim))
-
-            param_slice = slice(total_size, total_size + param_size)
-            self._param_metrics[name] = (param_slice, param_shape)
-            total_size += param_size
-
-        self._parameters = np.empty(total_size, dtype=np.float64)
-
-        # Now set the parameter values (this will also fill
-        # self._parameters)
-        for name, value in params.items():
-            setattr(self, name, value)
 
 
 class LabeledInput(dict):

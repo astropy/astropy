@@ -23,8 +23,7 @@ class NonFittableModel(Model):
         else:
             param_dim = len(a)
 
-        super(NonFittableModel, self).__init__(param_dim=param_dim)
-        self.a = a
+        super(NonFittableModel, self).__init__(a, param_dim=param_dim)
 
     def __call__(self):
         pass

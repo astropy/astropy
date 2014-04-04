@@ -319,15 +319,13 @@ class Shift(Model):
         else:
             param_dim = len(offsets)
 
-        self._offsets = offsets
-
-        super(Shift, self).__init__(param_dim=param_dim)
+        super(Shift, self).__init__(offsets, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return Shift(offsets=(-1) * self._offsets)
+            return Shift(offsets=(-1) * self.offsets)
         else:
-            return Shift(offsets=[off * (-1) for off in self._offsets])
+            return Shift(offsets=[off * (-1) for off in self.offsets])
 
     @format_input
     def __call__(self, x):
@@ -340,7 +338,7 @@ class Shift(Model):
             input
         """
 
-        return self._offsets + x
+        return self.offsets + x
 
 
 class Scale(Model):
@@ -361,15 +359,13 @@ class Scale(Model):
         else:
             param_dim = len(factors)
 
-        self._factors = factors
-
-        super(Scale, self).__init__(param_dim=param_dim)
+        super(Scale, self).__init__(factors, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return Scale(factors=1. / self._factors)
+            return Scale(factors=1. / self.factors)
         else:
-            return Scale(factors=[1 / factor for factor in self._factors])
+            return Scale(factors=[1 / factor for factor in self.factors])
 
     @format_input
     def __call__(self, x):
@@ -382,7 +378,7 @@ class Scale(Model):
             input
         """
 
-        return self._factors * x
+        return self.factors * x
 
 
 class Sine1D(Parametric1DModel):

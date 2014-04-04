@@ -120,10 +120,7 @@ class PolynomialModel(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(PolynomialModel, self).__init__(param_dim=param_dim)
-
-        for name, value in params.items():
-            setattr(self, name, value)
+        super(PolynomialModel, self).__init__(param_dim=param_dim, **params)
 
     @property
     def degree(self):
@@ -258,10 +255,8 @@ class OrthoPolynomialBase(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim)
-
-        for name, value in params.items():
-            setattr(self, name, value)
+        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim,
+                                                  **params)
 
     def get_num_coeff(self):
         """

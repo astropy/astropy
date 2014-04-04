@@ -33,17 +33,17 @@ class TestParModel(ParametricModel):
         pass
 
 
-class MockModel(ParametricModel):
-    def __call__(self):
-        pass
-
-
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
 
-    # It is possible to test some Parameter functionality by binding it to a
-    # dummy model and giving it a default value
-    p = Parameter(name='alpha', default=42, model=MockModel())
+    class MockModel(ParametricModel):
+        alpha = Parameter(name='alpha', default=42)
+
+        def __call__(self):
+            pass
+
+    m = MockModel()
+    p = m.alpha
 
     assert p.name == 'alpha'
 
@@ -77,7 +77,14 @@ def test_parameter_operators():
     """Test if the parameter arithmetic operators works,
     i.e. whether parameters behave like numbers."""
 
-    par = Parameter(name='alpha', default=5., model=MockModel())
+    class MockModel(ParametricModel):
+        alpha = Parameter(name='alpha', default=5)
+
+        def __call__(self):
+            pass
+
+    m = MockModel()
+    par = m.alpha
     num = 5.
     val = 3
 
