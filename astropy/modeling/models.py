@@ -20,25 +20,27 @@ Note: add new models to this list
 """
 
 CONSTRAINTS_DOC = """
-    fixed: a dict
-        a dictionary ``{parameter_name: boolean}`` of parameters to not be
+    Other Parameters
+    ----------------
+    fixed : a dict
+        A dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
         Alternatively the `~astropy.modeling.Parameter.fixed`
         property of a parameter may be used.
-    tied: dict
-        a dictionary ``{parameter_name: callable}`` of parameters which are
+    tied : dict
+        A dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.  Alternatively the
         `~astropy.modeling.Parameter.tied` property of a parameter
         may be used.
-    bounds: dict
-        a dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
+    bounds : dict
+        A dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
         parameters. Keys  are parameter names. Values  are a list of length 2
         giving the desired range for the parameter.  Alternatively the
         `~astropy.modeling.Parameter.min` and
         `~astropy.modeling.Parameter.max` properties of a parameter
         may be used.
-    eqcons: list
+    eqcons : list
         A list of functions of length ``n`` such that ``eqcons[j](x0,*args) ==
         0.0`` in a successfully optimized problem.
     ineqcons : list
