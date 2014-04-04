@@ -579,6 +579,15 @@ class TestQuantityDisplay(object):
         assert str(bad_quantity).endswith(_UNIT_NOT_INITIALISED)
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
+    def test_repr_latex(self):
+        q2 = u.Quantity(1.5e14, 'm/s')
+        assert self.scalarintq._repr_latex_() == '$1 \\; \\mathrm{m}$'
+        assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
+        assert (q2._repr_latex_() ==
+                '$1.5\\times 10^{+14} \\; \\mathrm{\\frac{m}{s}}$')
+        with pytest.raises(NotImplementedError):
+            self.arrq._repr_latex_()
+
 
 def test_decompose():
     q1 = 5 * u.N
