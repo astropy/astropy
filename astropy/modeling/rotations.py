@@ -148,7 +148,7 @@ class Rotation2D(Model):
     n_outputs = 2
 
     angle = Parameter(getter=np.rad2deg,
-                      setter=lambda a: Rotation2D.validate_angle(a),
+                      setter=lambda a: Rotation2D._validate_angle(a),
                       default=0.0)
 
     def __init__(self, angle=angle.default):
@@ -157,7 +157,7 @@ class Rotation2D(Model):
         self._matrix = self._compute_matrix(self._angle)
 
     @staticmethod
-    def validate_angle(angle):
+    def _validate_angle(angle):
         """Validates that an input angle is a number and converts it from
         degrees to radians.
         """

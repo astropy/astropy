@@ -515,10 +515,10 @@ class AffineTransformation2D(Model):
     n_outputs = 2
 
     matrix = Parameter(
-        setter=lambda m: AffineTransformation2D.validate_matrix(m),
+        setter=lambda m: AffineTransformation2D._validate_matrix(m),
         default=[[1.0, 0.0], [0.0, 1.0]])
     translation = Parameter(
-        setter=lambda t: AffineTransformation2D.validate_vector(t),
+        setter=lambda t: AffineTransformation2D._validate_vector(t),
         default=[0.0, 0.0])
 
     def __init__(self, matrix=matrix.default,
@@ -571,7 +571,7 @@ class AffineTransformation2D(Model):
         return x, y
 
     @staticmethod
-    def validate_matrix(matrix):
+    def _validate_matrix(matrix):
         """Validates that the input matrix is a 2x2 2D array."""
 
         matrix = np.array(matrix)
@@ -581,7 +581,7 @@ class AffineTransformation2D(Model):
         return matrix
 
     @staticmethod
-    def validate_vector(vector):
+    def _validate_vector(vector):
         """
         Validates that the translation vector is a 2D vector.  This allows
         either a "row" vector or a "column" vector where in the latter case the
