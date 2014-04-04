@@ -6,10 +6,22 @@ from ....table import Table, Column
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
+files = ['t/cds.dat', 't/ipac.dat', 't/daophot.dat', 't/latex1.tex',
+         't/simple_csv.csv']
 
-@pytest.mark.parametrize('filename', ['t/cds.dat', 't/ipac.dat',
-                                      't/daophot.dat', 't/latex1.tex',
-                                      't/simple_csv.csv'])
+# Check to see if the BeautifulSoup dependency is present.
+
+try:
+    from bs4 import BeautifulSoup
+    HAS_BEAUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEAUTIFUL_SOUP = False
+    
+if HAS_BEAUTIFUL_SOUP:
+    files.append('t/html.html')
+
+@pytest.mark.parametrize('filename', files)
+
 def test_read_generic(filename):
     Table.read(os.path.join(ROOT, filename), format='ascii')
 
@@ -54,6 +66,32 @@ def test_write_latex_noformat(tmpdir):
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.tex"))
+    t.write(path)
+
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_read_html():
+    Table.read(os.path.join(ROOT, 't/html.html'), format='html')
+
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_read_html_noformat():
+    Table.read(os.path.join(ROOT, 't/html.html'))
+
+
+def test_write_html(tmpdir):
+    t = Table()
+    t.add_column(Column(name='a', data=[1, 2, 3]))
+    t.add_column(Column(name='b', data=['a', 'b', 'c']))
+    path = str(tmpdir.join("data.html"))
+    t.write(path, format='html')
+
+
+def test_write_html_noformat(tmpdir):
+    t = Table()
+    t.add_column(Column(name='a', data=[1, 2, 3]))
+    t.add_column(Column(name='b', data=['a', 'b', 'c']))
+    path = str(tmpdir.join("data.html"))
     t.write(path)
 
 

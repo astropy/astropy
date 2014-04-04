@@ -158,6 +158,61 @@ tablefoot
 \\end{tabletype}
 """
          ),
+    dict(kwargs=dict(Writer=asciitable.HTML, htmldict={'css':'table,th,td{border:1px solid black;'}),
+         out="""\
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
+  <style>
+table,th,td{border:1px solid black;  </style>
+ </head>
+ <body>
+  <table>
+   <tr>
+    <th>ID</th>
+    <th>XCENTER</th>
+    <th>YCENTER</th>
+    <th>MAG</th>
+    <th>MERR</th>
+    <th>MSKY</th>
+    <th>NITER</th>
+    <th>SHARPNESS</th>
+    <th>CHI</th>
+    <th>PIER</th>
+    <th>PERROR</th>
+   </tr>
+   <tr>
+    <td>14</td>
+    <td>138.538</td>
+    <td>256.405</td>
+    <td>15.461</td>
+    <td>0.003</td>
+    <td>34.85955</td>
+    <td>4</td>
+    <td>-0.032</td>
+    <td>0.802</td>
+    <td>0</td>
+    <td>No_error</td>
+   </tr>
+   <tr>
+    <td>18</td>
+    <td>18.114</td>
+    <td>280.170</td>
+    <td>22.329</td>
+    <td>0.206</td>
+    <td>30.12784</td>
+    <td>4</td>
+    <td>-2.544</td>
+    <td>1.104</td>
+    <td>0</td>
+    <td>No_error</td>
+   </tr>
+  </table>
+ </body>
+</html>
+"""
+         ),
     dict(kwargs=dict(Writer=asciitable.Ipac),
          out="""\
 \\MERGERAD='INDEF'
@@ -267,7 +322,7 @@ def check_write_table(test_def, table):
     asciitable.write(table, out, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
-    assert [x.strip() for x in out.getvalue().splitlines()] == [
+    assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
@@ -284,7 +339,7 @@ def check_write_table_via_table(test_def, table):
     table.write(out, format=format, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
-    assert [x.strip() for x in out.getvalue().splitlines()] == [
+    assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 

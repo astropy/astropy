@@ -89,6 +89,7 @@ install:
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "scipy==0.13.1"; fi
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "h5py==2.1.3"; fi
+    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "beautifulsoup4"; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that

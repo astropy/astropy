@@ -720,6 +720,15 @@ def get_testfiles(name=None):
          'opts': {'Reader': asciitable.AASTex}},
     ]
 
+    try:
+        import bs4
+        testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
+                          'name': 't/html.html',
+                          'nrows': 3,
+                          'opts': {'Reader': asciitable.HTML}})
+    except ImportError:
+        pass
+
     if name is not None:
         return [x for x in testfiles if x['name'] == name][0]
     else:

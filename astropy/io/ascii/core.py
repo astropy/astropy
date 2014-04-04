@@ -41,6 +41,16 @@ class InconsistentTableError(ValueError):
     """
     pass
 
+class OptionalTableImportError(ImportError):
+    """
+    Indicates that a dependency for table reading is not present.
+
+    An instance of this class is raised whenever an optional reader
+    with certain required dependencies cannot operate because of
+    an ImportError.
+    """
+    pass
+
 
 class NoType(object):
     """

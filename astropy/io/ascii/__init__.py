@@ -24,6 +24,7 @@ from .basic import (Basic,
                     CommentedHeader)
 from .cds import Cds
 from .latex import Latex, AASTex, latexdicts
+from .html import HTML
 from .ipac import Ipac
 from .daophot import Daophot
 from .sextractor import SExtractor
