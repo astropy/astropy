@@ -825,3 +825,18 @@ def test_cartesian_cylindrical_roundtrip():
     assert_allclose_quantity(s2.rho, s4.rho)
     assert_allclose_quantity(s2.phi, s4.phi)
     assert_allclose_quantity(s2.z, s4.z)
+
+
+def test_unit_spherical_roundtrip():
+
+    s1 = UnitSphericalRepresentation(lon=[10. * u.deg, 30 * u.deg],
+                                     lat=[5. * u.arcmin, 6. * u.arcmin])
+
+    s2 = CartesianRepresentation(representation=s1)
+
+    s3 = SphericalRepresentation(representation=s2)
+
+    s4 = UnitSphericalRepresentation(representation=s3)
+
+    assert_allclose_quantity(s1.lon, s4.lon)
+    assert_allclose_quantity(s1.lat, s4.lat)
