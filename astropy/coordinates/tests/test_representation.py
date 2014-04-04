@@ -3,7 +3,7 @@ from numpy.testing import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
-from ..angles import Longitude, Latitude
+from ..angles import Longitude, Latitude, Angle
 from ..distances import Distance
 from ..representation import (SphericalRepresentation,
                               UnitSphericalRepresentation,
@@ -265,22 +265,22 @@ class TestPhysicsSphericalRepresentation(object):
         assert s3.theta == 5. * u.deg
         assert s3.distance == 10 * u.kpc
 
-        assert isinstance(s3.phi, Longitude)
-        assert isinstance(s3.theta, Latitude)
+        assert isinstance(s3.phi, Angle)
+        assert isinstance(s3.theta, Angle)
         assert isinstance(s3.distance, Distance)
 
     def test_init_phitheta(self):
 
-        s2 = PhysicsSphericalRepresentation(Longitude(8, u.hour),
-                                     Latitude(5, u.deg),
+        s2 = PhysicsSphericalRepresentation(Angle(8, u.hour),
+                                     Angle(5, u.deg),
                                      Distance(10, u.kpc))
 
         assert s2.phi == 8. * u.hourangle
         assert s2.theta == 5. * u.deg
         assert s2.distance == 10. * u.kpc
 
-        assert isinstance(s2.phi, Longitude)
-        assert isinstance(s2.theta, Latitude)
+        assert isinstance(s2.phi, Angle)
+        assert isinstance(s2.theta, Angle)
         assert isinstance(s2.distance, Distance)
 
     def test_init_array(self):
@@ -293,14 +293,14 @@ class TestPhysicsSphericalRepresentation(object):
         assert_allclose(s1.theta.degree, [5, 6])
         assert_allclose(s1.distance.kpc, [1, 2])
 
-        assert isinstance(s1.phi, Longitude)
-        assert isinstance(s1.theta, Latitude)
+        assert isinstance(s1.phi, Angle)
+        assert isinstance(s1.theta, Angle)
         assert isinstance(s1.distance, Distance)
 
     def test_init_array_nocopy(self):
 
-        phi = Longitude([8, 9] * u.hourangle)
-        theta = Latitude([5, 6] * u.deg)
+        phi = Angle([8, 9] * u.hourangle)
+        theta = Angle([5, 6] * u.deg)
         distance = Distance([1, 2] * u.kpc)
 
         s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=distance, copy=False)
@@ -721,7 +721,7 @@ def test_cartesian_physics_spherical_roundtrip():
 
     s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
                                  y=[3 * u.kpc, 4 * u.pc] ,
-                                 z=[5. * u.cm, 6 * u.m])
+                                 z=[5. * u.pc, 6 * u.kpc])
 
     s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
@@ -757,7 +757,7 @@ def test_spherical_physics_spherical_roundtrip():
     assert_allclose_quantity(s2.distance, s4.distance)
 
     assert_allclose_quantity(s1.lon, s4.phi)
-    assert_allclose_quantity(s1.lat, s4.theta)
+    assert_allclose_quantity(s1.lat, 90. * u.deg - s4.theta)
     assert_allclose_quantity(s1.distance, s4.distance)
 
 

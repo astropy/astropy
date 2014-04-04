@@ -219,7 +219,9 @@ class SphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
         if other_class is PhysicsSphericalRepresentation:
-            return PhysicsSphericalRepresentation(phi=self.lon, theta=self.lat, distance=self.distance)
+            return PhysicsSphericalRepresentation(phi=self.lon,
+                                                  theta=90 * u.deg - self.lat,
+                                                  distance=self.distance)
         else:
             return super(SphericalRepresentation, self).represent_as(other_class)
 
@@ -344,19 +346,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """
     Representation of points in 3D spherical coordinates (using the physics
-    convention of using ``phi`` and ``theta`` for longitude and latitude).
+    convention of using ``phi`` and ``theta`` for azimuth and inclination
+    from the pole).
 
     Parameters
     ----------
     phi, theta : `~astropy.units.Quantity` or str
-        The longitude and latitude of the point(s). The input values are
-        passed to the `~astropy.coordinates.Longitude` and
-        `~astropy.coordinates.Latitude` class respectively, so any valid
+        The azimuth and inclination of the point(s). The input values are
+        passed to the `~astropy.coordinates.Angle`, so any valid
         input for these classes is acceptable. This includes
-        `~astropy.units.Quantity` instances, strings, lists of strings, and
-        so on. `~astropy.coordinates.Longitude` instances can only be passed
-        to ``phi``, and `~astropy.coordinates.Latitude` instances can only be
-        passed to ``theta``.
+        `~astropy.units.Quantity` instances, strings, and lists of strings.
 
     distance : `~astropy.units.Quantity`
         The distance to the point(s). If the distance is a length, it is
@@ -370,8 +369,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def __init__(self, phi, theta, distance, copy=True):
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
-        phi = Longitude(phi, copy=copy)
-        theta = Latitude(theta, copy=copy)
+        phi = Angle(phi, copy=copy)
+        theta = Angle(theta, copy=copy)
 
         if isinstance(distance, u.Quantity) and distance.unit.physical_type == 'length':
             distance = Distance(distance, copy=copy)
@@ -411,7 +410,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
         if other_class is SphericalRepresentation:
-            return SphericalRepresentation(lon=self.phi, lat=self.theta, distance=self.distance)
+            return SphericalRepresentation(lon=self.phi,
+                                           lat=90 * u.deg - self.theta,
+                                           distance=self.distance)
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 
@@ -426,9 +427,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # Quantity objects (https://github.com/astropy/astropy/issues/2259)
         d = self.distance.view(u.Quantity)
 
-        x = d * np.cos(self.theta) * np.cos(self.phi)
-        y = d * np.cos(self.theta) * np.sin(self.phi)
-        z = d * np.sin(self.theta)
+        x = d * np.sin(self.theta) * np.cos(self.phi)
+        y = d * np.sin(self.theta) * np.sin(self.phi)
+        z = d * np.cos(self.theta)
 
         return CartesianRepresentation(x=x, y=y, z=z)
 
@@ -447,7 +448,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         s = (xsq + ysq) ** 0.5
 
         phi = np.arctan2(cart.y, cart.x)
-        theta = np.arctan2(cart.z, s)
+        theta = np.arctan2(s, cart.z)
 
         return PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=r)
 
