@@ -144,8 +144,8 @@ class Quantity(np.ndarray):
         is ignored if the input is a `Quantity` and ``copy=False``.
 
     subok : bool, optional
-        If True, then sub-classes will be passed-through, otherwise
-        the returned array will be forced to be a Quantity (default).
+        If `False` (default), the returned array will be forced to be a
+        `Quantity`.  Otherwise, `Quantity` subclasses will be passed through.
 
     ndmin : int, optional
         Specifies the minimum number of dimensions that the resulting array
@@ -181,15 +181,15 @@ class Quantity(np.ndarray):
                 # the above already makes a copy (with float dtype)
                 copy = False
 
+            if not subok and type(value) is not cls:
+                value = value.view(cls)
+
             if dtype is None:
                 if not copy:
                     return value
 
                 if not np.can_cast(np.float32, value.dtype):
                     dtype = np.float
-
-            if not subok:
-                value = value.view(cls)
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
@@ -450,7 +450,7 @@ class Quantity(np.ndarray):
         # return a bare Numpy array.
         return self.copy()
 
-    def __quantity_view__(self, obj, unit):
+    def __quantity_view__(self, obj, unit, subok=True):
         """
         Overridden by subclasses to change what kind of view is
         created based on the output unit of an operation.
@@ -465,20 +465,27 @@ class Quantity(np.ndarray):
             be assigned to the view, but it can be used to select a
             Quantity subclass.
 
+        subok : Bool
+            If `True` (default), return a view using the class of `self`.
+            If `False`, return a view as a `Quantity`.
+
         Returns
         -------
         view : Quantity subclass
         """
-        return obj.view(Quantity)
+        return obj.view(self.__class__ if subok else Quantity)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
+    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
         """
         Overridden by subclasses to impact what kind of instance is
         created based on the output unit of an operation.
 
         The parameters are the same as those to `Quantity.__new__`.
         """
-        return Quantity(val, unit, **kwargs)
+        if subok:
+            return self.__class__(val, unit, **kwargs)
+        else:
+            return Quantity(val, unit, **kwargs)
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses), see
