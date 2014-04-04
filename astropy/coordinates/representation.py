@@ -19,11 +19,6 @@ from ..extern import six
 
 # Suggestions to improve API
 #
-# - switch from allowing a representation to be passed as an argument to
-# having a ``from_representation`` class method. Alternatively, we get rid of
-# the representation argument and just allow the first argument to be a
-# representation object, since this would already simplify __new__ somewhat.
-#
 # - change PhysicistSphericalRepresentation to PhysicsSphericalRepresentation
 # (implemented below).
 #
