@@ -334,3 +334,14 @@ def test_list_of_quantities():
     assert a2.unit == u.deg
     assert_allclose(a2.value, [15, 1])
 
+def test_multiply_divide():
+    # Issue #2273
+    a1 = Angle([1, 2, 3], u.deg)
+    a2 = Angle([4, 5, 6], u.deg)
+    a3 = a1 * a2
+    assert_allclose(a3.value, [4, 10, 18])
+    assert a3.unit == (u.deg * u.deg)
+
+    a3 = a1 / a2
+    assert_allclose(a3.value, [.25, .4, .5])
+    assert a3.unit == u.dimensionless_unscaled
