@@ -19,9 +19,8 @@ def assert_allclose_quantity(q1, q2):
 class TestSphericalRepresentation(object):
 
     def test_empty_init(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(TypeError) as exc:
             s = SphericalRepresentation()
-        assert exc.value.args[0] == "lon, lat, and distance are required to instantiate SphericalRepresentation"
 
     def test_init_quantity(self):
 
@@ -89,19 +88,11 @@ class TestSphericalRepresentation(object):
 
         s1 = SphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, distance=10 * u.kpc)
 
-        s2 = SphericalRepresentation(representation=s1)
+        s2 = SphericalRepresentation.from_representation(s1)
 
         assert_allclose_quantity(s2.lon, 8. * u.hourangle)
         assert_allclose_quantity(s2.lat, 5. * u.deg)
         assert_allclose_quantity(s2.distance, 10 * u.kpc)
-
-    def test_reprobj_invalid(self):
-
-        s1 = SphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, distance=10 * u.kpc)
-
-        with pytest.raises(ValueError) as exc:
-            s2 = SphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, representation=s1)
-        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
 
     def test_broadcasting(self):
 
@@ -157,9 +148,8 @@ class TestSphericalRepresentation(object):
 class TestUnitSphericalRepresentation(object):
 
     def test_empty_init(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(TypeError) as exc:
             s = UnitSphericalRepresentation()
-        assert exc.value.args[0] == "lon and lat are required to instantiate UnitSphericalRepresentation"
 
     def test_init_quantity(self):
 
@@ -215,18 +205,10 @@ class TestUnitSphericalRepresentation(object):
 
         s1 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
 
-        s2 = UnitSphericalRepresentation(representation=s1)
+        s2 = UnitSphericalRepresentation.from_representation(s1)
 
         assert_allclose_quantity(s2.lon, 8. * u.hourangle)
         assert_allclose_quantity(s2.lat, 5. * u.deg)
-
-    def test_reprobj_invalid(self):
-
-        s1 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
-
-        with pytest.raises(ValueError) as exc:
-            s2 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, representation=s1)
-        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
 
     def test_broadcasting(self):
 
@@ -273,9 +255,8 @@ class TestUnitSphericalRepresentation(object):
 class TestPhysicsSphericalRepresentation(object):
 
     def test_empty_init(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(TypeError) as exc:
             s = PhysicsSphericalRepresentation()
-        assert exc.value.args[0] == "phi, theta, and distance are required to instantiate PhysicsSphericalRepresentation"
 
     def test_init_quantity(self):
 
@@ -343,19 +324,11 @@ class TestPhysicsSphericalRepresentation(object):
 
         s1 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, distance=10 * u.kpc)
 
-        s2 = PhysicsSphericalRepresentation(representation=s1)
+        s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
         assert_allclose_quantity(s2.phi, 8. * u.hourangle)
         assert_allclose_quantity(s2.theta, 5. * u.deg)
         assert_allclose_quantity(s2.distance, 10 * u.kpc)
-
-    def test_reprobj_invalid(self):
-
-        s1 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, distance=10 * u.kpc)
-
-        with pytest.raises(ValueError) as exc:
-            s2 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, representation=s1)
-        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
 
     def test_broadcasting(self):
 
@@ -412,9 +385,8 @@ class TestPhysicsSphericalRepresentation(object):
 class TestCartesianRepresentation(object):
 
     def test_empty_init(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(TypeError) as exc:
             s = CartesianRepresentation()
-        assert exc.value.args[0] == "x, y, and z are required to instantiate CartesianRepresentation"
 
     def test_init_quantity(self):
 
@@ -513,19 +485,11 @@ class TestCartesianRepresentation(object):
 
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
 
-        s2 = CartesianRepresentation(representation=s1)
+        s2 = CartesianRepresentation.from_representation(s1)
 
         assert s2.x == 1 * u.kpc
         assert s2.y == 2 * u.kpc
         assert s2.z == 3 * u.kpc
-
-    def test_reprobj_invalid(self):
-
-        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
-
-        with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc, representation=s1)
-        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
 
     def test_broadcasting(self):
 
@@ -614,9 +578,8 @@ class TestCartesianRepresentation(object):
 class TestCylindricalRepresentation(object):
 
     def test_empty_init(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(TypeError) as exc:
             s = CylindricalRepresentation()
-        assert exc.value.args[0] == "rho, phi, and z are required to instantiate CylindricalRepresentation"
 
     def test_init_quantity(self):
 
@@ -664,19 +627,11 @@ class TestCylindricalRepresentation(object):
 
         s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
 
-        s2 = CylindricalRepresentation(representation=s1)
+        s2 = CylindricalRepresentation.from_representation(s1)
 
         assert s2.rho == 1 * u.kpc
         assert s2.phi == 2 * u.deg
         assert s2.z == 3 * u.kpc
-
-    def test_reprobj_invalid(self):
-
-        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
-
-        with pytest.raises(ValueError) as exc:
-            s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc, representation=s1)
-        assert exc.value.args[0] == "If representation is passed, no other arguments can be passed"
 
     def test_broadcasting(self):
 
@@ -747,11 +702,11 @@ def test_cartesian_spherical_roundtrip():
                                  y=[3 * u.kpc, 4 * u.pc] ,
                                  z=[5. * u.cm, 6 * u.m])
 
-    s2 = SphericalRepresentation(representation=s1)
+    s2 = SphericalRepresentation.from_representation(s1)
 
-    s3 = CartesianRepresentation(representation=s2)
+    s3 = CartesianRepresentation.from_representation(s2)
 
-    s4 = SphericalRepresentation(representation=s3)
+    s4 = SphericalRepresentation.from_representation(s3)
 
     assert_allclose_quantity(s1.x, s3.x)
     assert_allclose_quantity(s1.y, s3.y)
@@ -768,11 +723,11 @@ def test_cartesian_physics_spherical_roundtrip():
                                  y=[3 * u.kpc, 4 * u.pc] ,
                                  z=[5. * u.cm, 6 * u.m])
 
-    s2 = PhysicsSphericalRepresentation(representation=s1)
+    s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
-    s3 = CartesianRepresentation(representation=s2)
+    s3 = CartesianRepresentation.from_representation(s2)
 
-    s4 = PhysicsSphericalRepresentation(representation=s3)
+    s4 = PhysicsSphericalRepresentation.from_representation(s3)
 
     assert_allclose_quantity(s1.x, s3.x)
     assert_allclose_quantity(s1.y, s3.y)
@@ -787,11 +742,11 @@ def test_spherical_physics_spherical_roundtrip():
 
     s1 = SphericalRepresentation(lon=3 * u.deg, lat=4 * u.deg, distance=3 * u.kpc)
 
-    s2 = PhysicsSphericalRepresentation(representation=s1)
+    s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
-    s3 = SphericalRepresentation(representation=s2)
+    s3 = SphericalRepresentation.from_representation(s2)
 
-    s4 = PhysicsSphericalRepresentation(representation=s3)
+    s4 = PhysicsSphericalRepresentation.from_representation(s3)
 
     assert_allclose_quantity(s1.lon, s3.lon)
     assert_allclose_quantity(s1.lat, s3.lat)
@@ -812,11 +767,11 @@ def test_cartesian_cylindrical_roundtrip():
                                  y=[3 * u.kpc, 4 * u.pc] ,
                                  z=[5. * u.cm, 6 * u.m])
 
-    s2 = CylindricalRepresentation(representation=s1)
+    s2 = CylindricalRepresentation.from_representation(s1)
 
-    s3 = CartesianRepresentation(representation=s2)
+    s3 = CartesianRepresentation.from_representation(s2)
 
-    s4 = CylindricalRepresentation(representation=s3)
+    s4 = CylindricalRepresentation.from_representation(s3)
 
     assert_allclose_quantity(s1.x, s3.x)
     assert_allclose_quantity(s1.y, s3.y)
@@ -832,11 +787,11 @@ def test_unit_spherical_roundtrip():
     s1 = UnitSphericalRepresentation(lon=[10. * u.deg, 30 * u.deg],
                                      lat=[5. * u.arcmin, 6. * u.arcmin])
 
-    s2 = CartesianRepresentation(representation=s1)
+    s2 = CartesianRepresentation.from_representation(s1)
 
-    s3 = SphericalRepresentation(representation=s2)
+    s3 = SphericalRepresentation.from_representation(s2)
 
-    s4 = UnitSphericalRepresentation(representation=s3)
+    s4 = UnitSphericalRepresentation.from_representation(s3)
 
     assert_allclose_quantity(s1.lon, s4.lon)
     assert_allclose_quantity(s1.lat, s4.lat)

@@ -51,17 +51,6 @@ class BaseRepresentation(object):
     Base Representation object, for representing a point in a 3D coordinate system
     """
 
-    def __new__(cls, *args, **kwargs):
-
-        representation = kwargs.pop('representation', None)
-
-        if representation is None:
-            return super(BaseRepresentation, cls).__new__(cls)
-        else:
-            if any([x is not None for x in kwargs.values()]):
-                raise ValueError("If representation is passed, no other arguments can be passed")
-            return cls.from_representation(representation)
-
     def represent_as(self, other_class):
         if other_class == self.__class__:
             return self
@@ -89,7 +78,7 @@ class CartesianRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    x, y, z : `~astropy.units.Quantity` or float or `~numpy.ndarray`, optional
+    x, y, z : `~astropy.units.Quantity` or float or `~numpy.ndarray`
         The x, y, and z coordinates of the point(s), which should either be
         `~astropy.units.Quantity` instances, or can be passed as
         float or `numpy.ndarray` provided that the ``unit`` parameter is
@@ -103,25 +92,16 @@ class CartesianRepresentation(BaseRepresentation):
         `~astropy.units.Quantity` instances, and ``unit`` is specified, they
         are converted to ``unit``.
 
-    representation : BaseRepresentation, optional
-        A pre-existing Representation object to convert to cartesian
-        coordinates.
-
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, x=None, y=None, z=None, unit=None, representation=None,
-                 copy=True):
+    def __init__(self, x, y=None, z=None, unit=None, copy=True):
 
-        if representation is not None:
-            return
-
-        if x is not None and y is None and z is None:
+        if y is None and z is None:
             x, y, z = x
-        elif x is None or y is None or z is None:
-            raise ValueError('x, y, and z are required to instantiate CartesianRepresentation')
-
+        elif (y is None and z is not None) or (y is not None and z is None):
+            raise ValueError("x, y, and z are required to instantiate CartesianRepresentation")
 
         if unit is not None:
             unit = u.Unit(unit)
@@ -196,21 +176,11 @@ class SphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
-    representation : BaseRepresentation, optional
-        A pre-existing Representation object to convert to spherical
-        coordinates.
-
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, lon=None, lat=None, distance=None, representation=None, copy=True):
-
-        if representation is not None:
-            return
-
-        if lon is None or lat is None or distance is None:
-            raise ValueError('lon, lat, and distance are required to instantiate SphericalRepresentation')
+    def __init__(self, lon, lat, distance, copy=True):
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         lon = Longitude(lon, copy=copy)
@@ -311,21 +281,11 @@ class UnitSphericalRepresentation(BaseRepresentation):
         to ``lon``, and `~astropy.coordinates.Latitude` instances can only be
         passed to ``lat``.
 
-    representation : BaseRepresentation, optional
-        A pre-existing Representation object to convert to spherical
-        coordinates.
-
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, lon=None, lat=None, distance=None, representation=None, copy=True):
-
-        if representation is not None:
-            return
-
-        if lon is None or lat is None:
-            raise ValueError('lon and lat are required to instantiate UnitSphericalRepresentation')
+    def __init__(self, lon, lat, copy=True):
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         lon = Longitude(lon, copy=copy)
@@ -393,7 +353,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    phi, theta : `~astropy.units.Quantity` or str, optional
+    phi, theta : `~astropy.units.Quantity` or str
         The longitude and latitude of the point(s). The input values are
         passed to the `~astropy.coordinates.Longitude` and
         `~astropy.coordinates.Latitude` class respectively, so any valid
@@ -408,21 +368,11 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
-    representation : BaseRepresentation, optional
-        A pre-existing Representation object to convert to spherical
-        coordinates.
-
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, phi=None, theta=None, distance=None, representation=None, copy=True):
-
-        if representation is not None:
-            return
-
-        if phi is None or theta is None or distance is None:
-            raise ValueError('phi, theta, and distance are required to instantiate PhysicsSphericalRepresentation')
+    def __init__(self, phi, theta, distance, copy=True):
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         phi = Longitude(phi, copy=copy)
@@ -513,32 +463,22 @@ class CylindricalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    rho : `~astropy.units.Quantity`, optional
+    rho : `~astropy.units.Quantity`
         The distance from the z axis to the point(s).
 
-    phi : `~astropy.units.Quantity` or str, optional
+    phi : `~astropy.units.Quantity` or str
         The azimuth of the point(s). The input is passed to the
         `~astropy.coordinates.Angle` class, so any valid input for that class
         is acceptable
 
-    z : `~astropy.units.Quantity`, optional
+    z : `~astropy.units.Quantity`
         The z coordinate(s) of the point(s)
-
-    representation : BaseRepresentation, optional
-        A pre-existing Representation object to convert to cylindrical
-        coordinates.
 
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, rho=None, phi=None, z=None, representation=None, copy=True):
-
-        if representation is not None:
-            return
-
-        if rho is None or phi is None or z is None:
-            raise ValueError('rho, phi, and z are required to instantiate CylindricalRepresentation')
+    def __init__(self, rho, phi, z, copy=True):
 
         rho = u.Quantity(rho, copy=copy)
         phi = Angle(phi, copy=copy)
