@@ -507,8 +507,17 @@ class Sky2Pix_MER(Cylindrical):
 
 class AffineTransformation2D(Model):
     """
-    Perform an affine transformation in 2 dimensions given a linear
-    transformation matrix and/or a translation vector.
+    Perform an affine transformation in 2 dimensions.
+
+    Parameters
+    ----------
+    matrix : array
+        A 2x2 matrix specifying the linear transformation to apply to the
+        inputs
+
+    translation : array
+        A 2D vector (given as either a 2x1 or 1x2 array) specifying a
+        translation to apply to the inputs
     """
 
     n_inputs = 2
@@ -530,6 +539,12 @@ class AffineTransformation2D(Model):
             self.matrix.value, self.translation.value)
 
     def inverse(self):
+        """
+        Inverse transformation.
+
+        Raises `InputParameterError` if the transformation cannot be inverted.
+        """
+
         det = np.linalg.det(self.matrix.value)
 
         if det == 0:
@@ -544,9 +559,13 @@ class AffineTransformation2D(Model):
 
     def __call__(self, x, y):
         """
+        Apply the transformation to a set of 2D Cartesian coordinates given as
+        two lists--one for the x coordinates and one for a y coordinates--or a
+        single coordinate pair.
+
         Parameters
         ----------
-        x, y : 1D array or list
+        x, y : array, float
               x and y coordinates
         """
 

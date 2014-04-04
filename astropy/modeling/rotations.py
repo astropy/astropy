@@ -135,8 +135,9 @@ class RotateCelestial2Native(EulerAngleRotation):
 
 class Rotation2D(Model):
     """
-    Perform a 2D rotation given an angle in degrees, where positive angles
-    represent a counter-clockwise rotation and vice-versa.
+    Perform a 2D rotation given an angle in degrees.
+
+    Positive angles represent a counter-clockwise rotation and vice-versa.
 
     Parameters
     ----------
@@ -155,13 +156,19 @@ class Rotation2D(Model):
         self._matrix = self._compute_matrix(self._angle)
 
     def inverse(self):
+        """Inverse rotation."""
+
         return self.__class__(angle=-self.angle)
 
     def __call__(self, x, y):
         """
+        Apply the rotation to a set of 2D Cartesian coordinates given as two
+        lists--one for the x coordinates and one for a y coordinates--or a
+        single coordinate pair.
+
         Parameters
         ----------
-        x, y : 1D array or list
+        x, y : array, float
             x and y coordinates
         """
 
