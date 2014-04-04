@@ -188,19 +188,22 @@ class Angle(u.Quantity):
                 unit = u.hourangle
         return unit
 
-    def __quantity_view__(self, obj, unit):
+    def __quantity_view__(self, obj, unit, subok=True):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            result = obj.view(self.__class__)
-            return result
-        return super(Angle, self).__quantity_view__(
-            obj, unit)
+            return obj.view(self.__class__ if subok else Angle)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
+        return super(Angle, self).__quantity_view__(obj, unit, subok=False)
+
+    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return self.__class__(val, unit, **kwargs)
-        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
+            if subok:
+                return self.__class__(val, unit, **kwargs)
+            else:
+                return Angle(val, unit, **kwargs)
+        return super(Angle, self).__quantity_instance__(val, unit,
+                                                        subok=False, **kwargs)
 
     @property
     def hour(self):
@@ -671,24 +674,30 @@ class Longitude(Angle):
         self._wrap_angle = Angle(value)
         self._wrap_internal()
 
-    def __quantity_view__(self, obj, unit):
-        unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
+    def __quantity_view__(self, obj, unit, subok=True):
+        new_view = super(Longitude, self).__quantity_view__(obj, unit)
+        if isinstance(new_view, Longitude):
             # by default, wrap_angle and equivalencies remain the same
             # TODO: generalize to some _things_to_copy once #1422, #1373 merged
-            new_view = obj.view(Longitude)
+            #       should be possible to do this in __array_finalize__
             new_view._wrap_angle = self.wrap_angle
-            return new_view
-        return super(Angle, self).__quantity_view__(obj, unit)
+            if type(new_view) is not Longitude and not subok:
+                new_view = new_view.view(Longitude)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
+        return new_view
+
+    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
             # by default, wrap_angle remains the same
             if 'wrap_angle' not in kwargs:
                 kwargs['wrap_angle'] = getattr(self, 'wrap_angle')
-            return Longitude(val, unit, **kwargs)
-        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
+            if subok:
+                return self.__class__(val, unit, **kwargs)
+            else:
+                return Longitude(val, unit, **kwargs)
+        return super(Longitude, self).__quantity_instance__(
+            val, unit, subok=False, **kwargs)
 
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)

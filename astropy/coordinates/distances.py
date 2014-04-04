@@ -160,20 +160,24 @@ class Distance(u.Quantity):
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_view__(self, obj, unit):
+    def __quantity_view__(self, obj, unit, subok=True):
         try:
             unit = _convert_to_and_validate_length_unit(unit)
-            return obj.view(self.__class__)
+            return obj.view(self.__class__ if subok else Distance)
         except u.UnitsError:
-            return super(Distance, self).__quantity_view__(obj, unit)
+            return super(Distance, self).__quantity_view__(obj, unit,
+                                                           subok=False)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
+    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
         try:
             unit = _convert_to_and_validate_length_unit(unit)
-            return self.__class__(val, unit=unit, **kwargs)
+            if subok:
+                return self.__class__(val, unit=unit, **kwargs)
+            else:
+                return Distance(val, unit=unit, **kwargs)
         except u.UnitsError:
             return super(Distance, self).__quantity_instance__(
-                val, unit, **kwargs)
+                val, unit, subok=False, **kwargs)
 
     @property
     def z(self):
@@ -305,17 +309,21 @@ class CartesianPoints(u.Quantity):
         return super(CartesianPoints, cls).__new__(cls, qarr, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_view__(self, obj, unit):
+    def __quantity_view__(self, obj, unit, subok=True):
         try:
             unit = _convert_to_and_validate_length_unit(unit, True)
-            return obj.view(self.__class__)
+            return obj.view(self.__class__ if subok else CartesianPoints)
         except u.UnitsError:
-            return super(CartesianPoints, self).__quantity_view__(obj, unit)
+            return super(CartesianPoints, self).__quantity_view__(obj, unit,
+                                                                  subok=False)
 
-    def __quantity_instance__(self, val, unit, **kwargs):
+    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
         try:
             unit = _convert_to_and_validate_length_unit(unit, True)
-            return self.__class__(val, unit=unit, **kwargs)
+            if subok:
+                return self.__class__(val, unit=unit, **kwargs)
+            else:
+                return CartesianPoints(val, unit=unit, **kwargs)
         except u.UnitsError:
             return super(CartesianPoints, self).__quantity_instance__(
                 val, unit, **kwargs)
