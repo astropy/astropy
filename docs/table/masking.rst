@@ -4,7 +4,7 @@ Masking and missing values
 --------------------------
 
 The `astropy.table` package provides support for masking and missing
-values in a table by wrapping the `numpy.ma` masked array package.
+values in a table by wrapping the `~numpy.ma` masked array package.
 This allows handling tables with missing or invalid entries in much
 the same manner as for standard (unmasked) tables.  It
 is useful to be familiar with the `masked array

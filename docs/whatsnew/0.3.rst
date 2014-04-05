@@ -278,7 +278,7 @@ more input tables:
      - Function
    * - :ref:`grouped-operations`
      - Group tables and columns by keys
-     - `~astropy.table.table.Table.group_by`
+     - `~astropy.table.Table.group_by`
    * - :ref:`stack-vertically`
      - Concatenate input tables along rows
      - `~astropy.table.operations.vstack`

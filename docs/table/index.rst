@@ -27,8 +27,7 @@ notable features of this package are:
 
 Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
-the |Table| class for other subpackages such as `astropy.io.votable`
-and `astropy.io.fits`.
+the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
 Getting Started
 ===============
@@ -173,8 +172,8 @@ Lastly, one can create a table with support for missing values, for example by s
 
 .. _using_astropy_table:
 
-Using `table`
-=============
+Using ``table``
+===============
 
 The details of using `astropy.table` are provided in the following sections:
 
