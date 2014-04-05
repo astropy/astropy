@@ -77,7 +77,7 @@ This module also includes built-in kernels that can be imported as e.g.::
 
 To use a kernel, first create a specific instance of the kernel::
 
-    >>> gauss = Gaussian1DKernel(width=2)
+    >>> gauss = Gaussian1DKernel(stddev=2)
 
 ``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
 
@@ -105,7 +105,7 @@ The kernel can then be used directly when calling
     y = np.sin(x / 100.) + np.random.normal(0., 1., x.shape)
 
     # Create kernel
-    g = Gaussian1DKernel(width=50)
+    g = Gaussian1DKernel(stddev=50)
 
     # Convolve data
     z = convolve(y, g, boundary='extend')
