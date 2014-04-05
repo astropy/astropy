@@ -12,6 +12,8 @@ import copy
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
+from distutils import version
+NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable
@@ -832,6 +834,9 @@ def test_copy():
     assert q1.unit == q2.unit
     assert q1.dtype == q2.dtype
     assert q1.value is not q2.value
+
+    if NUMPY_VERSION < version.LooseVersion('1.6.0'):
+        return  # numpy 1.5 doesn't allow arguments to `copy`
 
     q3 = q1.copy(order='F')
     assert q3.flags['F_CONTIGUOUS']
