@@ -384,6 +384,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Converted representation of progress bar units without suffix
+    from float to int in :func:`astropy.utils.console.human_file_size`.
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
