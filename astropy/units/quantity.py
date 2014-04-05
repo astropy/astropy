@@ -207,8 +207,7 @@ class Quantity(np.ndarray):
         return value
 
     def __array_finalize__(self, obj):
-        if isinstance(obj, Quantity):
-            self._unit = obj._unit
+        self._unit = getattr(obj, '_unit', None)
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
