@@ -75,16 +75,16 @@ class TableColumns(OrderedDict):
         elif isinstance(item, int):
             return self.values()[item]
         elif isinstance(item, tuple):
-            return TableColumns([self[x] for x in item])
+            return self.__class__([self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns([self[x] for x in list(self)[item]])
+            return self.__class__([self[x] for x in list(self)[item]])
         else:
-            raise IndexError('Illegal key or index value for TableColumns '
-                             'object')
+            raise IndexError('Illegal key or index value for {} object'
+                             .format(self.__class__.__name__))
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in six.iterkeys(self))
-        return "<TableColumns names=({0})>".format(",".join(names))
+        return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
         if new_name in self:
@@ -227,8 +227,8 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
-        return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype)
+        return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
+            self.index, self.data, self.dtype, self.__class__.__name__)
 
 
 collections.Sequence.register(Row)
@@ -267,6 +267,13 @@ class Table(object):
 
     meta = MetaData()
 
+    # Define class attributes for core container objects to allow for subclass
+    # customization.
+    _Row = Row
+    _Column = Column
+    _MaskedColumn = MaskedColumn
+    _TableColumns = TableColumns
+
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, dtypes=None):
 
@@ -278,7 +285,7 @@ class Table(object):
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
-        self.columns = TableColumns()
+        self.columns = self._TableColumns()
         self.meta = meta
 
         # Must copy if dtype are changing
@@ -290,7 +297,7 @@ class Table(object):
 
         default_names = None
 
-        if isinstance(data, Row):
+        if isinstance(data, self._Row):
             data = data._table[data._index:data._index + 1]
 
         if isinstance(data, (list, tuple)):
@@ -435,7 +442,7 @@ class Table(object):
 
             cols.append(newcol)
 
-        self.columns = TableColumns(cols)
+        self.columns = self._TableColumns(cols)
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are boths iterable and have
@@ -521,7 +528,7 @@ class Table(object):
         else:
             dtype = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtype).ravel()
-            columns = TableColumns()
+            columns = self._TableColumns()
 
             for name in names:
                 columns[name] = self.ColumnClass(name=name, data=self._data[name])
@@ -597,7 +604,7 @@ class Table(object):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
-        columns = TableColumns()
+        columns = table._TableColumns()
         table._data = data
 
         for name, col in zip(names, cols):
@@ -838,7 +845,7 @@ class Table(object):
         if isinstance(item, six.string_types):
             return self.columns[item]
         elif isinstance(item, int):
-            return Row(self, item)
+            return self._Row(self, item)
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
                                                      for x in item):
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
@@ -862,7 +869,7 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
-            NewColumn = MaskedColumn if self.masked else Column
+            NewColumn = self._MaskedColumn if self.masked else self._Column
 
             # Make sure value is an ndarray so we can get the dtype
             if not isinstance(value, np.ndarray):
@@ -958,14 +965,14 @@ class Table(object):
             else:
                 raise ValueError("masked should be one of True, False, None")
         if self._masked:
-            self._column_class = MaskedColumn
+            self._column_class = self._MaskedColumn
         else:
-            self._column_class = Column
+            self._column_class = self._Column
 
     @property
     def ColumnClass(self):
         if self._column_class is None:
-            return Column
+            return self._Column
         else:
             return self._column_class
 
