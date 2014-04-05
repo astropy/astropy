@@ -571,10 +571,6 @@ class Quantity(np.ndarray):
 
         return not isiterable(self.value)
 
-    def copy(self):
-        """ Return a copy of this `Quantity` instance """
-        return self.__class__(self)
-
     # This flag controls whether convenience conversion members, such
     # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
     # not turned on on Quantity itself, but is on some subclasses of
@@ -1010,9 +1006,7 @@ class Quantity(np.ndarray):
         raise NotImplementedError("cannot dump Quantities to string.  Write "
                                   "array with q.value.dumps()")
 
-    # astype, byteswap OK as is
-    # copy done above
-    # view, getfield, setflags OK as is
+    # astype, byteswap, copy, view, getfield, setflags OK as is
 
     def fill(self, value):
         self.view(np.ndarray).fill(self._to_own_unit(value))
