@@ -336,7 +336,7 @@ class Model(object):
     @property
     def parameters(self):
         """
-        A flattened array of all parameter values in all parameter sets
+        A flattened array of all parameter values in all parameter sets.
 
         Fittable parameters maintain this list and fitters modify it.
         """
@@ -362,7 +362,7 @@ class Model(object):
     @property
     def fixed(self):
         """
-        A dictionary mapping parameter names to their fixed constraint
+        A `dict` mapping parameter names to their fixed constraint.
         """
 
         return self._constraints['fixed']
@@ -370,13 +370,17 @@ class Model(object):
     @property
     def tied(self):
         """
-        A dictionary mapping parameter names to their tied constraint
+        A `dict` mapping parameter names to their tied constraint.
         """
 
         return self._constraints['tied']
 
     @property
     def bounds(self):
+        """
+        A `dict` mapping parameter names to their upper and lower bounds as
+        ``(min, max)`` tuples.
+        """
 
         return self._constraints['bounds']
 
@@ -430,6 +434,13 @@ class Model(object):
             raise InputParameterError("Unrecognized mode {0}".format(mode))
 
     def copy(self):
+        """
+        Return a copy of this model.
+
+        Uses a deep copy so that all model attributes, including parameter
+        values, are copied as well.
+        """
+
         return copy.deepcopy(self)
 
     def _initialize_constraints(self, kwargs):
