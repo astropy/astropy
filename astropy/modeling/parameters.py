@@ -280,8 +280,8 @@ class Parameter(object):
         """
 
         if self._model is not None:
-            fixed = self._model._constraints.setdefault('fixed', {})
-            return fixed.setdefault(self._name, self._default_fixed)
+            fixed = self._model._constraints['fixed']
+            return fixed.get(self._name, self._default_fixed)
         else:
             return self._default_fixed
 
@@ -290,8 +290,7 @@ class Parameter(object):
         """Fix a parameter"""
         if self._model is not None:
             assert isinstance(value, bool), "Fixed can be True or False"
-            fixed = self._model._constraints.setdefault('fixed', {})
-            fixed[self._name] = value
+            self._model._constraints['fixed'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'fixed' on Parameter "
                                  "definition")
@@ -305,8 +304,8 @@ class Parameter(object):
         """
 
         if self._model is not None:
-            tied = self._model._constraints.setdefault('tied', {})
-            return tied.setdefault(self._name, self._default_tied)
+            tied = self._model._constraints['tied']
+            return tied.get(self._name, self._default_tied)
         else:
             return self._default_tied
 
@@ -317,8 +316,7 @@ class Parameter(object):
         if self._model is not None:
             assert six.callable(value) or value in (False, None), \
                     "Tied must be a callable"
-            tied = self._model._constraints.setdefault('tied', {})
-            tied[self._name] = value
+            self._model._constraints['tied'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'tied' on Parameter "
                                  "definition")
@@ -328,9 +326,9 @@ class Parameter(object):
         """The minimum and maximum values of a parameter as a tuple"""
 
         if self._model is not None:
-            bounds = self._model._constraints.setdefault('bounds', {})
-            return bounds.setdefault(self._name,
-                                     (self._default_min, self._default_max))
+            bounds = self._model._constraints['bounds']
+            default_bounds = (self._default_min, self._default_max)
+            return bounds.get(self._name, default_bounds)
         else:
             return (self._default_min, self._default_max)
 
@@ -351,7 +349,7 @@ class Parameter(object):
                 _max = float(_max)
 
             bounds = self._model._constraints.setdefault('bounds', {})
-            bounds[self._name] = (_min, _max)
+            self._model._constraints['bounds'][self._name] = (_min, _max)
         else:
             raise AttributeError("can't set attribute 'bounds' on Parameter "
                                  "definition")

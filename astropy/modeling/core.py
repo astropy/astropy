@@ -258,6 +258,9 @@ class Model(object):
     True
     """
 
+    parameter_constraints = ['fixed', 'tied', 'bounds']
+    model_constraints = ['eqcons', 'ineqcons']
+
     param_names = []
     n_inputs = 1
     n_outputs = 1
@@ -362,8 +365,7 @@ class Model(object):
         A dictionary mapping parameter names to their fixed constraint
         """
 
-        return dict((name, getattr(self, name).fixed)
-                    for name in self.param_names)
+        return self._constraints['fixed']
 
     @property
     def tied(self):
@@ -371,23 +373,24 @@ class Model(object):
         A dictionary mapping parameter names to their tied constraint
         """
 
-        return dict((name, getattr(self, name).tied)
-                    for name in self.param_names)
+        return self._constraints['tied']
 
     @property
     def bounds(self):
-        return dict((name, getattr(self, name).bounds)
-                    for name in self.param_names)
+
+        return self._constraints['bounds']
 
     @property
     def eqcons(self):
         """List of parameter equality constraints."""
-        return self._eqcons
+
+        return self._constraints['eqcons']
 
     @property
     def ineqcons(self):
         """List of parameter inequality constraints."""
-        return self._ineqcons
+
+        return self._constraints['ineqcons']
 
     def inverse(self):
         """Returns a callable object which performs the inverse transform."""
@@ -435,36 +438,24 @@ class Model(object):
         `Model.__init__` and store them in private instance attributes.
         """
 
-        # Pop any constraints off the keyword arguments
-        bounds = kwargs.pop('bounds', None)
-        fixed = kwargs.pop('fixed', None)
-        tied = kwargs.pop('tied', None)
-        eqcons = kwargs.pop('eqcons', None)
-        ineqcons = kwargs.pop('ineqcons', None)
-
-
-        # TODO: Is there a particular reason eqcons and ineqcons are stored
-        # separately from the other constraint types?
-
-        # Initialize the constraints for each parameter
-        if eqcons is None:
-            self._eqcons = []
-        else:
-            self._eqcons = eqcons
-        if ineqcons is None:
-            self._ineqcons = []
-        else:
-            self._ineqcons = ineqcons
-
-        # Set constraints
         self._constraints = {}
+        # Pop any constraints off the keyword arguments
+        for constraint in self.parameter_constraints:
+            values = kwargs.pop(constraint, {})
+            self._constraints[constraint] = values
 
-        if fixed:
-            self._constraints['fixed'] = fixed
-        if tied:
-            self._constraints['tied'] = tied
-        if bounds:
-            self._constraints['bounds'] = bounds
+            # Update with default parameter constraints
+            for param_name in self.param_names:
+                param = getattr(self, param_name)
+
+                # Parameters don't have all constraint types
+                value = getattr(param, constraint)
+                if value is not None:
+                    self._constraints[constraint][param_name] = value
+
+        for constraint in self.model_constraints:
+            values = kwargs.pop(constraint, [])
+            self._constraints[constraint] = values
 
     def _initialize_parameters(self, args, kwargs):
         """
