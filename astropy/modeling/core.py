@@ -862,7 +862,7 @@ class SerialCompositeModel(_CompositeModel):
         >>> import numpy as np
         >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
         >>> y, x = np.mgrid[:5, :5]
-        >>> rotation = models.MatrixRotation2D(angle=23.5)
+        >>> rotation = models.Rotation2D(angle=23.5)
         >>> offset_x = models.Shift(-4.23)
         >>> offset_y = models.Shift(2)
         >>> labeled_input = LabeledInput([x, y], ["x", "y"])

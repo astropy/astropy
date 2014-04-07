@@ -26,8 +26,7 @@ from .core import Model
 from .parameters import Parameter, InputParameterError
 
 
-__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
-           'MatrixRotation2D']
+__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D']
 
 
 class EulerAngleRotation(Model):
@@ -134,78 +133,43 @@ class RotateCelestial2Native(EulerAngleRotation):
         return nphi, ntheta
 
 
-class MatrixRotation2D(Model):
+class Rotation2D(Model):
     """
-    Perform a clockwise 2D matrix rotation given either an angle or a
-    rotation matrix.
+    Perform a 2D rotation given an angle in degrees.
 
-    If both matrix and angle are given, angle will be ignored.
+    Positive angles represent a counter-clockwise rotation and vice-versa.
 
     Parameters
     ----------
-    matrix : ndarray
-        rotation matrix
     angle : float
         angle of rotation in deg
     """
 
-    def _validate_angle(angle):
-        """Validates that an input angle is a number and converts it from
-        degrees to radians.
-        """
-
-        if not isinstance(angle, numbers.Number):
-            raise TypeError("Expected angle to be a number")
-
-        return np.deg2rad(angle)
-
-    def _validate_matrix(matrix):
-        """Validates that the input matrix is a 2D array."""
-
-        matrix = np.array(matrix)
-        if matrix.ndim != 2:
-            raise ValueError("Expected rotation matrix to be a 2D array")
-        return matrix
-
-    # By default n_inputs = n_outputs = 2 but this may differ depending
-    # on the size of any supplied rotation matrix
     n_inputs = 2
     n_outputs = 2
 
-    angle = Parameter(getter=np.rad2deg, setter=_validate_angle)
-    matrix = Parameter(setter=_validate_matrix)
+    angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, matrix=None, angle=None):
-        if matrix is None and angle is None:
-            raise InputParameterError("Expected at least one argument - "
-                                      "a rotation matrix or an angle")
-        if matrix is not None:
-            # TODO: Why +0.0?
-            matrix = np.asarray(matrix) + 0.0
-            self.n_inputs = self.n_outputs = matrix.shape[0]
-            super(MatrixRotation2D, self).__init__(param_dim=1)
-            self.matrix = np.asarray(matrix) + 0.0
-        else:
-            # The computed rotation matrix is 2x2, naturally
-            super(MatrixRotation2D, self).__init__(param_dim=1)
-            self.angle = angle
-            self.matrix = self._compute_matrix(self._angle)
-
-    def _compute_matrix(self, angle):
-        return np.array([[math.cos(angle), math.sin(angle)],
-                         [-math.sin(angle), math.cos(angle)]],
-                        dtype=np.float64)
+    def __init__(self, angle=angle.default):
+        super(Rotation2D, self).__init__()
+        self.angle = angle
+        self._matrix = self._compute_matrix(self._angle)
 
     def inverse(self):
-        nrot = np.linalg.inv(self.matrix.value)
-        return MatrixRotation2D(matrix=nrot)
+        """Inverse rotation."""
+
+        return self.__class__(angle=-self.angle)
 
     def __call__(self, x, y):
         """
+        Apply the rotation to a set of 2D Cartesian coordinates given as two
+        lists--one for the x coordinates and one for a y coordinates--or a
+        single coordinate pair.
+
         Parameters
         ----------
-        x, y : 1D array or list
-              x and y coordinates
+        x, y : array, float
+            x and y coordinates
         """
 
         x = np.asarray(x)
@@ -214,10 +178,16 @@ class MatrixRotation2D(Model):
         shape = x.shape
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
         assert inarr.shape[0] == 2 and inarr.ndim == 2, \
-            "Incompatible shape in MatrixRotation"
+            "Incompatible input shapes"
         result = np.dot(self._matrix, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:
             x.shape = shape
             y.shape = shape
         return x, y
+
+    @staticmethod
+    def _compute_matrix(angle):
+        return np.array([[math.cos(angle), -math.sin(angle)],
+                         [math.sin(angle), math.cos(angle)]],
+                        dtype=np.float64)

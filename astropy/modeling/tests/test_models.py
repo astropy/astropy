@@ -65,7 +65,7 @@ class TestSerialComposite(object):
 
     def test_labeledinput_2(self):
         labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        rot = models.MatrixRotation2D(angle=23.4)
+        rot = models.Rotation2D(angle=23.4)
         offx = models.Shift(-2)
         offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
@@ -80,7 +80,7 @@ class TestSerialComposite(object):
 
     def test_labeledinput_3(self):
         labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
-        rot = models.MatrixRotation2D(angle=23.4)
+        rot = models.Rotation2D(angle=23.4)
         offx = models.Shift(-2)
         offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
@@ -94,7 +94,7 @@ class TestSerialComposite(object):
         utils.assert_almost_equal(y, result.y)
 
     def test_multiple_input(self):
-        rot = models.MatrixRotation2D(angle=-60)
+        rot = models.Rotation2D(angle=-60)
         model = SerialCompositeModel([rot, rot])
         xx, yy = model(self.x, self.y)
         inverse_model = model.inverse()
