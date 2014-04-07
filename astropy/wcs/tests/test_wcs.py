@@ -12,7 +12,8 @@ import warnings
 
 import numpy as np
 from numpy.testing import (
-    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp)
+    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
+    assert_array_equal)
 
 from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
@@ -45,6 +46,10 @@ def test_maps():
         assert_array_almost_equal(world, [[285.0, -66.25]], decimal=1)
 
         pix = wcsobj.wcs_world2pix([[285.0, -66.25]], 1)
+
+        all_pix = wcsobj.all_world2pix([[285.0, -66.25]], 1)
+
+        assert_array_equal(pix, all_pix)
 
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
