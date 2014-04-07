@@ -63,7 +63,6 @@ class ConstantMeta(InheritDocstrings):
         # The wrapper applies to so many of the __ methods that it's easier to
         # just exclude the ones it doesn't apply to
         exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
-                       '__quantity_instance__', '__quantity_view__',
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
                        '__len__', '__nonzero__'])
@@ -133,22 +132,11 @@ class Constant(Quantity):
                                            self.uncertainty, self.unit,
                                            self.reference))
 
-    def __quantity_instance__(self, val, unit, subok=True, **kwargs):
-        """
-        We can return here if Constants are used in calculations.
-        We should always return a Quantity, rather than a Constant.
+    def _new_view(self, obj, unit):
+        return obj.view(Quantity)
 
-        The parameters are the same as those to `Quantity.__new__`.
-        """
-        return super(Constant, self).__quantity_instance__(
-            val, unit, subok=False, **kwargs)
-
-    def __quantity_view__(self, obj, unit, subok=True):
-        """
-        We return here if Constants are used in calculations.
-        We should always return a Quantity, rather than a Constant.
-        """
-        return super(Constant, self).__quantity_view__(obj, unit, subok=False)
+    def _new_instance(self, val, unit, **kwargs):
+        return Quantity(val, unit, **kwargs)
 
     @property
     def abbrev(self):
