@@ -123,6 +123,11 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 def pytest_configure(config):
     treat_deprecations_as_exceptions()
 
+    # Monkeypatch to deny access to remote resources unless explicitly told
+    # otherwise
+    if not config.getoption('remote_data'):
+        turn_off_internet(verbose=config.option.verbose)
+
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
@@ -134,11 +139,6 @@ def pytest_configure(config):
     opts = (doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE |
             FIX)
-
-    # Monkeypatch to deny access to remote resources unless explicitly told
-    # otherwise
-    if not config.getoption('remote_data'):
-        turn_off_internet(verbose=config.option.verbose)
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
@@ -250,6 +250,10 @@ def pytest_configure(config):
         DoctestPlus(DocTestModulePlus, DocTestTextfilePlus,
                     config.getini('doctest_rst') or config.option.doctest_rst),
         'doctestplus')
+
+    # Remove the doctest_plugin, or we'll end up testing the .rst
+    # files twice.
+    config.pluginmanager.unregister(doctest_plugin)
 
 
 class DoctestPlus(object):
