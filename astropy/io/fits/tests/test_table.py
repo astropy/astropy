@@ -2340,31 +2340,30 @@ class TestTableFunctions(FitsTestCase):
         """
 
         # open existing FITS tables (images pickle by default, no test needed):
-        btb = fits.open(self.data('tb.fits'))
-        asc = fits.open(self.data('ascii.fits'))
-        rgr = fits.open(self.data('random_groups.fits'))
-        zwc = fits.open(self.data('zerowidth.fits'))
+        with fits.open(self.data('tb.fits')) as btb:
+            # Test column array is delayed and can pickle
+            assert isinstance(btb[1].columns._arrays[0], Delayed)
 
-        # Test column array is delayed and can pickle
-        assert isinstance(btb[1].columns._arrays[0], Delayed)
+            btb_pd = pickle.dumps(btb[1].data)
+            btb_pl = pickle.loads(btb_pd)
 
-        btb_pd = pickle.dumps(btb[1].data)
-        btb_pl = pickle.loads(btb_pd)
+            # It should not be delayed any more
+            assert not isinstance(btb[1].columns._arrays[0], Delayed)
 
-        # It should not be delayed any more
-        assert not isinstance(btb[1].columns._arrays[0], Delayed)
+            assert comparerecords(btb_pl, btb[1].data)
 
-        asc_pd = pickle.dumps(asc[1].data)
-        asc_pl = pickle.loads(asc_pd)
+        with fits.open(self.data('ascii.fits')) as asc:
+            asc_pd = pickle.dumps(asc[1].data)
+            asc_pl = pickle.loads(asc_pd)
+            assert comparerecords(asc_pl, asc[1].data)
 
-        rgr_pd = pickle.dumps(rgr[0].data)
-        rgr_pl = pickle.loads(rgr_pd)
+        with fits.open(self.data('random_groups.fits')) as rgr:
+            rgr_pd = pickle.dumps(rgr[0].data)
+            rgr_pl = pickle.loads(rgr_pd)
+            assert comparerecords(rgr_pl, rgr[0].data)
 
-        # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
-        zwc_pd = pickle.dumps(zwc[2].data)
-        zwc_pl = pickle.loads(zwc_pd)
-
-        assert comparerecords(btb_pl, btb[1].data)
-        assert comparerecords(asc_pl, asc[1].data)
-        assert comparerecords(rgr_pl, rgr[0].data)
-        assert comparerecords(zwc_pl, zwc[2].data)
+        with fits.open(self.data('zerowidth.fits')) as zwc:
+            # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
+            zwc_pd = pickle.dumps(zwc[2].data)
+            zwc_pl = pickle.loads(zwc_pd)
+            assert comparerecords(zwc_pl, zwc[2].data)
