@@ -134,7 +134,8 @@ extensions = [
     'astropy.sphinx.ext.tocdepthfix',
     'astropy.sphinx.ext.doctest',
     'astropy.sphinx.ext.changelog_links',
-    'astropy.sphinx.ext.viewcode'  # Use patched version of viewcode
+    'astropy.sphinx.ext.viewcode',  # Use patched version of viewcode
+    'astropy.sphinx.ext.smart_resolver'
     ]
 
 # Above, we use a patched version of viewcode rather than 'sphinx.ext.viewcode'
