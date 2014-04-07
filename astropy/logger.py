@@ -363,23 +363,6 @@ class AstropyLogger(Logger):
         '''
         self._use_color = False
 
-    def _stream_formatter(self, record):
-        '''
-        The formatter for standard output
-        '''
-        if record.levelno < logging.DEBUG or not self._use_color:
-            print(record.levelname, end='')
-        elif(record.levelno < logging.INFO):
-            color_print(record.levelname, 'magenta', end='')
-        elif(record.levelno < logging.WARN):
-            color_print(record.levelname, 'green', end='')
-        elif(record.levelno < logging.ERROR):
-            color_print(record.levelname, 'brown', end='')
-        else:
-            color_print(record.levelname, 'red', end='')
-        record.message = "{0} [{1:s}]".format(record.msg, record.origin)
-        print(": " + record.message)
-
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
         '''
@@ -501,8 +484,7 @@ class AstropyLogger(Logger):
             self.disable_color()
 
         # Set up the stdout handler
-        sh = logging.StreamHandler()
-        sh.emit = self._stream_formatter
+        sh = StreamHandler(self, stream=sys.stderr)
         self.addHandler(sh)
 
         # Set up the main log file handler if requested (but this might fail if
@@ -565,6 +547,29 @@ def _checkLevel(level):
 
 # We now have to be sure that we overload the setLevel in FileHandler, again
 # for compatibility with Python 2.6 and 3.1.
+
+
+class StreamHandler(logging.StreamHandler):
+    def __init__(self, logger, *args, **kwargs):
+        self._logger = logger
+        super(StreamHandler, self).__init__(*args, **kwargs)
+
+    def emit(self, record):
+        '''
+        The formatter for stderr
+        '''
+        if record.levelno < logging.DEBUG or not self._logger._use_color:
+            print(record.levelname, end='', file=self.stream)
+        elif(record.levelno < logging.INFO):
+            color_print(record.levelname, 'magenta', end='', file=self.stream)
+        elif(record.levelno < logging.WARN):
+            color_print(record.levelname, 'green', end='', file=self.stream)
+        elif(record.levelno < logging.ERROR):
+            color_print(record.levelname, 'brown', end='', file=self.stream)
+        else:
+            color_print(record.levelname, 'red', end='', file=self.stream)
+        record.message = "{0} [{1:s}]".format(record.msg, record.origin)
+        print(": " + record.message, file=self.stream)
 
 
 class FileHandler(logging.FileHandler):
