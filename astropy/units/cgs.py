@@ -114,7 +114,7 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, namespace=_ns, prefixes=True,
 ###########################################################################
 # BASES
 
-bases = set([cm, g, s, C, rad, cd, K, deg_C, mol])
+bases = set([cm, g, s, C, rad, cd, K, mol])
 
 
 ###########################################################################

@@ -213,7 +213,7 @@ def_unit(['Ci', 'curie'], Bq / 3.7e10, namespace=_ns, prefixes=False,
 ###########################################################################
 # BASES
 
-bases = set([m, s, kg, A, cd, rad, K, deg_C, mol])
+bases = set([m, s, kg, A, cd, rad, K, mol])
 
 
 ###########################################################################
