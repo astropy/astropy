@@ -48,15 +48,17 @@ Before
 And After
 """
 
-ams_to_asmry_expected = """.. autosummary::
+ams_to_asmry_expected = """.. currentmodule:: astropy.sphinx.ext.automodsumm
+
+.. autosummary::
     :p:
 
-    ~astropy.sphinx.ext.automodsumm.Automoddiagram
-    ~astropy.sphinx.ext.automodsumm.Automodsumm
-    ~astropy.sphinx.ext.automodsumm.automodsumm_to_autosummary_lines
-    ~astropy.sphinx.ext.automodsumm.generate_automodsumm_docs
-    ~astropy.sphinx.ext.automodsumm.process_automodsumm_generation
-    ~astropy.sphinx.ext.automodsumm.setup"""
+    Automoddiagram
+    Automodsumm
+    automodsumm_to_autosummary_lines
+    generate_automodsumm_docs
+    process_automodsumm_generation
+    setup"""
 
 
 def test_ams_to_asmry(tmpdir):

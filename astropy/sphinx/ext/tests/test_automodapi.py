@@ -19,8 +19,17 @@ class FakeApp(object):
     """
     Mocks up a `sphinx.application.Application` object for automodapi tests
     """
+
+    # Some default config values
+    _defaults = {
+        'automodapi_toctreedirnm': 'api',
+        'automodapi_writereprocessed': False
+    }
+
     def __init__(self, **configs):
-        self.config = FakeConfig(**configs)
+        config = self._defaults.copy()
+        config.update(configs)
+        self.config = FakeConfig(**config)
         self.info = []
         self.warnings = []
 
@@ -82,7 +91,7 @@ def test_am_replacer_basic():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     result = automodapi_replace(am_replacer_str.format(options=''), fakeapp)
 
     assert result == am_replacer_basic_expected
@@ -123,7 +132,7 @@ def test_am_replacer_noinh():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     ops = ['', ':no-inheritance-diagram:']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -172,7 +181,7 @@ def test_am_replacer_titleandhdrs():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     ops = ['', ':title: A new title', ':headings: &*']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -216,7 +225,7 @@ def test_am_replacer_nomain():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     result = automodapi_replace(am_replacer_nomain_str, fakeapp)
 
     assert result == am_replacer_nomain_expected
@@ -259,7 +268,7 @@ def test_am_replacer_skip():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     result = automodapi_replace(am_replacer_skip_str, fakeapp)
 
     assert result == am_replacer_skip_expected
@@ -281,7 +290,7 @@ def test_am_replacer_invalidop():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='api')
+    fakeapp = FakeApp()
     automodapi_replace(am_replacer_invalidop_str, fakeapp)
 
     expected_warnings = [('Found additional options invalid-option in '
