@@ -215,15 +215,11 @@ def test_set_fixed_1():
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1)
     gauss.mean.fixed = True
     assert gauss.fixed == {'amplitude': False, 'mean': True, 'stddev': False}
-    fitparams, _ = gauss._model_to_fit_params()
-    assert np.all(fitparams == [20, 1])
 
 
 def test_set_fixed_2():
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
     assert gauss.mean.fixed is True
-    fitparams, _ = gauss._model_to_fit_params()
-    assert np.all(fitparams == [20, 1])
 
 
 def test_set_tied_1():
@@ -249,8 +245,6 @@ def test_unset_fixed():
     gauss = models.Gaussian1D(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
     gauss.mean.fixed = False
     assert gauss.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
-    fitparams, _  = gauss._model_to_fit_params()
-    assert np.all(fitparams == [20, 2, 1])
 
 
 def test_unset_tied():
@@ -261,8 +255,6 @@ def test_unset_tied():
                               tied={'amplitude': tie_amplitude})
     gauss.amplitude.tied = False
     assert gauss.tied == {'amplitude': False, 'mean': False, 'stddev': False}
-    fitparams, _  = gauss._model_to_fit_params()
-    assert np.all(fitparams == [20, 2, 1])
 
 
 def test_set_bounds_1():
