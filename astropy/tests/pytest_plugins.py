@@ -254,6 +254,9 @@ class DoctestPlus(object):
         self._doctest_textfile_item_cls = doctest_textfile_item_cls
         self._run_rst_doctests = run_rst_doctests
 
+        # Directories to ignore when adding doctests
+        self._ignore_paths = []
+
         if run_rst_doctests and six.PY3:
             warnings.warn(
                 "Running doctests in .rst files is not yet supported on Python 3")
@@ -264,7 +267,13 @@ class DoctestPlus(object):
 
         for pattern in config.getini("doctest_norecursedirs"):
             if path.check(fnmatch=pattern):
-                return True
+                # Apparently pytest_ignore_collect causes files not to be
+                # collected by any test runner; for DoctestPlus we only want to
+                # avoid creating doctest nodes for them
+                self._ignore_paths.append(path)
+                break
+
+        return False
 
     def pytest_collect_file(self, path, parent):
         """Implements an enhanced version of the doctest module from py.test
@@ -297,6 +306,11 @@ class DoctestPlus(object):
             __doctest_requires__ = {('func1', 'func2'): ['scipy']}
 
         """
+
+        for ignore_path in self._ignore_paths:
+            if ignore_path.common(path) == ignore_path:
+                return None
+
         if path.ext == '.py':
             if path.basename == 'conf.py':
                 return None
