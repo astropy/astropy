@@ -1249,13 +1249,23 @@ naxis kwarg.
         for i in range(len(world)):
             x0 = self.wcs_world2pix(np.atleast_2d(world[i]), origin,
                 **kwargs).flatten()
-            func = lambda pix: (self.all_pix2world(np.atleast_2d(pix),
-                origin, **kwargs) - world[i]).flatten()
-            # Use Broyden inverse because it is (a) present in a wide range of
-            # Scipy version, (b) provides an option for the absolute tolerance,
-            # and (c) is suitable for small-scale problems (i.e., a few
-            # variables, rather than hundreds of variables).
-            soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
+            world_wcs_pix2world = self.wcs_pix2world(
+                np.atleast_2d(x0), origin, **kwargs)
+            world_all_pix2world = self.all_pix2world(
+                np.atleast_2d(x0), origin, **kwargs)
+            if (world_wcs_pix2world == world_all_pix2world).all():
+                # Detect if wcs_pix2world() and all_pix2world() are the same
+                # function, i.e., there are no distortion corrections.
+                soln = x0
+            else:
+                func = lambda pix: (self.all_pix2world(np.atleast_2d(pix),
+                    origin, **kwargs) - world[i]).flatten()
+                # Use Broyden inverse because it is (a) present in a wide
+                # range of Scipy versions, (b) provides an option for the
+                # absolute tolerance, and (c) is suitable for small-scale
+                # problems (i.e., a few variables, rather than hundreds of
+                # variables).
+                soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
             pix.append(soln.flatten())
         return np.asarray(pix)
 
