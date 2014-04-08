@@ -223,7 +223,7 @@ class Quantity(np.ndarray):
         return value
 
     def __array_finalize__(self, obj):
-        self._unit = getattr(obj, 'unit', None)
+        self._unit = getattr(obj, '_unit', None)
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
