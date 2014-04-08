@@ -245,6 +245,9 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+  - Change construction of result of arithmetic and unit conversion to allow
+    subclasses to require the presence of attribute like unit. [#2300]
+
 - ``astropy.stats``
 
 - ``astropy.table``
