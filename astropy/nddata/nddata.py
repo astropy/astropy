@@ -458,6 +458,10 @@ class NDData(object):
         ------
         UnitsError
             If units are inconsistent.
+
+        Notes
+        -----
+        Flags are set to None in the result.
         """
         if self.unit is None:
             raise ValueError("No unit specified on source data")
