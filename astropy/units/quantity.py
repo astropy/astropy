@@ -445,19 +445,15 @@ class Quantity(np.ndarray):
         # return a bare Numpy array.
         return self.copy()
 
-    def __quantity_subclass__(self, obj, unit):
+    def __quantity_subclass__(self, unit):
         """
         Overridden by subclasses to change what kind of view is
         created based on the output unit of an operation.
 
         Parameters
         ----------
-        obj : ndarray
-            The new array that is about to be wrapped in a `Quantity`
-            or `Quantity` subclass.
-
         unit : UnitBase
-            The unit of the resulting object.
+            The unit for which the appropriate class should be returned
 
         Returns
         -------
@@ -495,9 +491,13 @@ class Quantity(np.ndarray):
         if not isinstance(obj, np.ndarray):
             obj = np.array(obj)
 
-        subclass, subok = self.__quantity_subclass__(obj, unit)
-        if subok:
+        if unit is None:
             subclass = self.__class__
+        else:
+            subclass, subok = self.__quantity_subclass__(unit)
+            if subok:
+                subclass = self.__class__
+
         view = obj.view(subclass)
         view.__array_finalize__(self)
         if unit is not None:
@@ -1098,7 +1098,7 @@ class Quantity(np.ndarray):
         if unit is None:
             out._unit = self._unit
         else:
-            if out.__quantity_subclass__(out, unit)[0] is not out.__class__:
+            if out.__quantity_subclass__(unit)[0] is not out.__class__:
                 raise TypeError("out cannot be assigned to a {0} instance; "
                                 "use a {1} instance instead.".format(
                                     out.__class__,

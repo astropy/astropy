@@ -132,8 +132,8 @@ class Constant(Quantity):
                                            self.uncertainty, self.unit,
                                            self.reference))
 
-    def __quantity_subclass__(self, obj, unit):
-        return Quantity, False
+    def __quantity_subclass__(self, unit):
+        return super(Constant, self).__quantity_subclass__(unit)[0], False
 
     @property
     def abbrev(self):

@@ -188,12 +188,12 @@ class Angle(u.Quantity):
                 unit = u.hourangle
         return unit
 
-    def __quantity_subclass__(self, obj, unit):
+    def __quantity_subclass__(self, unit):
         unit = self._convert_unit_to_angle_unit(unit)
-        if unit is None or unit.is_equivalent(u.radian):
+        if unit.is_equivalent(u.radian):
             return Angle, True
-
-        return super(Angle, self).__quantity_subclass__(obj, unit)[0], False
+        else:
+            return super(Angle, self).__quantity_subclass__(unit)[0], False
 
     @property
     def hour(self):

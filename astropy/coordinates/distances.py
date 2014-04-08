@@ -160,11 +160,11 @@ class Distance(u.Quantity):
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_subclass__(self, obj, unit):
-        if unit is None or unit.is_equivalent(u.m):
+    def __quantity_subclass__(self, unit):
+        if unit.is_equivalent(u.m):
             return Distance, True
-
-        return super(Distance, self).__quantity_subclass__(obj, unit)[0], False
+        else:
+            return super(Distance, self).__quantity_subclass__(unit)[0], False
 
     @property
     def z(self):
@@ -296,12 +296,12 @@ class CartesianPoints(u.Quantity):
         return super(CartesianPoints, cls).__new__(cls, qarr, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_subclass__(self, obj, unit):
-        if unit is None or unit.is_equivalent(u.m):
+    def __quantity_subclass__(self, unit):
+        if unit.is_equivalent(u.m):
             return CartesianPoints, True
-
-        return super(CartesianPoints, self).__quantity_subclass__(
-            obj, unit)[0], False
+        else:
+            return super(CartesianPoints,
+                         self).__quantity_subclass__(unit)[0], False
 
     def __array_wrap__(self, obj, context=None):
         #always convert to CartesianPoints because all operations that would
