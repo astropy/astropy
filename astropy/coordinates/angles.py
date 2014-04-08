@@ -715,8 +715,7 @@ class Longitude(Angle):
 
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)
-        if isinstance(obj, Longitude):
-            self._wrap_angle = obj._wrap_angle
+        self._wrap_angle = getattr(obj, '_wrap_angle', None)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):

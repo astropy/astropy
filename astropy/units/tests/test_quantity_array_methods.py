@@ -397,6 +397,18 @@ class TestArrayConversion(object):
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.diagonal())
 
+    def test_view(self):
+        q1 = np.array([1, 2, 3], dtype=np.int64) * u.m / u.km
+        q2 = q1.view(np.ndarray)
+        assert not hasattr(q2, 'unit')
+        q3 = q2.view(u.Quantity)
+        assert q3._unit is None
+        # MaskedArray copies and properties assigned in __dict__
+        q4 = np.ma.MaskedArray(q1)
+        assert q4._unit is q1._unit
+        q5 = q4.view(u.Quantity)
+        assert q5.unit is q1.unit
+
     def test_byte_type_view_field_changes(self):
         q1 = np.array([1, 2, 3], dtype=np.int64) * u.m / u.km
         q2 = q1.byteswap()
@@ -405,8 +417,6 @@ class TestArrayConversion(object):
         q2 = q1.astype(np.float64)
         assert all(q2 == q1)
         assert q2.dtype == np.float64
-        q2 = q1.view(np.ndarray)
-        assert not hasattr(q2, 'unit')
         q2a = q1.getfield(np.int32, offset=0)
         q2b = q1.byteswap().getfield(np.int32, offset=4)
         assert q2a.unit == q1.unit
