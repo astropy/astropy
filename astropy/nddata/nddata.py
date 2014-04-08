@@ -462,14 +462,10 @@ class NDData(object):
         if self.unit is None:
             raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)
-        result = self.__class__(data)  # in case we are dealing with an inherited type
-
-        result.uncertainty = self.uncertainty
-        result.mask = self.mask
-        result.flags = None
-        result.wcs = self.wcs
-        result.meta = self.meta
-        result.unit = unit
+        # Call __class__ in case we are dealing with an inherited type
+        result = self.__class__(data, uncertainty=self.uncertainty,
+                                mask=self.mask, flags=None, wcs=self.wcs,
+                                meta=self.meta, unit=unit)
 
         return result
 
