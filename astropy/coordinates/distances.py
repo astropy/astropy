@@ -161,11 +161,10 @@ class Distance(u.Quantity):
                                             copy=copy)
 
     def __quantity_subclass__(self, obj, unit):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit)
+        if unit is None or unit.is_equivalent(u.m):
             return Distance, True
-        except u.UnitsError:
-            return super(Distance, self).__quantity_subclass__(obj, unit)[0], False
+
+        return super(Distance, self).__quantity_subclass__(obj, unit)[0], False
 
     @property
     def z(self):
@@ -298,11 +297,11 @@ class CartesianPoints(u.Quantity):
                                             copy=copy)
 
     def __quantity_subclass__(self, obj, unit):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit, True)
+        if unit is None or unit.is_equivalent(u.m):
             return CartesianPoints, True
-        except u.UnitsError:
-            return super(CartesianPoints, self).__quantity_subclass__(obj, unit)[0], False
+
+        return super(CartesianPoints, self).__quantity_subclass__(
+            obj, unit)[0], False
 
     def __array_wrap__(self, obj, context=None):
         #always convert to CartesianPoints because all operations that would

@@ -190,7 +190,7 @@ class Angle(u.Quantity):
 
     def __quantity_subclass__(self, obj, unit):
         unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
+        if unit is None or unit.is_equivalent(u.radian):
             return Angle, True
 
         return super(Angle, self).__quantity_subclass__(obj, unit)[0], False
