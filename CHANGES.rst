@@ -70,6 +70,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Progress bars will now be displayed inside the IPython
+    qtconsole. [#2230]
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
