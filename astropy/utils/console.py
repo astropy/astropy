@@ -33,12 +33,19 @@ except NameError:
 else:
     try:
         from IPython.zmq.iostream import OutStream
+    except ImportError:
+        try:
+            from IPython.kernel.zmq.iostream import OutStream
+        except ImportError:
+            OutStream = None
+
+    if OutStream is not None:
         from IPython.utils import io
         # On Windows in particular this is necessary, as the io.stdout stream
         # in IPython gets hooked up to some pyreadline magic to handle colors
         stdio = io
         IPythonIOStream = io.IOStream
-    except ImportError:
+    else:
         OutStream = None
         IPythonIOStream = None
         stdio = sys
@@ -85,7 +92,7 @@ def isatty(file):
         return False
 
     if (OutStream is not None and
-        isinstance(file, OutStream) and
+        isinstance(file, (OutStream, IPythonIOStream)) and
         file.name == 'stdout'):
         return True
     elif hasattr(file, 'isatty'):
@@ -393,8 +400,9 @@ class ProgressBar(six.Iterator):
         file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
-            calling its `isatty` member, if any), the scrollbar will
-            be completely silent.
+            calling its `isatty` member, if any, or special case hacks
+            to detect the IPython console), the progress bar will be
+            completely silent.
         """
         if file is None:
             file = stdio.stdout
@@ -420,7 +428,7 @@ class ProgressBar(six.Iterator):
         self._start_time = time.time()
 
         self._should_handle_resize = (
-            _CAN_RESIZE_TERMINAL and isatty(self._file))
+            _CAN_RESIZE_TERMINAL and self._file.isatty())
         self._handle_resize()
         if self._should_handle_resize:
             signal.signal(signal.SIGWINCH, self._handle_resize)
@@ -637,8 +645,9 @@ class Spinner(object):
         file : writeable file-like object, optional
             The file to write the spinner to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
-            calling its `isatty` member, if any), the scrollbar will
-            be completely silent.
+            calling its `isatty` member, if any, or special case hacks
+            to detect the IPython console), the spinner will be
+            completely silent.
 
         step : int, optional
             Only update the spinner every *step* steps
