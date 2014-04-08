@@ -65,7 +65,7 @@ class ConstantMeta(InheritDocstrings):
         exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
-                       '__len__', '__nonzero__'])
+                       '__len__', '__nonzero__', '__quantity_subclass__'])
         for attr, value in list(six.iteritems(vars(Quantity))):
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
@@ -132,11 +132,8 @@ class Constant(Quantity):
                                            self.uncertainty, self.unit,
                                            self.reference))
 
-    def _new_view(self, obj, unit):
-        return obj.view(Quantity)
-
-    def _new_instance(self, val, unit, **kwargs):
-        return Quantity(val, unit, **kwargs)
+    def __quantity_subclass__(self, obj, unit):
+        return Quantity, False
 
     @property
     def abbrev(self):

@@ -104,7 +104,7 @@ class QuantityIterator(object):
         Return the next value, or raise StopIteration.
         """
         out = next(self._dataiter)
-        return self._quantity.__quantity_instance__(out, self._quantity.unit)
+        return self._quantity._new_instance(out, self._quantity.unit)
 
     next = __next__
 
@@ -227,8 +227,7 @@ class Quantity(np.ndarray):
         return value
 
     def __array_finalize__(self, obj):
-        if isinstance(obj, Quantity):
-            self._unit = obj._unit
+        self._unit = getattr(obj, 'unit', None)
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
@@ -472,23 +471,6 @@ class Quantity(np.ndarray):
         """
         return Quantity, True
 
-    def __quantity_finalize__(self, obj):
-        """
-        Overridden by subclasses to set any post-construction variables
-        on new Quantities created as a result of mathematical operations.
-
-        Parameters
-        ----------
-        obj : Quantity instance
-            The new Quantity.
-
-        Returns
-        -------
-        None :
-            The return value is ignored.
-        """
-        pass
-
     def _new_view(self, obj, unit):
         """
         Overridden by subclasses to change what kind of view is
@@ -512,7 +494,8 @@ class Quantity(np.ndarray):
         if subok:
             subclass = self.__class__
         new_view = obj.view(subclass)
-        self.__quantity_finalize__(new_view)
+        new_view.__array_finalize__(self)
+        new_view._unit = unit
         return new_view
 
     def _new_instance(self, val, unit, **kwargs):
@@ -522,12 +505,8 @@ class Quantity(np.ndarray):
 
         The parameters are the same as those to `Quantity.__new__`.
         """
-        subclass, subok = self.__quantity_subclass__(val, unit)
-        if subok:
-            subclass = self.__class__
-        new_obj = subclass(val, unit, **kwargs)
-        self.__quantity_finalize__(new_obj)
-        return new_obj
+        val = np.array(val, subok=False, copy=kwargs.pop('copy', True))
+        return self._new_view(val, Unit(unit))
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses), see

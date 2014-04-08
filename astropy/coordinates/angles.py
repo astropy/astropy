@@ -630,6 +630,9 @@ class Longitude(Angle):
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
+
+    _wrap_angle = None
+
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self.wrap_angle = wrap_angle
@@ -664,14 +667,9 @@ class Longitude(Angle):
         self._wrap_angle = Angle(value)
         self._wrap_internal()
 
-    def __quantity_finalize__(self, new_obj):
-        if isinstance(new_obj, Longitude):
-            new_obj._wrap_angle = self.wrap_angle
-
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)
-        if isinstance(obj, Longitude):
-            self._wrap_angle = obj._wrap_angle
+        self._wrap_angle = getattr(obj, '_wrap_angle', None)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
