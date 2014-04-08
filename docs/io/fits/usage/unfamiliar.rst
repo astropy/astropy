@@ -68,7 +68,7 @@ a field of 3-character string is specified '3A' in a binary table and as 'A3' in
 an ASCII table.
 
 The other difference is the need to specify the table type when using either
-:meth:`ColDef` or :func:`new_table`.
+:meth:`ColDefs` or :func:`new_table`.
 
 The default value for tbtype is ``BinTableHDU``.
 
@@ -277,7 +277,7 @@ random access group, and it means to add the values together. Thus:
     >>> print f[0].data.par('date')[99]
     2445728.10
 
-The :meth`~GroupData.par` is a method for either the entire data object or one
+The :meth:`~GroupData.par` is a method for either the entire data object or one
 data item (a group). So there are two possible ways to get a group parameter
 for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method):
@@ -292,8 +292,8 @@ for a certain group, this is similar to the situation in table data (with its
 
 On the other hand, to modify a group parameter, we can either assign the new
 value directly (if accessing the row/group number last) or use the
-:meth:`~GroupData.setpar` method (if accessing the row/group number first). The
-method :meth:`~GroupData.setpar` is also needed for updating by name if the
+:meth:``~GroupData.setpar`` method (if accessing the row/group number first). The
+method :meth:``~GroupData.setpar`` is also needed for updating by name if the
 parameter is shared by more than one parameters:
 
     >>>
@@ -315,7 +315,7 @@ Data: Image Data
 """"""""""""""""
 
 The image array of the data portion is accessible by the
-:attr:`~GroupData.data` attribute of the data object. A numpy array is
+:attr:``~GroupData.data`` attribute of the data object. A numpy array is
 returned:
 
     >>> print f[0].data.data[99]

@@ -3,7 +3,7 @@
 Miscellaneous Features
 ----------------------
 
-This section describes some of the miscellaneous features of `astropy.io.fits`.
+This section describes some of the miscellaneous features of :mod:`astropy.io.fits`.
 
 Differs
 ^^^^^^^

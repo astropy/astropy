@@ -828,8 +828,8 @@ class PrimaryHDU(_ImageBaseHDU):
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
             central value and ``BSCALE == 1`` as unsigned integer
-            data.  For example, `int16` data with ``BZERO = 32768``
-            and ``BSCALE = 1`` would be treated as `uint16` data.
+            data.  For example, ``int16`` data with ``BZERO = 32768``
+            and ``BSCALE = 1`` would be treated as ``uint16`` data.
 
         scale_back : bool, optional
             If `True`, when saving changes to a file that contained scaled
@@ -915,8 +915,8 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
             central value and ``BSCALE == 1`` as unsigned integer
-            data.  For example, `int16` data with ``BZERO = 32768``
-            and ``BSCALE = 1`` would be treated as `uint16` data.
+            data.  For example, ``int16`` data with ``BZERO = 32768``
+            and ``BSCALE = 1`` would be treated as ``uint16`` data.
 
         scale_back : bool, optional
             If `True`, when saving changes to a file that contained scaled

@@ -230,7 +230,7 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     Conversions between the two column formats can be performed using the
     ``to/from_binary`` methods on this class, or the ``to/from_ascii``
     methods on the `_ColumnFormat` class.  But again, not all conversions are
-    possible and may result in a `ValueError`.
+    possible and may result in a `~.exceptions.ValueError`.
     """
 
     def __new__(cls, format, strict=False):

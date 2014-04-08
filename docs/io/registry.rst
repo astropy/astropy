@@ -21,8 +21,8 @@ The I/O registry is a sub-module used to define the readers/writers available
 for the :class:`~astropy.table.Table` and
 :class:`~astropy.nddata.NDData` classes.
 
-Using `io.registry`
-===================
+Using `astropy.io.registry`
+===========================
 
 The following example demonstrates how to create a reader for the
 :class:`~astropy.table.Table` class. First, we can create a highly

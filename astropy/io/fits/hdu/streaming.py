@@ -156,14 +156,14 @@ class StreamingHDU(object):
         -----
         Only the amount of data specified in the header provided to the class
         constructor may be written to the stream.  If the provided data would
-        cause the stream to overflow, an `IOError` exception is raised and the
-        data is not written.  Once sufficient data has been written to the
-        stream to satisfy the amount specified in the header, the stream is
-        padded to fill a complete FITS block and no more data will be accepted.
-        An attempt to write more data after the stream has been filled will
-        raise an `IOError` exception.  If the dtype of the input data does not
-        match what is expected by the header, a `TypeError` exception is
-        raised.
+        cause the stream to overflow, an `~.exceptions.IOError` exception is
+        raised and the data is not written. Once sufficient data has been
+        written to the stream to satisfy the amount specified in the header,
+        the stream is padded to fill a complete FITS block and no more data
+        will be accepted. An attempt to write more data after the stream has
+        been filled will raise an `~.exceptions.IOError` exception. If the
+        dtype of the input data does not match what is expected by the header,
+        a `.exceptions.TypeError` exception is raised.
         """
 
         size = self._ffo.tell() - self._data_offset

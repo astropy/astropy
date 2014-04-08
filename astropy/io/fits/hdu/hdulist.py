@@ -34,7 +34,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
         Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
         'ostream'.
 
-        If `name` is a file object that is already opened, `mode` must
+        If ``name`` is a file object that is already opened, ``mode`` must
         match the mode the file was opened with, readonly (rb), update (rb+),
         append (ab+), ostream (w), denywrite (rb)).
 
@@ -54,8 +54,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
 
             Interpret signed integer data where ``BZERO`` is the
             central value and ``BSCALE == 1`` as unsigned integer
-            data.  For example, `int16` data with ``BZERO = 32768``
-            and ``BSCALE = 1`` would be treated as `uint16` data.
+            data.  For example, ``int16`` data with ``BZERO = 32768``
+            and ``BSCALE = 1`` would be treated as ``uint16`` data.
 
             Note, for backward compatibility, the kwarg **uint16** may
             be used instead.  The kwarg was renamed when support was
@@ -239,7 +239,7 @@ class HDUList(list, _Verify):
         """
         Creates an `HDUList` instance from a file-like object.
 
-        The actual implementation of :func:`fitsopen`, and generally shouldn't
+        The actual implementation of ``fitsopen()``, and generally shouldn't
         be used directly.  Use :func:`open` instead (and see its
         documentation for details of the parameters accepted by this method).
         """
@@ -771,7 +771,7 @@ class HDUList(list, _Verify):
             hdulist = cls()
             # This method is currently only called from HDUList.fromstring and
             # HDUList.fromfile.  If fileobj is None then this must be the
-            # fromstring case; the data type of `data` will be checked in the
+            # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
         hdulist._save_backup = save_backup

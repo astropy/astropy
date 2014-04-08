@@ -36,13 +36,13 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     Raises
     ------
     EOFError
-        If `number` is >0 and there are fewer than `number` objects in the
+        If ``number`` is >0 and there are fewer than ``number`` objects in the
         pickled file.
 
     Returns
     -------
     contents : obj or list
-        If `number` is 0, this is a individual object - the first one unpickled
+        If ``number`` is 0, this is a individual object - the first one unpickled
         from the file. Otherwise, it is a list of objects unpickled from the
         file.
 

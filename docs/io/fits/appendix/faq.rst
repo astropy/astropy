@@ -361,12 +361,12 @@ documentation.  For this reason, it is a good idea to install Sphinx and
 PyFITS into a `virtualenv`_ in order to build the development version of the
 docs (see below).
 
-With all the requirements installed, change directories into the `docs/`
+With all the requirements installed, change directories into the ``docs/``
 directory in the PyFITS source code, and run::
 
     $ make html
 
-to build the HTML docs, which will be output to `build/html`.  To build the
+to build the HTML docs, which will be output to ``build/html``.  To build the
 docs in other formats, please refer to the Sphinx documentation.
 
 To summarize, assuming that you already have Numpy and Matplotlib on your
@@ -421,8 +421,8 @@ occurred and the path through the code that led to it.
 
 As PyFITS is meant to be used as a piece in other software projects, some
 exceptions raised by PyFITS are by design.  For example, one of the most
-common exceptions is a `KeyError` when an attempt is made to read the value of
-a non-existent keyword in a header::
+common exceptions is a `~.exceptions.KeyError` when an attempt is made to
+read the value of a non-existent keyword in a header::
 
     >>> import pyfits
     >>> h = pyfits.Header()

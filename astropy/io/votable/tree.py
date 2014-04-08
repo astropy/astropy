@@ -1824,7 +1824,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     def get_ref(self):
         """
-        Lookup the :class:`Param` instance that this :class:`PARAMref`
+        Lookup the :class:`Param` instance that this :class:``PARAMref``
         references.
         """
         for param in self._table._votable.iter_fields_and_params():
@@ -2171,7 +2171,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """
         Returns True if this table doesn't contain any real data
         because it was skipped over by the parser (through use of the
-        `table_number` kwarg).
+        ``table_number`` kwarg).
         """
         return self._empty
 
@@ -2818,7 +2818,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         Parameters
         ----------
         use_names_over_ids : bool, optional
-           When `True` use the `name` attributes of columns as the
+           When `True` use the ``name`` attributes of columns as the
            names of columns in the `astropy.table.Table` instance.
            Since names are not guaranteed to be unique, this may cause
            some columns to be renamed by appending numbers to the end.
@@ -3358,7 +3358,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         write_null_values : bool, optional
             Deprecated and retained for backward compatibility.  When
-            `write_null_values` was `False`, invalid VOTable files
+            ``write_null_values`` was `False`, invalid VOTable files
             could be generated, so the option has just been removed
             entirely.
 
@@ -3368,8 +3368,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         tabledata_format : str, optional
             Override the format of the table(s) data to write.  Must
-            be one of `tabledata` (text representation), `binary` or
-            `binary2`.  By default, use the format that was specified
+            be one of ``tabledata`` (text representation), ``binary`` or
+            ``binary2``.  By default, use the format that was specified
             in each `Table` object as it was created or read in.  See
             :ref:`votable-serialization`.
         """
