@@ -81,7 +81,11 @@ class _File(object):
     # See self._test_mmap
     _mmap_available = None
 
-    def __init__(self, fileobj=None, mode=None, memmap=False, clobber=False):
+    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False):
+
+        self.strict_memmap = bool(memmap)
+        memmap = True if memmap is None else memmap
+
         if fileobj is None:
             self.__file = None
             self.closed = False

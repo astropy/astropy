@@ -592,6 +592,14 @@ class _ImageBaseHDU(_ValidHDU):
             # No further conversion of the data is necessary
             return raw_data
 
+        try:
+            if self._file.strict_memmap:
+                raise ValueError("Cannot load a memory-mapped image: "
+                                 "BZERO/BSCALE/BLANK header keywords present. "
+                                 "Set memmap=False.")
+        except AttributeError:  # strict_memmap not set
+            pass
+
         data = None
         if not (self._orig_bzero == 0 and self._orig_bscale == 1):
             data = self._convert_pseudo_unsigned(raw_data)

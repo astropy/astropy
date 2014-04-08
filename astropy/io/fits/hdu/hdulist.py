@@ -107,7 +107,11 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
 
     if memmap is None:
         from .. import conf
-        memmap = conf.use_memmap
+        # distinguish between True (kwarg explicitly set)
+        # and None (preference for memmap in config, might be ignored)
+        memmap = None if conf.use_memmap else False
+    else:
+        memmap = bool(memmap)
 
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']
@@ -237,7 +241,7 @@ class HDUList(list, _Verify):
         self.close()
 
     @classmethod
-    def fromfile(cls, fileobj, mode=None, memmap=False,
+    def fromfile(cls, fileobj, mode=None, memmap=None,
                  save_backup=False, **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
@@ -755,7 +759,7 @@ class HDUList(list, _Verify):
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None,
-                  memmap=False, save_backup=False, **kwargs):
+                  memmap=None, save_backup=False, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
