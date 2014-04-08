@@ -357,7 +357,10 @@ class NDData(object):
         else:
             operand_data = operand.data
         data = operation(self.data, operand_data)
-        result = self.__class__(data)  # in case we are dealing with an inherited type
+        # Call __class__ in case we are dealing with an inherited type
+        result = self.__class__(data, uncertainty=None,
+                                mask=None, flags=None, wcs=self.wcs,
+                                meta=None, unit=self.unit)
 
         if propagate_uncertainties is None:
             result.uncertainty = None
@@ -393,11 +396,6 @@ class NDData(object):
             result.mask = self.mask
         else:  # combine masks as for Numpy masked arrays
             result.mask = self.mask & operand.mask
-
-        result.flags = None
-        result.wcs = self.wcs
-        result.meta = None
-        result.unit = self.unit
 
         return result
 
