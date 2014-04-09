@@ -846,7 +846,7 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TIMEOUT()):
+def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -865,6 +865,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
         Whether to display a progress bar during the download (default
         is `True`)
 
+    timeout : float, optional
+        Timeout for the requests in seconds (default is the configurable
+        REMOTE_TIMEOUT, which is 3s by default)
+
     Returns
     -------
     local_path : str
@@ -879,6 +883,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
     from ..utils.console import ProgressBarOrSpinner
 
     missing_cache = False
+
+    if timeout is None:
+        # use configfile default
+        timeout = REMOTE_TIMEOUT()
 
     if cache:
         try:
@@ -980,7 +988,7 @@ def _do_download_files_in_parallel(args):
 
 
 def download_files_in_parallel(urls, cache=False, show_progress=True,
-                               timeout=REMOTE_TIMEOUT()):
+                               timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
     all files have downloaded.  The result is a list of local file paths
@@ -998,7 +1006,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         Whether to display a progress bar during the download (default
         is `True`)
 
-    timeout : float
+    timeout : float, optional
         Timeout for the requests in seconds (default is the configurable
         REMOTE_TIMEOUT, which is 3s by default)
 
@@ -1013,6 +1021,10 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         progress = sys.stdout
     else:
         progress = io.BytesIO()
+
+    if timeout is None:
+        # use configfile default
+        timeout = REMOTE_TIMEOUT()
 
     # Combine duplicate URLs
     combined_urls = list(set(urls))
