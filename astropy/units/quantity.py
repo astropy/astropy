@@ -358,7 +358,8 @@ class Quantity(np.ndarray):
             # ensure we remember the scales we need
             result._scales = scales
 
-        # unit output will get (setting _unit could prematurely change input)
+        # unit output will get (setting _unit could prematurely change input
+        # if obj is self, which happens for in-place operations; see above)
         result._result_unit = result_unit
         return result
 
@@ -425,12 +426,6 @@ class Quantity(np.ndarray):
                     out = function(inputs[0], inputs[1], obj_array)
 
                 if obj_array is None:
-                    # array scalars cannot be viewed as arrays and thus not as
-                    # Quantity either; turn them into zero-dimensional arrays
-                    # (These are turned back into scalar in `.value`)
-                    if not isinstance(out, np.ndarray):
-                        out = out.__array__()
-
                     obj = self._new_view(out, result_unit)
 
             if result_unit is None:  # return a plain array
@@ -478,7 +473,7 @@ class Quantity(np.ndarray):
             The array to create a view of.  If obj is a numpy or python scalar,
             it will be converted to an array scalar.
 
-        unit : UnitBase or None
+        unit : UnitBase, or anything convertible to a Unit, or None
             The unit of the resulting object.  It is used to select a
             subclass, and explicitly assigned to the view if not `None`.
             If `None` (default), the unit is set by `__array_finalize__`
@@ -488,12 +483,16 @@ class Quantity(np.ndarray):
         -------
         view : Quantity subclass
         """
+        # python and numpy scalars cannot be viewed as arrays and thus not as
+        # Quantity either; turn them into zero-dimensional arrays
+        # (These are turned back into scalar in `.value`)
         if not isinstance(obj, np.ndarray):
             obj = np.array(obj)
 
         if unit is None:
             subclass = self.__class__
         else:
+            unit = Unit(unit)
             subclass, subok = self.__quantity_subclass__(unit)
             if subok:
                 subclass = self.__class__
@@ -543,9 +542,7 @@ class Quantity(np.ndarray):
         unit = Unit(unit)
         new_val = np.asarray(
             self.unit.to(unit, self.value, equivalencies=equivalencies))
-        result = self._new_view(new_val, unit)
-        result._unit = unit
-        return result
+        return self._new_view(new_val, unit)
 
     @property
     def value(self):
@@ -585,7 +582,7 @@ class Quantity(np.ndarray):
         """
         si_unit = self.unit.si
         return self._new_view(self.value * si_unit.scale,
-                              Unit(si_unit / si_unit.scale))
+                              si_unit / si_unit.scale)
 
     @property
     def cgs(self):
@@ -595,7 +592,7 @@ class Quantity(np.ndarray):
         """
         cgs_unit = self.unit.cgs
         return self._new_view(self.value * cgs_unit.scale,
-                              Unit(cgs_unit / cgs_unit.scale))
+                              cgs_unit / cgs_unit.scale)
 
     @lazyproperty
     def isscalar(self):
@@ -696,7 +693,7 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), Unit(self.unit / other))
+            return self._new_view(self.copy(), self.unit / other)
 
         return np.true_divide(self, other)
 
@@ -713,7 +710,7 @@ class Quantity(np.ndarray):
         """ Right Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(1. / self.value, Unit(other / self.unit))
+            return self._new_view(1. / self.value, other / self.unit)
 
         return np.divide(other, self)
 
@@ -981,7 +978,7 @@ class Quantity(np.ndarray):
         # be sure that the original value is not being modified.
         if not allowscaledunits and hasattr(new_unit, 'scale'):
             new_value = self.value * new_unit.scale
-            new_unit = new_unit / Unit(new_unit.scale)
+            new_unit = new_unit / new_unit.scale
             return self._new_view(new_value, new_unit)
         else:
             return self._new_view(self.copy(), new_unit)
