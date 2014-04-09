@@ -400,6 +400,10 @@ Bug Fixes
   - Progress bars will now be displayed inside the IPython
     qtconsole. [#2230]
 
+  - ``data.download_file()`` now evaluates ``REMOTE_TIMEOUT()`` at runtime
+    rather than import time. Previously, setting ``REMOTE_TIMEOUT`` after
+    import had no effect on the function's behavior. [#2302]
+    
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
