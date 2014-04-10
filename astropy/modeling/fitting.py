@@ -746,8 +746,6 @@ class JointFitter(object):
         self.initvals = list(initvals)
         self.jointparams = jointparameters
         self._verify_input()
-        for m in self.jointparams.keys():
-            m.set_joint_parameters(self.jointparams[m])
         self.fitparams = self._model_to_fit_params()
 
         # a list of model.n_inputs
@@ -760,8 +758,9 @@ class JointFitter(object):
         fparams.extend(self.initvals)
         for model in self.models:
             params = [p.flatten() for p in model.parameters]
-            for pname in model.joint:
-                slc = model._param_metrics[pname][0]
+            joint_params = self.jointparams[model]
+            for param_name in joint_params:
+                slc = model._param_metrics[param_name][0]
                 del params[slc]
             fparams.extend(params)
         return fparams
@@ -785,23 +784,24 @@ class JointFitter(object):
         del fitparams[:numjp]
 
         for model in self.models:
+            joint_params = self.jointparams[model]
             margs = lstsqargs[:model.n_inputs + 1]
             del lstsqargs[:model.n_inputs + 1]
             # separate each model separately fitted parameters
-            numfp = len(model._parameters) - len(model.joint)
+            numfp = len(model._parameters) - len(joint_params)
             mfparams = fitparams[:numfp]
 
             del fitparams[:numfp]
             # recreate the model parameters
             mparams = []
-            for pname in model.param_names:
-                if pname in model.joint:
-                    index = model.joint.index(pname)
+            for param_name in model.param_names:
+                if param_name in joint_params:
+                    index = joint_params.index(param_name)
                     # should do this with slices in case the
                     # parameter is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model._param_metrics[pname][0]
+                    slc = model._param_metrics[param_name][0]
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
@@ -835,20 +835,21 @@ class JointFitter(object):
 
         for model in self.models:
             # extract each model's fitted parameters
-            numfp = len(model._parameters) - len(model.joint)
+            joint_params = self.jointparams[model]
+            numfp = len(model._parameters) - len(joint_params)
             mfparams = fparams[:numfp]
 
             del fparams[:numfp]
             # recreate the model parameters
             mparams = []
-            for pname in model.param_names:
-                if pname in model.joint:
-                    index = model.joint.index(pname)
+            for param_name in model.param_names:
+                if param_name in joint_params:
+                    index = joint_params.index(param_name)
                     # should do this with slices in case the parameter
                     # is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model._param_metrics[pname][0]
+                    slc = model._param_metrics[param_name][0]
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
