@@ -4,10 +4,10 @@ This module contains the convolution and filter functionalities of astropy.
 
 A few conceptual notes:
 A filter kernel is mainly characterized by its response function. In the 1D
-case we speak of "impulse response function", in the 2D case we call it
-"point spread function". This response function is given for every kernel
-by an astropy ParametricModel, which is evaluated on a grid to obtain a filter
-array, which can then be applied to binned data.
+case we speak of "impulse response function", in the 2D case we call it "point
+spread function". This response function is given for every kernel by an
+astropy `FittableModel`, which is evaluated on a grid to obtain a filter array,
+which can then be applied to binned data.
 
 The model is centered on the array and should have an amplitude such that the array
 integrates to one per default.

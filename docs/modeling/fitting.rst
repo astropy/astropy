@@ -4,8 +4,8 @@ Fitting Models to Data
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters can be called as functions. They take an
-instance of `~astropy.modeling.ParametricModel` as input and modify
-`~astropy.modeling.ParametricModel.parameters` attribute. The idea is to
+instance of `~astropy.modeling.FittableModel` as input and modify
+`~astropy.modeling.FittableModel.parameters` attribute. The idea is to
 make this extensible and allow users to easily add other fitters.
 
 Linear fitting is done using Numpy's `numpy.linalg.lstsq` function.  There are

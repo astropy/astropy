@@ -3,7 +3,7 @@
 """
 This module defines base classes for all models.
 The base class of all models is `~astropy.modeling.Model`.
-`~astropy.modeling.ParametricModel` is the base class for all fittable models. Parametric
+`~astropy.modeling.FittableModel` is the base class for all fittable models. Fittable
 models can be linear or nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in a
@@ -11,7 +11,7 @@ purely mathematical way, i.e. the models are unitless. In addition, when
 possible the transformation is done using multiple parameter sets, `param_sets`.
 The number of parameter sets is stored in an attribute `param_dim`.
 
-Parametric models also store a flat list of all parameters as an instance of
+Fittable models also store a flat list of all parameters as an instance of
 `~astropy.modeling.Parameter`. When fitting, this list-like object is modified by a
 subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models, the values of the
 parameters are used as initial guesses by the fitting class. Normally users
@@ -57,9 +57,9 @@ from ..extern.six.moves import range
 
 from .parameters import Parameter, InputParameterError
 
-__all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
-           'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
-           'Parametric2DModel', 'ModelDefinitionError', 'format_input']
+__all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
+           'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
+           'Fittable2DModel', 'ModelDefinitionError', 'format_input']
 
 
 class ModelDefinitionError(Exception):
@@ -472,7 +472,7 @@ class Model(object):
         """
         Initialize the _parameters array that stores raw parameter values for
         all parameter sets for use with vectorized fitting algorithms; on
-        ParametricModels the _param_name attributes actually just reference
+        FittableModels the _param_name attributes actually just reference
         slices of this array.
         """
 
@@ -593,7 +593,7 @@ class Model(object):
             setattr(self, name, value)
 
 
-class ParametricModel(Model):
+class FittableModel(Model):
     linear = True
     # derivative with respect to parameters
     fit_deriv = None
@@ -1007,7 +1007,7 @@ class SummedCompositeModel(_CompositeModel):
             return result
 
 
-class Parametric1DModel(ParametricModel):
+class Fittable1DModel(FittableModel):
     """
     Base class for one dimensional parametric models.
 
@@ -1035,7 +1035,7 @@ class Parametric1DModel(ParametricModel):
         return self.eval(x, *self.param_sets)
 
 
-class Parametric2DModel(ParametricModel):
+class Fittable2DModel(FittableModel):
     """
     Base class for two dimensional parametric models.
 

@@ -53,7 +53,7 @@ The example described in `Custom 1D models`_ can be used for most 1D cases, but
 the following section described how to construct model classes in general.
 The details are explained below with a 1D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
-from `~astropy.modeling.ParametricModel`; if not it should subclass
+from `~astropy.modeling.FittableModel`; if not it should subclass
 `~astropy.modeling.Model`.
 
 If the model takes parameters they should be specified as class attributes in
@@ -78,7 +78,7 @@ necessary to provide the name twice.
 
     from astropy.modeling import *
 
-    class Gaussian1DModel(ParametricModel):
+    class Gaussian1DModel(FittableModel):
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
@@ -101,7 +101,7 @@ parameter sets, `~astropy.modeling.Model.param_dim`::
     recommended to make it a required argument.  In the above example none of
     the parameters have default values.
 
-Parametric models can be linear or nonlinear in a regression sense. The default
+Fittable models can be linear or nonlinear in a regression sense. The default
 value of the `~astropy.modeling.Model.linear` attribute is ``True``.
 Nonlinear models should define the ``linear`` class attribute as ``False``.
 The `~astropy.modeling.Model.n_inputs` attribute stores the number of

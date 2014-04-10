@@ -2,7 +2,7 @@
 
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
-fitting functions. All Fitters take an instance of `~astropy.modeling.ParametricModel`
+fitting functions. All Fitters take an instance of `~astropy.modeling.FittableModel`
 as input and define a ``__call__`` method which fits the model to the data and changes the
 model's parameters attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
@@ -187,7 +187,7 @@ class LinearLSQFitter(Fitter):
 
     Parameters
     ----------
-    model : `~astropy.modeling.ParametricModel`
+    model : `~astropy.modeling.FittableModel`
         Model
 
     Raises
@@ -250,7 +250,7 @@ class LinearLSQFitter(Fitter):
 
         Parameters
         ----------
-        model : `ParametricModel`
+        model : `FittableModel`
             model to fit to x, y, z
         x : array
             input coordinates
@@ -267,11 +267,11 @@ class LinearLSQFitter(Fitter):
 
         Returns
         ------
-        model_copy : `ParametricModel`
+        model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if not model.fittable:
-            raise ValueError("Model must be a subclass of ParametricModel")
+            raise ValueError("Model must be a subclass of FittableModel")
         if not model.linear:
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
@@ -476,7 +476,7 @@ class NonLinearLSQFitter(Fitter):
 
         Parameters
         ----------
-        model : `ParametricModel`
+        model : `FittableModel`
             model to fit to x, y, z
         x : array
            input coordinates
@@ -501,13 +501,13 @@ class NonLinearLSQFitter(Fitter):
 
         Returns
         ------
-        model_copy : `ParametricModel`
+        model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
             raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
         if not model.fittable:
-            raise ValueError("Model must be a subclass of ParametricModel")
+            raise ValueError("Model must be a subclass of FittableModel")
         self._validate_constraints(model)
         from scipy import optimize
         model_copy = model.copy()
@@ -647,7 +647,7 @@ class SLSQPFitter(Fitter):
 
         Parameters
         ----------
-        model : `ParametricModel`
+        model : `FittableModel`
             model to fit to x, y, z
         x : array
             input coordinates
@@ -668,13 +668,13 @@ class SLSQPFitter(Fitter):
 
         Returns
         ------
-        model_copy : `ParametricModel`
+        model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
             raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
         if not model.fittable:
-            raise ValueError("Model must be a subclass of ParametricModel")
+            raise ValueError("Model must be a subclass of FittableModel")
         if model.linear:
             warnings.warn('Model is linear in parameters; '
                           'consider using linear fitting methods.',

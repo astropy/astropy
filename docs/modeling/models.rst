@@ -3,8 +3,8 @@ Creating and Evaluating Models
 ******************************
 
 The base class of all models is `~astropy.modeling.Model`, however
-fittable models should subclass `~astropy.modeling.ParametricModel`.
-Parametric models can be linear or nonlinear in a regression analysis sense.
+fittable models should subclass `~astropy.modeling.FittableModel`.
+Fittable models can be linear or nonlinear in a regression analysis sense.
 
 Model instances are callabale, that is, o evaluate a model it is called like a
 function. When possible the transformation is done using multiple
@@ -12,7 +12,7 @@ function. When possible the transformation is done using multiple
 parameter sets is stored in an attribute
 `~astropy.modeling.Model.param_dim`.
 
-Parametric models also store a flat array of all parameter values.  When
+Fittable models also store a flat array of all parameter values.  When
 fitting, this array is directly modified by a subclass of
 `~astropy.modeling.fitting.Fitter`, in turn updating all of the model's
 parameter values simultaneously.  When fitting nonlinear models, the values of

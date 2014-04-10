@@ -9,7 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from .core import Parametric1DModel
+from .core import Fittable1DModel
 from .parameters import Parameter
 
 
@@ -17,7 +17,7 @@ __all__ = sorted(['PowerLaw1D', 'BrokenPowerLaw1D',
                   'ExponentialCutoffPowerLaw1D', 'LogParabola1D'])
 
 
-class PowerLaw1D(Parametric1DModel):
+class PowerLaw1D(Fittable1DModel):
     """
     One dimensional power law model.
 
@@ -70,7 +70,7 @@ class PowerLaw1D(Parametric1DModel):
         return [d_amplitude, d_x_0, d_alpha]
 
 
-class BrokenPowerLaw1D(Parametric1DModel):
+class BrokenPowerLaw1D(Fittable1DModel):
     """
     One dimensional power law model with a break.
 
@@ -138,7 +138,7 @@ class BrokenPowerLaw1D(Parametric1DModel):
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
 
 
-class ExponentialCutoffPowerLaw1D(Parametric1DModel):
+class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     """
     One dimensional power law model with an exponential cutoff.
 
@@ -197,7 +197,7 @@ class ExponentialCutoffPowerLaw1D(Parametric1DModel):
         return [d_amplitude, d_x_0, d_alpha, d_x_cutoff]
 
 
-class LogParabola1D(Parametric1DModel):
+class LogParabola1D(Fittable1DModel):
     """
     One dimensional log parabola model (sometimes called curved power law).
 

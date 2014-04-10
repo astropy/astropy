@@ -22,7 +22,7 @@ Typically the array is of type float but can become an object array in some
 cases. `~astropy.modeling.Model.param_sets` is used for model evaluation.
 
 In addition, fittable models maintain an attribute,
-`~astropy.modeling.ParametricModel.parameters`, which is a flattened 1D
+`~astropy.modeling.FittableModel.parameters`, which is a flattened 1D
 array of parameter values. It serves as the primary storage of the raw values
 of fittable models' parameters, and is used directly by fitters as an efficient
 means of reading and updating a model's parameters.
@@ -41,7 +41,7 @@ Parameter examples
     array([ 0.,  0.,  0.,  0.,  0.])
 
 - Coefficients can be set using the
-  `~astropy.modeling.ParametricModel.parameters` attribute::
+  `~astropy.modeling.FittableModel.parameters` attribute::
 
     >>> p1.parameters = [0, 1, 2, 3, 4]
     >>> p1.parameters
