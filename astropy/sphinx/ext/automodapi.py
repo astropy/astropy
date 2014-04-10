@@ -102,6 +102,7 @@ Class Inheritance Diagram
 
 .. automod-diagram:: {modname}
     :private-bases:
+    :parts: 1
 """
 
 _automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
