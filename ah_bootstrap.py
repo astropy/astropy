@@ -6,6 +6,11 @@ import re
 import subprocess as sp
 import sys
 
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
+
 
 if sys.version_info[0] < 3:
     _str_types = (str, unicode)
@@ -42,15 +47,27 @@ except:
 
 from distutils import log
 from distutils.debug import DEBUG
+
+# In case it didn't successfully import before the ez_setup checks
+import pkg_resources
+
 from setuptools import Distribution
+from setuptools.package_index import PackageIndex
+from setuptools.sandbox import run_setup
 
 # TODO: Maybe enable checking for a specific version of astropy_helpers?
 DIST_NAME = 'astropy-helpers'
 PACKAGE_NAME = 'astropy_helpers'
 
+# Defaults for other options
+DOWNLOAD_IF_NEEDED = True
+INDEX_URL = 'https://pypi.python.org/simple'
+USE_GIT = True
+AUTO_UPGRADE = True
 
-def use_astropy_helpers(path=None, download_if_needed=True, index_url=None,
-                        use_git=True):
+
+def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
+                        use_git=None, auto_upgrade=None):
     """
     Ensure that the `astropy_helpers` module is available and is importable.
     This supports automatic submodule initialization if astropy_helpers is
@@ -84,10 +101,45 @@ def use_astropy_helpers(path=None, download_if_needed=True, index_url=None,
     index_url : str, optional
         If provided, use a different URL for the Python package index than the
         main PyPI server.
+
+    use_git : bool, optional
+        If `False` no git commands will be used--this effectively disables
+        support for git submodules.
+
+    auto_upgrade : bool, optional
+        By default, when installing a package from a non-development source
+        distribution ah_boostrap will try to automatically check for patch
+        releases to astropy-helpers on PyPI and use the patched version over
+        any bundled versions.  Setting this to `False` will disable that
+        functionality.
     """
+
+    # True by default, unless the --offline option was provided on the command
+    # line
+    if '--offline' in sys.argv:
+        download_if_needed = False
+        auto_upgrade = False
+        sys.argv.remove('--offline')
 
     if path is None:
         path = PACKAGE_NAME
+
+    if download_if_needed is None:
+        download_if_needed = DOWNLOAD_IF_NEEDED
+
+    if index_url is None:
+        index_url = INDEX_URL
+
+    if use_git is None:
+        use_git = USE_GIT
+
+    if auto_upgrade is None:
+        auto_upgrade = AUTO_UPGRADE
+
+    # Declared as False by default--later we check if astropy-helpers can be
+    # upgraded from PyPI, but only if not using a source distribution (as in
+    # the case of import from a git submodule)
+    is_submodule = False
 
     if not isinstance(path, _str_types):
         if path is not None:
@@ -97,35 +149,38 @@ def use_astropy_helpers(path=None, download_if_needed=True, index_url=None,
             log.debug('a path was not given and download from PyPI was not '
                       'allowed so this is effectively a no-op')
             return
-    elif not os.path.exists(path):
+    elif not os.path.exists(path) or os.path.isdir(path):
         # Even if the given path does not exist on the filesystem, if it *is* a
         # submodule, `git submodule init` will create it
         is_submodule = use_git and _check_submodule(path)
-        if is_submodule and _directory_import(path, download_if_needed,
-                                              is_submodule=is_submodule):
-            # Successfully imported from submodule
-            return
 
-        if download_if_needed:
-            log.warn('The requested path {0!r} for importing astropy_helpers '
-                     'does not exist.  Attempting download '
-                     'instead.'.format(path))
+        if is_submodule or os.path.isdir(path):
+            log.info(
+                'Attempting to import astropy_helpers from {0} {1!r}'.format(
+                    'submodule' if is_submodule else 'directory', path))
+            dist = _directory_import(path)
         else:
-            raise _AHBootstrapSystemExit(
-                'Error: The requested path {0!r} for importing '
-                'astropy_helpers does not exist.'.format(path))
-    elif os.path.isdir(path):
-        if _directory_import(path, download_if_needed, is_submodule=use_git):
-            return
+            dist = None
+
+        if dist is None:
+            msg = (
+                'The requested path {0!r} for importing {1} does not '
+                'exist, or does not contain a copy of the {1} pacakge.  '
+                'Attempting download instead.'.format(path, PACKAGE_NAME))
+            if download_if_needed:
+                log.warn(msg)
+            else:
+                raise _AHBootstrapSystemExit(msg)
     elif os.path.isfile(path):
         # Handle importing from a source archive; this also uses setup_requires
         # but points easy_install directly to the source archive
         try:
-            _do_download(find_links=[path])
+            dist = _do_download(find_links=[path])
         except Exception as e:
             if download_if_needed:
                 log.warn('{0}\nWill attempt to download astropy_helpers from '
                          'PyPI instead.'.format(str(e)))
+                dist = None
             else:
                 raise _AHBootstrapSystemExit(e.args[0])
     else:
@@ -133,20 +188,45 @@ def use_astropy_helpers(path=None, download_if_needed=True, index_url=None,
                'symlink?)'.format(path))
         if download_if_needed:
             log.warn(msg)
+            dist = None
         else:
             raise _AHBootstrapSystemExit(msg)
 
-    # If we made it this far, go ahead and attempt to download/activate
-    try:
-        _do_download(index_url=index_url)
-    except Exception as e:
-        if DEBUG:
-            raise
-        else:
-            raise _AHBootstrapSystemExit(e.args[0])
+    if dist is not None and auto_upgrade and not is_submodule:
+        # A version of astropy-helpers was found on the available path, but
+        # check to see if a bugfix release is available on PyPI
+        upgrade = _do_upgrade(dist, index_url)
+        if upgrade is not None:
+            dist = upgrade
+    elif dist is None:
+        # Last resort--go ahead and try to download the latest version from
+        # PyPI
+        try:
+            if download_if_needed:
+                log.warn(
+                    "Downloading astropy_helpers; run setup.py with the "
+                    "--offline option to force offline installation.")
+                dist = _do_download(index_url=index_url)
+            else:
+                raise _AHBootstrapSystemExit(
+                    "No source for the astropy_helpers package; "
+                    "astropy_helpers must be available as a prerequisite to "
+                    "installing this package.")
+        except Exception as e:
+            if DEBUG:
+                raise
+            else:
+                raise _AHBootstrapSystemExit(e.args[0])
+
+    if dist is not None:
+        # Otherwise we found a version of astropy-helpers so we're done
+        # Just activate the found distribibution on sys.path--if we did a
+        # download this usually happens automatically but do it again just to
+        # be sure
+        return dist.activate()
 
 
-def _do_download(find_links=None, index_url=None):
+def _do_download(version='', find_links=None, index_url=None):
     try:
         if find_links:
             allow_hosts = ''
@@ -169,12 +249,19 @@ def _do_download(find_links=None, index_url=None):
                         opts['allow_hosts'] = ('setup script', allow_hosts)
                 return opts
 
-        attrs = {'setup_requires': [DIST_NAME]}
+        if version:
+            req = '{0}=={1}'.format(DIST_NAME, version)
+        else:
+            req = DIST_NAME
+
+        attrs = {'setup_requires': [req]}
         if DEBUG:
             dist = _Distribution(attrs=attrs)
         else:
             with _silence():
                 dist = _Distribution(attrs=attrs)
+
+        return pkg_resources.working_set.by_key.get(DIST_NAME)
     except Exception as e:
         if DEBUG:
             raise
@@ -190,32 +277,52 @@ def _do_download(find_links=None, index_url=None):
         raise Exception(msg.format(source, repr(e)))
 
 
-def _directory_import(path, download_if_needed, is_submodule=None):
+def _do_upgrade(dist, index_url):
+    # Build up a requirement for a higher bugfix release but a lower minor
+    # release (so API compatibility is guaranteed)
+    # sketchy version parsing--maybe come up with something a bit more
+    # robust for this
+    major, minor = (int(part) for part in dist.parsed_version[:2])
+    next_minor = '.'.join([str(major), str(minor + 1), '0'])
+    req = pkg_resources.Requirement.parse(
+        '{0}>{1},<{2}'.format(DIST_NAME, dist.version, next_minor))
+
+    package_index = PackageIndex(index_url=index_url)
+
+    upgrade = package_index.obtain(req)
+
+    if upgrade is not None:
+        return _do_download(version=upgrade.version, index_url=index_url)
+
+
+def _directory_import(path):
+    """
+    Import astropy_helpers from the given path, which will be added to
+    sys.path.
+
+    Must return True if the import succeeded, and False otherwise.
+    """
+
     # Return True on success, False on failure but download is allowed, and
     # otherwise raise SystemExit
-    # Check to see if the path is a git submodule
-    if is_submodule is None:
-        is_submodule = _check_submodule(path)
+    path = os.path.abspath(path)
+    pkg_resources.working_set.add_entry(path)
+    dist = pkg_resources.working_set.by_key.get(DIST_NAME)
 
-    log.info(
-        'Attempting to import astropy_helpers from {0} {1!r}'.format(
-            'submodule' if is_submodule else 'directory', path))
-    sys.path.insert(0, path)
-    try:
-        __import__('astropy_helpers')
-        return True
-    except ImportError:
-        sys.path.remove(path)
+    if dist is None:
+        # We didn't find an egg-info/dist-info in the given path, but if a
+        # setup.py exists we can generate it
+        setup_py = os.path.join(path, 'setup.py')
+        if os.path.isfile(setup_py):
+            with _silence():
+                run_setup(os.path.join(path, 'setup.py'), ['egg_info'])
 
-        if download_if_needed:
-            log.warn(
-                'Failed to import astropy_helpers from {0!r}; will '
-                'attempt to download it from PyPI instead.'.format(path))
-        else:
-            raise _AHBoostrapSystemExit(
-                'Failed to import astropy_helpers from {0!r}:\n'
-                '{1}'.format(path))
-    # Otherwise, success!
+            for dist in pkg_resources.find_distributions(path, True):
+                # There should be only one...
+                pkg_resources.working_set.add(dist, path, False)
+                break
+
+    return dist
 
 
 def _check_submodule(path):
@@ -373,3 +480,51 @@ class _AHBootstrapSystemExit(SystemExit):
 # submodule is initialized.  We ignore this information for now
 _git_submodule_status_re = re.compile(
     b'^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) (?P<submodule>\S+)( .*)?$')
+
+
+# Implement the auto-use feature; this allows use_astropy_helpers() to be used
+# at import-time automatically so long as the correct options are specified in
+# setup.cfg
+_CFG_OPTIONS = [('auto_use', bool), ('path', str),
+                ('download_if_needed', bool), ('index_ur', str),
+                ('use_git', bool), ('auto_upgrade', bool)]
+
+def _main():
+    if not os.path.exists('setup.cfg'):
+        return
+
+    cfg = ConfigParser()
+
+    try:
+        cfg.read('setup.cfg')
+    except Exception as e:
+        if DEBUG:
+            raise
+
+        log.error(
+            "Error reading setup.cfg: {0!r}\nastropy_helpers will not be "
+            "automatically bootstrapped and package installation may fail."
+            "\n{1}".format(e, _err_help_msg))
+        return
+
+    if not cfg.has_section('ah_bootstrap'):
+        return
+
+    kwargs = {}
+
+    for option, type_ in _CFG_OPTIONS:
+        if not cfg.has_option('ah_bootstrap', option):
+            continue
+
+        if type_ is bool:
+            value = cfg.getboolean('ah_bootstrap', option)
+        else:
+            value = cfg.get('ah_bootstrap', option)
+
+        kwargs[option] = value
+
+    if kwargs.pop('auto_use', False):
+        use_astropy_helpers(**kwargs)
+
+
+_main()

@@ -6,7 +6,6 @@ import os
 import sys
 
 import ah_bootstrap
-ah_bootstrap.use_astropy_helpers()
 from setuptools import setup
 
 #A dirty hack to get around some early import/configurations ambiguities
@@ -55,7 +54,7 @@ scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
 # details.
-package_info = get_package_info(NAME)
+package_info = get_package_info()
 
 # Add the project-global data
 package_info['package_data']['astropy'] = ['data/*']
