@@ -128,7 +128,7 @@ keywords, and returns the index of a given keyword.  For example::
     >>> header.index('BITPIX')
     2
 
-:meth:`Header.count` is similar to ``list.count``, and also takes a keyword as
+:meth:`Header.count` is similar to `list.count`, and also takes a keyword as
 its argument::
 
     >>> header.count('HISTORY')

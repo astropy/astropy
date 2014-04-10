@@ -64,8 +64,7 @@ def read_table_hdf5(input, path=None):
 
     Parameters
     ----------
-    input : str or ``h5py.highlevel.File`` or ``h5py.highlevel.Group`` or
-    ``h5py.highlevel.Dataset``
+    input : str or `h5py.highlevel.File` or `h5py.highlevel.Group` or `h5py.highlevel.Dataset`
         If a string, the filename to read the table from. If an h5py object,
         either the file or the group object to read the table from.
     path : str
@@ -151,7 +150,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     Parameters
     ----------
-    output : str or ``h5py.highlevel.File`` or ``h5py.highlevel.Group``
+    output : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
     compression : bool or str or int
