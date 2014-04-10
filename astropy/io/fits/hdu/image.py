@@ -44,7 +44,7 @@ class _ImageBaseHDU(_ValidHDU):
     }
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
-                 uint=False, scale_back=False, **kwargs):
+                 uint=False, scale_back=False, ignore_blank=False, **kwargs):
 
         from .groups import GroupsHDU
 
@@ -120,11 +120,12 @@ class _ImageBaseHDU(_ValidHDU):
         self._bitpix = self._header.get('BITPIX', 8)
         self._gcount = self._header.get('GCOUNT', 1)
         self._pcount = self._header.get('PCOUNT', 0)
-        self._blank = self._header.get('BLANK')
+        self._blank = None if ignore_blank else self._header.get('BLANK')
 
         self._orig_bitpix = self._bitpix
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
+        self._orig_blank = self._header.get('BLANK')
 
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
@@ -808,6 +809,7 @@ class PrimaryHDU(_ImageBaseHDU):
     _default_name = 'PRIMARY'
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
+                 ignore_blank=False,
                  uint=False, scale_back=None):
         """
         Construct a primary HDU.
@@ -837,11 +839,17 @@ class PrimaryHDU(_ImageBaseHDU):
             original BSCALE/BZERO values.  This could lead to loss of accuracy
             if scaling back to integer values after performing floating point
             operations on the data.
+
+        ignore_blank : bool, optional
+            If `True`, the BLANK header keyword will be ignored if present.
+            Otherwise, pixels equal to this value will be replaced with
+            NaNs.
         """
 
         super(PrimaryHDU, self).__init__(
             data=data, header=header,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
+            ignore_blank=ignore_blank,
             scale_back=scale_back)
 
         # insert the keywords EXTEND

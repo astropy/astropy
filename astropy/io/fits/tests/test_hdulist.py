@@ -627,7 +627,8 @@ class TestHDUListFunctions(FitsTestCase):
                             c2 = hdul2[idx].data[n]
                             assert (c1 == c2).all()
                     else:
-                        assert (hdul[idx].data == hdul2[idx].data).all()
+                        np.testing.assert_array_equal(hdul[idx].data,
+                                                      hdul2[idx].data)
 
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
