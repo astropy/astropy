@@ -140,8 +140,7 @@ class TestRunner(object):
         if test_path:
             base, ext = os.path.splitext(test_path)
             if ext == '.py':
-                test_path = os.path.join(package_path,
-                                         os.path.abspath(test_path))
+                test_path = os.path.abspath(test_path)
                 all_args += test_path
             elif ext == '.rst':
                 if docs_path is None:
@@ -149,7 +148,12 @@ class TestRunner(object):
                     raise ValueError(
                         "Can not test .rst files without a docs_path specified.")
                 else:
-                    test_path = os.path.join(docs_path, test_path)
+                    # Since we aren't testing any Python files within
+                    # the astropy tree, we need to forcibly load the
+                    # astropy py.test plugins, and then turn on the
+                    # doctest_rst plugin.
+                    all_args += ' -p astropy.tests.pytest_plugins --doctest-rst '
+                    test_path = os.path.join(docs_path, '..', test_path)
                     all_args += test_path
             else:
                 raise ValueError("Test file path must be to a .py or .rst file")

@@ -238,6 +238,10 @@ def pytest_configure(config):
                     config.getini('doctest_rst') or config.option.doctest_rst),
         'doctestplus')
 
+    # Remove the doctest_plugin, or we'll end up testing the .rst
+    # files twice.
+    config.pluginmanager.unregister(doctest_plugin)
+
 
 class DoctestPlus(object):
     def __init__(self, doctest_module_item_cls, doctest_textfile_item_cls,
