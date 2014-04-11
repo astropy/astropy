@@ -416,7 +416,8 @@ class Trapezoid1DKernel(Kernel1D):
     Parameters
     ----------
     width : number
-        Width of the filter kernel.
+        Width of the filter kernel, defined as the width of the constant part, 
+        before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
     mode : str, optional
@@ -473,7 +474,8 @@ class TrapezoidDisk2DKernel(Kernel2D):
     Parameters
     ----------
     width : number
-        Width of the filter kernel.
+        Width of the filter kernel, defined as the width of the constant part, 
+        before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
     mode : str, optional
@@ -543,7 +545,8 @@ class MexicanHat1DKernel(Kernel1D):
     Parameters
     ----------
     width : number
-        Width of the filter kernel.
+        Width of the filter kernel, defined as the standard deviation
+        of the Gaussian function from which it is derived.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
     mode : str, optional
@@ -612,7 +615,8 @@ class MexicanHat2DKernel(Kernel2D):
     Parameters
     ----------
     width : number
-        Width of the filter kernel.
+        Width of the filter kernel, defined as the standard deviation
+        of the Gaussian function from which it is derived.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
