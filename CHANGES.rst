@@ -344,6 +344,9 @@ Bug Fixes
     also ensure operations that lead to units other than length return
     ``Quantity``. [#2206, #2250]
 
+  - Multiplication and division of ``Angle`` objects is now
+    supported. [#2273]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]

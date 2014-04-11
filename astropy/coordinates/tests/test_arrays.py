@@ -170,8 +170,8 @@ def test_array_coordinates_transformations(arrshape, distance):
 
     #now make sure round-tripping works through FK5 - this exercises both static and dynamic transform matricies
     c2 = c.fk5.icrs
-    npt.assert_array_almost_equal(c.ra, c2.ra)
-    npt.assert_array_almost_equal(c.dec, c2.dec)
+    npt.assert_array_almost_equal(c.ra.radian, c2.ra.radian)
+    npt.assert_array_almost_equal(c.dec.radian, c2.dec.radian)
 
     assert c2.ra.shape == arrshape
 
