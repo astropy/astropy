@@ -64,12 +64,12 @@ def find_coordinate_range(transform, extent, x_type='scalar', y_type='scalar'):
     if y_type in ['longitude', 'latitude']:
 
         # Iron out coordinates along first row
-
-        wjump = yw[0, ix] - yw[0, ix - 1]
-        if np.abs(wjump) > 180.:
-            wjump = wjump + np.sign(wjump) * 180.
-            wjump = 360. * (wjump / 360.).astype(int)
-            yw[0, ix] -= wjump
+        for ix in range(1, NX + 1):
+            wjump = yw[0, ix] - yw[0, ix - 1]
+            if np.abs(wjump) > 180.:
+                wjump = wjump + np.sign(wjump) * 180.
+                wjump = 360. * (wjump / 360.).astype(int)
+                yw[0, ix] -= wjump
 
         # Now iron out coordinates along all columns, starting with first row.
 
