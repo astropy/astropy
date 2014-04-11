@@ -172,8 +172,8 @@ class GaussianAbsorption1D(Fittable1DModel):
         GaussianAbsorption1D model function derivatives.
         """
         import operator
-        return map(
-            operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev))
+        return list(six.moves.map(
+            operator.neg, Gaussian1D.fit_deriv(x, amplitude, mean, stddev)))
 
 
 class Gaussian2D(Fittable2DModel):

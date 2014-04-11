@@ -31,6 +31,8 @@ def test_GaussianAbsorption1D():
     g_ab = models.GaussianAbsorption1D(0.8, 3000, 20)
     xx = np.arange(2900, 3100, 2)
     assert_allclose(g_ab(xx), 1 - g_em(xx))
+    assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
+                    -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
 
 
 def test_Gaussian2D():
