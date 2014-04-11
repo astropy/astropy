@@ -20,7 +20,7 @@ from ..utils.console import color_print
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
-from .pprint import (_pformat_col, _pformat_col_iter, _more_tabcol)
+from . import pprint
 from .np_utils import fix_column_name
 
 from ..config import ConfigAlias
@@ -35,6 +35,9 @@ ERROR_COLUMN_ARGS_MESSAGE = """
 The first argument to {class_name} is the string {first_arg}, which was probably intended
 as the column name.  Starting in Astropy 0.3 the argument order for initializing
 a {class_name} object is {class_name}(data=None, name=None, ...)."""
+
+# Create a generic TableFormatter object for use by bare columns with no parent table.
+FORMATTER = pprint.TableFormatter()
 
 
 def _check_column_new_args(func):
@@ -296,9 +299,9 @@ class BaseColumn(np.ndarray):
         str_vals : iterator
             Column values formatted as strings
         """
-        # pprint._pformat_col_iter(col, max_lines, show_name, show_unit, outs)
         # Iterate over formatted values with no max number of lines, no column
         # name, no unit, and ignoring the returned header info in outs.
+        _pformat_col_iter = self._formatter._pformat_col_iter
         for str_val in _pformat_col_iter(self, -1, False, False, {}):
             yield str_val
 
@@ -326,6 +329,11 @@ class BaseColumn(np.ndarray):
 
         return equal
 
+    @property
+    def _formatter(self):
+        return FORMATTER if (self.parent_table is None) else self.parent_table.formatter
+
+
     def pformat(self, max_lines=None, show_name=True, show_unit=False):
         """Return a list of formatted string representation of column values.
 
@@ -352,6 +360,7 @@ class BaseColumn(np.ndarray):
             List of lines with header and formatted column values
 
         """
+        _pformat_col = self._formatter._pformat_col
         lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         return lines
 
@@ -375,6 +384,7 @@ class BaseColumn(np.ndarray):
         show_unit : bool
             Include a header row for unit (default=False)
         """
+        _pformat_col = self._formatter._pformat_col
         lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
@@ -409,6 +419,7 @@ class BaseColumn(np.ndarray):
             Include a header row for unit (default=False)
 
         """
+        _more_tabcol = self._formatter._more_tabcol
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,
                      show_unit=show_unit)
 
@@ -628,6 +639,7 @@ class Column(BaseColumn):
         return out
 
     def __unicode__(self):
+        _pformat_col = self._formatter._pformat_col
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
     if six.PY3:
@@ -833,8 +845,7 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         data = super(MaskedColumn, self).filled(fill_value)
         # Use parent table definition of Column if available
-        if self.parent_table is not None:
-            Column = self.parent_table.Column
-        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
-                     description=self.description, meta=deepcopy(self.meta))
+        column_cls = self.parent_table.Column if (self.parent_table is not None) else Column
+        out = column_cls(name=self.name, data=data, unit=self.unit, format=self.format,
+                         description=self.description, meta=deepcopy(self.meta))
         return out

@@ -4,7 +4,7 @@
 # TEST_UNICODE_LITERALS
 
 from ... import table
-
+from .. import pprint
 
 class MyRow(table.Row):
     def __str__(self):
@@ -26,12 +26,16 @@ class MyTableColumns(table.TableColumns):
         return 'CoolTableColumns!'
 
 
-class MyTable(table.Table):
-    _Row = MyRow
-    _Column = MyColumn
-    _MaskedColumn = MyMaskedColumn
-    _TableColumns = MyTableColumns
+class MyTableFormatter(pprint.TableFormatter):
+    def cool(self):
+        return 'CoolTableFormatter!'
 
+class MyTable(table.Table):
+    Row = MyRow
+    Column = MyColumn
+    MaskedColumn = MyMaskedColumn
+    TableColumns = MyTableColumns
+    TableFormatter = MyTableFormatter
 
 def test_simple_subclass():
     t = MyTable([[1, 2], [3, 4]])
@@ -40,6 +44,7 @@ def test_simple_subclass():
     assert str(row) == '(1, 3)'
     assert t['col0'].cool() == 'Cool!'
     assert t.columns.cool() == 'CoolTableColumns!'
+    assert t.formatter.cool() == 'CoolTableFormatter!'
 
     t2 = MyTable(t)
     row = t2[0]
@@ -56,4 +61,5 @@ def test_simple_subclass():
     assert isinstance(row, MyRow)
     assert str(row) == '(1, 3)'
     assert t['col0'].cool() == 'MaskedCool!'
+    assert t.formatter.cool() == 'CoolTableFormatter!'
     

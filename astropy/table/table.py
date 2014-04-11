@@ -23,7 +23,7 @@ from ..utils.console import color_print
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
-from .pprint import (_pformat_table, _more_tabcol)
+from .pprint import TableFormatter
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
 from .np_utils import fix_column_name
 
@@ -273,6 +273,7 @@ class Table(object):
     Column = Column
     MaskedColumn = MaskedColumn
     TableColumns = TableColumns
+    TableFormatter = TableFormatter
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, dtypes=None):
@@ -287,6 +288,7 @@ class Table(object):
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
+        self.formatter = self.TableFormatter()
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -629,7 +631,7 @@ class Table(object):
         return s
 
     def __unicode__(self):
-        lines, n_header = _pformat_table(self)
+        lines, n_header = self.formatter._pformat_table(self)
         return '\n'.join(lines)
     if six.PY3:
         __str__ = __unicode__
@@ -669,8 +671,8 @@ class Table(object):
             for the unit.
         """
 
-        lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
-                                         show_unit)
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
+                                                        show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -795,9 +797,9 @@ class Table(object):
         lines : list
             Formatted table as a list of strings
         """
-        lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_unit, html,
-                                         tableid=tableid)
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
+                                                        show_name, show_unit, html,
+                                                        tableid=tableid)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -832,8 +834,8 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
         """
-        _more_tabcol(self, max_lines, max_width, show_name,
-                     show_unit)
+        self.formatter._more_tabcol(self, max_lines, max_width, show_name,
+                                    show_unit)
 
     def _repr_html_(self):
         # Since the user cannot provide input, need a sensible default
