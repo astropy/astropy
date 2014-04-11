@@ -16,6 +16,7 @@ from . import core
 from . import si
 from . import astrophys
 from . import cgs
+from . import imperial
 
 
 __all__ = ['def_physical_type', 'get_physical_type']
@@ -79,6 +80,8 @@ for unit, name in [
     (si.g, 'mass'),
     (si.mol, 'amount of substance'),
     (si.K, 'temperature'),
+    (si.deg_C, 'temperature'),
+    (imperial.deg_F, 'temperature'),
     (si.N, 'force'),
     (si.J, 'energy'),
     (si.Pa, 'pressure'),

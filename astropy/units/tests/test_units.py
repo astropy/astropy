@@ -319,9 +319,11 @@ def test_compose_cgs_to_si():
         assert [x.is_equivalent(unit) for x in si]
         assert si[0] == unit.si
 
+    # Can't decompose Celsius
     for val in u.cgs.__dict__.values():
         if (isinstance(val, u.UnitBase) and
-                not isinstance(val, u.PrefixUnit)):
+                not isinstance(val, u.PrefixUnit) and
+                val != u.cgs.deg_C):
             yield _test_compose_cgs_to_si, val
 
 
@@ -339,9 +341,11 @@ def test_compose_si_to_cgs():
             assert [x.is_equivalent(unit) for x in cgs]
             assert cgs[0] == unit.cgs
 
+    # Can't decompose Celsius
     for val in u.si.__dict__.values():
         if (isinstance(val, u.UnitBase) and
-                not isinstance(val, u.PrefixUnit)):
+                not isinstance(val, u.PrefixUnit) and
+                val != u.si.deg_C):
             yield _test_compose_si_to_cgs, val
 
 

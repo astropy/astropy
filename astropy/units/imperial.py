@@ -99,6 +99,13 @@ def_unit(['hp', 'horsepower'], si.W / 0.00134102209, namespace=_ns,
 
 
 ###########################################################################
+# TEMPERATURE
+
+def_unit(['deg_F', 'Fahrenheit'], namespace=_ns, doc='Degrees Fahrenheit',
+         format={'latex': r'{}^{\circ}F', 'unicode': '°F'})
+
+
+###########################################################################
 # CLEANUP
 
 del UnitBase

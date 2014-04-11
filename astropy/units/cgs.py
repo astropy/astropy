@@ -23,6 +23,7 @@ rad = si.rad
 sr = si.sr
 cd = si.cd
 K = si.K
+deg_C = si.deg_C
 mol = si.mol
 
 

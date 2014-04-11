@@ -132,6 +132,9 @@ New Features
 
   - Added `dex` and `dB` units. [#1628]
 
+  - Added ``temperature()`` equivalencies to support conversion between
+    Kelvin, Celsius, and Fahrenheit. [#2209]
+
 - ``astropy.utils``
 
   - `astropy.utils.timer.RunTimePredictor` now uses `astropy.modeling`
