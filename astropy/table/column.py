@@ -832,6 +832,9 @@ class MaskedColumn(Column, ma.MaskedArray):
         fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
+        # Use parent table definition of Column if available
+        if self.parent_table is not None:
+            Column = self.parent_table.Column
         out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
         return out
