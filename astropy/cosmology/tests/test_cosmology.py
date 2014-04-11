@@ -325,6 +325,10 @@ def test_ogamma():
         (np.sqrt((1.0 + Or0 * z) / (1.0 + z)) - 1.0) / (Or0 - 1.0)
     assert np.allclose(cosmo.comoving_distance(z).value, targvals, rtol=1e-5)
 
+    # And integers for z
+    assert np.allclose(cosmo.comoving_distance(z.astype(np.int)).value,
+                       targvals, rtol=1e-5)
+
     # Try Tcmb0 = 4
     Or0 *= (4.0 / 2.725) ** 4
     Om0 = 1.0 - Or0
@@ -336,13 +340,16 @@ def test_ogamma():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_tcmb():
-    cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
-    assert np.allclose(cosmo.Tcmb0.value, 3.0)
-    assert np.allclose(cosmo.Tcmb(2).value, 9.0)
+    cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=2.5)
+    assert np.allclose(cosmo.Tcmb0.value, 2.5)
+    assert np.allclose(cosmo.Tcmb(2).value, 7.5)
     z = [0.0, 1.0, 2.0, 3.0, 9.0]
     assert np.allclose(cosmo.Tcmb(z).value,
-                       [3.0, 6.0, 9.0, 12.0, 30.0], rtol=1e-6)
-
+                       [2.5, 5.0, 7.5, 10.0, 25.0], rtol=1e-6)
+    # Make sure it's the same for integers
+    z = [0, 1, 2, 3, 9]
+    assert np.allclose(cosmo.Tcmb(z).value,
+                       [2.5, 5.0, 7.5, 10.0, 25.0], rtol=1e-6)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_tnu():
@@ -350,8 +357,12 @@ def test_tnu():
     assert np.allclose(cosmo.Tnu0.value, 2.1412975665108247, rtol=1e-6)
     assert np.allclose(cosmo.Tnu(2).value, 6.423892699532474, rtol=1e-6)
     z = [0.0, 1.0, 2.0, 3.0]
-    assert np.allclose(cosmo.Tnu(z), [2.14129757, 4.28259513,
-                                      6.4238927, 8.56519027], rtol=1e-6)
+    expected = [2.14129757, 4.28259513, 6.4238927, 8.56519027]
+    assert np.allclose(cosmo.Tnu(z), expected, rtol=1e-6)
+
+    # Test for integers
+    z = [0, 1, 2, 3]
+    assert np.allclose(cosmo.Tnu(z), expected, rtol=1e-6)
 
 
 def test_efunc_vs_invefunc():
@@ -615,6 +626,21 @@ def test_flat_open_closed_icosmo():
     assert np.allclose(cosmo.luminosity_distance(redshifts).value, dl)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_integral():
+    # Test integer vs. floating point inputs
+    cosmo = core.LambdaCDM(H0=73.2, Om0=0.3, Ode0=0.50)
+    assert np.allclose(cosmo.comoving_distance(3),
+                       cosmo.comoving_distance(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.comoving_distance([1, 2, 3, 5]),
+                       cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]), rtol=1e-7)
+    assert np.allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
+    assert np.allclose(cosmo.efunc([1, 2, 6]),
+                       cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
+    assert np.allclose(cosmo.inv_efunc([1, 2, 6]),
+                       cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
+
+
 def test_current():
     core.set_current('WMAP7')
     cosmo = core.get_current()
@@ -655,29 +681,55 @@ def test_de_densityscale():
     z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
     assert np.allclose(cosmo.de_density_scale(z),
                        [1.0, 1.0, 1.0, 1.0, 1.0])
+    # Integer check
+    assert np.allclose(cosmo.de_density_scale(3),
+                       cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.de_density_scale([1, 2, 3]),
+                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+
     cosmo = core.wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
     assert np.allclose(cosmo.de_density_scale(z),
                        [1.15369, 1.31453, 1.83712, 3.95285, 6.5479],
                        rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale(3),
+                       cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.de_density_scale([1, 2, 3]),
+                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+
     cosmo = core.w0wzCDM(H0=70, Om0=0.3, Ode0=0.50, w0=-1, wz=0.5)
     assert np.allclose(cosmo.de_density_scale(z),
                        [0.746048, 0.5635595, 0.25712378, 0.026664129,
                         0.0035916468], rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale(3),
+                       cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.de_density_scale([1, 2, 3]),
+                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+
     cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-1, wa=-0.5)
     assert np.allclose(cosmo.de_density_scale(z),
                        [0.9934201, 0.9767912, 0.897450,
                         0.622236, 0.4458753], rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale(3),
+                       cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.de_density_scale([1, 2, 3]),
+                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+
     cosmo = core.wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9,
                          wa=0.2, zp=0.5)
     assert np.allclose(cosmo.de_density_scale(z),
                        [1.012246048, 1.0280102, 1.087439,
                         1.324988, 1.565746], rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale(3),
+                       cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert np.allclose(cosmo.de_density_scale([1, 2, 3]),
+                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_age():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+    assert np.allclose(tcos.age([1., 5.]).value, [5.97113193, 1.20553129])
     assert np.allclose(tcos.age([1, 5]).value, [5.97113193, 1.20553129])
 
 
@@ -687,6 +739,7 @@ def test_distmod():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     core.set_current(tcos)
     assert np.allclose(tcos.distmod([1, 5]).value, [44.124857, 48.40167258])
+    assert np.allclose(tcos.distmod([1., 5.]).value, [44.124857, 48.40167258])
     assert np.allclose(funcs.distmod([1, 5], cosmo=tcos).value,
                        [44.124857, 48.40167258])
 
@@ -696,6 +749,8 @@ def test_critical_density():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert np.allclose(tcos.critical_density([1, 5]).value,
+                       [2.70362491e-29, 5.53758986e-28])
+    assert np.allclose(tcos.critical_density([1., 5.]).value,
                        [2.70362491e-29, 5.53758986e-28])
 
 
@@ -721,7 +776,10 @@ def test_absorption_distance():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert np.allclose(tcos.absorption_distance([1, 3]),
                        [1.72576635, 7.98685853])
+    assert np.allclose(tcos.absorption_distance([1., 3.]),
+                       [1.72576635, 7.98685853])
     assert np.allclose(tcos.absorption_distance(3), 7.98685853)
+    assert np.allclose(tcos.absorption_distance(3.), 7.98685853)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -734,7 +792,9 @@ def test_massivenu_basic():
     assert len(mnu) == 4
     assert mnu.unit == u.eV
     assert np.allclose(mnu.value, [0.0, 0.0, 0.0, 0.0])
-    assert np.allclose(tcos.nu_relative_density(1.0), 0.22710731766 * 4.05,
+    assert np.allclose(tcos.nu_relative_density(1.), 0.22710731766 * 4.05,
+                       rtol=1e-6)
+    assert np.allclose(tcos.nu_relative_density(1), 0.22710731766 * 4.05,
                        rtol=1e-6)
 
     # Test basic setting, retrieval of values
@@ -817,6 +877,12 @@ def test_massivenu_density():
                        rtol=5e-3)
     onu_exp = np.array([0.00584959, 0.01493142, 0.01772291,
                         0.01963451, 0.10227728])
+    assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
+
+    # Integer redshifts
+    ztest = ztest.astype(np.int)
+    assert np.allclose(tcos.nu_relative_density(ztest), nurel_exp,
+                       rtol=5e-3)
     assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
 
