@@ -21,23 +21,30 @@ IDENTITY.wcs.cdelt = [1., 1.]
 class WCSAxes(Axes):
 
     def __init__(self, fig, rect, wcs=IDENTITY, **kwargs):
-
-        self.wcs = wcs
-
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
 
-        # Turn off spines and current axes
+        self.reset_wcs(wcs)
+        self._hide_parent_artists()
 
+    def _hide_parent_artists(self):
+        # Turn off spines and current axes
         for s in self.spines.values():
             s.set_visible(False)
 
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
+    def reset_wcs(self, wcs):
+        """
+        Reset the current Axes, to use a new WCS object.
+        """
+
         # Here determine all the coordinate axes that should be shown.
+        if wcs is None:
+            wcs = IDENTITY
 
+        self.wcs = wcs
         self.coords = CoordinatesMap(self, self.wcs)
-
         self._all_coords = [self.coords]
 
         # Common default settings
