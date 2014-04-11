@@ -354,6 +354,8 @@ Bug Fixes
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
 
+  - Be more carful about converting to floating point internally [#1815, #1818]
+
 - ``astropy.io.ascii``
 
   - The CDS reader in ``astropy.io.ascii`` can now handle multiple
