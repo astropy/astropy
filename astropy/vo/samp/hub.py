@@ -1055,7 +1055,7 @@ class SAMPHubServer(object):
             params = (sender_public_id, message)
             samp_method_name = "receiveNotification"
 
-            self._retry_method_(self, N_RETRIES, "notification", params, recipient_private_key, recipient_public_id, samp_method_name)
+            self._retry_method_(self, N_RETRIES(), "notification", params, recipient_private_key, recipient_public_id, samp_method_name)
 
         except Exception as exc:
             warnings.warn("%s notification from client %s to client %s failed [%s]"
@@ -1127,7 +1127,7 @@ class SAMPHubServer(object):
             params = (sender_public_id, msg_id, message)
             samp_methodName = "receiveCall"
 
-            self._retry_method(self, N_RETRIES, "call", params, recipient_private_key, recipient_public_id, samp_methodName)
+            self._retry_method(self, N_RETRIES(), "call", params, recipient_private_key, recipient_public_id, samp_methodName)
 
         except Exception as exc:
             warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
@@ -1239,7 +1239,7 @@ class SAMPHubServer(object):
                 params = (responder_public_id, msg_id, response)
                 samp_method_name = "receiveResponse"
 
-                self._retry_method_(self, N_RETRIES, "reply", params, recipient_private_key, recipient_public_id, samp_method_name)
+                self._retry_method_(self, N_RETRIES(), "reply", params, recipient_private_key, recipient_public_id, samp_method_name)
 
         except Exception as exc:
             warnings.warn("%s reply from client %s to client %s failed [%s]"
@@ -1272,12 +1272,8 @@ class SAMPHubServer(object):
 
                     # Standard Profile
                     hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                    if method_name == "call":
-                        hub.samp.client.receiveCall(recipient_private_key,params)
-                    elif method_name == "notification":
-                        hub.samp.client.receiveNotification(recipient_private_key, params)
-                    else: #method_name is "reply"
-                        hub.samp.client.receiveResponse(recipient_private_key, params)
+                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, params)
+
             except xmlrpc.Fault as exc:
                 log.debug("%s XML-RPC endpoint error (attempt %d): %s"
                           % (recipient_public_id, attempt + 1,
