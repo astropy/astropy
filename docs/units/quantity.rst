@@ -289,18 +289,18 @@ propagates to more complex functions such as ``np.linalg.norm`` and
 Subclassing Quantity
 --------------------
 
-If one wants to subclass |quantity|, two hooks can be used to ensure
-the subclass is updated properly when doing arithmetic, etc.  The
-first is the ``__array_finalize__`` method, which is common to all
-``ndarray`` subclasses.  This is used to update attributes, and the
-logic and its use are described in detail in the ``numpy``
-documentation on `subclassing
+To subclass |quantity|, two methods can be overridden to ensure the
+subclass is updated properly when doing arithmetic, etc.  The first is
+the :meth:`~numpy.ndarray.__array_finalize__` method, which is common
+to all ``ndarray`` subclasses.  This is used to update attributes, and
+the logic and its use are described in detail in the 
+`numpy documentation on subclassing
 <http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`.  As
 an example, see its use in |quantity| itself to pass on the ``unit``
 and in :class:`~astropy.coordinates.Longitude` to pass on the angle at
 which longitudes wrap.
 
-The second hook is a |quantity| specific method,
+The second method that can be overridden is specific to |quantity|,
 :meth:`~astropy.units.Quantity.__quantity_subclass__`.  This is called
 to decide which type of subclass to return, based on the unit of the
 quantity that is to be created.  It is used, e.g., in
