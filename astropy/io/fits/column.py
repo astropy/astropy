@@ -779,6 +779,9 @@ class ColDefs(object):
 
         return object.__new__(klass)
 
+    def __getnewargs__(self):
+        return (self._arrays,)
+
     def __init__(self, input, tbtype='BinTableHDU'):
         """
         Parameters
