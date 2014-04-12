@@ -138,7 +138,7 @@ class CdsHeader(core.BaseHeader):
                     
                     if match.group('nullval') == '-':
                         col.null = '---'
-                        # CDS tables can use -, -- or --- to mark missing values
+                        # CDS tables can use -, --, ---, or ---- to mark missing values
                         # see https://github.com/astropy/astropy/issues/1335
                         for i in [1, 2, 3, 4]:
                             self.data.fill_values.append(('-'*i, fillval, col.name))

@@ -366,7 +366,7 @@ Bug Fixes
     using string. Previously this generated an exception [#2234].
 
   - Some CDS files mark missing values with ``"---"``, others with ``"--"``.
-    Recognize any string with one to four dashes as missing value. [#1335]
+    Recognize any string with one to four dashes as null value. [#1335]
 
 - ``astropy.io.fits``
 
