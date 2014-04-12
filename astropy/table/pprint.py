@@ -8,7 +8,6 @@ from ..extern.six.moves import xrange
 
 import os
 import sys
-import inspect
 
 import numpy as np
 
@@ -103,7 +102,7 @@ def _auto_format_func(format_, val):
 
     Returns the formatted value.
     """
-    if inspect.isfunction(format_):
+    if callable(format_):
         format_func = lambda format_, val: format_(val.tolist())
         try:
             out = format_func(format_, val)
