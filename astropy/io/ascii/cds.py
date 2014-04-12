@@ -134,7 +134,7 @@ class CdsHeader(core.BaseHeader):
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
                     else:
-                        fillval = '-999'
+                        fillval = '0'
                     
                     if match.group('nullval') == '-':
                         col.null = '---'
