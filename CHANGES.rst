@@ -38,6 +38,9 @@ Bug Fixes
     type conversion (e.g. overflowing the native C long type), fall through to
     using string. Previously this generated an exception [#2234].
 
+  - Some CDS files mark missing values with ``"---"``, others with ``"--"``.
+    Recognize any string with one to four dashes as null value. [#1335]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
