@@ -137,6 +137,10 @@ def sanitize_scale(scale):
     if is_effectively_unity(scale):
         return 1.0
 
+    # to prevent div-by-zero errors below
+    if scale == 0:
+        return 0
+
     if hasattr(scale, 'imag'):  # scale is complex
         if abs(scale.real) > abs(scale.imag):
             if is_effectively_unity(scale.imag/scale.real + 1):
