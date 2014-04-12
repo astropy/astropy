@@ -134,14 +134,17 @@ class CdsHeader(core.BaseHeader):
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
                     else:
-                        fillval = '-999'
-                    if match.group('nullval') == '':
-                        col.null = ''
-                    elif match.group('nullval') == '-':
+                        fillval = '0'
+                    
+                    if match.group('nullval') == '-':
                         col.null = '---'
+                        # CDS tables can use -, --, ---, or ---- to mark missing values
+                        # see https://github.com/astropy/astropy/issues/1335
+                        for i in [1, 2, 3, 4]:
+                            self.data.fill_values.append(('-'*i, fillval, col.name))
                     else:
                         col.null = match.group('nullval')
-                    self.data.fill_values.append((col.null, fillval, col.name))
+                        self.data.fill_values.append((col.null, fillval, col.name))
 
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
