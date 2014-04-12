@@ -155,7 +155,7 @@ def getdata(filename, *args, **kwargs):
         tuple.
 
     lower, upper : bool, optional
-        If `lower` or `upper` are `True`, the field names in the
+        If ``lower`` or ``upper`` are `True`, the field names in the
         returned data object will be converted to lower or upper case,
         respectively.
 
@@ -383,7 +383,7 @@ def writeto(filename, data, header=None, output_verify='exception',
         data to write to the new file
 
     header : `Header` object, optional
-        the header associated with `data`. If `None`, a header
+        the header associated with ``data``. If `None`, a header
         of the appropriate type is created for the supplied data. This
         argument is optional.
 
@@ -412,7 +412,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
     """
     Append the header/data to FITS file if filename exists, create if not.
 
-    If only `data` is supplied, a minimal header is created.
+    If only ``data`` is supplied, a minimal header is created.
 
     Parameters
     ----------
@@ -605,7 +605,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     -----
     The primary use for the `tabledump` function is to allow editing in a
     standard text editor of the table data and parameters.  The
-    `tcreate` function can be used to reassemble the table from the
+    ``tcreate`` function can be used to reassemble the table from the
     three ASCII files.
     """
 

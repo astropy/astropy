@@ -44,7 +44,7 @@ file::
 Input data format
 ^^^^^^^^^^^^^^^^^
 
-The input `table` argument to |write| can be any value that is supported for
+The input ``table`` argument to |write| can be any value that is supported for
 initializing a |Table| object.  This is documented in detail in the
 :ref:`construct_table` section and includes creating a table with a list of
 columns, a dictionary of columns, or from `numpy` arrays (either structured or
@@ -101,9 +101,9 @@ A list of Python lists (or any iterable object) can be used as input::
     2 5.2 world
     3 6.1 !!!
 
-The `data` object does not contain information about the column names so
+The ``data`` object does not contain information about the column names so
 |Table| has chosen them automatically.  To specify the names, provide the
-`names` keyword argument.  This example also shows excluding one of the columns
+``names`` keyword argument.  This example also shows excluding one of the columns
 from the output::
 
     >>> ascii.write(data, names=['x', 'y', 'z'], exclude_names=['y'])

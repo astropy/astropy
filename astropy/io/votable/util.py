@@ -35,8 +35,8 @@ def convert_to_writable_filelike(fd, compressed=False):
             - a file path, in which case it is opened, and the file
               object is returned.
 
-            - an object with a :meth:`write` method, in which case that
-              object.
+            - an object with a :meth:``write`` method, in which case that
+              object is returned.
 
     compressed : bool, optional
         If `True`, create a gzip-compressed file.  (Default is `False`).
@@ -126,7 +126,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
     frames : sequence of str, optional
         A sequence of acceptable frame of reference keywords.  If not
-        provided, the default set in `set_reference_frames` will be
+        provided, the default set in ``set_reference_frames`` will be
         used.
 
     numeric : bool, optional

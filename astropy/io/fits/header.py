@@ -12,7 +12,7 @@ import warnings
 
 from .card import Card, CardList, _pad, BLANK_CARD, KEYWORD_LENGTH
 from .file import _File
-from .util import (encode_ascii, decode_ascii, fileobj_mode, fileobj_closed,
+from .util import (encode_ascii, decode_ascii, fileobj_closed,
                    fileobj_is_binary)
 
 from ...extern import six
@@ -20,7 +20,6 @@ from ...extern.six import string_types, itervalues, iteritems, next
 from ...extern.six.moves import zip, range
 from ...utils import deprecated, isiterable
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-
 
 
 BLOCK_SIZE = 2880  # the FITS block size
@@ -423,8 +422,8 @@ class Header(object):
 
         endcard : bool, optional
             If True (the default) the header must end with an END card in order
-            to be considered valid.  If an END card is not found an `IOError`
-            is raised.
+            to be considered valid.  If an END card is not found an
+            `~.exceptions.IOError` is raised.
 
         padding : bool, optional
             If True (the default) the header will be required to be padded out
@@ -591,7 +590,7 @@ class Header(object):
         ----------
         sep : str, optional
             The character or string with which to separate cards.  By default
-            there is no separator, but one could use `'\\n'`, for example, to
+            there is no separator, but one could use ``'\\n'``, for example, to
             separate each card with a new line
 
         endcard : bool, optional
@@ -641,7 +640,7 @@ class Header(object):
 
         sep : str, optional
             The character or string with which to separate cards.  By default
-            there is no separator, but one could use `'\\n'`, for example, to
+            there is no separator, but one could use ``'\\n'``, for example, to
             separate each card with a new line
 
         endcard : bool, optional
@@ -949,7 +948,7 @@ class Header(object):
         return k, v
 
     def setdefault(self, key, default=None):
-        """Similar to :meth:`dict.setitem`."""
+        """Similar to :meth:`dict.setdefault`."""
 
         try:
             return self[key]
@@ -1059,7 +1058,7 @@ class Header(object):
 
         savecomment : bool, optional
             When `True`, preserve the current comment for an existing
-            keyword.  The argument `savecomment` takes precedence over
+            keyword.  The argument ``savecomment`` takes precedence over
             ``comment`` if both specified.  If ``comment`` is not
             specified then the current comment will automatically be
             preserved.
@@ -1491,7 +1490,6 @@ class Header(object):
             rvkc_indices.append(idx)
             rvkc_indices.sort()
 
-
         if useblanks:
             self._useblanks(len(str(card)) // Card.length)
 
@@ -1525,8 +1523,8 @@ class Header(object):
 
         force : bool, optional
             When `True`, if the new keyword already exists in the header, force
-            the creation of a duplicate keyword.  Otherwise a `ValueError` is
-            raised.
+            the creation of a duplicate keyword. Otherwise a
+            `~.exceptions.ValueError` is raised.
         """
 
         oldkeyword = Card.normalize_keyword(oldkeyword)
@@ -1930,7 +1928,7 @@ class Header(object):
         """
         Add a commentary card.
 
-        If `before` and `after` are `None`, add to the last occurrence
+        If ``before`` and ``after`` are `None`, add to the last occurrence
         of cards of the same name (except blank card).  If there is no
         card (or blank card), append at the end.
         """

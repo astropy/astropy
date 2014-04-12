@@ -488,14 +488,14 @@ class HeaderDiff(_BaseDiff):
 
     - ``diff_keyword_values``: If any of the common keyword between the two
       headers have different values, they appear in this dict.  It has a
-      structure similar to `diff_duplicate_keywords`, with the keyword as the
+      structure similar to ``diff_duplicate_keywords``, with the keyword as the
       key, and a 2-tuple of the different values as the value.  For example::
 
           {'NAXIS': (2, 3)}
 
       means that the NAXIS keyword has a value of 2 in header a, and a value of
       3 in header b.  This excludes any keywords matched by the
-      `ignore_keywords` list.
+      ``ignore_keywords`` list.
 
     - ``diff_keyword_comments``: Like ``diff_keyword_values``, but contains
       differences between keyword comments.

@@ -199,23 +199,23 @@ def register_identifier(data_format, data_class, identifier, force=False):
     identifier : function
         A function that checks the argument specified to `read` or `write` to
         determine whether the input can be interpreted as a table of type
-        `data_format`. This function should take the following arguments:
+        ``data_format``. This function should take the following arguments:
 
-           - `origin`: A string `read` or `write` identifying whether
+           - ``origin``: A string `read` or `write` identifying whether
              the file is to be opened for reading or writing.
-           - `path`: The path to the file.
-           - `fileobj`: An open file object to read the file's contents, or
+           - ``path``: The path to the file.
+           - ``fileobj``: An open file object to read the file's contents, or
              `None` if the file could not be opened.
-           - `*args`: A list of positional arguments to the `read` or
+           - ``*args``: A list of positional arguments to the `read` or
              `write` function.
-           - `**kwargs`: A list of keyword arguments to the `read` or
+           - ``**kwargs``: A list of keyword arguments to the `read` or
              `write` function.
 
-        One or both of `path` or `fileobj` may be `None`.  If they are
-        both `None`, the identifier will need to work from `args[0]`.
+        One or both of ``path`` or ``fileobj`` may be `None`.  If they are
+        both `None`, the identifier will need to work from ``args[0]``.
 
         The function should return True if the input can be identified
-        as being of format `data_format`, and False otherwise.
+        as being of format ``data_format``, and False otherwise.
     force : bool
         Whether to override any existing function if already present.
 

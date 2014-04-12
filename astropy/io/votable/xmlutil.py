@@ -55,7 +55,7 @@ _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 
 def check_token(token, attr_name, config=None, pos=None):
     """
-    Raises a `ValueError` if *token* is not a valid XML token.
+    Raises a `~.exceptions.ValueError` if *token* is not a valid XML token.
 
     As defined by XML Schema Part 2.
     """

@@ -110,7 +110,7 @@ to get the value of the keyword targname, which is a string 'NGC121'.
 Although keyword names are always in upper case inside the FITS file,
 specifying a keyword name with Astropy is case-insensitive, for the user's
 convenience. If the specified keyword name does not exist, it will raise a
-`KeyError` exception.
+`~.exceptions.KeyError` exception.
 
 We can also get the keyword value by indexing (a la Python lists)::
 
@@ -538,7 +538,7 @@ opening or closing a file, all the housekeeping is done implicitly.
     analysis scripts, but should not be used for application code, as they
     are highly inefficient.  For example, each call to :func:`getval`
     requires re-parsing the entire FITS file.  Code that makes repeated use
-    of these functions should instead open the file with :func:`pyfits.open`
+    of these functions should instead open the file with :func:`open`
     and access the data structures directly.
 
 The first of these functions is :func:`getheader`, to get the header of an HDU.
@@ -646,8 +646,8 @@ This is one of the most useful convenience functions for getting an overview of
 what a given file contains without looking at any of the details.
 
 
-Using `io.fits`
-===============
+Using `astropy.io.fits`
+=======================
 .. toctree::
    :maxdepth: 2
 

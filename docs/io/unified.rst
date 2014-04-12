@@ -15,8 +15,8 @@ Getting started with Table I/O
 ------------------------------
 
 The :class:`~astropy.table.Table` class includes two methods,
-:meth:`~astropy.table.table.Table.read` and
-:meth:`~astropy.table.table.Table.write`, that make it possible to read from
+:meth:`~astropy.table.Table.read` and
+:meth:`~astropy.table.Table.write`, that make it possible to read from
 and write to files. A number of formats are automatically supported (see
 `Built-in table readers/writers`_) and new file formats and extensions can be
 registered with the :class:`~astropy.table.Table` class (see
@@ -24,7 +24,7 @@ registered with the :class:`~astropy.table.Table` class (see
 
 To use this interface, first import the :class:`~astropy.table.Table` class, then
 simply call the :class:`~astropy.table.Table`
-:meth:`~astropy.table.table.Table.read` method with the name of the file and
+:meth:`~astropy.table.Table.read` method with the name of the file and
 the file format, for instance ``'ascii.daophot'``::
 
     >>> from astropy.table import Table
@@ -39,7 +39,7 @@ Similarly, for writing, the format can be explicitly specified::
 
     >>> t.write(filename, format='latex')
 
-As for the :meth:`~astropy.table.table.Table.read` method, the format may
+As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
 
 Any additional arguments specified will depend on the format.  For examples of this see the
@@ -80,7 +80,7 @@ ascii.fixed_width_no_header  Yes   Yes            No
                        ipac  Yes   Yes            No        Yes
                       latex  Yes   Yes            No        Yes
                         rdb  Yes   Yes            No        Yes
-                    votable  Yes   Yes           Yes           
+                    votable  Yes   Yes           Yes
 =========================== ==== ===== ============= ==========
 
 Deprecated format names like ``aastex`` will be removed in a future version.
@@ -91,12 +91,12 @@ Use the full name (e.g. ``ascii.aastex``) instead.
 ASCII formats
 ^^^^^^^^^^^^^^
 
-The :meth:`~astropy.table.table.Table.read` and
-:meth:`~astropy.table.table.Table.write` methods can be used to read and write formats
+The :meth:`~astropy.table.Table.read` and
+:meth:`~astropy.table.Table.write` methods can be used to read and write formats
 supported by `astropy.io.ascii`.
 
 Use ``format='ascii'`` in order to interface to the generic
-:func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
+:func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
 functions from `astropy.io.ascii`.  When reading a table this means
 that all supported ASCII table formats will be tried in order to successfully
 parse the input.  For example::
@@ -113,7 +113,7 @@ character-delimited file with a single header line containing the
 column names.
 
 All additional arguments are passed to the `astropy.io.ascii`
-:func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
+:func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
 functions. Further details are available in the sections on
 :ref:`io_ascii_read_parameters` and :ref:`io_ascii_write_parameters`.  For example, to change
 column delimiter and the output format for the ``colc`` column use::

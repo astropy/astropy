@@ -185,13 +185,13 @@ attribute, or globally using the
   votable.set_all_tables_format('binary')
   votable.to_xml('binary.xml')
 
-Using `io.votable`
-==================
+Using `astropy.io.votable`
+==========================
 
 Standard compliance
 -------------------
 
-`astropy.io.votable.table` supports the `VOTable Format Definition
+`astropy.io.votable.tree.Table` supports the `VOTable Format Definition
 Version 1.1
 <http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_,
 `Version 1.2
@@ -261,7 +261,7 @@ type according to the following table:
   -------------------------------- ------------------------------------------------------------------------
   unsignedByte                     u1
   -------------------------------- ------------------------------------------------------------------------
-  char (*variable length*)         O - In Python 2.x, a `str` object; in 3.x, a `bytes` object.
+  char (*variable length*)         O - In Python 2.x, a `str` object; in 3.x, a ``bytes()`` object.
   -------------------------------- ------------------------------------------------------------------------
   char (*fixed length*)            S
   -------------------------------- ------------------------------------------------------------------------
@@ -358,7 +358,7 @@ Converting to/from an `astropy.table.Table`
 -------------------------------------------
 
 The VOTable standard does not map conceptually to an
-`astropy.table.Table`.  However, a single table within the `VOTable`
+`astropy.table.Table`.  However, a single table within the ``VOTable``
 file may be converted to and from an `astropy.table.Table`::
 
   from astropy.io.votable import parse_single_table
@@ -373,14 +373,14 @@ file with just a single table::
 
 .. note::
 
-  By default, `to_table` will use the `ID` attribute from the files to
-  create the column names for the `Table` object.  However, it may be
-  that you want to use the `name` attributes instead.  For this, set
-  the `use_names_over_ids` keyword to `True`.  Note that since field
-  `names` are not guaranteed to be unique in the VOTable
-  specification, but column names are required to be unique in Numpy
-  structured arrays (and thus `astropy.table.Table` objects), the
-  names may be renamed by appending numbers to the end in some cases.
+  By default, ``to_table`` will use the ``ID`` attribute from the files to
+  create the column names for the `~astropy.table.Table` object.  However,
+  it may be that you want to use the ``name`` attributes instead.  For this,
+  set the ``use_names_over_ids`` keyword to `True`.  Note that since field
+  ``names`` are not guaranteed to be unique in the VOTable specification,
+  but column names are required to be unique in Numpy structured arrays (and
+  thus `astropy.table.Table` objects), the names may be renamed by appending
+  numbers to the end in some cases.
 
 Performance considerations
 --------------------------

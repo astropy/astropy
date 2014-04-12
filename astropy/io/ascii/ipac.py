@@ -104,7 +104,7 @@ class Ipac(fixedwidth.FixedWidth):
     ----------
     definition : str, optional
         Specify the convention for characters in the data table that occur
-        directly below the pipe (`|`) symbol in the header column definition:
+        directly below the pipe (``|``) symbol in the header column definition:
 
           * 'ignore' - Any character beneath a pipe symbol is ignored (default)
           * 'right' - Character is associated with the column to the right
@@ -309,7 +309,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  
+        Sets ``self.cols`` with the list of Columns.
 
         :param lines: list of table lines
         :returns: list of table Columns

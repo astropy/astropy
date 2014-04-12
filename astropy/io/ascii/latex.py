@@ -211,8 +211,8 @@ class Latex(core.BaseReader):
               ascii.write(data, Writer=ascii.Latex,
                                latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
 
-            If the column has no entry in the `units` dictionary, it defaults
-            to `' '`.
+            If the column has no entry in the ``units`` dictionary, it defaults
+            to ``' '``.
 
         Run the following code to see where each element of the
         dictionary is inserted in the LaTeX table::

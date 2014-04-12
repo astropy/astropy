@@ -216,7 +216,7 @@ class CardList(list):
             If ``useblanks`` is `True`, and if there are blank cards directly
             before ``END``, it will use this space first, instead of appending
             after these blank cards, so the total space will not increase.
-            When `useblanks` is `False`, the card will be appended at the end,
+            When ``useblanks`` is `False`, the card will be appended at the end,
             even if there are blank cards in front of ``END``.
         """
 

@@ -41,7 +41,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
           _debug_python_based_parser=False):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
-    `~astropy.io.votable.tree.VOTable` object.
+    `~astropy.io.votable.tree.VOTableFile` object.
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
         When not provided, uses the configuration setting
-        `astropy.io.votable.pedantic`, which defaults to False.
+        ``astropy.io.votable.pedantic``, which defaults to False.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -77,11 +77,11 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         The number of table in the file to read in.  If `None`, all
         tables will be read.  If a number, 0 refers to the first table
         in the file, and only that numbered table will be parsed and
-        read in.  Should not be used with `table_id`.
+        read in.  Should not be used with ``table_id``.
 
     table_id : str, optional
         The ID of the table in the file to read in.  Should not be
-        used with `table_number`.
+        used with ``table_number``.
 
     filename : str, optional
         A filename, URL or other identifier to use in error messages.
@@ -95,7 +95,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         string, must be the name of a unit formatter. The built-in
         formats include ``generic``, ``fits``, ``cds``, and
         ``vounit``.  A custom formatter may be provided by passing a
-        `astropy.units.format.Base` instance.  If `None` (default),
+        `~astropy.units.UnitBase` instance.  If `None` (default),
         the unit format to use will be the one specified by the
         VOTable specification (which is ``cds`` up to version 1.2 of
         VOTable, and (probably) ``vounit`` in future versions of the
@@ -167,9 +167,9 @@ def writeto(table, file, tabledata_format=None):
 
     tabledata_format : str, optional
         Override the format of the table(s) data to write.  Must be
-        one of `tabledata` (text representation), `binary` or
-        `binary2`.  By default, use the format that was specified in
-        each `Table` object as it was created or read in.  See
+        one of ``tabledata`` (text representation), ``binary`` or
+        ``binary2``.  By default, use the format that was specified in
+        each ``table`` object as it was created or read in.  See
         :ref:`votable-serialization`.
     """
     from ...table import Table
@@ -321,7 +321,7 @@ def from_table(table, table_id=None):
 
     table_id : str, optional
         If not `None`, set the given id on the returned
-        `~astropy.tree.Table` instance.
+        `~astropy.io.votable.tree.Table` instance.
 
     Returns
     -------

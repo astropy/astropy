@@ -93,19 +93,18 @@ def make_validation_report(
 
     destdir : path, optional
         The directory to write the report to.  By default, this is a
-        directory called `astropy.io.votable.validator.results` in the
-        current directory.  If the directory does not exist, it will
-        be created.
+        directory called ``'results'`` in the current directory. If the
+        directory does not exist, it will be created.
 
     multiprocess : bool, optional
         If `True` (default), perform validations in parallel using all
         of the cores on this machine.
 
     stilts : path, optional
-        To perform validation with `votlint` from the the Java-based
+        To perform validation with ``votlint`` from the the Java-based
         `STILTS <http://www.star.bris.ac.uk/~mbt/stilts/>`_ VOTable
         parser, in addition to `astropy.io.votable`, set this to the
-        path of the `stilts.jar` file.  `java` on the system shell
+        path of the ``'stilts.jar'`` file.  ``java`` on the system shell
         path will be used to run it.
 
     Notes

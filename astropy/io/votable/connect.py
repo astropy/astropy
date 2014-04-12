@@ -134,9 +134,9 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
         Whether to overwrite any existing file without warning.
 
     tabledata_format : str, optional
-        The format of table data to write.  Must be one of `tabledata`
-        (text representation), `binary` or `binary2`.  Default is
-        `tabledata`.  See :ref:`votable-serialization`.
+        The format of table data to write.  Must be one of ``tabledata``
+        (text representation), ``binary`` or ``binary2``.  Default is
+        ``tabledata``.  See :ref:`votable-serialization`.
     """
 
     # Check if output file already exists

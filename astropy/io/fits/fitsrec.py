@@ -245,8 +245,8 @@ class FITS_rec(np.recarray):
 
             This was originally part of the `new_table` function in the table
             module but was moved into a class method since most of its
-            functionality always had more to do with initializing a `FITS_rec
-            object` than anything else, and much of it also overlapped with
+            functionality always had more to do with initializing a `FITS_rec`
+            object than anything else, and much of it also overlapped with
             ``FITS_rec._scale_back``.
 
         Parameters

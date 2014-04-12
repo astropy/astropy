@@ -257,7 +257,7 @@ class W01(VOTableSpecWarning):
     and ``vo.table`` supports this convention when not in
     :ref:`pedantic-mode`.
 
-    `vo.table` always outputs files using only spaces, regardless of
+    ``vo.table`` always outputs files using only spaces, regardless of
     how they were input.
 
     **References**: `1.1
