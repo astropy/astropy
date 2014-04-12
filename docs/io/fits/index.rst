@@ -673,6 +673,9 @@ Other Information
 Reference/API
 =============
 
+.. automodapi:: astropy.io.fits
+    :main-docs-only:
+
 .. toctree::
     :maxdepth: 3
 
@@ -685,7 +688,6 @@ Reference/API
     api/images.rst
     api/diff.rst
     api/verification.rst
-
 
 .. rubric:: Footnotes
 
