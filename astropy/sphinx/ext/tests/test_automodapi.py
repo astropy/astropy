@@ -78,6 +78,7 @@ Class Inheritance Diagram
 
 .. automod-diagram:: astropy.sphinx.ext.tests.test_automodapi
     :private-bases:
+    :parts: 1
 
 This comes after
 """.format(empty='').replace('/', os.sep)
@@ -168,6 +169,7 @@ Class Inheritance Diagram
 
 .. automod-diagram:: astropy.sphinx.ext.tests.test_automodapi
     :private-bases:
+    :parts: 1
 
 
 This comes after
