@@ -446,12 +446,8 @@ They are used for time scales that are sensitive to observer location
 determine the time offset between TDB and TT), as well as for sidereal
 time if no explicit longitude is given.
 
-<<<<<<< HEAD
-  >>> t = Time('2001-03-22 00:01:44.732327132980', lon='120d')
-=======
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))
->>>>>>> Correct examples in documentation
   >>> t.sidereal_time('apparent', 'greenwich')
   <Longitude 12.00000000000... hourangle>
   >>> t.sidereal_time('apparent')
@@ -617,19 +613,11 @@ Sidereal Time
 -------------
 
 Apparent or mean sidereal time can be calculated using
-<<<<<<< HEAD
 :meth:`~astropy.time.Time.sidereal_time`.  The method returns a |Longitude|
-with units of hourangle, which by default is for the longitude with which the
-|Time| object is initialized.  Like the scale transformations, ERFA C-library
-routines are used under the hood, which support calculations following
-different IAU resolutions.  Sample usage::
-=======
-:meth:`~astropy.time.core.Time.sidereal_time`.  The method returns a |Longitude|
 with units of hourangle, which by default is for the longitude corresponding to
 the location with which the |Time| object is initialized.  Like the scale
 transformations, ERFA C-library routines are used under the hood, which support
 calculations following different IAU resolutions.  Sample usage::
->>>>>>> Correct examples in documentation
 
   >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
   >>> t.sidereal_time('mean')
