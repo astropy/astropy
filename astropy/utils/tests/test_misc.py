@@ -174,3 +174,14 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+
+def test_gen_ref_comments():
+    comments = misc._generate_referee_comments(seed=1234, num=5)
+    np.testing.assert_array_equal(
+        comments,
+        ['I cannot get past the abstract.',
+         'Change your font to MS Comic Sans.',
+         'No.',
+         'Replace Figure X with a cat pic.',
+         'Cite my paper.'])
