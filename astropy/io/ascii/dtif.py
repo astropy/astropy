@@ -61,13 +61,15 @@ class DtifHeader(core.BaseHeader):
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
     def process_lines(self, lines):
-        """Return only lines that start with the comment regexp.  For these
+        """Return only non-blank lines that start with the comment regexp.  For these
         lines strip out the matching characters and leading/trailing whitespace."""
         re_comment = re.compile(self.comment)
         for line in lines:
             match = re_comment.match(line)
             if match:
-                yield line[match.end():].strip()
+                out = line[match.end():].strip()
+                if out:
+                    yield out
 
     def write(self, lines):
         """
@@ -80,10 +82,12 @@ class DtifHeader(core.BaseHeader):
         for the *last* comment line as defining the column names.
         """
         meta = OrderedDict()
+        meta['version'] = 1.0
+        meta['schema'] = 'astropy.table'
         meta['table_meta'] = self.table_meta
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
-        outs = []
+        outs = ['<DTIF encoding=ascii>']
         meta_json = json.dumps(meta, indent=2, separators=(',', ': '))
         outs.extend(meta_json.splitlines())
 
@@ -96,11 +100,16 @@ class DtifHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: None (but sets self.cols)
         """
-        # Extract comment (header) lines with comment character striped
+        # Extract non-blank comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
+        m = re.match(r'< \s* DTIF \s+ encoding=(\S+) \s* >', lines[0], re.VERBOSE)
+        if not m:
+            raise core.InconsistentTableError('DTIF file must start with "# <DTIF encoding=[encoding]>')
+        encoding = m.group(1)  # Nothing done with encoding at the moment
+
         # Now actually load the JSON data structure into `meta`
-        meta_json = '\n'.join(lines)
+        meta_json = '\n'.join(lines[1:])
         meta = json.loads(meta_json, object_pairs_hook=OrderedDict)
         meta = _decode_dict(meta)
         self.table_meta = meta['table_meta']
