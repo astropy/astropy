@@ -284,6 +284,21 @@ class TestFormat():
         assert str(t['a']) == ' a \n---\n3.0\n6.0'
         assert str(t['a']) == ' a \n---\n3.0\n6.0'
 
+    def test_column_format_callable(self, table_type):
+        # run most of functions twice
+        # 1) astropy.table.pprint._format_funcs gets populated
+        # 2) astropy.table.pprint._format_funcs gets used
+
+        t = table_type([[1., 2.], [3, 4]], names=('a', 'b'))
+
+        # mathematical function
+        class format(object):
+            def __call__(self, x):
+                return str(x * 3.)
+        t['a'].format = format()
+        assert str(t['a']) == ' a \n---\n3.0\n6.0'
+        assert str(t['a']) == ' a \n---\n3.0\n6.0'
+
     def test_column_format_func_wrong_number_args(self, table_type):
         t = table_type([[1., 2.], [3, 4]], names=('a', 'b'))
 

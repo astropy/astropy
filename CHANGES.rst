@@ -252,6 +252,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - The ``astropy.table.Column`` object can now use both functions and callable
+    objects as formats. [#2313]
+
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is
