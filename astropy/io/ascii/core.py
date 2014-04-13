@@ -133,12 +133,14 @@ class Column(object):
 
     * **name** : column name
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
+    * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
     """
     def __init__(self, name):
         self.name = name
-        self.type = NoType
+        self.type = NoType  # Generic type (Int, Float, Str etc)
+        self.dtype = None  # Numpy dtype if available
         self.str_vals = []
         self.fill_values = {}
 
@@ -726,8 +728,14 @@ class BaseOutputter(object):
 
     def _convert_vals(self, cols):
         for col in cols:
-            converters = self.converters.get(col.name,
-                                             self.default_converters)
+            # If a specific dtype was specified for a column, then use that
+            # to set the defaults, otherwise use the generic defaults.
+            default_converters = ([convert_numpy(col.dtype)] if col.dtype
+                                  else self.default_converters)
+
+            # If the user supplied a specific convert then that takes precedence over defaults
+            converters = self.converters.get(col.name, default_converters)
+
             col.converters = self._validate_and_copy(col, converters)
 
             while not hasattr(col, 'data'):
@@ -773,6 +781,8 @@ class TableOutputter(BaseOutputter):
             for attr in ('format', 'unit', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
+            if hasattr(col, 'meta'):
+                out_col.meta.update(col.meta)
 
         return out
 
@@ -950,6 +960,9 @@ class BaseReader(object):
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
+        if hasattr(self.header, 'table_meta'):
+            table.meta.update(self.header.table_meta)
+        self.cols = self.header.cols
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
@@ -1009,6 +1022,7 @@ class BaseReader(object):
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols
+        self.header.table_meta = table.meta
 
         # Write header and data to lines list
         lines = []
