@@ -405,17 +405,16 @@ def mass_energy():
 
 def brightness_temperature(beam_area, disp):
     """
-    "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
-    Jy/beam and "brightness temperature", :math:`T_B`, in Kelvins.  This is a
-    unit very commonly used in radio astronomy.  Typically, the gain refers to
-    the conversion between corrected antenna temperature :math:`T_A^*` and flux
-    density.  See, e.g., "Tools of Radio Astronomy" (Wilson 2009) eqn 8.16 and
-    eqn 8.19 (these pages are available on `google books
+    Defines the conversion between Jy/beam and "brightness temperature",
+    :math:`T_B`, in Kelvins.  The brightness temperature is a unit very
+    commonly used in radio astronomy.  See, e.g., "Tools of Radio Astronomy"
+    (Wilson 2009) eqn 8.16 and eqn 8.19 (these pages are available on `google
+    books
     <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__).
 
     :math:`T_B \equiv S_\\nu / \left(2 k \\nu^2 / c^2 \\right)`
 
-    However, the beam area is essential for this computation: the brighntess
+    However, the beam area is essential for this computation: the brightness
     temperature is inversely proportional to the beam area
 
     Parameters
@@ -428,7 +427,7 @@ def brightness_temperature(beam_area, disp):
 
     Examples
     --------
-    Arecibo C-band beam gain ~ 7 K/Jy::
+    Arecibo C-band beam::
 
         >>> import numpy as np
         >>> from astropy import units as u
