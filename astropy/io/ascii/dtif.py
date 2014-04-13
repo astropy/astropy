@@ -11,20 +11,6 @@ from ...utils import OrderedDict
 
 from . import core
 
-DTIF_FORMAT_HEADER = '-*- DTIF-FORMAT-HEADER-JSON-{} -*-'
-
-"""
-        self._name = name
-        self.units = units
-        self.format = format
-        self.description = description
-        self.parent_table = None
-
-        self.meta = OrderedDict()
-        if meta is not None:
-            self.meta.update(meta)
-"""
-
 
 def _decode_list(data):
     rv = []
@@ -61,10 +47,10 @@ def _get_col_attributes(col):
     """
     attrs = OrderedDict()
     attrs['name'] = col.name
-    attrs['units'] = str(col.units)
+    attrs['unit'] = str(col.unit)
     attrs['format'] = col.format
     attrs['description'] = col.description
-    attrs['dtype'] = col.dtype.type.__name__
+    attrs['type'] = col.dtype.type.__name__
     attrs['meta'] = col.meta
 
     return attrs
@@ -98,16 +84,11 @@ class DtifHeader(core.BaseHeader):
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         outs = []
-        outs.append(self.splitter.join([x.name for x in self.cols]))
-        outs.append('')
-        outs.append(DTIF_FORMAT_HEADER.format('START'))
-        meta_json = json.dumps(meta, indent=4, separators=(',', ': '))
+        meta_json = json.dumps(meta, indent=2, separators=(',', ': '))
         outs.extend(meta_json.splitlines())
-        outs.append(DTIF_FORMAT_HEADER.format('STOP'))
-        outs.append('')
-        outs.append(self.splitter.join([x.name for x in self.cols]))
 
         lines.extend([self.write_comment + line for line in outs])
+        lines.append(self.splitter.join([x.name for x in self.cols]))
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -118,32 +99,23 @@ class DtifHeader(core.BaseHeader):
         # Extract comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
-        # Check that the special start and stop indicator lines are there to
-        # demarcate the JSON section.
-        idx = {}
-        for position in ('start', 'stop'):
-            try:
-                idx[position] = lines.index(DTIF_FORMAT_HEADER.format(position.upper()))
-            except ValueError:
-                raise core.InconsistentTableError('No DTIF format {} line found '
-                                                  .format(position))
-
         # Now actually load the JSON data structure into `meta`
-        meta_json = '\n'.join(lines[idx['start'] + 1:idx['stop']])
+        meta_json = '\n'.join(lines)
         meta = json.loads(meta_json, object_pairs_hook=OrderedDict)
         meta = _decode_dict(meta)
         self.table_meta = meta['table_meta']
 
         # Create the list of io.ascii column objects from `meta`
-        meta_cols = OrderedDict((x['name'], x) for x in meta['cols'])
+        meta_cols = OrderedDict((x['name'], x) for x in meta['columns'])
         self.names = meta_cols.keys()
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
         # header JSON metadata to the new columns to create this table.
         for col in self.cols:
-            for attr in ('description', 'format', 'units', 'dtype', 'meta'):
+            for attr in ('description', 'format', 'unit', 'meta'):
                 setattr(col, attr, meta_cols[col.name][attr])
+            col.dtype = meta_cols[col.name]['type']
 
 
 class Dtif(core.BaseReader):
@@ -169,7 +141,7 @@ class Dtif(core.BaseReader):
         self.header.splitter.delimiter = ' '
         self.data.splitter.delimiter = ' '
         self.header.start_line = 0
-        self.data.start_line = 0
+        self.data.start_line = 1
         self.header.comment = r'\s*#'
         self.header.write_comment = '# '
         self.data.comment = r'\s*#'
