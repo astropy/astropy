@@ -189,6 +189,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Use NaN for missing values in FITS when using Table.write for float
+    columns. Earlier the default fill value was close to 1e20.[#2186]
+
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
