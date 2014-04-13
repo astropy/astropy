@@ -542,11 +542,11 @@ class Column(BaseColumn):
         Full description of column
     unit : str or None
         Physical unit
-    format : str or None or function
+    format : str or None or function or callable
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string or a function that accepts a single
-        value and returns a string.
+        format specification string or a function or any callable object that
+        accepts a single value and returns a string.
     meta : dict-like or None
         Meta-data associated with the column
 
@@ -662,11 +662,11 @@ class MaskedColumn(Column, ma.MaskedArray):
         Full description of column
     unit : str or None
         Physical unit
-    format : str or None or function
+    format : str or None or function or callable
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string or a function that accepts a single
-        value and returns a string.
+        format specification string or a function or any callable object that
+        accepts a single value and returns a string.
     meta : dict-like or None
         Meta-data associated with the column
 
