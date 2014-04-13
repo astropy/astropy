@@ -103,6 +103,23 @@ class TestSingleTable(object):
         # assert np.all(t1['b'].mask == t2['b'].mask)
         # assert np.all(t1['c'].mask == t2['c'].mask)
 
+    def test_masked_nan(self, tmpdir):
+        filename = str(tmpdir.join('test_masked_nan.fits'))
+        data = np.array(list(zip([5.2, 8.4, 3.9, 6.3],
+                                 [2.3, 4.5, 6.7, 8.9])),
+                                dtype=[(str('a'), np.float64), (str('b'), np.float32)])
+        t1 = Table(data, masked=True)
+        t1.mask['a'] = [1, 0, 1, 0]
+        t1.mask['b'] = [1, 0, 0, 1]
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename)
+        np.testing.assert_array_almost_equal(t2['a'], [np.nan, 8.4, np.nan, 6.3])
+        np.testing.assert_array_almost_equal(t2['b'], [np.nan, 4.5, 6.7, np.nan])
+        # assert t2.masked
+        # t2.masked = false currently, as the only way to determine whether a table is masked
+        # while reading is to check whether col.null is present. For float columns, col.null
+        # is not initialized
+
     def test_read_from_fileobj(self, tmpdir):
         filename = str(tmpdir.join('test_read_from_fileobj.fits'))
         hdu = BinTableHDU(self.data)
