@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
-from distutils.core import setup
+try:
+    from setuptools.core import setup
+except ImportError:
+    from distutils.core import setup
 
 setup(name='WCSAxesExperimental',
       version='0.0.0',
