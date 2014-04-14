@@ -241,6 +241,7 @@ Bug Fixes
 
 - ``astropy.io.registry``
 
+
 - ``astropy.io.votable``
 
   - It is now possible to save an ``astropy.table.Table`` object as a
@@ -380,6 +381,9 @@ Bug Fixes
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
+
+  - Allow readers/writers with the same name to be attached to different
+    classes [#2312]
 
 - ``astropy.io.votable``
 

@@ -40,7 +40,8 @@ def get_formats(data_class=None):
         Table of available I/O formats
     """
     from ..table import Table
-    format_classes = sorted(set(_readers) | set(_writers))
+    format_classes = sorted(set(_readers) | set(_writers),
+                            key=lambda tup: tup[0])
     rows = []
 
     for format_class in format_classes:
@@ -383,6 +384,6 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     elif len(valid_formats) > 1:
         raise Exception(
             "Format is ambiguous - options are: {0}".format(
-                ', '.join(sorted(valid_formats))))
+                ', '.join(sorted(valid_formats, key=lambda tup: tup[0]))))
 
     return valid_formats[0]
