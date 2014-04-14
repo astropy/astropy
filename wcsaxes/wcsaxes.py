@@ -83,6 +83,12 @@ class WCSAxes(Axes):
 
         self.coords.frame.draw(renderer)
 
+    def set_xlabel(self, label):
+        self.coords[0].set_axislabel(label)
+
+    def set_ylabel(self, label):
+        self.coords[1].set_axislabel(label)
+
     def get_coords_overlay(self, frame, equinox=None, obstime=None):
 
         # Here we can't use get_transform because that deals with
