@@ -43,6 +43,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Allow pickling of ``FITS_rec`` objects. [#1597]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
