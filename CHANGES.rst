@@ -204,6 +204,10 @@ API Changes
   - ``Quantity`` now converts input to float by default, as this is
     physically most sensible for nearly all units [#1776].
 
+  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all 
+    dimensionless quantities; they are automatically converted to unscaled
+    dimensionless. [#2249]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
