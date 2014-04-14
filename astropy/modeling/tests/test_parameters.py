@@ -11,13 +11,13 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import ParametricModel, ModelDefinitionError
+from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-class TestParModel(ParametricModel):
+class TestParModel(Model):
     """
     A toy model to test parameters machinery
     """
@@ -33,17 +33,17 @@ class TestParModel(ParametricModel):
         pass
 
 
-class MockModel(ParametricModel):
-    def __call__(self):
-        pass
-
-
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
 
-    # It is possible to test some Parameter functionality by binding it to a
-    # dummy model and giving it a default value
-    p = Parameter(name='alpha', default=42, model=MockModel())
+    class MockModel(Model):
+        alpha = Parameter(name='alpha', default=42)
+
+        def __call__(self):
+            pass
+
+    m = MockModel()
+    p = m.alpha
 
     assert p.name == 'alpha'
 
@@ -77,7 +77,14 @@ def test_parameter_operators():
     """Test if the parameter arithmetic operators works,
     i.e. whether parameters behave like numbers."""
 
-    par = Parameter(name='alpha', default=5., model=MockModel())
+    class MockModel(Model):
+        alpha = Parameter(name='alpha', default=5)
+
+        def __call__(self):
+            pass
+
+    m = MockModel()
+    par = m.alpha
     num = 5.
     val = 3
 
@@ -102,13 +109,13 @@ def test_parameter_name_attribute_mismatch():
     """
 
     def make_bad_class():
-        class BadModel(ParametricModel):
+        class BadModel(Model):
             foo = Parameter('bar')
 
             def __call__(self): pass
 
     def make_good_class():
-        class GoodModel(ParametricModel):
+        class GoodModel(Model):
             # This is redundant but okay
             foo = Parameter('foo')
 

@@ -11,7 +11,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
+from .core import (FittableModel, Fittable1DModel, Fittable2DModel,
                    Model, format_input, ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from ..utils import find_current_module
@@ -27,7 +27,7 @@ __all__ = sorted([
 ])
 
 
-class Gaussian1D(Parametric1DModel):
+class Gaussian1D(Fittable1DModel):
     """
     One dimensional Gaussian model.
 
@@ -122,7 +122,7 @@ class Gaussian1D(Parametric1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class Gaussian2D(Parametric2DModel):
+class Gaussian2D(Fittable2DModel):
     """
     Two dimensional Gaussian model.
 
@@ -319,15 +319,13 @@ class Shift(Model):
         else:
             param_dim = len(offsets)
 
-        self._offsets = offsets
-
-        super(Shift, self).__init__(param_dim=param_dim)
+        super(Shift, self).__init__(offsets, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return Shift(offsets=(-1) * self._offsets)
+            return Shift(offsets=(-1) * self.offsets)
         else:
-            return Shift(offsets=[off * (-1) for off in self._offsets])
+            return Shift(offsets=[off * (-1) for off in self.offsets])
 
     @format_input
     def __call__(self, x):
@@ -340,7 +338,7 @@ class Shift(Model):
             input
         """
 
-        return self._offsets + x
+        return self.offsets + x
 
 
 class Scale(Model):
@@ -361,15 +359,13 @@ class Scale(Model):
         else:
             param_dim = len(factors)
 
-        self._factors = factors
-
-        super(Scale, self).__init__(param_dim=param_dim)
+        super(Scale, self).__init__(factors, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return Scale(factors=1. / self._factors)
+            return Scale(factors=1. / self.factors)
         else:
-            return Scale(factors=[1 / factor for factor in self._factors])
+            return Scale(factors=[1 / factor for factor in self.factors])
 
     @format_input
     def __call__(self, x):
@@ -382,10 +378,10 @@ class Scale(Model):
             input
         """
 
-        return self._factors * x
+        return self.factors * x
 
 
-class Sine1D(Parametric1DModel):
+class Sine1D(Fittable1DModel):
     """
     One dimensional Sine model.
 
@@ -432,7 +428,7 @@ class Sine1D(Parametric1DModel):
         return [d_amplitude, d_frequency]
 
 
-class Linear1D(Parametric1DModel):
+class Linear1D(Fittable1DModel):
     """
     One dimensional Line model.
 
@@ -478,7 +474,7 @@ class Linear1D(Parametric1DModel):
         return [d_slope, d_intercept]
 
 
-class Lorentz1D(Parametric1DModel):
+class Lorentz1D(Fittable1DModel):
     """
     One dimensional Lorentzian model.
 
@@ -530,7 +526,7 @@ class Lorentz1D(Parametric1DModel):
         return [d_amplitude, d_x_0, d_fwhm]
 
 
-class Const1D(Parametric1DModel):
+class Const1D(Fittable1DModel):
     """
     One dimensional Constant model.
 
@@ -569,7 +565,7 @@ class Const1D(Parametric1DModel):
         return [d_amplitude]
 
 
-class Const2D(Parametric2DModel):
+class Const2D(Fittable2DModel):
     """
     Two dimensional Constant model.
 
@@ -601,7 +597,7 @@ class Const2D(Parametric2DModel):
         return amplitude * np.ones_like(x)
 
 
-class Disk2D(Parametric2DModel):
+class Disk2D(Fittable2DModel):
     """
     Two dimensional radial symmetric Disk model.
 
@@ -651,7 +647,7 @@ class Disk2D(Parametric2DModel):
         return np.select([rr <= R_0 ** 2], [amplitude])
 
 
-class Ring2D(Parametric2DModel):
+class Ring2D(Fittable2DModel):
 
     """
     Two dimensional radial symmetric Ring model.
@@ -717,21 +713,21 @@ class Ring2D(Parametric2DModel):
         return np.select([r_range], [amplitude])
 
 
-class Delta1D(Parametric1DModel):
+class Delta1D(Fittable1DModel):
     """One dimensional Dirac delta function."""
 
     def __init__(self):
         raise ModelDefinitionError("Not implemented")
 
 
-class Delta2D(Parametric2DModel):
+class Delta2D(Fittable2DModel):
     """Two dimensional Dirac delta function."""
 
     def __init__(self):
         raise ModelDefinitionError("Not implemented")
 
 
-class Box1D(Parametric1DModel):
+class Box1D(Fittable1DModel):
     """
     One dimensional Box model.
 
@@ -788,7 +784,7 @@ class Box1D(Parametric1DModel):
         return [d_amplitude, d_x_0, d_width]
 
 
-class Box2D(Parametric2DModel):
+class Box2D(Fittable2DModel):
     """
     Two dimensional Box model.
 
@@ -846,7 +842,7 @@ class Box2D(Parametric2DModel):
         return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
 
-class Trapezoid1D(Parametric1DModel):
+class Trapezoid1D(Fittable1DModel):
     """
     One dimensional Trapezoid model.
 
@@ -896,7 +892,7 @@ class Trapezoid1D(Parametric1DModel):
         return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
 
-class TrapezoidDisk2D(Parametric2DModel):
+class TrapezoidDisk2D(Fittable2DModel):
     """
     Two dimensional circular Trapezoid model.
 
@@ -941,7 +937,7 @@ class TrapezoidDisk2D(Parametric2DModel):
         return np.select([range_1, range_2], [val_1, val_2])
 
 
-class MexicanHat1D(Parametric1DModel):
+class MexicanHat1D(Fittable1DModel):
     """
     One dimensional Mexican Hat model.
 
@@ -986,7 +982,7 @@ class MexicanHat1D(Parametric1DModel):
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
 
-class MexicanHat2D(Parametric2DModel):
+class MexicanHat2D(Fittable2DModel):
     """
     Two dimensional symmetric Mexican Hat model.
 
@@ -1035,7 +1031,7 @@ class MexicanHat2D(Parametric2DModel):
         return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
 
 
-class AiryDisk2D(Parametric2DModel):
+class AiryDisk2D(Fittable2DModel):
     """
     Two dimensional Airy disk model.
 
@@ -1122,7 +1118,7 @@ class AiryDisk2D(Parametric2DModel):
         return z
 
 
-class Beta1D(Parametric1DModel):
+class Beta1D(Fittable1DModel):
     """
     One dimensional Beta model.
 
@@ -1179,7 +1175,7 @@ class Beta1D(Parametric1DModel):
         return [d_A, d_x_0, d_gamma, d_alpha]
 
 
-class Beta2D(Parametric2DModel):
+class Beta2D(Fittable2DModel):
     """
     Two dimensional Beta model.
 
@@ -1263,14 +1259,14 @@ def custom_model_1d(func, func_fit_deriv=None):
         argument (the independent variable in the model), and any number of
         keyword arguments (the parameters).  It must return the value
         of the model (typically as an array, but can also be a scalar for
-        scalar inputs).  This corresponds to the `ParametricModel.eval` method.
+        scalar inputs).  This corresponds to the `FittableModel.eval` method.
     func_fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should
         have the same argument signature as `func`, but should return a
         sequence where each element of the sequence is the derivative
         with respect to the correseponding argument. This corresponds to the
-        `ParametricModel.fit_deriv` method.
+        `FittableModel.fit_deriv` method.
 
 
     Examples
@@ -1350,7 +1346,7 @@ def custom_model_1d(func, func_fit_deriv=None):
     members['__init__'] = eval_globals['__init__']
     members.update(params)
 
-    cls = type(model_name, (Parametric1DModel,), members)
+    cls = type(model_name, (Fittable1DModel,), members)
     cls.__module__ = modname
 
     return cls

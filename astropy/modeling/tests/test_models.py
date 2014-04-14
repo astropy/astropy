@@ -23,7 +23,7 @@ from .example_models import models_1D, models_2D
 from .. import fitting, models
 from .. import fitting
 from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
-                    Parametric1DModel, Parametric2DModel)
+                    Fittable1DModel, Fittable2DModel)
 from ..polynomial import PolynomialModel
 from ...tests.helper import pytest
 
@@ -221,7 +221,7 @@ def test_custom_model_defaults():
     assert sin_model.frequency == 1
 
 
-class TestParametricModels(object):
+class TestFittableModels(object):
     """
     Test class for all parametric models.
 
@@ -437,7 +437,7 @@ def create_model(model_class, parameters, use_constraints=True):
     Create instance of model class.
     """
     constraints = {}
-    if issubclass(model_class, Parametric1DModel):
+    if issubclass(model_class, Fittable1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if use_constraints:
@@ -445,7 +445,7 @@ def create_model(model_class, parameters, use_constraints=True):
                 constraints = models_1D[model_class]['constraints']
         return model_class(*parameters, **constraints)
 
-    elif issubclass(model_class, Parametric2DModel):
+    elif issubclass(model_class, Fittable2DModel):
         if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if use_constraints:

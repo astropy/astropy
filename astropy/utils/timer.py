@@ -249,7 +249,7 @@ class RunTimePredictor(object):
         Returns
         -------
         a : array_like
-            Fitted `~astropy.modeling.core.ParametricModel.parameters`.
+            Fitted `~astropy.modeling.FittableModel.parameters`.
 
         Raises
         ------

@@ -7,7 +7,7 @@ import numpy as np
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
 from ..modeling import models
-from ..modeling.core import Parametric1DModel, Parametric2DModel
+from ..modeling.core import Fittable1DModel, Fittable2DModel
 
 __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -741,7 +741,7 @@ class Model1DKernel(Kernel1D):
 
     Parameters
     ----------
-    model : `~astropy.modeling.Parametric1DModel`
+    model : `~astropy.modeling.Fittable1DModel`
         Kernel response function model
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
@@ -765,11 +765,11 @@ class Model1DKernel(Kernel1D):
     Raises
     ------
     TypeError
-        If model is not an instance of `~astropy.modeling.Parametric1DModel`
+        If model is not an instance of `~astropy.modeling.Fittable1DModel`
 
     See also
     --------
-    Model2DKernel : Create kernel from `~astropy.modeling.Parametric2DModel`
+    Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -790,10 +790,10 @@ class Model1DKernel(Kernel1D):
     _is_bool = False
 
     def __init__(self, model, **kwargs):
-        if isinstance(model, Parametric1DModel):
+        if isinstance(model, Fittable1DModel):
             self._model = model
         else:
-            raise TypeError("Must be Parametric1DModel")
+            raise TypeError("Must be Fittable1DModel")
         super(Model1DKernel, self).__init__(**kwargs)
 
 
@@ -805,7 +805,7 @@ class Model2DKernel(Kernel2D):
 
     Parameters
     ----------
-    model : `~astropy.modeling.Parametric2DModel`
+    model : `~astropy.modeling.Fittable2DModel`
         Kernel response function model
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
@@ -831,11 +831,11 @@ class Model2DKernel(Kernel2D):
     Raises
     ------
     TypeError
-        If model is not an instance of `~astropy.modeling.Parametric2DModel`
+        If model is not an instance of `~astropy.modeling.Fittable2DModel`
 
     See also
     --------
-    Model1DKernel : Create kernel from `~astropy.modeling.Parametric1DModel`
+    Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -858,10 +858,10 @@ class Model2DKernel(Kernel2D):
 
     def __init__(self, model, **kwargs):
         self._separable = False
-        if isinstance(model, Parametric2DModel):
+        if isinstance(model, Fittable2DModel):
             self._model = model
         else:
-            raise TypeError("Must be Parametric2DModel")
+            raise TypeError("Must be Fittable2DModel")
         super(Model2DKernel, self).__init__(**kwargs)
 
 

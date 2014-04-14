@@ -13,7 +13,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from .core import ParametricModel, Model, SerialCompositeModel, format_input
+from .core import FittableModel, Model, SerialCompositeModel, format_input
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 
-class PolynomialBase(ParametricModel):
+class PolynomialBase(FittableModel):
     """
     Base class for all polynomial-like models with an arbitrary number of
     parameters in the form of coeffecients.
@@ -120,10 +120,7 @@ class PolynomialModel(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(PolynomialModel, self).__init__(param_dim=param_dim)
-
-        for name, value in params.items():
-            setattr(self, name, value)
+        super(PolynomialModel, self).__init__(param_dim=param_dim, **params)
 
     @property
     def degree(self):
@@ -258,10 +255,8 @@ class OrthoPolynomialBase(PolynomialBase):
 
             self._validate_params(**params)
 
-        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim)
-
-        for name, value in params.items():
-            setattr(self, name, value)
+        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim,
+                                                  **params)
 
     def get_num_coeff(self):
         """

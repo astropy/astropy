@@ -11,7 +11,7 @@ from arrays or combine existing kernels to match specific applications.
 Every filter kernel is characterized by its response function. For time series
 we speak of an "impulse response function" or for images we call it "point
 spread function". This response function is given for every kernel by a
-`~astropy.modeling.ParametricModel`, which is evaluated on a grid with
+`~astropy.modeling.FittableModel`, which is evaluated on a grid with
 :func:`~astropy.convolution.discretize_model` to obtain a kernel
 array, which can be used for discrete convolution with the binned data.
 
