@@ -778,3 +778,8 @@ class TestStreamingFunctions(FitsTestCase):
         hd['NAXIS2'] = 5
         hd['EXTEND'] = True
         return fits.StreamingHDU(fileobj, hd)
+
+    def test_blank_ignore(self):
+
+        with fits.open(self.data('blank.fits'), ignore_blank=True) as f:
+            assert f[0].data.flat[0] == 2

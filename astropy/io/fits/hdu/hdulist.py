@@ -86,6 +86,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read.
 
+        - **ignore_blank** : bool
+           If `True`, the BLANK keyword is ignored if present.
+
         - **scale_back** : bool
 
             If `True`, when saving changes to a file that contained scaled
