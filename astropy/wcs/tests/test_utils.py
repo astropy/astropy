@@ -53,3 +53,10 @@ def test_wcs_swapping():
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4,2,3,1]))
     swapped = utils.wcs_swapaxes(wcs,2,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
+
+def test_add_stokes():
+    wcs = WCS(naxis=3)
+    
+    for ii in range(4):
+        outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
+        assert outwcs.wcs.naxis == 4

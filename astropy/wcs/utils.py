@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 from .wcs import WCS
 
@@ -10,14 +11,13 @@ wcs_parameters_to_preserve = ['cel_offset','dateavg','dateobs','equinox',
 
 def drop_axis(wcs, dropax):
     """
-    Drop the ax on axis dropax
+    Remove an axis from the WCS.
 
-    Remove an axis from the WCS
     Parameters
     ----------
-    wcs: astropy.wcs.WCS
+    wcs : `~astropy.wcs.WCS`
         The WCS with naxis to be chopped to naxis-1
-    dropax: int
+    dropax : int
         The index of the WCS to drop, counting from 0 (i.e., python convention,
         not FITS convention)
     """
@@ -28,13 +28,56 @@ def drop_axis(wcs, dropax):
     return reindex_wcs(wcs, inds)
 
 
-def wcs_swapaxes(wcs, ax0, ax1):
+def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
-    Swap axes in a WCS
+    Add a new Stokes axis that is uncorrelated with any other axes.
 
     Parameters
     ----------
-    wcs: astropy.wcs.WCS
+    wcs : `~astropy.wcs.WCS`
+        The WCS to add to
+    add_before_ind : int
+        Index of the WCS to insert the new Stokes axis in front of.
+        To add at the end, do add_before_ind = wcs.wcs.naxis
+    """
+
+    naxin = wcs.wcs.naxis
+    naxout = naxin+1
+
+    inds = range(naxout)
+    inds.pop(add_before_ind)
+    inds = np.array(inds)
+
+    outwcs = WCS(naxis=naxout)
+    for par in wcs_parameters_to_preserve:
+        setattr(outwcs.wcs, par, getattr(wcs.wcs,par))
+
+    pc = np.zeros([naxout,naxout])
+    pc[inds[:,np.newaxis],inds[np.newaxis,:]] = wcs.wcs.get_pc()
+    pc[add_before_ind,add_before_ind] = 1
+
+    def insert_at_index(val, index, lst):
+        """ insert a value at index into a list """
+        return list(lst)[:index] + [val] + list(lst)[index:]
+
+    outwcs.wcs.crpix = insert_at_index(1, add_before_ind, wcs.wcs.crpix)
+    outwcs.wcs.cdelt = insert_at_index(1, add_before_ind, wcs.wcs.get_cdelt())
+    outwcs.wcs.crval = insert_at_index(1, add_before_ind, wcs.wcs.crval)
+    outwcs.wcs.cunit = insert_at_index("", add_before_ind, wcs.wcs.cunit)
+    outwcs.wcs.ctype = insert_at_index("STOKES", add_before_ind, wcs.wcs.ctype)
+    outwcs.wcs.cname = insert_at_index("STOKES", add_before_ind, wcs.wcs.cname)
+    outwcs.wcs.pc = pc
+
+    return outwcs
+
+
+def wcs_swapaxes(wcs, ax0, ax1):
+    """
+    Swap axes in a WCS.
+
+    Parameters
+    ----------
+    wcs: `~astropy.wcs.WCS`
         The WCS to have its axes swapped
     ax0: int
     ax1: int
@@ -54,9 +97,9 @@ def reindex_wcs(wcs, inds):
 
     Parameters
     ----------
-    wcs: astropy.wcs.WCS
+    wcs: `~astropy.wcs.WCS`
         The WCS to be manipulated
-    inds: np.array(dtype='int')
+    inds: np.ndarray(dtype='int')
         The indices of the array to keep in the output.
         e.g. swapaxes: [0,2,1,3]
         dropaxes: [0,1,3]
