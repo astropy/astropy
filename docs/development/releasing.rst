@@ -130,7 +130,7 @@ procedure is that ensures a consistent release process each time.
          $ python setup.py sdist upload
 
  20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
-     and ensure that only the most releases in each actively maintained
+     and ensure that only the most recent releases in each actively maintained
      release line are *not* marked hidden.  For example, if v0.3.1 was
      just released, v0.3 should be hidden.  This is so that users only find
      the latest bugfix releases.
