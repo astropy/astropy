@@ -104,6 +104,11 @@ New Features
 
 - ``astropy.table``
 
+  - Before, an unmasked `Table` was automatically converted to a masked
+    table if generated from a masked Table or a `MaskedColumn`.
+    Now, this conversion is only done if explicetly requested or if any
+    of the input values is actually masked. [#1185]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the

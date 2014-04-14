@@ -181,6 +181,16 @@ class TestTableInit(SetupData):
         t = Table([self.ca, ma.array([1, 2, 3])])
         assert t.masked is True
 
+    def test_mask_false_if_no_input_masked(self):
+        """Masking not true if not (requested or input requires mask)"""
+        t0 = Table([[3,4]], masked = False)
+        t1 = Table(t0, masked = True)
+        t2 = Table(t1, masked = False)
+        assert not t0.masked
+        assert t1.masked
+        assert not t2.masked
+
+
     def test_mask_property(self):
         t = self.t
         # Access table mask (boolean structured array) by column name
@@ -237,6 +247,17 @@ class TestAddColumn(object):
         assert np.all(t['b'] == np.array([4, 5, 6]))
         assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
+    def test_convert_to_masked_table_only_if_necessary(self):
+        # do not convert to masked table, if new column has no masked value
+        # see #1185
+        t = Table(masked=False)
+        assert not t.masked
+        t.add_column(Column(name='a', data=[1, 2, 3]))
+        assert not t.masked
+        t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[0, 0, 0]))
+        assert not t.masked
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
 
 class TestRenameColumn(object):
 

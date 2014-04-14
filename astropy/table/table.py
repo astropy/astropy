@@ -458,7 +458,7 @@ class Table(object):
             else:
                 self._set_masked(False)
         elif not self.masked:
-            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
+            if any(any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
                 self._set_masked(True)
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
@@ -938,7 +938,7 @@ class Table(object):
             if self._masked is None and masked in [False, True]:
                 self._masked = masked
             elif self._masked is False and masked is True:
-                log.info("Upgrading Table to masked Table")
+                log.info("Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table.")
                 self._masked = masked
             elif self._masked is masked:
                 raise Exception("Masked attribute is already set to {0}".format(masked))
