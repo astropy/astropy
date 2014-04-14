@@ -779,6 +779,9 @@ class ColDefs(object):
 
         return object.__new__(klass)
 
+    def __getnewargs__(self):
+        return (self._arrays,)
+
     def __init__(self, input, tbtype='BinTableHDU'):
         """
         Parameters
@@ -902,8 +905,8 @@ class ColDefs(object):
         return self.__class__(self, self._tbtype)
 
     def __deepcopy__(self, memo):
-        return self.__class__([copy.deepcopy(c, memo) for c in self.columns],
-                              tbtype=self._tbtype)
+        return self.__class__([copy.deepcopy(c, memo) for c in self.columns
+                               if not c._phantom], tbtype=self._tbtype)
 
     def _copy_column(self, column):
         """Utility function used currently only by _init_from_coldefs
