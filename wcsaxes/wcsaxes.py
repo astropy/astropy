@@ -1,4 +1,4 @@
-from matplotlib.axes import Axes
+from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.wcs import WCS
@@ -9,7 +9,7 @@ from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
 
-__all__ = ['WCSAxes']
+__all__ = ['WCSAxes', 'WCSAxesSubplot']
 
 IDENTITY = WCS(naxis=2)
 IDENTITY.wcs.ctype = ["X", "Y"]
@@ -22,6 +22,7 @@ class WCSAxes(Axes):
 
     def __init__(self, fig, rect, wcs=IDENTITY, **kwargs):
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
+        self._bboxes = []
 
         self.reset_wcs(wcs)
         self._hide_parent_artists()
@@ -217,13 +218,13 @@ class WCSAxes(Axes):
         if not self.get_visible():
             return
 
-        bb = [b for b in self._bboxes if b and (b.width!=0 or b.height!=0)]
+        bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
 
         if bb:
             _bbox = Bbox.union(bb)
             return _bbox
         else:
-            return []
+            return self.get_window_extent(renderer)
 
     def grid(self, draw_grid=True, **kwargs):
         """
@@ -239,3 +240,6 @@ class WCSAxes(Axes):
         """
         if draw_grid:
             self.coords.grid(draw_grid=draw_grid, **kwargs)
+
+
+WCSAxesSubplot = subplot_class_factory(WCSAxes)

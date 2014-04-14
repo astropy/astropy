@@ -1,2 +1,2 @@
-from .wcsaxes import WCSAxes
+from .wcsaxes import *
 from .coordinate_helpers import CoordinateHelper
