@@ -1162,10 +1162,7 @@ class SIP(Model):
                               param_dim=param_dim, **a_coeff)
         self.sip1d_b = _SIP1D(b_order, coeff_prefix='B',
                               param_dim=param_dim, **b_coeff)
-
-        params = {'crpix': crpix, 'a_coeff': self.sip1d_a._coef_matrix('A'),
-                  'b_coeff': self.sip1d_b._coef_matrix('B')}
-        super(SIP, self).__init__()
+        super(SIP, self).__init__(param_dim=param_dim)
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
