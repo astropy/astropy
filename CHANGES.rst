@@ -183,6 +183,12 @@ API Changes
 
   - The method computing the derivative of the model with respect
     to parameters was renamed from `deriv` to `fit_deriv`. [#1739]
+    
+  - `ParametricModel` and the associated `Parametric1DModel` and `Parametric2DModel` classes have been renamed
+    `FittableModel`, `Fittable1DModel`, and `Fittable2DModel` respectively.  The base `Model` class has
+    subsumed the functionality of the old `ParametricModel` class so that all models support parameter
+    constraints.  The only distinction of `FittableModel` is that anything which subclasses it is assumed "safe"
+    to use with Astropy fitters. [#2276]
 
 - ``astropy.nddata``
 
