@@ -12,8 +12,8 @@ Includes the following fixes:
   alias to `inspect.getmodule` if the stdlib version is correct, but for
   versions of python with the bug, it uses an internal patched version.
 
-* The `ignored` context manager, not actually in any released version of Python
-  yet (but it will be in `contextlib` eventually).
+* The `contextlib.ignored` context manager, which is only available in Python
+  3.4 or greater.
 
 """
 
