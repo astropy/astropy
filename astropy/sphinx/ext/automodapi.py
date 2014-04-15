@@ -41,12 +41,11 @@ It accepts the following options:
     * ``:no-heading:``
         If specified do not create a top level heading for the section.
 
-    * ``:valid-package-names: str``
-        If present, specifies a comma-seperated last of package names that
-        should be considered valid for the *real* names of the objects (as
-        opposed to their name within the package).  If not given, only objects
-        that are actually in a subpackage of the package currently being
-        documented are included.
+    * ``:allowed-package-names: str``
+        Specifies the packages that functions/classes documented here are
+        allowed to be from, as comma-separated list of package names. If not
+        given, only objects that are actually in a subpackage of the package
+        currently being documented are included.
 
 This extension also adds two sphinx configuration options:
 
@@ -110,7 +109,7 @@ Class Inheritance Diagram
 .. automod-diagram:: {modname}
     :private-bases:
     :parts: 1
-    {vpkgnms}
+    {allowedpkgnms}
 """
 
 _automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
@@ -187,7 +186,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             toskip = []
             inhdiag = maindocstr = top_head = True
             hds = '-^'
-            vpkgnms = []
+            allowedpkgnms = []
 
             # look for actual options
             unknownops = []
@@ -202,18 +201,18 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     hds = args
                 elif opname == 'no-heading':
                     top_head = False
-                elif opname == 'valid-package-names':
-                    vpkgnms.append(args.strip())
+                elif opname == 'allowed-package-names':
+                    allowedpkgnms.append(args.strip())
                 else:
                     unknownops.append(opname)
 
-            #join all the vpkgnms
-            if len(vpkgnms) == 0:
-                vpkgnms = ''
+            #join all the allowedpkgnms
+            if len(allowedpkgnms) == 0:
+                allowedpkgnms = ''
                 onlylocals = True
             else:
-                vpkgnms = ':valid-package-names: ' + ','.join(vpkgnms)
-                onlylocals = vpkgnms
+                allowedpkgnms = ':allowed-package-names: ' + ','.join(allowedpkgnms)
+                onlylocals = allowedpkgnms
 
             # get the two heading chars
             if len(hds) < 2:
@@ -258,8 +257,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 clsfuncoptions.append(toctreestr)
             if toskip:
                 clsfuncoptions.append(':skip: ' + ','.join(toskip))
-            if vpkgnms:
-                clsfuncoptions.append(vpkgnms)
+            if allowedpkgnms:
+                clsfuncoptions.append(allowedpkgnms)
             clsfuncoptionstr = '\n    '.join(clsfuncoptions)
 
             if hasfuncs:
@@ -279,7 +278,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 newstrs.append(automod_templ_inh.format(
                     modname=modnm,
                     clsinhsechds=h2 * 25,
-                    vpkgnms=vpkgnms))
+                    allowedpkgnms=allowedpkgnms))
 
             newstrs.append(spl[grp * 3 + 3])
 
