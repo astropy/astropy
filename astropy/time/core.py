@@ -147,7 +147,7 @@ class Time(object):
         Subformat for inputting string times
     out_subfmt : str, optional
         Subformat for outputting string times
-    location : `~astropy.time.utils.EarthLocation` or iterable, optional
+    location : `~astropy.coordinates.EarthLocation` or iterable, optional
         If given as an iterable, it should be able to initialize an
         an EarthLocation instance, i.e., either contain 3 items with units of
         length for geocentric coordinates, or contain a longitude, latitude,
