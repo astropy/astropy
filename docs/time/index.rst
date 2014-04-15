@@ -317,9 +317,10 @@ The allowed |Time| arguments to create a time object are listed below:
     Unix glob to select subformats for parsing string input times
 **out_subfmt** : str
     Unix glob to select subformats for outputting string times
-**location** : |EarthLocation| or iterable, optional
-    If an iterable, 3 items with units of length for geocentric coordinates
+**location** : |EarthLocation| or tuple, optional
+    If a tuple, 3 |Quantity| items with length units for geocentric coordinates,
     or a longitude, latitude, and optional height for geodetic coordinates.
+    Can be a single location, or one for each input time.
 
 val
 ^^^

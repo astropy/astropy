@@ -147,11 +147,12 @@ class Time(object):
         Subformat for inputting string times
     out_subfmt : str, optional
         Subformat for outputting string times
-    location : `~astropy.coordinates.EarthLocation` or iterable, optional
-        If given as an iterable, it should be able to initialize an
+    location : `~astropy.coordinates.EarthLocation` or tuple, optional
+        If given as an tuple, it should be able to initialize an
         an EarthLocation instance, i.e., either contain 3 items with units of
         length for geocentric coordinates, or contain a longitude, latitude,
         and an optional height for geodetic coordinates.
+        Can be a single location, or one for each input time.
     copy : bool, optional
         Make a copy of the input values
     """
@@ -200,7 +201,10 @@ class Time(object):
 
         if location is not None:
             from ..coordinates import EarthLocation
-            self.location = EarthLocation(*location)
+            if isinstance(location, EarthLocation):
+                self.location = location
+            else:
+                self.location = EarthLocation(*location)
         else:
             self.location = None
 
@@ -217,12 +221,12 @@ class Time(object):
         else:
             self._init_from_vals(val, val2, format, scale, copy)
 
-        if(self.location is not None and
-           self.location.ndim > 1 and self.location.shape[1] > 1 and
-           (self.isscalar or self.location.shape[1] != len(self))):
+        if (self.location is not None and self.location.shape and
+                len(self.location) != (1 if self.isscalar else len(self))):
             raise ValueError('Have {0} times but {1} locations.  Should '
                              'either give a single location or one for each '
-                             'time'.format(len(self), len(self.location)))
+                             'time'.format(1 if self.isscalar else len(self),
+                                           len(self.location)))
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -641,9 +645,14 @@ class Time(object):
                  'location', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
-                setattr(tm, attr, getattr(self, attr))
+                val = getattr(self, attr)
             except AttributeError:
-                pass
+                continue
+
+            if copy and hasattr(val, 'copy'):
+                val = val.copy()
+
+            setattr(tm, attr, val)
 
         if format is None:
             format = self.format
@@ -695,15 +704,19 @@ class Time(object):
         jd1 = self._time.jd1[item]
         tm.isscalar = jd1.ndim == 0
 
-        def keepasarray(x, isscalar=tm.isscalar):
-            return np.array([x]) if isscalar else x
+        def keepasarray(x):
+            return np.atleast_1d(x) if isinstance(x, np.float) else x
         tm._time.jd1 = keepasarray(jd1)
         tm._time.jd2 = keepasarray(self._time.jd2[item])
-        attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
+        attrs = ('_delta_ut1_utc', '_delta_tdb_tt', 'location')
         for attr in attrs:
-            if hasattr(self, attr):
-                val = getattr(self, attr)
-                setattr(tm, attr, keepasarray(val[item]))
+            val = getattr(self, attr, None)
+            if val is not None:
+                try:
+                    setattr(tm, attr, keepasarray(val[item]))
+                except IndexError:  # location may be scalar (same for all)
+                    continue
+
         return tm
 
     def __getattr__(self, attr):
@@ -900,8 +913,9 @@ class Time(object):
             rxy = np.hypot(location.x, location.y)
             z = location.z
             self._delta_tdb_tt = erfa_time.d_tdb_tt(
-                jd1, jd2, ut, lon.to(u.radian).value,
-                rxy.to(u.km).value, z.to(u.km).value)
+                jd1, jd2, ut, np.atleast_1d(lon.to(u.radian).value),
+                np.atleast_1d(rxy.to(u.km).value),
+                np.atleast_1d(z.to(u.km).value))
 
         return self._delta_tdb_tt
 

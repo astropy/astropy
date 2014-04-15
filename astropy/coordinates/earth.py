@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
-from . import CartesianPoints, Longitude, Latitude
+from . import Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time
@@ -27,7 +27,7 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     return ellipsoid
 
 
-class EarthLocation(CartesianPoints):
+class EarthLocation(u.Quantity):
     """
     Location on Earth
 
@@ -44,6 +44,9 @@ class EarthLocation(CartesianPoints):
     """
 
     ellipsoid = 'WGS84'
+    _location_dtype = np.dtype({'names': ['x', 'y', 'z'],
+                                'formats': [np.float64]*3})
+    _array_dtype = np.dtype((np.float64, (3,)))
 
     def __new__(cls, *args, **kwargs):
         try:
@@ -59,23 +62,17 @@ class EarthLocation(CartesianPoints):
         return self
 
     @classmethod
-    def from_geocentric(cls, x, y=None, z=None, unit=None, dtype=None,
-                        copy=True):
+    def from_geocentric(cls, x, y=None, z=None, unit=None):
         """
         Location on Earth, initialized from geocentric coordinates
 
         Parameters
         ----------
         x, y, z : `~astropy.units.Quantity` or array-like
-            Cartesian coordinates.  Have to have length units (m if not given).
-            If `x` has length 3, `y` and `z` can be omitted.
+            Cartesian coordinates.  If not quantities, `unit` should be given.
         unit : `~astropy.units.UnitBase` object or None
             Physical unit of the coordinate values.  If `x`, `y`, and/or `z`
             are quantities, they will be converted to this unit.
-        dtype : ~numpy.dtype, optional
-            See `~astropy.units.Quantity`
-        copy : bool, optional
-            See `~astropy.units.Quantity`
 
         Raises
         ------
@@ -83,13 +80,36 @@ class EarthLocation(CartesianPoints):
             If the units on `x`, `y`, and `z` do not match or an invalid unit
             is given
         ValueError
-            If `y` and `z` don't match `x`'s shape or `x` is not length-3
+            If the shapes of 'x', 'y', and 'z' do not match
         TypeError
-            If incompatible array types are passed into `x`, `y`, or `z`
+            If 'x' is not a `~astropy.units.Quantity` and no unit is given
 
         """
-        return super(EarthLocation, cls).__new__(cls, x, y, z, unit,
-                                                 dtype, copy)
+        if unit is None:
+            try:
+                unit = x.unit
+            except AttributeError:
+                raise TypeError("Geocentric coordinates should be Quantities "
+                                "unless an explicit unit is given.")
+        else:
+            unit = u.Unit(unit)
+
+        if unit.physical_type != 'length':
+            raise u.UnitsError("Geocentric coordinates should be in "
+                               "units of length.")
+
+        try:
+            x = u.Quantity(x, unit, copy=False)
+            y = u.Quantity(y, unit, copy=False)
+            z = u.Quantity(z, unit, copy=False)
+        except u.UnitsError:
+            raise u.UnitsError("Geocentric coordinate units should all be "
+                               "consistent.")
+
+        x, y, z = np.broadcast_arrays(x, y, z)
+        struc = np.empty(x.shape, cls._location_dtype)
+        struc['x'], struc['y'], struc['z'] = x, y, z
+        return super(EarthLocation, cls).__new__(cls, struc, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0., ellipsoid=None, dtype=None):
@@ -124,18 +144,18 @@ class EarthLocation(CartesianPoints):
         lon = Longitude(lon, u.degree, wrap_angle=180*u.degree, copy=False)
         lat = Latitude(lat, u.degree, copy=False)
         height = u.Quantity(height, u.meter, copy=False)
-        if not (lon.shape == lat.shape == height.shape):
-            raise ValueError('`lon`, `lat`, and `height` do not have the '
-                             'same length')
-        xyz = erfa_time.era_gd2gc(ELLIPSOIDS[ellipsoid],
-                                  np.atleast_1d(lon.to(u.radian).value),
-                                  np.atleast_1d(lat.to(u.radian).value),
-                                  np.atleast_1d(height.value))
-        self = super(EarthLocation, cls).__new__(cls, xyz.squeeze(),
-                                                 unit=u.meter, dtype=dtype,
-                                                 copy=False)
+        # convert to float in units required for erfa routine, and ensure
+        # all broadcast to same shape, and are at least 1-dimensional
+        _lon, _lat, _height = np.broadcast_arrays(lon.to(u.radian).value,
+                                                  lat.to(u.radian).value,
+                                                  height.value)
+        # get geocentric coordinates. Have to give one-dimensional array.
+        xyz = erfa_time.era_gd2gc(ELLIPSOIDS[ellipsoid], _lon.ravel(),
+                                  _lat.ravel(), _height.ravel())
+        self = xyz.view(cls._location_dtype, cls).reshape(lon.shape)
+        self._unit = u.meter
         self.ellipsoid = ellipsoid
-        return self
+        return self.to(height.unit)
 
     @property
     def geodetic(self):
@@ -159,15 +179,14 @@ class EarthLocation(CartesianPoints):
         """
 
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
-        self_value = self.to(u.meter).value
-        if self_value.ndim == 1:
-            self_value = self_value.reshape(-1, 1)
+
+        self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
         lon, lat, height = erfa_time.era_gc2gd(ELLIPSOIDS[ellipsoid],
-                                               self_value)
+                                               np.atleast_2d(self_array))
         return (Longitude(lon.squeeze() * u.radian, u.degree,
                           wrap_angle=180.*u.degree),
                 Latitude(lat.squeeze() * u.radian, u.degree),
-                u.Quantity(height.squeeze(), u.meter))
+                u.Quantity(height.squeeze() * u.meter, self.unit))
 
     @property
     def longitude(self):
@@ -185,8 +204,48 @@ class EarthLocation(CartesianPoints):
     @property
     def geocentric(self):
         """Convert to a tuple with X, Y, and Z as quantities"""
-        return self.to_xyz()
+        return self.to_geocentric()
 
     def to_geocentric(self):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
+
+    @property
+    def x(self):
+        return self['x']
+
+    @property
+    def y(self):
+        return self['y']
+
+    @property
+    def z(self):
+        return self['z']
+
+    def __getitem__(self, item):
+        result = super(EarthLocation, self).__getitem__(item)
+        if result.dtype is self.dtype:
+            return result.view(self.__class__)
+        else:
+            return result.view(u.Quantity)
+
+    def __eq__(self, other):
+        # pass by Quantity
+        return np.ndarray.__eq__(self, other)
+
+    def __ne__(self, other):
+        # pass by Quantity
+        return np.ndarray.__ne__(self, other)
+
+    def __len__(self):
+        if self.shape == ():
+            raise IndexError('0-d EarthLocation arrays cannot be indexed')
+        else:
+            return super(EarthLocation, self).__len__()
+
+    def to(self, unit, equivalencies=[]):
+        array_view = self.view(self._array_dtype, u.Quantity)
+        converted = array_view.to(unit, equivalencies)
+        return converted.view(self.dtype,
+                              self.__class__).reshape(self.shape)
+    to.__doc__ = u.Quantity.to.__doc__

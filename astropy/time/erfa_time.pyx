@@ -1125,7 +1125,9 @@ def utc_ut1(
 def d_tdb_tt(np.ndarray[double, ndim=1] in1,
              np.ndarray[double, ndim=1] in2,
              np.ndarray[double, ndim=1] ut,
-             elong, u, v):
+             np.ndarray[double, ndim=1] elong,
+	     np.ndarray[double, ndim=1] u,
+	     np.ndarray[double, ndim=1] v):
     """
     compute DTR = TDB-TT
     double eraDtdb(double date1, double date2, double ut,
@@ -1229,15 +1231,15 @@ def d_tdb_tt(np.ndarray[double, ndim=1] in1,
     **     TCB and hence between TT and TDB.
     """
     assert in1.shape[0] == in2.shape[0] == ut.shape[0]
+    assert elong.shape[0] == u.shape[0] == v.shape[0]
+    assert elong.shape[0] == 1 or elong.shape[0] == in1.shape[0]
     cdef unsigned n = in1.shape[0]
-    cdef unsigned int i
+    cdef unsigned int i, j
     cdef np.ndarray[double, ndim=1] out = np.empty(n, dtype=np.double)
-    cdef double c_elong = elong
-    cdef double c_u = u
-    cdef double c_v = v
 
     for i in range(n):
-        out[i] = eraDtdb(in1[i], in2[i], ut[i], c_elong, c_u, c_v)
+        j = min(i, elong.shape[0]-1)
+        out[i] = eraDtdb(in1[i], in2[i], ut[i], elong[j], u[j], v[j])
     return out
 
 
@@ -1330,7 +1332,7 @@ def era_gd2gc(n, elong, phi, height):
     cdef unsigned int i
     cdef unsigned int nitems = elong.shape[0]
     cdef np.ndarray[double, ndim=1] xyz = np.empty(3, dtype=np.double)
-    cdef np.ndarray[double, ndim=2] out = np.empty((3, nitems), dtype=np.double)
+    cdef np.ndarray[double, ndim=2] out = np.empty((nitems, 3), dtype=np.double)
 
     errs = {-1: 'illegal identifier',
              -2: 'illegal case'}
@@ -1338,7 +1340,7 @@ def era_gd2gc(n, elong, phi, height):
     for i in range(nitems):
         ret = eraGd2gc(n, elong[i], phi[i], height[i], &xyz[0])
         check_return(ret, 'eraGd2gc', errors=errs)
-        out[:, i] = xyz
+        out[i] = xyz
 
     return out
 
@@ -1393,19 +1395,21 @@ def era_gc2gd(n, xyz):
     **  Copyright (C) 2013, NumFOCUS Foundation.
     **  Derived, with permission, from the SOFA library.  See notes at end of file.
     """
-    assert xyz.shape[0] == 3
+    assert xyz.shape[1] == 3
     cdef unsigned int i
-    cdef unsigned int nitems = xyz.shape[1]
-    cdef np.ndarray[double, ndim=1] xyz_item = np.empty(3, dtype=np.double)
+    cdef unsigned int nitems = xyz.shape[0]
     cdef np.ndarray[double, ndim=1] elong = np.empty(nitems, dtype=np.double)
     cdef np.ndarray[double, ndim=1] phi = np.empty(nitems, dtype=np.double)
     cdef np.ndarray[double, ndim=1] height = np.empty(nitems, dtype=np.double)
+    cdef double xyz_item[3]
 
     errs = {-1: 'illegal identifier',
-             -2: 'illegal case'}
+            -2: 'illegal case'}
     for i in range(nitems):
-        xyz_item = xyz[:, i]
-        ret = eraGc2gd(n, &xyz_item[0], &elong[i], &phi[i], &height[i])
+        # ensure xyz are in a contiguous array
+        for j in range(3):
+            xyz_item[j] = xyz[i, j]
+        ret = eraGc2gd(n, xyz_item, &elong[i], &phi[i], &height[i])
         check_return(ret, 'eraGd2gc', errors=errs)
 
     return elong, phi, height
