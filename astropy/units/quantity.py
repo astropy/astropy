@@ -745,23 +745,6 @@ class Quantity(np.ndarray):
         """
         return self.copy()
 
-    # Comparison operations
-    def __eq__(self, other):
-        try:
-            return np.equal(self, other)
-        except Exception as exc:
-            if isinstance(other, Quantity):
-                raise exc
-            return False
-
-    def __ne__(self, other):
-        try:
-            return np.not_equal(self, other)
-        except Exception as exc:
-            if isinstance(other, Quantity):
-                raise exc
-            return True
-
     # other overrides of special functions
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
