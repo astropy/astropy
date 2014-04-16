@@ -232,6 +232,13 @@ class Cds(core.BaseReader):
       >>> table = ascii.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
       >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
       >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
+      
+    The table name and the CDS ReadMe file can be entered as URLs.  This can be used 
+    to directly load tables from the Internet.  For example, Vizier tables from the 
+    CDS::
+
+      >>> table = ascii.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
+      ...             readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe")
 
     If the header (ReadMe) and data are stored in a single file and there
     is content between the header and the data (for instance Notes), then the
