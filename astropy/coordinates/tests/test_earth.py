@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 """Test initalization of angles not already covered by the API tests"""
 
 import functools
+from distutils import version
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
@@ -16,9 +17,22 @@ from ..angles import Longitude, Latitude
 from ...tests.helper import pytest
 from ... import units as u
 
+NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 allclose_m14 = functools.partial(np.allclose, rtol=1.e-14, atol=1.e-14)
-isclose_m14 = functools.partial(np.isclose, rtol=1.e-14, atol=1.e-14)
+allclose_m8 = functools.partial(np.allclose, rtol=1.e-8, atol=1.e-8)
+
+if NUMPY_VERSION >= version.LooseVersion('1.7.0'):
+    isclose_m14 = functools.partial(np.isclose, rtol=1.e-14, atol=1.e-14)
+    isclose_m8 = functools.partial(np.isclose, rtol=1.e-8, atol=1.e-8)
+else:
+    def isclose_m14(val, ref):
+        return np.array([allclose_m14(v, r, rtol=1.e-14, atol=1.e-14)
+                         for (v, r) in zip(val, ref)])
+
+    def isclose_m8(val, ref):
+        return np.array([allclose_m8(v, r, rtol=1.e-8, atol=1.e-8)
+                         for (v, r) in zip(val, ref)])
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -201,11 +215,10 @@ class TestInput():
         # need different tolerance, since heights are relative to ~6000 km
         lon, lat, h = self.location.to_geodetic(ellipsoid)
         if ellipsoid == self.location.ellipsoid:
-            assert np.allclose(h.value, self.h.value, atol=1.e-8, rtol=0.)
+            assert allclose_m8(h.value, self.h.value)
         else:
             # Some heights are very similar for some; some lon, lat identical.
-            assert not np.all(np.isclose(h.value, self.h.value,
-                                         atol=1.e-8, rtol=0.))
+            assert not np.all(isclose_m8(h.value, self.h.value))
 
         # given lon, lat, height, check that x,y,z differ
         location = EarthLocation.from_geodetic(self.lon, self.lat, self.h,
@@ -213,5 +226,4 @@ class TestInput():
         if ellipsoid == self.location.ellipsoid:
             assert allclose_m14(location.z.value, self.z.value)
         else:
-            assert not np.all(isclose_m14(location.z.value, self.z.value,
-                                          atol=1.e-14, rtol=0.))
+            assert not np.all(isclose_m14(location.z.value, self.z.value))
