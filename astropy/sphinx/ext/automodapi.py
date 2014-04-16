@@ -40,6 +40,9 @@ It accepts the following options:
 
     * ``:no-heading:``
         If specified do not create a top level heading for the section.
+        That is, do not create a title heading with text like "packagename
+        Package".  The actual docstring for the package/module will still be
+        shown, though, unless ``:no-main-docstr:`` is given.
 
     * ``:allowed-package-names: str``
         Specifies the packages that functions/classes documented here are
@@ -242,13 +245,13 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     pkgormod='Package' if ispkg else 'Module',
                     pkgormodhds=h1 * (8 if ispkg else 7),
                     automoduleline=automodline))
-
-            newstrs.append(automod_templ_modheader.format(
-                modname=modnm,
-                modhds=h1 * len(modnm),
-                pkgormod='Package' if ispkg else 'Module',
-                pkgormodhds=h1 * (8 if ispkg else 7),
-                automoduleline=automodline))
+            else:
+                newstrs.append(automod_templ_modheader.format(
+                    modname='',
+                    modhds='',
+                    pkgormod='',
+                    pkgormodhds='',
+                    automoduleline=automodline))
 
             #construct the options for the class/function sections
             #start out indented at 4 spaces, but need to keep the indentation.
