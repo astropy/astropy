@@ -20,6 +20,10 @@ def drop_axis(wcs, dropax):
     dropax : int
         The index of the WCS to drop, counting from 0 (i.e., python convention,
         not FITS convention)
+
+    Returns
+    -------
+    A new `~astropy.wcs.WCS` instance with one axis fewer
     """
     inds = range(wcs.wcs.naxis)
     inds.pop(dropax)
@@ -39,6 +43,10 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     add_before_ind : int
         Index of the WCS to insert the new Stokes axis in front of.
         To add at the end, do add_before_ind = wcs.wcs.naxis
+
+    Returns
+    -------
+    A new `~astropy.wcs.WCS` instance with an additional axis
     """
 
     naxin = wcs.wcs.naxis
@@ -83,6 +91,11 @@ def wcs_swapaxes(wcs, ax0, ax1):
     ax1: int
         The indices of the WCS to be swapped, counting from 0 (i.e., python
         convention, not FITS convention)
+
+    Returns
+    -------
+    A new `~astropy.wcs.WCS` instance with the same number of axes, but two
+    swapped
     """
     inds = range(wcs.wcs.naxis)
     inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
@@ -103,6 +116,10 @@ def reindex_wcs(wcs, inds):
         The indices of the array to keep in the output.
         e.g. swapaxes: [0,2,1,3]
         dropaxes: [0,1,3]
+
+    Returns
+    -------
+    A new `~astropy.wcs.WCS` instance
     """
     if not isinstance(inds, np.ndarray):
         raise TypeError("Indices must be an ndarray")
@@ -125,3 +142,53 @@ def reindex_wcs(wcs, inds):
     outwcs.wcs.pc = pc[inds[:,None],inds[None,:]]
 
     return outwcs
+
+def axis_names(wcs):
+    """
+    Extract world names for each coordinate axis
+
+    Parameters
+    ----------
+    wcs : astropy.wcs.WCS
+        The WCS object to extract names from
+
+    Returns
+    -------
+    A tuple of names along each axis
+    """
+    names = list(wcs.wcs.cname)
+    types = wcs.wcs.ctype
+    for i in range(len(names)):
+        if len(names[i]) > 0:
+            continue
+        names[i] = types[i].split('-')[0]
+    return names
+
+
+def slice_wcs(wcs, view):
+    """
+    Slice a WCS instance using a Numpy slice. The order of the slice should
+    be reversed (as for the data) compared to the natural WCS order.
+
+    Parameters
+    ----------
+    view : tuple
+        A tuple containing the same number of slices as the WCS system.
+        The `step` method, the third argument to a slice, is not presently
+        supported.
+
+    Returns
+    -------
+    A new `~astropy.wcs.WCS` instance
+    """
+    if len(view) != wcs.wcs.naxis:
+        raise ValueError("Must have same number of slices as number of WCS axes")
+
+    wcs_new = wcs.deepcopy()
+    for i, iview in enumerate(view):
+        if iview.start is not None:
+            if iview.step not in (None, 1):
+                raise NotImplementedError("Cannot yet slice WCS with strides different from None or 1")
+            wcs_index = wcs.wcs.naxis - 1 - i
+            wcs_new.wcs.crpix[wcs_index] -= iview.start
+    return wcs_new
