@@ -183,9 +183,9 @@ class TestTableInit(SetupData):
 
     def test_mask_false_if_no_input_masked(self):
         """Masking not true if not (requested or input requires mask)"""
-        t0 = Table([[3,4]], masked = False)
-        t1 = Table(t0, masked = True)
-        t2 = Table(t1, masked = False)
+        t0 = Table([[3,4]], masked=False)
+        t1 = Table(t0, masked=True)
+        t2 = Table(t1, masked=False)
         assert not t0.masked
         assert t1.masked
         assert not t2.masked
@@ -248,8 +248,8 @@ class TestAddColumn(object):
         assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_convert_to_masked_table_only_if_necessary(self):
-        # do not convert to masked table, if new column has no masked value
-        # see #1185
+        # Do not convert to masked table, if new column has no masked value.
+        # See #1185 for details.
         t = Table(masked=False)
         assert not t.masked
         t.add_column(Column(name='a', data=[1, 2, 3]))

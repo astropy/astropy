@@ -458,7 +458,7 @@ class Table(object):
             else:
                 self._set_masked(False)
         elif not self.masked:
-            if any(any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
+            if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
                 self._set_masked(True)
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
