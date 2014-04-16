@@ -8,13 +8,17 @@ from __future__ import (absolute_import, division, print_function,
 
 """Test initalization of angles not already covered by the API tests"""
 
+import functools
 import numpy as np
-from numpy.testing.utils import assert_allclose
 
-from ..earth import EarthLocation
+from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
 from ...tests.helper import pytest
 from ... import units as u
+
+
+allclose_m14 = functools.partial(np.allclose, rtol=1.e-14, atol=1.e-14)
+isclose_m14 = functools.partial(np.isclose, rtol=1.e-14, atol=1.e-14)
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -77,13 +81,23 @@ def test_gd2gc():
 
 class TestInput():
     def setup(self):
-        self.lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg)
+        self.lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg,
+                             wrap_angle=180*u.deg)
         self.lat = Latitude([+0., 30., 60., +90., -90., -60., -30., 0.], u.deg)
         self.h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11.,-.1], u.m)
         self.location = EarthLocation.from_geodetic(self.lon, self.lat, self.h)
         self.x, self.y, self.z = self.location.to_geocentric()
 
-    def test_input_validation(self):
+    def test_attribute_classes(self):
+        """Test that attribute classes are correct (and not EarthLocation)"""
+        assert type(self.location.x) is u.Quantity
+        assert type(self.location.y) is u.Quantity
+        assert type(self.location.z) is u.Quantity
+        assert type(self.location.longitude) is Longitude
+        assert type(self.location.latitude) is Latitude
+        assert type(self.location.height) is u.Quantity
+
+    def test_input(self):
         """Check input is parsed correctly"""
 
         # units of length should be assumed geocentric
@@ -99,17 +113,35 @@ class TestInput():
                                   self.h.to(u.m).value)
         assert np.all(geodetic2 == self.location)
         geodetic3 = EarthLocation(self.lon, self.lat)
-        assert_allclose(geodetic3.longitude, self.location.longitude)
-        assert_allclose(geodetic3.latitude, self.location.latitude)
-        assert not np.any(np.isclose(geodetic3.height.value,
-                                     self.location.height.value))
+        assert allclose_m14(geodetic3.longitude.value,
+                            self.location.longitude.value)
+        assert allclose_m14(geodetic3.latitude.value,
+                            self.location.latitude.value)
+        assert not np.any(isclose_m14(geodetic3.height.value,
+                                      self.location.height.value))
         geodetic4 = EarthLocation(self.lon, self.lat, self.h[-1])
-        assert_allclose(geodetic4.longitude, self.location.longitude)
-        assert_allclose(geodetic4.latitude, self.location.latitude)
-        assert_allclose(geodetic4.height[-1], self.location.height[-1])
-        assert not np.any(np.isclose(geodetic4.height[:-1].value,
-                                     self.location.height[:-1].value))
+        assert allclose_m14(geodetic4.longitude.value,
+                            self.location.longitude.value)
+        assert allclose_m14(geodetic4.latitude.value,
+                            self.location.latitude.value)
+        assert allclose_m14(geodetic4.height[-1].value,
+                            self.location.height[-1].value)
+        assert not np.any(isclose_m14(geodetic4.height[:-1].value,
+                                      self.location.height[:-1].value))
+        # check length unit preservation
+        geocentric5 = EarthLocation(self.x, self.y, self.z, u.pc)
+        assert geocentric5.unit is u.pc
+        assert geocentric5.x.unit is u.pc
+        assert geocentric5.height.unit is u.pc
+        assert allclose_m14(geocentric5.x.to(self.x.unit).value, self.x.value)
+        geodetic5 = EarthLocation(self.lon, self.lat, self.h.to(u.pc))
+        assert geodetic5.unit is u.pc
+        assert geodetic5.x.unit is u.pc
+        assert geodetic5.height.unit is u.pc
+        assert allclose_m14(geodetic5.x.to(self.x.unit).value, self.x.value)
 
+    def test_invalid_input(self):
+        """Check invalid input raises exception"""
         # incomprehensible by either raises TypeError
         with pytest.raises(TypeError):
             EarthLocation(self.lon, self.y, self.z)
@@ -134,3 +166,52 @@ class TestInput():
         # inconsistent shape
         with pytest.raises(ValueError):
             EarthLocation.from_geodetic(self.lon, self.lat, self.h[:5])
+
+    def test_slicing(self):
+        loc_slice1 = self.location[4]
+        assert isinstance(loc_slice1, EarthLocation)
+        assert loc_slice1.unit is self.location.unit
+        assert not loc_slice1.shape
+        with pytest.raises(IndexError):
+            loc_slice1[0]
+        loc_slice2 = self.location[4:6]
+        assert isinstance(loc_slice2, EarthLocation)
+        assert loc_slice2.unit is self.location.unit
+        assert loc_slice2.shape == (2,)
+        loc_x = self.location['x']
+        assert type(loc_x) is u.Quantity
+        assert loc_x.shape == self.location.shape
+        assert loc_x.unit is self.location.unit
+
+    def test_invalid_ellipsoid(self):
+        # unknown ellipsoid
+        with pytest.raises(ValueError):
+            EarthLocation.from_geodetic(self.lon, self.lat, self.h,
+                                        ellipsoid='foo')
+        with pytest.raises(TypeError):
+            EarthLocation(self.lon, self.lat, self.h, ellipsoid='foo')
+
+        with pytest.raises(ValueError):
+            self.location.to_geodetic('foo')
+
+    @pytest.mark.parametrize('ellipsoid', ELLIPSOIDS.keys())
+    def test_ellipsoid(self, ellipsoid):
+        """Test that different ellipsoids are understood, and differ"""
+        # check that heights differ for different ellipsoids
+        # need different tolerance, since heights are relative to ~6000 km
+        lon, lat, h = self.location.to_geodetic(ellipsoid)
+        if ellipsoid == self.location.ellipsoid:
+            assert np.allclose(h.value, self.h.value, atol=1.e-8, rtol=0.)
+        else:
+            # Some heights are very similar for some; some lon, lat identical.
+            assert not np.all(np.isclose(h.value, self.h.value,
+                                         atol=1.e-8, rtol=0.))
+
+        # given lon, lat, height, check that x,y,z differ
+        location = EarthLocation.from_geodetic(self.lon, self.lat, self.h,
+                                               ellipsoid=ellipsoid)
+        if ellipsoid == self.location.ellipsoid:
+            assert allclose_m14(location.z.value, self.z.value)
+        else:
+            assert not np.all(isclose_m14(location.z.value, self.z.value,
+                                          atol=1.e-14, rtol=0.))

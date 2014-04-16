@@ -114,11 +114,15 @@ class TestBasic():
                   location=(np.arange(len(mjd)), np.arange(len(mjd))))
         t5 = t4[3]
         assert t5.location == t4.location[3]
-        # will become true if #2270 is merged
-        #assert t5.location.base is t4.location
         t6 = t4[4:6]
         assert np.all(t6.location == t4.location[4:6])
-        assert t6.location.base is t4.location.base
+        # check it is a view
+        # (via ndarray, since quantity setter problematic for structured array)
+        allzeros = np.array((0., 0., 0.), dtype=t4.location.dtype)
+        assert t6.location.view(np.ndarray)[-1] != allzeros
+        assert t4.location.view(np.ndarray)[5] != allzeros
+        t6.location.view(np.ndarray)[-1] = allzeros
+        assert t4.location.view(np.ndarray)[5] == allzeros
 
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to

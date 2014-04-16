@@ -112,7 +112,7 @@ class EarthLocation(u.Quantity):
         return super(EarthLocation, cls).__new__(cls, struc, unit, copy=False)
 
     @classmethod
-    def from_geodetic(cls, lon, lat, height=0., ellipsoid=None, dtype=None):
+    def from_geodetic(cls, lon, lat, height=0., ellipsoid=None):
         """
         Location on Earth, initialized from geodetic coordinates
 
@@ -127,8 +127,6 @@ class EarthLocation(u.Quantity):
         ellipsoid : str, optional
             Name of the reference ellipsoid to use (default: 'WGS84')
             Available ellipoids are:  'WGS84', 'GRS80', 'WGS72'
-        dtype : ~numpy.dtype, optional
-            See `~astropy.units.Quantity`
 
         Raises
         ------
@@ -143,12 +141,14 @@ class EarthLocation(u.Quantity):
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls.ellipsoid)
         lon = Longitude(lon, u.degree, wrap_angle=180*u.degree, copy=False)
         lat = Latitude(lat, u.degree, copy=False)
-        height = u.Quantity(height, u.meter, copy=False)
+        # don't convert to m by default, so we can use the height unit below
+        if not isinstance(height, u.Quantity):
+            height = u.Quantity(height, u.m, copy=False)
         # convert to float in units required for erfa routine, and ensure
         # all broadcast to same shape, and are at least 1-dimensional
         _lon, _lat, _height = np.broadcast_arrays(lon.to(u.radian).value,
                                                   lat.to(u.radian).value,
-                                                  height.value)
+                                                  height.to(u.m).value)
         # get geocentric coordinates. Have to give one-dimensional array.
         xyz = erfa_time.era_gd2gc(ELLIPSOIDS[ellipsoid], _lon.ravel(),
                                   _lat.ravel(), _height.ravel())
