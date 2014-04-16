@@ -61,7 +61,8 @@ class CdsHeader(core.BaseHeader):
         # me file ``self.readme``.
         if self.readme and self.data.table_name:
             in_header = False
-            f = open(self.readme, "r")
+            readme_inputter = core.BaseInputter()
+            f = readme_inputter.get_lines(self.readme)
             # Header info is not in data lines but in a separate file.
             lines = []
             comment_lines = 0
@@ -91,7 +92,6 @@ class CdsHeader(core.BaseHeader):
             else:
                 raise core.InconsistentTableError("Can't find table {0} in {1}".format(
                     self.data.table_name, self.readme))
-            f.close()
 
         found_line = False
 
