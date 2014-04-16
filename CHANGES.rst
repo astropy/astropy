@@ -213,6 +213,10 @@ New Features
   - A new method, ``astropy.wcs.WCS.compare()``, compares two wcsprm
     structs for equality with varying degrees of strictness. [#2361]
 
+  - New ``astropy.wcs.utils`` module, with a handful of tools for manipulating
+    WCS objects, including dropping, swapping, and adding axes.
+
+
 API Changes
 ^^^^^^^^^^^
 
