@@ -608,8 +608,8 @@ class Column(BaseColumn):
                 description=None, unit=None, format=None, meta=None,
                 dtypes=None, units=None):
 
-        if isinstance(data, MaskedColumn):
-            raise TypeError("Cannot convert a MaskedColumn to a Column")
+        if isinstance(data, MaskedColumn) and np.any(data.mask):
+            raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
 
         self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
                                           shape=shape, length=length, description=description,

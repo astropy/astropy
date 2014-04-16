@@ -199,6 +199,11 @@ API Changes
   - The default table printing function now shows a table header row
     for units if any columns have the unit attribute set.  [#1282]
 
+  - Before, an unmasked `Table` was automatically converted to a masked
+    table if generated from a masked Table or a `MaskedColumn`.
+    Now, this conversion is only done if explicitly requested or if any
+    of the input values is actually masked. [#1185]
+
 - ``astropy.time``
 
   - Correct use of UT in TDB calculation [#1938, #1939].

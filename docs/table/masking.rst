@@ -75,7 +75,7 @@ different classes for these two cases.
   >>> t = Table([[1, 2]], names=['a'])
   >>> b = MaskedColumn([3, 4], mask=[True, False])
   >>> t['b'] = b
-  INFO: Upgrading Table to masked Table [astropy.table.table]
+  INFO: Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table. [astropy.table.table]
 
 Note the INFO message because the underlying type of the table is modified in this operation.
 
@@ -85,7 +85,7 @@ Note the INFO message because the underlying type of the table is modified in th
   >>> b = Column([3, 4], name='b')
   >>> t = Table([a, b])
   >>> t.add_row([3, 6], mask=[True, False])
-  INFO: Upgrading Table to masked Table [astropy.table.table]
+  INFO: Upgrading Table to masked Table. Use Table.filled() to convert to unmasked table. [astropy.table.table]
 
 **Convert an existing table to a masked table**
 
