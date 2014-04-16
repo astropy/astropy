@@ -1004,19 +1004,22 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            value = value.to(self.unit).value
+            _value = value.to(self.unit).value
         except AttributeError:
             try:
-                value = dimensionless_unscaled.to(self.unit, value)
+                _value = dimensionless_unscaled.to(self.unit, value)
             except UnitsError as exc:
-                if not _can_have_arbitrary_unit(value):
+                if _can_have_arbitrary_unit(value):
+                    _value = value
+                else:
                     raise exc
 
         if(check_precision and
-           np.any(np.array(value, self.dtype) != np.array(value))):
+           np.any(np.array(_value, self.dtype) !=
+                  np.array(_value, dtype=getattr(value, 'dtype', None)))):
             raise TypeError("cannot convert value type to array type without "
                             "precision loss")
-        return value
+        return _value
 
     def itemset(self, *args):
         if len(args) == 0:
