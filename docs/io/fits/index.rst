@@ -673,8 +673,7 @@ Other Information
 Reference/API
 =============
 
-.. automodapi:: astropy.io.fits
-    :main-docs-only:
+.. automodule:: astropy.io.fits
 
 .. toctree::
     :maxdepth: 3

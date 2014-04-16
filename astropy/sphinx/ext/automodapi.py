@@ -6,10 +6,12 @@ documentation for Astropy packages and affiliated packages.
 ========================
 ``automodapi`` directive
 ========================
-This directive takes a single argument that must be a module or package.
-It will produce a block of documentation that includes the docstring for
-the package, an ``automodsumm`` directive, and an ``automod-diagram`` if
-there are any classes in the module.
+This directive takes a single argument that must be a module or package. It
+will produce a block of documentation that includes the docstring for the
+package, an `automodsumm` directive, and an `automod-diagram` if there are
+any classes in the module. If only the main docstring of the module/package
+is desired in the documentation, use ``automodule`` instead of
+``automodapi``.
 
 It accepts the following options:
 
@@ -39,24 +41,20 @@ It accepts the following options:
     * ``:no-heading:``
         If specified do not create a top level heading for the section.
 
-    * ``:main-docs-only:``
-        If present, only the main docstring for the module/package will
-        be generated. The function and class tables will not be used.
-
 This extension also adds two sphinx configuration options:
 
-* ``automodapi_toctreedirnm``
+* `automodapi_toctreedirnm`
     This must be a string that specifies the name of the directory the
     automodsumm generated documentation ends up in. This directory path should
     be relative to the documentation root (e.g., same place as ``index.rst``).
     Defaults to ``'api'``.
 
-* ``automodapi_writereprocessed``
-    Should be a bool, and if `True`, will cause ``automodapi`` to write files
-    with any ``automodapi`` sections replaced with the content Sphinx processes
-    after ``automodapi`` has run. The output files are not actually used by
+* `automodapi_writereprocessed`
+    Should be a bool, and if `True`, will cause `automodapi` to write files with
+    any ``automodapi``  sections replaced with the content Sphinx processes
+    after ``automodapi`` has run.   The output files are not actually used by
     sphinx, so this option is only for figuring out the cause of sphinx warnings
-    or other debugging. Defaults to `False`.
+    or other debugging.   Defaults to `False`.
 
 """
 
@@ -135,16 +133,16 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
     app : `sphinx.application.Application`
         The sphinx application.
     dotoctree : bool
-        If True, a ":toctree:" option will be added in the "..
+        If `True`, a ":toctree:" option will be added in the "..
         automodsumm::" sections of the template, pointing to the
         appropriate "generated" directory based on the Astropy convention
         (e.g. in ``docs/api``)
     docname : str
         The name of the file for this `sourcestr` (if known - if not, it
-        can be None). If not provided and `dotoctree` is True, the
+        can be `None`). If not provided and `dotoctree` is `True`, the
         generated files may end up in the wrong place.
     warnings : bool
-        If False, all warnings that would normally be issued are
+        If `False`, all warnings that would normally be issued are
         silenced.
 
     Returns
@@ -182,7 +180,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             # initialize default options
             toskip = []
             inhdiag = maindocstr = top_head = True
-            maindocs_only = False
             hds = '-^'
 
             # look for actual options
@@ -198,8 +195,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     hds = args
                 elif opname == 'no-heading':
                     top_head = False
-                elif opname == 'main-docs-only':
-                    maindocs_only = True
                 else:
                     unknownops.append(opname)
 
@@ -219,13 +214,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     app.warn(msg, location)
 
             ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
-
-            # add only main docstring (no func and class tables) if
-            # main-docs-only present
-
-            if maindocs_only:
-                hascls = False
-                hasfuncs = False
 
             # add automodule directive only if no-main-docstr isn't present
             if maindocstr:
