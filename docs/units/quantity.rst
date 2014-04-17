@@ -285,3 +285,27 @@ Similarly, while most numpy functions work properly, a few have
 ``np.dot``) or not reinitializing it properly (e.g., ``np.hstack``).  This
 propagates to more complex functions such as ``np.linalg.norm`` and
 ``scipy.integrate.odeint``.
+
+Subclassing Quantity
+--------------------
+
+To subclass |quantity|, one generally proceeds as one would when subclassing
+:class:`~numpy.ndarray`, i.e., one typically needs to override ``__new__``
+(rather than ``__init__``) and uses the
+:meth:`~numpy.ndarray.__array_finalize__` method to update attributes.  For
+details, see the `numpy documentation on subclassing
+<http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`.  For
+examples, one can look at |quantity| itself, where, e.g.,
+:meth:`~astropy.units.Quantity.__array_finalize__` is used to pass on the
+``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed as
+angles in :meth:`~astropy.coordinates.Angle.__new__` and at
+:class:`~astropy.coordinates.Longitude`, where
+:meth:`_astropy.coordinates.Longitude.__array_finalize__` is used to pass on
+the angle at which longitudes wrap.
+
+Another method that is meant to be overridden by subclasses, one specific to
+|quantity|, is :meth:`~astropy.units.Quantity.__quantity_subclass__`.  This is
+called to decide which type of subclass to return, based on the unit of the
+quantity that is to be created.  It is used, e.g., in
+:class:`~astropy.coordinates.Angle` to return a |quantity| if a calculation
+returns a unit other than an angular one.

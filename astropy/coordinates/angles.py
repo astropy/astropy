@@ -188,19 +188,12 @@ class Angle(u.Quantity):
                 unit = u.hourangle
         return unit
 
-    def __quantity_view__(self, obj, unit):
+    def __quantity_subclass__(self, unit):
         unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
-            result = obj.view(self.__class__)
-            return result
-        return super(Angle, self).__quantity_view__(
-            obj, unit)
-
-    def __quantity_instance__(self, val, unit, **kwargs):
-        unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
-            return self.__class__(val, unit, **kwargs)
-        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
+        if unit.is_equivalent(u.radian):
+            return Angle, True
+        else:
+            return super(Angle, self).__quantity_subclass__(unit)[0], False
 
     @property
     def hour(self):
@@ -637,6 +630,9 @@ class Longitude(Angle):
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
+
+    _wrap_angle = None
+
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self.wrap_angle = wrap_angle
@@ -671,29 +667,9 @@ class Longitude(Angle):
         self._wrap_angle = Angle(value)
         self._wrap_internal()
 
-    def __quantity_view__(self, obj, unit):
-        unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
-            # by default, wrap_angle and equivalencies remain the same
-            # TODO: generalize to some _things_to_copy once #1422, #1373 merged
-            new_view = obj.view(Longitude)
-            new_view._wrap_angle = self.wrap_angle
-            return new_view
-        return super(Angle, self).__quantity_view__(obj, unit)
-
-    def __quantity_instance__(self, val, unit, **kwargs):
-        unit = self._convert_unit_to_angle_unit(unit)
-        if unit is not None and unit.is_equivalent(u.radian):
-            # by default, wrap_angle remains the same
-            if 'wrap_angle' not in kwargs:
-                kwargs['wrap_angle'] = getattr(self, 'wrap_angle')
-            return Longitude(val, unit, **kwargs)
-        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
-
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)
-        if isinstance(obj, Longitude):
-            self._wrap_angle = obj._wrap_angle
+        self._wrap_angle = getattr(obj, '_wrap_angle', None)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):

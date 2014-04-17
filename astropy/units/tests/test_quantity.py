@@ -123,6 +123,54 @@ class TestQuantityCreation(object):
         assert q4 is not q0
         assert q4.base is not q0.base
 
+    def test_subok(self):
+        """Test subok can be used to keep class, or to insist on Quantity"""
+        class MyQuantitySubclass(u.Quantity):
+            pass
+
+        myq = MyQuantitySubclass(np.arange(10.), u.m)
+        # try both with and without changing the unit
+        assert type(u.Quantity(myq)) is u.Quantity
+        assert type(u.Quantity(myq, subok=True)) is MyQuantitySubclass
+        assert type(u.Quantity(myq, u.km)) is u.Quantity
+        assert type(u.Quantity(myq, u.km, subok=True)) is MyQuantitySubclass
+
+    def test_order(self):
+        """Test that order is correctly propagated to np.array"""
+        ac = np.array(np.arange(10.), order='C')
+        qcc = u.Quantity(ac, u.m, order='C')
+        assert qcc.flags['C_CONTIGUOUS']
+        qcf = u.Quantity(ac, u.m, order='F')
+        assert qcf.flags['F_CONTIGUOUS']
+        qca = u.Quantity(ac, u.m, order='A')
+        assert qca.flags['C_CONTIGUOUS']
+        # check it works also when passing in a quantity
+        assert u.Quantity(qcc, order='C').flags['C_CONTIGUOUS']
+        assert u.Quantity(qcc, order='A').flags['C_CONTIGUOUS']
+        assert u.Quantity(qcc, order='F').flags['F_CONTIGUOUS']
+
+        af = np.array(np.arange(10.), order='F')
+        qfc = u.Quantity(af, u.m, order='C')
+        assert qfc.flags['C_CONTIGUOUS']
+        qff = u.Quantity(ac, u.m, order='F')
+        assert qff.flags['F_CONTIGUOUS']
+        qfa = u.Quantity(af, u.m, order='A')
+        assert qfa.flags['F_CONTIGUOUS']
+        assert u.Quantity(qff, order='C').flags['C_CONTIGUOUS']
+        assert u.Quantity(qff, order='A').flags['F_CONTIGUOUS']
+        assert u.Quantity(qff, order='F').flags['F_CONTIGUOUS']
+
+    def test_ndmin(self):
+        """Test that ndmin is correctly propagated to np.array"""
+        a = np.arange(10.)
+        q1 = u.Quantity(a, u.m, ndmin=1)
+        assert q1.ndim == 1 and q1.shape == (10,)
+        q2 = u.Quantity(a, u.m, ndmin=2)
+        assert q2.ndim == 2 and q2.shape == (1, 10)
+        # check it works also when passing in a quantity
+        q3 = u.Quantity(q1, u.m, ndmin=3)
+        assert q3.ndim == 3 and q3.shape == (1, 1, 10)
+
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)

@@ -160,20 +160,11 @@ class Distance(u.Quantity):
         return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_view__(self, obj, unit):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit)
-            return obj.view(self.__class__)
-        except u.UnitsError:
-            return super(Distance, self).__quantity_view__(obj, unit)
-
-    def __quantity_instance__(self, val, unit, **kwargs):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit)
-            return self.__class__(val, unit=unit, **kwargs)
-        except u.UnitsError:
-            return super(Distance, self).__quantity_instance__(
-                val, unit, **kwargs)
+    def __quantity_subclass__(self, unit):
+        if unit.is_equivalent(u.m):
+            return Distance, True
+        else:
+            return super(Distance, self).__quantity_subclass__(unit)[0], False
 
     @property
     def z(self):
@@ -305,20 +296,12 @@ class CartesianPoints(u.Quantity):
         return super(CartesianPoints, cls).__new__(cls, qarr, unit, dtype=dtype,
                                             copy=copy)
 
-    def __quantity_view__(self, obj, unit):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit, True)
-            return obj.view(self.__class__)
-        except u.UnitsError:
-            return super(CartesianPoints, self).__quantity_view__(obj, unit)
-
-    def __quantity_instance__(self, val, unit, **kwargs):
-        try:
-            unit = _convert_to_and_validate_length_unit(unit, True)
-            return self.__class__(val, unit=unit, **kwargs)
-        except u.UnitsError:
-            return super(CartesianPoints, self).__quantity_instance__(
-                val, unit, **kwargs)
+    def __quantity_subclass__(self, unit):
+        if unit.is_equivalent(u.m):
+            return CartesianPoints, True
+        else:
+            return super(CartesianPoints,
+                         self).__quantity_subclass__(unit)[0], False
 
     def __array_wrap__(self, obj, context=None):
         #always convert to CartesianPoints because all operations that would
