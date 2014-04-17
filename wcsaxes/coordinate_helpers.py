@@ -279,10 +279,10 @@ class CoordinateHelper(object):
 
         # TODO: this method should be optimized for speed
 
-        # Here we should determine the location and rotation of all the ticks.
-        # For each axis, we can check the intersections for the specific
-        # coordinate and once we have the tick positions, we can use the WCS to
-        # determine the rotations.
+        # Here we determine the location and rotation of all the ticks. For
+        # each axis, we can check the intersections for the specific
+        # coordinate and once we have the tick positions, we can use the WCS
+        # to determine the rotations.
 
         # Find the range of coordinates in all directions
         coord_range = self.parent_axes.get_coord_range(self.transform)
@@ -298,6 +298,9 @@ class CoordinateHelper(object):
         self.ticklabels.clear()
 
         for axis, spine in frame.iteritems():
+
+            # TODO: the following code does not work correctly if
+            # origin='lower'
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
@@ -320,7 +323,13 @@ class CoordinateHelper(object):
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
-            tick_angle = -np.degrees(np.arctan2(dy, dx))
+            if self.coord_type == 'longitude':
+                # Here we wrap at 180 not self.coord_wrap since we want to
+                # always ensure abs(dx) < 180 and abs(dy) < 180
+                dx = wrap_angle_at(dx, 180.)
+                dy = wrap_angle_at(dy, 180.)
+
+            tick_angle = np.degrees(np.arctan2(dy, dx))
 
             normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
