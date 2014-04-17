@@ -27,7 +27,7 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_wrap=None, frame=None, grid_type='lines'):
+                 coord_type='scalar', coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -35,11 +35,6 @@ class CoordinateHelper(object):
         self.coord_index = coord_index
         self.coord_type = coord_type
         self.frame = frame
-
-        if grid_type in ('lines', 'contour'):
-            self.grid_type = grid_type
-        else:
-            raise ValueError("grid_type should be 'lines' or 'contour'")
 
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
@@ -76,7 +71,7 @@ class CoordinateHelper(object):
                                   'facecolor':'none',
                                   'transform':self.parent_axes.transData}
 
-    def grid(self, draw_grid=True, **kwargs):
+    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
         Plot grid lines for this coordinate.
 
@@ -87,7 +82,20 @@ class CoordinateHelper(object):
         ----------
         draw_grid : bool
             Whether to show the gridlines
+        grid_type : { 'lines' | 'contours' }
+            Whether to plot the contours by determining the grid lines in
+            world coordinates and then plotting them in world coordinates
+            (``'lines'``) or by determining the world coordinates at many
+            positions in the image and then drawing contours
+            (``'contours'``). The first is recommended for 2-d images, while
+            for 3-d (or higher dimensional) cubes, the ``'contours'`` option
+            is recommended.
         """
+
+        if grid_type in ('lines', 'contours'):
+            self._grid_type = grid_type
+        else:
+            raise ValueError("grid_type should be 'lines' or 'contours'")
 
         if 'color' in kwargs:
             kwargs['edgecolor'] = kwargs.pop('color')
@@ -243,7 +251,7 @@ class CoordinateHelper(object):
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
-        if self.grid_type == 'lines':
+        if self._grid_type == 'lines':
             self._update_grid_lines()
         else:
             self._update_grid_contour()
@@ -251,7 +259,7 @@ class CoordinateHelper(object):
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
-        if self.grid_type == 'lines':
+        if self._grid_type == 'lines':
 
             if self.grid_lines_kwargs['visible']:
                 for path in self.grid_lines:

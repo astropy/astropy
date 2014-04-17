@@ -20,7 +20,8 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slices=None, **kwargs):
+    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slices=None,
+                 **kwargs):
 
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
