@@ -1901,7 +1901,7 @@ naxis kwarg.
         # wcs.sub([1,2]) to get 'RA','DEC' back
         return self.sub(inds+1)
 
-    def swapaxes(wcs, ax0, ax1):
+    def swapaxes(self, ax0, ax1):
         """
         Swap axes in a WCS.
 
@@ -1919,11 +1919,19 @@ naxis kwarg.
         A new `~astropy.wcs.WCS` instance with the same number of axes, but two
         swapped
         """
-        inds = range(wcs.wcs.naxis)
+        inds = range(self.wcs.naxis)
         inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
         inds = np.array(inds)
 
-        return wcs.sub(inds+1)
+        return self.sub(inds+1)
+
+    def reorient_celestial_first(self):
+        """
+        Reorient the WCS such that the celestial axes are first, followed by
+        the spectral axis, followed by any others.
+        Assumes at least celestial axes are present.
+        """
+        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])
 
 
 def __WCS_unpickle__(cls, dct, fits_data):
