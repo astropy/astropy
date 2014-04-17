@@ -250,12 +250,8 @@ class SphericalRepresentation(BaseRepresentation):
         coordinates.
         """
 
-        xsq = cart.x ** 2
-        ysq = cart.y ** 2
-        zsq = cart.z ** 2
-
-        r = (xsq + ysq + zsq) ** 0.5
-        s = (xsq + ysq) ** 0.5
+        s = np.hypot(cart.x, cart.y)
+        r = np.hypot(s, cart.z)
 
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
@@ -332,11 +328,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         coordinates.
         """
 
-        xsq = cart.x ** 2
-        ysq = cart.y ** 2
-        zsq = cart.z ** 2
-
-        s = (xsq + ysq) ** 0.5
+        s = np.hypot(cart.x, cart.y)
 
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
@@ -442,12 +434,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         coordinates.
         """
 
-        xsq = cart.x ** 2
-        ysq = cart.y ** 2
-        zsq = cart.z ** 2
-
-        r = (xsq + ysq + zsq) ** 0.5
-        s = (xsq + ysq) ** 0.5
+        s = np.hypot(cart.x, cart.y)
+        r = np.hypot(s, cart.z)
 
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
@@ -522,7 +510,7 @@ class CylindricalRepresentation(BaseRepresentation):
         coordinates.
         """
 
-        rho = np.sqrt(cart.x ** 2 + cart.y ** 2)
+        rho = np.hypot(cart.x, cart.y)
 
         phi = np.zeros(cart.x.shape) * u.deg
         phi[rho > 0] = np.arctan2(cart.y, cart.x)
