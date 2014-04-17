@@ -84,6 +84,11 @@ class RectangularFrame(OrderedDict):
             self[axis] = Spine(parent_axes, transform)
 
     @property
+    def origin(self):
+        ymin, ymax = self.parent_axes.get_ylim()
+        return 'lower' if ymin < ymax else 'upper'
+
+    @property
     def transform(self):
         return self._transform
 
