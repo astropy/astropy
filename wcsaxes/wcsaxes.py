@@ -20,13 +20,19 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, **kwargs):
+    def __init__(self, fig, rect, wcs=IDENTITY, transData=None,
+                 **kwargs):
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
         self.reset_wcs(wcs)
         self._hide_parent_artists()
 
+        if not (transData is None):
+            # User wants to override the transform for the final
+            # data->pixel mapping
+            self.transData = transData
+        
     def _hide_parent_artists(self):
         # Turn off spines and current axes
         for s in self.spines.values():
