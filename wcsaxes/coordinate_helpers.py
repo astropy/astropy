@@ -284,11 +284,27 @@ class CoordinateHelper(object):
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
-            world_off = spine.world.copy()
-            world_off[:, (self.coord_index + 1) % 2] += 1.e-5
-            pixel_off = self.parent_axes.transData.transform(self.transform.transform(world_off))
-            dpix_off = pixel_off - spine.pixel
-            tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
+
+            pixel0 = spine.data
+            world0 = spine.world[:,self.coord_index]
+            world0 = self.transform.transform(pixel0)[:,self.coord_index]
+
+            pixel1 = pixel0.copy()
+            pixel1[:,0] += 1
+            world1 = self.transform.transform(pixel1)[:,self.coord_index]
+
+            pixel2 = pixel0.copy()
+            pixel2[:,1] += 1
+            world2 = self.transform.transform(pixel2)[:,self.coord_index]
+
+            dx = (world1 - world0)
+            dy = (world2 - world0)
+
+            # Rotate by 90 degrees
+            dx, dy = -dy, dx
+
+            tick_angle = -np.degrees(np.arctan2(dy, dx))
+
             normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
                     ((tick_angle - normal_angle_full) % 360 > 90.))
