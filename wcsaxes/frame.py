@@ -45,7 +45,7 @@ class Spine(object):
         else:
             self._data = self.parent_axes.transData.inverted().transform(self._data)
             self._pixel = value
-            self._world = self.transform.inverted().transform(self._data)
+            self._world = self.transform.transform(self._data)
             self._update_normal()
 
     @property
