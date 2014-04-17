@@ -299,9 +299,6 @@ class CoordinateHelper(object):
 
         for axis, spine in frame.iteritems():
 
-            # TODO: the following code does not work correctly if
-            # origin='lower'
-
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
 
@@ -314,7 +311,7 @@ class CoordinateHelper(object):
             world1 = self.transform.transform(pixel1)[:,self.coord_index]
 
             pixel2 = pixel0.copy()
-            pixel2[:,1] += 1
+            pixel2[:,1] += 1 if self.frame.origin == 'lower' else -1
             world2 = self.transform.transform(pixel2)[:,self.coord_index]
 
             dx = (world1 - world0)
