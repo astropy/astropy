@@ -1876,6 +1876,31 @@ naxis kwarg.
         return (__WCS_unpickle__,
                 (self.__class__, self.__dict__, buffer.getvalue(),))
 
+    def dropaxis(self, dropax):
+        """
+        Remove an axis from the WCS.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The WCS with naxis to be chopped to naxis-1
+        dropax : int
+            The index of the WCS to drop, counting from 0 (i.e., python convention,
+            not FITS convention)
+
+        Returns
+        -------
+        A new `~astropy.wcs.WCS` instance with one axis fewer
+        """
+        inds = range(self.wcs.naxis)
+        inds.pop(dropax)
+        inds = np.array(inds)
+
+        # axis 0 has special meaning to sub
+        # if wcs.wcs.ctype == ['RA','DEC','VLSR'], you want
+        # wcs.sub([1,2]) to get 'RA','DEC' back
+        return self.sub(inds+1)
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """

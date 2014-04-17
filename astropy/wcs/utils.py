@@ -9,28 +9,6 @@ wcs_parameters_to_preserve = ['cel_offset','dateavg','dateobs','equinox',
                               'restwav', 'specsys', 'ssysobs', 'ssyssrc',
                               'theta0', 'velangl', 'velosys', 'zsource']
 
-def drop_axis(wcs, dropax):
-    """
-    Remove an axis from the WCS.
-
-    Parameters
-    ----------
-    wcs : `~astropy.wcs.WCS`
-        The WCS with naxis to be chopped to naxis-1
-    dropax : int
-        The index of the WCS to drop, counting from 0 (i.e., python convention,
-        not FITS convention)
-
-    Returns
-    -------
-    A new `~astropy.wcs.WCS` instance with one axis fewer
-    """
-    inds = range(wcs.wcs.naxis)
-    inds.pop(dropax)
-    inds = np.array(inds)
-
-    return reindex_wcs(wcs, inds)
-
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
