@@ -15,8 +15,12 @@ import numpy as np
 # Project
 from ..extern import six
 from .. import units as u
+from .transformations import TransformGraph
 
-__all__ = ['BaseCoordinateFrame']
+__all__ = ['BaseCoordinateFrame', 'spatial_transform_graph']
+
+# the graph used for all transformations between frames
+frame_transform_graph = TransformGraph()
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -62,9 +66,6 @@ class BaseCoordinateFrame(object):
         ValueError
             If there is no possible transformation route.
         """
-        # TODO: define a transform graph within baseframe.py, specific to
-        #       the coordinate frame transformations
-        from .transformations import master_transform_graph as frame_transform_graph
         from .errors import ConvertError
 
         if new_frame is self.__class__:
@@ -93,10 +94,6 @@ class BaseCoordinateFrame(object):
             not. The string 'same' if ``new_frame`` is the same system as this
             object (i.e. no transformation is needed).
         """
-        # TODO: define a transform graph within baseframe.py, specific to
-        #       the coordinate frame transformations
-        from .transformations import master_transform_graph as frame_transform_graph
-
         if self.__class__ is new_frame:
             return 'same'
         else:
