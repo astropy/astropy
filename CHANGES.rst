@@ -183,7 +183,7 @@ API Changes
 
   - The method computing the derivative of the model with respect
     to parameters was renamed from `deriv` to `fit_deriv`. [#1739]
-    
+
   - `ParametricModel` and the associated `Parametric1DModel` and `Parametric2DModel` classes have been renamed
     `FittableModel`, `Fittable1DModel`, and `Fittable2DModel` respectively.  The base `Model` class has
     subsumed the functionality of the old `ParametricModel` class so that all models support parameter
@@ -440,10 +440,11 @@ Bug Fixes
   - ``data.download_file()`` now evaluates ``REMOTE_TIMEOUT()`` at runtime
     rather than import time. Previously, setting ``REMOTE_TIMEOUT`` after
     import had no effect on the function's behavior. [#2302]
-    
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
+
   - Cone Search validation no longer raises ``ConeSearchError`` for positive RA.
     [#2240, #2242]
 
