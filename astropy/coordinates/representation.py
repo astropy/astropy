@@ -21,13 +21,6 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 
-# Suggestions to improve API
-#
-# - change PhysicistSphericalRepresentation to PhysicsSphericalRepresentation
-# (implemented below).
-#
-# - add a rotated() method that can rotate the 3D coordinates
-
 __all__ = ["CartesianRepresentation", "SphericalRepresentation",
            "UnitSphericalRepresentation", "PhysicsSphericalRepresentation",
            "CylindricalRepresentation"]
