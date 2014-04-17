@@ -20,12 +20,12 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slice=None, **kwargs):
+    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slices=None, **kwargs):
 
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.reset_wcs(wcs)
+        self.reset_wcs(wcs, slices=slices)
         self._hide_parent_artists()
 
         if not (transData is None):
@@ -41,7 +41,7 @@ class WCSAxes(Axes):
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
-    def reset_wcs(self, wcs):
+    def reset_wcs(self, wcs, slices=None):
         """
         Reset the current Axes, to use a new WCS object.
         """
@@ -51,7 +51,7 @@ class WCSAxes(Axes):
             wcs = IDENTITY
 
         self.wcs = wcs
-        self.coords = CoordinatesMap(self, self.wcs, slice=slice)
+        self.coords = CoordinatesMap(self, self.wcs, slice=slices)
 
         self._all_coords = [self.coords]
 
