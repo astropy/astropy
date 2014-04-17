@@ -185,10 +185,9 @@ class SphericalRepresentation(BaseRepresentation):
         lon = Longitude(lon, copy=copy)
         lat = Latitude(lat, copy=copy)
 
-        if isinstance(distance, u.Quantity) and distance.unit.physical_type == 'length':
-            distance = Distance(distance, copy=copy)
-        else:
-            distance = u.Quantity(distance, copy=copy)
+        distance = u.Quantity(distance, copy=copy)
+        if distance.unit.physical_type == 'length':
+            distance = distance.view(Distance)
 
         try:
             lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
@@ -375,10 +374,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = Angle(phi, copy=copy)
         theta = Angle(theta, copy=copy)
 
-        if isinstance(distance, u.Quantity) and distance.unit.physical_type == 'length':
-            distance = Distance(distance, copy=copy)
-        else:
-            distance = u.Quantity(distance, copy=copy)
+        distance = u.Quantity(distance, copy=copy)
+        if distance.unit.physical_type == 'length':
+            distance = distance.view(Distance)
 
         try:
             phi, theta, distance = broadcast_quantity(phi, theta, distance, copy=copy)
