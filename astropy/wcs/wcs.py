@@ -1901,6 +1901,30 @@ naxis kwarg.
         # wcs.sub([1,2]) to get 'RA','DEC' back
         return self.sub(inds+1)
 
+    def swapaxes(wcs, ax0, ax1):
+        """
+        Swap axes in a WCS.
+
+        Parameters
+        ----------
+        wcs: `~astropy.wcs.WCS`
+            The WCS to have its axes swapped
+        ax0: int
+        ax1: int
+            The indices of the WCS to be swapped, counting from 0 (i.e., python
+            convention, not FITS convention)
+
+        Returns
+        -------
+        A new `~astropy.wcs.WCS` instance with the same number of axes, but two
+        swapped
+        """
+        inds = range(wcs.wcs.naxis)
+        inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
+        inds = np.array(inds)
+
+        return wcs.sub(inds+1)
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """
