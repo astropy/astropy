@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-import os
 
 from .. import Time
 from ...extern.six.moves import cPickle as pickle
-import tempfile
 
 
 class TestPickle():
@@ -15,37 +13,15 @@ class TestPickle():
 
         times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
         t1 = Time(times, scale='utc')
-        t1d = pickle.dumps(t1)
-        t1l = pickle.loads(t1d)
-        assert np.all(t1l == t1)
-
-        t2 = Time('2012-06-30 12:00:00', scale='utc')
-        t2d = pickle.dumps(t2)
-        t2l = pickle.loads(t2d)
-        assert t2l == t2
-
-    def test_pickle_protocols(self):
-
-        tmpf, tmpname = tempfile.mkstemp()
-        times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
-        t1 = Time(times, scale='utc')
 
         for prot in range(pickle.HIGHEST_PROTOCOL):
-            tmpn = open(tmpname, 'wb')
-            pickle.dump(t1, tmpn, prot)
-            tmpn = open(tmpname, 'rb')
-            t1l = pickle.load(tmpn)
-
+            t1d = pickle.dumps(t1, prot)
+            t1l = pickle.loads(t1d)
             assert np.all(t1l == t1)
 
         t2 = Time('2012-06-30 12:00:00', scale='utc')
 
         for prot in range(pickle.HIGHEST_PROTOCOL):
-            tmpn = open(tmpname, 'wb')
-            pickle.dump(t2, tmpn, prot)
-            tmpn = open(tmpname, 'rb')
-            t2l = pickle.load(tmpn)
-
+            t2d = pickle.dumps(t2, prot)
+            t2l = pickle.loads(t2d)
             assert t2l == t2
-
-        os.remove(tmpname)
