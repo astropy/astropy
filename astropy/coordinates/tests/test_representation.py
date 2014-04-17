@@ -144,6 +144,27 @@ class TestSphericalRepresentation(object):
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
 
+    def test_getitem(self):
+
+        s = SphericalRepresentation(lon=np.arange(10) * u.deg,
+                                    lat=-np.arange(10) * u.deg,
+                                    distance=1 * u.kpc)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.lon, [2,4,6] * u.deg)
+        assert_allclose_quantity(s_slc.lat, [-2,-4,-6] * u.deg)
+        assert_allclose_quantity(s_slc.distance, [1,1,1] * u.kpc)
+
+    def test_getitem_scalar(self):
+
+        s = SphericalRepresentation(lon=1 * u.deg,
+                                    lat=-2 * u.deg,
+                                    distance=3 * u.kpc)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
+
 
 class TestUnitSphericalRepresentation(object):
 
@@ -250,6 +271,24 @@ class TestUnitSphericalRepresentation(object):
 
         with pytest.raises(AttributeError):
             s1.lat = 1. * u.deg
+
+    def test_getitem(self):
+
+        s = UnitSphericalRepresentation(lon=np.arange(10) * u.deg,
+                                        lat=-np.arange(10) * u.deg)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.lon, [2,4,6] * u.deg)
+        assert_allclose_quantity(s_slc.lat, [-2,-4,-6] * u.deg)
+
+    def test_getitem_scalar(self):
+
+        s = UnitSphericalRepresentation(lon=1 * u.deg,
+                                        lat=-2 * u.deg)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
 
 
 class TestPhysicsSphericalRepresentation(object):
@@ -380,6 +419,26 @@ class TestPhysicsSphericalRepresentation(object):
         with pytest.raises(AttributeError):
             s1.distance = 1. * u.kpc
 
+    def test_getitem(self):
+
+        s = PhysicsSphericalRepresentation(phi=np.arange(10) * u.deg,
+                                    theta=-np.arange(10) * u.deg,
+                                    distance=1 * u.kpc)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.phi, [2,4,6] * u.deg)
+        assert_allclose_quantity(s_slc.theta, [-2,-4,-6] * u.deg)
+        assert_allclose_quantity(s_slc.distance, [1,1,1] * u.kpc)
+
+    def test_getitem_scalar(self):
+
+        s = PhysicsSphericalRepresentation(phi=1 * u.deg,
+                                    theta=-2 * u.deg,
+                                    distance=3 * u.kpc)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
 
 
 class TestCartesianRepresentation(object):
@@ -575,6 +634,28 @@ class TestCartesianRepresentation(object):
         s3 = CartesianRepresentation(x=1, y=2, z=3, unit=u.def_unit('banana'))
 
 
+    def test_getitem(self):
+
+        s = CartesianRepresentation(x=np.arange(10) * u.m,
+                                    y=-np.arange(10) * u.m,
+                                    z=3 * u.km)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.x, [2,4,6] * u.m)
+        assert_allclose_quantity(s_slc.y, [-2,-4,-6] * u.m)
+        assert_allclose_quantity(s_slc.z, [3,3,3] * u.km)
+
+    def test_getitem_scalar(self):
+
+        s = CartesianRepresentation(x=1 * u.m,
+                                    y=-2 * u.m,
+                                    z=3 * u.km)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
+
+
 class TestCylindricalRepresentation(object):
 
     def test_empty_init(self):
@@ -695,6 +776,26 @@ class TestCylindricalRepresentation(object):
             s1 = CylindricalRepresentation(rho=q_len, phi=10*u.deg, z=q_nonlen)
         assert exc.value.args[0] == "rho and z should have matching physical types"
 
+    def test_getitem(self):
+
+        s = CylindricalRepresentation(rho=np.arange(10) * u.pc,
+                                      phi=-np.arange(10) * u.deg,
+                                      z=1 * u.kpc)
+
+        s_slc = s[2:8:2]
+
+        assert_allclose_quantity(s_slc.rho, [2,4,6] * u.pc)
+        assert_allclose_quantity(s_slc.phi, [-2,-4,-6] * u.deg)
+        assert_allclose_quantity(s_slc.z, [1,1,1] * u.kpc)
+
+    def test_getitem_scalar(self):
+
+        s = CylindricalRepresentation(rho=1 * u.pc,
+                                      phi=-2 * u.deg,
+                                      z=3 * u.kpc)
+
+        with pytest.raises(TypeError):
+            s_slc = s[0]
 
 def test_cartesian_spherical_roundtrip():
 

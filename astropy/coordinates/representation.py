@@ -118,24 +118,27 @@ class CartesianRepresentation(BaseRepresentation):
         self._y = y
         self._z = z
 
+    def __getitem__(self, view):
+        return self.__class__(self.x[view], self.y[view], self.z[view])
+
     @property
     def x(self):
         """
-        The x componen of the point(s).
+        The x component of the point(s).
         """
         return self._x
 
     @property
     def y(self):
         """
-        The y position of the point(s).
+        The y component of the point(s).
         """
         return self._y
 
     @property
     def z(self):
         """
-        The z position of the point(s).
+        The z component of the point(s).
         """
         return self._z
 
@@ -195,6 +198,9 @@ class SphericalRepresentation(BaseRepresentation):
         self._lon = lon
         self._lat = lat
         self._distance = distance
+
+    def __getitem__(self, view):
+        return self.__class__(self.lon[view], self.lat[view], self.distance[view])
 
     @property
     def lon(self):
@@ -294,6 +300,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         self._lon = lon
         self._lat = lat
 
+    def __getitem__(self, view):
+        return self.__class__(self.lon[view], self.lat[view])
+
     @property
     def lon(self):
         """
@@ -379,6 +388,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         self._phi = phi
         self._theta = theta
         self._distance = distance
+
+    def __getitem__(self, view):
+        return self.__class__(self.phi[view], self.theta[view], self.distance[view])
 
     @property
     def phi(self):
@@ -482,6 +494,9 @@ class CylindricalRepresentation(BaseRepresentation):
         self._rho = rho
         self._phi = phi
         self._z = z
+
+    def __getitem__(self, view):
+        return self.__class__(self.rho[view], self.phi[view], self.z[view])
 
     @property
     def rho(self):
