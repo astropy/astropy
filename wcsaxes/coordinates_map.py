@@ -60,7 +60,7 @@ class CoordinatesMap(object):
         for coord in range(self._wcs.wcs.naxis):
             yield self._coords[coord]
 
-    def grid(self, draw_grid=True, **kwargs):
+    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -71,6 +71,14 @@ class CoordinatesMap(object):
         ----------
         draw_grid : bool
             Whether to show the gridlines
+        grid_type : { 'lines' | 'contours' }
+            Whether to plot the contours by determining the grid lines in
+            world coordinates and then plotting them in world coordinates
+            (``'lines'``) or by determining the world coordinates at many
+            positions in the image and then drawing contours
+            (``'contours'``). The first is recommended for 2-d images, while
+            for 3-d (or higher dimensional) cubes, the ``'contours'`` option
+            is recommended.
         """
         for coord in self:
-            coord.grid(draw_grid=draw_grid, **kwargs)
+            coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)
