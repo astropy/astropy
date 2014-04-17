@@ -251,27 +251,29 @@ class CoordinateHelper(object):
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
-        if self._grid_type == 'lines':
-            self._update_grid_lines()
-        else:
-            self._update_grid_contour()
 
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
-        if self._grid_type == 'lines':
+        if self.grid_lines_kwargs['visible']:
 
-            if self.grid_lines_kwargs['visible']:
+            if self._grid_type == 'lines':
+                self._update_grid_lines()
+            else:
+                self._update_grid_contour()
+
+            if self._grid_type == 'lines':
+
                 for path in self.grid_lines:
                     p = PathPatch(path, **self.grid_lines_kwargs)
                     p.set_clip_path(self.frame.path, Affine2D())
                     p.draw(renderer)
 
-        else:
+            else:
 
-            for line in self.grid.collections:
-                line.set(**self.grid_lines_kwargs)
-                line.draw(renderer)
+                for line in self.grid.collections:
+                    line.set(**self.grid_lines_kwargs)
+                    line.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
