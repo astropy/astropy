@@ -2,11 +2,6 @@
 In this module, we define the coordinate representation classes, which are
 used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
-
-All classes should define a ``to_cartesian`` method and a ``from_cartesian``
-class method. By default, transformations are done via the cartesian system,
-but classes that want to define a smarter transformation path can overload
-the ``represent_as`` method.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -21,9 +16,9 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 
-__all__ = ["CartesianRepresentation", "SphericalRepresentation",
-           "UnitSphericalRepresentation", "PhysicsSphericalRepresentation",
-           "CylindricalRepresentation"]
+__all__ = ["BaseRepresentation", "CartesianRepresentation",
+           "SphericalRepresentation", "UnitSphericalRepresentation",
+           "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
 
 def broadcast_quantity(*args, **kwargs):
@@ -40,7 +35,16 @@ def broadcast_quantity(*args, **kwargs):
 @six.add_metaclass(abc.ABCMeta)
 class BaseRepresentation(object):
     """
-    Base Representation object, for representing a point in a 3D coordinate system
+    Base Representation object, for representing a point in a 3D coordinate
+    system.
+
+    Notes
+    -----
+    All representation classes should subclass this base representation
+    class. All subclasses should then define a ``to_cartesian`` method and a
+    ``from_cartesian`` class method. By default, transformations are done via
+    the cartesian system, but classes that want to define a smarter
+    transformation path can overload the ``represent_as`` method.
     """
 
     def represent_as(self, other_class):
