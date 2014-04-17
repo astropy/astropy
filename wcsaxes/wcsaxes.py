@@ -20,8 +20,8 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, transData=None,
-                 **kwargs):
+    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slice=None, **kwargs):
+
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
@@ -51,7 +51,8 @@ class WCSAxes(Axes):
             wcs = IDENTITY
 
         self.wcs = wcs
-        self.coords = CoordinatesMap(self, self.wcs)
+        self.coords = CoordinatesMap(self, self.wcs, slice=slice)
+
         self._all_coords = [self.coords]
 
         # Common default settings
@@ -63,10 +64,9 @@ class WCSAxes(Axes):
     def get_coord_range(self, transform):
         xmin, xmax = self.get_xlim()
         ymin, ymax = self.get_ylim()
-        return find_coordinate_range(transform.inverted(),
+        return find_coordinate_range(transform,
                                      [xmin, xmax, ymin, ymax],
-                                     x_type=self.coords[0].coord_type,
-                                     y_type=self.coords[1].coord_type)
+                                     [coord.coord_type for coord in self.coords])
 
     def draw(self, renderer, inframe=False):
 
@@ -80,13 +80,13 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
 
             coords.frame.update()
-            coords[0]._draw(renderer, bboxes=self._bboxes)
-            coords[1]._draw(renderer, bboxes=self._bboxes)
+            for coord in coords:
+                coord._draw(renderer, bboxes=self._bboxes)
 
         for coords in self._all_coords:
 
-            coords[0]._draw_axislabels(renderer, bboxes=self._bboxes)
-            coords[1]._draw_axislabels(renderer, bboxes=self._bboxes)
+            for coord in coords:
+                coord._draw_axislabels(renderer, bboxes=self._bboxes)
 
         self.coords.frame.draw(renderer)
 
