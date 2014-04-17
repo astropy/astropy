@@ -1,5 +1,5 @@
 from .coordinate_helpers import CoordinateHelper
-from .transforms import WCSWorld2PixelTransform
+from .transforms import WCSPixel2WorldTransform
 from .utils import coord_type_from_ctype
 from .frame import RectangularFrame
 
@@ -8,7 +8,7 @@ from . import six
 
 class CoordinatesMap(object):
 
-    def __init__(self, axes, wcs, transform=None):
+    def __init__(self, axes, wcs, transform=None, slice=None):
 
         # Keep track of parent axes and WCS
         self._axes = axes
@@ -16,7 +16,7 @@ class CoordinatesMap(object):
 
         # Set up transform
         if transform is None:
-            self._transform = WCSWorld2PixelTransform(self._wcs)
+            self._transform = WCSPixel2WorldTransform(self._wcs, slice=slice)
         else:
             self._transform = transform
 
@@ -24,7 +24,7 @@ class CoordinatesMap(object):
 
         # Set up coordinates
         self._coords = {}
-        for coord_index in [0, 1]:
+        for coord_index in range(self._wcs.wcs.naxis):
             coord_type = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
             self._coords[coord_index] = CoordinateHelper(parent_axes=axes,
                                                          transform=self._transform,
@@ -56,6 +56,10 @@ class CoordinatesMap(object):
     def disable_offset_mode(self):
         raise NotImplementedError()
 
+    def __iter__(self):
+        for coord in range(self._wcs.wcs.naxis):
+            yield self._coords[coord]
+
     def grid(self, draw_grid=True, **kwargs):
         """
         Plot gridlines for both coordinates.
@@ -68,5 +72,5 @@ class CoordinatesMap(object):
         draw_grid : bool
             Whether to show the gridlines
         """
-        self[0].grid(draw_grid=draw_grid, **kwargs)
-        self[1].grid(draw_grid=draw_grid, **kwargs)
+        for coord in self:
+            coord.grid(draw_grid=draw_grid, **kwargs)
