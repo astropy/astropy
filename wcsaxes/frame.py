@@ -29,7 +29,7 @@ class Spine(object):
         else:
             self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
-            self._world = self.transform.inverted().transform(self._data)
+            self._world = self.transform.transform(self._data)
             self._update_normal()
 
     @property
@@ -110,6 +110,7 @@ class RectangularFrame(OrderedDict):
         spines = OrderedDict()
 
         for axis in self:
+
             data = self[axis].data
             p = np.linspace(0., 1., data.shape[0])
             p_new = np.linspace(0., 1., n_samples)
