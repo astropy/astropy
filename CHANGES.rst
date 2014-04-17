@@ -281,6 +281,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - ``Quantity`` now accepts ``Unit`` objects and strings that can be converted
+    to a unit [#1773].
+
 - ``astropy.utils``
 
 - ``astropy.vo``

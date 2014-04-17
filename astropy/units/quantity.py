@@ -175,17 +175,19 @@ class Quantity(np.ndarray):
 
             return np.array(value, dtype=dtype, copy=copy, subok=True)
 
-        # Maybe list/tuple of Quantity? short-circuit array for speed
-        if(not isinstance(value, np.ndarray) and isiterable(value) and
-           all(isinstance(v, Quantity) for v in value)):
-            if unit is None:
-                unit = value[0].unit
-            value = [q.to(unit).value for q in value]
-            copy = False  # copy already made
+        # avoid slowing down np.ndarray with the isiterable test, etc.
+        if not isinstance(value, np.ndarray):
+            if isinstance(value, (UnitBase, six.string_types)):
+                return cls(cls.from_unit(value), unit)
 
-        else:
-            if unit is None:
-                unit = dimensionless_unscaled
+            if(isiterable(value) and len(value) > 0 and
+               all(isinstance(v, Quantity) for v in value)):
+                if unit is None:
+                    unit = value[0].unit
+                value = [q.to(unit).value for q in value]
+
+        if unit is None:
+            unit = dimensionless_unscaled
 
         value = np.array(value, dtype=dtype, copy=copy)
 
@@ -205,6 +207,44 @@ class Quantity(np.ndarray):
         value._unit = unit
 
         return value
+
+    @classmethod
+    def from_unit(cls, unit):
+        """Convert a Unit (string) to a Quantity
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit` instance or anything that instantiates it
+        """
+        unit = Unit(unit)
+        value = unit.scale
+        if value != 1.:
+            unit._scale = 1.
+        return cls(value, unit)
+
+    # As is, u.Quantity.from_string(q.__str__()) works for single numbers.
+    # __str__ does not write complete arrays, but if we define a to_string
+    # method that does, this should be able to read it
+    @classmethod
+    def from_string(cls, string, format=None):
+        """Convert a string to a Quantity
+
+        This works by parsing string as a Unit, and then taking the scale as
+        the value, and the remainder as a unit.  Hence, only a single value
+        can be given (e.g., '10 km/s').
+
+        Parameters
+        ----------
+        string : str
+            input string
+        format : str or None
+            possible format as understood by `~astropy.units.Unit`.  E.g.,
+            'generic', 'fits'.  Default is None, corresponding to 'generic'
+        """
+        if not isinstance(string, six.string_types):
+            raise ValueError('Expect string input')
+
+        return cls.from_unit(Unit(string, format=format))
 
     def __array_finalize__(self, obj):
         if isinstance(obj, Quantity):
