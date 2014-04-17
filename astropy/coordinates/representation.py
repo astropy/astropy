@@ -120,21 +120,21 @@ class CartesianRepresentation(BaseRepresentation):
     @property
     def x(self):
         """
-        The x position of the point(s).
+        The x component of the point(s).
         """
         return self._x
 
     @property
     def y(self):
         """
-        The y position of the point(s).
+        The y component of the point(s).
         """
         return self._y
 
     @property
     def z(self):
         """
-        The z position of the point(s).
+        The z component of the point(s).
         """
         return self._z
 
