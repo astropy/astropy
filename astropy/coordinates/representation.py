@@ -511,10 +511,7 @@ class CylindricalRepresentation(BaseRepresentation):
         """
 
         rho = np.hypot(cart.x, cart.y)
-
-        phi = np.zeros(cart.x.shape) * u.deg
-        phi[rho > 0] = np.arctan2(cart.y, cart.x)
-
+        phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
         return CylindricalRepresentation(rho=rho, phi=phi, z=z)
