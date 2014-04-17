@@ -397,6 +397,9 @@ Bug Fixes
 
 - ``astropy.io.registry``
 
+  - Allow readers/writers with the same name to be attached to different
+    classes. [#2312]
+
 - ``astropy.io.votable``
 
   - By default, floating point values are now written out using
