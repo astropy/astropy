@@ -405,6 +405,8 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed pickling of ``Time`` objects. [#2123]
+
 - ``astropy.units``
 
   - ``Quantity._repr_latex_()`` returns ``NotImplementedError`` for quantity
@@ -423,7 +425,7 @@ Bug Fixes
   - ``data.download_file()`` now evaluates ``REMOTE_TIMEOUT()`` at runtime
     rather than import time. Previously, setting ``REMOTE_TIMEOUT`` after
     import had no effect on the function's behavior. [#2302]
-    
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
