@@ -68,6 +68,8 @@ class WCSWorld2PixelTransform(CurvedTransform):
                 self.slice = slice
                 self.x_index = slice.index('x')
                 self.y_index = slice.index('y')
+        else:
+            self.slice = None
 
     def transform(self, world):
         """

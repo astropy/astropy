@@ -27,7 +27,7 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_wrap=None, frame=None):
+                 coord_type='scalar', coord_wrap=None, frame=None, grid_type='lines'):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -35,6 +35,11 @@ class CoordinateHelper(object):
         self.coord_index = coord_index
         self.coord_type = coord_type
         self.frame = frame
+
+        if grid_type in ('lines', 'contour'):
+            self.grid_type = grid_type
+        else:
+            raise ValueError("grid_type should be 'lines' or 'contour'")
 
         if coord_type == 'longitude' and coord_wrap is None:
             self.coord_wrap = 360
@@ -238,15 +243,27 @@ class CoordinateHelper(object):
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
-        self._update_grid()
+        if self.grid_type == 'lines':
+            self._update_grid_lines()
+        else:
+            self._update_grid_contour()
+
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
-        if self.grid_lines_kwargs['visible']:
-            for path in self.grid_lines:
-                p = PathPatch(path, **self.grid_lines_kwargs)
-                p.set_clip_path(self.frame.path, Affine2D())
-                p.draw(renderer)
+        if self.grid_type == 'lines':
+
+            if self.grid_lines_kwargs['visible']:
+                for path in self.grid_lines:
+                    p = PathPatch(path, **self.grid_lines_kwargs)
+                    p.set_clip_path(self.frame.path, Affine2D())
+                    p.draw(renderer)
+
+        else:
+
+            for line in self.grid.collections:
+                line.set(**self.grid_lines_kwargs)
+                line.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
@@ -370,7 +387,7 @@ class CoordinateHelper(object):
                                         text=self._formatter_locator.formatter([world], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
 
-    def _update_grid(self):
+    def _update_grid_lines(self):
 
         # For 3-d WCS with a correlated third axis, the *proper* way of
         # drawing a grid should be to find the world coordinates of all pixels
@@ -400,3 +417,33 @@ class CoordinateHelper(object):
             return get_gridline_path(self.parent_axes, self.transform, xy_world)
         else:
             return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
+
+    def _update_grid_contour(self):
+
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        X, Y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+
+        coord_range = self.parent_axes.get_coord_range(self.transform)
+
+        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+
+        field = field[self.coord_index]
+
+        if self.coord_type == 'longitude':
+
+            # Find biggest gap in tick_world_coordinates and wrap in  middle
+            # For now just assume spacing is equal, so any mid-point will do
+            mid = 0.5 * (tick_world_coordinates[0] + tick_world_coordinates[1])
+            field = wrap_angle_at(field, mid)
+            tick_world_coordinates = wrap_angle_at(tick_world_coordinates, mid)
+
+            # Replace wraps by NaN
+            reset = (np.abs(np.diff(field[:,:-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1,:], axis=1)) > 180)
+            field[:-1,:-1][reset] = np.nan
+            field[1:,:-1][reset] = np.nan
+            field[:-1,1:][reset] = np.nan
+            field[1:,1:][reset] = np.nan
+
+        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates)
