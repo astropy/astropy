@@ -22,7 +22,7 @@ __all__ = ['BaseCoordinateFrame']
 @six.add_metaclass(abc.ABCMeta)
 class BaseCoordinateFrame(object):
     """ docstring """
-    
+
     preferred_representation = None
     preferred_attr_names = None
     frame_attr_names = ()
@@ -30,7 +30,7 @@ class BaseCoordinateFrame(object):
     def __init__(self, representation):
 
         # TODO: check that representation is a valid object
-        
+
         self._cache = dict()
 
     @property
@@ -41,10 +41,10 @@ class BaseCoordinateFrame(object):
 
     def represent_as(self, new_representation):
         return self.data.represent_as(new_representation)
-        
+
     def transform_to(self, new_frame):
         """
-        Transform this object's coordinate data to a new frame. 
+        Transform this object's coordinate data to a new frame.
 
         Parameters
         ----------
@@ -54,7 +54,7 @@ class BaseCoordinateFrame(object):
         Returns
         -------
         transframe
-            A new object with the coordinate data represented in the 
+            A new object with the coordinate data represented in the
             ``newframe`` system.
 
         Raises
@@ -75,7 +75,7 @@ class BaseCoordinateFrame(object):
             raise ConvertError('Cannot transform from {0} to '
                                '{1}'.format(self.__class__, new_frame))
         return trans(self)
-        
+
     def is_transformable_to(self, new_frame):
         """
         Determines if this coordinate frame can be transformed to another
@@ -90,7 +90,7 @@ class BaseCoordinateFrame(object):
         -------
         transformable : bool or str
             `True` if this can be transformed to ``new_frame``, `False` if
-            not. The string 'same' if ``new_frame`` is the same system as this 
+            not. The string 'same' if ``new_frame`` is the same system as this
             object (i.e. no transformation is needed).
         """
         # TODO: define a transform graph within baseframe.py, specific to
@@ -100,13 +100,13 @@ class BaseCoordinateFrame(object):
         if self.__class__ is new_frame:
             return 'same'
         else:
-            trans = frame_transform_graph.get_transform(self.__class__, 
+            trans = frame_transform_graph.get_transform(self.__class__,
                                                         new_frame)
             return trans is not None
-    
+
     @property
     def cartesian(self):
-        """ 
+        """
         Shorthand for a cartesian representation of the coordinates in this object.
         """
         # TODO: if representations are updated to use a full transform graph,
@@ -115,10 +115,10 @@ class BaseCoordinateFrame(object):
         if not cached_repr:
             self._cache['cartesian'] = self.represent_as(CartesianRepresentation)
         return self._cache['cartesian']
-        
+
     @property
     def spherical(self):
-        """ 
+        """
         Shorthand for a spherical representation of the coordinates in this object.
         """
         # TODO: if representations are updated to use a full transform graph,
@@ -127,6 +127,6 @@ class BaseCoordinateFrame(object):
         if not cached_repr:
             self._cache['spherical'] = self.represent_as(SphericalRepresentation)
         return self._cache['spherical']
-        
-        
-        
+
+
+
