@@ -10,25 +10,25 @@ def test_wcs_dropping():
     np.fill_diagonal(wcs.wcs.pc, np.arange(1,5))
     pc = wcs.wcs.pc # for later use below
 
-    dropped = utils.drop_axis(wcs,0)
+    dropped = wcs.dropaxis(0)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2,3,4]))
-    dropped = utils.drop_axis(wcs,1)
+    dropped = wcs.dropaxis(1)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,3,4]))
-    dropped = utils.drop_axis(wcs,2)
+    dropped = wcs.dropaxis(2)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,4]))
-    dropped = utils.drop_axis(wcs,3)
+    dropped = wcs.dropaxis(3)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,3]))
 
     wcs = WCS(naxis=4)
     wcs.wcs.cd = pc
 
-    dropped = utils.drop_axis(wcs,0)
+    dropped = wcs.dropaxis(0)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([2,3,4]))
-    dropped = utils.drop_axis(wcs,1)
+    dropped = wcs.dropaxis(1)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,3,4]))
-    dropped = utils.drop_axis(wcs,2)
+    dropped = wcs.dropaxis(2)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,4]))
-    dropped = utils.drop_axis(wcs,3)
+    dropped = wcs.dropaxis(3)
     assert np.all(dropped.wcs.get_pc().diagonal() == np.array([1,2,3]))
 
 def test_wcs_swapping():
@@ -37,21 +37,21 @@ def test_wcs_swapping():
     np.fill_diagonal(wcs.wcs.pc, np.arange(1,5))
     pc = wcs.wcs.pc # for later use below
 
-    swapped = utils.wcs_swapaxes(wcs,0,1)
+    swapped = wcs.swapaxes(0,1)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2,1,3,4]))
-    swapped = utils.wcs_swapaxes(wcs,0,3)
+    swapped = wcs.swapaxes(0,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4,2,3,1]))
-    swapped = utils.wcs_swapaxes(wcs,2,3)
+    swapped = wcs.swapaxes(2,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
 
     wcs = WCS(naxis=4)
     wcs.wcs.cd = pc
 
-    swapped = utils.wcs_swapaxes(wcs,0,1)
+    swapped = wcs.swapaxes(0,1)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([2,1,3,4]))
-    swapped = utils.wcs_swapaxes(wcs,0,3)
+    swapped = wcs.swapaxes(0,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([4,2,3,1]))
-    swapped = utils.wcs_swapaxes(wcs,2,3)
+    swapped = wcs.swapaxes(2,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
 
 def test_add_stokes():

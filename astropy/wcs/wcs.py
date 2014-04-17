@@ -1892,14 +1892,13 @@ naxis kwarg.
         -------
         A new `~astropy.wcs.WCS` instance with one axis fewer
         """
-        inds = range(self.wcs.naxis)
+        inds = list(range(self.wcs.naxis))
         inds.pop(dropax)
-        inds = np.array(inds)
 
         # axis 0 has special meaning to sub
         # if wcs.wcs.ctype == ['RA','DEC','VLSR'], you want
         # wcs.sub([1,2]) to get 'RA','DEC' back
-        return self.sub(inds+1)
+        return self.sub([i+1 for i in inds])
 
     def swapaxes(self, ax0, ax1):
         """
@@ -1919,11 +1918,10 @@ naxis kwarg.
         A new `~astropy.wcs.WCS` instance with the same number of axes, but two
         swapped
         """
-        inds = range(self.wcs.naxis)
+        inds = list(range(self.wcs.naxis))
         inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
-        inds = np.array(inds)
 
-        return self.sub(inds+1)
+        return self.sub([i+1 for i in inds])
 
     def reorient_celestial_first(self):
         """

@@ -30,7 +30,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     naxin = wcs.wcs.naxis
     naxout = naxin+1
 
-    inds = range(naxout)
+    inds = list(range(naxout))
     inds.pop(add_before_ind)
     inds = np.array(inds)
 
@@ -57,7 +57,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     return outwcs
 
 
-def axis_names(wcs):
+def axis_type_names(wcs):
     """
     Extract world names for each coordinate axis
 
