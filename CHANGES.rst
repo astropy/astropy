@@ -69,6 +69,8 @@ Bug Fixes
 
 - Misc
 
+  - Fixes for compatibility with Python 3.4. [#1945]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
