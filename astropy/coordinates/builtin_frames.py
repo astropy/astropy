@@ -15,7 +15,7 @@ import numpy as np
 from ..extern import six
 from .. import units as u
 from .baseframe import BaseCoordinateFrame
-from . import representation import SphericalRepresentation
+from .representation import SphericalRepresentation
 
 
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']

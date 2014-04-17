@@ -108,7 +108,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        cached_repr = self._cache.get('cartesian', None):
+        cached_repr = self._cache.get('cartesian', None)
         if not cached_repr:
             self._cache['cartesian'] = self.represent_as(CartesianRepresentation)
         return self._cache['cartesian']
@@ -120,10 +120,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        cached_repr = self._cache.get('spherical', None):
+        cached_repr = self._cache.get('spherical', None)
         if not cached_repr:
             self._cache['spherical'] = self.represent_as(SphericalRepresentation)
         return self._cache['spherical']
-
-
-

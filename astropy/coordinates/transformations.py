@@ -277,9 +277,9 @@ class TransformGraph(object):
 
             # TODO: collapse "runs" of statics?
             if all([isinstance(p, StaticMatrixTransform) for p in path]):
-                return CompositeStaticMatrixTransform(fromsys, tosys, transforms, register=False)
+                return CompositeStaticMatrixTransform(transforms, fromsys, tosys, register_graph=False)
             else:
-                return CompositeTransform(fromsys, tosys, transforms, register=False)
+                return CompositeTransform(transforms, fromsys, tosys, register_graph=False)
 
     @deprecated('0.4', alternative='BaseCoordinateFrame.short_name')
     def add_coord_name(self, name, coordcls):
@@ -891,13 +891,13 @@ def transform_function(fromsys, tosys, copyobstime=True, priority=1):
     """
     def deco(func):
         # this doesn't do anything directly with the trasnform because
-        #``register=True`` stores it in the transform graph automatically
+        #``register_graph=True`` stores it in the transform graph automatically
         if copyobstime:
             _CopyObstimeFunctionTransform(func, fromsys, tosys,
-                priority=priority, register=master_transform_graph)
+                priority=priority, register_graph=master_transform_graph)
         else:
             FunctionTransform(func, fromsys, tosys,
-                priority=priority, register=master_transform_graph)
+                priority=priority, register_graph=master_transform_graph)
         return func
     return deco
 
@@ -927,7 +927,7 @@ def static_transform_matrix(fromsys, tosys, priority=1):
     """
     def deco(matfunc):
         StaticMatrixTransform(matfunc(), fromsys, tosys, priority,
-                              register=master_transform_graph)
+                              register_graph=master_transform_graph)
         return matfunc
     return deco
 
@@ -958,7 +958,7 @@ def dynamic_transform_matrix(fromsys, tosys, priority=1):
     """
     def deco(matfunc):
         DynamicMatrixTransform(matfunc, fromsys, tosys, priority,
-                               register=master_transform_graph)
+                               register_graph=master_transform_graph)
         return matfunc
     return deco
 
