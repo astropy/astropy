@@ -109,9 +109,6 @@ def test_representations_api():
     # first dimension must be length-3 if a lone `Quantity` is passed in.
     c1 = coords.CartesianRepresentation(randn(3, 100) * u.kpc)
     assert c1.xyz.shape[0] == 3
-    #assert c1.unit == u.kpc
-    # using `c1.xyz.unit` is the same as `c1.unit`, so it's not necessary to do this,
-    # but it illustrates that `xyz` is a full-fledged `Quantity`.
     assert c1.xyz.unit == u.kpc
     assert c1.x.shape[0] == 100
     assert c1.y.shape[0] == 100
@@ -123,8 +120,8 @@ def test_representations_api():
     xarr, yarr, zarr = randn(3, 100)
     c1 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
-    #assert c2.unit == u.kpc
-    #assert c1.z.kpc / 1000 == c2.z.kpc
+    assert c2.x.unit == u.kpc
+    assert c1.z.kpc / 1000 == c2.z.kpc
 
     # CartesianRepresentation can also accept raw arrays and a `unit` keyword
     # instead of having units attached to each of `x`, `y`, and `z`. Note that this

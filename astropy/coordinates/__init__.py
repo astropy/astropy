@@ -18,5 +18,6 @@ from .builtin_systems import *
 from .name_resolve import *
 from .matching import *
 from .old_builtin_systems_names import *  # TODO: remove this in next version, along with module file
+from .representation import *
 
 __doc__ += builtin_systems._transform_graph_docs
