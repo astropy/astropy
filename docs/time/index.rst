@@ -438,14 +438,14 @@ matching subformat is used.
 location
 ^^^^^^^^
 
-This optional parameter specifies the observer location, using any
-form that can initialize an |EarthLocation|, i.e., either a tuple with
-geocentric coordinates (X, Y, Z), or one with geodetic coordinates
-(longitude, latitude, height; with height defaulting to zero).
+This optional parameter specifies the observer location, using an
+|EarthLocation| object or a tuple containing any form that can initialize one:
+either a tuple with geocentric coordinates (X, Y, Z), or a tuple with geodetic
+coordinates (longitude, latitude, height; with height defaulting to zero).
 They are used for time scales that are sensitive to observer location
 (currently, only TDB, which relies on the ERFA routine ``eraDtdb`` to
-determine the time offset between TDB and TT), as well as for sidereal
-time if no explicit longitude is given.
+determine the time offset between TDB and TT), as well as for sidereal time if
+no explicit longitude is given.
 
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))

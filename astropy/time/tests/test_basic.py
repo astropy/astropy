@@ -12,6 +12,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
+from ...coordinates import EarthLocation
 
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -187,6 +188,25 @@ class TestBasic():
         assert t.tcg.iso == '2006-01-15 21:25:43.322690'
         assert t.tdb.iso == '2006-01-15 21:25:42.684373'
         assert t.tcb.iso == '2006-01-15 21:25:56.893952'
+
+    def test_location(self):
+        """Check that location creates an EarthLocation object, and that
+        such objects can be used as arguments.
+        """
+        lat = 19.48125
+        lon = -155.933222
+        t = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                 precision=6, location=(lon, lat))
+        assert isinstance(t.location, EarthLocation)
+        location = EarthLocation(lon, lat)
+        t2 = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                  precision=6, location=location)
+        assert isinstance(t2.location, EarthLocation)
+        assert t2.location == t.location
+        t3 = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                  precision=6, location=(location.x, location.y, location.z))
+        assert isinstance(t3.location, EarthLocation)
+        assert t3.location == t.location
 
     def test_location_array(self):
         """Check that location arrays are checked for size and used

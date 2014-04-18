@@ -114,7 +114,8 @@ def kwargs_after_scale(func):
             AstropyBackwardsIncompatibleChangeWarning(
                 'lon and lat have been replaced with location in version 0.4. '
                 'Code should be changed to set the location explicitly using '
-                'a keyword argument: location=(lon, lat, [height]) or '
+                'a keyword argument: location=EarthLocation(...), or via a '
+                'shortcut with a tuple: location=(lon, lat, [height]) or '
                 'location=(x, y, z)')
         return func(*args, **kwargs)
     return new_func
