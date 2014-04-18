@@ -36,7 +36,7 @@ def get_graphviz_version():
         return '0'
     tokens = output.split()
     for token in tokens:
-        if re.match(b'[0-9.]*', token):
+        if re.match(b'[0-9.]+', token):
             return token.decode('ascii')
     return '0'
 
