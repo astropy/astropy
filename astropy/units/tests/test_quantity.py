@@ -371,11 +371,13 @@ class TestQuantityOperations(object):
         assert 1 * u.m != 1 * u.cm
 
         # when one is a unit, Quantity does not know what to do,
-        # but unit is fine with it
+        # but unit is fine with it, so it still works
         unit = u.cm**3
         q = 1. * unit
         assert q.__eq__(unit) is NotImplemented
         assert unit.__eq__(q) is True
+        assert q == unit
+        q = 1000. * u.mm**3
         assert q == unit
 
         # mismatched types should never work

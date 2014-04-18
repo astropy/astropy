@@ -38,4 +38,7 @@ http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
 Deprecation and backward-incompatible changes
 ---------------------------------------------
 
-None.
+- ``Quantity`` comparisons with ``==`` or ``!=`` now always return ``True``
+  or ``False``, even if units do not match (for which case a ``UnitsError``
+  used to be raised).  [#2328]
+
