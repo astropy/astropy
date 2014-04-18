@@ -148,7 +148,7 @@ def test_frame_api():
     # in which case they are the actual coordinate objects themselves.
 
     # They can always accept a representation as a first argument
-    icrs = coords.ICRS(coords.SphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
+    icrs = coords.ICRS(coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
 
     # which is stored as the `data` attribute
     assert icrs.data.lat == 5*u.deg
@@ -157,9 +157,9 @@ def test_frame_api():
     # Frames that require additional information like equinoxs or obstimes get them
     # as keyword parameters to the frame constructor.  Where sensible, defaults are
     # used. E.g., FK5 is almost always J2000 equinox
-    fk5 = coords.FK5(coords.SphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
+    fk5 = coords.FK5(coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
     J2000 = astropy.time.Time('J2000', scale='utc')
-    fk5_2000 = coords.FK5(coords.SphericalRepresentation(lon=8*u.hour, lat=5*u.deg), equinox=J2000)
+    fk5_2000 = coords.FK5(coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg), equinox=J2000)
     assert fk5.equinox == fk5_2000.equionx
 
     # the information required to specify the frame is immutable
