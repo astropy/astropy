@@ -170,10 +170,15 @@ class TestChecksumFunctions(FitsTestCase):
             assert hdul[0].header['CHECKSUM'] == 'D8iBD6ZAD6fAD6ZA'
             assert 'DATASUM' in hdul[0].header
             assert hdul[0].header['DATASUM'] == '0'
-            assert 'CHECKSUM' in hdul[1].header
-            assert hdul[1].header['CHECKSUM'] == '51IDA1G981GCA1G9'
-            assert 'DATASUM' in hdul[1].header
-            assert hdul[1].header['DATASUM'] == '1948208413'
+
+            if not sys.platform.startswith('win32'):
+                # Even this winds up having slightly differently-formatted data
+                # than the tables on Linux that the test checksum values were
+                # based on.
+                assert 'CHECKSUM' in hdul[1].header
+                assert hdul[1].header['CHECKSUM'] == '51IDA1G981GCA1G9'
+                assert 'DATASUM' in hdul[1].header
+                assert hdul[1].header['DATASUM'] == '1948208413'
 
     def test_compressed_image_data(self):
         with fits.open(self.data('comp.fits')) as h1:
