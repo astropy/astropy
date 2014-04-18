@@ -9,9 +9,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from .. import broadcast_arrays
+from .. import broadcast_arrays, PR4622
 from ....tests.helper import pytest
 from .... import units as u
+
+
+def test_PR():
+    assert PR4622(broadcast_arrays) is True
 
 
 def test_broadcast_quantity():

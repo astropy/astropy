@@ -12,11 +12,23 @@ from __future__ import division, absolute_import, print_function
 import numpy as np
 from numpy.lib.stride_tricks import DummyArray, as_strided, broadcast_arrays
 
-from .. import PR4622
+__all__ = ['broadcast_arrays', 'PR4622']
 
-__all__ = ['broadcast_arrays']
 
-if PR4622:
+# test whether broadcast_arrays respects subclasses
+# https://github.com/numpy/numpy/pull/4622
+def PR4622(function=np.broadcast_arrays):
+    class MySubClass(np.ndarray):
+        pass
+
+    try:
+        return isinstance(function(MySubClass((1,)), subok=True)[0],
+                          MySubClass)
+    except TypeError:  # unexpected argument subok
+        return False
+
+
+if not PR4622():
     def as_strided(x, shape=None, strides=None, subok=False):
         """ Make an ndarray from the given array with the given shape and strides.
         """
