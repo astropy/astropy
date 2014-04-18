@@ -246,7 +246,15 @@ class TestStandardProfile(object):
         # TODO: check that receive_response received the right data
 
 
-@pytest.mark.xfail("PY31")
+# Note: The TestStandardProfileHTTPSHub and / or TestStandardProfileHTTPSHubClient
+# tests are "randomly" failing from time to time
+# on travis-ci, so for now we mark them xfail and skip them
+# We have the following issues to make sure this is not forgotten:
+# https://github.com/astropy/astropy/issues/2064
+# https://github.com/astropy/astropy/issues/2126
+# https://github.com/astropy/astropy/issues/2321
+
+@pytest.mark.xfail
 class TestStandardProfileHTTPSHub(TestStandardProfile):
 
     conf = 'https_hub'
@@ -260,7 +268,7 @@ class TestStandardProfileHTTPSHub(TestStandardProfile):
                }
 
 
-@pytest.mark.xfail("PY31")
+@pytest.mark.xfail
 class TestStandardProfileHTTPSHubClient(TestStandardProfile):
 
     conf = 'https_hub_client'
