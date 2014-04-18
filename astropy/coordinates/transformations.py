@@ -857,7 +857,7 @@ class _CopyObstimeFunctionTransform(FunctionTransform):
     """
 
     def __call__(self, fromcoord):
-        res = super(FunctionTransform, self).__call__(fromcoord)
+        res = super(_CopyObstimeFunctionTransform, self).__call__(fromcoord)
         # copy over the obstime
         if hasattr(fromcoord, '_obstime') and hasattr(res, '_obstime'):
             res._obstime = fromcoord._obstime
