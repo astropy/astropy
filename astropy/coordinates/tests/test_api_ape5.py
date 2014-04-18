@@ -120,8 +120,8 @@ def test_representations_api():
     xarr, yarr, zarr = randn(3, 100)
     c1 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
-    assert c2.x.unit == u.kpc
-    assert c1.z.kpc / 1000 == c2.z.kpc
+    assert c1.xyz.unit ==  c2.xyz.unit == u.kpc
+    npt.assert_allclose((c1.z / 1000) - c2.z, 0, atol=1e-10)
 
     # CartesianRepresentation can also accept raw arrays and a `unit` keyword
     # instead of having units attached to each of `x`, `y`, and `z`. Note that this
