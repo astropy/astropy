@@ -1,5 +1,5 @@
 # coding: utf-8
-# Licensed like the corresponding numpy file
+# Licensed like the corresponding numpy file; see licenses/NUMPY_LICENSE.rst
 """
 Utilities that manipulate strides to achieve desirable effects.
 
