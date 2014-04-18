@@ -179,9 +179,8 @@ def _guess(table, read_kwargs):
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError,
-                                        core.OptionalTableImportError):
+                core.OptionalTableImportError):
             failed_kwargs.append(guess_kwargs)
-            pass
     else:
         # failed all guesses, try the original read_kwargs without column requirements
         try:

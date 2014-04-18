@@ -18,6 +18,8 @@ import os
 from . import core
 from . import fixedwidth
 
+from ...utils.compat import ignored
+
 
 __doctest_skip__ = ['*']
 
@@ -135,7 +137,7 @@ class CdsHeader(core.BaseHeader):
                         fillval = 'nan'
                     else:
                         fillval = '0'
-                    
+
                     if match.group('nullval') == '-':
                         col.null = '---'
                         # CDS tables can use -, --, ---, or ---- to mark missing values
@@ -293,12 +295,10 @@ class Cds(core.BaseReader):
         if self.data.start_line == 'guess':
             # Replicate the first part of BaseReader.read up to the point where
             # the table lines are initially read in.
-            try:
+            with ignored(TypeError):
+                # For strings only
                 if os.linesep not in table + '':
                     self.data.table_name = os.path.basename(table)
-            except TypeError:
-                # Not a string.
-                pass
 
             self.data.header = self.header
             self.header.data = self.data
@@ -311,10 +311,8 @@ class Cds(core.BaseReader):
             # could be a file.
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
-                try:
+                with ignored(Exception):
                     table = super(Cds, self).read(lines)
                     return table
-                except:
-                    pass
         else:
             return super(Cds, self).read(table)

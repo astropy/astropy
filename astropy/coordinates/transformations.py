@@ -22,6 +22,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from ..utils.compat import ignored
 
 __all__ = ['StaticMatrixTransform', 'FunctionTransform',
            'DynamicMatrixTransform', 'CompositeStaticMatrixTransform',
@@ -547,6 +548,7 @@ class FunctionTransform(CoordinateTransform):
 
 
     """
+
     def __init__(self, fromsys, tosys, func, copyobstime=True, priority=1,
                  register=True):
         from inspect import getargspec
@@ -554,12 +556,12 @@ class FunctionTransform(CoordinateTransform):
         if not six.callable(func):
             raise TypeError('func must be callable')
 
-        try:
+        with ignored(TypeError):
+            # hopefully this person knows what they're doing...
             argspec = getargspec(func)
             if (len(argspec[0]) - len(argspec[3]) != 1) and not argspec[1]:
-                raise ValueError('provided function does not accept a single argument')
-        except TypeError:
-            pass  # hopefully this person knows what they're doing...
+                raise ValueError('provided function does not accept a single '
+                                 'argument')
 
         self.func = func
         self.priority = priority

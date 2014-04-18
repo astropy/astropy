@@ -18,6 +18,7 @@ from .verify import VerifyError
 
 from ...extern.six import string_types, iteritems
 from ...utils import lazyproperty
+from ...utils.compat import ignored
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
@@ -509,10 +510,9 @@ class Column(object):
                 # The 'start' option only applies to ASCII columns
                 warnings.warn('Column start option (TBCOLn) is not allowed '
                               'for binary table columns (got %r).' % start)
-            try:
+
+            with ignored(TypeError, ValueError):
                 start = int(start)
-            except (TypeError, ValueError):
-                pass
 
             if not _is_int(start) and start < 1:
                 raise TypeError('Column start option (TBCOLn) must be a '
@@ -633,12 +633,10 @@ class Column(object):
             return format, format.recformat
 
         if format in NUMPY2FITS:
-            try:
+            with ignored(VerifyError):
                 # legit recarray format?
                 recformat = format
                 format = cls.from_recformat(format)
-            except VerifyError:
-                pass
 
         try:
             # legit FITS format?
@@ -669,10 +667,9 @@ class Column(object):
             # "optional" codes), but it is also strictly a valid ASCII
             # table format, then assume an ASCII table column was being
             # requested (the more likely case, after all).
-            try:
+            with ignored(VerifyError):
                 format = _AsciiColumnFormat(format, strict=True)
-            except VerifyError:
-                pass
+
             # A safe guess which reflects the existing behavior of previous
             # PyFITS versions
             guess_format = _ColumnFormat

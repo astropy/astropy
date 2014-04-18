@@ -12,6 +12,7 @@ import sys
 import numpy as np
 
 from .. import log
+from ..utils.compat import ignored
 from ..utils.console import Getch, color_print
 from ..config import ConfigurationItem
 
@@ -410,10 +411,9 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     while True:
         i1 = i0 + delta_lines  # Last table/col row to show
         if showlines:  # Don't always show the table (e.g. after help)
-            try:
+            with ignored(Exception):
+                # No worries if clear screen call fails
                 os.system('cls' if os.name == 'nt' else 'clear')
-            except:
-                pass  # No worries if clear screen call fails
             lines = tabcol[i0:i1].pformat(**kwargs)
             colors = ('red' if i < n_header else 'default'
                       for i in xrange(len(lines)))

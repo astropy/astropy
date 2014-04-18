@@ -6,6 +6,8 @@ import abc
 
 import numpy as np
 
+from ..utils.compat import ignored
+
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty']
@@ -16,7 +18,6 @@ class IncompatibleUncertaintiesException(Exception):
     This exception should be used to indicate cases in which uncertainties
     with two different classes can not be propagated.
     """
-    pass
 
 
 class MissingDataAssociationException(Exception):
@@ -24,7 +25,6 @@ class MissingDataAssociationException(Exception):
     This exception should be used to indicate that an uncertainty instance has
     not been associated with a parent `~astropy.nddata.NDData` object.
     """
-    pass
 
 
 class NDUncertainty(object):
@@ -81,7 +81,6 @@ class NDUncertainty(object):
         IncompatibleUncertaintiesException
             Raised if the method does not know how to add the uncertainties
         '''
-        pass
 
     @abc.abstractmethod
     def propagate_subtract(self, other_nddata, result_data):
@@ -105,7 +104,6 @@ class NDUncertainty(object):
         IncompatibleUncertaintiesException
             Raised if the method does not know how to add the uncertainties
         '''
-        pass
 
     @abc.abstractmethod
     def propagate_multiply(self, other_nddata, result_data):
@@ -124,7 +122,6 @@ class NDUncertainty(object):
         result_uncertainty : NDUncertainty instance
             The resulting uncertainty
         '''
-        pass
 
     @abc.abstractmethod
     def propagate_divide(self, other_nddata, result_data):
@@ -143,7 +140,6 @@ class NDUncertainty(object):
         result_uncertainty : NDUncertainty instance
             The resulting uncertainty
         '''
-        pass
 
 
 class StdDevUncertainty(NDUncertainty):
@@ -187,11 +183,10 @@ class StdDevUncertainty(NDUncertainty):
     @array.setter
     def array(self, value):
         if value is not None:
-            try:
+            with ignored(MissingDataAssociationException):
                 if value.shape != self.parent_nddata.shape:
-                    raise ValueError("array shape does not match parent data shape")
-            except MissingDataAssociationException:
-                pass
+                    raise ValueError(
+                            "array shape does not match parent data shape")
         self._array = value
 
     def propagate_add(self, other_nddata, result_data):

@@ -21,6 +21,7 @@ from ..verify import _Verify, _ErrList
 
 from ....extern.six import string_types, next
 from ....utils import lazyproperty, deprecated
+from ....utils.compat import ignored
 from ....utils.exceptions import AstropyUserWarning
 
 
@@ -586,18 +587,14 @@ class _BaseHDU(object):
         if (self._has_data and self._standard and
                 _is_pseudo_unsigned(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
-                try:
+                with ignored(KeyError):
                     del self._header[keyword]
-                except KeyError:
-                    pass
 
     def _writeheader(self, fileobj):
         offset = 0
         if not fileobj.simulateonly:
-            try:
+            with ignored(AttributeError, IOError):
                 offset = fileobj.tell()
-            except (AttributeError, IOError):
-                pass
 
             self._header.tofile(fileobj)
 

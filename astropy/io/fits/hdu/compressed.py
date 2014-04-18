@@ -21,6 +21,7 @@ from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ....extern.six import string_types, iteritems
 from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
+from ....utils.compat import ignored
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
                                   AstropyUserWarning)
 
@@ -322,11 +323,9 @@ class CompImageHeader(Header):
 
         is_naxisn = False
         if keyword[:5] == 'NAXIS':
-            try:
+            with ignored(ValueError):
                 index = int(keyword[5:])
                 is_naxisn = index > 0
-            except ValueError:
-                pass
 
         if is_naxisn:
             return 'ZNAXIS%d' % index
@@ -347,11 +346,10 @@ class CompImageHeader(Header):
 
         keyword, repeat = self._keyword_from_index(idx)
         remapped_insert_keyword = self._remap_keyword(keyword)
-        try:
+
+        with ignored(IndexError, KeyError):
             idx = self._table_header._cardindex((remapped_insert_keyword,
                                                  repeat))
-        except (IndexError, KeyError):
-            pass
 
         return idx
 
@@ -1768,20 +1766,16 @@ class CompImageHDU(BinTableHDU):
         else:
             # Delete from both headers
             for header in (self.header, self._header):
-                try:
+                with ignored(KeyError):
                     del header['BZERO']
-                except KeyError:
-                    pass
 
         if _scale != 1:
             self.data /= _scale
             self.header['BSCALE'] = _scale
         else:
             for header in (self.header, self._header):
-                try:
+                with ignored(KeyError):
                     del header['BSCALE']
-                except KeyError:
-                    pass
 
         if self.data.dtype.type != _type:
             self.data = np.array(np.around(self.data), dtype=_type)  # 0.7.7.1
@@ -1902,14 +1896,12 @@ class CompImageHDU(BinTableHDU):
                 # Make sure to delete from both the image header and the table
                 # header; later this will be streamlined
                 for header in (self.header, self._header):
-                    try:
+                    with ignored(KeyError):
                         del header[keyword]
                         # Since _update_header_scale_info can, currently, be
                         # called *after* _prewriteto(), replace these with
                         # blank cards so the header size doesn't change
                         header.append()
-                    except KeyError:
-                        pass
 
             if dtype is None:
                 dtype = self._dtype_for_bitpix()

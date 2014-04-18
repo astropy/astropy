@@ -1583,7 +1583,6 @@ class TimeUnique(TimeFormat):
     without requiring an explicit format specifier.  This class does
     nothing but provide inheritance to identify a class as unique.
     """
-    pass
 
 
 class TimeAstropyTime(TimeUnique):

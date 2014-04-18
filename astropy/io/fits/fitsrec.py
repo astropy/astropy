@@ -18,6 +18,7 @@ from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
 from ...extern.six.moves import xrange, map
 from ...utils import lazyproperty
+from ...utils.compat import ignored
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
@@ -218,7 +219,7 @@ class FITS_rec(np.recarray):
         for attrs in ['_convert', '_heapoffset', '_heapsize', '_nfields', '_gap',
                       '_uint', 'names', 'formats', 'parnames', '_coldefs']:
 
-            try:
+            with ignored(AttributeError):
                 # _coldefs can be Delayed, and file objects cannot be
                 # picked, it needs to be deepcopied first
                 if attrs == '_coldefs':
@@ -226,8 +227,6 @@ class FITS_rec(np.recarray):
                 else:
                     column_state.append(getattr(self, attrs))
                 meta.append(attrs)
-            except AttributeError:
-                pass
 
         state = state + (column_state, meta)
 
@@ -805,10 +804,8 @@ class FITS_rec(np.recarray):
         elif _bool and field.dtype != bool:
             field = np.equal(field, ord('T'))
         elif _str:
-            try:
+            with ignored(UnicodeDecodeError):
                 field = decode_ascii(field)
-            except UnicodeDecodeError:
-                pass
 
         if dim:
             # Apply the new field item dimensions
