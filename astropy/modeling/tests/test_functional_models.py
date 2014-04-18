@@ -26,6 +26,15 @@ def test_Trapezoid1D():
     assert_allclose(yy, yy_ref, rtol=0, atol=1e-6)
 
 
+def test_GaussianAbsorption1D():
+    g_em = models.Gaussian1D(0.8, 3000, 20)
+    g_ab = models.GaussianAbsorption1D(0.8, 3000, 20)
+    xx = np.arange(2900, 3100, 2)
+    assert_allclose(g_ab(xx), 1 - g_em(xx))
+    assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
+                    -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
+
+
 def test_Gaussian2D():
     """
     Test rotated elliptical Gaussian2D model.
