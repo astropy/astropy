@@ -359,7 +359,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         input for these classes is acceptable. This includes
         `~astropy.units.Quantity` instances, strings, and lists of strings.
 
-    distance : `~astropy.units.Quantity`
+    r : `~astropy.units.Quantity`
         The distance to the point(s). If the distance is a length, it is
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
@@ -368,27 +368,27 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, phi, theta, distance, copy=True):
+    def __init__(self, phi, theta, r, copy=True):
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
         phi = Angle(phi, copy=copy)
         theta = Angle(theta, copy=copy)
 
-        distance = u.Quantity(distance, copy=copy)
-        if distance.unit.physical_type == 'length':
-            distance = distance.view(Distance)
+        r = u.Quantity(r, copy=copy)
+        if r.unit.physical_type == 'length':
+            r = r.view(Distance)
 
         try:
-            phi, theta, distance = broadcast_quantity(phi, theta, distance, copy=copy)
+            phi, theta, r = broadcast_quantity(phi, theta, r, copy=copy)
         except ValueError:
-            raise ValueError("Input parameters phi, theta, and distance cannot be broadcast")
+            raise ValueError("Input parameters phi, theta, and r cannot be broadcast")
 
         self._phi = phi
         self._theta = theta
-        self._distance = distance
+        self._distance = r
 
     def __getitem__(self, view):
-        return self.__class__(self.phi[view], self.theta[view], self.distance[view])
+        return self.__class__(self.phi[view], self.theta[view], self.r[view])
 
     @property
     def phi(self):
@@ -405,7 +405,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return self._theta
 
     @property
-    def distance(self):
+    def r(self):
         """
         The distance from the origin to the point(s).
         """
@@ -416,7 +416,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         if other_class is SphericalRepresentation:
             return SphericalRepresentation(lon=self.phi,
                                            lat=90 * u.deg - self.theta,
-                                           distance=self.distance)
+                                           distance=self.r)
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 

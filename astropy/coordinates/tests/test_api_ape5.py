@@ -8,6 +8,8 @@ This is the APE5 coordinates API document re-written to work as a series of test
 functions.
 """
 
+import numpy as np
+from numpy.random import randn
 from numpy import testing as npt
 from ...tests.helper import pytest
 raises = pytest.raises
@@ -34,37 +36,33 @@ def test_representations_api():
 
     # They can be initialized with a variety of ways that make intuitive sense.
     # Distance is optional.
-    coords.SphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
-    coords.SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg)
+    coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
+    coords.UnitSphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg)
     coords.SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, distance=10*u.kpc)
 
     # In the initial implementation, the lat/lon/distance arguments to the
     # initializer must be in order. A *possible* future change will be to allow
     # smarter guessing of the order.  E.g. `Latitude` and `Longitude` objects can be
     # given in any order.
-    coords.SphericalRepresentation(coords.Longitude(8, u.hour), coords.Latitude(5, u.deg))
+    coords.UnitSphericalRepresentation(coords.Longitude(8, u.hour), coords.Latitude(5, u.deg))
     coords.SphericalRepresentation(coords.Longitude(8, u.hour), coords.Latitude(5, u.deg), coords.Distance(10, u.kpc))
 
     # Arrays of any of the inputs are fine
-    coords.SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg)
+    coords.UnitSphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg)
 
     # Default is to copy arrays, but optionally, it can be a reference
-    coords.SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, copy=False)
+    coords.UnitSphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, copy=False)
 
     # strings are parsed by `Latitude` and `Longitude` constructors, so no need to
     # implement parsing in the Representation classes
-    coords.SphericalRepresentation(lon='2h6m3.3s', lat='5rad')
+    coords.UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
 
     # Or, you can give `Quantity`s with keywords, and they will be internally
     # converted to Angle/Distance
     c1 = coords.SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, distance=10*u.kpc)
 
     # Can also give another representation object with the `reprobj` keyword.
-    c2 = coords.SphericalRepresentation(reprobj=c1)
-    # lat/lon/distance must be None in the case below because it's ambiguous if they
-    # should come from the `c1` object or the explicitly-passed keywords.
-    with raises(ValueError):
-        c2 = coords.SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, reprobj=c1)
+    c2 = coords.SphericalRepresentation.from_representation(c1)
 
     #  distance, lat, and lon typically will just match in shape
     coords.SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, distance=[10, 11]*u.kpc)
@@ -74,21 +72,21 @@ def test_representations_api():
     assert len(c2.distance) == 2
     #when they can't be broadcast, it is a ValueError (same as Numpy)
     with raises(ValueError):
-        c2 = coords.SphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
+        c2 = coords.UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
 
     # It's also possible to pass in scalar quantity lists with mixed units. These
     # are converted to array quantities following the same rule as `Quantity`: all
     # elements are converted to match the first element's units.
-    c2 = coords.SphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
-                                        lat=[5*u.deg, (6*pi/180)*u.rad])
+    c2 = coords.UnitSphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
+                                        lat=[5*u.deg, (6*np.pi/180)*u.rad])
     assert c2.lat.unit == u.deg and c2.lon.unit == u.hourangle
-    assert c2.lon[1].value == 9
+    npt.assert_almost_equal(c2.lon[1].value, 9)
 
     # The Quantity initializer itself can also be used to force the unit even if the
     # first element doesn't have the right unit
     lon = u.Quantity([120*u.deg, 135*u.deg], u.hourangle)
-    lat = u.Quantity([(5*pi/180)*u.rad, 0.4*u.hourangle], u.deg)
-    c2 = coords.SphericalRepresentation(lon, lat)
+    lat = u.Quantity([(5*np.pi/180)*u.rad, 0.4*u.hourangle], u.deg)
+    c2 = coords.UnitSphericalRepresentation(lon, lat)
 
     # regardless of how input, the `lat` and `lon` come out as angle/distance
     assert isinstance(c1.lat, coords.Angle)
@@ -100,21 +98,18 @@ def test_representations_api():
         c1.lat = coords.Latitude(5, u.deg)
     # Note that it is still possible to modify the array in-place, but this is not
     # sanctioned by the API, as this would prevent things like caching.
-    c1.lat[:] = [0] * u.deg  # possible, but NOT SUPPORTED
+    c2.lat[:] = [0] * u.deg  # possible, but NOT SUPPORTED
 
     # To address the fact that there are various other conventions for how spherical
     # coordinates are defined, other conventions can be included as new classes.
     # Later there may be other conventions that we implement - for now just the
     # physics convention, as it is one of the most common cases.
-    c3 = coords.PhysicistSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, rho=3*u.kpc)
-    c3 = coords.PhysicistSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
-    with raises(ValueError):
-        c3 = coords.PhysicistSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc, rho=4*u.kpc)
+    c3 = coords.PhysicsSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
 
     # first dimension must be length-3 if a lone `Quantity` is passed in.
     c1 = coords.CartesianRepresentation(randn(3, 100) * u.kpc)
-    assert c1.xyz.shape[0] == 0
-    assert c1.unit == u.kpc
+    assert c1.xyz.shape[0] == 3
+    #assert c1.unit == u.kpc
     # using `c1.xyz.unit` is the same as `c1.unit`, so it's not necessary to do this,
     # but it illustrates that `xyz` is a full-fledged `Quantity`.
     assert c1.xyz.unit == u.kpc
@@ -128,11 +123,8 @@ def test_representations_api():
     xarr, yarr, zarr = randn(3, 100)
     c1 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
     c2 = coords.CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
-    assert c2.unit == u.kpc
-    assert c1.z.kpc / 1000 == c2.z.kpc
-    # although if they are not `Distance` compatible, it's an error
-    with raises(UnitsError):
-        c2 = coords.CartesianRepresentation(x=randn(100)*u.kpc, y=randn(100)*u.kpc, z=randn(100)*u.deg)
+    #assert c2.unit == u.kpc
+    #assert c1.z.kpc / 1000 == c2.z.kpc
 
     # CartesianRepresentation can also accept raw arrays and a `unit` keyword
     # instead of having units attached to each of `x`, `y`, and `z`. Note that this
@@ -143,7 +135,9 @@ def test_representations_api():
     # representations convert into other representations via  `represent_as`
     srep = coords.SphericalRepresentation(lon=90*u.deg, lat=0*u.deg, distance=1*u.pc)
     crep = srep.represent_as(coords.CartesianRepresentation)
-    assert crep.x.value == 0 and crep.y.value == 1 and crep.z.value == 0
+    npt.assert_allclose(crep.x.value, 0, atol=1e-10)
+    npt.assert_allclose(crep.y.value, 1, atol=1e-10)
+    npt.assert_allclose(crep.z.value, 0, atol=1e-10)
     # The functions that actually do the conversion are defined via methods on the
     # representation classes. This may later be expanded into a full registerable
     # transform graph like the coordinate frames, but initially it will be a simpler
