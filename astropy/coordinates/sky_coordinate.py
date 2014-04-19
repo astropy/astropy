@@ -55,7 +55,7 @@ class SkyCoordinate(object):
             setattr(self, attr, val)
 
         # Pull out lon, lat, and (optionally) distance from args and kwargs
-        coord_kwargs = _get_coordinate_inputs(*args, **kwargs)
+        coord_kwargs = _get_coordinate_inputs(args, kwargs)
 
         # If found via `_get_coordinate_inputs()`, make new *args for creating coordinate
         args = [coord_kwargs.pop(axis) for axis in ('lon', 'lat') if axis in coord_kwargs]
@@ -151,14 +151,33 @@ class SkyCoordinate(object):
         return '<{0} {1}'.format(self.__class__.__name__, repr(self._coord)[1:])
         
 
-def _get_coordinate_inputs(*args, **kwargs):
+def _get_coordinate_inputs(args, kwargs):
     """
     Figure out lat, lon, and distance from input args and kwargs.
-
+    This updates `kwargs` in-place.
     """
     out = {}
 
-    # One unnamed arg
+    # Parse specified `unit` into a tuple and supply default
+    unit = kwargs.get('unit', (None, None))
+    if isinstance(unit, six.string_types):
+        unit = unit.split(',')
+    try:
+        lon_unit, lat_unit = unit
+    except:
+        raise ValueError('Unit keyword must have two values as tuple or '
+                         'comma-separated string')
+    kwargs['unit'] = (lon_unit, lat_unit)
+
+    # Convert any recognized kwargs like `ra` or `l` into the right Angle subclass
+    for angle_class, attrs_index, angle_unit in ((Longitude, 0, lon_unit),
+                                                 (Latitude, 1, lat_unit)):
+        axis_attrs = set(lon_lat[attrs_index] for lon_lat in PREFERRED_REPR_LON_LAT.values())
+        for key in kwargs:
+            if key in axis_attrs:
+                kwargs[key] = angle_class(kwargs[key], unit=angle_unit)
+
+    # Finally deal with the unnamed args
     if len(args) == 1:
         out = _parse_one_arg(*args, **kwargs)
     elif len(args) == 2:
@@ -191,7 +210,7 @@ def _parse_one_arg(*args, **kwargs):
                 raise ValueError('Cannot supply a `distance` keyword that overrides existing '
                                  'coordinate distance')
             out['distance'] = coords.distance
-        if 'unit' in kwargs:
+        if 'unit' in kwargs and kwargs['unit'] != (None, None):
             raise ValueError('Cannot supply a `unit` keyword along with a coordinate input')
 
     elif isinstance(coords, collections.Sequence):
@@ -213,20 +232,11 @@ def _parse_one_arg(*args, **kwargs):
         lons.append(lon)
         lats.append(lat)
 
-        unit = kwargs.get('unit', (None, None))
-        if isinstance(unit, six.string_types):
-            unit = unit.split(',')
-        try:
-            lon_unit, lat_unit = unit
-        except:
-            raise ValueError('Unit keyword must have two values as tuple or '
-                             'comma-separated string')
-
         if is_scalar:
             lons, lats = lons[0], lats[0]
 
-        out['lon'] = Longitude(lons, unit=lon_unit)
-        out['lat'] = Latitude(lats, unit=lat_unit)
+        out['lon'] = Longitude(lons, unit=kwargs['unit'][0])
+        out['lat'] = Latitude(lats, unit=kwargs['unit'][1])
     else:
         raise ValueError('Cannot parse lon, lat from first argument')
 
