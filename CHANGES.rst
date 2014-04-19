@@ -26,6 +26,9 @@ New Features
     allow negative values, set ``allow_negative=True`` in the `Distance`
     constructor when creating a `Distance` instance.
 
+  - Fixed ``Angle.to_string`` functionality so that negative angles have the
+    correct amount of padding when ``pad=True``. [#2337]
+
 - ``astropy.cosmology``
 
   - ``age` and ``comoving_volume` convenience functions have been added to
