@@ -452,6 +452,10 @@ Other Changes and Additions
   <http://nedbatchelder.com/code/coverage/>`__, not
   ``pytest-cov``. [#2112]
 
+- A ``--slow`` option has been added to the test runner.
+  Tests marked as ``@pytest.mark.slow`` will be skipped by default,
+  but can be run via ``python setup.py test --slow``. [#2317]
+
 - The included version of py.test has been upgraded to 2.5.1. [#1970]
 
 - The included version of six.py has been upgraded to 1.5.2. [#2006]
@@ -1426,7 +1430,7 @@ API Changes
 - The ``--enable-legacy`` option for ``setup.py`` has been removed. [#1493]
 
 Bug Fixes
-^^^^^^^^^^
+^^^^^^^^^
 
 - ``astropy.io.ascii``
 

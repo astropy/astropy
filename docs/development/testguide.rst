@@ -133,9 +133,11 @@ The ``test_path`` must be specified either relative to the working directory
 or absolutely.
 
 By default `astropy.test()`_ will skip tests which retrieve data from the
-internet. To turn these tests on use the ``remote_data`` flag::
+internet or that are slow.
+To turn these tests on use the ``remote_data`` or ``slow`` flag::
 
-    astropy.test('io.fits', remote_data=True)
+    astropy.test('io.fits', remote_data=True, slow=True)
+
 
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
@@ -347,6 +349,13 @@ Any time a bug is fixed, and wherever possible, one or more regression tests
 should be added to ensure that the bug is not introduced in future. Regression
 tests should include the ticket URL where the bug was reported.
 
+Slow tests
+----------
+
+Tests that are slow should be marked with the ``@pytest.mark.slow`` decorator.
+They will not be executed by default, only if explicitly selected via
+``astropy.test(slow=True)`` or ``python setup.py test --slow``.
+
 Working with data files
 -----------------------
 
@@ -365,7 +374,7 @@ local copy of the file.
 
 Tests that may retrieve remote data should be marked with the
 ``@remote_data`` decorator, or, if a doctest, flagged with the
-``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default
+``REMOTE_DATA`` flag. Tests marked in this way will be skipped by default
 by ``astropy.test()`` to prevent test runs from taking too long. These
 tests can be run by ``astropy.test()`` by adding the
 ``remote_data=True`` flag.  Turn on the remote data tests at the
