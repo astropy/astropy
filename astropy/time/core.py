@@ -130,7 +130,11 @@ class Time(object):
             self = val.replicate(format=format, copy=copy)
         else:
             self = super(Time, cls).__new__(cls)
+
         return self
+
+    def __getnewargs__(self):
+        return (self._time,)
 
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,

@@ -74,6 +74,8 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed pickling of ``Time`` objects. [#2123]
+
 - ``astropy.units``
 
   - ``Quantity._repr_latex_()`` returns ``NotImplementedError`` for quantity
