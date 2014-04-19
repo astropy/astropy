@@ -517,7 +517,8 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     values = (values[0], np.abs(values[1]), np.abs(values[2]))
 
     if pad:
-        if values[0] < 0:
+        # Check to see if values[0] is negative, using np.copysign to handle -0
+        if np.copysign(1.0, values[0]) == -1:
             pad = 3
         else:
             pad = 2
