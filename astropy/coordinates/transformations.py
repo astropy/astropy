@@ -746,8 +746,8 @@ class CompositeStaticMatrixTransform(StaticMatrixTransform):
             for m in self.matricies[1:]:
                 matrix = np.dot(np.asarray(matrix), m)
 
-        super(CompositeStaticMatrixTransform, self).__init__(fromsys,
-            tosys, matrix, priority, register_graph=register_graph)
+        super(CompositeStaticMatrixTransform, self).__init__(
+              matrix, fromsys, tosys, priority, register_graph=register_graph)
 
 
 class DynamicMatrixTransform(CoordinateTransform):
