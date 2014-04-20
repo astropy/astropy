@@ -17,6 +17,7 @@ raises = pytest.raises
 from ...extern import six
 
 from ... import units as u
+from ... import time
 from ... import coordinates as coords
 from ..errors import *
 
@@ -152,13 +153,13 @@ def test_frame_api():
 
     # which is stored as the `data` attribute
     assert icrs.data.lat == 5*u.deg
-    assert icrs.data.lon == 8*u.hour
+    assert icrs.data.lon == 8*u.hourangle
 
     # Frames that require additional information like equinoxs or obstimes get them
     # as keyword parameters to the frame constructor.  Where sensible, defaults are
     # used. E.g., FK5 is almost always J2000 equinox
     fk5 = coords.FK5(coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
-    J2000 = astropy.time.Time('J2000', scale='utc')
+    J2000 = time.Time('J2000', scale='utc')
     fk5_2000 = coords.FK5(coords.UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg), equinox=J2000)
     assert fk5.equinox == fk5_2000.equionx
 
@@ -229,7 +230,7 @@ def test_transform_api():
 
     # If no data (or `None`) is given, the class acts as a specifier of a frame, but
     # without any stored data.
-    J2001 = astropy.time.Time('J2001', scale='utc')
+    J2001 = time.Time('J2001', scale='utc')
     fk5_J2001_frame = coords.FK5(equinox=J2001)
 
     # if they do not have data, the string instead is the frame specification
