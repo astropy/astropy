@@ -57,13 +57,17 @@ class BaseCoordinateFrame(object):
     frame_attr_names = {}  # maps attribute to default value
 
     def __init__(self, representation=None, **kwargs):
+        from .representation import SphericalRepresentation, UnitSphericalRepresentation
+
         for fnm, fdefault in six.iteritems(self.frame_attr_names):
             if fnm in kwargs:
                 setattr(self, fnm, kwargs.pop(fnm))
             else:
                 setattr(self, fnm, fdefault)
 
-        if self.preferred_representation:
+        pref_rep = self.preferred_representation
+
+        if pref_rep:
             pref_kwargs = {}
             for nmkw, nmrep in six.iteritems(self.preferred_attr_names):
                 if nmkw in kwargs:
@@ -74,7 +78,15 @@ class BaseCoordinateFrame(object):
                     msg = ('Cannot give both a representation object ({0}) and '
                            'arguments for the preferred representation ({1})')
                     raise ValueError(msg.format(representation, pref_kwargs))
-                representation = self.preferred_representation(**pref_kwargs)
+
+                #special-case the Spherical->UnitSpherical if no `distance`
+                #TODO: possibly generalize this somehow?
+
+                if (pref_rep == SphericalRepresentation and
+                    'distance' not in pref_kwargs):
+                    representation = UnitSphericalRepresentation(**pref_kwargs)
+                else:
+                    representation = pref_rep(**pref_kwargs)
 
         if kwargs:
             raise TypeError('Coordinate frame got unexpected keywords: ' +
