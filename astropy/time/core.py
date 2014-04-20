@@ -494,7 +494,7 @@ class Time(object):
         return self.location.longitude
 
     @property
-    @deprecated("0.4", name="lon", alternative="location.latitude")
+    @deprecated("0.4", name="lat", alternative="location.latitude")
     def lat(self):
         return self.location.latitude
 
