@@ -23,6 +23,9 @@ Bug Fixes
   - Multiplication and division of ``Angle`` objects is now
     supported. [#2273]
 
+  - Fixed ``Angle.to_string`` functionality so that negative angles have the
+    correct amount of padding when ``pad=True``. [#2337]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
