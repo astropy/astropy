@@ -199,9 +199,9 @@ API Changes
 
   - ``TimeDelta`` objects can have scales other than TAI [#1932].
 
-  - Location information should now be passed on via a tuple containing
-    either geocentric or geodetic coordinates, or anything that initialises
-    an ``EarthLocation``. [#1928]
+  - Location information should now be passed on via an ``EarthLocation``
+    instance or anything that initialises it, e.g., a tuple containing
+    either geocentric or geodetic coordinates. [#1928]
 
 - ``astropy.units``
 
