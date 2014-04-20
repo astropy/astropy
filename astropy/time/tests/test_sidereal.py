@@ -73,7 +73,7 @@ class TestST():
     t1 = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
                '2012-06-30 23:59:60', '2012-07-01 00:00:00',
                '2012-07-01 12:00:00'], scale='utc')
-    t2 = Time(t1, lon='120d', lat='10d')
+    t2 = Time(t1, location=('120d', '10d'))
 
     def test_gmst(self):
         """Compare Greenwich Mean Sidereal Time with what was found earlier
@@ -99,8 +99,8 @@ class TestST():
         gst = self.t1.sidereal_time('apparent', 'greenwich')
         assert within_2_seconds(gst.value, gmst.value)
 
-    def test_gmst_independent_of_self_lon(self):
-        """Check that Greenwich time does not depend on self.lon"""
+    def test_gmst_independent_of_self_location(self):
+        """Check that Greenwich time does not depend on self.location"""
         gmst1 = self.t1.sidereal_time('mean', 'greenwich')
         gmst2 = self.t2.sidereal_time('mean', 'greenwich')
         assert allclose_hours(gmst1.value, gmst2.value)
@@ -122,12 +122,12 @@ class TestST():
         lmst2 = self.t2.sidereal_time(kind)
         assert allclose_hours(lmst2.value, lst_compare[kind])
         assert allclose_hours((lmst2-gmst2).wrap_at('12h').value,
-                              self.t2.lon.to('hourangle').value)
+                              self.t2.location.longitude.to('hourangle').value)
         # check it also works when one gives longitude explicitly
-        lmst1 = self.t1.sidereal_time(kind, self.t2.lon)
+        lmst1 = self.t1.sidereal_time(kind, self.t2.location.longitude)
         assert allclose_hours(lmst1.value, lst_compare[kind])
 
-    def test_lst_needs_lon(self):
+    def test_lst_needs_location(self):
         with pytest.raises(ValueError):
             self.t1.sidereal_time('mean')
         with pytest.raises(ValueError):
@@ -136,7 +136,7 @@ class TestST():
 
 class TestModelInterpretation():
     """Check that models are different, and that wrong models are recognized"""
-    t = Time(['2012-06-30 12:00:00'], scale='utc', lon='120d', lat='10d')
+    t = Time(['2012-06-30 12:00:00'], scale='utc', location=('120d', '10d'))
 
     @pytest.mark.parametrize('kind', ('mean', 'apparent'))
     def test_model_uniqueness(self, kind):

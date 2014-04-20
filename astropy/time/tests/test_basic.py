@@ -12,6 +12,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
+from ...coordinates import EarthLocation
 
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
@@ -83,10 +84,11 @@ class TestBasic():
         set isscalar as appropriate, and also subscript delta_ut1_utc, etc."""
 
         mjd = np.arange(50000, 50010)
-        t = Time(mjd, format='mjd', scale='utc')
+        t = Time(mjd, format='mjd', scale='utc', location=('45d', '50d'))
         t1 = t[3]
         assert t1.isscalar is True
         assert np.all(t1._time.jd1 == np.array([t._time.jd1[3]]))
+        assert t1.location is t.location
         t1a = Time(mjd[3], format='mjd', scale='utc')
         assert t1a.isscalar is True
         assert np.all(t1._time.jd1 == t1a._time.jd1)
@@ -96,6 +98,7 @@ class TestBasic():
         t2 = t[4:6]
         assert t2.isscalar is False
         assert np.all(t2._time.jd1 == t._time.jd1[4:6])
+        assert t2.location is t.location
         t2a = Time(t[4:6])
         assert t2a.isscalar is False
         assert np.all(t2a._time.jd1 == t._time.jd1[4:6])
@@ -108,6 +111,19 @@ class TestBasic():
         t.delta_tdb_tt = np.arange(len(t))  # Explicitly set (not testing .tdb)
         t3 = t[4:6]
         assert np.all(t3._delta_tdb_tt == t._delta_tdb_tt[4:6])
+        t4 = Time(mjd, format='mjd', scale='utc',
+                  location=(np.arange(len(mjd)), np.arange(len(mjd))))
+        t5 = t4[3]
+        assert t5.location == t4.location[3]
+        t6 = t4[4:6]
+        assert np.all(t6.location == t4.location[4:6])
+        # check it is a view
+        # (via ndarray, since quantity setter problematic for structured array)
+        allzeros = np.array((0., 0., 0.), dtype=t4.location.dtype)
+        assert t6.location.view(np.ndarray)[-1] != allzeros
+        assert t4.location.view(np.ndarray)[5] != allzeros
+        t6.location.view(np.ndarray)[-1] = allzeros
+        assert t4.location.view(np.ndarray)[5] == allzeros
 
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
@@ -163,7 +179,7 @@ class TestBasic():
         lat = 19.48125
         lon = -155.933222
         t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-                 precision=6, lat=lat, lon=lon)
+                 precision=6, location=(lon, lat))
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert t.utc.iso == '2006-01-15 21:24:37.500000'
         assert t.ut1.iso == '2006-01-15 21:24:37.834100'
@@ -172,6 +188,52 @@ class TestBasic():
         assert t.tcg.iso == '2006-01-15 21:25:43.322690'
         assert t.tdb.iso == '2006-01-15 21:25:42.684373'
         assert t.tcb.iso == '2006-01-15 21:25:56.893952'
+
+    def test_location(self):
+        """Check that location creates an EarthLocation object, and that
+        such objects can be used as arguments.
+        """
+        lat = 19.48125
+        lon = -155.933222
+        t = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                 precision=6, location=(lon, lat))
+        assert isinstance(t.location, EarthLocation)
+        location = EarthLocation(lon, lat)
+        t2 = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                  precision=6, location=location)
+        assert isinstance(t2.location, EarthLocation)
+        assert t2.location == t.location
+        t3 = Time(['2006-01-15 21:24:37.5'], format='iso', scale='utc',
+                  precision=6, location=(location.x, location.y, location.z))
+        assert isinstance(t3.location, EarthLocation)
+        assert t3.location == t.location
+
+    def test_location_array(self):
+        """Check that location arrays are checked for size and used
+        for the corresponding times.  Also checks that erfa_time.d_tdb_tt
+        can handle array-valued locations.
+        """
+
+        lat = 19.48125
+        lon = -155.933222
+        t = Time(['2006-01-15 21:24:37.5']*2, format='iso', scale='utc',
+                 precision=6, location=(lon, lat))
+        assert np.all(t.utc.iso == '2006-01-15 21:24:37.500000')
+        assert np.all(t.tdb.iso[0] == '2006-01-15 21:25:42.684373')
+        t2 = Time(['2006-01-15 21:24:37.5']*2, format='iso', scale='utc',
+                  precision=6, location=(np.array([lon, 0]),
+                                         np.array([lat, 0])))
+        assert np.all(t2.utc.iso == '2006-01-15 21:24:37.500000')
+        assert t2.tdb.iso[0] == '2006-01-15 21:25:42.684373'
+        assert t2.tdb.iso[1] != '2006-01-15 21:25:42.684373'
+        with pytest.raises(ValueError):  # 1 time, but two locations
+            Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
+                 precision=6, location=(np.array([lon, 0]),
+                                        np.array([lat, 0])))
+        with pytest.raises(ValueError):  # 3 times, but two locations
+            Time(['2006-01-15 21:24:37.5']*3, format='iso', scale='utc',
+                 precision=6, location=(np.array([lon, 0]),
+                                        np.array([lat, 0])))
 
     def test_all_transforms(self):
         """Test that all transforms work.  Does not test correctness,
@@ -511,29 +573,44 @@ class TestCopyReplicate():
 
     def test_replicate(self):
         """Test replicate method"""
-        t = Time('2000:001', format='yday', scale='tai')
+        t = Time('2000:001', format='yday', scale='tai',
+                 location=('45d', '45d'))
         t_yday = t.yday
+        t_loc_x = t.location.x.copy()
         t2 = t.replicate()
         assert t.yday == t2.yday
         assert t.format == t2.format
         assert t.scale == t2.scale
-        # This is not allowed publicly, but here we hack the internal time values
-        # to show that t and t2 are sharing references.
+        assert t.location == t2.location
+        # This is not allowed publicly, but here we hack the internal time
+        # and location values to show that t and t2 are sharing references.
         t2._time.jd1 += 100.0
         assert t.yday == t2.yday
         assert t.yday != t_yday  # prove that it changed
+        t2_loc_x_view = t2.location.x
+        t2_loc_x_view[()] = 0  # use 0 to avoid having to give units
+        assert t2.location.x == t2_loc_x_view
+        assert t.location.x == t2.location.x
+        assert t.location.x != t_loc_x  # prove that it changed
 
     def test_copy(self):
         """Test copy method"""
-        t = Time('2000:001', format='yday', scale='tai')
+        t = Time('2000:001', format='yday', scale='tai',
+                 location=('45d', '45d'))
         t_yday = t.yday
+        t_loc_x = t.location.x.copy()
         t2 = t.copy()
         assert t.yday == t2.yday
-        # This is not allowed publicly, but here we hack the internal time values
-        # to show that t and t2 are not sharing references.
+        # This is not allowed publicly, but here we hack the internal time
+        # and location values to show that t and t2 are not sharing references.
         t2._time.jd1 += 100.0
         assert t.yday != t2.yday
         assert t.yday == t_yday  # prove that it did not change
+        t2_loc_x_view = t2.location.x
+        t2_loc_x_view[()] = 0  # use 0 to avoid having to give units
+        assert t2.location.x == t2_loc_x_view
+        assert t.location.x != t2.location.x
+        assert t.location.x == t_loc_x  # prove that it changed
 
 
 def test_python_builtin_copy():

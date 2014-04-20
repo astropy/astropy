@@ -8,7 +8,7 @@ Time and Dates (`astropy.time`)
 
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
-.. |Latitude| replace:: :class:`~astropy.coordinates.Latitude`
+.. |EarthLocation| replace:: :class:`~astropy.coordinates.EarthLocation`
 
 Introduction
 ============
@@ -317,10 +317,10 @@ The allowed |Time| arguments to create a time object are listed below:
     Unix glob to select subformats for parsing string input times
 **out_subfmt** : str
     Unix glob to select subformats for outputting string times
-**lat** : float, optional
-    Earth latitude of observer
-**lon** : float, optional
-    Earth longitude of observer
+**location** : |EarthLocation| or tuple, optional
+    If a tuple, 3 |Quantity| items with length units for geocentric coordinates,
+    or a longitude, latitude, and optional height for geodetic coordinates.
+    Can be a single location, or one for each input time.
 
 val
 ^^^
@@ -435,24 +435,27 @@ matching subformat is used.
   >>> Time('2000-01-01 02:03:04', out_subfmt='date*').iso
   '2000-01-01 02:03:04.000'
 
-lon and lat
-^^^^^^^^^^^
+location
+^^^^^^^^
 
-These optional parameters specify the observer East longitude and latitude
-using any form that can initialize a |Longitude| or |Latitude| in degrees.
-They are used for time scales that are sensitive to observer (currently,
-only TDB, which relies on the ERFA routine ``eraDtdb`` to determine the time
-offset between TDB and TT), as well as for sidereal time if no explicit
-longitude is given.
+This optional parameter specifies the observer location, using an
+|EarthLocation| object or a tuple containing any form that can initialize one:
+either a tuple with geocentric coordinates (X, Y, Z), or a tuple with geodetic
+coordinates (longitude, latitude, height; with height defaulting to zero).
+They are used for time scales that are sensitive to observer location
+(currently, only TDB, which relies on the ERFA routine ``eraDtdb`` to
+determine the time offset between TDB and TT), as well as for sidereal time if
+no explicit longitude is given.
 
-  >>> t = Time('2001-03-22 00:01:44.732327132980', lon='120d')
+  >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
+  ...          location=('120d', '40d'))
   >>> t.sidereal_time('apparent', 'greenwich')
   <Longitude 12.00000000000... hourangle>
   >>> t.sidereal_time('apparent')
   <Longitude 20.00000000000... hourangle>
 
-.. note:: In future versions, we hope to use location or observatory objects
-          for passing on the coordinates.
+.. note:: In future versions, we hope to add the possibility to add observatory
+          objects and/or names.
 
 Getting the Current Time
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -586,13 +589,12 @@ values of 0.0 degrees for both will be used.
 The following code replicates an example in the `SOFA Time Scale and Calendar
 Tools <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ document.  It
 does the transform from UTC to all supported time scales (TAI, TCB, TCG, TDB,
-TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
-::
+TT, UT1, UTC).  This requires an observer location (here, latitude and
+longitude).::
 
-  >>> lat = 19.48125
-  >>> lon = -155.933222
+  >>> import astropy.units as u
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-  ...          lon=lon, lat=lat, precision=6)
+  ...          location=(-155.933222*u.deg, 19.48125*u.deg), precision=6)
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
   >>> t.ut1.iso
@@ -613,12 +615,12 @@ Sidereal Time
 
 Apparent or mean sidereal time can be calculated using
 :meth:`~astropy.time.Time.sidereal_time`.  The method returns a |Longitude|
-with units of hourangle, which by default is for the longitude with which the
-|Time| object is initialized.  Like the scale transformations, ERFA C-library
-routines are used under the hood, which support calculations following
-different IAU resolutions.  Sample usage::
+with units of hourangle, which by default is for the longitude corresponding to
+the location with which the |Time| object is initialized.  Like the scale
+transformations, ERFA C-library routines are used under the hood, which support
+calculations following different IAU resolutions.  Sample usage::
 
-  >>> t = Time('2006-01-15 21:24:37.5', scale='utc', lon='120d')
+  >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
   >>> t.sidereal_time('mean')
   <Longitude 13.089521870640... hourangle>
   >>> t.sidereal_time('apparent')
