@@ -17,7 +17,7 @@ from ..extern import six
 from .. import units as u
 from .transformations import TransformGraph
 
-__all__ = ['BaseCoordinateFrame', 'spatial_transform_graph']
+__all__ = ['BaseCoordinateFrame', 'frame_transform_graph']
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
