@@ -7,7 +7,6 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
-import abc
 
 # Dependencies
 import numpy as np
@@ -19,32 +18,87 @@ from .transformations import TransformGraph
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph']
 
+
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
 
 
-@six.add_metaclass(abc.ABCMeta)
+class FrameMeta(type):
+    def __new__(cls, name, parents, clsdct):
+        if clsdct['preferred_representation']:
+            # create properties for the preferred_attr_names
+            for propnm, reprnm in six.iteritems(clsdct['preferred_attr_names']):
+                clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
+
+            #update the class docstring with the preferred initialization
+            #TODO: make this more-correct for the astropy doc style
+            init_docstr = """
+            The preferred representation is "{0}", allowing kwargs: {1}
+            """.format(clsdct['preferred_representation'],
+                       clsdct['preferred_attr_names'])
+            clsdct['__doc__'] += init_docstr
+
+        return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
+
+    @staticmethod
+    def repr_getter_factory(reprnm):
+        def getter(self):
+            rep = self.represent_as(self.preferred_representation)
+            return getattr(rep, reprnm)
+        return getter
+
+
+@six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
     """ docstring """
 
     preferred_representation = None
-    preferred_attr_names = None
-    frame_attr_names = ()
+    preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
+    frame_attr_names = {}  # maps attribute to default value
 
-    def __init__(self, representation):
+    def __init__(self, representation=None, **kwargs):
+        for fnm, fdefault in six.iteritems(self.frame_attr_names):
+            if fnm in kwargs:
+                setattr(self, fnm, kwargs.pop(fnm))
+            else:
+                setattr(self, fnm, fdefault)
 
-        # TODO: check that representation is a valid object
+        if self.preferred_representation:
+            pref_kwargs = {}
+            for nmkw, nmrep in six.iteritems(self.preferred_attr_names):
+                if nmkw in kwargs:
+                    pref_kwargs[nmrep] = kwargs.pop(nmkw)
 
-        self._cache = dict()
+            if pref_kwargs:
+                if representation:
+                    msg = ('Cannot give both a representation object ({0}) and '
+                           'arguments for the preferred representation ({1})')
+                    raise ValueError(msg.format(representation, pref_kwargs))
+                representation = self.preferred_representation(**pref_kwargs)
+
+        if kwargs:
+            raise TypeError('Coordinate frame got unexpected keywords: ' +
+                            str(kwargs.keys()))
+
+        self._data = representation
+
+        if self._data:
+            self._rep_cache = dict()
+            self._rep_cache[representation.__class__.__name__] = representation
 
     @property
     def data(self):
         if self._data is None:
-            raise AttributeError()
-        raise NotImplementedError()
+            raise AttributeError('The frame object "{0}" does not have '
+                                 'associated data'.format(repr(self)))
+        return self._data
 
     def represent_as(self, new_representation):
-        return self.data.represent_as(new_representation)
+        cached_repr = self._rep_cache.get(new_representation.__name__, None)
+        if not cached_repr:
+            rep = self.data.represent_as(new_representation)
+            self._rep_cache[new_representation.__name__] = rep
+        return self._rep_cache[new_representation.__name__]
 
     def transform_to(self, new_frame):
         """
@@ -108,10 +162,9 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        cached_repr = self._cache.get('cartesian', None)
-        if not cached_repr:
-            self._cache['cartesian'] = self.represent_as(CartesianRepresentation)
-        return self._cache['cartesian']
+        from .representation import CartesianRepresentation
+
+        return self.represent_as(CartesianRepresentation)
 
     @property
     def spherical(self):
@@ -120,7 +173,6 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        cached_repr = self._cache.get('spherical', None)
-        if not cached_repr:
-            self._cache['spherical'] = self.represent_as(SphericalRepresentation)
-        return self._cache['spherical']
+        from .representation import SphericalRepresentation
+
+        return self.represent_as(SphericalRepresentation)

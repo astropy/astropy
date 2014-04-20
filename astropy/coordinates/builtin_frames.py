@@ -31,7 +31,7 @@ class ICRS(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'ra', 'lat': 'dec'}
+    preferred_attr_names = {'ra':'lon' , 'dec':'lat', 'distance':'distance'}
 
 
 class FK5(BaseCoordinateFrame):
@@ -40,7 +40,7 @@ class FK5(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'ra', 'lat': 'dec'}
+    preferred_attr_names = {'ra':'lon' , 'dec':'lat', 'distance':'distance'}
 
 class FK4(BaseCoordinateFrame):
     """
@@ -48,7 +48,7 @@ class FK4(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'ra', 'lat': 'dec'}
+    preferred_attr_names = {'ra':'lon' , 'dec':'lat', 'distance':'distance'}
 
 class FK4NoETerms(BaseCoordinateFrame):
     """
@@ -56,7 +56,7 @@ class FK4NoETerms(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'ra', 'lat': 'dec'}
+    preferred_attr_names = {'ra':'lon' , 'dec':'lat', 'distance':'distance'}
 
 class Galactic(BaseCoordinateFrame):
     """
@@ -64,7 +64,7 @@ class Galactic(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'l', 'lat': 'b'}
+    preferred_attr_names = {'l':'lon' , 'b':'lat', 'distance':'distance'}
 
 class AltAz(BaseCoordinateFrame):
     """
@@ -72,4 +72,4 @@ class AltAz(BaseCoordinateFrame):
     """
 
     preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'lon': 'az', 'lat': 'alt'}
+    preferred_attr_names = {'az':'lon' , 'alt':'lat', 'distance':'distance'}
