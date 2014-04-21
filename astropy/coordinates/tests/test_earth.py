@@ -182,20 +182,25 @@ class TestInput():
             EarthLocation.from_geodetic(self.lon, self.lat, self.h[:5])
 
     def test_slicing(self):
-        loc_slice1 = self.location[4]
+        # test on WGS72 location, so we can check the ellipsoid is passed on
+        locwgs72 = EarthLocation.from_geodetic(self.lon, self.lat, self.h,
+                                               ellipsoid='WGS72')
+        loc_slice1 = locwgs72[4]
         assert isinstance(loc_slice1, EarthLocation)
-        assert loc_slice1.unit is self.location.unit
+        assert loc_slice1.unit is locwgs72.unit
+        assert loc_slice1.ellipsoid == locwgs72.ellipsoid == 'WGS72'
         assert not loc_slice1.shape
         with pytest.raises(IndexError):
             loc_slice1[0]
-        loc_slice2 = self.location[4:6]
+        loc_slice2 = locwgs72[4:6]
         assert isinstance(loc_slice2, EarthLocation)
-        assert loc_slice2.unit is self.location.unit
+        assert loc_slice2.unit is locwgs72.unit
+        assert loc_slice2.ellipsoid == locwgs72.ellipsoid
         assert loc_slice2.shape == (2,)
-        loc_x = self.location['x']
+        loc_x = locwgs72['x']
         assert type(loc_x) is u.Quantity
-        assert loc_x.shape == self.location.shape
-        assert loc_x.unit is self.location.unit
+        assert loc_x.shape == locwgs72.shape
+        assert loc_x.unit is locwgs72.unit
 
     def test_invalid_ellipsoid(self):
         # unknown ellipsoid
@@ -204,6 +209,9 @@ class TestInput():
                                         ellipsoid='foo')
         with pytest.raises(TypeError):
             EarthLocation(self.lon, self.lat, self.h, ellipsoid='foo')
+
+        with pytest.raises(ValueError):
+            self.location.ellipsoid = 'foo'
 
         with pytest.raises(ValueError):
             self.location.to_geodetic('foo')
