@@ -782,8 +782,14 @@ def test_copy():
     assert np.all(q1.value == q2.value)
     assert q1.unit == q2.unit
     assert q1.dtype == q2.dtype
-
     assert q1.value is not q2.value
+
+    q3 = q1.copy(order='F')
+    assert q3.flags['F_CONTIGUOUS']
+    assert np.all(q1.value == q3.value)
+    assert q1.unit == q3.unit
+    assert q1.dtype == q3.dtype
+    assert q1.value is not q3.value
 
 
 def test_deepcopy():
