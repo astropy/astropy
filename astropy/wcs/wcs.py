@@ -1931,6 +1931,58 @@ naxis kwarg.
         """
         return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])
 
+    def slice(self, view, numpy_order=True):
+        """
+        Slice a WCS instance using a Numpy slice. The order of the slice should
+        be reversed (as for the data) compared to the natural WCS order.
+
+        Parameters
+        ----------
+        view : tuple
+            A tuple containing the same number of slices as the WCS system.
+            The `step` method, the third argument to a slice, is not presently
+            supported.
+        numpy_order : bool
+            Use numpy order, i.e. slice the WCS so that an identical slice
+            applied to a numpy array will slice the array and WCS in the same
+            way.  If you turn this off, the WCS will be sliced in FITS order.
+
+        Returns
+        -------
+        A new `~astropy.wcs.WCS` instance
+        """
+        if len(view) != self.wcs.naxis:
+            raise ValueError("Must have same number of slices as number of WCS axes")
+
+        wcs_new = self.deepcopy()
+        for i, iview in enumerate(view):
+            if iview.start is not None:
+                if numpy_order:
+                    wcs_index = self.wcs.naxis - 1 - i
+                else:
+                    wcs_index = i
+
+                if iview.step not in (None, 1):
+                    crpix = self.wcs.crpix[wcs_index]
+                    cdelt = self.wcs.cdelt[wcs_index]
+                    # equivalently:
+                    # wcs_new.wcs.crpix[wcs_index] = (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
+                    wcs_new.wcs.crpix[wcs_index] = (crpix - iview.start - 1.)/iview.step + 0.5 + 1./iview.step/2.
+                    wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
+                else:
+                    wcs_new.wcs.crpix[wcs_index] -= iview.start
+        return wcs_new
+
+    def __getitem__(self, item):
+        # "getitem" is a shortcut for self.slice; it is very limited
+        # there is no obvious and unambiguous interpretation of wcs[1,2,3]
+        # We COULD allow wcs[1] to link to wcs.sub([2])
+        # (wcs[i] -> wcs.sub([i+1])
+        if not hasattr(item, '__len__') or len(item) != self.wcs.naxis:
+            raise ValueError("Must specify slices for each dimension.")
+        else:
+            return self.slice(item)
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """

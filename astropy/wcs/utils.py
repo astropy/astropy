@@ -77,32 +77,3 @@ def axis_type_names(wcs):
             continue
         names[i] = types[i].split('-')[0]
     return names
-
-
-def slice_wcs(wcs, view):
-    """
-    Slice a WCS instance using a Numpy slice. The order of the slice should
-    be reversed (as for the data) compared to the natural WCS order.
-
-    Parameters
-    ----------
-    view : tuple
-        A tuple containing the same number of slices as the WCS system.
-        The `step` method, the third argument to a slice, is not presently
-        supported.
-
-    Returns
-    -------
-    A new `~astropy.wcs.WCS` instance
-    """
-    if len(view) != wcs.wcs.naxis:
-        raise ValueError("Must have same number of slices as number of WCS axes")
-
-    wcs_new = wcs.deepcopy()
-    for i, iview in enumerate(view):
-        if iview.start is not None:
-            if iview.step not in (None, 1):
-                raise NotImplementedError("Cannot yet slice WCS with strides different from None or 1")
-            wcs_index = wcs.wcs.naxis - 1 - i
-            wcs_new.wcs.crpix[wcs_index] -= iview.start
-    return wcs_new

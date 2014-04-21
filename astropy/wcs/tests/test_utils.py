@@ -60,3 +60,38 @@ def test_add_stokes():
     for ii in range(4):
         outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
         assert outwcs.wcs.naxis == 4
+
+def test_slice():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.crval = [1,1]
+    mywcs.wcs.cdelt = [0.1,0.1]
+    mywcs.wcs.crpix = [1,1]
+
+    slice_wcs = mywcs.slice([slice(1,None),slice(0,None)])
+    assert np.all(slice_wcs.wcs.crpix == np.array([1,0]))
+
+    slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)])
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+
+    slice_wcs = mywcs[1::2, 0::4]
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.625,0.25]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+
+    mywcs.wcs.crpix = [2,2]
+    slice_wcs = mywcs[1::2, 0::4]
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.875,0.75]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
+
+def test_slice_fitsorder():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.crval = [1,1]
+    mywcs.wcs.cdelt = [0.1,0.1]
+    mywcs.wcs.crpix = [1,1]
+
+    slice_wcs = mywcs.slice([slice(1,None),slice(0,None)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0,1]))
+
+    slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.25,0.625]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.4]))
