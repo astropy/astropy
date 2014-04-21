@@ -1,6 +1,29 @@
 Platforms on which the installation procedures and test suite were exercised
 
 
+WCSLIB version 4.22 (2014/04/13)
+--------------------------------
+
+* Dell Latitude D620 (Intel Centrino, i686) running Debian linux 7.0 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+
+* Dell PowerEdge R710 (Intel Xeon, x86_64) running Debian linux 6.0.9 (squeeze)
+  uname -r (kernel version): 2.6.32-5-amd64
+  gcc --version: gcc (Debian 4.4.5-8) 4.4.5
+  gfortran --version: GNU Fortran (Debian 4.4.5-8) 4.4.5
+
+
+* Mac Mini (Intel Core 2 Duo) running MacOSX 10.6.8 (10K549)
+  uname -r (kernel version): 10.8.0
+  gcc --version: i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1
+                 (Apple Inc. build 5666) (dot 3)
+  gfortran --version: GNU Fortran (GCC) 4.5.0 20100107 (experimental)
+  (Non-graphics tests only.)
+
+
 WCSLIB version 4.21 (2014/03/24)
 --------------------------------
 
@@ -281,4 +304,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 4.21 2014/03/24 05:12:29 mcalabre Exp $
+$Id: VALIDATION,v 4.22 2014/04/12 15:03:54 mcalabre Exp $
