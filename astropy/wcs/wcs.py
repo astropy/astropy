@@ -548,6 +548,7 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
+    @deprecated("0.4", name="calcFootprint", alternative="calc_footprint")            
     def calcFootprint(self, header=None, undistort=True, axes=None):
         """
         Calculates the footprint of the image on the sky.
@@ -561,14 +562,14 @@ naxis kwarg.
         header : astropy.io.fits header object, optional
 
         undistort : bool, optional
-            If `True`, take SIP and distortion lookup table into
-            account
+        If `True`, take SIP and distortion lookup table into
+        account
 
         axes : length 2 sequence ints, optional
-            If provided, use the given sequence as the shape of the
-            image.  Otherwise, use the ``NAXIS1`` and ``NAXIS2``
-            keywords from the header that was used to create this
-            `WCS` object.
+        If provided, use the given sequence as the shape of the
+        image. Otherwise, use the ``NAXIS1`` and ``NAXIS2``
+        keywords from the header that was used to create this
+        `WCS` object.
 
         Returns
         -------
@@ -602,6 +603,71 @@ naxis kwarg.
         corners[2, 1] = naxis2
         corners[3, 0] = naxis1
         corners[3, 1] = 1.
+        if undistort:
+            return self.all_pix2world(corners, 1)
+        else:
+            return self.wcs_pix2world(corners, 1)
+
+    def calc_footprint(self, header=None, undistort=True, axes=None, center=True):
+        """
+        Calculates the footprint of the image on the sky.
+
+        A footprint is defined as the positions of the corners of the
+        image on the sky after all available distortions have been
+        applied.
+
+        Parameters
+        ----------
+        header : astropy.io.fits header object, optional
+
+        undistort : bool, optional
+            If `True`, take SIP and distortion lookup table into
+            account
+
+        axes : length 2 sequence ints, optional
+            If provided, use the given sequence as the shape of the
+            image.  Otherwise, use the ``NAXIS1`` and ``NAXIS2``
+            keywords from the header that was used to create this
+            `WCS` object.
+
+        center : bool
+            If True use the center of the pixel, otherwise use the corner.
+            The order is counter-clockwise starting with the bottom left corner.
+
+        Returns
+        -------
+        coord : (4, 2) array of (*x*, *y*) coordinates.
+        """
+        if axes is not None:
+            naxis1, naxis2 = axes
+        else:
+            if header is None:
+                try:
+                    # classes that inherit from WCS and define naxis1/2
+                    # do not require a header parameter
+                    naxis1 = self._naxis1
+                    naxis2 = self._naxis2
+                except AttributeError:
+                    warnings.warn("Need a valid header in order to calculate footprint\n", AstropyUserWarning)
+                    return None
+            else:
+                naxis1 = header.get('NAXIS1', None)
+                naxis2 = header.get('NAXIS2', None)
+
+        if naxis1 is None or naxis2 is None:
+            return None
+
+        if center == True:
+            corners = np.array([[1, 1],
+                                [1, naxis2],
+                                [naxis1, naxis2],
+                                [naxis1, 1]], dtype = np.float64)
+        else:
+            corners = np.array([[0.5, 0.5],
+                                [0.5, naxis2 + 0.5],
+                                [naxis1 + 0.5, naxis2 + 0.5],
+                                [naxis1 + 0.5, 0.5]], dtype = np.float64)
+        
         if undistort:
             return self.all_pix2world(corners, 1)
         else:
@@ -1721,7 +1787,7 @@ naxis kwarg.
         f.write(comments)
         f.write('linear\n')
         f.write('polygon(')
-        self.calcFootprint().tofile(f, sep=',')
+        self.calc_footprint().tofile(f, sep=',')
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
