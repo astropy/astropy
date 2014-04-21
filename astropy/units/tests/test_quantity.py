@@ -370,8 +370,15 @@ class TestQuantityOperations(object):
         assert 1 * u.m == 100 * u.cm
         assert 1 * u.m != 1 * u.cm
 
-        # here one is a unit, which is an invalid comparison
-        assert 1. * u.cm * u.cm * u.cm != u.cm ** 3
+        # when one is a unit, Quantity does not know what to do,
+        # but unit is fine with it, so it still works
+        unit = u.cm**3
+        q = 1. * unit
+        assert q.__eq__(unit) is NotImplemented
+        assert unit.__eq__(q) is True
+        assert q == unit
+        q = 1000. * u.mm**3
+        assert q == unit
 
         # mismatched types should never work
         assert not 1. * u.cm == 1.
@@ -524,7 +531,7 @@ def test_quantity_conversion_equivalency_passed_on():
     assert q5.unit == u.nm
     assert_allclose(q4.value, q5.value)
 
-# Regression test for issue #2315, divide-by-zero error when examining 0*unit 
+# Regression test for issue #2315, divide-by-zero error when examining 0*unit
 def test_self_equivalency():
     assert u.deg.is_equivalent(0*u.radian)
     assert u.deg.is_equivalent(1*u.radian)
@@ -566,8 +573,9 @@ class TestQuantityComparison(object):
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
-        with pytest.raises(u.UnitsError):
-            u.Quantity(1, unit='m') == u.Quantity(1, unit='s')
+        # for ==, !=, return False, True if units do not match
+        assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
+        assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
 
     def test_quantity_comparison(self):
         assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
@@ -593,9 +601,6 @@ class TestQuantityComparison(object):
             assert u.Quantity(1100, unit=u.meter) <= u.Quantity(1, unit=u.second)
 
         assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
-
-        with pytest.raises(u.UnitsError):
-            assert u.Quantity(1100, unit=u.meter) != u.Quantity(1, unit=u.second)
 
 
 class TestQuantityDisplay(object):

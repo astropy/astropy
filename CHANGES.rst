@@ -220,6 +220,10 @@ API Changes
   - ``Quantity`` now converts input to float by default, as this is physically
     most sensible for nearly all units [#1776].
 
+  - ``Quantity`` comparisons with ``==`` or ``!=`` now always return ``True``
+    or ``False``, even if units do not match (for which case a ``UnitsError``
+    used to be raised).  [#2328]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
