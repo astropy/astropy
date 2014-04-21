@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.22 - an implementation of the FITS WCS standard.
+  WCSLIB 4.23 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+  $Id: tab.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.22 - C routines that implement tabular coordinate systems as
+* WCSLIB 4.23 - C routines that implement tabular coordinate systems as
 * defined by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -181,6 +181,31 @@
 *                       For returns > 1, a detailed error message is set in
 *                       tabprm::err (associated with tabdst) if enabled, see
 *                       wcserr_enable().
+*
+*
+* tabcmp() - Compare two tabprm structs for equality
+* --------------------------------------------------
+* tabcmp() compares two tabprm structs for equality.
+*
+* Given:
+*   cmp       int       A bit field controlling the strictness of the
+*                       comparison.  At present, this value must always be 0,
+*                       indicating a strict comparison.  In the future, other
+*                       options may be added.
+*
+*   tab1      const struct tabprm*
+*                       The first tabprm struct to compare.
+*
+*   tab2      const struct tabprm*
+*                       The second tabprm struct to compare.
+*
+* Returned:
+*   equal     int*      Non-zero when the given structs are equal.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null pointer passed.
 *
 *
 * tabfree() - Destructor for the tabprm struct
@@ -344,7 +369,7 @@
 *   int M
 *     (Given or returned) Number of tabular coordinate axes.
 *
-*     If tabini() is used to initialize the linprm struct (as would normally
+*     If tabini() is used to initialize the tabprm struct (as would normally
 *     be the case) then it will set M from the value passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
@@ -353,7 +378,7 @@
 *     tabprm::M whose elements (K_1, K_2,... K_M) record the lengths of the
 *     axes of the coordinate array and of each indexing vector.
 *
-*     If tabini() is used to initialize the linprm struct (as would normally
+*     If tabini() is used to initialize the tabprm struct (as would normally
 *     be the case) then it will set K from the array passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
@@ -550,6 +575,9 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab);
 int tabmem(struct tabprm *tab);
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst);
+
+int tabcmp(int cmp, const struct tabprm *tab1, const struct tabprm *tab2,
+           int *equal);
 
 int tabfree(struct tabprm *tab);
 

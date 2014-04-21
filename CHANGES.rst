@@ -177,14 +177,17 @@ New Features
 
 - ``astropy.wcs``
 
-  - astropy now requires wcslib version 4.20 or later.  The version of
-    wcslib included with astropy has been updated to version 4.22.
+  - astropy now requires wcslib version 4.23 or later.  The version of
+    wcslib included with astropy has been updated to version 4.23.
 
   - Bounds checking is now performed on native spherical
     coordinates.  Any out-of-bounds values will be returned as
     ``NaN``, and marked in the ``stat`` array, if using the
     low-level ``wcslib`` interface such as
     ``astropy.wcs.Wcsprm.p2s``. [#2107]
+
+  - A new method, ``astropy.wcs.WCS.compare()``, compares two wcsprm
+    structs for equality with varying degrees of strictness. [#2361]
 
 API Changes
 ^^^^^^^^^^^
@@ -380,35 +383,40 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-  - Astropy now requires wcslib version 4.20 or later.  The version of
-    wcslib included with astropy has been updated to version 4.22.  The
-    following is the relevant parts of the ``wcslib`` changelog:
+  - Astropy now requires wcslib version 4.23 or later.  The version of
+    wcslib included with astropy has been updated to version 4.23.
 
-    - This version of wcslib brings some bugfixes from the astropy project
-      (described below) and tighter bounds checking.
+  - Bug fixes in the projection routines: in ``hpxx2s`` [the
+    cartesian-to-spherical operation of the ``HPX`` projection]
+    relating to bounds checking, bug introduced at wcslib 4.20; in
+    ``parx2s`` and molx2s`` [the cartesion-to-spherical operation of
+    the ``PAR`` and ``MOL`` projections respectively] relating to
+    setting the stat vector; in ``hpxx2s`` relating to implementation
+    of the vector API; and in ``xphx2s`` relating to setting an
+    out-of-bounds value of *phi*.
 
-    - Bug fixes in the projection routines: in ``hpxx2s`` [the
-      cartesian-to-spherical operation of the ``HPX`` projection]
-      relating to bounds checking, bug introduced at wcslib 4.20,
-      reported by Michael Droettboom; in ``parx2s`` and molx2s`` [the
-      cartesion-to-spherical operation of the ``PAR`` and ``MOL``
-      projections respectively] relating to setting the stat vector;
-      in ``hpxx2s`` relating to implementation of the vector API; and
-      in ``xphx2s`` relating to setting an out-of-bounds value of
-      *phi*.
+  - In the ``PCO`` projection, use alternative projection equations
+    for greater numerical precision near theta == 0.  In the ``COP``
+    projection, return an exact result for theta at the poles.
+    Relaxed the tolerance for bounds checking a little in ``SFL``
+    projection.
 
-    - In the ``PCO`` projection, use alternative projection equations
-      for greater numerical precision near theta == 0.  In the ``COP``
-      projection, return an exact result for theta at the poles.
-      Relaxed the tolerance for bounds checking a little in ``SFL``
-      projection.
+  - Fix a bug allocating insufficient memory in
+    ``astropy.wcs.WCS.sub`` [#2468]
 
   - A new method, ``Wcsprm.bounds_check`` (corresponding to wcslib's
     ``wcsbchk``) has been added to control what bounds checking is performed by
     wcslib.
 
   - ``WCS.to_header`` will now raise a more meaningful exception when the WCS
-    information is inavlid or inconsistent in some way. [#1854]
+    information is invalid or inconsistent in some way. [#1854]
+
+  - In ``WCS.to_header``, ``RESTFRQ`` and ``RESTWAV`` are no longer
+    rewritten if zero. [#2468]
+
+  - In ``WCS.to_header``, floating point values will now always be written
+    with an exponent or fractional part, i.e. ``.0`` being appended if necessary
+    to acheive this. [#2468]
 
   - If the C extension for ``astropy.wcs`` was not built or fails to import for
     any reason, ``import astropy.wcs`` will result in an ``ImportError``,

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 4.22 and its test suite.
+# GNU makefile for building WCSLIB 4.23 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+# $Id: GNUmakefile,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -69,7 +69,7 @@ endif
 
 # Test programs that don't require CFITSIO or PGPLOT...
 TEST_N := tlin tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub tpih1 tbth1 \
-          tfitshdr tunits twcsfix
+          tfitshdr tunits twcsfix twcscompare
 
 # ...and unofficial test programs.
 TEST_n := tspcaips tspcspxe tspctrne twcs_locale
@@ -190,9 +190,8 @@ run_% : %
 	         mv -f run_test.tmp $<.out ; \
 	         if cmp -s $<.out test/$<.out ; then \
 	           if [ '$(MODE)' != interactive ] ; then \
-	             head -1 $<.out ; \
+	             head -2 $<.out ; \
 	           fi ; \
-	           echo '' ; \
 	           echo 'PASS: Output agrees with C/test/$<.out' ; \
 	           echo 'PASS: C/$<' >> test_results ; \
 	         else \

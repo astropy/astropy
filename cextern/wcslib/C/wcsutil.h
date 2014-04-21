@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.22 - an implementation of the FITS WCS standard.
+  WCSLIB 4.23 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+  $Id: wcsutil.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 *=============================================================================
 *
 * Summary of the wcsutil routines
@@ -103,6 +103,69 @@
 *             int       Status return value:
 *                         0: Not all equal.
 *                         1: All equal.
+*
+*
+* wcsutil_Eq() - Test for equality of two double arrays
+* -----------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_Eq() tests for equality of two arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const double*
+*                       The first array.
+*
+*   arr2      const double*
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
+*
+*
+* wcsutil_intEq() - Test for equality of two int arrays
+* -----------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_intEq() tests for equality of two int arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const int*
+*                       The first array.
+*
+*   arr2      const int*
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
+*
+*
+* wcsutil_strEq() - Test for equality of two string arrays
+* --------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_strEq() tests for equality of two string arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const char**
+*                       The first array.
+*
+*   arr2      const char**
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
 *
 *
 * wcsutil_setAll() - Set a particular vector element
@@ -211,7 +274,9 @@
 * INTERNAL USE ONLY.
 *
 * wcsutil_double2str() converts a double to a string, but unlike sprintf() it
-* ignores the locale and always uses a '.' as the decimal separator.
+* ignores the locale and always uses a '.' as the decimal separator.  Also,
+* unless it includes an exponent, the formatted value will always have a
+* fractional part, ".0" being appended if necessary.
 *
 * Returned:
 *   buf       char *    The buffer to write the string into.
@@ -220,7 +285,10 @@
 *   format    char *    The formatting directive, such as "%f".  This
 *                       may be any of the forms accepted by sprintf(), but
 *                       should only include a formatting directive and
-*                       nothing else.
+*                       nothing else.  For "%g" and "%G" formats, unless it
+*                       includes an exponent, the formatted value will always
+*                       have a fractional part, ".0" being appended if
+*                       necessary.
 *
 *   value     double    The value to convert to a string.
 *
@@ -255,6 +323,9 @@ void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);
 
 int  wcsutil_allEq (int nvec, int nelem, const double *first);
+int  wcsutil_Eq(int nelem, const double *arr1, const double *arr2);
+int  wcsutil_intEq(int nelem, const int *arr1, const int *arr2);
+int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
 void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);

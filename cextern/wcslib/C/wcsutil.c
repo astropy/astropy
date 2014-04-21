@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.22 - an implementation of the FITS WCS standard.
+  WCSLIB 4.23 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+  $Id: wcsutil.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -87,6 +87,66 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
   v0 = *first;
   for (vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
     if (*vp != v0) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_Eq(int nelem, const double *arr1, const double *arr2)
+
+{
+  int i;
+
+  if (nelem == 0) return 1;
+  if (nelem  < 0) return 0;
+
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; i++, arr1++, arr2++) {
+    if (*arr1 != *arr2) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
+
+{
+  int i;
+
+  if (nelem == 0) return 1;
+  if (nelem  < 0) return 0;
+
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; i++, arr1++, arr2++) {
+    if (*arr1 != *arr2) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
+
+{
+  int i;
+
+  if (nelem == 0) return 1;
+  if (nelem  < 0) return 0;
+
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; i++, arr1++, arr2++) {
+    if (strncmp(*arr1, *arr2, 72)) return 0;
   }
 
   return 1;
@@ -183,6 +243,70 @@ char *wcsutil_fptr2str(int (*func)(void), char hext[19])
 
 /*--------------------------------------------------------------------------*/
 
+static void wcsutil_locale_to_dot(char *buf)
+
+{
+  struct lconv *locale_data = localeconv();
+  const char *decimal_point = locale_data->decimal_point;
+
+  if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+    size_t decimal_point_len = strlen(decimal_point);
+    char *inbuf = buf;
+    char *outbuf = buf;
+
+    for ( ; *inbuf; inbuf++) {
+      if (strncmp(inbuf, decimal_point, decimal_point_len) == 0) {
+        *outbuf++ = '.';
+        inbuf += decimal_point_len - 1;
+      } else {
+        *outbuf++ = *inbuf;
+      }
+    }
+
+    *outbuf = '\0';
+  }
+}
+
+
+void wcsutil_double2str(char *buf, const char *format, double value)
+
+{
+  char *bp, *cp;
+
+  sprintf(buf, format, value);
+  wcsutil_locale_to_dot(buf);
+
+  /* Look for a decimal point or exponent. */
+  bp = buf;
+  while (*bp) {
+    if (*bp != ' ') {
+      if (*bp == '.') return;
+      if (*bp == 'e') return;
+      if (*bp == 'E') return;
+    }
+    bp++;
+  }
+
+  /* Not found, add a fractional part. */
+  bp = buf;
+  if (*bp == ' ') {
+    cp = buf + 1;
+    if (*cp == ' ') cp++;
+
+    while (*cp) {
+      *bp = *cp;
+      bp++;
+      cp++;
+    }
+
+    *bp = '.';
+    bp++;
+    if (bp < cp) *bp = '0';
+  }
+}
+
+/*--------------------------------------------------------------------------*/
+
 static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
 
 {
@@ -193,7 +317,7 @@ static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
     char *out = outbuf;
     size_t decimal_point_len = strlen(decimal_point);
 
-    for ( ; *inbuf; ++inbuf) {
+    for ( ; *inbuf; inbuf++) {
       if (*inbuf == '.') {
         strncpy(out, decimal_point, decimal_point_len);
         out += decimal_point_len;
@@ -216,38 +340,4 @@ int wcsutil_str2double(const char *buf, const char *format, double *value)
 {
   char ctmp[72];
   return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value) < 1;
-}
-
-/*--------------------------------------------------------------------------*/
-
-static void wcsutil_locale_to_dot(char *buf)
-
-{
-  struct lconv *locale_data = localeconv();
-  const char *decimal_point = locale_data->decimal_point;
-
-  if (decimal_point[0] != '.' || decimal_point[1] != 0) {
-    size_t decimal_point_len = strlen(decimal_point);
-    char *inbuf = buf;
-    char *outbuf = buf;
-
-    for ( ; *inbuf; ++inbuf) {
-      if (strncmp(inbuf, decimal_point, decimal_point_len) == 0) {
-        *outbuf++ = '.';
-        inbuf += decimal_point_len - 1;
-      } else {
-        *outbuf++ = *inbuf;
-      }
-    }
-
-    *outbuf = '\0';
-  }
-}
-
-
-void wcsutil_double2str(char *buf, const char *format, double value)
-
-{
-  sprintf(buf, format, value);
-  wcsutil_locale_to_dot(buf);
 }

@@ -1,3 +1,30 @@
+WCSLIB version 4.23 (2014/05/11)
+--------------------------------
+
+* C library
+
+  - New function wcscompare() compares two wcsprm structs for equality
+    with varying degrees of strictness.  Test program twcscompare.
+    Contributed by Michael Droettboom.
+
+  - In wcssub(), fixed a bug uncovered by valgrind arising from
+    allocation of insufficient memory for temporaries when a new axis
+    is added.  Reported by Michael Droettboom.
+
+  - In wcshdo(), don't write RESTFRQ or RESTWAV if zero.
+
+    Also, to distinguish them from integer keyvalues, floating-
+    point values will now always be written with an exponent or
+    fractional part, ".0" being appended if necessary to achieve this.
+    Suggested by Peter Weilbacher.
+
+  - Fixed the '-h' option in twcshdr.
+
+* Fortran wrappers
+
+  - Wrapper for wcscompare().
+
+
 WCSLIB version 4.22 (2014/04/13)
 --------------------------------
 
@@ -2109,4 +2136,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.22 2014/04/12 15:03:54 mcalabre Exp $
+$Id: CHANGES,v 4.23 2014/05/11 04:09:39 mcalabre Exp $
