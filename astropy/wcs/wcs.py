@@ -562,14 +562,14 @@ naxis kwarg.
         header : astropy.io.fits header object, optional
 
         undistort : bool, optional
-        If `True`, take SIP and distortion lookup table into
-        account
+            If `True`, take SIP and distortion lookup table into
+            account
 
         axes : length 2 sequence ints, optional
-        If provided, use the given sequence as the shape of the
-        image. Otherwise, use the ``NAXIS1`` and ``NAXIS2``
-        keywords from the header that was used to create this
-        `WCS` object.
+            If provided, use the given sequence as the shape of the
+            image. Otherwise, use the ``NAXIS1`` and ``NAXIS2``
+            keywords from the header that was used to create this
+            `WCS` object.
 
         Returns
         -------
@@ -630,8 +630,8 @@ naxis kwarg.
             keywords from the header that was used to create this
             `WCS` object.
 
-        center : bool
-            If True use the center of the pixel, otherwise use the corner.
+        center : bool, optional
+            If `True` use the center of the pixel, otherwise use the corner.
             The order is counter-clockwise starting with the bottom left corner.
 
         Returns
