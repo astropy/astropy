@@ -577,11 +577,11 @@ naxis kwarg.
 
         center : bool, optional
             If `True` use the center of the pixel, otherwise use the corner.
-            The order is counter-clockwise starting with the bottom left corner.
 
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
+            The order is counter-clockwise starting with the bottom left corner.
         """
         if axes is not None:
             naxis1, naxis2 = axes
