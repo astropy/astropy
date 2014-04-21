@@ -15,6 +15,7 @@ except ImportError:
 
 __all__ = ['EarthLocation']
 
+# translation between ellipsoid names and corresponding number used in ERFA
 ELLIPSOIDS = {'WGS84': 1, 'GRS80': 2, 'WGS72': 3}
 
 
@@ -40,6 +41,11 @@ class EarthLocation(u.Quantity):
     class methods (`from_geocentric` and `from_geodetic`) or initialize the
     arguments with names (``x``, ``y``, ``z`` for geocentric; ``lon``, ``lat``,
     ``height`` for geodetic).  See the class methods for details.
+
+    Notes
+    -----
+    For conversion to and from geodetic coordinates, the ERFA routines
+    ``gc2gd`` and ``gd2gc`` are used.  See https://github.com/liberfa/erfa
     """
 
     _ellipsoid = 'WGS84'
@@ -61,7 +67,7 @@ class EarthLocation(u.Quantity):
         return self
 
     @classmethod
-    def from_geocentric(cls, x, y=None, z=None, unit=None):
+    def from_geocentric(cls, x, y, z, unit=None):
         """
         Location on Earth, initialized from geocentric coordinates.
 
@@ -136,6 +142,11 @@ class EarthLocation(u.Quantity):
         ValueError
             If ``lon``, ``lat``, and ``height`` do not have the same shape, or
             if ``ellipsoid`` is not recognized as among the ones implemented.
+
+        Notes
+        -----
+        For the conversion to geocentric coordinates, the ERFA routine
+        ``gd2gc`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
         lon = Longitude(lon, u.degree, wrap_angle=180*u.degree, copy=False)
@@ -189,6 +200,11 @@ class EarthLocation(u.Quantity):
         ------
         ValueError
             if ``ellipsoid`` is not recognized as among the ones implemented.
+
+        Notes
+        -----
+        For the conversion to geodetic coordinates, the ERFA routine
+        ``gc2gd`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)

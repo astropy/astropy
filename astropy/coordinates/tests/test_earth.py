@@ -102,6 +102,17 @@ class TestInput():
         self.location = EarthLocation.from_geodetic(self.lon, self.lat, self.h)
         self.x, self.y, self.z = self.location.to_geocentric()
 
+    def test_default_ellipsoid(self):
+        assert self.location.ellipsoid == EarthLocation._ellipsoid
+
+    def test_geo_attributes(self):
+        assert all([np.all(_1 == _2)
+                    for _1, _2 in zip(self.location.geodetic,
+                                      self.location.to_geodetic())])
+        assert all([np.all(_1 == _2)
+                    for _1, _2 in zip(self.location.geocentric,
+                                      self.location.to_geocentric())])
+
     def test_attribute_classes(self):
         """Test that attribute classes are correct (and not EarthLocation)"""
         assert type(self.location.x) is u.Quantity
@@ -192,8 +203,12 @@ class TestInput():
         assert not loc_slice1.shape
         with pytest.raises(IndexError):
             loc_slice1[0]
+        with pytest.raises(IndexError):
+            len(loc_slice1)
+
         loc_slice2 = locwgs72[4:6]
         assert isinstance(loc_slice2, EarthLocation)
+        assert len(loc_slice2) == 2
         assert loc_slice2.unit is locwgs72.unit
         assert loc_slice2.ellipsoid == locwgs72.ellipsoid
         assert loc_slice2.shape == (2,)
