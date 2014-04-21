@@ -574,8 +574,8 @@ class TestQuantityComparison(object):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
         # for ==, !=, return False, True if units do not match
-        assert u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)
-        assert not (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s))
+        assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
+        assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
 
     def test_quantity_comparison(self):
         assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
