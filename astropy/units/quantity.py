@@ -796,36 +796,36 @@ class Quantity(np.ndarray):
 
     # Numerical types
     def __float__(self):
-        if not self.isscalar or not self.unit.is_unity():
+        try:
+            return float(self.to(dimensionless_unscaled).value)
+        except (UnitsError, TypeError):
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
-        else:
-            return float(self.value)
 
     def __int__(self):
-        if not self.isscalar or not self.unit.is_unity():
+        try:
+            return int(self.to(dimensionless_unscaled).value)
+        except (UnitsError, TypeError):
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
-        else:
-            return int(self.value)
 
     def __index__(self):
-        if self.isscalar and self.unit.is_unity():
-            try:
-                return self.value.__index__()
-            except:
-                pass
-
-        raise TypeError('Only integer dimensionless scalar quantities '
-                        'can be converted to a Python index')
+        # for indices, we do not want to mess around with scaling at all,
+        # so unlike for float, int, we insist here on unscaled dimensionless
+        try:
+            assert self.unit.is_unity()
+            return self.value.__index__()
+        except:
+            raise TypeError('Only integer dimensionless scalar quantities '
+                            'can be converted to a Python index')
 
     if six.PY2:
         def __long__(self):
-            if not self.isscalar or not self.unit.is_unity():
+            try:
+                return long(self.to(dimensionless_unscaled).value)
+            except (UnitsError, TypeError):
                 raise TypeError('Only dimensionless scalar quantities can be '
                                 'converted to Python scalars')
-            else:
-                return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?

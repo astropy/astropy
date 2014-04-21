@@ -244,32 +244,10 @@ Instead, only dimensionless values can be converted to plain Python scalars:
 
     >>> float(3. * u.m / (4. * u.m))
     0.75
-
-Note that scaled dimensionless quantities such as ``m / km`` also do not work:
-
-    >>> float(3. * u.m / (4. * u.km))
-    Traceback (most recent call last):
-      ...
-    TypeError: Only dimensionless scalar quantities can be converted
-    to Python scalars
-
-If you want to simplify e.g. dimensionless quantities to their true
-dimensionless value, then you can make use of the
-:meth:`~astropy.units.quantity.Quantity.decompose` method:
-
-    >>> q = 3. * u.m / (4. * u.km)
-    >>> q
-    <Quantity 0.75 m / km>
-    >>> q.decompose()
-    <Quantity 0.00075...>
-    >>> float(q.decompose())
-    0.00075...
-
-Similarly, `int` and `long` work, but only for dimensionless unscaled
-quantities:
-
-    >>> int(6. * u.m / (2. * u.m))
-    3
+    >>> float(3. * u.km / (4. * u.m))
+    750.0
+    >>> int(6. * u.km / (2. * u.m))
+    3000
 
 Known issues with conversion to numpy arrays
 --------------------------------------------

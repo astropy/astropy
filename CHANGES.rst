@@ -224,6 +224,10 @@ API Changes
     or ``False``, even if units do not match (for which case a ``UnitsError``
     used to be raised).  [#2328]
 
+  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all 
+    dimensionless quantities; they are automatically converted to unscaled
+    dimensionless. [#2249]
+
 - ``astropy.utils``
 
 - ``astropy.vo``

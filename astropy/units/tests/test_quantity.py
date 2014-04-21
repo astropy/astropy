@@ -387,6 +387,7 @@ class TestQuantityOperations(object):
     def test_numeric_converters(self):
         # float, int, long, and __index__ should only work for single
         # quantities, of appropriate type, and only if they are dimensionless.
+        # for index, this should be unscaled as well
         # (Check on __index__ is also a regression test for #1557)
 
         # quantities with units should never convert, or be usable as an index
@@ -413,21 +414,14 @@ class TestQuantityOperations(object):
             q1 * ['a', 'b', 'c']
         assert exc.value.args[0] == index_err_msg
 
-        # dimensionless but scaled is also not OK
+        # dimensionless but scaled is OK, however
         q2 = u.Quantity(1.23, u.m / u.km)
 
-        with pytest.raises(TypeError) as exc:
-            float(q2)
-        assert exc.value.args[0] == converter_err_msg
-
-        with pytest.raises(TypeError) as exc:
-            int(q2)
-        assert exc.value.args[0] == converter_err_msg
+        assert float(q2) == float(q2.to(u.dimensionless_unscaled).value)
+        assert int(q2) == int(q2.to(u.dimensionless_unscaled).value)
 
         if six.PY2:
-            with pytest.raises(TypeError) as exc:
-                long(q2)
-            assert exc.value.args[0] == converter_err_msg
+            assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
 
         with pytest.raises(TypeError) as exc:
             q2 * ['a', 'b', 'c']
