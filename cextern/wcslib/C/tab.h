@@ -183,6 +183,38 @@
 *                       wcserr_enable().
 *
 *
+* tabeq() - Compare two tabprm structs for equality
+* --------------------------------------------------
+* tabeq() compares two tabprm structs for equality.
+*
+* Given:
+*   cmp       int       A bit field controlling the strictness of the
+*                       comparison.  At present, this value must always be 0,
+*                       indicating a strict comparison.  In the future, other
+*                       options may be added.
+*
+*                       - TABEQ_SET: Apply tabset() to each, to resolve, e.g.,
+*                         CDi_j vs. PCi_j.
+
+*   tab1      struct tabprm*
+*                       The first tabprm struct to compare.
+*
+*   tab2      struct tabprm*
+*                       The second tabprm struct to compare.
+*
+* Returned:
+*   equal     int *     Non-zero when the given structs are equal.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null tabprm pointer passed.
+*                         3: Invalid tabular parameters.
+*
+*                       For returns > 1, a detailed error message is set in
+*                       wcsprm::err on tab1 if enabled, see wcserr_enable().
+*
+*
 * tabfree() - Destructor for the tabprm struct
 * --------------------------------------------
 * tabfree() frees memory allocated for the tabprm arrays by tabini().
@@ -545,11 +577,16 @@ struct tabprm {
 #define TABLEN (sizeof(struct tabprm)/sizeof(int))
 
 
+#define TABEQ_SET 0x0001
+
+
 int tabini(int alloc, int M, const int K[], struct tabprm *tab);
 
 int tabmem(struct tabprm *tab);
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst);
+
+int tabeq(int cmp, struct tabprm *tab1, struct tabprm *tab2, int *equal);
 
 int tabfree(struct tabprm *tab);
 

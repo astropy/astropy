@@ -737,3 +737,17 @@ def test_sub_segfault():
 def test_bounds_check():
     w = _wcs.Wcsprm()
     w.bounds_check(False)
+
+
+def test_compare():
+    header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    w = _wcs.Wcsprm(header)
+    w2 = _wcs.Wcsprm(header)
+
+    assert w == w2
+
+    w.equinox = 42
+    assert w == w2
+
+    assert not w.compare(0, w2)
+    assert w.compare(_wcs.WCSEQ_IGNORE_ANCILLARY, w2)

@@ -284,6 +284,50 @@ relevant column number.
 It should be set to zero for an image header or pixel list.
 """
 
+compare = """
+compare(cmp, other)
+
+Compare two Wcsprm objects for equality.
+
+Parameters
+----------
+
+cmp : int
+    Comparison bit field controlling the strictness of the comparison.
+    When 0, all fields must be identical.  The following constants may
+    be or'ed together to loosen the comparison.
+
+    - ``WCSEQ_SET: Apply `~astropy.wcs.Wcsprm.set` to each, to
+      resolve, e.g., ``CDi_j`` vs. ``PCi_j``.
+
+    - ``WCSEQ_FIX``: Apply `~astropy.wcs.Wcsprm.fix` to each, to
+      translate non-standard usage. Implies ``WCSEQ_SET``, since
+      ``fix`` calls ``set``.
+
+    - ``WCSEQ_IGNORE_ANCILLARY``: Ignores ancillary keywords, such as
+      ``DATE-OBS``, that don't change the WCS transformation.
+
+    - ``WCSEQ_INTEGER_TRANSLATION``: Treats WCSes that differ only in
+      ``CRPIXj`` with an integral difference as identical.
+
+    - ``WCSEQ_TRANSLATION``: Treats WCSes that differ only in
+      ``CRPIXj`` as identical.
+
+other : Wcsprm
+    The other Wcsprm object to compare to.
+
+Returns
+-------
+equal : bool
+"""
+
+convert = """
+convert(array)
+
+Perform the unit conversion on the elements of the given *array*,
+returning an array of the same shape.
+"""
+
 coord = """
 ``double array[K_M]...[K_2][K_1][M]`` The tabular coordinate array.
 

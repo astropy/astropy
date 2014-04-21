@@ -94,6 +94,60 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
 
 /*--------------------------------------------------------------------------*/
 
+int wcsutil_Eq(int nelem, const double *arr1, const double *arr2)
+
+{
+  int i;
+
+  if (nelem <= 0) return 0;
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; ++i, ++arr1, ++arr2) {
+    if (*arr1 != *arr2) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
+
+{
+  int i;
+
+  if (nelem <= 0) return 0;
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; ++i, ++arr1, ++arr2) {
+    if (*arr1 != *arr2) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
+
+{
+  int i;
+
+  if (nelem <= 0) return 0;
+  if (arr1 == 0x0 && arr2 == 0x0) return 1;
+  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+
+  for (i = 0; i < nelem; ++i, ++arr1, ++arr2) {
+    if (strncmp(*arr1, *arr2, 72)) return 0;
+  }
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
 void wcsutil_setAll(int nvec, int nelem, double *first)
 
 {

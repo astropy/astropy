@@ -105,6 +105,69 @@
 *                         1: All equal.
 *
 *
+* wcsutil_Eq() - Test for equality of two double arrays
+* -----------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_Eq() tests for equality of two arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const double*
+*                       The first array.
+*
+*   arr2      const double*
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
+*
+*
+* wcsutil_intEq() - Test for equality of two int arrays
+* -----------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_intEq() tests for equality of two int arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const int*
+*                       The first array.
+*
+*   arr2      const int*
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
+*
+*
+* wcsutil_strEq() - Test for equality of two string arrays
+* --------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_strEq() tests for equality of two string arrays.
+*
+* Given:
+*   nelem     int       The number of elements in each array.
+*
+*   arr1      const char**
+*                       The first array.
+*
+*   arr2      const char**
+*                       The second array
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not equal.
+*                         1: Equal.
+*
+*
 * wcsutil_setAll() - Set a particular vector element
 * --------------------------------------------------
 * INTERNAL USE ONLY.
@@ -255,6 +318,9 @@ void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);
 
 int  wcsutil_allEq (int nvec, int nelem, const double *first);
+int  wcsutil_Eq(int nelem, const double *arr1, const double *arr2);
+int  wcsutil_intEq(int nelem, const int *arr1, const int *arr2);
+int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
 void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
