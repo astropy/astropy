@@ -158,6 +158,7 @@ class EarthLocation(u.Quantity):
 
     @property
     def ellipsoid(self):
+        """The default ellipsoid used to convert to geodetic coordinates."""
         return self._ellipsoid
 
     @ellipsoid.setter
