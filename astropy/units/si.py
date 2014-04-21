@@ -36,7 +36,8 @@ def_unit(['micron'], um, namespace=_ns,
 
 def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, namespace=_ns,
          doc="ångström: 10 ** -10 m",
-         format={'latex': r'\AA', 'unicode': 'Å', 'vounit': 'angstrom'})
+         format={'latex': r'\overset{\circ}{A}', 'unicode': 'Å',
+                 'vounit': 'angstrom'})
 
 
 ###########################################################################

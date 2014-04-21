@@ -443,6 +443,8 @@ Bug Fixes
   - ``Quantity.copy`` now behaves identically to ``ndarray.copy``, and thus
     supports the ``order`` argument (for numpy >=1.6). [#2284]
 
+  - Angstrom unit renders better in MathJax [#2286]
+
 - ``astropy.utils``
 
   - Progress bars will now be displayed inside the IPython
