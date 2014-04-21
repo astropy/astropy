@@ -227,7 +227,7 @@ class SphericalRepresentation(BaseRepresentation):
         if other_class is PhysicsSphericalRepresentation:
             return PhysicsSphericalRepresentation(phi=self.lon,
                                                   theta=90 * u.deg - self.lat,
-                                                  distance=self.distance)
+                                                  r=self.distance)
         else:
             return super(SphericalRepresentation, self).represent_as(other_class)
 
@@ -427,10 +427,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         """
 
         # We need to convert Distance to Quantity to allow negative values.
-        if isinstance(self.distance, Distance):
-            d = self.distance.view(u.Quantity)
+        if isinstance(self.r, Distance):
+            d = self.r.view(u.Quantity)
         else:
-            d = self.distance
+            d = self.r
 
         x = d * np.sin(self.theta) * np.cos(self.phi)
         y = d * np.sin(self.theta) * np.sin(self.phi)
@@ -451,7 +451,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=r)
+        return PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r)
 
 
 class CylindricalRepresentation(BaseRepresentation):

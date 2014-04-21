@@ -305,14 +305,14 @@ class TestPhysicsSphericalRepresentation(object):
 
     def test_init_quantity(self):
 
-        s3 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, distance=10 * u.kpc)
+        s3 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, r=10 * u.kpc)
         assert s3.phi == 8. * u.hourangle
         assert s3.theta == 5. * u.deg
-        assert s3.distance == 10 * u.kpc
+        assert s3.r == 10 * u.kpc
 
         assert isinstance(s3.phi, Angle)
         assert isinstance(s3.theta, Angle)
-        assert isinstance(s3.distance, Distance)
+        assert isinstance(s3.r, Distance)
 
     def test_init_phitheta(self):
 
@@ -322,76 +322,76 @@ class TestPhysicsSphericalRepresentation(object):
 
         assert s2.phi == 8. * u.hourangle
         assert s2.theta == 5. * u.deg
-        assert s2.distance == 10. * u.kpc
+        assert s2.r == 10. * u.kpc
 
         assert isinstance(s2.phi, Angle)
         assert isinstance(s2.theta, Angle)
-        assert isinstance(s2.distance, Distance)
+        assert isinstance(s2.r, Distance)
 
     def test_init_array(self):
 
         s1 = PhysicsSphericalRepresentation(phi=[8, 9] * u.hourangle,
                                      theta=[5, 6] * u.deg,
-                                     distance=[1,2] * u.kpc)
+                                     r=[1,2] * u.kpc)
 
         assert_allclose(s1.phi.degree, [120, 135])
         assert_allclose(s1.theta.degree, [5, 6])
-        assert_allclose(s1.distance.kpc, [1, 2])
+        assert_allclose(s1.r.kpc, [1, 2])
 
         assert isinstance(s1.phi, Angle)
         assert isinstance(s1.theta, Angle)
-        assert isinstance(s1.distance, Distance)
+        assert isinstance(s1.r, Distance)
 
     def test_init_array_nocopy(self):
 
         phi = Angle([8, 9] * u.hourangle)
         theta = Angle([5, 6] * u.deg)
-        distance = Distance([1, 2] * u.kpc)
+        r = Distance([1, 2] * u.kpc)
 
-        s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, distance=distance, copy=False)
+        s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r, copy=False)
 
         phi[:] = [1,2] * u.rad
         theta[:] = [3,4] * u.arcmin
-        distance[:] = [8,9] * u.Mpc
+        r[:] = [8,9] * u.Mpc
 
         assert_allclose_quantity(phi, s1.phi)
         assert_allclose_quantity(theta, s1.theta)
-        assert_allclose_quantity(distance, s1.distance)
+        assert_allclose_quantity(r, s1.r)
 
     def test_init_str(self):
 
-        s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', distance=1 * u.kpc)
+        s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', r=1 * u.kpc)
         assert_allclose(s1.phi.degree, 31.513749999999995)
         assert_allclose(s1.theta.degree, 5.729577951308233)
-        assert_allclose(s1.distance.kpc, 1.)
+        assert_allclose(s1.r.kpc, 1.)
 
     def test_reprobj(self):
 
-        s1 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, distance=10 * u.kpc)
+        s1 = PhysicsSphericalRepresentation(phi=8 * u.hourangle, theta=5 * u.deg, r=10 * u.kpc)
 
         s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
         assert_allclose_quantity(s2.phi, 8. * u.hourangle)
         assert_allclose_quantity(s2.theta, 5. * u.deg)
-        assert_allclose_quantity(s2.distance, 10 * u.kpc)
+        assert_allclose_quantity(s2.r, 10 * u.kpc)
 
     def test_broadcasting(self):
 
         s1 = PhysicsSphericalRepresentation(phi=[8, 9]*u.hourangle,
                                      theta=[5, 6]*u.deg,
-                                     distance=10*u.kpc)
+                                     r=10*u.kpc)
 
         assert_allclose_quantity(s1.phi, [120, 135] * u.degree)
         assert_allclose_quantity(s1.theta, [5, 6] * u.degree)
-        assert_allclose_quantity(s1.distance, [10, 10] * u.kpc)
+        assert_allclose_quantity(s1.r, [10, 10] * u.kpc)
 
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
             s1 = PhysicsSphericalRepresentation(phi=[8, 9, 10]*u.hourangle,
                                          theta=[5, 6]*u.deg,
-                                         distance=[1, 2] * u.kpc)
-        assert exc.value.args[0] == "Input parameters phi, theta, and distance cannot be broadcast"
+                                         r=[1, 2] * u.kpc)
+        assert exc.value.args[0] == "Input parameters phi, theta, and r cannot be broadcast"
 
     def test_mixed_units(self):
 
@@ -402,19 +402,19 @@ class TestPhysicsSphericalRepresentation(object):
 
         s1 = PhysicsSphericalRepresentation(phi=[8*u.hourangle, 135*u.deg],
                                      theta=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     distance=[1.*u.kpc, 500*u.pc])
+                                     r=[1.*u.kpc, 500*u.pc])
         assert s1.phi.unit == u.hourangle
         assert s1.theta.unit == u.deg
-        assert s1.distance.unit == u.kpc
+        assert s1.r.unit == u.kpc
         assert_allclose(s1.phi.value, [8,9])
         assert_allclose(s1.theta.value, [5,6])
-        assert_allclose(s1.distance.value, [1,0.5])
+        assert_allclose(s1.r.value, [1,0.5])
 
     def test_readonly(self):
 
         s1 = PhysicsSphericalRepresentation(phi=[8*u.hourangle, 135*u.deg],
                                      theta=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     distance=[1.*u.kpc, 500*u.pc])
+                                     r=[1.*u.kpc, 500*u.pc])
 
         with pytest.raises(AttributeError):
             s1.phi = 1. * u.deg
@@ -423,25 +423,25 @@ class TestPhysicsSphericalRepresentation(object):
             s1.theta = 1. * u.deg
 
         with pytest.raises(AttributeError):
-            s1.distance = 1. * u.kpc
+            s1.r = 1. * u.kpc
 
     def test_getitem(self):
 
         s = PhysicsSphericalRepresentation(phi=np.arange(10) * u.deg,
                                     theta=-np.arange(10) * u.deg,
-                                    distance=1 * u.kpc)
+                                    r=1 * u.kpc)
 
         s_slc = s[2:8:2]
 
         assert_allclose_quantity(s_slc.phi, [2,4,6] * u.deg)
         assert_allclose_quantity(s_slc.theta, [-2,-4,-6] * u.deg)
-        assert_allclose_quantity(s_slc.distance, [1,1,1] * u.kpc)
+        assert_allclose_quantity(s_slc.r, [1,1,1] * u.kpc)
 
     def test_getitem_scalar(self):
 
         s = PhysicsSphericalRepresentation(phi=1 * u.deg,
                                     theta=-2 * u.deg,
-                                    distance=3 * u.kpc)
+                                    r=3 * u.kpc)
 
         with pytest.raises(TypeError):
             s_slc = s[0]
@@ -842,7 +842,7 @@ def test_cartesian_physics_spherical_roundtrip():
 
     assert_allclose_quantity(s2.phi, s4.phi)
     assert_allclose_quantity(s2.theta, s4.theta)
-    assert_allclose_quantity(s2.distance, s4.distance)
+    assert_allclose_quantity(s2.r, s4.r)
 
 
 def test_spherical_physics_spherical_roundtrip():
@@ -861,11 +861,11 @@ def test_spherical_physics_spherical_roundtrip():
 
     assert_allclose_quantity(s2.phi, s4.phi)
     assert_allclose_quantity(s2.theta, s4.theta)
-    assert_allclose_quantity(s2.distance, s4.distance)
+    assert_allclose_quantity(s2.r, s4.r)
 
     assert_allclose_quantity(s1.lon, s4.phi)
     assert_allclose_quantity(s1.lat, 90. * u.deg - s4.theta)
-    assert_allclose_quantity(s1.distance, s4.distance)
+    assert_allclose_quantity(s1.distance, s4.r)
 
 
 def test_cartesian_cylindrical_roundtrip():
