@@ -459,7 +459,6 @@ PyWcsprm_bounds_check(
   unsigned char pix2sky    = 1;
   unsigned char sky2pix    = 1;
   int           bounds     = 0;
-  int           status     = 0;
   const char*   keywords[] = {"pix2world", "world2pix", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(

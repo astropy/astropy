@@ -920,6 +920,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     init_output_buffer(hdu, &outbuf, &outbufsize);
     open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
+        free(outbuf);
         return NULL;
     }
 
@@ -927,6 +928,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
 
     bitpix_to_datatypes(Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
+        free(outbuf);
         return NULL;
     }
 
@@ -935,12 +937,14 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     fits_write_img(fileptr, datatype, 1, PyArray_SIZE(indata), indata->data,
                    &status);
     if (status != 0) {
+        free(outbuf);
         process_status_err(status);
         goto fail;
     }
 
     fits_flush_buffer(fileptr, 1, &status);
     if (status != 0) {
+        free(outbuf);
         process_status_err(status);
         goto fail;
     }
