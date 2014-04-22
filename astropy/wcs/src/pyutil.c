@@ -945,7 +945,6 @@ parse_unsafe_unit_conversion_spec(
 
   *ctrl = 0;
 
-  p = arg;
   for (p = arg; *p != '\0'; ++p) {
     switch (*p) {
     case 's':
