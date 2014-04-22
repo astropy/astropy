@@ -27,6 +27,8 @@ frame_transform_graph = TransformGraph()
 
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
+        from textwrap import dedent
+
         # somewhat hacky, but this is the best way to get the MRO according to
         # https://mail.python.org/pipermail/python-list/2002-December/167861.html
         mro = super(FrameMeta, cls).__new__(cls, name, parents, clsdct).__mro__
@@ -60,24 +62,17 @@ class FrameMeta(type):
             for propnm, reprnm in six.iteritems(pref_attrs):
                 clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
 
-            #and also the frame_attr_names to make them immutible after creation
-            for attrnm in frame_attrs:
-                if attrnm in clsdct:
-                    if isinstance(clsdct[attrnm], property):
-                        #means the property was defined already... so trust the
-                        #subclasser and don't make a new one
-                        continue
-                    else:
-                        raise ValueError("A non-property exists that's *also* in frame_attr_names")
-                clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
-
-            #update the class docstring with the preferred initialization
-            #TODO: make this more-correct for the astropy doc style
-            init_docstr = """
-            The preferred representation is "{0}", allowing kwargs: {1}
-            """.format(clsdct['preferred_representation'],
-                       clsdct['preferred_attr_names'])
-            clsdct['__doc__'] += init_docstr
+        #also make properties for the frame_attr_names to make them immutible
+        #after creation
+        for attrnm in frame_attrs:
+            if attrnm in clsdct:
+                if isinstance(clsdct[attrnm], property):
+                    #means the property was defined already... so trust the
+                    #subclasser and don't make a new one
+                    continue
+                else:
+                    raise ValueError("A non-property exists that's *also* in frame_attr_names")
+            clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
 
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
@@ -97,7 +92,27 @@ class FrameMeta(type):
 
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
-    """ docstring """
+    """
+    The base class for coordinate frames.
+
+    This class is intended to be subclassed to create instances of specific
+    systems.  Subclasses can implement the following attributes.
+
+    * `preferred_representation`
+        A subclass of `~astropy.coordinates.BaseRepresentation` that will be
+        treated as the "standard" representation of this frame, or None to have
+        no special representation.
+
+    * `preferred_attr_names`
+        A dictionary mapping attribute names to be created on *this* class to
+        names of attributes on the `preferred_representation`.  If
+        `preferred_representation` is None, this does nothing.
+
+    * `frame_attr_names`
+        A dictionary with keys that are the additional attributes necessary to
+        specify the frame, and values that are the default values of those
+        attributes.
+    """
 
     preferred_representation = None
     preferred_attr_names = {}  # maps preferred name to "real" name on repr obj

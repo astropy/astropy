@@ -32,12 +32,26 @@ _EQUINOX_B1950 = Time('B1950', scale='tai')
 
 class ICRS(BaseCoordinateFrame):
     """
-    A coordinate in the ICRS.
+    A coordinate or frame in the ICRS system.
 
     If you're looking for "J2000" coordinates, and aren't sure if you
     want to use this or `FK5`, you probably want to use ICRS.
     It's more well-defined as a catalog coordinate and is an inertial
     system.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    ra : `Angle`, optional, must be keyword
+        The RA for this object (`dec` must also be given and `representation`
+        must be None).
+    dec : `Angle`, optional, must be keyword
+        The Declination for this object (`ra` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (`representation` must be None).
     """
 
     preferred_representation = SphericalRepresentation
@@ -75,7 +89,23 @@ ICRS._ICRS_TO_FK5_J2000_MAT = ICRS._icrs_to_fk5_matrix()
 
 class FK5(BaseCoordinateFrame):
     """
-    docstr
+    A coordinate or frame in the FK5 system.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    ra : `Angle`, optional, must be keyword
+        The RA for this object (`dec` must also be given and `representation`
+        must be None).
+    dec : `Angle`, optional, must be keyword
+        The Declination for this object (`ra` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (`representation` must be None).
+    equinox : astropy.time.Time, optional, must be keyword
+        The equinox of this frame.
     """
 
     preferred_representation = SphericalRepresentation
@@ -113,7 +143,26 @@ def fk5_to_fk5(fk5coord1, fk5frame2):
 
 class FK4(BaseCoordinateFrame):
     """
-    docstr
+    A coordinate or frame in the FK4 system.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    ra : `Angle`, optional, must be keyword
+        The RA for this object (`dec` must also be given and `representation`
+        must be None).
+    dec : `Angle`, optional, must be keyword
+        The Declination for this object (`ra` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (`representation` must be None).
+    equinox : astropy.time.Time, optional, must be keyword
+        The equinox of this frame.
+    obstime : astropy.time.Time, optional, must be keyword
+        The time this frame was observed.  If None, will be the same as
+        `equinox`.
     """
 
     preferred_representation = SphericalRepresentation
@@ -142,7 +191,25 @@ def fk4_to_fk4(fk4coord1, fk4frame2):
 
 class FK4NoETerms(BaseCoordinateFrame):
     """
-    docstr
+    A coordinate or frame in the FK4 system, but with the E-terms of aberration
+    removed.
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    ra : `Angle`, optional, must be keyword
+        The RA for this object (`dec` must also be given and `representation`
+        must be None).
+    dec : `Angle`, optional, must be keyword
+        The Declination for this object (`ra` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
+        (`representation` must be None).
+    obstime : astropy.time.Time, optional, must be keyword
+        The time this frame was observed.  If None, will be the same as
+        `equinox`.
     """
 
     preferred_representation = SphericalRepresentation
@@ -189,7 +256,20 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
 
 class Galactic(BaseCoordinateFrame):
     """
-    docstr
+    Galactic Coordinates
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    l : `Angle`, optional, must be keyword
+        The Galactic longitude for this object (`b` must also be given and
+        `representation` must be None).
+    b : `Angle`, optional, must be keyword
+        The Galactic latitude for this object (`l` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
     """
 
     preferred_representation = SphericalRepresentation
@@ -209,6 +289,19 @@ class Galactic(BaseCoordinateFrame):
 class AltAz(BaseCoordinateFrame):
     """
     docstr
+
+    Parameters
+    ----------
+    representation : `BaseRepresentation` or None
+        A representation object or None to have no data (or use the other keywords)
+    az : `Angle`, optional, must be keyword
+        The Azimuth for this object (`alt` must also be given and
+        `representation` must be None).
+    alt : `Angle`, optional, must be keyword
+        The Altitude for this object (`az` must also be given and
+        `representation` must be None).
+    distance : `Quantity`, optional, must be keyword
+        The Distance for this object along the line-of-sight.
     """
 
     preferred_representation = SphericalRepresentation
