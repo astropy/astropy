@@ -7,6 +7,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import copy
 
 # Dependencies
 import numpy as np
@@ -157,11 +158,11 @@ class BaseCoordinateFrame(object):
         """
         from .errors import ConvertError
 
-        if new_frame is self.__class__:
-            return copy.deepcopy(self)
-
         trans = frame_transform_graph.get_transform(self.__class__, new_frame)
         if trans is None:
+            if new_frame is self.__class__:
+                # no special transform needed
+                return copy.deepcopy(self)
             raise ConvertError('Cannot transform from {0} to '
                                '{1}'.format(self.__class__, new_frame))
         return trans(self)
