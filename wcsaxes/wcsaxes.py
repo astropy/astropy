@@ -56,6 +56,9 @@ class WCSAxes(Axes):
 
         self._all_coords = [self.coords]
 
+        if slices is None:
+            slices = ('x', 'y')
+
         # Common default settings
         for coord_index in range(len(slices)):
             if slices[coord_index] == 'x':
