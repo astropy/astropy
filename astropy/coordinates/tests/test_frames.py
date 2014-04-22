@@ -88,3 +88,19 @@ def test_realizing():
 
     assert f2.equinox == f.equinox
     assert f2.equinox != FK5.frame_attr_names['equinox']
+
+
+def test_getitem():
+    from ..builtin_frames import ICRS
+
+    rep = representation.SphericalRepresentation(
+        [1, 2, 3]*u.deg, [4, 5, 6]*u.deg, [7, 8, 9]*u.kpc)
+
+    i = ICRS(rep)
+    assert len(i.ra) == 3
+
+    iidx = i[1:]
+    assert len(iidx.ra) == 2
+
+    iidx2 = i[0]
+    assert iidx2.ra.isscalar

@@ -223,6 +223,12 @@ class BaseCoordinateFrame(object):
 
         return ' '.join(content) + '>'
 
+    def __getitem__(self, view):
+        if self.has_data:
+            return self.realize_frame(self.data[view])
+        else:
+            raise ValueError('Cannot index a frame with no data')
+
     @property
     def cartesian(self):
         """
