@@ -377,10 +377,10 @@ class CoordinateHelper(object):
                     imax = imin + 1
 
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_data_i = spine.data[imin,0] + frac * (spine.data[imax,0] - spine.data[imax,0])
-                    y_data_i = spine.data[imin,1] + frac * (spine.data[imax,1] - spine.data[imax,1])
-                    x_pix_i = spine.pixel[imin,0] + frac * (spine.pixel[imax,0] - spine.pixel[imax,0])
-                    y_pix_i = spine.pixel[imin,1] + frac * (spine.pixel[imax,1] - spine.pixel[imax,1])
+                    x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
+                    y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
+                    x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
+                    y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
                     delta_angle = tick_angle[imax] - tick_angle[imin]
                     if delta_angle > 180.:
                         delta_angle -= 360.
