@@ -42,7 +42,7 @@ def test_create_nodata_frames():
     from ..builtin_frames import ICRS, FK4, FK5
 
     i = ICRS()
-    assert len(ICRS.frame_attr_names) == 0
+    assert len(i.frame_attr_names) == 0
 
     f5 = FK5()
     assert f5.equinox == FK5.frame_attr_names['equinox']
@@ -50,3 +50,20 @@ def test_create_nodata_frames():
     f4 = FK4()
     assert f4.equinox == FK4.frame_attr_names['equinox']
     assert f4.obstime == FK4.frame_attr_names['obstime']
+
+
+def test_frame_repr():
+    from ..builtin_frames import ICRS, FK5
+
+    i = ICRS()
+    assert repr(i) == '<ICRS frame>'
+
+    f5 = FK5()
+    assert repr(f5).startswith('<FK5 frame: equinox=')
+
+    i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
+    i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
+
+    assert repr(i2).startswith('<ICRS coordinate: ')
+    assert 'ra=' in repr(i2)
+    assert 'distance=' in repr(i3)

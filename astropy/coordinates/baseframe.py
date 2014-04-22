@@ -57,7 +57,8 @@ class BaseCoordinateFrame(object):
     frame_attr_names = {}  # maps attribute to default value
 
     def __init__(self, representation=None, **kwargs):
-        from .representation import SphericalRepresentation, UnitSphericalRepresentation
+        from .representation import SphericalRepresentation
+        from .representation import UnitSphericalRepresentation
 
         for fnm, fdefault in six.iteritems(self.frame_attr_names):
             if fnm in kwargs:
@@ -104,6 +105,10 @@ class BaseCoordinateFrame(object):
             raise AttributeError('The frame object "{0}" does not have '
                                  'associated data'.format(repr(self)))
         return self._data
+
+    @property
+    def has_data(self):
+        return self._data is not None
 
     def represent_as(self, new_representation):
         cached_repr = self._rep_cache.get(new_representation.__name__, None)
@@ -166,6 +171,39 @@ class BaseCoordinateFrame(object):
             trans = frame_transform_graph.get_transform(self.__class__,
                                                         new_frame)
             return trans is not None
+
+    def __repr__(self):
+        from .representation import SphericalRepresentation
+        from .representation import UnitSphericalRepresentation
+
+        content = ['<' + self.__class__.__name__]
+        if self.has_data:
+            content[-1] += ' coordinate:'
+            if self.preferred_representation:
+                #special-case the Spherical->UnitSpherical if no `distance`
+                #TODO: possibly generalize this somehow?
+                prefrep = self.represent_as(self.preferred_representation)
+                nodistance = (prefrep.__class__ == SphericalRepresentation and
+                             self.data.__class__ == UnitSphericalRepresentation)
+
+                for prefnm, repnm in six.iteritems(self.preferred_attr_names):
+                    if nodistance and repnm == 'distance':
+                        continue
+                    datastr = str(getattr(self._data, repnm))
+                    content.append(prefnm + '=' + datastr + ',')
+            else:
+                content.append(repr(self.data) + ',')
+        else:
+            content[-1] += ' frame:'
+
+        for nm in self.frame_attr_names:
+            content.append(nm + '=' + str(getattr(self, nm)) + ',')
+
+        if content[-1][-1] in (',', ':'):
+            #remove trailing comma/colon
+            content[-1] = content[-1][:-1]
+
+        return ' '.join(content) + '>'
 
     @property
     def cartesian(self):
