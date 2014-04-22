@@ -307,6 +307,8 @@ class CoordinateHelper(object):
 
         self.ticks.clear()
         self.ticklabels.clear()
+        lblinfo = []
+        lbl_world = []
 
         for axis, spine in frame.iteritems():
 
@@ -366,7 +368,7 @@ class CoordinateHelper(object):
             for t in tick_world_coordinates:
 
                 # Find steps where a tick is present
-                intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
+                intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
 
                 # Loop over ticks, and find exact pixel coordinates by linear
                 # interpolation
@@ -397,12 +399,20 @@ class CoordinateHelper(object):
                                    angle=angle_i,
                                    axis_displacement=imin + frac)
 
-                    self.ticklabels.add(axis=axis,
-                                        pixel=(x_pix_i, y_pix_i),
-                                        world=world,
-                                        angle=spine.normal_angle[imin],
-                                        text=self._formatter_locator.formatter([world], spacing=spacing)[0],
-                                        axis_displacement=imin + frac)
+                    # store information to pass to ticklabels.add
+                    # it's faster to format many ticklabels at once outside
+                    # of the loop
+                    lblinfo.append(dict(axis=axis,
+                                   pixel=(x_pix_i, y_pix_i),
+                                   world=world,
+                                   angle=spine.normal_angle[imin],
+                                   axis_displacement=imin + frac))
+                    lbl_world.append(world)
+
+        # format tick labels, add to scene
+        text = self._formatter_locator.formatter(lbl_world, spacing=spacing)
+        for kwargs, txt in zip(lblinfo, text):
+            self.ticklabels.add(text=txt, **kwargs)
 
     def _update_grid_lines(self):
 
