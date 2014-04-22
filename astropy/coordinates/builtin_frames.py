@@ -52,6 +52,26 @@ class ICRS(BaseCoordinateFrame):
         """
         return _EQUINOX_J2000
 
+    @staticmethod
+    def _icrs_to_fk5_matrix():
+        """
+        B-matrix from USNO circular 179.  Used by the ICRS->FK5 transformation
+        functions.
+        """
+        from .angles import rotation_matrix
+
+        eta0 = -19.9 / 3600000.
+        xi0 = 9.1 / 3600000.
+        da0 = -22.9 / 3600000.
+
+        m1 = rotation_matrix(-eta0, 'x')
+        m2 = rotation_matrix(xi0, 'y')
+        m3 = rotation_matrix(da0, 'z')
+
+        return m1 * m2 * m3
+# define this because it only needs to be computed once
+ICRS._ICRS_TO_FK5_J2000_MAT = ICRS._icrs_to_fk5_matrix()
+
 
 class FK5(BaseCoordinateFrame):
     """
@@ -61,6 +81,33 @@ class FK5(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
     frame_attr_names = {'equinox': _EQUINOX_J2000}
+
+    @staticmethod
+    def _precession_matrix(oldequinox, newequinox):
+        """
+        Compute and return the precession matrix for FK5 based on Capitaine et
+        al. 2003/IAU2006.  Used inside some of the transformation functions.
+
+        Parameters
+        ----------
+        oldequinox : `~astropy.time.Time`
+            The equinox to precess from.
+        newequinox : `~astropy.time.Time`
+            The equinox to precess to.
+
+        Returns
+        -------
+        newcoord : array
+            The precession matrix to transform to the new equinox
+        """
+        from .earth_orientation import precession_matrix_Capitaine
+
+        return precession_matrix_Capitaine(oldequinox, newequinox)
+
+# Has to be defined at module level, because `transform` needs an FK5 reference
+@frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK5)
+def fk5_to_fk5(fk5coord1, fk5frame2):
+    return fk5coord1._precession_matrix(fk5coord1.equinox, fk5frame2.equinox)
 
 
 class FK4(BaseCoordinateFrame):
@@ -117,32 +164,16 @@ class AltAz(BaseCoordinateFrame):
 # we need references to the various objects to give to the decorators.
 
 # ICRS to/from FK5
-@frame_transform_graph.transform(StaticMatrixTransform, ICRS, FK5)
-def icrs_to_fk5():
-    """
-    B-matrix from USNO circular 179
-    """
-    from .angles import rotation_matrix
-
-    eta0 = -19.9 / 3600000.
-    xi0 = 9.1 / 3600000.
-    da0 = -22.9 / 3600000.
-
-    m1 = rotation_matrix(-eta0, 'x')
-    m2 = rotation_matrix(xi0, 'y')
-    m3 = rotation_matrix(da0, 'z')
-
-    return m1 * m2 * m3
+@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
+def icrs_to_fk5(icrscoord, fk5frame):
+    # ICRS equinox should always be J2000, but just in case, use attribute
+    pmat = fk5frame._precession_matrix(icrscoord.equinox, fk5frame.equinox)
+    return np.dot(pmat, icrscoord._ICRS_TO_FK5_J2000_MAT)
 
 
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
-def fk5_to_icrs(fk5c):
-    from .earth_orientation import _precess_from_J2000_Capitaine
-
-    pmat = _precess_from_J2000_Capitaine(fk5c.equinox.jyear).T
-
-    # transpose gets equinox -> J2000
-    fk5toicrsmat = icrs_to_fk5().T
-
-    return fk5toicrsmat * pmat
+def fk5_to_icrs(fk5coord, icrsframe):
+    # ICRS equinox should always be J2000, but just in case, use attribute
+    pmat = fk5coord._precession_matrix(fk5coord.equinox, icrsframe.equinox)
+    return np.dot(icrsframe._ICRS_TO_FK5_J2000_MAT.T, pmat)
