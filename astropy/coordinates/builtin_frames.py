@@ -119,6 +119,24 @@ class FK4(BaseCoordinateFrame):
     preferred_attr_names = {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
+@frame_transform_graph.transform(FunctionTransform, FK4, FK4)
+def fk4_to_fk4(fk4coord1, fk4frame2):
+    # deceptively complicated: need to transform to No E-terms FK4, precess, and
+    # then come back, because precession is non-trivial with E-terms
+    fnoe_w_eqx1 = fk4coord1.transform_to(FK4NoETerms(equinox=fk4coord1.equinox))
+    fnoe_w_eqx2 = fnoe_w_eqx1.transform_to(FK4NoETerms(equinox=fk4coord2.equionx))
+    return fnoe_w_eqx2.transform_to(fk4frame2)
+
+
+class FK4NoETerms(BaseCoordinateFrame):
+    """
+    docstr
+    """
+
+    preferred_representation = SphericalRepresentation
+    preferred_attr_names = {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
+    frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
+
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
         """
@@ -141,19 +159,10 @@ class FK4(BaseCoordinateFrame):
 
         return _precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
-@frame_transform_graph.transform(DynamicMatrixTransform, FK4, FK4)
-def fk4_to_fk4(fk4coord1, fk4frame2):
-    return fk4coord1._precession_matrix(fk4coord1.equinox, fk4frame2.equinox)
+@frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
+def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
+    return fk4necoord1._precession_matrix(fk4necoord1.equinox, fk4neframe2.equinox)
 
-
-class FK4NoETerms(BaseCoordinateFrame):
-    """
-    docstr
-    """
-
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
-    frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
 
 class Galactic(BaseCoordinateFrame):
@@ -189,7 +198,7 @@ class AltAz(BaseCoordinateFrame):
 # Transformations are defined here instead of in the classes themselves, because
 # we need references to the various objects to give to the decorators.
 
-# ICRS to/from FK5
+# ICRS to/from FK5 -------------------------------->
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
 def icrs_to_fk5(icrscoord, fk5frame):
     # ICRS equinox should always be J2000, but just in case, use attribute
@@ -204,9 +213,169 @@ def fk5_to_icrs(fk5coord, icrsframe):
     pmat = fk5coord._precession_matrix(fk5coord.equinox, icrsframe.equinox)
     return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat
 
+# FK4-NO-E to/from FK4 ----------------------------->
+
+# In the present framework, we include two coordinate classes for FK4
+# coordinates - one including the E-terms of aberration (FK4), and
+# one not including them (FK4NoETerms). The following functions
+# implement the transformation between these two.
+
+def fk4_e_terms(equinox):
+    """
+    Return the e-terms of aberation vector
+
+    Parameters
+    ----------
+    equinox : Time object
+        The equinox for which to compute the e-terms
+    """
+
+    from . import earth_orientation as earth
+
+    # Constant of aberration at J2000
+    k = 0.0056932
+
+    # Eccentricity of the Earth's orbit
+    e = earth.eccentricity(equinox.jd)
+    e = np.radians(e)
+
+    # Mean longitude of perigee of the solar orbit
+    g = earth.mean_lon_of_perigee(equinox.jd)
+    g = np.radians(g)
+
+    # Obliquity of the ecliptic
+    o = earth.obliquity(equinox.jd, algorithm=1980)
+    o = np.radians(o)
+
+    return e * k * np.sin(g), \
+           -e * k * np.cos(g) * np.cos(o), \
+           -e * k * np.cos(g) * np.sin(o)
 
 
-# Galactic to/from FK4/FK5
+@frame_transform_graph.transform(FunctionTransform, FK4, FK4NoETerms)
+def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
+    from .representation import CartesianRepresentation, UnitSphericalRepresentation
+
+    # Extract cartesian vector
+    c = fk4coord.cartesian.xyz
+    r = np.asarray(c.reshape((3, c.size // 3)))
+
+    # Find distance (for re-normalization)
+    d_orig = np.sqrt(np.sum(r ** 2))
+
+    # Apply E-terms of aberration. Note that this depends on the equinox (not
+    # the observing time/epoch) of the coordinates. See issue #1496 for a
+    # discussion of this.
+    eterms_a = np.asarray(fk4_e_terms(fk4coord.equinox))
+    r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
+
+    # Find new distance (for re-normalization)
+    d_new = np.sqrt(np.sum(r ** 2))
+
+    # Renormalize
+    r = r * d_orig / d_new
+
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
+
+    #now re-cast into an appropriate Representation, and precess if need be
+    representation = CartesianRepresentation(x=x, y=y, z=z)
+    if isinstance(fk4coord.data, UnitSphericalRepresentation):
+        representation = representation.represent_as(UnitSphericalRepresentation)
+    fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox)
+    if fk4coord.equinox != fk4noeframe.equinox:
+        #precession
+        fk4noe = fk4noe.transform_to(fk4noeframe)
+    return fk4noe
+
+
+@frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
+def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
+
+    #first precess, if necessary
+    if fk4noecoord.equinox != fk4frame.equinox:
+        fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox)
+        fk4noecoord = fk4noecoord.transform_to(fk4noe_w_fk4equinox)
+
+    # Extract cartesian vector
+    c = fk4noecoord.cartesian.xyz
+    r = np.asarray(c.reshape((3, c.size // 3)))
+
+    # Find distance (for re-normalization)
+    d_orig = np.sqrt(np.sum(r ** 2))
+
+    # Apply E-terms of aberration. Note that this depends on the equinox (not
+    # the observing time/epoch) of the coordinates. See issue #1496 for a
+    # discussion of this.
+    eterms_a = np.asarray(fk4_e_terms(fk4noecoord.equinox))
+    r0 = r.copy()
+    for _ in range(10):
+        r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
+
+    # Find new distance (for re-normalization)
+    d_new = np.sqrt(np.sum(r ** 2))
+
+    # Renormalize
+    r = r * d_orig / d_new
+
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
+
+    #now re-cast into an appropriate Representation, and precess if need be
+    representation = CartesianRepresentation(x=x, y=y, z=z)
+    if isinstance(fk4coord.data, UnitSphericalRepresentation):
+        representation = representation.represent_as(UnitSphericalRepresentation)
+    return fk4frame.realize_frame(representation)
+
+# FK5 to/from FK4 ------------------->
+
+# B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
+_B1950_TO_J2000_M = \
+    np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
+            [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
+            [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
+
+_FK4_CORR = \
+    np.mat([[-0.0026455262, -1.1539918689, +2.1111346190],
+            [+1.1540628161, -0.0129042997, +0.0236021478],
+            [-2.1112979048, -0.0056024448, +0.0102587734]]) * 1.e-6
+
+# This transformation can't be static because the observation date is needed.
+@frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK5)
+def fk4_no_e_to_fk5(fk4noecoord, fk5frame, skip_precession=False):
+
+    # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
+    # Note this is *julian century*, not besselian
+    T = (fk4noecoord.obstime.jyear - 1950.) / 100.
+
+    B = _B1950_TO_J2000_M + _FK4_CORR * T
+
+    # If equinox is not B1950, need to precess first
+    if skip_precession or fk4noecoord.equinox == _EQUINOX_B1950:
+        return B
+    else:
+        return B * fk4noecoord._precession_matrix(fk4noecoord.equinox, _EQUINOX_B1950)
+
+# This transformation can't be static because the observation date is needed.
+@frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK4NoETerms)
+def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
+
+    # Get transposed matrix from FK4 -> FK5 assuming equinox B1950 -> J2000
+    B = fk4_no_e_to_fk5(fk4noeframe, fk5coord, skip_precession=True).T
+
+    pmat = fk4noecoord._precession_matrix(_EQUINOX_B1950, fk4noeframe.equinox)
+
+    # If equinox is not B1950, need to precess first
+    if fk5coord.equinox == _EQUINOX_J2000:
+        return pmat * B
+    else:
+        return pmat * B * fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
+
+# Galactic to/from FK4/FK5 ----------------------->
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, Galactic)
 def fk5_to_gal(fk5coord, galframe):
@@ -233,7 +402,7 @@ def fk4_to_gal(fk4coords, galframe):
     mat1 = rotation_matrix(180 - Galactic._lon0_B1950.degree, 'z')
     mat2 = rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, 'y')
     mat3 = rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')
-    matprec = fk4coords._precession_matrix_besselian(fk4coords.equinox, _EQUINOX_B1950)
+    matprec = fk4coords._precession_matrix(fk4coords.equinox, _EQUINOX_B1950)
 
     return mat1 * mat2 * mat3 * matprec
 
