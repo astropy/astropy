@@ -103,6 +103,10 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - Fixed a bug where calling ``astropy.wcs.Wcsprm.sub`` with
+    ``WCSSUB_CELESTIAL`` may cause memory corruption due to
+    underallocation of a temporary buffer. [#2350]
+
 - Misc
 
   - Fixes for compatibility with Python 3.4. [#1945]
