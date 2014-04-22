@@ -103,7 +103,7 @@ def _auto_format_func(format_, val):
 
     Returns the formatted value.
     """
-    if callable(format_):
+    if six.callable(format_):
         format_func = lambda format_, val: format_(val.tolist())
         try:
             out = format_func(format_, val)
