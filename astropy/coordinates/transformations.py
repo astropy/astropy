@@ -1,11 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains the framework for transforming points from
-one coordinate system to another (e.g. equatorial to galactic). The
-implementation is actually in individual coordinates in the
-`builtin_systems` module, while this module provides the framework and
-related utilities.
+This module contains a general framework for defining graphs of transformations
+between coordinates, suitable for either spatial coordinates or more generalized
+coordinate systems.
+
+The fundamental idea is that each class is a node in the transformation graph,
+and transitions from one node to another are defined as functions (or methods)
+wrapped in transformation objects.
+
+This module also includes more specific transformation classes for
+celestial/spatial coordinate frames, generally focused around matrix-style
+transformations that are typically how the algorithms are defined.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -25,15 +31,14 @@ from ..extern import six
 from ..utils import deprecated
 
 
-__all__ = ['TransformGraph',
-           'StaticMatrixTransform', 'FunctionTransform',
-           'DynamicMatrixTransform', 'CompositeStaticMatrixTransform'
+__all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
+           'StaticMatrixTransform', 'DynamicMatrixTransform'
            ]
 
 
 class TransformGraph(object):
     """
-    A graph representing the paths between coordinate systems.
+    A graph representing the paths between coordinates.
     """
 
     def __init__(self):
@@ -49,12 +54,13 @@ class TransformGraph(object):
         Parameters
         ----------
         fromsys : class
-            The coordinate system *class* to start from
+            The coordinate frame class to start from.
         tosys : class
-            The coordinate system *class* to transform to
-        transform : callable
-            The transformation object. Should have call parameters compatible
-            with `CoordinateTransform`.
+            The coordinate frame class to transform into.
+        transform : CoordinateTransform or similar callable
+            The transformation object. Typically a `CoordinateTransform` object,
+            although it may be some other callable that is called with the same
+            signature.
 
         Raises
         ------
@@ -80,11 +86,11 @@ class TransformGraph(object):
         Parameters
         ----------
         fromsys : class or `None`
-            The coordinate system *class* to start from. If `None`,
+            The coordinate frame *class* to start from. If `None`,
             ``transform`` will be searched for and removed (``tosys`` must
             also be `None`).
         tosys : class or `None`
-            The coordinate system *class* to transform into. If `None`,
+            The coordinate frame *class* to transform into. If `None`,
             ``transform`` will be searched for and removed (``fromsys`` must
             also be `None`).
         transform : callable or `None`
@@ -129,9 +135,9 @@ class TransformGraph(object):
         Parameters
         ----------
         fromsys : class
-            The starting coordinate system.
+            The coordinate frame class to start from.
         tosys : class
-            The starting coordinate system.
+            The coordinate frame class to transform into.
 
         Returns
         -------
@@ -241,8 +247,8 @@ class TransformGraph(object):
         weights on transforms are modified inplace.
         """
         self._shortestpaths = {}
+        self._composite_cache = {}
 
-    # TODO: cache composites so they don't need to be generated every time?
     def get_transform(self, fromsys, tosys):
         """
         Determines or generates a transformation between two coordinate
@@ -251,9 +257,9 @@ class TransformGraph(object):
         Parameters
         ----------
         fromsys : class
-            The coordinate system *class* to start from
+            The coordinate frame class to start from.
         tosys : class
-            The coordinate system *class* to transform into.
+            The coordinate frame class to transform into.
 
         Returns
         -------
@@ -261,6 +267,11 @@ class TransformGraph(object):
             If there is a path from ``fromsys`` to ``tosys``, this is a
             transform object for that path.  If `None`, no path could be found.
         """
+        if not inspect.isclass(fromsys):
+            raise TypeError('fromsys is not a class')
+        if not inspect.isclass(fromsys):
+            raise TypeError('tosys is not a class')
+
         if tosys in self._graph[fromsys]:
             return self._graph[fromsys][tosys]
         else:
@@ -275,37 +286,49 @@ class TransformGraph(object):
                 transforms.append(self._graph[currsys][p])
                 currsys = p
 
-            # TODO: collapse "runs" of statics?
-            if all([isinstance(p, StaticMatrixTransform) for p in path]):
-                return CompositeStaticMatrixTransform(transforms, fromsys, tosys, register_graph=False)
-            else:
-                return CompositeTransform(transforms, fromsys, tosys, register_graph=False)
+            fttuple = (fromsys, tosys)
+            if fttuple not in self._composite_cache:
+                comptrans = CompositeTransform(transforms, fromsys, tosys,
+                                               register_graph=False)
+                self._composite_cache[fttuple] = comptrans
+            return self._composite_cache[fttuple]
 
-    @deprecated('0.4', alternative='BaseCoordinateFrame.short_name')
-    def add_coord_name(self, name, coordcls):
+    def add_coord_name(self, name, coordcls=None):
         """
-        Adds an alias for a coordinate, primarily for allowing
+        Adds an alias for a coordinate.  This is mainly for allowing
         attribute-style access of coordinate transformations (e.g.,
-        ``coordasgal = coord.galactic``).
+        ``coordasgal = coord.galactic``), or otherwise defining alternative
+        names.
+
+        If ``coordcls`` is set to None, this will instead yield a function that
+        accepts a class.  This is intended for use as a decorator::
+
+            @graph.add_coord_name('mycoordalias')
+            class MyCoord(BaseCoordinateFrame):
+                ...
 
         Parameters
         ----------
         name : str
             The alias for the coordinate class. Should be a valid
             python identifier.
-        coordcls : class
-            The class object to be referenced by this name.
+        coordcls : class or None
+            The class object to be referenced by this name.  If None, this
+            method will return a function suitable for use as a decorator
+            (see above).
 
         Raises
         ------
         ValueError
             If ``coordcls`` already has a name assigned.
         """
-        for key, val in six.iteritems(self._clsaliases):
-            if val == coordcls:
-                msg = 'Coordinate class {0} already has a name: {1}'
-                raise ValueError(msg.format(coordcls, key))
-        self._clsaliases[name] = coordcls
+        if coordcls is None:
+            def add_coord_name_deco(cc):
+                self.add_coord_name(name, cc)
+                return cc
+            return deco
+        else:
+            self._clsaliases[name] = coordcls
 
     def lookup_name(self, name):
         """
@@ -476,9 +499,9 @@ class TransformGraph(object):
         transcls : class
             The class of the transformation object to create.
         fromsys : class
-            The coordinate system this function starts from.
+            The coordinate frame class to start from.
         tosys : class
-            The coordinate system this function results in.
+            The coordinate frame class to transform into.
         priority : number
             The priority if this transform when finding the shortest
             coordinate tranform path - large numbers are lower priorities.
@@ -537,17 +560,26 @@ class CoordinateTransform(object):
     Parameters
     ----------
     fromsys : class
-        The coordinate system *class* to start from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system *class* to transform into.
+        The coordinate frame class to transform into.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
     register_graph : TransformGraph or None
         A graph to register this transformation with on creation, or
         None to leave it unregistered.
     """
 
-    def __init__(self, fromsys, tosys, register_graph=None):
+    def __init__(self, fromsys, tosys, priority=1, register_graph=None):
+        if not inspect.isclass(fromsys):
+            raise TypeError('fromsys must be a class')
+        if not inspect.isclass(tosys):
+            raise TypeError('tosys must be a class')
+
         self.fromsys = fromsys
         self.tosys = tosys
+        self.priority = float(priority)
 
         if register_graph:
             # this will do the type-checking when it adds to the graph
@@ -595,27 +627,45 @@ class CoordinateTransform(object):
         graph.remove_transform(self.fromsys, self.tosys, self)
 
     @abstractmethod
-    def __call__(self, fromcoord):
+    def __call__(self, fromcoord, toframe):
         """
-        Accepts the provided coordinate object and yields a new coordinate
-        object with the transform applied.
+        Does the actual coordinate transformation from the `fromsys` class to
+        the `tosys` class.
+
+        Parameters
+        ----------
+        fromcoord : fromsys object
+            An object of class matching `fromsys` that is to be transformed.
+        toframe : object
+            An object that has the attributes necessary to fully specify the
+            frame.  That is, it must have attributes with names that match the
+            keys of `tosys.frame_attr_names`. Typically this is of class
+            `toframe`, but it *might* be some other class as long as it has the
+            appropriate attributes.
+
+        Returns
+        -------
+        tocoord : tosys object
+            The new coordinate after the transform has been applied.
         """
 
 
 class FunctionTransform(CoordinateTransform):
     """
-    A coordinate transformation defined by a function that simply
-    accepts a coordinate object and returns the transformed coordinate
-    object.
+    A coordinate transformation defined by a function that accepts a
+    coordinate object and returns the transformed coordinate object.
 
     Parameters
     ----------
     func : callable
-        The transformation function.
+        The transformation function. Should have a call signature
+        ``func(formcoord, toframe)``. Note that, unlike
+        `CoordinateTransform.__call__`, `toframe` is assumed to be of type
+        `tosys` for this function.
     fromsys : class
-        The coordinate system *class* to start from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system *class* to transform into.
+        The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
@@ -628,7 +678,7 @@ class FunctionTransform(CoordinateTransform):
     TypeError
         If ``func`` is not callable.
     ValueError
-        If ``func`` cannot accept one argument.
+        If ``func`` cannot accept two arguments.
 
 
     """
@@ -639,20 +689,20 @@ class FunctionTransform(CoordinateTransform):
             raise TypeError('func must be callable')
 
         with ignored(TypeError):
-            # hopefully this person knows what they're doing...
+            # TypeError raised for things getargspec can't process.  We'll trust
+            # the transform designer knows what they're doing, though, because
+            # sometimes this is fine..
             argspec = getargspec(func)
-            if (len(argspec[0]) - len(argspec[3]) != 1) and not argspec[1]:
-                raise ValueError('provided function does not accept a single '
-                                 'argument')
+            if (len(argspec[0]) - len(argspec[3]) != 2) and not argspec[1]:
+                raise ValueError('provided function does not accept two arguments')
 
         self.func = func
-        self.priority = priority
 
         super(FunctionTransform, self).__init__(fromsys, tosys,
-            register_graph=register_graph)
+            priority=priority, register_graph=register_graph)
 
-    def __call__(self, fromcoord):
-        res = self.func(fromcoord)
+    def __call__(self, fromcoord, toframe):
+        res = self.func(fromcoord, toframe)
         if not isinstance(res, self.tosys):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
@@ -664,16 +714,20 @@ class StaticMatrixTransform(CoordinateTransform):
     A coordinate transformation defined as a 3 x 3 cartesian
     transformation matrix.
 
+    This is distinct from DynamicMatrixTransform in that this kind of matrix is
+    independent of frame attributes.  That is, it depends *only* on the class of
+    the frame.
+
     Parameters
     ----------
     matrix : array-like or callable
         A 3 x 3 matrix for transforming 3-vectors. In most cases will
         be unitary (although this is not strictly required). If a callable,
-        will be called with no arguments to get the matrix.
+        will be called *with no arguments* to get the matrix.
     fromsys : class
-        The coordinate system *class* to start from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system *class* to transform into.
+        The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
@@ -688,16 +742,17 @@ class StaticMatrixTransform(CoordinateTransform):
 
     """
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
-        if callable(matrix):
+        if six.callable(matrix):
             matrix = matrix()
         self.matrix = np.array(matrix)
+
         if self.matrix.shape != (3, 3):
             raise ValueError('Provided matrix is not 3 x 3')
-        self.priority = priority
-        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
-            register_graph=register_graph)
 
-    def __call__(self, fromcoord):
+        super(StaticMatrixTransform, self).__init__(fromsys, tosys,
+            priority=priority, register_graph=register_graph)
+
+    def __call__(self, fromcoord, toframe):
         from .representation import CartesianRepresentation, \
                                     UnitSphericalRepresentation
 
@@ -718,44 +773,7 @@ class StaticMatrixTransform(CoordinateTransform):
         frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
                            for attrnm in self.overlapping_frame_attr_names])
 
-        return self.tosys(newrep, **frameattrs)
-
-
-class CompositeStaticMatrixTransform(StaticMatrixTransform):
-    """
-    A ``MatrixTransform`` constructed by combining a sequence of matricies
-    together.  See ``MatrixTransform`` for syntax details.
-
-    Parameters
-    ----------
-    matrices : sequence of array-like
-        A sequence of 3 x 3 cartesian transformation matricies.
-    fromsys : class
-        The coordinate system *class* to start from.
-    tosys : class
-        The coordinate system *class* to transform into.
-    priority : number
-        The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
-        A graph to register this transformation with on creation, or
-        None to leave it unregistered.
-
-    """
-    def __init__(self, matricies, fromsys, tosys, priority=1,
-        register_graph=None):
-        self.matricies = [np.array(m) for m in matricies]
-        for m in matricies:
-            if m.shape != (3, 3):
-                raise ValueError('One of the provided matrices is not 3 x 3')
-
-        matrix = np.array(self.matricies[0])
-        if len(self.matricies) > 1:
-            for m in self.matricies[1:]:
-                matrix = np.dot(np.asarray(matrix), m)
-
-        super(CompositeStaticMatrixTransform, self).__init__(
-              matrix, fromsys, tosys, priority, register_graph=register_graph)
+        return toframe.realize_frame(newrep, **frameattrs)
 
 
 class DynamicMatrixTransform(CoordinateTransform):
@@ -763,15 +781,19 @@ class DynamicMatrixTransform(CoordinateTransform):
     A coordinate transformation specified as a function that yields a
     3 x 3 cartesian transformation matrix.
 
+    This is similar to, but distinct from StaticMatrixTransform, in that the
+    matrix for this class might depend on frame attributes.
+
     Parameters
     ----------
     matrix_func : callable
-        A callable that accepts a coordinate object and yields the 3 x 3
-        matrix that converts it to the new coordinate system.
+        A callable that has the signature `matrix_func(fromcoord, toframe) and
+        returns a 3 x 3 matrix that converts `fromcoord` in a cartesian
+        representation to the new coordinate system.
     fromsys : class
-        The coordinate system *class* to start from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system *class* to transform into.
+        The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
@@ -790,17 +812,17 @@ class DynamicMatrixTransform(CoordinateTransform):
         if not six.callable(matrix_func):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
-        self.priority = priority
-        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-                                            register_graph=register_graph)
 
-    def __call__(self, fromcoord):
+        super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
+            priority=priority, register_graph=register_graph)
+
+    def __call__(self, fromcoord, toframe):
         from .representation import CartesianRepresentation, \
                                     UnitSphericalRepresentation
 
         xyz = fromcoord.represent_as(CartesianRepresentation).xyz
         v = xyz.reshape((3, xyz.size // 3))
-        v2 = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
+        v2 = np.dot(np.asarray(self.matrix_func(fromcoord, toframe)), v)
         subshape = xyz.shape[1:]
         x = v2[0].reshape(subshape)
         y = v2[1].reshape(subshape)
@@ -812,25 +834,26 @@ class DynamicMatrixTransform(CoordinateTransform):
             #think it has a valid distance
             newrep = newrep.represent_as(UnitSphericalRepresentation)
 
-        frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
-                           for attrnm in self.overlapping_frame_attr_names])
-
-        return self.tosys(newrep, **frameattrs)
+        return toframe.realize_frame(newrep)
 
 
 class CompositeTransform(CoordinateTransform):
     """
-    A ``MatrixTransform`` constructed by combining a sequence of matricies
-    together.  See ``MatrixTransform`` for syntax details.
+    A transformation constructed by combining together a series of single-step
+    transformations.
+
+    Note that the intermediate frame objects are constructed using any frame
+    attributes in `toframe` that overlap with the intermediate frame.  Any frame
+    attributes that are not present use the defaults.
 
     Parameters
     ----------
     transforms : sequence of `CoordinateTransform`s
-        A sequence of transformations to apply in sequence.
+        The sequence of transformations to apply.
     fromsys : class
-        The coordinate system *class* to start from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system *class* to transform into.
+        The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
@@ -841,15 +864,27 @@ class CompositeTransform(CoordinateTransform):
     """
     def __init__(self, transforms, fromsys, tosys, priority=1,
                  register_graph=None):
-        self.transforms = transforms
         super(CompositeTransform, self).__init__(fromsys, tosys,
-            register_graph=register_graph)
+            priority=priority, register_graph=register_graph)
 
-    def __call__(self, fromcoord):
-        coord = fromcoord
+        self.transforms = tuple(transforms)
+
+    def __call__(self, fromcoord, toframe):
+        currcoord = fromcoord
         for t in self.transforms:
-            coord = t(coord)
-        return coord
+            #need to make sure `toframe` is actually the correct intermediate
+            #frame type
+            if isinstance(toframe, t.tosys):
+                currtoframe = toframe
+            else:
+                #build an intermediate frame with attributes matching `toframe`
+                #*if* they're in toframe
+                frattrs = dict([(nm, getattr(toframe, nm))
+                                for nm in t.tosys.frame_attr_names
+                                if hasattr(toframe, nm)])
+                currtoframe = t.tosys(**frattrs)
+            currcoord = t(coord, currtoframe)
+        return currcoord
 
 
 #<------------function decorators for actual practical use--------------------->
@@ -863,7 +898,7 @@ class _CopyObstimeFunctionTransform(FunctionTransform):
     removed in the next version.
     """
 
-    def __call__(self, fromcoord):
+    def __call__(self, fromcoord, toframe):
         res = super(_CopyObstimeFunctionTransform, self).__call__(fromcoord)
         # copy over the obstime
         if hasattr(fromcoord, '_obstime') and hasattr(res, '_obstime'):
@@ -885,9 +920,9 @@ def transform_function(fromsys, tosys, copyobstime=True, priority=1):
     Parameters
     ----------
     fromsys : class
-        The coordinate system this function starts from.
+        The coordinate frame class to start from.
     tosys : class
-        The coordinate system this function results in.
+        The coordinate frame class to transform into.
     copyobstime : bool
         If `True` (default) the value of the  ``_obstime`` attribute will be
         copied to the newly-produced coordinate.
