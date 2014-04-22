@@ -163,3 +163,18 @@ def test_transform():
 
     assert_allclose(i1.ra, i2.ra)
     assert_allclose(i1.dec, i2.dec)
+
+def test_sep():
+    from ..builtin_frames import ICRS
+
+    i1 = ICRS(ra=0*u.deg, dec=1*u.deg)
+    i2 = ICRS(ra=0*u.deg, dec=2*u.deg)
+
+    sep = i1.separation(i2)
+    assert sep.deg == 1
+
+    i3 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
+    i4 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[4, 5]*u.kpc)
+
+    sep3d = i3.separation_3d(i4)
+    assert_allclose(sep3d.to(u.kpc).value, np.array([1, 1]))

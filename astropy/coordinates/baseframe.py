@@ -32,6 +32,17 @@ class FrameMeta(type):
             for propnm, reprnm in six.iteritems(clsdct['preferred_attr_names']):
                 clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
 
+            #and also the frame_attr_names to make them immutible after creation
+            for attrnm in clsdct['frame_attr_names']:
+                if attrnm in clsdct:
+                    if isinstance(clsdct[attrnm], property):
+                        #means the property was defined already... so trust the
+                        #subclasser and don't make a new one
+                        continue
+                    else:
+                        raise ValueError("A non-property exists that's *also* in frame_attr_names")
+                clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
+
             #update the class docstring with the preferred initialization
             #TODO: make this more-correct for the astropy doc style
             init_docstr = """
@@ -49,6 +60,12 @@ class FrameMeta(type):
             return getattr(rep, reprnm)
         return getter
 
+    @staticmethod
+    def frame_attr_factory(attrnm):
+        def getter(self):
+            return getattr(self, '_'+ attrnm)
+        return getter
+
 
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
@@ -64,9 +81,9 @@ class BaseCoordinateFrame(object):
 
         for fnm, fdefault in six.iteritems(self.frame_attr_names):
             if fnm in kwargs:
-                setattr(self, fnm, kwargs.pop(fnm))
+                setattr(self, '_' + fnm, kwargs.pop(fnm))
             else:
-                setattr(self, fnm, fdefault)
+                setattr(self, '_' + fnm, fdefault)
 
         pref_rep = self.preferred_representation
 
@@ -256,6 +273,81 @@ class BaseCoordinateFrame(object):
             return self.realize_frame(self.data[view])
         else:
             raise ValueError('Cannot index a frame with no data')
+
+    def separation(self, other):
+        """
+        Computes on-sky separation between this coordinate and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.SphericalCoordinatesBase`
+            The coordinate to get the separation to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Angle`
+            The on-sky separation between this and the ``other`` coordinate.
+
+        Notes
+        -----
+        The separation is calculated using the Vincenty formula, which
+        is stable at all locations, including poles and antipodes [1]_.
+
+        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+
+        """
+        from .representation import UnitSphericalRepresentation
+        from .angle_utilities import angular_separation
+        from .angles import Angle
+
+        self_unit_sph = self.represent_as(UnitSphericalRepresentation)
+        other_unit_sph = other.transform_to(self.__class__).represent_as(UnitSphericalRepresentation)
+
+        # Get the separation as a Quantity, convert to Angle in degrees
+        sep = angular_separation(self_unit_sph.lon, self_unit_sph.lat,
+                                 other_unit_sph.lon, other_unit_sph.lat)
+        return Angle(sep, unit=u.degree)
+
+    def separation_3d(self, other):
+        """
+        Computes three dimensional separation between this coordinate
+        and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.SphericalCoordinatesBase`
+            The coordinate system to get the distance to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates.
+
+        Raises
+        ------
+        ValueError
+            If this or the other coordinate do not have distances.
+        """
+        from .representation import UnitSphericalRepresentation
+        from .distances import Distance
+
+        if self.data.__class__ == UnitSphericalRepresentation:
+            raise ValueError('This object does not have a distance; cannot '
+                             'compute 3d separation.')
+
+        # do this first just in case the conversion somehow creates a distance
+        other_in_self_system = other.transform_to(self.__class__)
+
+        if other_in_self_system.__class__ == UnitSphericalRepresentation:
+            raise ValueError('The other object does not have a distance; '
+                             'cannot compute 3d separation.')
+
+        dx = self.cartesian.x - other_in_self_system.cartesian.x
+        dy = self.cartesian.y - other_in_self_system.cartesian.y
+        dz = self.cartesian.z - other_in_self_system.cartesian.z
+
+        distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
+        return Distance(distval, dx.unit)
 
     @property
     def cartesian(self):
