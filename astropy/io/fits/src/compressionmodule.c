@@ -767,7 +767,6 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
         *bufsize += ((size_t) (IOBUFLEN - (*bufsize % IOBUFLEN)));
     }
 
-    // TODO: Add error handling here
     *buf = calloc(*bufsize, sizeof(char));
 fail:
     Py_XDECREF(header);
@@ -918,18 +917,20 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     // We just need to get the compressed bytes and Astropy will handle the
     // writing of them.
     init_output_buffer(hdu, &outbuf, &outbufsize);
+    if (outbuf == NULL) {
+        return NULL;
+    }
+
     open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
-        free(outbuf);
-        return NULL;
+        goto fail;
     }
 
     Fptr = fileptr->Fptr;
 
     bitpix_to_datatypes(Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
-        free(outbuf);
-        return NULL;
+        goto fail;
     }
 
     indata = (PyArrayObject*) PyObject_GetAttrString(hdu, "data");
@@ -937,14 +938,12 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     fits_write_img(fileptr, datatype, 1, PyArray_SIZE(indata), indata->data,
                    &status);
     if (status != 0) {
-        free(outbuf);
         process_status_err(status);
         goto fail;
     }
 
     fits_flush_buffer(fileptr, 1, &status);
     if (status != 0) {
-        free(outbuf);
         process_status_err(status);
         goto fail;
     }
@@ -971,7 +970,15 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
 
+    goto cleanup;
+
 fail:
+    if (outbuf != NULL) {
+        // At this point outbuf should never not be NULL, but in principle
+        // buggy code somewhere in CFITSIO or Numpy could set it to NULL
+        free(outbuf);
+    }
+cleanup:
     if (columns != NULL) {
         PyMem_Free(columns);
         Fptr->tableptr = NULL;
