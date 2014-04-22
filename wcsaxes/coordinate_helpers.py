@@ -14,6 +14,7 @@ from .ticks import Ticks
 from .ticklabels import TickLabels
 from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
+from . import settings
 
 from . import six
 
@@ -302,7 +303,7 @@ class CoordinateHelper(object):
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
-        frame = self.frame.sample(1000)
+        frame = self.frame.sample(settings.FRAME_BOUNDARY_SAMPLES)
 
         self.ticks.clear()
         self.ticklabels.clear()

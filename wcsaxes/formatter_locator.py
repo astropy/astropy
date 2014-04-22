@@ -235,20 +235,20 @@ class AngleFormatterLocator(BaseFormatterLocator):
     def formatter(self, values, spacing):
 
         if len(values) > 0:
-
+            spacing = spacing.to(u.arcsec).value
             if self.format is None:
-                if spacing > 1 * u.degree:
+                if spacing > 3600:
                     fields = 1
                     precision = 0
-                elif spacing > 1. * u.arcmin:
+                elif spacing > 60:
                     fields = 2
                     precision = 0
-                elif spacing > 1. * u.arcsec:
+                elif spacing > 1:
                     fields = 3
                     precision = 0
                 else:
                     fields = 3
-                    precision = -int(np.floor(np.log10(spacing.to(u.arcsec).value)))
+                    precision = -int(np.floor(np.log10(spacing)))
                 decimal = False
                 unit = u.degree
             else:
