@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import copy
+import inspect
 
 # Dependencies
 import numpy as np
@@ -157,6 +158,10 @@ class BaseCoordinateFrame(object):
             If there is no possible transformation route.
         """
         from .errors import ConvertError
+
+        if inspect.isclass(new_frame):
+            #means use the defaults for this class
+            new_frame = new_frame()
 
         trans = frame_transform_graph.get_transform(self.__class__, new_frame)
         if trans is None:

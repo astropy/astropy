@@ -104,3 +104,37 @@ def test_getitem():
 
     iidx2 = i[0]
     assert iidx2.ra.isscalar
+
+def test_transform():
+    """
+    This test just makes sure the transform architecture works, but does *not*
+    actually test all the builtin transforms themselves are accurate
+    """
+    from ..builtin_frames import ICRS, FK4, FK5
+    from ...time import Time
+
+    i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
+    f = i.transform_to(FK5)
+    i2 = f.transform_to(ICRS)
+
+    assert i2.data.__class__ == representation.UnitSphericalRepresentation
+
+    assert_allclose(i.ra, i2.ra)
+    assert_allclose(i.dec, i2.dec)
+
+
+    i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
+    f = i.transform_to(FK5)
+    i2 = f.transform_to(ICRS)
+
+    assert i2.data.__class__ != representation.UnitSphericalRepresentation
+
+
+
+    #make sure self-transforms also work
+    i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
+    i2 = i.transform_to(ICRS)
+
+    assert_allclose(i.ra, i2.ra)
+    assert_allclose(i.dec, i2.dec)
+

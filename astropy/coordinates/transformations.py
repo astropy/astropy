@@ -518,7 +518,7 @@ class TransformGraph(object):
             # this doesn't do anything directly with the trasnform because
             # ``register_graph=self`` stores it in the transform graph
             # automatically
-            transcls(func, fromsys, tosys, func, priority=priority,
+            transcls(func, fromsys, tosys, priority=priority,
                      register_graph=self)
             return func
         return deco
@@ -555,6 +555,15 @@ class CoordinateTransform(object):
         else:
             if not inspect.isclass(fromsys) or not inspect.isclass(tosys):
                 raise TypeError('fromsys and tosys must be classes')
+
+        self.overlapping_frame_attr_names = overlap = []
+        if (hasattr(fromsys, 'frame_attr_names') and
+                hasattr(tosys, 'frame_attr_names')):
+            #the if statement is there so that non-frame things might be usable
+            #if it makes sense
+            for from_nm in fromsys.frame_attr_names:
+                if from_nm in tosys.frame_attr_names:
+                    overlap.append(from_nm)
 
     def register(self, graph):
         """
@@ -689,28 +698,27 @@ class StaticMatrixTransform(CoordinateTransform):
             register_graph=register_graph)
 
     def __call__(self, fromcoord):
-        from .representation import CartesianRepresentation
+        from .representation import CartesianRepresentation, \
+                                    UnitSphericalRepresentation
 
-        if hasattr(fromcoord, 'represent_as'):
-            c = fromcoord.represent_as(CartesianRepresentation)
-        else:
-            #TODO: remove the else option when only APE5-style is allowed
-            c = fromcoord.cartesian
-        v = c.reshape((3, c.size // 3))
+        xyz = fromcoord.represent_as(CartesianRepresentation).xyz
+        v = xyz.reshape((3, xyz.size // 3))
         v2 = np.dot(np.asarray(self.matrix), v)
-        subshape = c.shape[1:]
+        subshape = xyz.shape[1:]
         x = v2[0].reshape(subshape)
         y = v2[1].reshape(subshape)
         z = v2[2].reshape(subshape)
 
-        newunit = None if fromcoord.distance is None else fromcoord.distance.unit
-        result = self.tosys(x=x, y=y, z=z, unit=newunit)
+        newrep = CartesianRepresentation(x, y, z)
+        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+            #need to special-case this because otherwise the new class will
+            #think it has a valid distance
+            newrep = newrep.represent_as(UnitSphericalRepresentation)
 
-        # copy over the observation time
-        if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
-            result._obstime = fromcoord._obstime
+        frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
+                           for attrnm in self.overlapping_frame_attr_names])
 
-        return result
+        return self.tosys(newrep, **frameattrs)
 
 
 class CompositeStaticMatrixTransform(StaticMatrixTransform):
@@ -784,31 +792,30 @@ class DynamicMatrixTransform(CoordinateTransform):
         self.matrix_func = matrix_func
         self.priority = priority
         super(DynamicMatrixTransform, self).__init__(fromsys, tosys,
-            register_graph=register_graph)
+                                            register_graph=register_graph)
 
     def __call__(self, fromcoord):
-        from .representation import CartesianRepresentation
+        from .representation import CartesianRepresentation, \
+                                    UnitSphericalRepresentation
 
-        if hasattr(fromcoord, 'represent_as'):
-            c = fromcoord.represent_as(CartesianRepresentation)
-        else:
-            #TODO: remove the else option when only APE5-style is allowed
-            c = fromcoord.cartesian
-        v = c.reshape((3, c.size // 3))
+        xyz = fromcoord.represent_as(CartesianRepresentation).xyz
+        v = xyz.reshape((3, xyz.size // 3))
         v2 = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
-        subshape = c.shape[1:]
+        subshape = xyz.shape[1:]
         x = v2[0].reshape(subshape)
         y = v2[1].reshape(subshape)
         z = v2[2].reshape(subshape)
 
-        newunit = None if fromcoord.distance is None else fromcoord.distance.unit
-        result = self.tosys(x=x, y=y, z=z, unit=newunit)
+        newrep = CartesianRepresentation(x, y, z)
+        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+            #need to special-case this because otherwise the new class will
+            #think it has a valid distance
+            newrep = newrep.represent_as(UnitSphericalRepresentation)
 
-        # copy over the observation time
-        if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
-            result._obstime = fromcoord._obstime
+        frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
+                           for attrnm in self.overlapping_frame_attr_names])
 
-        return result
+        return self.tosys(newrep, **frameattrs)
 
 
 class CompositeTransform(CoordinateTransform):
