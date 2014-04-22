@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.21 - an implementation of the FITS WCS standard.
+  WCSLIB 4.22 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 4.21 2014/03/24 05:12:27 mcalabre Exp $
+  $Id: prj.c,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -4052,7 +4052,7 @@ int stat[];
 
 
   /* Do bounds checking on the native coordinates. */
-  if (prj->bounds&4 && prjbchk(1.0e-13, nx, my, spt, phi, theta, stat)) {
+  if (prj->bounds&4 && prjbchk(1.0e-12, nx, my, spt, phi, theta, stat)) {
     if (!status) status = PRJERR_BAD_PIX_SET("sflx2s");
   }
 
@@ -5119,9 +5119,22 @@ int stat[];
 
     istat = 0;
     if (s == 0.0) {
+      /* Latitude of divergence. */
       r = 0.0;
       istat = 1;
       if (!status) status = PRJERR_BAD_WORLD_SET("cops2x");
+
+    } else if (fabs(*thetap) == 90.0) {
+      /* Return an exact value at the poles. */
+      r = 0.0;
+
+      /* Bounds checking. */
+      if (prj->bounds&1) {
+        if ((*thetap < 0.0) != (prj->pv[1] < 0.0)) {
+          istat = 1;
+          if (!status) status = PRJERR_BAD_WORLD_SET("cops2x");
+        }
+      }
 
     } else {
       r = prj->w[2] - prj->w[3]*sind(t)/s;
@@ -6163,8 +6176,9 @@ int stat[];
 *      prj->x0      Fiducial offset in x.
 *      prj->y0      Fiducial offset in y.
 *      prj->w[0]    r0*(pi/180)
-*      prj->w[1]    1/r0
+*      prj->w[1]    (180/pi)/r0
 *      prj->w[2]    2*r0
+*      prj->w[3]    (pi/180)/(2*r0)
 *      prj->prjx2s  Pointer to pcox2s().
 *      prj->prjs2x  Pointer to pcos2x().
 *===========================================================================*/
@@ -6198,6 +6212,7 @@ struct prjprm *prj;
     prj->w[1] = 1.0/prj->w[0];
     prj->w[2] = 2.0*prj->r0;
   }
+  prj->w[3] = D2R/prj->w[2];
 
   prj->prjx2s = pcox2s;
   prj->prjs2x = pcos2x;
@@ -6279,24 +6294,23 @@ int stat[];
         *thetap = copysign(90.0, yj);
 
       } else {
-        /* Iterative solution using weighted division of the interval. */
-        if (yj > 0.0) {
-          thepos =  90.0;
+        if (w < 1.0e-4) {
+          /* To avoid cot(theta) blowing up near theta == 0. */
+          the    = yj / (prj->w[0] + prj->w[3]*xj*xj);
+          ymthe  = yj - prj->w[0]*the;
+          tanthe = tand(the);
+
         } else {
-          thepos = -90.0;
-        }
-        theneg = 0.0;
+          /* Iterative solution using weighted division of the interval. */
+          thepos = yj / prj->w[0];
+          theneg = 0.0;
 
-        xx = xj*xj;
-        ymthe = yj - prj->w[0]*thepos;
-        fpos = xx + ymthe*ymthe;
-        fneg = -999.0;
+          /* Setting fneg = -fpos halves the interval in the first iter. */
+          xx = xj*xj;
+          fpos  =  xx;
+          fneg  = -xx;
 
-        for (k = 0; k < 64; k++) {
-          if (fneg < -100.0) {
-            /* Equal division of the interval. */
-            the = (thepos+theneg)/2.0;
-          } else {
+          for (k = 0; k < 64; k++) {
             /* Weighted division of the interval. */
             lambda = fpos/(fpos-fneg);
             if (lambda < 0.1) {
@@ -6305,24 +6319,24 @@ int stat[];
               lambda = 0.9;
             }
             the = thepos - lambda*(thepos-theneg);
-          }
 
-          /* Compute the residue. */
-          ymthe = yj - prj->w[0]*(the);
-          tanthe = tand(the);
-          f = xx + ymthe*(ymthe - prj->w[2]/tanthe);
+            /* Compute the residue. */
+            ymthe  = yj - prj->w[0]*the;
+            tanthe = tand(the);
+            f = xx + ymthe*(ymthe - prj->w[2]/tanthe);
 
-          /* Check for convergence. */
-          if (fabs(f) < tol) break;
-          if (fabs(thepos-theneg) < tol) break;
+            /* Check for convergence. */
+            if (fabs(f) < tol) break;
+            if (fabs(thepos-theneg) < tol) break;
 
-          /* Redefine the interval. */
-          if (f > 0.0) {
-            thepos = the;
-            fpos = f;
-          } else {
-            theneg = the;
-            fneg = f;
+            /* Redefine the interval. */
+            if (f > 0.0) {
+              thepos = the;
+              fpos = f;
+            } else {
+              theneg = the;
+              fneg = f;
+            }
           }
         }
 
@@ -6362,7 +6376,7 @@ int stat[];
 
 {
   int mphi, mtheta, rowlen, rowoff, status;
-  double alpha, costhe, cotthe, sinthe, therad;
+  double cospsi, costhe, cotthe, sinpsi, sinthe, therad;
   register int iphi, itheta, *statp;
   register const double *phip, *thetap;
   register double *xp, *yp;
@@ -6402,21 +6416,32 @@ int stat[];
   yp = y;
   statp = stat;
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    therad = (*thetap)*D2R;
-    sincosd(*thetap, &sinthe, &costhe);
-
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
-      if (sinthe == 0.0) {
+    if (*thetap == 0.0) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
         *xp =  prj->w[0]*(*xp) - prj->x0;
         *yp = -prj->y0;
-      } else {
-        alpha  = (*xp)*sinthe;
-        cotthe = costhe/sinthe;
-        *xp = prj->r0*cotthe*sind(alpha) - prj->x0;
-        *yp = prj->r0*(cotthe*(1.0 - cosd(alpha)) + therad) - prj->y0;
+        *(statp++) = 0;
       }
 
-      *(statp++) = 0;
+    } else if (fabs(*thetap) < 1.0e-4) {
+      /* To avoid cot(theta) blowing up near theta == 0. */
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+        *xp = prj->w[0]*(*xp)*cosd(*thetap) - prj->x0;
+        *yp = (prj->w[0] + prj->w[3]*(*xp)*(*xp))*(*thetap) - prj->y0;
+        *(statp++) = 0;
+      }
+
+    } else {
+      therad = (*thetap)*D2R;
+      sincosd(*thetap, &sinthe, &costhe);
+
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+        sincosd((*xp)*sinthe, &sinpsi, &cospsi);
+        cotthe = costhe/sinthe;
+        *xp = prj->r0*cotthe*sinpsi - prj->x0;
+        *yp = prj->r0*(cotthe*(1.0 - cospsi) + therad) - prj->y0;
+        *(statp++) = 0;
+      }
     }
   }
 

@@ -149,7 +149,7 @@ New Features
 - ``astropy.wcs``
 
   - astropy now requires wcslib version 4.20 or later.  The version of
-    wcslib included with astropy has been updated to version 4.21.
+    wcslib included with astropy has been updated to version 4.22.
 
   - Bounds checking is now performed on native spherical
     coordinates.  Any out-of-bounds values will be returned as
@@ -302,7 +302,7 @@ Bug Fixes
 - ``astropy.wcs``
 
   - Astropy now requires wcslib version 4.20 or later.  The version of
-    wcslib included with astropy has been updated to version 4.21.  The
+    wcslib included with astropy has been updated to version 4.22.  The
     following is the relevant parts of the ``wcslib`` changelog:
 
     - This version of wcslib brings some bugfixes from the astropy project
@@ -317,6 +317,12 @@ Bug Fixes
       in ``hpxx2s`` relating to implementation of the vector API; and
       in ``xphx2s`` relating to setting an out-of-bounds value of
       *phi*.
+
+    - In the ``PCO`` projection, use alternative projection equations
+      for greater numerical precision near theta == 0.  In the ``COP``
+      projection, return an exact result for theta at the poles.
+      Relaxed the tolerance for bounds checking a little in ``SFL``
+      projection.
 
   - A new method, ``Wcsprm.bounds_check`` (corresponding to wcslib's
     ``wcsbchk``) has been added to control what bounds checking is performed by

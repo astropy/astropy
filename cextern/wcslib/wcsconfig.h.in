@@ -1,11 +1,11 @@
 /*============================================================================
 *
 * wcsconfig.h is generated from wcsconfig.h.in by 'configure'.  It contains
-* C preprocessor macro definitions for compiling WCSLIB 4.21
+* C preprocessor macro definitions for compiling WCSLIB 4.22
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/people/Mark.Calabretta
-* $Id: wcsconfig.h.in,v 4.21 2014/03/24 05:12:29 mcalabre Exp $
+* $Id: wcsconfig.h.in,v 4.22 2014/04/12 15:03:54 mcalabre Exp $
 *===========================================================================*/
 
 /* WCSLIB library version number. */

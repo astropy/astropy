@@ -1,3 +1,14 @@
+WCSLIB version 4.22 (2014/04/13)
+--------------------------------
+
+* C library
+
+  - In pcox2s() and pcos2x(), use alternative projection equations for
+    greater numerical precision near theta == 0.  In cops2x(), return
+    an exact result for theta at the poles.  Relaxed the tolerance for
+    bounds checking a little in sflx2s().
+
+
 WCSLIB version 4.21 (2014/03/24)
 --------------------------------
 
@@ -2098,4 +2109,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.21 2014/03/24 05:12:29 mcalabre Exp $
+$Id: CHANGES,v 4.22 2014/04/12 15:03:54 mcalabre Exp $
