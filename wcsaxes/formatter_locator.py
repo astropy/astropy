@@ -235,8 +235,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
     def formatter(self, values, spacing):
 
         if len(values) > 0:
-            spacing = spacing.to(u.arcsec).value
             if self.format is None:
+                spacing = spacing.to(u.arcsec).value
                 if spacing > 3600:
                     fields = 1
                     precision = 0
