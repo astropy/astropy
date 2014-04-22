@@ -110,7 +110,7 @@ def test_transform():
     This test just makes sure the transform architecture works, but does *not*
     actually test all the builtin transforms themselves are accurate
     """
-    from ..builtin_frames import ICRS, FK4, FK5
+    from ..builtin_frames import ICRS, FK4, FK5, Galactic
     from ...time import Time
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
@@ -151,3 +151,11 @@ def test_transform():
         assert_allclose(f.ra, f2.ra)
     with pytest.raises(AssertionError):
         assert_allclose(f.dec, f2.dec)
+
+
+    #finally, check Galactic round-tripping
+    i1 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
+    i2 = i1.transform_to(Galactic).transform_to(ICRS)
+
+    assert_allclose(i1.ra, i2.ra)
+    assert_allclose(i1.dec, i2.dec)

@@ -119,6 +119,32 @@ class FK4(BaseCoordinateFrame):
     preferred_attr_names = {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
+    @staticmethod
+    def _precession_matrix(oldequinox, newequinox):
+        """
+        Compute and return the precession matrix for FK4 using Newcomb's method.
+        Used inside some of the transformation functions.
+
+        Parameters
+        ----------
+        oldequinox : `~astropy.time.Time`
+            The equinox to precess from.
+        newequinox : `~astropy.time.Time`
+            The equinox to precess to.
+
+        Returns
+        -------
+        newcoord : array
+            The precession matrix to transform to the new equinox
+        """
+        from .earth_orientation import _precession_matrix_besselian
+
+        return _precession_matrix_besselian(oldequinox.byear, newequinox.byear)
+
+@frame_transform_graph.transform(DynamicMatrixTransform, FK4, FK4)
+def fk4_to_fk4(fk4coord1, fk4frame2):
+    return fk4coord1._precession_matrix(fk4coord1.equinox, fk4frame2.equinox)
+
 
 class FK4NoETerms(BaseCoordinateFrame):
     """
@@ -168,7 +194,7 @@ class AltAz(BaseCoordinateFrame):
 def icrs_to_fk5(icrscoord, fk5frame):
     # ICRS equinox should always be J2000, but just in case, use attribute
     pmat = fk5frame._precession_matrix(icrscoord.equinox, fk5frame.equinox)
-    return np.dot(pmat, icrscoord._ICRS_TO_FK5_J2000_MAT)
+    return pmat * icrscoord._ICRS_TO_FK5_J2000_MAT
 
 
 # can't be static because the equinox is needed
@@ -176,4 +202,42 @@ def icrs_to_fk5(icrscoord, fk5frame):
 def fk5_to_icrs(fk5coord, icrsframe):
     # ICRS equinox should always be J2000, but just in case, use attribute
     pmat = fk5coord._precession_matrix(fk5coord.equinox, icrsframe.equinox)
-    return np.dot(icrsframe._ICRS_TO_FK5_J2000_MAT.T, pmat)
+    return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat
+
+
+
+# Galactic to/from FK4/FK5
+# can't be static because the equinox is needed
+@frame_transform_graph.transform(DynamicMatrixTransform, FK5, Galactic)
+def fk5_to_gal(fk5coord, galframe):
+    from .angles import rotation_matrix
+
+    #need precess to J2000 first
+    pmat = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
+    mat1 = rotation_matrix(180 - Galactic._lon0_J2000.degree, 'z')
+    mat2 = rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, 'y')
+    mat3 = rotation_matrix(Galactic._ngp_J2000.ra.degree, 'z')
+
+    return mat1 * mat2 * mat3 * pmat
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform, Galactic, FK5)
+def _gal_to_fk5(galcoord, fk5frame):
+    return fk5_to_gal(fk5frame, galcoord).T
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, Galactic)
+def fk4_to_gal(fk4coords, galframe):
+    from .angles import rotation_matrix
+
+    mat1 = rotation_matrix(180 - Galactic._lon0_B1950.degree, 'z')
+    mat2 = rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, 'y')
+    mat3 = rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')
+    matprec = fk4coords._precession_matrix_besselian(fk4coords.equinox, _EQUINOX_B1950)
+
+    return mat1 * mat2 * mat3 * matprec
+
+
+@frame_transform_graph.transform(DynamicMatrixTransform, Galactic, FK4NoETerms)
+def gal_to_fk4(galcoords, fk4frame):
+    return fk4_to_gal(fk4frame, galcoords).T
