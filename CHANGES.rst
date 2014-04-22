@@ -416,6 +416,9 @@ Bug Fixes
 
   - Allow pickling of ``FITS_rec`` objects. [#1597]
 
+  - Improved behavior when writing large compressed images on OSX by removing
+    an unncessary check for platform architecture. [#2345]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
