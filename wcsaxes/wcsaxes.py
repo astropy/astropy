@@ -33,7 +33,7 @@ class WCSAxes(Axes):
             # User wants to override the transform for the final
             # data->pixel mapping
             self.transData = transData
-        
+
     def _hide_parent_artists(self):
         # Turn off spines and current axes
         for s in self.spines.values():
@@ -57,10 +57,17 @@ class WCSAxes(Axes):
         self._all_coords = [self.coords]
 
         # Common default settings
-        self.coords[0].set_axislabel_position('b')
-        self.coords[1].set_axislabel_position('l')
-        self.coords[0].set_ticklabel_position('b')
-        self.coords[1].set_ticklabel_position('l')
+        for coord_index in range(len(slices)):
+            if slices[coord_index] == 'x':
+                self.coords[coord_index].set_axislabel_position('b')
+                self.coords[coord_index].set_ticklabel_position('b')
+            elif slices[coord_index] == 'y':
+                self.coords[coord_index].set_axislabel_position('l')
+                self.coords[coord_index].set_ticklabel_position('l')
+            else:
+                self.coords[coord_index].set_axislabel_position('')
+                self.coords[coord_index].set_ticklabel_position('')
+                self.coords[coord_index].set_ticks_position('')
 
     def get_coord_range(self, transform):
         xmin, xmax = self.get_xlim()

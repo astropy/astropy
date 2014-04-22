@@ -23,27 +23,26 @@ class CoordinatesMap(object):
         self.frame = RectangularFrame(axes, self._transform)
 
         # Set up coordinates
-        self._coords = {}
+        self._coords = []
+        self._aliases = {}
+
         for coord_index in range(self._wcs.wcs.naxis):
+
             coord_type = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
-            self._coords[coord_index] = CoordinateHelper(parent_axes=axes,
-                                                         transform=self._transform,
-                                                         coord_index=coord_index,
-                                                         coord_type=coord_type,
-                                                         frame=self.frame)
+            self._coords.append(CoordinateHelper(parent_axes=axes,
+                                                 transform=self._transform,
+                                                 coord_index=coord_index,
+                                                 coord_type=coord_type,
+                                                 frame=self.frame))
 
 
-        # Set up aliases for coordinates
-        name_1 = self._wcs.wcs.ctype[0][:4].replace('-', '')
-        self._coords[name_1.lower()] = self._coords[0]
-        name_2 = self._wcs.wcs.ctype[1][:4].replace('-', '')
-        self._coords[name_2.lower()] = self._coords[1]
-
-        # Set up default labels if possible
+            # Set up aliases for coordinates
+            name = self._wcs.wcs.ctype[coord_index][:4].replace('-', '')
+            self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
-            return self._coords[item.lower()]
+            return self._coords[self._aliases[item.lower()]]
         else:
             return self._coords[item]
 
@@ -57,8 +56,8 @@ class CoordinatesMap(object):
         raise NotImplementedError()
 
     def __iter__(self):
-        for coord in range(self._wcs.wcs.naxis):
-            yield self._coords[coord]
+        for coord in self._coords:
+            yield coord
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
