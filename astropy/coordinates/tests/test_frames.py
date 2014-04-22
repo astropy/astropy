@@ -49,7 +49,9 @@ def test_create_nodata_frames():
 
     f4 = FK4()
     assert f4.equinox == FK4.frame_attr_names['equinox']
-    assert f4.obstime == FK4.frame_attr_names['obstime']
+
+    #obstime is special because it's a property that uses equinox if obstime is not set
+    assert f4.obstime in (FK4.frame_attr_names['obstime'], FK4.frame_attr_names['equinox'])
 
 
 def test_frame_repr():
@@ -132,9 +134,11 @@ def test_transform():
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
     f4 = f.transform_to(FK4)
+    f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
     #make sure attributes are copied over correctly
-    assert f.equinox == f4.equinox
+    assert f4.equinox == FK4.frame_attr_names['equinox']
+    assert f4_2.equinox == f.equinox
 
 
     #make sure self-transforms also work
