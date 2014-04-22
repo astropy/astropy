@@ -27,13 +27,41 @@ frame_transform_graph = TransformGraph()
 
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
-        if clsdct['preferred_representation']:
+        # somewhat hacky, but this is the best way to get the MRO according to
+        # https://mail.python.org/pipermail/python-list/2002-December/167861.html
+        mro = super(FrameMeta, cls).__new__(cls, name, parents, clsdct).__mro__
+        parent_clsdcts = [c.__dict__ for c in mro]
+        parent_clsdcts.insert(0, clsdct)
+
+        #now look through the whole MRO for the relevant class attributes
+        pref_repr = None
+        pref_attrs = frame_attrs = {}
+        found_pref_repr = found_pref_attrs = found_frame_attrs = False
+        for clsdcti in parent_clsdcts:
+            if not found_pref_repr and 'preferred_representation' in clsdcti:
+                pref_repr = clsdcti['preferred_representation']
+                found_pref_repr = True
+            if not found_pref_attrs and 'preferred_attr_names' in clsdcti:
+                pref_attrs = clsdcti['preferred_attr_names']
+                found_pref_attrs = True
+            if not found_frame_attrs and 'frame_attr_names' in clsdcti:
+                frame_attrs = clsdcti['frame_attr_names']
+                found_frame_attrs = True
+
+            if found_pref_repr and found_pref_attrs and found_frame_attrs:
+                break
+        else:
+            raise ValueError('Could not find the expected BaseCoordinateFrame '
+                             'class attributes.  Are you mis-using FrameMeta?')
+
+
+        if pref_repr:
             # create properties for the preferred_attr_names
-            for propnm, reprnm in six.iteritems(clsdct['preferred_attr_names']):
+            for propnm, reprnm in six.iteritems(pref_attrs):
                 clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
 
             #and also the frame_attr_names to make them immutible after creation
-            for attrnm in clsdct['frame_attr_names']:
+            for attrnm in frame_attrs:
                 if attrnm in clsdct:
                     if isinstance(clsdct[attrnm], property):
                         #means the property was defined already... so trust the
@@ -175,6 +203,9 @@ class BaseCoordinateFrame(object):
             If there is no possible transformation route.
         """
         from .errors import ConvertError
+
+        if self._data is None:
+            raise ValueError('Cannot transform a frame with no data')
 
         if inspect.isclass(new_frame):
             #means use the defaults for this class
