@@ -163,14 +163,15 @@ class BaseCoordinateFrame(object):
             #means use the defaults for this class
             new_frame = new_frame()
 
-        trans = frame_transform_graph.get_transform(self.__class__, new_frame)
+        trans = frame_transform_graph.get_transform(self.__class__,
+                                                    new_frame.__class__)
         if trans is None:
             if new_frame is self.__class__:
                 # no special transform needed
                 return copy.deepcopy(self)
-            raise ConvertError('Cannot transform from {0} to '
-                               '{1}'.format(self.__class__, new_frame))
-        return trans(self)
+            msg = 'Cannot transform from {0} to {1}'
+            raise ConvertError(msg.format(self.__class__, new_frame.__class__))
+        return trans(self, new_frame)
 
     def is_transformable_to(self, new_frame):
         """
@@ -179,22 +180,43 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        new_frame : class
-            The proposed frame to transform to.
+        new_frame : class or frame object
+            The proposed frame to transform into.
 
         Returns
         -------
         transformable : bool or str
             `True` if this can be transformed to ``new_frame``, `False` if
-            not. The string 'same' if ``new_frame`` is the same system as this
-            object (i.e. no transformation is needed).
+            not, or the string 'same' if ``new_frame`` is the same system as
+            this object but no transformation is defined.
+
+        Notes
+        -----
+        A return value of 'same' means the transformation will work, but it will
+        just give back a copy of this object.  The intended usage is::
+
+            if coord.is_transformable_to(some_unknown_frame):
+                coord2 = coord.transform_to(some_unknown_frame)
+
+        This will work even if `some_unknown_frame`  turns out to be the same
+        frame class as `coord`.  This is intended for cases where the frame is
+        the same regardless of the frame attributes (e.g. ICRS), but be aware
+        that it *might* also indicate that someone forgot to define the
+        transformation between two objects of the same frame class but with
+        different attributes.
+
         """
-        if self.__class__ is new_frame:
-            return 'same'
+
+        new_frame_cls = new_frame if inspect.isclass(new_frame) else new_frame.__class__
+        trans = frame_transform_graph.get_transform(self.__class__, new_frame_cls)
+
+        if trans is None:
+            if new_frame_cls is self.__class__:
+                return 'same'
+            else:
+                return False
         else:
-            trans = frame_transform_graph.get_transform(self.__class__,
-                                                        new_frame)
-            return trans is not None
+            return True
 
     def __repr__(self):
         from .representation import SphericalRepresentation
