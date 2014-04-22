@@ -19,8 +19,7 @@ from .angles import Angle
 from .representation import SphericalRepresentation
 from .baseframe import BaseCoordinateFrame, frame_transform_graph
 from .transformations import StaticMatrixTransform, FunctionTransform, \
-                             DynamicMatrixTransform, \
-                             CompositeStaticMatrixTransform
+                             DynamicMatrixTransform
 
 
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']
