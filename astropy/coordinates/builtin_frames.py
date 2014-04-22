@@ -7,6 +7,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import inspect
 
 # Dependencies
 import numpy as np
@@ -529,3 +530,40 @@ def fk4_to_gal(fk4coords, galframe):
 @frame_transform_graph.transform(DynamicMatrixTransform, Galactic, FK4NoETerms)
 def gal_to_fk4(galcoords, fk4frame):
     return fk4_to_gal(fk4frame, galcoords).T
+
+
+def _make_transform_graph_docs():
+    """
+    Generates a string for use with the coordinate package's docstring
+    to show the available transforms and coordinate systems
+    """
+    from textwrap import dedent
+
+    isclass = inspect.isclass
+    coosys = [item for item in list(six.itervalues(globals()))
+              if isclass(item) and issubclass(item, BaseCoordinateFrame)]
+    coosys.remove(BaseCoordinateFrame)
+    graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
+
+    docstr = """
+    The diagram below shows all of the coordinate systems built into the
+    `~astropy.coordinates` package, their aliases (usable for converting
+    other coordinates to them using attribute-style access) and the
+    pre-defined transformations between them.  The user is free to
+    override any of these transformations by defining new trasnformation
+    between these systems, but the pre-defined transformations should be
+    sufficient for typical usage.
+
+    The graph also indicates the priority for each transformation as a
+    number next to the arrow.  These priorities are used to decide the
+    preferred order when two trasnformation paths have the same number
+    of steps.  These priorities are defined such that path with a
+    *smaller* total priority are favored over one with larger.
+
+
+    .. graphviz::
+
+    """
+
+    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+_transform_graph_docs = _make_transform_graph_docs()

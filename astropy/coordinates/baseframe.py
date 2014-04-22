@@ -27,8 +27,6 @@ frame_transform_graph = TransformGraph()
 
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
-        from textwrap import dedent
-
         # somewhat hacky, but this is the best way to get the MRO according to
         # https://mail.python.org/pipermail/python-list/2002-December/167861.html
         mro = super(FrameMeta, cls).__new__(cls, name, parents, clsdct).__mro__
