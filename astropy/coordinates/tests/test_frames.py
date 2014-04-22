@@ -39,11 +39,14 @@ def test_create_data_frames():
 
 
 def test_create_nodata_frames():
-    from ..builtin_frames import ICRS, FK5
+    from ..builtin_frames import ICRS, FK4, FK5
 
     i = ICRS()
     assert len(ICRS.frame_attr_names) == 0
 
-    f = FK5()
-    assert f.equinox == FK5.frame_attr_names['equinox']
-    assert f.obstime == FK5.frame_attr_names['obstime']
+    f5 = FK5()
+    assert f5.equinox == FK5.frame_attr_names['equinox']
+
+    f4 = FK4()
+    assert f4.equinox == FK4.frame_attr_names['equinox']
+    assert f4.obstime == FK4.frame_attr_names['obstime']
