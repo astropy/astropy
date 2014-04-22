@@ -860,14 +860,37 @@ class CompositeTransform(CoordinateTransform):
     register_graph : TransformGraph or None
         A graph to register this transformation with on creation, or
         None to leave it unregistered.
+    collapse_static_mats : bool
+        If True, consecutive `StaticMatrixTransform` will be collapsed into a
+        single transformation to speed up the calculation.
 
     """
     def __init__(self, transforms, fromsys, tosys, priority=1,
-                 register_graph=None):
+                 register_graph=None, collapse_static_mats=True):
         super(CompositeTransform, self).__init__(fromsys, tosys,
-            priority=priority, register_graph=register_graph)
-
+                priority=priority, register_graph=register_graph)
+        if collapse_static_mats:
+            transfroms = self._combine_statics(transforms)
         self.transforms = tuple(transforms)
+
+    def _combine_statics(self, transforms):
+        """
+        Combines together sequences of `StaticMatrixTransform`s into a single
+        transform and returns it.
+        """
+        newtrans = []
+        for currtrans in transforms:
+            lasttrans = newtrans[-1] if len(newtrans) > 0 else None
+
+            if (isinstance(lasttrans, StaticMatrixTransform) and
+                isinstance(currtrans, StaticMatrixTransform)):
+                combinednat = np.dot(lasttrans.matrix, currtrans.matrix)
+                newtrans[-1] = StaticMatrixTransform(combinedmat,
+                                                     lasttrans.fromsys,
+                                                     currtrans.tosys)
+            else:
+                newtrans.append(currtrans)
+        return newtrans
 
     def __call__(self, fromcoord, toframe):
         currcoord = fromcoord
@@ -883,7 +906,7 @@ class CompositeTransform(CoordinateTransform):
                                 for nm in t.tosys.frame_attr_names
                                 if hasattr(toframe, nm)])
                 currtoframe = t.tosys(**frattrs)
-            currcoord = t(coord, currtoframe)
+            currcoord = t(currcoord, currtoframe)
         return currcoord
 
 
