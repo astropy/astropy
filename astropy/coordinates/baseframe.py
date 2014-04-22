@@ -143,7 +143,7 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        new_frame : class
+        new_frame : class or frame object
             The frame to transform this coordinate frame into.
 
         Returns

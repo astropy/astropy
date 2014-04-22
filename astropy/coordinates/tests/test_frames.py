@@ -130,6 +130,12 @@ def test_transform():
     assert i2.data.__class__ != representation.UnitSphericalRepresentation
 
 
+    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
+    f4 = f.transform_to(FK4)
+
+    #make sure attributes are copied over correctly
+    assert f.equinox == f4.equinox
+
 
     #make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
@@ -138,3 +144,10 @@ def test_transform():
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
 
+    f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001', scale='utc'))
+    f2 = f.transform_to(FK5)  # default equinox, so should be *different*
+    assert f2.equinox == FK5().equinox
+    with pytest.raises(AssertionError):
+        assert_allclose(f.ra, f2.ra)
+    with pytest.raises(AssertionError):
+        assert_allclose(f.dec, f2.dec)
