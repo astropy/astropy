@@ -230,6 +230,11 @@ API Changes
 
 - ``astropy.wcs``
 
+- ``calcFootprint`` was deprecated. It is replaced by ``calc_footprint``.
+  An optional boolean keyword ``center`` was added to ``calc_footprint``. 
+  It controls whether the centers or the corners of the pixels are used
+  in the computation. [#2384]
+
 Bug Fixes
 ^^^^^^^^^
 
