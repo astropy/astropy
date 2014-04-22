@@ -110,6 +110,24 @@ class BaseCoordinateFrame(object):
     def has_data(self):
         return self._data is not None
 
+    def realize_frame(self, representation):
+        """
+        Generates a new frame *with data* from a frame without data.
+
+        Parameters
+        ----------
+        representation : BaseRepresentation
+            The representation to use as the data for the new frame.
+
+        Returns
+        -------
+        frameobj : same as this frame
+            A new object with the same frame attributes as this one, but
+            with the `representation` as the data.
+        """
+        frattrs = dict([(nm, getattr(self, nm))for nm in self.frame_attr_names])
+        return self.__class__(representation, **frattrs)
+
     def represent_as(self, new_representation):
         cached_repr = self._rep_cache.get(new_representation.__name__, None)
         if not cached_repr:

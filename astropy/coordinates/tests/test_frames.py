@@ -67,3 +67,24 @@ def test_frame_repr():
     assert repr(i2).startswith('<ICRS coordinate: ')
     assert 'ra=' in repr(i2)
     assert 'distance=' in repr(i3)
+
+def test_realizing():
+    from ..builtin_frames import ICRS, FK5
+    from ...time import Time
+
+    rep = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+
+    i = ICRS()
+    i2 = i.realize_frame(rep)
+
+    assert not i.has_data
+    assert i2.has_data
+
+    f = FK5(equinox=Time('J2001', scale='utc'))
+    f2 = f.realize_frame(rep)
+
+    assert not f.has_data
+    assert f2.has_data
+
+    assert f2.equinox == f.equinox
+    assert f2.equinox != FK5.frame_attr_names['equinox']
