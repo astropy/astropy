@@ -1677,7 +1677,7 @@ PyWcsprm_sub(
     }
     nsub = (int)tmp;
 
-    axes = malloc(nsub * sizeof(int));
+    axes = malloc(nsub * sizeof(int) * 2);
     if (axes == NULL) {
       PyErr_SetString(PyExc_MemoryError, "Out of memory");
       goto exit;
