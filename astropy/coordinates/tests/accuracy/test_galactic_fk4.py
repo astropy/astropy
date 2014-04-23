@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -12,15 +11,14 @@ from ...builtin_frames import Galactic, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
+from ....utils.data import get_pkg_data_fileobj
 
 TOLERANCE = 0.5  # arcseconds
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-
 
 def test_galactic_fk4():
-
-    t = Table.read(os.path.join(ROOT, 'galactic_fk4.csv'), format='ascii')
+    with get_pkg_data_fileobj('galactic_fk4.csv') as f:
+        t = Table.read(f, format='ascii')
 
     for i in range(len(t)):
 

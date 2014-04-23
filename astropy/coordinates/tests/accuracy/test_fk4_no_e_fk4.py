@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 
 import os
 
@@ -13,18 +11,17 @@ from ...builtin_frames import FK4NoETerms, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
+from ....utils.data import get_pkg_data_fileobj
 
 # It looks as though SLALIB, which AST relies on, assumes a simplified version
 # of the e-terms corretion, so we have to up the tolerance a bit to get things
 # to agree.
 TOLERANCE = 1.e-5  # arcseconds
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-
 
 def test_fk4_no_e_fk5():
-
-    t = Table.read(os.path.join(ROOT, 'fk4_no_e_fk4.csv'), format='ascii')
+    with get_pkg_data_fileobj('fk4_no_e_fk4.csv') as f:
+        t = Table.read(f, format='ascii')
 
     # for i in range(len(t)):
 
