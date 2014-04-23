@@ -12,23 +12,20 @@ class MyRow(table.Row):
 
 
 class MyColumn(table.Column):
-    def cool(self):
-        return 'Cool!'
+    pass
 
 
 class MyMaskedColumn(table.Column):
-    def cool(self):
-        return 'MaskedCool!'
+    pass
 
 
 class MyTableColumns(table.TableColumns):
-    def cool(self):
-        return 'CoolTableColumns!'
+    pass
 
 
 class MyTableFormatter(pprint.TableFormatter):
-    def cool(self):
-        return 'CoolTableFormatter!'
+    pass
+
 
 class MyTable(table.Table):
     Row = MyRow
@@ -41,10 +38,9 @@ def test_simple_subclass():
     t = MyTable([[1, 2], [3, 4]])
     row = t[0]
     assert isinstance(row, MyRow)
-    assert str(row) == '(1, 3)'
-    assert t['col0'].cool() == 'Cool!'
-    assert t.columns.cool() == 'CoolTableColumns!'
-    assert t.formatter.cool() == 'CoolTableFormatter!'
+    assert isinstance(t['col0'], MyColumn)
+    assert isinstance(t.columns, MyTableColumns)
+    assert isinstance(t.formatter, MyTableFormatter)
 
     t2 = MyTable(t)
     row = t2[0]
@@ -60,6 +56,6 @@ def test_simple_subclass():
     row = t[0]
     assert isinstance(row, MyRow)
     assert str(row) == '(1, 3)'
-    assert t['col0'].cool() == 'MaskedCool!'
-    assert t.formatter.cool() == 'CoolTableFormatter!'
+    assert isinstance(t['col0'], MyMaskedColumn)
+    assert isinstance(t.formatter, MyTableFormatter)
     
