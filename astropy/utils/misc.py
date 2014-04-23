@@ -431,7 +431,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # This crazy way to get the type of a wrapper descriptor is
         # straight out of the Python 3.3 inspect module docs.
         if type(func) != type(str.__dict__['__add__']):
-            decprecated_func = functools.wraps(func)(deprecated_func)
+            deprecated_func = functools.wraps(func)(deprecated_func)
 
         deprecated_func.__doc__ = deprecate_doc(
             deprecated_func.__doc__, message)
