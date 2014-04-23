@@ -48,37 +48,6 @@ SCS_RADIUS = SCS_SR * u.degree
 
 
 @remote_data
-def test_basic_db():
-    """Read dummy ``basic.json`` database to test underlying database
-    functionality.
-
-    """
-    basic_db = vos_catalog.get_remote_catalog_db('basic')
-    assert sorted(basic_db) == ['__version__', 'catalogs', 'content']
-    assert basic_db['content'] == ['A', 'B', 'C']
-
-    assert basic_db.list_catalogs() == ['foo']
-    assert basic_db.list_catalogs(pattern='whatever') == []
-
-    foo_cat1 = basic_db.get_catalog('foo')
-    for k, v in basic_db.get_catalogs():
-        assert k == 'foo'
-        assert v._tree == foo_cat1._tree == {'title': 'bar', 'url': 'bar.foo'}
-
-    foo_cat2 = basic_db.get_catalog_by_url('bar.foo')
-    for k, v in basic_db.get_catalogs_by_url('bar.foo'):
-        assert k == 'foo'
-        assert v._tree == foo_cat2._tree == {'title': 'bar', 'url': 'bar.foo'}
-
-    try:
-        x = basic_db.get_catalog('not_there')
-    except vos_catalog.VOSError:
-        pass
-
-    assert vos_catalog.list_catalogs('basic') == ['foo']
-
-
-@remote_data
 class TestConeSearch(object):
     """Test Cone Search on a pre-defined access URL.
 
