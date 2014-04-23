@@ -563,7 +563,7 @@ naxis kwarg.
 
         Parameters
         ----------
-        header : astropy.io.fits header object, optional
+        header : `~astropy.io.fits.Header` object, optional
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
