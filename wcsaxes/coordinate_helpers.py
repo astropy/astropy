@@ -71,7 +71,7 @@ class CoordinateHelper(object):
                                   'facecolor':'none',
                                   'transform':self.parent_axes.transData}
 
-    def grid(self, draw_grid=True, **kwargs):
+    def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
         Plot grid lines for this coordinate.
 
@@ -82,7 +82,20 @@ class CoordinateHelper(object):
         ----------
         draw_grid : bool
             Whether to show the gridlines
+        grid_type : { 'lines' | 'contours' }
+            Whether to plot the contours by determining the grid lines in
+            world coordinates and then plotting them in world coordinates
+            (``'lines'``) or by determining the world coordinates at many
+            positions in the image and then drawing contours
+            (``'contours'``). The first is recommended for 2-d images, while
+            for 3-d (or higher dimensional) cubes, the ``'contours'`` option
+            is recommended.
         """
+
+        if grid_type in ('lines', 'contours'):
+            self._grid_type = grid_type
+        else:
+            raise ValueError("grid_type should be 'lines' or 'contours'")
 
         if 'color' in kwargs:
             kwargs['edgecolor'] = kwargs.pop('color')
@@ -238,15 +251,29 @@ class CoordinateHelper(object):
         renderer.open_group('coordinate_axis')
 
         self._update_ticks(renderer)
-        self._update_grid()
+
         self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
         if self.grid_lines_kwargs['visible']:
-            for path in self.grid_lines:
-                p = PathPatch(path, **self.grid_lines_kwargs)
-                p.set_clip_path(self.frame.path, Affine2D())
-                p.draw(renderer)
+
+            if self._grid_type == 'lines':
+                self._update_grid_lines()
+            else:
+                self._update_grid_contour()
+
+            if self._grid_type == 'lines':
+
+                for path in self.grid_lines:
+                    p = PathPatch(path, **self.grid_lines_kwargs)
+                    p.set_clip_path(self.frame.path, Affine2D())
+                    p.draw(renderer)
+
+            else:
+
+                for line in self.grid.collections:
+                    line.set(**self.grid_lines_kwargs)
+                    line.draw(renderer)
 
         renderer.close_group('coordinate_axis')
 
@@ -262,10 +289,10 @@ class CoordinateHelper(object):
 
         # TODO: this method should be optimized for speed
 
-        # Here we should determine the location and rotation of all the ticks.
-        # For each axis, we can check the intersections for the specific
-        # coordinate and once we have the tick positions, we can use the WCS to
-        # determine the rotations.
+        # Here we determine the location and rotation of all the ticks. For
+        # each axis, we can check the intersections for the specific
+        # coordinate and once we have the tick positions, we can use the WCS
+        # to determine the rotations.
 
         # Find the range of coordinates in all directions
         coord_range = self.parent_axes.get_coord_range(self.transform)
@@ -284,11 +311,33 @@ class CoordinateHelper(object):
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
-            world_off = spine.world.copy()
-            world_off[:, (self.coord_index + 1) % 2] += 1.e-5
-            pixel_off = self.parent_axes.transData.transform(self.transform.transform(world_off))
-            dpix_off = pixel_off - spine.pixel
-            tick_angle = np.degrees(np.arctan2(dpix_off[:,1], dpix_off[:,0]))
+
+            pixel0 = spine.data
+            world0 = spine.world[:,self.coord_index]
+            world0 = self.transform.transform(pixel0)[:,self.coord_index]
+
+            pixel1 = pixel0.copy()
+            pixel1[:,0] += 1
+            world1 = self.transform.transform(pixel1)[:,self.coord_index]
+
+            pixel2 = pixel0.copy()
+            pixel2[:,1] += 1 if self.frame.origin == 'lower' else -1
+            world2 = self.transform.transform(pixel2)[:,self.coord_index]
+
+            dx = (world1 - world0)
+            dy = (world2 - world0)
+
+            # Rotate by 90 degrees
+            dx, dy = -dy, dx
+
+            if self.coord_type == 'longitude':
+                # Here we wrap at 180 not self.coord_wrap since we want to
+                # always ensure abs(dx) < 180 and abs(dy) < 180
+                dx = wrap_angle_at(dx, 180.)
+                dy = wrap_angle_at(dy, 180.)
+
+            tick_angle = np.degrees(np.arctan2(dy, dx))
+
             normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
                     ((tick_angle - normal_angle_full) % 360 > 90.))
@@ -354,7 +403,7 @@ class CoordinateHelper(object):
                                         text=self._formatter_locator.formatter([world], spacing=spacing)[0],
                                         axis_displacement=imin + frac)
 
-    def _update_grid(self):
+    def _update_grid_lines(self):
 
         # For 3-d WCS with a correlated third axis, the *proper* way of
         # drawing a grid should be to find the world coordinates of all pixels
@@ -384,3 +433,33 @@ class CoordinateHelper(object):
             return get_gridline_path(self.parent_axes, self.transform, xy_world)
         else:
             return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
+
+    def _update_grid_contour(self):
+
+        xmin, xmax = self.parent_axes.get_xlim()
+        ymin, ymax = self.parent_axes.get_ylim()
+
+        X, Y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
+
+        coord_range = self.parent_axes.get_coord_range(self.transform)
+
+        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+
+        field = field[self.coord_index]
+
+        if self.coord_type == 'longitude':
+
+            # Find biggest gap in tick_world_coordinates and wrap in  middle
+            # For now just assume spacing is equal, so any mid-point will do
+            mid = 0.5 * (tick_world_coordinates[0] + tick_world_coordinates[1])
+            field = wrap_angle_at(field, mid)
+            tick_world_coordinates = wrap_angle_at(tick_world_coordinates, mid)
+
+            # Replace wraps by NaN
+            reset = (np.abs(np.diff(field[:,:-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1,:], axis=1)) > 180)
+            field[:-1,:-1][reset] = np.nan
+            field[1:,:-1][reset] = np.nan
+            field[:-1,1:][reset] = np.nan
+            field[1:,1:][reset] = np.nan
+
+        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates)

@@ -31,13 +31,13 @@ def get_lon_lat_path(ax, transform, lon_lat):
     # ylim = ax.get_ylim()
 
     # Transform line to pixel coordinates
-    pixel = transform.transform(lon_lat)
+    pixel = transform.inverted().transform(lon_lat)
 
     # In some spherical projections, some parts of the curve are 'behind' or
     # 'in front of' the plane of the image, so we find those by reversing the
     # transformation and finding points where the result is not consistent.
 
-    lon_lat_check = transform.inverted().transform(pixel)
+    lon_lat_check = transform.transform(pixel)
 
     sep = angular_separation(np.radians(lon_lat[:, 0]),
                              np.radians(lon_lat[:, 1]),
@@ -116,7 +116,7 @@ def get_gridline_path(ax, transform, world):
     # ylim = ax.get_ylim()
 
     # Transform line to pixel coordinates
-    pixel = transform.transform(world)
+    pixel = transform.inverted().transform(world)
 
     # Mask values with invalid pixel positions
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
