@@ -35,6 +35,7 @@ from distutils.core import Command
 
 from .. import test
 from ..utils.exceptions import AstropyWarning
+from ..config import configuration
 
 if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
     import pytest
@@ -243,7 +244,33 @@ class TestRunner(object):
         all_args = shlex.split(
             all_args, posix=not sys.platform.startswith('win'))
 
-        result = pytest.main(args=all_args, plugins=plugins)
+        # override the config locations to not make a new directory nor use
+        # existing cache or config
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        xdg_cache_home = os.environ.get('XDG_CACHE_HOME')
+        os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
+        os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
+        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+        # To fully force configuration reloading from a different file (in this
+        # case our default one in a temp directory), clear the config object
+        # cache.
+        configuration._cfgobjs.clear()
+
+        try:
+            result = pytest.main(args=all_args, plugins=plugins)
+        finally:
+            shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
+            shutil.rmtree(os.environ['XDG_CACHE_HOME'])
+            if xdg_config_home is not None:
+                os.environ['XDG_CONFIG_HOME'] = xdg_config_home
+            else:
+                del os.environ['XDG_CONFIG_HOME']
+            if xdg_cache_home is not None:
+                os.environ['XDG_CACHE_HOME'] = xdg_cache_home
+            else:
+                del os.environ['XDG_CACHE_HOME']
+            configuration._cfgobjs.clear()
 
         return result
 
@@ -452,23 +479,11 @@ class astropy_test(Command, object):
                    'sys.exit(result)')
             cmd = cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
-            # override the config locations to not make a new directory nor use
-            # existing cache or config
-            os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
-            os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
-            os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
-            os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
-
             # Run the tests in a subprocess--this is necessary since
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
-            try:
-                retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
-                                          cwd=testing_path, close_fds=False)
-            finally:
-                # kill the temporary dirs
-                shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
-                shutil.rmtree(os.environ['XDG_CACHE_HOME'])
+            retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
+                                      cwd=testing_path, close_fds=False)
         finally:
 
             # Remove temporary directory
