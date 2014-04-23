@@ -319,6 +319,8 @@ class _ImageBaseHDU(_ValidHDU):
             except KeyError:
                 pass
 
+        self._update_uint_scale_keywords()
+
         self._modified = False
 
     def _update_header_scale_info(self, dtype=None):
