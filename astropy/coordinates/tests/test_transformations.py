@@ -89,13 +89,22 @@ def test_coo_alias():
     """
     Tests the shortname/attribute-style accessing of transforms
     """
-    t.coordinate_alias('coo2', TestCoo2)
 
-    t.FunctionTransform(TestCoo1, TestCoo2, lambda c: TestCoo2(c.ra, c.dec))
+    try:
+        t.coordinate_alias('coo2', TestCoo2)
 
-    c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
-    assert c1.coo2.ra.degree == c1.ra.degree
-    assert c1.coo2.dec.degree == c1.dec.degree
+        t.FunctionTransform(TestCoo1, TestCoo2,
+                            lambda c: TestCoo2(c.ra, c.dec))
+
+        c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
+        assert c1.coo2.ra.degree == c1.ra.degree
+        assert c1.coo2.dec.degree == c1.dec.degree
+    finally:
+        # TODO: For the time being this is the simplest way to restore the
+        # global state changed by this test, but once some version of
+        # https://github.com/astropy/astropy/issues/2347 is implemented this
+        # should be changed
+        del t.master_transform_graph._clsaliases['coo2']
 
 def test_shortest_path():
     class FakeTransform(object):

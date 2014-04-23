@@ -93,6 +93,7 @@ class PolynomialBase(ParametricModel):
         else:
             return d[:, self._fit_param_indices]
 
+
 class PolynomialModel(PolynomialBase):
     """
     Base class for polynomial models.
