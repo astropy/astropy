@@ -520,6 +520,15 @@ of that and still support Python 2::
     >>> '\\u'
     '\\u'
 
+Compatibility between versions of Numpy
+---------------------------------------
+
+In general, code should aim to be compatible with the lowest supported version
+of NumPy_.  Sometimes, however, it is inefficient to code repeatedly around
+bugs in earlier versions. For those cases, code can be added to
+`astropy.utils.compat.numpy`; see the corresponding :ref:`instructions
+<numpy-compatibility>` for details.
+
 Requirements Specific to Affiliated Packages
 --------------------------------------------
 

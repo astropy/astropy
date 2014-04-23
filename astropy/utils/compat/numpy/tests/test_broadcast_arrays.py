@@ -10,12 +10,17 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from .. import broadcast_arrays, PR4622
-from ....tests.helper import pytest
-from .... import units as u
+from .....tests.helper import pytest
+from ..... import units as u
 
 
 def test_PR():
+    # the possibly patched version of broadcast_arrays should always be OK
     assert PR4622(broadcast_arrays) is True
+    if PR4622():
+        assert broadcast_arrays is np.broadcast_arrays
+    else:
+        assert broadcast_arrays is not np.broadcast_arrays
 
 
 def test_broadcast_quantity():

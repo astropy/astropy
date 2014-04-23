@@ -6,18 +6,26 @@ Utilities that manipulate strides to achieve desirable effects.
 An explanation of strides can be found in the "ndarray.rst" file in the
 NumPy reference guide.
 
+Notes
+-----
+The version provided here ensures broadcast_arrays passes on subclasses
+if one sets ``subok=True``; see https://github.com/numpy/numpy/pull/4622
+
 """
 from __future__ import division, absolute_import, print_function
 
 import numpy as np
 from numpy.lib.stride_tricks import DummyArray, as_strided, broadcast_arrays
 
-__all__ = ['broadcast_arrays', 'PR4622']
 
-
-# test whether broadcast_arrays respects subclasses
-# https://github.com/numpy/numpy/pull/4622
 def PR4622(function=np.broadcast_arrays):
+    """Test whether the broadcast_arrays function respects subclasses
+
+    By default, ``np.broadcast_arrays`` is checked
+
+    See https://github.com/numpy/numpy/pull/4622
+    """
+
     class MySubClass(np.ndarray):
         pass
 
