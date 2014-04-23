@@ -686,3 +686,108 @@ So now look at the ways to select columns from a |TableColumns| object:
   >>> t.columns['b']  # Choose column by name
   <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)
+
+Subclassing Table
+^^^^^^^^^^^^^^^^^^
+
+For some applications it can be useful to subclass the |Table| class in order
+to introduce specialized behavior.  In addition to subclassing |Table| it is
+frequently desirable to change the behavior of the internal class objects which
+are contained or created by a Table.  This includes rows, columns, formatting,
+and the columns container.  In order to do this the subclass needs to declare
+what class to use (if it is different from the built-in version).  This is done by
+specifying the following class attributes::
+
+  >>> class MyTable(Table):
+  ...     """
+  ...     Custom subclass of astropy.table.Table
+  ...     """
+  ...     Row = MyRow  # Use MyRow to create a row object
+  ...     Column = MyColumn  # Column
+  ...     MaskedColumn = MyMaskedColumn  # Masked Column
+  ...     TableColumns = MyTableColumns  # Ordered dict holding Column objects
+  ...     TableFormatter = MyTableFormatter  # Controls table output
+
+
+Example
+""""""""
+
+As an example, suppose you have a table of data with a certain set of fixed
+columns, but you also want to carry an arbitrary dictionary of keyword=value
+parameters for each row and then access those values using the same item access
+syntax as if they were columns.  It is assumed here that the extra parameters
+are contained in a numpy object-dtype column named ``params``::
+
+  >>> from astropy.table import Table, Row
+  >>> class ParamsRow(Row):
+  ...    """
+  ...    Row class that allows access to an arbitrary dict of parameters
+  ...    stored as a dict object in the ``params`` column.
+  ...    """
+  ...    def __getitem__(self, item):
+  ...        if item not in self.colnames:
+  ...            return self.data['params'][item]
+  ...        else:
+  ...            return self.data[item]
+  ...
+  ...    def keys(self):
+  ...        out = [name for name in self.colnames if name != 'params']
+  ...        params = [key.lower() for key in sorted(self.data['params'])]
+  ...        return out + params
+  ...
+  ...    def values(self):
+  ...        return [self[key] for key in self.keys()]
+
+Now we put this into action with a trival |Table| subclass::
+
+  >>> class ParamsTable(Table):
+  ...     Row = ParamsRow
+
+First make a table and add a couple of rows::
+
+  >>> t = ParamsTable(names=['a', 'b', 'params'], dtype=['i', 'f', 'O'])
+  >>> t.add_row((1, 2.0, {'x': 1.5, 'y': 2.5}))
+  >>> t.add_row((2, 3.0, {'z': 'hello', 'id': 123123}))
+  >>> print(t)
+   a   b             params
+  --- --- ----------------------------
+    1 2.0         {'y': 2.5, 'x': 1.5}
+    2 3.0 {'z': 'hello', 'id': 123123}
+
+Now see what we have from our specialized ``ParamsRow`` object::
+
+  >>> t[0]['y']
+  2.5
+  >>> t[1]['id']
+  123123
+  >>> t[1].keys()
+  ['a', 'b', 'id', 'z']
+  >>> t[1].values()
+  [2, 3.0, 123123, 'hello']
+
+To make this example really useful you might want to override
+``Table.__getitem__`` in order to allow table-level access to the parameter
+fields.  This might look something like::
+
+  class ParamsTable(table.Table):
+      Row = ParamsRow
+
+      def __getitem__(self, item):
+          if isinstance(item, six.string_types):
+              if item in self.colnames:
+                  return self.columns[item]
+              else:
+                  # If item is not a column name then create a new MaskedArray
+                  # corresponding to self['params'][item] for each row.  This
+                  # might not exist in some rows so mark as masked (missing) in
+                  # those cases.
+                  mask = np.zeros(len(self), dtype=np.bool)
+                  item = item.upper()
+                  values = [params.get(item) for params in self['params']]
+                  for ii, value in enumerate(values):
+                      if value is None:
+                          mask[ii] = True
+                          values[ii] = ''
+                  return self.MaskedColumn(name=item, data=values, mask=mask)
+
+          # ... and then the rest of the original __getitem__ ...
