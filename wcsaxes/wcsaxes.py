@@ -60,7 +60,7 @@ class WCSAxes(Axes):
             slices = ('x', 'y')
 
         # Common default settings
-        for coord_index in range(len(slices or [])):
+        for coord_index in range(len(slices)):
             if slices[coord_index] == 'x':
                 self.coords[coord_index].set_axislabel_position('b')
                 self.coords[coord_index].set_ticklabel_position('b')
