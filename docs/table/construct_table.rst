@@ -687,8 +687,11 @@ So now look at the ways to select columns from a |TableColumns| object:
   <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)
 
+
+.. _subclassing_table:
+
 Subclassing Table
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 For some applications it can be useful to subclass the |Table| class in order
 to introduce specialized behavior.  In addition to subclassing |Table| it is
