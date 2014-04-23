@@ -18,7 +18,7 @@ from ..extern import six
 from .. import units as u
 from .transformations import TransformGraph
 
-__all__ = ['BaseCoordinateFrame', 'frame_transform_graph']
+__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
 
 # the graph used for all transformations between frames
@@ -414,3 +414,30 @@ class BaseCoordinateFrame(object):
         from .representation import SphericalRepresentation
 
         return self.represent_as(SphericalRepresentation)
+
+
+class GenericFrame(BaseCoordinateFrame):
+    """
+    A frame object that can't store data but can hold any arbitrary frame
+    attributes. Mostly useful as a utility for the high-level class to store
+    intermediate frame attributes.
+
+    Parameters
+    ----------
+    frame_attrs : dict
+        A dictionary of attributes to be used as the frame attributes for this
+        frame.
+    """
+
+    def __init__(self, frame_attrs):
+        super(GenericFrame, self).__init__(None)
+
+        self.frame_attr_names = frame_attrs
+        for attrnm, attrval in six.iteritems(frame_attrs):
+            setattr(self, attrnm, attrval)
+
+    def __setattr__(self, name, value):
+        if name in self.frame_attr_names:
+            raise AttributeError("can't set frame attribute '{0}'".format(name))
+        else:
+            super(GenericFrame, self).__setattr__(name, value)

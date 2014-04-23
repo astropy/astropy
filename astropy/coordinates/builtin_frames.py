@@ -18,7 +18,7 @@ from .. import units as u
 from ..time import Time
 from .angles import Angle
 from .representation import SphericalRepresentation
-from .baseframe import BaseCoordinateFrame, frame_transform_graph
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .transformations import StaticMatrixTransform, FunctionTransform, \
                              DynamicMatrixTransform
 
@@ -543,6 +543,7 @@ def _make_transform_graph_docs():
     coosys = [item for item in list(six.itervalues(globals()))
               if isclass(item) and issubclass(item, BaseCoordinateFrame)]
     coosys.remove(BaseCoordinateFrame)
+    coosys.remove(GenericFrame)
     graphstr = frame_transform_graph.to_dot_graph(addnodes=coosys)
 
     docstr = """
