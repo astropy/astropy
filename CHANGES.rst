@@ -118,6 +118,9 @@ New Features
 
 - ``astropy.table``
 
+  - Allow subclassing of `Table` and the contained classes `Row`, `Column`,
+    `MaskedColumn`, `TableColumns`, and `TableFormatter`. [#2287]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the
