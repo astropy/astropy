@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 from .... import units as u
-from ... import FK4NoETerms, FK4
+from ...builtin_frames import FK4NoETerms, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
@@ -26,9 +26,13 @@ def test_fk4_no_e_fk5():
 
     t = Table.read(os.path.join(ROOT, 'fk4_no_e_fk4.csv'), format='ascii')
 
-    # FK4 to FK5
-    c1 = FK4(t['ra_in'], t['dec_in'],
-             unit=(u.degree, u.degree),
+    # for i in range(len(t)):
+
+    #     # Extract row
+    #     r = t[i]
+
+    # FK4 to FK4NoETerms
+    c1 = FK4(ra=t['ra_in']*u.deg, dec=t['dec_in']*u.deg,
              obstime=Time(t['obstime'], scale='utc'))
     c2 = c1.transform_to(FK4NoETerms)
 
@@ -38,14 +42,14 @@ def test_fk4_no_e_fk5():
 
     assert np.all(np.degrees(diff) * 3600. < TOLERANCE)
 
-    # FK5 to FK4
-    c1 = FK4NoETerms(t['ra_in'], t['dec_in'],
-                     unit=(u.degree, u.degree),
+    # FK4NoETerms to FK4
+    c1 = FK4NoETerms(ra=t['ra_in']*u.deg, dec=t['dec_in']*u.deg,
                      obstime=Time(t['obstime'], scale='utc'))
     c2 = c1.transform_to(FK4)
 
     # Find difference
     diff = angular_separation(c2.ra.radian, c2.dec.radian,
-                              np.radians(t['ra_fk4']), np.radians(t['dec_fk4']))
+                              np.radians(t['ra_fk4']),
+                              np.radians(t['dec_fk4']))
 
     assert np.all(np.degrees(diff) * 3600. < TOLERANCE)
