@@ -20,19 +20,20 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, transData=None,
+    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slices=None,
                  **kwargs):
+
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.reset_wcs(wcs)
+        self.reset_wcs(wcs, slices=slices)
         self._hide_parent_artists()
 
         if not (transData is None):
             # User wants to override the transform for the final
             # data->pixel mapping
             self.transData = transData
-        
+
     def _hide_parent_artists(self):
         # Turn off spines and current axes
         for s in self.spines.values():
@@ -41,7 +42,7 @@ class WCSAxes(Axes):
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
-    def reset_wcs(self, wcs):
+    def reset_wcs(self, wcs, slices=None):
         """
         Reset the current Axes, to use a new WCS object.
         """
@@ -51,22 +52,32 @@ class WCSAxes(Axes):
             wcs = IDENTITY
 
         self.wcs = wcs
-        self.coords = CoordinatesMap(self, self.wcs)
+        self.coords = CoordinatesMap(self, self.wcs, slice=slices)
+
         self._all_coords = [self.coords]
 
+        if slices is None:
+            slices = ('x', 'y')
+
         # Common default settings
-        self.coords[0].set_axislabel_position('b')
-        self.coords[1].set_axislabel_position('l')
-        self.coords[0].set_ticklabel_position('b')
-        self.coords[1].set_ticklabel_position('l')
+        for coord_index in range(len(slices)):
+            if slices[coord_index] == 'x':
+                self.coords[coord_index].set_axislabel_position('b')
+                self.coords[coord_index].set_ticklabel_position('b')
+            elif slices[coord_index] == 'y':
+                self.coords[coord_index].set_axislabel_position('l')
+                self.coords[coord_index].set_ticklabel_position('l')
+            else:
+                self.coords[coord_index].set_axislabel_position('')
+                self.coords[coord_index].set_ticklabel_position('')
+                self.coords[coord_index].set_ticks_position('')
 
     def get_coord_range(self, transform):
         xmin, xmax = self.get_xlim()
         ymin, ymax = self.get_ylim()
-        return find_coordinate_range(transform.inverted(),
+        return find_coordinate_range(transform,
                                      [xmin, xmax, ymin, ymax],
-                                     x_type=self.coords[0].coord_type,
-                                     y_type=self.coords[1].coord_type)
+                                     [coord.coord_type for coord in self.coords])
 
     def draw(self, renderer, inframe=False):
 
@@ -80,13 +91,13 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
 
             coords.frame.update()
-            coords[0]._draw(renderer, bboxes=self._bboxes)
-            coords[1]._draw(renderer, bboxes=self._bboxes)
+            for coord in coords:
+                coord._draw(renderer, bboxes=self._bboxes)
 
         for coords in self._all_coords:
 
-            coords[0]._draw_axislabels(renderer, bboxes=self._bboxes)
-            coords[1]._draw_axislabels(renderer, bboxes=self._bboxes)
+            for coord in coords:
+                coord._draw_axislabels(renderer, bboxes=self._bboxes)
 
         self.coords.frame.draw(renderer)
 
@@ -146,14 +157,11 @@ class WCSAxes(Axes):
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
                   the specified frame to the pixel/data coordinates.
         """
-        return self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime) + self.transData
+        return self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime).inverted() + self.transData
 
     def _get_transform_no_transdata(self, frame, equinox=None, obstime=None):
         """
-        Return a transform from the specified frame to data coordinates.
-
-        As for :meth:`wcsaxes.wcsaxes.WCSAxes.get_transform` but does not
-        include the last transformation from data to display coordinates.
+        Return a transform from data to the specified frame
         """
 
         if self.wcs is None and frame != 'pixel':
@@ -161,19 +169,19 @@ class WCSAxes(Axes):
 
         if isinstance(frame, WCS):
 
-            coord_in = get_coordinate_system(frame)
-            coord_out = get_coordinate_system(self.wcs)
+            coord_in = get_coordinate_system(self.wcs)
+            coord_out = get_coordinate_system(frame)
 
             if coord_in == coord_out:
 
-                return (WCSPixel2WorldTransform(frame)
-                        + WCSWorld2PixelTransform(self.wcs))
+                return (WCSPixel2WorldTransform(self.wcs)
+                        + WCSWorld2PixelTransform(frame))
 
             else:
 
-                return (WCSPixel2WorldTransform(frame)
+                return (WCSPixel2WorldTransform(self.wcs)
                         + CoordinateTransform(coord_in, coord_out)
-                        + WCSWorld2PixelTransform(self.wcs))
+                        + WCSWorld2PixelTransform(frame))
 
         elif frame == 'pixel':
 
@@ -181,39 +189,39 @@ class WCSAxes(Axes):
 
         elif isinstance(frame, Transform):
 
-            world2pixel = WCSWorld2PixelTransform(self.wcs)
+            pixel2world = WCSPixel2WorldTransform(self.wcs)
 
-            return frame + world2pixel
+            return pixel2world + frame
 
         else:
 
             from astropy.coordinates import FK5, Galactic
 
-            world2pixel = WCSWorld2PixelTransform(self.wcs)
+            pixel2world = WCSPixel2WorldTransform(self.wcs)
 
             if frame == 'world':
 
-                return world2pixel
+                return pixel2world
 
             elif frame == 'fk5':
 
                 coord_class = get_coordinate_system(self.wcs)
 
                 if coord_class is FK5:
-                    return world2pixel
+                    return pixel2world
                 else:
-                    return (CoordinateTransform(FK5, coord_class)
-                            + world2pixel)
+                    return (pixel2world
+                            + CoordinateTransform(coord_class, FK5))
 
             elif frame == 'galactic':
 
                 coord_class = get_coordinate_system(self.wcs)
 
                 if coord_class is Galactic:
-                    return world2pixel
+                    return pixel2world
                 else:
-                    return (CoordinateTransform(Galactic, coord_class)
-                            + world2pixel)
+                    return (pixel2world
+                            + CoordinateTransform(coord_class, Galactic))
 
             else:
 
