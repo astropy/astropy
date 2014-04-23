@@ -610,3 +610,46 @@ def test_out_of_bounds():
 
     assert not np.isnan(ra)
     assert not np.isnan(dec)
+
+
+def test_calc_footprint_1():
+    fits = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(fits)
+
+    axes = (1000, 1051)
+    ref = np.array([[ 202.39314493,   47.17753352],
+                    [ 202.71885939,   46.94630488],
+                    [ 202.94631893,   47.15855022],
+                    [ 202.72053428,   47.37893142]])
+    footprint = w.calc_footprint(axes=axes)
+    assert_allclose(footprint, ref)
+
+
+def test_calc_footprint_2():
+    """ Test calc_footprint without distortion. """
+    fits = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(fits)
+
+    axes = (1000, 1051)
+    ref = np.array([[ 202.39265216,   47.17756518],
+                    [ 202.7469062 ,   46.91483312],
+                    [ 203.11487481,   47.14359319],
+                    [ 202.76092671,   47.40745948]])
+    footprint = w.calc_footprint(axes=axes, undistort=False)
+    assert_allclose(footprint, ref)
+
+
+def test_calc_footprint_3():
+    """ Test calc_footprint with corner of the pixel."""
+    w = wcs.WCS()
+    w.wcs.ctype = ["GLON-CAR", "GLAT-CAR"]
+    w.wcs.crpix = [1.5, 5.5]
+    w.wcs.cdelt = [-0.1, 0.1]
+    axes = (2, 10)
+    ref = np.array([[0.1, -0.5],
+                    [0.1, 0.5],
+                    [359.9, 0.5],
+                    [359.9, -0.5]])
+ 
+    footprint = w.calc_footprint(axes=axes, undistort=False, center=False)
+    assert_allclose(footprint, ref)

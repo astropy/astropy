@@ -548,7 +548,12 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
+    @deprecated("0.4", name="calcFootprint", alternative="calc_footprint")            
     def calcFootprint(self, header=None, undistort=True, axes=None):
+        return self.calc_footprint(header=header, undistort=undistort, axes=axes,
+                                   center=True)
+
+    def calc_footprint(self, header=None, undistort=True, axes=None, center=True):
         """
         Calculates the footprint of the image on the sky.
 
@@ -558,7 +563,7 @@ naxis kwarg.
 
         Parameters
         ----------
-        header : astropy.io.fits header object, optional
+        header : `~astropy.io.fits.Header` object, optional
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
@@ -570,9 +575,13 @@ naxis kwarg.
             keywords from the header that was used to create this
             `WCS` object.
 
+        center : bool, optional
+            If `True` use the center of the pixel, otherwise use the corner.
+
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
+            The order is counter-clockwise starting with the bottom left corner.
         """
         if axes is not None:
             naxis1, naxis2 = axes
@@ -590,18 +599,20 @@ naxis kwarg.
                 naxis1 = header.get('NAXIS1', None)
                 naxis2 = header.get('NAXIS2', None)
 
-        corners = np.zeros(shape=(4, 2), dtype=np.float64)
         if naxis1 is None or naxis2 is None:
             return None
 
-        corners[0, 0] = 1.
-        corners[0, 1] = 1.
-        corners[1, 0] = 1.
-        corners[1, 1] = naxis2
-        corners[2, 0] = naxis1
-        corners[2, 1] = naxis2
-        corners[3, 0] = naxis1
-        corners[3, 1] = 1.
+        if center == True:
+            corners = np.array([[1, 1],
+                                [1, naxis2],
+                                [naxis1, naxis2],
+                                [naxis1, 1]], dtype = np.float64)
+        else:
+            corners = np.array([[0.5, 0.5],
+                                [0.5, naxis2 + 0.5],
+                                [naxis1 + 0.5, naxis2 + 0.5],
+                                [naxis1 + 0.5, 0.5]], dtype = np.float64)
+        
         if undistort:
             return self.all_pix2world(corners, 1)
         else:
@@ -1721,7 +1732,7 @@ naxis kwarg.
         f.write(comments)
         f.write('linear\n')
         f.write('polygon(')
-        self.calcFootprint().tofile(f, sep=',')
+        self.calc_footprint().tofile(f, sep=',')
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
