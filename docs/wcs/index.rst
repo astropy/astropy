@@ -64,6 +64,13 @@ The basic workflow is as follows:
          coordinates to image coordinates.  Commonly used for narrow
          column correction.
 
+For example , here is a code sample to convert pixel coordinates to world coordinates ::
+
+    from astropy import wcs
+        wcs = wcs.WCS('thefile.fits')
+        lon, lat = wcs.all_pix2world(30, 40, 0)
+        print(lon,lat)
+
 
 Using `astropy.wcs`
 ===================
