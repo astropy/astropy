@@ -9,7 +9,7 @@ try:
 except ImportError:
     from io import StringIO
 
-from ... import ascii as asciitable
+from ... import ascii
 
 from .common import setup_function, teardown_function
 
@@ -38,7 +38,7 @@ XCENTER YCENTER
 "        18.1" 280.2
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Rdb, exclude_names=['CHI']),
+    dict(kwargs=dict(Writer=ascii.Rdb, exclude_names=['CHI']),
          out="""\
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
 N	N	N	N	N	N	N	N	N	S
@@ -46,41 +46,41 @@ N	N	N	N	N	N	N	N	N	S
 18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Tab),
+    dict(kwargs=dict(Writer=ascii.Tab),
          out="""\
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
 14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
 18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Csv),
+    dict(kwargs=dict(Writer=ascii.Csv),
          out="""\
 ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 14,138.538,256.405,15.461,0.003,34.85955,4,-0.032,0.802,0,No_error
 18,18.114,280.170,22.329,0.206,30.12784,4,-2.544,1.104,0,No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.NoHeader),
+    dict(kwargs=dict(Writer=ascii.NoHeader),
          out="""\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.CommentedHeader),
+    dict(kwargs=dict(Writer=ascii.CommentedHeader),
          out="""\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.CommentedHeader, comment='&'),
+    dict(kwargs=dict(Writer=ascii.CommentedHeader, comment='&'),
          out="""\
 &ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Latex),
+    dict(kwargs=dict(Writer=ascii.Latex),
          out="""\
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
@@ -91,7 +91,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\end{table}
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.AASTex),
+    dict(kwargs=dict(Writer=ascii.AASTex),
          out="""\
 \\begin{deluxetable}{ccccccccccc}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}}
@@ -103,7 +103,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """
          ),
     dict(
-        kwargs=dict(Writer=asciitable.AASTex, caption='Mag values \\label{tab1}', latexdict={
+        kwargs=dict(Writer=ascii.AASTex, caption='Mag values \\label{tab1}', latexdict={
                     'units': {'MAG': '[mag]', 'XCENTER': '[pixel]'}, 'tabletype': 'deluxetable*',
                     'tablealign':'htpb'}),
         out="""\
@@ -118,7 +118,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """
     ),
     dict(
-        kwargs=dict(Writer=asciitable.Latex, caption='Mag values \\label{tab1}', latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}', 'data_end': [
+        kwargs=dict(Writer=ascii.Latex, caption='Mag values \\label{tab1}', latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}', 'data_end': [
                     '\\hline', '\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
                     'tabletype': 'table*',
                     'tablealign': 'h'},
@@ -139,7 +139,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\end{table*}
 """
     ),
-    dict(kwargs=dict(Writer=asciitable.Latex, latexdict=asciitable.latexdicts['template']),
+    dict(kwargs=dict(Writer=ascii.Latex, latexdict=ascii.latexdicts['template']),
          out="""\
 \\begin{tabletype}[tablealign]
 preamble
@@ -158,7 +158,7 @@ tablefoot
 \\end{tabletype}
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.HTML, htmldict={'css':'table,th,td{border:1px solid black;'}),
+    dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css':'table,th,td{border:1px solid black;'}),
          out="""\
 <html>
  <head>
@@ -213,7 +213,7 @@ table,th,td{border:1px solid black;  </style>
 </html>
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Ipac),
+    dict(kwargs=dict(Writer=ascii.Ipac),
          out="""\
 \\MERGERAD='INDEF'
 \\IRAF='NOAO/IRAFV2.10EXPORT'
@@ -319,7 +319,7 @@ a b c
 
 def check_write_table(test_def, table):
     out = StringIO()
-    asciitable.write(table, out, **test_def['kwargs'])
+    ascii.write(table, out, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
@@ -344,7 +344,7 @@ def check_write_table_via_table(test_def, table):
 
 
 def test_write_table():
-    table = asciitable.get_reader(Reader=asciitable.Daophot)
+    table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
@@ -353,7 +353,7 @@ def test_write_table():
 
 
 def test_write_fill_values():
-    data = asciitable.read(tab_to_fill)
+    data = ascii.read(tab_to_fill)
 
     for test_def in test_defs_fill_value:
         check_write_table(test_def, data)
