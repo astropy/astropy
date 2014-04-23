@@ -67,6 +67,40 @@ class BaseRepresentation(object):
     def to_cartesian(self):
         raise NotImplementedError()
 
+    @abc.abstractproperty
+    def _names(self):
+        """Return tuple with the names of the coordinate components"""
+        raise NotImplementedError()
+
+    @property
+    def _values(self):
+        allcomp = np.array([getattr(self, _name) for _name in self._names])
+        return np.rollaxis(allcomp, 0, len(allcomp.shape)).copy().view(
+            ','.join(['f8'] * len(self._names))).squeeze()
+
+    @property
+    def _units(self):
+        return [getattr(self, _name).unit for _name in self._names]
+
+    @property
+    def _unitstr(self):
+        if len(set(self._units)) == 1:
+            unitstr = self._units[0].to_string()
+        else:
+            unitstr = '({0})'.format(
+                ','.join([_unit.to_string() for _unit in self._units]))
+        return unitstr
+
+    def __str__(self):
+        return '{0} {1:s}'.format(self._values, self._unitstr)
+
+    def __repr__(self):
+        prefixstr = '<' + self.__class__.__name__ + ' '
+        arrstr = np.array2string(self._values, separator=',',
+                                 prefix=prefixstr)
+
+        return '{0}{1} {2:s}>'.format(prefixstr, arrstr, self._unitstr)
+
 
 class CartesianRepresentation(BaseRepresentation):
     """
@@ -152,6 +186,10 @@ class CartesianRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         return self
+
+    @property
+    def _names(self):
+        return 'x', 'y', 'z'
 
 
 class SphericalRepresentation(BaseRepresentation):
@@ -264,6 +302,10 @@ class SphericalRepresentation(BaseRepresentation):
 
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
+    @property
+    def _names(self):
+        return 'lon', 'lat', 'distance'
+
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """
@@ -343,6 +385,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lat = np.arctan2(cart.z, s)
 
         return UnitSphericalRepresentation(lon=lon, lat=lat)
+
+    @property
+    def _names(self):
+        return 'lon', 'lat'
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -453,6 +499,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
         return PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r)
 
+    @property
+    def _names(self):
+        return 'phi', 'theta', 'r'
+
 
 class CylindricalRepresentation(BaseRepresentation):
     """
@@ -540,3 +590,7 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z)
+
+    @property
+    def _names(self):
+        return 'rho', 'phi', 'z'
