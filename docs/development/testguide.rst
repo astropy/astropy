@@ -727,6 +727,10 @@ skip a doctest:
    Module docstrings may contain doctests as well.  To skip the module-level
    doctests include the string ``'.'`` in ``__doctest_skip__``.
 
+   To skip all doctests in a module::
+
+       __doctest_skip__ = ['*']
+
 3. In the Sphinx documentation, a doctest section can be skipped by
    making it part of a ``doctest-skip`` directive::
 
