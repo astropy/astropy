@@ -54,6 +54,9 @@ New Features
   - An option was added to guess the start of data for CDS format files when
     they do not strictly conform to the format standard. [#2241]
 
+  - A new ``csvExel`` format was added that reads CSV files written by common
+    spreadsheet programs even if there are missing values.
+
   - Added an HTML reader and writer to the ``astropy.io.ascii`` package.
     Parsing requires the installation of BeautifulSoup and is therefore
     an optional feature. [#2160]
