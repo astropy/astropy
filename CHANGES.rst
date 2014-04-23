@@ -295,6 +295,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - ``Quantity.copy`` now behaves identically to ``ndarray.copy``, and thus
+    supports the ``order`` argument (for numpy >=1.6). [#2284]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -456,9 +459,6 @@ Bug Fixes
     arrays instead of an uninformative formatting exception. [#2258]
 
   - Ensure ``Quantity.flat`` always returns ``Quantity``. [#2251]
-
-  - ``Quantity.copy`` now behaves identically to ``ndarray.copy``, and thus
-    supports the ``order`` argument (for numpy >=1.6). [#2284]
 
   - Angstrom unit renders better in MathJax [#2286]
 
