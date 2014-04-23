@@ -682,6 +682,43 @@ class TestImageFunctions(FitsTestCase):
         f = fits.open(self.temp('test_new.fits'), uint=True)
         assert f[1].data.dtype == 'uint16'
 
+    def test_uint_header_consistency(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2305
+
+        This ensures that an HDU containing unsigned integer data always has
+        the apppriate BZERO value in its header.
+        """
+
+        for int_size in (16, 32, 64):
+            # Just make an array of some unsigned ints that wouldn't fit in a
+            # signed int array of the same bit width
+            max_uint = (2 ** int_size) - 1
+            if int_size == 64:
+                # Otherwise may get an overflow error, at least on Python 2
+                max_uint = np.uint64(int_size)
+
+            dtype = 'uint%d' % int_size
+            arr = np.empty(100, dtype=dtype)
+            arr.fill(max_uint)
+            arr -= np.arange(100, dtype=dtype)
+
+            uint_hdu = fits.PrimaryHDU(data=arr)
+            assert np.all(uint_hdu.data == arr)
+            assert uint_hdu.data.dtype.name == 'uint%d' % int_size
+            assert 'BZERO' in uint_hdu.header
+            assert uint_hdu.header['BZERO'] == (2 ** (int_size - 1))
+
+            filename = 'uint%d.fits' % int_size
+            uint_hdu.writeto(self.temp(filename))
+
+            with fits.open(self.temp(filename), uint=True) as hdul:
+                new_uint_hdu = hdul[0]
+                assert np.all(new_uint_hdu.data == arr)
+                assert new_uint_hdu.data.dtype.name == 'uint%d' % int_size
+                assert 'BZERO' in new_uint_hdu.header
+                assert new_uint_hdu.header['BZERO'] == (2 ** (int_size - 1))
+
     def test_blanks(self):
         """Test image data with blank spots in it (which should show up as
         NaNs in the data array.
