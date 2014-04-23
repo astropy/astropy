@@ -7,7 +7,7 @@ In case USVO service is unstable, it does the following:
     #. Try USVO production server.
     #. If fails, try USVO test server (has latest bug fix, but does not
        contain all registered services).
-    #. If fails, use RA=0 DEC=0 SR=1.
+    #. If fails, use RA=0 DEC=0 SR=0.1.
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -68,7 +68,7 @@ def parse_cs(id):
 
     # If no testQuery found, use RA=0 DEC=0 SR=1
     if urls_failed:  # pragma: no cover
-        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '1'})
+        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '0.1'})
         warnings.warn(urls_errmsg, AstropyUserWarning)
 
     return d
