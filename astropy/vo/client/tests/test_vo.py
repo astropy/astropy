@@ -48,6 +48,7 @@ SCS_RADIUS = SCS_SR * u.degree
 
 
 @remote_data
+@pytest.mark.xfail(reason='Non-existent remote data file')
 def test_basic_db():
     """Read dummy ``basic.json`` database to test underlying database
     functionality.
