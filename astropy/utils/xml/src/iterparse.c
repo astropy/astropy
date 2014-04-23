@@ -251,7 +251,6 @@ remove_namespace(const XML_Char *name)
     const XML_Char*  name_start = NULL;
 
     /* If there is a namespace specifier, just chop it off */
-    name_start = name;
     for (name_start = name; *name_start != '\0'; ++name_start) {
         if (*name_start == ':') {
             break;
