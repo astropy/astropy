@@ -14,6 +14,100 @@ Astropy.
    :local:
 
 
+3.3 (unreleased)
+----------------
+
+New Features
+^^^^^^^^^^^^
+
+- Added new verification options ``fix+ignore``, ``fix+warn``,
+  ``fix+exception``, ``silentfix+ignore``, ``silentfix+warn``, and
+  ``silentfix+exception`` which give more control over how to report fixable
+  errors as opposed to unfixable errors.  See the "Verification" section in
+  the PyFITS documentation for more details.
+
+API Changes
+^^^^^^^^^^^
+
+- The ``pyfits.new_table`` function is now fully deprecated (though will not
+  be removed for a long time, considering how widely it is used.
+
+  Instead please use the more explicit ``pyfits.BinTableHDU.from_columns`` to
+  create a new binary table HDU, and the similar
+  ``pyfits.TableHDU.from_columns` to create a new ASCII table.  These
+  otherwise accept the same arguments as ``pyfits.new_table`` which is now
+  just a wrapper for these.
+
+- Fixed an issue where header wildcard matching (for example
+  ``header['DATE*']``) can be used to match *any* characters that might appear
+  in a keyword.  Previously this only matched keywords containing characters
+  in the set ``[0-9A-Za-z_]``.  Now this can also match a hyphen ``-`` and any
+  other characters, as some conventions like ``HIERARCH`` and record-valued
+  keyword cards allow a wider range of valid characters than standard FITS
+  keywords.
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- PyFITS has switched to a unified code base which supports Python 2.5 through
+  3.4 simultaneously without translation.  This *shouldn't* have any
+  significant performance impacts, but please report if anything seems
+  noticeably slower.  As a reminder, support for Python 2.5 will be ended
+  after PyFITS 3.3.x.
+
+- Warnings for deprecated APIs in PyFITS are now always displayed by default.
+  This is in line with a similar change made recently to Astropy:
+  https://github.com/astropy/astropy/pull/1871
+  To disable PyFITS deprecation warnings in scripts one may call
+  ``pyfits.ignore_deprecation_warnings()`` after importing PyFITS.
+
+- ``Card`` objects have a new ``is_blank`` attribute which returns ``True`` if
+  the card represents a blank card (no keyword, value, or comment) and
+  ``False`` otherwise.
+
+
+3.2.3 (unreleased)
+------------------
+
+- Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
+  tables containing array columns (columns in which each element is an array
+  instead of a single scalar value). (spacetelescope/PyFITS#22)
+
+- Fixed an issue where PyFITS allowed newline characters in header values and
+  comments. (spacetelescope/PyFITS#51)
+
+- Fixed pickling of ``FITS_rec`` (table data) objects.
+  (spacetelescope/PyFITS#53)
+
+- Improved behavior when writing large compressed images on OSX by removing an
+  unncessary check for platform architecture. (spacetelescope/PyFITS#57)
+
+- Allow reading FITS files from file-like objects that do not have a
+  ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
+  concept). (spacetelescope/PyFITS#56)
+
+
+3.1.6 (unreleased)
+------------------
+
+- Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
+  tables containing array columns (columns in which each element is an array
+  instead of a single scalar value). (Backported from 3.2.3)
+
+- Fixed an issue where PyFITS allowed newline characters in header values and
+  comments. (Backported from 3.2.3)
+
+- Fixed pickling of ``FITS_rec`` (table data) objects.
+  (Backported from 3.2.3)
+
+- Improved behavior when writing large compressed images on OSX by removing an
+  unncessary check for platform architecture. (Backported from 3.2.3)
+
+- Allow reading FITS files from file-like objects that do not have a
+  ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
+  concept). (Backported from 3.2.3)
+
+
 3.2.1 (unreleased)
 ------------------
 

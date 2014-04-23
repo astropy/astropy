@@ -297,7 +297,7 @@ def fileobj_closed(f):
     elif hasattr(f, 'fp') and hasattr(f.fp, 'closed'):
         return f.fp.closed
     else:
-        return True
+        return False
 
 
 def fileobj_mode(f):
