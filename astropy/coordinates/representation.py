@@ -90,7 +90,7 @@ class BaseRepresentation(object):
         """
         allcomp = np.array([getattr(self, component).value
                             for component in self.components])
-        dtype = np.dtype([(component, np.float)
+        dtype = np.dtype([(str(component), np.float)
                           for component in self.components])
         return (np.rollaxis(allcomp, 0, len(allcomp.shape))
                 .copy().view(dtype).squeeze())
