@@ -843,7 +843,8 @@ class CompositeTransform(CoordinateTransform):
     transformations.
 
     Note that the intermediate frame objects are constructed using any frame
-    attributes in `toframe` that overlap with the intermediate frame.  Any frame
+    attributes in `toframe` or `fromframe` that overlap with the intermediate
+    frame (`toframe` favored over `fromframe` if there's a conflict).  Any frame
     attributes that are not present use the defaults.
 
     Parameters
@@ -868,9 +869,12 @@ class CompositeTransform(CoordinateTransform):
     def __init__(self, transforms, fromsys, tosys, priority=1,
                  register_graph=None, collapse_static_mats=True):
         super(CompositeTransform, self).__init__(fromsys, tosys,
-                priority=priority, register_graph=register_graph)
+                                                 priority=priority,
+                                                 register_graph=register_graph)
+
         if collapse_static_mats:
-            transfroms = self._combine_statics(transforms)
+            transforms = self._combine_statics(transforms)
+
         self.transforms = tuple(transforms)
 
     def _combine_statics(self, transforms):
@@ -883,8 +887,8 @@ class CompositeTransform(CoordinateTransform):
             lasttrans = newtrans[-1] if len(newtrans) > 0 else None
 
             if (isinstance(lasttrans, StaticMatrixTransform) and
-                isinstance(currtrans, StaticMatrixTransform)):
-                combinednat = np.dot(lasttrans.matrix, currtrans.matrix)
+                    isinstance(currtrans, StaticMatrixTransform)):
+                combinedmat = np.dot(lasttrans.matrix, currtrans.matrix)
                 newtrans[-1] = StaticMatrixTransform(combinedmat,
                                                      lasttrans.fromsys,
                                                      currtrans.tosys)
@@ -893,21 +897,31 @@ class CompositeTransform(CoordinateTransform):
         return newtrans
 
     def __call__(self, fromcoord, toframe):
-        currcoord = fromcoord
+        curr_coord = fromcoord
         for t in self.transforms:
             #need to make sure `toframe` is actually the correct intermediate
             #frame type
             if isinstance(toframe, t.tosys):
-                currtoframe = toframe
+                curr_toframe = toframe
             else:
-                #build an intermediate frame with attributes matching `toframe`
-                #*if* they're in toframe
-                frattrs = dict([(nm, getattr(toframe, nm))
-                                for nm in t.tosys.frame_attr_names
-                                if hasattr(toframe, nm)])
-                currtoframe = t.tosys(**frattrs)
-            currcoord = t(currcoord, currtoframe)
-        return currcoord
+                #build an intermediate frame with attributes taken from either
+                #`toframe`, or if not there, `fromframe, or if not there, use
+                #the defaults
+                #TODO: caching this information when creating the transform may
+                # speed things up a lot
+                frattrs = {}
+                for inter_frame_attr_nm in t.tosys.frame_attr_names:
+                    if hasattr(fromcoord, inter_frame_attr_nm):
+                        attr = getattr(fromcoord, inter_frame_attr_nm)
+                        frattrs[inter_frame_attr_nm] = attr
+                    elif hasattr(toframe, inter_frame_attr_nm):
+                        attr = getattr(toframe, inter_frame_attr_nm)
+                        frattrs[inter_frame_attr_nm] = attr
+
+                curr_toframe = t.tosys(**frattrs)
+            curr_coord = t(curr_coord, curr_toframe)
+
+        return curr_coord
 
 
 #<------------function decorators for actual practical use--------------------->

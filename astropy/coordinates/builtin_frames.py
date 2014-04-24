@@ -420,7 +420,8 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     else:
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
 
-    fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox)
+    fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox,
+                         obstime=fk4coord.obstime)
     if fk4coord.equinox != fk4noeframe.equinox:
         #precession
         fk4noe = fk4noe.transform_to(fk4noeframe)
@@ -433,7 +434,8 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
 
     #first precess, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
-        fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox)
+        fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox,
+                                          obstime=fk4noecoord.obstime)
         fk4noecoord = fk4noecoord.transform_to(fk4noe_w_fk4equinox)
 
     # Extract cartesian vector
