@@ -421,14 +421,6 @@ int tabeq(int cmp, struct tabprm *tab1, struct tabprm *tab2, int *equal)
   if (tab2 == 0x0) return TABERR_NULL_POINTER;
   if (equal == 0x0) return TABERR_NULL_POINTER;
 
-  if (cmp & TABEQ_SET) {
-    if ((status = tabset(tab1))) return status;
-    if ((status = tabset(tab2))) {
-      wcserr_copy(tab2->err, tab1->err);
-      return status;
-    }
-  }
-
   *equal = 0;
 
   if (tab1->M != tab2->M) {

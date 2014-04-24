@@ -67,8 +67,7 @@ const char *wcs_errmsg[] = {
   "Invalid world coordinate",
   "No solution found in the specified interval",
   "Invalid subimage specification",
-  "Non-separable subimage coordinate system",
-  "One of the wcsfix transformations failed"};
+  "Non-separable subimage coordinate system"};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define WCS_ERRMSG(status) WCSERR_SET(status), wcs_errmsg[status]
@@ -989,30 +988,12 @@ int wcseq(
   int fix[NWCSFIX];
   int i, j, naxis, naxis2;
   double diff;
-  int tab_cmp, tab_equal;
-  int status = 0;
+  int tab_equal;
+  int status;
 
   if (wcs1 == 0x0) return WCSERR_NULL_POINTER;
   if (wcs2 == 0x0) return WCSERR_NULL_POINTER;
   if (equal == 0x0) return WCSERR_NULL_POINTER;
-
-  if (cmp & WCSEQ_SET || cmp & WCSEQ_FIX) {
-    if ((status = wcsset(wcs1))) return status;
-    if ((status = wcsset(wcs2))) {
-      wcserr_copy(wcs2->err, wcs1->err);
-      return status;
-    }
-  }
-
-  if (cmp & WCSEQ_FIX) {
-    if ((status = wcsfix(1, 0, wcs1, fix))) {
-      return WCSERR_FIX;
-    }
-    if ((status = wcsfix(1, 0, wcs2, fix))) {
-      wcserr_copy(wcs2->err, wcs1->err);
-      return WCSERR_FIX;
-    }
-  }
 
   *equal = 0;
 
@@ -1086,7 +1067,7 @@ int wcseq(
     }
   }
 
-  if (!(cmp & WCSEQ_SET || cmp & WCSEQ_FIX)) {
+  if (wcs1->flag != WCSSET || wcs2->flag != WCSSET) {
     if (!wcsutil_Eq(naxis2, wcs1->cd, wcs2->cd) ||
         !wcsutil_Eq(naxis, wcs1->crota, wcs2->crota) ||
         wcs1->altlin != wcs2->altlin ||
@@ -1125,20 +1106,8 @@ int wcseq(
     return 0;
   }
 
-  if ((cmp & WCSEQ_SET) || (cmp & WCSEQ_FIX)) {
-    tab_cmp = TABEQ_SET;
-  } else {
-    tab_cmp = 0;
-  }
-
   for (i = 0; i < wcs1->ntab; ++i) {
-    if ((status = tabeq(tab_cmp, &wcs1->tab[i], &wcs2->tab[i], &tab_equal))) {
-      /* Since wcsset() was already called if tabset() is about to be called,
-         this should really never happen... */
-      wcserr_copy(wcs1->tab[i].err, wcs1->err);
-      if (status == TABERR_BAD_PARAMS) {
-        status = WCSERR_BAD_PARAM;
-      }
+    if ((status = tabeq(0, &wcs1->tab[i], &wcs2->tab[i], &tab_equal))) {
       return status;
     }
     if (!tab_equal) {

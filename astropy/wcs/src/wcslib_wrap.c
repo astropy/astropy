@@ -1692,7 +1692,7 @@ PyObject *PyWcsprm_richcompare(PyObject *a, PyObject *b, int op) {
     wcsprm_python2c(ax);
     wcsprm_python2c(bx);
     status = wcseq(
-        WCSEQ_SET | WCSEQ_FIX | WCSEQ_IGNORE_ANCILLARY,
+        WCSEQ_IGNORE_ANCILLARY,
         ax, bx, &equal);
     wcsprm_c2python(ax);
     wcsprm_c2python(bx);
@@ -3481,8 +3481,6 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDO_CRPXna)    ||
     CONSTANT(WCSHDO_CNAMna)    ||
     CONSTANT(WCSHDO_WCSNna)    ||
-    CONSTANT(WCSEQ_SET)        ||
-    CONSTANT(WCSEQ_FIX)        ||
     CONSTANT(WCSEQ_IGNORE_ANCILLARY) ||
     CONSTANT(WCSEQ_INTEGER_TRANSLATION) ||
     CONSTANT(WCSEQ_TRANSLATION));
