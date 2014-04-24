@@ -14,7 +14,7 @@ from .async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
 from ...config.configuration import ConfigAlias
-from ...coordinates import ICRS, SphericalCoordinatesBase
+from ...coordinates import ICRS, BaseCoordinateFrame
 from ...units import Quantity
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
@@ -492,7 +492,7 @@ def _local_conversion(func, x):
 
 def _validate_coord(center):
     """Validate coordinates."""
-    if isinstance(center, SphericalCoordinatesBase):
+    if isinstance(center, BaseCoordinateFrame):
         icrscoord = center.transform_to(ICRS)
     else:
         icrscoord = ICRS(*center, unit=(u.degree, u.degree))
