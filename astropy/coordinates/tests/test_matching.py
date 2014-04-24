@@ -11,7 +11,7 @@ from ... import units as u
 
 
 """
-These are the tests for coordinate matching.  
+These are the tests for coordinate matching.
 
 Note that this requires scipy.
 """
@@ -22,15 +22,16 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-
+#TODO: un-xfail when matching is implemented on high-level classes
+@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
     from .. import ICRS
     from ..matching import match_coordinates_3d
     #this only uses match_coordinates_3d because that's the actual implementation
 
-    cmatch = ICRS([4, 2.1], [0, 0], unit=(u.degree, u.degree))
-    ccatalog = ICRS([1, 2, 3, 4], [0, 0, 0, 0], unit=(u.degree, u.degree))
+    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
+    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
 
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog)
     npt.assert_array_equal(idx, [3, 1])
@@ -43,13 +44,15 @@ def test_matching_function():
     npt.assert_array_less(d3d.value, 0.02)
 
 
+#TODO: un-xfail when matching is implemented on high-level classes
+@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
     from .. import ICRS
     from ..matching import match_coordinates_3d, match_coordinates_sky
 
-    cmatch = ICRS([4, 2.1], [0, 0], unit=(u.degree, u.degree), distance=[1, 5] * u.kpc)
-    ccatalog = ICRS([1, 2, 3, 4], [0, 0, 0, 0], unit=(u.degree, u.degree), distance=[1, 1, 1, 5] * u.kpc)
+    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
+    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
 
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog)
     npt.assert_array_equal(idx, [2, 3])
@@ -66,13 +69,15 @@ def test_matching_function_3d_and_sky():
     assert d3d.value[1] < 0.02
 
 
+#TODO: un-xfail when matching is implemented on high-level classes
+@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_kdtree_storage():
     from .. import ICRS
     from ..matching import match_coordinates_3d
 
-    cmatch = ICRS([4, 2.1], [0, 0], unit=(u.degree, u.degree))
-    ccatalog = ICRS([1, 2, 3, 4], [0, 0, 0, 0], unit=(u.degree, u.degree))
+    cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
+    ccatalog = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree)
 
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=False)
     assert not hasattr(ccatalog, '_kdtree')
@@ -86,6 +91,8 @@ def test_kdtree_storage():
     assert not hasattr(cmatch, 'tilsitcheese')
 
 
+#TODO: un-xfail when matching is implemented on high-level classes
+@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
     from .. import ICRS
@@ -93,8 +100,10 @@ def test_matching_method():
     from ..matching import match_coordinates_3d, match_coordinates_sky
 
     with NumpyRNGContext(987654321):
-        cmatch = ICRS(np.random.rand(20) * 360., np.random.rand(20) * 180. - 90., unit=(u.degree, u.degree))
-        ccatalog = ICRS(np.random.rand(100) * 360., np.random.rand(100) * 180. - 90., unit=(u.degree, u.degree))
+        cmatch = ICRS(np.random.rand(20) * 360.*u.degree,
+                      (np.random.rand(20) * 180. - 90.)*u.degree)
+        ccatalog = ICRS(np.random.rand(100) * 360. * u.degree,
+                       (np.random.rand(100) * 180. - 90.)*u.degree)
 
     idx1, d2d1, d3d1 = cmatch.match_to_catalog_3d(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_3d(cmatch, ccatalog)
@@ -114,8 +123,3 @@ def test_matching_method():
 
 
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
-
-
-
-
-

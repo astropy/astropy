@@ -240,7 +240,6 @@ def test_precession():
     assert fk5_2.equinox.jyear == j1975.jyear
 
 
-
 def test_transform_path_pri():
     """
     This checks that the transformation path prioritization works by

@@ -102,8 +102,7 @@ def test_array_coordinates_creation():
     Test creating coordinates from arrays.
     """
     from .. import Angle
-    from ..builtin_frames import ICRS
-    from ..representation import CartesianRepresentation
+    from .. import ICRS, CartesianRepresentation
 
     c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.ra.isscalar
@@ -131,7 +130,7 @@ def test_array_coordinates_distances():
     """
     Test creating coordinates from arrays and distances.
     """
-    from ..builtin_frames import ICRS
+    from .. import ICRS
 
     #correct way
     ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([3, 4])*u.deg, distance= [.1, .2] * u.kpc)
@@ -149,7 +148,7 @@ def test_array_coordinates_transformations(arrshape, distance):
     """
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
-    from ..builtin_frames import ICRS, FK4, FK5, Galactic
+    from .. import ICRS, FK4, FK5, Galactic
 
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
@@ -194,31 +193,6 @@ def test_array_coordinates_transformations(arrshape, distance):
     assert cfk4.ra.shape == arrshape
 
 
-def test_array_coordinates_string():
-    """
-    tests for string representations of aarray coordinates
-    """
-    from .. import ICRS
-
-    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
-    str(c)
-    six.text_type(c)
-    repr(c)
-
-    assert repr(c) == '<ICRS RA=[ 1.  2.] deg, Dec=[ 3.  4.] deg>'
-
-    #also check with distance
-
-    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg, distance= u.kpc * [0.5, 1.5])
-    str(c)
-    six.text_type(c)
-    repr(c)
-
-    print(repr(c))
-
-    assert repr(c) == '<ICRS RA=[ 1.  2.] deg, Dec=[ 3.  4.] deg, Distance=[ 0.5  1.5] kpc>'
-
-
 def test_array_precession():
     """
     Ensures that FK5 coordinates as arrays precess their equinoxes
@@ -231,7 +205,7 @@ def test_array_precession():
 
     fk5 = FK5([1, 1.1]*u.radian, [0.5, 0.6]*u.radian)
     assert fk5.equinox.jyear == j2000.jyear
-    fk5_2 = fk5.precess_to(j1975)
+    fk5_2 = fk5.transform_to(FK5(equinox=j1975))
     assert fk5_2.equinox.jyear == j1975.jyear
 
     npt.assert_array_less(0.05, np.abs(fk5.ra.degree - fk5_2.ra.degree))
@@ -256,7 +230,7 @@ def test_array_separation():
     assert sepdiff != 0
 
 def test_array_indexing():
-    from ..builtin_frames import FK5
+    from .. import FK5
     from ...time import Time
 
     ra = np.linspace(0, 360, 10)
@@ -283,6 +257,8 @@ def test_array_indexing():
     assert c3.equinox == c1.equinox
     assert c4.equinox == c1.equinox
 
+#TODO: remove this when len is back in coordinates
+@pytest.mark.xfail
 def test_array_len():
     from .. import ICRS
 
@@ -304,7 +280,7 @@ def test_array_len():
     assert c.shape == tuple()
 
 def test_array_eq():
-    from ..builtin_frames import ICRS
+    from .. import ICRS
 
     c1 = ICRS([1, 2]*u.deg, [3, 4]*u.deg)
     c2 = ICRS([1, 2]*u.deg, [3, 5]*u.deg)
