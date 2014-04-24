@@ -158,10 +158,8 @@ class BaseCoordinateFrame(object):
             if pref_kwargs:
                 if (pref_rep == SphericalRepresentation and
                     'distance' not in pref_kwargs):
-                    print('pan',self.preferred_attr_names)
                     representation = UnitSphericalRepresentation(**pref_kwargs)
                 else:
-                    print('pan2',self.preferred_attr_names)
                     representation = pref_rep(**pref_kwargs)
 
         if len(args) > 0:
