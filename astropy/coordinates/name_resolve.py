@@ -20,7 +20,7 @@ from .. import config as _config
 from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
-from .builtin_systems import ICRS
+from .builtin_frames import ICRS
 from ..utils import data
 from ..utils import state
 

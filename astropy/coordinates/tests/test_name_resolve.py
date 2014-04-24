@@ -15,7 +15,7 @@ import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response)
-from ..builtin_systems import ICRS
+from ..builtin_frames import ICRS
 from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, pytest
 from ... import units as u
