@@ -157,6 +157,7 @@ def test_array_coordinates_transformations(arrshape, distance):
     if distance is not None:
         distance = np.ones(arrshape) * distance
 
+    print(raarr, decarr,distance)
     c = ICRS(ra=raarr*u.deg, dec=decarr*u.deg, distance=distance)
     g = c.transform_to(Galactic)
 
