@@ -7,7 +7,7 @@ try:
 except ImportError:
     from io import StringIO
 
-from ... import ascii as asciitable
+from ... import ascii
 from .common import (assert_equal, assert_almost_equal,
                      setup_function, teardown_function)
 
@@ -24,7 +24,7 @@ def test_read_normal():
 |  1.2   | "hello" |
 |  2.4   |'s worlds|
 """
-    reader = asciitable.get_reader(Reader=asciitable.FixedWidth)
+    reader = ascii.get_reader(Reader=ascii.FixedWidth)
     dat = reader.read(table)
     assert_equal(dat.colnames, ['Col1', 'Col2'])
     assert_almost_equal(dat[1][0], 2.4)
@@ -40,7 +40,7 @@ def test_read_normal_names():
 |  1.2   | "hello" |
 |  2.4   |'s worlds|
 """
-    reader = asciitable.get_reader(Reader=asciitable.FixedWidth,
+    reader = ascii.get_reader(Reader=ascii.FixedWidth,
                                    names=('name1', 'name2'))
     dat = reader.read(table)
     assert_equal(dat.colnames, ['name1', 'name2'])
@@ -55,7 +55,7 @@ def test_read_normal_names_include():
 |  1.2   | "hello" |     3 |
 |  2.4   |'s worlds|     7 |
 """
-    reader = asciitable.get_reader(Reader=asciitable.FixedWidth,
+    reader = ascii.get_reader(Reader=ascii.FixedWidth,
                                    names=('name1', 'name2', 'name3'),
                                    include_names=('name1', 'name3'))
     dat = reader.read(table)
@@ -72,7 +72,7 @@ def test_read_normal_exclude():
 |  1.2   | "hello" |
 |  2.4   |'s worlds|
 """
-    reader = asciitable.get_reader(Reader=asciitable.FixedWidth,
+    reader = ascii.get_reader(Reader=ascii.FixedWidth,
                                    exclude_names=('Col1',))
     dat = reader.read(table)
     assert_equal(dat.colnames, ['Col2'])
@@ -86,7 +86,7 @@ def test_read_weird():
   1.2       "hello"
   2.4   sdf's worlds
 """
-    reader = asciitable.get_reader(Reader=asciitable.FixedWidth)
+    reader = ascii.get_reader(Reader=ascii.FixedWidth)
     dat = reader.read(table)
     assert_equal(dat.colnames, ['Col1', 'Col2'])
     assert_almost_equal(dat[1][0], 2.4)
@@ -102,7 +102,7 @@ def test_read_double():
 |  Mary  | 555-2134 |192.168.1.12X|
 |   Bob  | 555-4527 | 192.168.1.9X|
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidth, guess=False)
+    dat = ascii.read(table, Reader=ascii.FixedWidth, guess=False)
     assert_equal(tuple(dat.dtype.names), ('Name', 'Phone', 'TCP'))
     assert_equal(dat[1][0], "Mary")
     assert_equal(dat[0][1], "555-1234")
@@ -117,7 +117,7 @@ def test_read_space_delimiter():
  Mary  555-2134    192.168.1.12
   Bob  555-4527     192.168.1.9
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidth, guess=False,
+    dat = ascii.read(table, Reader=ascii.FixedWidth, guess=False,
                           delimiter=' ')
     assert_equal(tuple(dat.dtype.names), ('Name', '--Phone-', '----TCP-----'))
     assert_equal(dat[1][0], "Mary")
@@ -132,7 +132,7 @@ def test_read_no_header_autocolumn():
 |  Mary  | 555-2134 |192.168.1.12|
 |   Bob  | 555-4527 | 192.168.1.9|
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidth, guess=False,
+    dat = ascii.read(table, Reader=ascii.FixedWidth, guess=False,
                           header_start=None, data_start=0)
     assert_equal(tuple(dat.dtype.names), ('col1', 'col2', 'col3'))
     assert_equal(dat[1][0], "Mary")
@@ -148,7 +148,7 @@ def test_read_no_header_names():
 |  Mary  | 555-2134 |192.168.1.12|
 |   Bob  | 555-4527 | 192.168.1.9|
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidth, guess=False,
+    dat = ascii.read(table, Reader=ascii.FixedWidth, guess=False,
                           header_start=None, data_start=0,
                           names=('Name', 'Phone', 'TCP'))
     assert_equal(tuple(dat.dtype.names), ('Name', 'Phone', 'TCP'))
@@ -164,7 +164,7 @@ def test_read_no_header_autocolumn_NoHeader():
 |  Mary  | 555-2134 |192.168.1.12|
 |   Bob  | 555-4527 | 192.168.1.9|
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthNoHeader)
+    dat = ascii.read(table, Reader=ascii.FixedWidthNoHeader)
     assert_equal(tuple(dat.dtype.names), ('col1', 'col2', 'col3'))
     assert_equal(dat[1][0], "Mary")
     assert_equal(dat[0][1], "555-1234")
@@ -179,7 +179,7 @@ def test_read_no_header_names_NoHeader():
 |  Mary  | 555-2134 |192.168.1.12|
 |   Bob  | 555-4527 | 192.168.1.9|
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthNoHeader,
+    dat = ascii.read(table, Reader=ascii.FixedWidthNoHeader,
                           names=('Name', 'Phone', 'TCP'))
     assert_equal(tuple(dat.dtype.names), ('Name', 'Phone', 'TCP'))
     assert_equal(dat[1][0], "Mary")
@@ -196,7 +196,7 @@ def test_read_col_starts():
   Mary   555- 2134 192.168.1.12
    Bob   555- 4527  192.168.1.9
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthNoHeader,
+    dat = ascii.read(table, Reader=ascii.FixedWidthNoHeader,
                           names=('Name', 'Phone', 'TCP'),
                           col_starts=(0, 9, 18),
                           col_ends=(5, 17, 28),
@@ -213,13 +213,13 @@ table = """\
 | 1.2  | "hello"   |  1        |  a        |
 | 2.4  | 's worlds |         2 |         2 |
 """
-dat = asciitable.read(table, Reader=asciitable.FixedWidth)
+dat = ascii.read(table, Reader=ascii.FixedWidth)
 
 
 def test_write_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth)
+    ascii.write(dat, out, Writer=ascii.FixedWidth)
     assert_equal_splitlines(out.getvalue(), """\
 | Col1 |      Col2 | Col3 | Col4 |
 |  1.2 |   "hello" |    1 |    a |
@@ -230,7 +230,7 @@ def test_write_normal():
 def test_write_fill_values():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth,
+    ascii.write(dat, out, Writer=ascii.FixedWidth,
                      fill_values=('a', 'N/A'))
     assert_equal_splitlines(out.getvalue(), """\
 | Col1 |      Col2 | Col3 | Col4 |
@@ -242,7 +242,7 @@ def test_write_fill_values():
 def test_write_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth,
+    ascii.write(dat, out, Writer=ascii.FixedWidth,
                      delimiter_pad=None)
     assert_equal_splitlines(out.getvalue(), """\
 |Col1|     Col2|Col3|Col4|
@@ -254,7 +254,7 @@ def test_write_no_pad():
 def test_write_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth, bookend=False)
+    ascii.write(dat, out, Writer=ascii.FixedWidth, bookend=False)
     assert_equal_splitlines(out.getvalue(), """\
 Col1 |      Col2 | Col3 | Col4
  1.2 |   "hello" |    1 |    a
@@ -265,7 +265,7 @@ Col1 |      Col2 | Col3 | Col4
 def test_write_no_delimiter():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth, bookend=False,
+    ascii.write(dat, out, Writer=ascii.FixedWidth, bookend=False,
                      delimiter=None)
     assert_equal_splitlines(out.getvalue(), """\
 Col1       Col2  Col3  Col4
@@ -277,7 +277,7 @@ Col1       Col2  Col3  Col4
 def test_write_noheader_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthNoHeader)
+    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader)
     assert_equal_splitlines(out.getvalue(), """\
 | 1.2 |   "hello" | 1 | a |
 | 2.4 | 's worlds | 2 | 2 |
@@ -287,7 +287,7 @@ def test_write_noheader_normal():
 def test_write_noheader_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthNoHeader,
+    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader,
                      delimiter_pad=None)
     assert_equal_splitlines(out.getvalue(), """\
 |1.2|  "hello"|1|a|
@@ -298,7 +298,7 @@ def test_write_noheader_no_pad():
 def test_write_noheader_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthNoHeader,
+    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader,
                      bookend=False)
     assert_equal_splitlines(out.getvalue(), """\
 1.2 |   "hello" | 1 | a
@@ -309,7 +309,7 @@ def test_write_noheader_no_bookend():
 def test_write_noheader_no_delimiter():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthNoHeader, bookend=False,
+    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader, bookend=False,
                      delimiter=None)
     assert_equal_splitlines(out.getvalue(), """\
 1.2    "hello"  1  a
@@ -320,7 +320,7 @@ def test_write_noheader_no_delimiter():
 def test_write_formats():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth,
+    ascii.write(dat, out, Writer=ascii.FixedWidth,
                      formats={'Col1': '%-8.3f', 'Col2': '%-15s'})
     assert_equal_splitlines(out.getvalue(), """\
 |     Col1 |            Col2 | Col3 | Col4 |
@@ -338,7 +338,7 @@ def test_read_twoline_normal():
    1.2xx"hello"
   2.4   's worlds
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine)
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine)
     assert_equal(dat.dtype.names, ('Col1', 'Col2'))
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hello"')
@@ -355,7 +355,7 @@ def test_read_twoline_ReST():
   2.4   's worlds
 ======= ===========
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine,
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine,
                           header_start=1, position_line=2, data_end=-1)
     assert_equal(dat.dtype.names, ('Col1', 'Col2'))
     assert_almost_equal(dat[1][0], 2.4)
@@ -374,7 +374,7 @@ def test_read_twoline_human():
 |  2.4 | 's worlds|
 +------+----------+
 """
-    dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine,
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine,
                           delimiter='+',
                           header_start=1, position_line=0,
                           data_start=3, data_end=-1)
@@ -387,7 +387,7 @@ def test_read_twoline_human():
 def test_write_twoline_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthTwoLine)
+    ascii.write(dat, out, Writer=ascii.FixedWidthTwoLine)
     assert_equal_splitlines(out.getvalue(), """\
 Col1      Col2 Col3 Col4
 ---- --------- ---- ----
@@ -399,7 +399,7 @@ Col1      Col2 Col3 Col4
 def test_write_twoline_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthTwoLine,
+    ascii.write(dat, out, Writer=ascii.FixedWidthTwoLine,
                      delimiter_pad=' ', position_char='=')
     assert_equal_splitlines(out.getvalue(), """\
 Col1        Col2   Col3   Col4
@@ -412,7 +412,7 @@ Col1        Col2   Col3   Col4
 def test_write_twoline_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidthTwoLine,
+    ascii.write(dat, out, Writer=ascii.FixedWidthTwoLine,
                      bookend=True, delimiter='|')
     assert_equal_splitlines(out.getvalue(), """\
 |Col1|     Col2|Col3|Col4|
