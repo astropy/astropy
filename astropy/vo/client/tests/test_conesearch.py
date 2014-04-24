@@ -13,7 +13,7 @@ from .. import conesearch, vos_catalog
 from ..exceptions import VOSError, ConeSearchError
 from ... import conf
 from .... import units as u
-from ....coordinates import ICRS
+from ....coordinates import ICRS, Longitude, Latitude
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils import data
@@ -26,7 +26,7 @@ __doctest_skip__ = ['*']
 SCS_RA = 0
 SCS_DEC = 0
 SCS_SR = 0.1
-SCS_CENTER = ICRS(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
+SCS_CENTER = ICRS(SCS_RA * u.degree, SCS_DEC * u.degree)
 SCS_RADIUS = SCS_SR * u.degree
 
 
@@ -213,7 +213,7 @@ class TestErrorResponse(object):
 def test_validate_coord():
     """Valid coordinates should not raise an error."""
     result = conesearch._validate_coord(
-        ICRS(6.02233, -72.08144, unit=(u.degree, u.degree)))
+        ICRS(6.02233 * u.degree, -72.08144 * u.degree))
     np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
 
     result = conesearch._validate_coord((-0, 0))
