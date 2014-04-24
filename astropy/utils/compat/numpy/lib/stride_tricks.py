@@ -17,6 +17,8 @@ from __future__ import division, absolute_import, print_function
 import numpy as np
 from numpy.lib.stride_tricks import DummyArray, as_strided, broadcast_arrays
 
+__all__ = ['broadcast_arrays', 'PR4622']
+
 
 def PR4622(function=np.broadcast_arrays):
     """Test whether the broadcast_arrays function respects subclasses

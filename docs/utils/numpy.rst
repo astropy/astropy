@@ -31,7 +31,7 @@ NumPy_, the following procedure should be used to add a patched routine:
 * Place the redefinition of the relevant piece of code inside an ``if``
   statement that uses the function just defined.  This should ensure that if a
   sufficiently high version of numpy is used, no replacement is made.
-* In ``numpy/__init__.py``, import your patched code and the test function.
+* In ``numpy/__init__.py``, import your patched code.
 * In ``numpy/tests``, add a new test routine that tests that the patch is used
   when necessary (i.e., test the test function), and that it provides the
   desired functionality. 
