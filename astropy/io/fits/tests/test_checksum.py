@@ -2,6 +2,7 @@
 
 import sys
 import warnings
+import sys
 
 import numpy as np
 
@@ -50,6 +51,8 @@ class TestChecksumFunctions(FitsTestCase):
             assert 'DATASUM' in hdul[0].header
 
             if not sys.platform.startswith('win32'):
+                # The checksum ends up being different on Windows, possibly due
+                # to slight floating point differences
                 assert hdul[0].header['CHECKSUM'] == 'ZHMkeGKjZGKjbGKj'
                 assert hdul[0].header['DATASUM'] == '4950'
 
@@ -63,6 +66,8 @@ class TestChecksumFunctions(FitsTestCase):
             assert 'DATASUM' in hdul[0].header
 
             if not sys.platform.startswith('win32'):
+                # The checksum ends up being different on Windows, possibly due
+                # to slight floating point differences
                 assert hdul[0].header['CHECKSUM'] == 'jD4Am942jC48j948'
                 assert hdul[0].header['DATASUM'] == '4164005614'
 
@@ -170,10 +175,14 @@ class TestChecksumFunctions(FitsTestCase):
             assert hdul[0].header['CHECKSUM'] == 'D8iBD6ZAD6fAD6ZA'
             assert 'DATASUM' in hdul[0].header
             assert hdul[0].header['DATASUM'] == '0'
-            assert 'CHECKSUM' in hdul[1].header
-            assert hdul[1].header['CHECKSUM'] == '51IDA1G981GCA1G9'
-            assert 'DATASUM' in hdul[1].header
-            assert hdul[1].header['DATASUM'] == '1948208413'
+
+            if not sys.platform.startswith('win32'):
+                # The checksum ends up being different on Windows, possibly due
+                # to slight floating point differences
+                assert 'CHECKSUM' in hdul[1].header
+                assert hdul[1].header['CHECKSUM'] == '51IDA1G981GCA1G9'
+                assert 'DATASUM' in hdul[1].header
+                assert hdul[1].header['DATASUM'] == '1948208413'
 
     def test_compressed_image_data(self):
         with fits.open(self.data('comp.fits')) as h1:
@@ -239,6 +248,8 @@ class TestChecksumFunctions(FitsTestCase):
             assert 'DATASUM' in hdul[1].header
 
             if not sys.platform.startswith('win32'):
+                # The checksum ends up being different on Windows, possibly due
+                # to slight floating point differences
                 assert hdul[1]._header['CHECKSUM'] == 'eATIf3SHe9SHe9SH'
                 assert hdul[1]._header['DATASUM'] == '1277667818'
 

@@ -1253,3 +1253,16 @@ class TestImageFunctions(FitsTestCase):
             assert tblhdr.index('PCOUNT') == 5
             assert tblhdr.index('GCOUNT') == 6
             assert tblhdr['GCOUNT'] == 1
+
+    def test_compression_header_append_commentary(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2363
+        """
+
+        hdu = fits.CompImageHDU(np.array([0], dtype=np.int32))
+        hdu.header['COMMENT'] = 'hello world'
+        assert hdu.header['COMMENT'] == ['hello world']
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[1].header['COMMENT'] == ['hello world']

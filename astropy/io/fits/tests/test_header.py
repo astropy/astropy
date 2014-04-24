@@ -1397,6 +1397,22 @@ class TestHeaderFunctions(FitsTestCase):
         header['HISTORY'][:] = ['BAZ', 'QUX']
         assert header['HISTORY'] == ['BAZ', 'QUX', 'BAR']
 
+    def test_commentary_comparison(self):
+        """
+        Regression test for an issue found in *writing* the regression test for
+        https://github.com/astropy/astropy/issues/2363, where comparison of
+        the list of values for a commentary keyword did not always compare
+        correctly with other iterables.
+        """
+
+        header = fits.Header()
+        header['HISTORY'] = 'hello world'
+        header['HISTORY'] = 'hello world'
+        header['COMMENT'] = 'hello world'
+        assert header['HISTORY'] != header['COMMENT']
+        header['COMMENT'] = 'hello world'
+        assert header['HISTORY'] == header['COMMENT']
+
     def test_long_commentary_card(self):
         header = fits.Header()
         header['FOO'] = 'BAR'
@@ -2121,6 +2137,45 @@ class TestHeaderFunctions(FitsTestCase):
         assert isinstance(h['TEST'], int)
         assert str(h).startswith('TEST    =                    0')
 
+    def test_newlines_in_commentary(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/51
+
+        Test data extracted from a header in an actual FITS file found in the
+        wild.  Names have been changed to protect the innocent.
+        """
+
+        # First ensure that we can't assign new keyword values with newlines in
+        # them
+        h = fits.Header()
+        pytest.raises(ValueError, h.set, 'HISTORY', '\n')
+        pytest.raises(ValueError, h.set, 'HISTORY', '\nabc')
+        pytest.raises(ValueError, h.set, 'HISTORY', 'abc\n')
+        pytest.raises(ValueError, h.set, 'HISTORY', 'abc\ndef')
+
+        test_cards = [
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18           "
+            "HISTORY File modified by user ' fred' with fv  on 2013-04-23T11:16:29           "
+            "HISTORY File modified by user ' fred' with fv  on 2013-11-04T16:59:14           "
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif"
+            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use"
+            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14                               "
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif"
+            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use"
+            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14\nFile modified by user 'wilma' "
+            "HISTORY with fv  on 2013-04-22T21:42:18\nFile modif\nied by user 'wilma' with fv  "
+            "HISTORY on 2013-04-23T11:16:29\nFile modified by use\nr ' fred' with fv  on 2013-1"
+            "HISTORY 1-04T16:59:14                                                           "
+        ]
+
+        for card_image in test_cards:
+            c = fits.Card.fromstring(card_image)
+
+            if '\n' in card_image:
+                pytest.raises(fits.VerifyError, c.verify, 'exception')
+            else:
+                c.verify('exception')
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
@@ -2296,6 +2351,28 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         self._test_header['DP1.AXIS.1'] = 1.1
         assert self._test_header['DP1.AXIS.1'] == 1.1
 
+    def test_update_rvkc_2(self):
+        """Regression test for an issue that appeared after SVN r2412."""
+
+        h = fits.Header()
+        h['D2IM1.EXTVER'] = 1
+        assert h['D2IM1.EXTVER'] == 1.0
+        h['D2IM1.EXTVER'] = 2
+        assert h['D2IM1.EXTVER'] == 2.0
+
+    def test_raw_keyword_value(self):
+        c = fits.Card.fromstring("DP1     = 'NAXIS: 2' / A comment")
+        assert c.rawkeyword == 'DP1'
+        assert c.rawvalue == 'NAXIS: 2'
+
+        c = fits.Card('DP1.NAXIS', 2)
+        assert c.rawkeyword == 'DP1'
+        assert c.rawvalue == 'NAXIS: 2.0'
+
+        c = fits.Card('DP1.NAXIS', 2.0)
+        assert c.rawkeyword == 'DP1'
+        assert c.rawvalue == 'NAXIS: 2.0'
+
     def test_rvkc_insert_after(self):
         """
         It should be possible to insert a new RVKC after an existing one
@@ -2317,6 +2394,15 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert list(self._test_header)[0] == 'DP1.NAXIS'
         assert self._test_header[0] == 2
         assert list(self._test_header)[1] == 'DP1.AXIS.2'
+        assert self._test_header[1] == 2
+
+        # Perform a subsequent delete to make sure all the index mappings were
+        # updated
+        del self._test_header['DP1.AXIS.2']
+        assert len(self._test_header) == 6
+        assert self._test_header.keys()[0] == 'DP1.NAXIS'
+        assert self._test_header[0] == 2
+        assert self._test_header.keys()[1] == 'DP1.NAUX'
         assert self._test_header[1] == 2
 
     def test_pattern_matching_keys(self):
