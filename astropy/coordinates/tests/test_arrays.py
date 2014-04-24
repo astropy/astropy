@@ -101,47 +101,47 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
-    from .. import ICRS
+    from ..builtin_frames import ICRS
 
-    c = ICRS(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
+    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     assert not c.isscalar
 
     with pytest.raises(ValueError):
-        c = ICRS(np.array([1, 2]), np.array([3, 4, 5]), unit=(u.deg, u.deg))
+        c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4, 5])*u.deg)
     with pytest.raises(ValueError):
-        c = ICRS(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg))
+        c = ICRS(np.array([1, 2])*u.deg, np.array([[3, 4], [5, 6]])*u.deg)
 
     #make sure cartesian initialization also works
     c = ICRS(x=np.array([1, 2]), y=np.array([3, 4]), z=np.array([5, 6]), unit=u.kpc)
 
     #also ensure strings can be arrays
-    c = ICRS(np.array(['1d0m0s', '2h02m00.3s']), np.array(['3d', '4d']), unit=(u.deg, u.deg))
+    c = ICRS(np.array(['1d0m0s', '2h02m00.3s'])*u.deg, np.array(['3d', '4d'])*u.deg)
 
     #but invalid strings cannot
     with pytest.raises(ValueError):
-        c = ICRS(np.array(['10m0s', '2h02m00.3s']), np.array(['3d', '4d']), unit=(u.deg, u.deg))
+        c = ICRS(np.array(['10m0s', '2h02m00.3s'])*u.deg, np.array(['3d', '4d'])*u.deg)
     with pytest.raises(ValueError):
-        c = ICRS(np.array(['1d0m0s', '2h02m00.3s']), np.array(['3x', '4d']), unit=(u.deg, u.deg))
+        c = ICRS(np.array(['1d0m0s', '2h02m00.3s'])*u.deg, np.array(['3x', '4d'])*u.deg)
 
 
 def test_array_coordinates_distances():
     """
     Test creating coordinates from arrays and distances.
     """
-    from .. import ICRS
+    from ..builtin_frames import ICRS
 
     #correct way
-    ICRS(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= [.1, .2] * u.kpc)
+    ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([3, 4])*u.deg, distance= [.1, .2] * u.kpc)
 
     with pytest.raises(ValueError):
         #scalar distance and array coordinates
-        ICRS(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= 2. * u.kpc)
+        ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([[3, 4], [5, 6]])*u.deg, distance= 2. * u.kpc)
     with pytest.raises(ValueError):
         #scalar coordinates and array distance
-        ICRS(1., 2., unit=(u.deg, u.deg), distance= [.1, .2, 3.] * u.kpc)
+        ICRS(ra=1.*u.deg, dec=2.*u.deg, distance= [.1, .2, 3.] * u.kpc)
     with pytest.raises(ValueError):
         #more distance values than coordinates
-        ICRS(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= [.1, .2, 3.] * u.kpc)
+        ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([[3, 4], [5, 6]])*u.deg, distance= [.1, .2, 3.] * u.kpc)
 
 
 @pytest.mark.parametrize(('arrshape', 'distance'), [((2, ), None), ((4, 2, 5), None), ((4, 2, 5), 2 * u.kpc)])
@@ -149,7 +149,7 @@ def test_array_coordinates_transformations(arrshape, distance):
     """
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
-    from .. import ICRS, Galactic
+    from ..builtin_frames import ICRS, Galactic
 
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
@@ -157,7 +157,7 @@ def test_array_coordinates_transformations(arrshape, distance):
     if distance is not None:
         distance = np.ones(arrshape) * distance
 
-    c = ICRS(raarr, decarr, unit=(u.deg, u.deg), distance=distance)
+    c = ICRS(ra=raarr*u.deg, dec=decarr*u.deg, distance=distance)
     g = c.transform_to(Galactic)
 
     assert g.l.shape == arrshape
@@ -199,7 +199,7 @@ def test_array_coordinates_string():
     """
     from .. import ICRS
 
-    c = ICRS(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
+    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
     str(c)
     six.text_type(c)
     repr(c)
@@ -208,7 +208,7 @@ def test_array_coordinates_string():
 
     #also check with distance
 
-    c = ICRS(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= u.kpc * [0.5, 1.5])
+    c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg, distance= u.kpc * [0.5, 1.5])
     str(c)
     six.text_type(c)
     repr(c)
@@ -228,7 +228,7 @@ def test_array_precession():
     j2000 = Time('J2000', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
-    fk5 = FK5([1, 1.1], [0.5, 0.6], unit=(u.radian, u.radian))
+    fk5 = FK5([1, 1.1]*u.radian, [0.5, 0.6]*u.radian)
     assert fk5.equinox.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
     assert fk5_2.equinox.jyear == j1975.jyear
@@ -239,13 +239,13 @@ def test_array_precession():
 def test_array_separation():
     from .. import ICRS
 
-    c1 = ICRS([0 , 0], [0, 0], unit=(u.degree, u.degree))
-    c2 = ICRS([1, 2], [0, 0], unit=(u.degree, u.degree))
+    c1 = ICRS([0 , 0]*u.deg, [0, 0]*u.deg)
+    c2 = ICRS([1, 2]*u.deg, [0, 0]*u.deg)
 
     npt.assert_array_almost_equal(c1.separation(c2).degree, [1, 2])
 
-    c3 = ICRS([0 , 3.], [0., 0], unit=(u.degree, u.degree), distance=[1 ,1.] * u.kpc)
-    c4 = ICRS([1, 1.], [0., 0], unit=(u.degree, u.degree), distance=[1 ,1.] * u.kpc)
+    c3 = ICRS([0 , 3.]*u.deg, [0., 0]*u.deg, distance=[1 ,1.] * u.kpc)
+    c4 = ICRS([1, 1.]*u.deg, [0., 0]*u.deg, distance=[1 ,1.] * u.kpc)
 
     #the 3-1 separation should be twice the 0-1 separation, but not *exactly* the same
     sep = c3.separation_3d(c4)
@@ -255,14 +255,14 @@ def test_array_separation():
     assert sepdiff != 0
 
 def test_array_indexing():
-    from .. import FK5Coordinates
+    from ..builtin_frames import FK5
     from ...time import Time
 
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
     j1975 = Time(1975, format='jyear', scale='utc')
 
-    c1 = FK5Coordinates(ra, dec, unit=(u.degree, u.degree), equinox=j1975)
+    c1 = FK5(ra, dec, unit=(u.degree, u.degree), equinox=j1975)
 
     c2 = c1[4]
     assert c2.ra.degree == 160
@@ -290,7 +290,7 @@ def test_array_len():
         ra = np.linspace(0, 360, length)
         dec = np.linspace(0, 90, length)
 
-        c = ICRS(ra, dec, unit=(u.degree, u.degree))
+        c = ICRS(ra*u.deg, dec*u.deg)
 
         assert len(c) == length
 
@@ -303,12 +303,12 @@ def test_array_len():
     assert c.shape == tuple()
 
 def test_array_eq():
-    from .. import ICRS
+    from ..builtin_frames import ICRS
 
-    c1 = ICRS([1, 2], [3, 4], unit=('deg', 'deg'))
-    c2 = ICRS([1, 2], [3, 5], unit=('deg', 'deg'))
-    c3 = ICRS([1, 3], [3, 4], unit=('deg', 'deg'))
-    c4 = ICRS([1, 2], [3, 4.2], unit=('deg', 'deg'))
+    c1 = ICRS([1, 2]*u.deg, [3, 4]*u.deg)
+    c2 = ICRS([1, 2]*u.deg, [3, 5]*u.deg)
+    c3 = ICRS([1, 3]*u.deg, [3, 4]*u.deg)
+    c4 = ICRS([1, 2]*u.deg, [3, 4.2]*u.deg)
 
     assert c1 == c1
     assert c1 != c2
