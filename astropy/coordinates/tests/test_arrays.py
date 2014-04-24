@@ -101,27 +101,30 @@ def test_array_coordinates_creation():
     """
     Test creating coordinates from arrays.
     """
+    from .. import Angle
     from ..builtin_frames import ICRS
+    from ..representation import CartesianRepresentation
 
     c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4])*u.deg)
-    assert not c.isscalar
+    assert not c.ra.isscalar
 
     with pytest.raises(ValueError):
         c = ICRS(np.array([1, 2])*u.deg, np.array([3, 4, 5])*u.deg)
     with pytest.raises(ValueError):
-        c = ICRS(np.array([1, 2])*u.deg, np.array([[3, 4], [5, 6]])*u.deg)
+        c = ICRS(np.array([1, 2, 4, 5])*u.deg, np.array([[3, 4], [5, 6]])*u.deg)
 
     #make sure cartesian initialization also works
-    c = ICRS(x=np.array([1, 2]), y=np.array([3, 4]), z=np.array([5, 6]), unit=u.kpc)
+    cart = CartesianRepresentation(x=[1., 2.]*u.kpc, y=[3., 4.]*u.kpc, z=[5., 6.]*u.kpc)
+    c = ICRS(cart)
 
     #also ensure strings can be arrays
-    c = ICRS(np.array(['1d0m0s', '2h02m00.3s'])*u.deg, np.array(['3d', '4d'])*u.deg)
+    c = ICRS(['1d0m0s', '2h02m00.3s'], ['3d', '4d'])
 
     #but invalid strings cannot
     with pytest.raises(ValueError):
-        c = ICRS(np.array(['10m0s', '2h02m00.3s'])*u.deg, np.array(['3d', '4d'])*u.deg)
+        c = ICRS(Angle(['10m0s', '2h02m00.3s']), Angle(['3d', '4d']))
     with pytest.raises(ValueError):
-        c = ICRS(np.array(['1d0m0s', '2h02m00.3s'])*u.deg, np.array(['3x', '4d'])*u.deg)
+        c = ICRS(Angle(['1d0m0s', '2h02m00.3s']), Angle(['3x', '4d']))
 
 
 def test_array_coordinates_distances():
@@ -134,14 +137,11 @@ def test_array_coordinates_distances():
     ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([3, 4])*u.deg, distance= [.1, .2] * u.kpc)
 
     with pytest.raises(ValueError):
-        #scalar distance and array coordinates
-        ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([[3, 4], [5, 6]])*u.deg, distance= 2. * u.kpc)
-    with pytest.raises(ValueError):
-        #scalar coordinates and array distance
-        ICRS(ra=1.*u.deg, dec=2.*u.deg, distance= [.1, .2, 3.] * u.kpc)
+        #scalar distance and mismatched array coordinates
+        ICRS(ra=np.array([1, 2, 3])*u.deg, dec=np.array([[3, 4], [5, 6]])*u.deg, distance= 2. * u.kpc)
     with pytest.raises(ValueError):
         #more distance values than coordinates
-        ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([[3, 4], [5, 6]])*u.deg, distance= [.1, .2, 3.] * u.kpc)
+        ICRS(ra=np.array([1, 2])*u.deg, dec=np.array([3, 4])*u.deg, distance= [.1, .2, 3.] * u.kpc)
 
 
 @pytest.mark.parametrize(('arrshape', 'distance'), [((2, ), None), ((4, 2, 5), None), ((4, 2, 5), 2 * u.kpc)])
@@ -149,7 +149,7 @@ def test_array_coordinates_transformations(arrshape, distance):
     """
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
-    from ..builtin_frames import ICRS, Galactic
+    from ..builtin_frames import ICRS, FK4, FK5, Galactic
 
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
@@ -168,8 +168,8 @@ def test_array_coordinates_transformations(arrshape, distance):
     if distance is not None:
         assert g.distance.unit == c.distance.unit
 
-    #now make sure round-tripping works through FK5 - this exercises both static and dynamic transform matricies
-    c2 = c.fk5.icrs
+    #now make sure round-tripping works through FK5
+    c2 = c.transform_to(FK5).transform_to(ICRS)
     npt.assert_array_almost_equal(c.ra.radian, c2.ra.radian)
     npt.assert_array_almost_equal(c.dec.radian, c2.dec.radian)
 
@@ -179,7 +179,7 @@ def test_array_coordinates_transformations(arrshape, distance):
         assert c2.distance.unit == c.distance.unit
 
     #also make sure it's possible to get to FK4, which uses a direct transform function.
-    fk4 = c.fk4
+    fk4 = c.transform_to(FK4)
 
     npt.assert_array_almost_equal(fk4.ra.degree, 10.0004, decimal=4)
     npt.assert_array_almost_equal(fk4.dec.degree, 40.9953, decimal=4)
@@ -189,7 +189,7 @@ def test_array_coordinates_transformations(arrshape, distance):
         assert fk4.distance.unit == c.distance.unit
 
     #now check the reverse transforms run
-    cfk4 = fk4.icrs
+    cfk4 = fk4.transform_to(ICRS)
     assert cfk4.ra.shape == arrshape
 
 
@@ -262,20 +262,20 @@ def test_array_indexing():
     dec = np.linspace(-90, 90, 10)
     j1975 = Time(1975, format='jyear', scale='utc')
 
-    c1 = FK5(ra, dec, unit=(u.degree, u.degree), equinox=j1975)
+    c1 = FK5(ra*u.deg, dec*u.deg, equinox=j1975)
 
     c2 = c1[4]
     assert c2.ra.degree == 160
     assert c2.dec.degree == -10
 
     c3 = c1[2:5]
-    npt.assert_array_equal(c3.ra.degree, [80, 120, 160])
-    npt.assert_array_equal(c3.dec.degree, [-50, -30, -10])
+    npt.assert_allclose(c3.ra.degree, [80, 120, 160])
+    npt.assert_allclose(c3.dec.degree, [-50, -30, -10])
 
     c4 = c1[np.array([2, 5, 8])]
 
-    npt.assert_array_equal(c4.ra.degree, [80, 200, 320])
-    npt.assert_array_equal(c4.dec.degree, [-50, 10, 70])
+    npt.assert_allclose(c4.ra.degree, [80, 200, 320])
+    npt.assert_allclose(c4.dec.degree, [-50, 10, 70])
 
     #now make sure the equinox is preserved
     assert c2.equinox == c1.equinox
@@ -297,7 +297,7 @@ def test_array_len():
         assert c.shape == (length,)
 
     with pytest.raises(TypeError):
-        c = ICRS(0, 0, unit=(u.degree, u.degree))
+        c = ICRS(0*u.deg, 0*u.deg)
         len(c)
 
     assert c.shape == tuple()

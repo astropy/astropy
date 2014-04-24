@@ -157,7 +157,8 @@ class BaseCoordinateFrame(object):
 
             if pref_kwargs:
                 if (pref_rep == SphericalRepresentation and
-                    'distance' not in pref_kwargs):
+                    ('distance' not in pref_kwargs or
+                     pref_kwargs['distance'] is None)):
                     representation = UnitSphericalRepresentation(**pref_kwargs)
                 else:
                     representation = pref_rep(**pref_kwargs)
