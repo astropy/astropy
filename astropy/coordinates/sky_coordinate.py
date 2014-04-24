@@ -8,7 +8,7 @@ from ..units import Quantity
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
-from ..coordinates import Angle, SphericalCoordinatesBase, Latitude, Longitude
+from ..coordinates import Angle, BaseCoordinateFrame, Latitude, Longitude
 from .transformations import master_transform_graph
 
 COORD_CLASSES = deepcopy(master_transform_graph._clsaliases)
@@ -202,7 +202,7 @@ def _parse_one_arg(*args, **kwargs):
         is_scalar = True
         coords = [coords]
         
-    if isinstance(coords, (SkyCoordinate, SphericalCoordinatesBase)):
+    if isinstance(coords, (SkyCoordinate, BaseCoordinateFrame)):
         out['lon'] = coords.lonangle
         out['lat'] = coords.latangle
         if coords.distance is not None:
