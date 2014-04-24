@@ -493,6 +493,8 @@ PyWcsprm_copy(
     return NULL;
   }
 
+  wcsini(0, self->x.naxis, &copy->x);
+
   wcsprm_python2c(&self->x);
   status = wcscopy(1, &self->x, &copy->x);
   wcsprm_c2python(&self->x);
@@ -1656,7 +1658,6 @@ PyWcsprm_sub(
   char*      element_str    = NULL;
   int        element_val    = 0;
   int        nsub           = 0;
-  int        alloc_size     = 0;
   int*       axes           = NULL;
   int        status         = -1;
   const char*    keywords[] = {"axes", NULL};
@@ -1768,11 +1769,9 @@ PyWcsprm_sub(
     goto exit;
   }
 
-  alloc_size = self->x.naxis;
-
   py_dest_wcs = (PyWcsprm*)PyWcsprm_cnew();
   py_dest_wcs->x.flag = -1;
-  status = wcsini(0, alloc_size, &py_dest_wcs->x);
+  status = wcsini(0, nsub, &py_dest_wcs->x);
   if (status != 0) {
     goto exit;
   }

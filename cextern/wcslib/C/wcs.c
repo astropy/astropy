@@ -564,7 +564,7 @@ int wcssub(
       "naxis must be positive (got %d)", naxis);
   }
 
-  if (!(map = calloc(naxis, sizeof(int)))) {
+  if (!(map = calloc(wcsdst->naxis, sizeof(int)))) {
     return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
   }
 
