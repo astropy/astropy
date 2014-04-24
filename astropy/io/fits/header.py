@@ -11,7 +11,6 @@ import sys
 import warnings
 
 from collections import defaultdict
-from itertools import izip_longest
 
 from .card import Card, CardList, _pad, BLANK_CARD, KEYWORD_LENGTH
 from .file import _File
@@ -20,7 +19,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_closed,
 
 from ...extern import six
 from ...extern.six import string_types, itervalues, iteritems, next
-from ...extern.six.moves import zip, range
+from ...extern.six.moves import zip, range, zip_longest
 from ...utils import deprecated, isiterable
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
@@ -2119,7 +2118,7 @@ class _CardAccessor(object):
             else:
                 return False
 
-        for a, b in izip_longest(self, other):
+        for a, b in zip_longest(self, other):
             if a != b:
                 return False
         else:
