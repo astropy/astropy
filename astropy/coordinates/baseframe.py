@@ -116,39 +116,57 @@ class BaseCoordinateFrame(object):
     preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
     frame_attr_names = {}  # maps attribute to default value
 
-    def __init__(self, representation=None, **kwargs):
-        from .representation import SphericalRepresentation
-        from .representation import UnitSphericalRepresentation
+    def __init__(self, *args, **kwargs):
+        from .representation import SphericalRepresentation, \
+                                    UnitSphericalRepresentation, \
+                                    BaseRepresentation
+
+        representation = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in six.iteritems(self.frame_attr_names):
+
+            # read-only properties for these attributes are made in the
+            # metaclass  so we set the 'real' attrbiutes as the name prefaced
+            # with an underscore
+
             if fnm in kwargs:
                 setattr(self, '_' + fnm, kwargs.pop(fnm))
             else:
                 setattr(self, '_' + fnm, fdefault)
 
         pref_rep = self.preferred_representation
+        args = list(args)  # need to be able to pop them
+        if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
+                                args[0] is None):
+            representation = args.pop(0)
+            if len(args) > 0:
+                raise TypeError('Cannot create a frame with both a '
+                                'representation and other positional arguments')
 
-        if pref_rep:
+        elif pref_rep:
             pref_kwargs = {}
             for nmkw, nmrep in six.iteritems(self.preferred_attr_names):
-                if nmkw in kwargs:
+                if len(args) > 0:
+                    #first gather up positional args
+                    pref_kwargs[nmrep] = args.pop(0)
+                elif nmkw in kwargs:
                     pref_kwargs[nmrep] = kwargs.pop(nmkw)
 
+            #special-case the Spherical->UnitSpherical if no `distance`
+            #TODO: possibly generalize this somehow?
+
             if pref_kwargs:
-                if representation:
-                    msg = ('Cannot give both a representation object ({0}) and '
-                           'arguments for the preferred representation ({1})')
-                    raise ValueError(msg.format(representation, pref_kwargs))
-
-                #special-case the Spherical->UnitSpherical if no `distance`
-                #TODO: possibly generalize this somehow?
-
                 if (pref_rep == SphericalRepresentation and
                     'distance' not in pref_kwargs):
+                    print('pan',self.preferred_attr_names)
                     representation = UnitSphericalRepresentation(**pref_kwargs)
                 else:
+                    print('pan2',self.preferred_attr_names)
                     representation = pref_rep(**pref_kwargs)
 
+        if len(args) > 0:
+            raise TypeError(self.__class__.__name__ + '.__init__ had {0} '
+                            'remaining unprocessed arguments'.format(len(args)))
         if kwargs:
             raise TypeError('Coordinate frame got unexpected keywords: ' +
                             str(kwargs.keys()))

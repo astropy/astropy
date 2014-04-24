@@ -38,6 +38,31 @@ def test_create_data_frames():
         i1.ra = [11.]*u.deg
 
 
+def test_create_orderered_data():
+    from ..builtin_frames import ICRS, Galactic, AltAz
+
+    TOL = 1e-10*u.deg
+
+    i = ICRS(1*u.deg, 2*u.deg)
+    assert (i.ra - 1*u.deg) < TOL
+    assert (i.dec - 2*u.deg) < TOL
+
+    g = Galactic(1*u.deg, 2*u.deg)
+    assert (g.l - 1*u.deg) < TOL
+    assert (g.b - 2*u.deg) < TOL
+
+    a = AltAz(1*u.deg, 2*u.deg)
+    assert (a.az - 1*u.deg) < TOL
+    assert (a.alt - 2*u.deg) < TOL
+
+    with pytest.raises(TypeError):
+        ICRS(1*u.deg, 2*u.deg, 1*u.deg, 2*u.deg)
+
+    with pytest.raises(TypeError):
+        sph = representation.SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc)
+        ICRS(sph, 1*u.deg, 2*u.deg)
+
+
 def test_create_nodata_frames():
     from ..builtin_frames import ICRS, FK4, FK5
 
