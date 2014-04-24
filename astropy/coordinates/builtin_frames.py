@@ -249,6 +249,16 @@ class FK4NoETerms(BaseCoordinateFrame):
 
         return _precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
+    @staticmethod
+    def _fk4_B_matrix(obstime):
+        """
+        This is a correction term in the FK4 transformations because FK4 is a
+        rotating system - see Murray 89 eqn 29
+        """
+        # Note this is *julian century*, not besselian
+        T = (obstime.jyear - 1950.) / 100.
+        return _B1950_TO_J2000_M + _FK4_CORR * T
+
 
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
 def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
@@ -464,35 +474,31 @@ _FK4_CORR = \
 
 # This transformation can't be static because the observation date is needed.
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK5)
-def fk4_no_e_to_fk5(fk4noecoord, fk5frame, skip_precession=False):
+def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
+    # Correction terms for FK4 being a rotating system
+    B = FK4NoETerms._fk4_B_matrix(fk4noecoord.obstime)
 
-    # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
-    # Note this is *julian century*, not besselian
-    T = (fk4noecoord.obstime.jyear - 1950.) / 100.
+    # construct both precession matricies - if the equinoxes are B1950 and
+    # J2000, these are just identity matricies
+    pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, _EQUINOX_B1950)
+    pmat2 = fk5frame._precession_matrix(_EQUINOX_J2000, fk5frame.equinox)
 
-    B = _B1950_TO_J2000_M + _FK4_CORR * T
-
-    # If equinox is not B1950, need to precess first
-    if skip_precession or fk4noecoord.equinox == _EQUINOX_B1950:
-        return B
-    else:
-        return B * fk4noecoord._precession_matrix(fk4noecoord.equinox, _EQUINOX_B1950)
+    return pmat2 * B * pmat1
 
 
 # This transformation can't be static because the observation date is needed.
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK4NoETerms)
 def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
+    # Get transposed version of the rotating correction terms... so with the
+    # transpose this takes us from FK5/J200 to FK4/B1950
+    B = FK4NoETerms._fk4_B_matrix(fk4noeframe.obstime).T
 
-    # Get transposed matrix from FK4 -> FK5 assuming equinox B1950 -> J2000
-    B = fk4_no_e_to_fk5(fk4noeframe, fk5coord, skip_precession=True).T
+    # construct both precession matricies - if the equinoxes are B1950 and
+    # J2000, these are just identity matricies
+    pmat1 = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
+    pmat2 = fk4noeframe._precession_matrix(_EQUINOX_B1950, fk4noeframe.equinox)
 
-    pmat = fk4noeframe._precession_matrix(_EQUINOX_B1950, fk4noeframe.equinox)
-
-    # If equinox is not B1950, need to precess first
-    if fk5coord.equinox == _EQUINOX_J2000:
-        return pmat * B
-    else:
-        return pmat * B * fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
+    return pmat2 * B * pmat1
 
 
 # Galactic to/from FK4/FK5 ----------------------->
