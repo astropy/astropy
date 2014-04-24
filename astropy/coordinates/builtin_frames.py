@@ -407,9 +407,12 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     z = r[2].reshape(subshape)
 
     #now re-cast into an appropriate Representation, and precess if need be
-    representation = CartesianRepresentation(x=x, y=y, z=z)
     if isinstance(fk4coord.data, UnitSphericalRepresentation):
+        representation = CartesianRepresentation(x=x, y=y, z=z)
         representation = representation.represent_as(UnitSphericalRepresentation)
+    else:
+        representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
+
     fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox)
     if fk4coord.equinox != fk4noeframe.equinox:
         #precession
@@ -453,9 +456,12 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     z = r[2].reshape(subshape)
 
     #now re-cast into an appropriate Representation, and precess if need be
-    representation = CartesianRepresentation(x=x, y=y, z=z)
     if isinstance(fk4noecoord.data, UnitSphericalRepresentation):
+        representation = CartesianRepresentation(x=x, y=y, z=z)
         representation = representation.represent_as(UnitSphericalRepresentation)
+    else:
+        representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
+
     return fk4frame.realize_frame(representation)
 
 # FK5 to/from FK4 ------------------->

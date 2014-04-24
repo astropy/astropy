@@ -296,7 +296,7 @@ class BaseCoordinateFrame(object):
                 for prefnm, repnm in six.iteritems(self.preferred_attr_names):
                     if nodistance and repnm == 'distance':
                         continue
-                    datastr = str(getattr(self._data, repnm))
+                    datastr = str(getattr(prefrep, repnm))
                     content.append(prefnm + '=' + datastr + ',')
             else:
                 content.append(repr(self.data) + ',')
