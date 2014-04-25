@@ -460,8 +460,12 @@ def brightness_temperature(beam_area, disp):
 
 
 def temperature():
-    """Convert between Kelvin, Celsius, and Fahrenheit here because
-    Unit and CompositeUnit cannot do addition or subtraction properly.
+    """
+    Convert between degrees Kelvin, Celsius, and Fahrenheit.
+
+    This needs to be an equivalency because `~astropy.units.Unit` and
+    `~astropy.units.CompositeUnit` only allows scale factors,  and temperatures
+    require addition or subtraction.
     """
     from .imperial import deg_F
     return [
