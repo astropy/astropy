@@ -32,6 +32,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']
 _EQUINOX_J2000 = Time('J2000', scale='utc')
 _EQUINOX_B1950 = Time('B1950', scale='tai')
 
+
+@frame_transform_graph.add_coord_name
 class ICRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the ICRS system.
@@ -90,6 +92,7 @@ class ICRS(BaseCoordinateFrame):
 ICRS._ICRS_TO_FK5_J2000_MAT = ICRS._icrs_to_fk5_matrix()
 
 
+@frame_transform_graph.add_coord_name
 class FK5(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK5 system.
@@ -145,6 +148,7 @@ def fk5_to_fk5(fk5coord1, fk5frame2):
     return fk5coord1._precession_matrix(fk5coord1.equinox, fk5frame2.equinox)
 
 
+@frame_transform_graph.add_coord_name
 class FK4(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK4 system.
@@ -194,6 +198,7 @@ def fk4_to_fk4(fk4coord1, fk4frame2):
     return fnoe_w_eqx2.transform_to(fk4frame2)
 
 
+@frame_transform_graph.add_coord_name
 class FK4NoETerms(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK4 system, but with the E-terms of aberration
@@ -270,6 +275,7 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
     return fk4necoord1._precession_matrix(fk4necoord1.equinox, fk4neframe2.equinox)
 
 
+@frame_transform_graph.add_coord_name
 class Galactic(BaseCoordinateFrame):
     """
     Galactic Coordinates
@@ -303,6 +309,7 @@ class Galactic(BaseCoordinateFrame):
     _lon0_B1950 = Angle(123, u.degree)
 
 
+@frame_transform_graph.add_coord_name
 class AltAz(BaseCoordinateFrame):
     """
     docstr

@@ -293,7 +293,7 @@ class TransformGraph(object):
                 self._composite_cache[fttuple] = comptrans
             return self._composite_cache[fttuple]
 
-    def add_coord_name(self, name, coordcls=None):
+    def add_coord_name(self, name=None, coordcls=None):
         """
         Adds an alias for a coordinate.  This is mainly for allowing
         attribute-style access of coordinate transformations (e.g.,
@@ -303,15 +303,23 @@ class TransformGraph(object):
         If ``coordcls`` is set to None, this will instead yield a function that
         accepts a class.  This is intended for use as a decorator::
 
+            #creates the alias "mycoord"
+            @graph.add_coord_name
+            class MyCoord(BaseCoordinateFrame):
+                ...
+
+
             @graph.add_coord_name('mycoordalias')
             class MyCoord(BaseCoordinateFrame):
                 ...
 
         Parameters
         ----------
-        name : str
-            The alias for the coordinate class. Should be a valid
-            python identifier.
+        name : str or None or class
+            The alias for the coordinate class. Should be a valid python
+            identifier. If None, will use an all-lowercase version of the class
+            name. If a class, it will be treated as `coordcls` with name set to
+            `None` (this allows the no-argument decorator usage shown above).
         coordcls : class or None
             The class object to be referenced by this name.  If None, this
             method will return a function suitable for use as a decorator
@@ -322,12 +330,22 @@ class TransformGraph(object):
         ValueError
             If ``coordcls`` already has a name assigned.
         """
-        if coordcls is None:
+        from inspect import isclass
+
+        if isclass(name):
+            # treat the first argument as the `coordcls` in this case - this
+            # allows the function to be a no-argument decorator.
+            coordcls = name
+            self.add_coord_name(None, coordcls)
+            return coordcls
+        elif coordcls is None:
             def add_coord_name_deco(cc):
                 self.add_coord_name(name, cc)
                 return cc
-            return deco
+            return add_coord_name_deco
         else:
+            if name is None:
+                name = coordcls.__name__.lower()
             self._clsaliases[name] = coordcls
 
     def lookup_name(self, name):
