@@ -135,6 +135,8 @@ New Features
   - Added ``temperature()`` equivalencies to support conversion between
     Kelvin, Celsius, and Fahrenheit. [#2209]
 
+  - Added `small_angle_distance` equivalency. [#2371]
+
 - ``astropy.utils``
 
   - ``timer.RunTimePredictor`` now uses ``astropy.modeling`` in its
@@ -224,7 +226,7 @@ API Changes
     or ``False``, even if units do not match (for which case a ``UnitsError``
     used to be raised).  [#2328]
 
-  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all 
+  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all
     dimensionless quantities; they are automatically converted to unscaled
     dimensionless. [#2249]
 
@@ -235,7 +237,7 @@ API Changes
 - ``astropy.wcs``
 
 - ``calcFootprint`` was deprecated. It is replaced by ``calc_footprint``.
-  An optional boolean keyword ``center`` was added to ``calc_footprint``. 
+  An optional boolean keyword ``center`` was added to ``calc_footprint``.
   It controls whether the centers or the corners of the pixels are used
   in the computation. [#2384]
 
