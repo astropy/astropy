@@ -1,5 +1,5 @@
-.. _astropy-wcs:
 .. doctest-skip-all
+.. _astropy-wcs:
 
 ***************************************
 World Coordinate System (`astropy.wcs`)
