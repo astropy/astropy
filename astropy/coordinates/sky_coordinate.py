@@ -3,33 +3,30 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 from copy import deepcopy
 import collections
 
-# from .. import units as u
-# from ..units import Quantity
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph
 
-# Create COORD_CLASSES dictionary mapping of system name: frame class.
-COORD_NAMES = frame_transform_graph.get_aliases()
-COORD_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
-                     for name in COORD_NAMES)
-COORD_CLASSES[None] = COORD_CLASSES['icrs']
+__all__ = ['SkyCoord']
+
+# Create FRAME_CLASSES dictionary mapping of system name: frame class.
+FRAME_NAMES = frame_transform_graph.get_aliases()
+FRAME_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
+                     for name in FRAME_NAMES)
+FRAME_CLASSES[None] = FRAME_CLASSES['icrs']
 
 # Map coordinate system names to allowed frame-specific attributes such as
 # equinox or obstime.
-FRAME_ATTR_NAMES = dict((name, tuple(COORD_CLASSES[name].frame_attr_names.keys()))
-                        for name in COORD_NAMES)
+FRAME_ATTR_NAMES = dict((name, tuple(FRAME_CLASSES[name].frame_attr_names.keys()))
+                        for name in FRAME_NAMES)
 
 # Get the preferred representation of longitude and latitude for each coord system.
 PREFERRED_REPR_LON_LAT = {}
-for name, coord_cls in COORD_CLASSES.items():
-    _rev_map = dict((val, key) for key, val in coord_cls.preferred_attr_names.items())
+for name, frame_cls in FRAME_CLASSES.items():
+    _rev_map = dict((val, key) for key, val in frame_cls.preferred_attr_names.items())
     PREFERRED_REPR_LON_LAT[name] = (_rev_map['lon'], _rev_map['lat'])
-
-
-__all__ = ['SkyCoord']
 
 
 class SkyCoord(object):
@@ -40,9 +37,9 @@ class SkyCoord(object):
 
         system = kwargs.get('system')
 
-        if system not in COORD_CLASSES:
+        if system not in FRAME_CLASSES:
             raise ValueError('Coordinate system {0} not in allowed values {1}'
-                             .format(system, sorted(COORD_CLASSES)))
+                             .format(system, sorted(FRAME_CLASSES)))
 
         # Set self attributes from kwargs.  If the attr is an input to the
         # coordinate class for the `system` then leave it in kwargs, otherwise
@@ -66,7 +63,7 @@ class SkyCoord(object):
         # the input validation to the low-level coordinate class, including
         # potential conflicts like supplying an `ra` keyword along with an
         # inital coordinate arg, or missing `unit`, etc.
-        self._coord = COORD_CLASSES[system](*args, **kwargs)
+        self._coord = FRAME_CLASSES[system](*args, **kwargs)
 
     def transform_to(self, system):
         """
@@ -92,16 +89,16 @@ class SkyCoord(object):
         if system is None:
             raise ValueError('Cannot transform coordinates if `system` is None')
 
-        if system not in COORD_CLASSES:
+        if system not in FRAME_CLASSES:
             raise ValueError('Coordinate system {0} not in allowed values {1}'
-                             .format(system, sorted(COORD_CLASSES)))
+                             .format(system, sorted(FRAME_CLASSES)))
 
         out = deepcopy(self)
         if system == self.system:
             return out
 
         out.system = system
-        out._coord = self._coord.transform_to(COORD_CLASSES[system])
+        out._coord = self._coord.transform_to(FRAME_CLASSES[system])
         if out._coord is None:
             raise ConvertError('Cannot transform from {0} to '
                                '{1}'.format(self.system, system))
@@ -137,8 +134,8 @@ class SkyCoord(object):
 
         # determine the aliases that this can be transformed to.
         dir_values = set()
-        for name, coord_cls in COORD_CLASSES.items():
-            if self._coord.is_transformable_to(coord_cls):
+        for name, frame_cls in FRAME_CLASSES.items():
+            if self._coord.is_transformable_to(frame_cls):
                 dir_values.add(name)
 
         # Add public attributes of self._coord
@@ -161,12 +158,14 @@ def _get_coordinate_inputs(args, kwargs):
     unit = kwargs.get('unit', (None, None))
     if isinstance(unit, six.string_types):
         unit = unit.split(',')
+        # Allow for input like `unit='deg'`
+        if len(unit) == 1:
+            unit = (unit, unit)
     try:
         lon_unit, lat_unit = unit
     except:
         raise ValueError('Unit keyword must have two values as tuple or '
                          'comma-separated string')
-    kwargs['unit'] = (lon_unit, lat_unit)
 
     # Convert any recognized kwargs like `ra` or `l` into the right Angle subclass
     for angle_class, attrs_index, angle_unit in ((Longitude, 0, lon_unit),
