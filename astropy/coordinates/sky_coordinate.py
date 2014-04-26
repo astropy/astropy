@@ -3,34 +3,34 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 from copy import deepcopy
 import collections
 
-from .. import units as u
-from ..units import Quantity
+# from .. import units as u
+# from ..units import Quantity
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
-from ..coordinates import Angle, BaseCoordinateFrame, Latitude, Longitude
-from .transformations import master_transform_graph
+from .angles import Latitude, Longitude
+from .baseframe import BaseCoordinateFrame, frame_transform_graph
 
-COORD_CLASSES = deepcopy(master_transform_graph._clsaliases)
+# Create COORD_CLASSES dictionary mapping of system name: frame class.
+COORD_NAMES = frame_transform_graph.get_aliases()
+COORD_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
+                     for name in COORD_NAMES)
 COORD_CLASSES[None] = COORD_CLASSES['icrs']
 
-# Stubs until coordinate-refactor is available
-FRAME_ATTR_NAMES = {None: ('obstime'),
-                    'icrs': ('obstime'),
-                    'fk5': ('obstime', 'equinox'),
-                    'fk4': ('obstime', 'equinox'),
-                    'galactic': ('obstime'),
-                    'altaz': ('obstime', 'equinox')}
+# Map coordinate system names to allowed frame-specific attributes such as
+# equinox or obstime.
+FRAME_ATTR_NAMES = dict((name, tuple(COORD_CLASSES[name].frame_attr_names.keys()))
+                        for name in COORD_NAMES)
 
-PREFERRED_REPR_LON_LAT = {None: ('ra', 'dec'),
-                          'icrs': ('ra', 'dec'),
-                          'fk5': ('ra', 'dec'),
-                          'fk4': ('ra', 'dec'),
-                          'galactic': ('l', 'b'),
-                          'altaz': ('az', 'alt')}
+# Get the preferred representation of longitude and latitude for each coord system.
+PREFERRED_REPR_LON_LAT = {}
+for name, coord_cls in COORD_CLASSES.items():
+    _rev_map = dict((val, key) for key, val in coord_cls.preferred_attr_names.items())
+    PREFERRED_REPR_LON_LAT[name] = (_rev_map['lon'], _rev_map['lat'])
 
 
 __all__ = ['SkyCoord']
+
 
 class SkyCoord(object):
     _sky_coordinate_attrs = ('system', 'equinox', 'obstime', 'location')
@@ -117,7 +117,7 @@ class SkyCoord(object):
         if self.system == attr:
             return self
 
-        nmsys = master_transform_graph.lookup_name(attr)
+        nmsys = frame_transform_graph.lookup_name(attr)
         if nmsys is not None and self._coord.is_transformable_to(nmsys):
             return self.transform_to(attr)
         else:
@@ -137,10 +137,9 @@ class SkyCoord(object):
 
         # determine the aliases that this can be transformed to.
         dir_values = set()
-        for alias in master_transform_graph.get_aliases():
-            tosys = master_transform_graph.lookup_name(alias)
-            if self._coord.is_transformable_to(tosys):
-                dir_values.add(alias)
+        for name, coord_cls in COORD_CLASSES.items():
+            if self._coord.is_transformable_to(coord_cls):
+                dir_values.add(name)
 
         # Add public attributes of self._coord
         dir_values.update(set(attr for attr in dir(self._coord) if not attr.startswith('_')))
@@ -184,6 +183,7 @@ def _get_coordinate_inputs(args, kwargs):
         out['lon'] = args[0]
         out['lat'] = args[1]
     return out
+
 
 def _parse_one_arg(*args, **kwargs):
     """
