@@ -1,0 +1,11 @@
+# 1 NUMBER Running object number
+# 2 XWIN_IMAGE Windowed position estimate along x [pixel]
+# 3 YWIN_IMAGE Windowed position estimate along y [pixel]
+# 4 MAG_AUTO Kron-like elliptical aperture magnitude [mag]
+# 5 MAGERR_AUTO RMS error for AUTO magnitude [mag]
+# 6 FLAGS Extraction flags
+1 100.523 11.911 -5.3246 0.0416 19
+2 100.660 4.872 -6.4538 0.0214 27
+3 131.046 10.382 -4.6836 0.0524 17
+4 338.959 4.966 -7.1747 0.0173 25
+5 166.280 3.956 -4.0865 0.0621 25

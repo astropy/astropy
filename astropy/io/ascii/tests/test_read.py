@@ -760,3 +760,12 @@ def test_overlapping_names():
     """
     t = ascii.read(['a b', '1 2'], names=['b', 'a'])
     assert t.colnames == ['b', 'a']
+
+def test_sextractor_units():
+    """
+    Make sure that the SExtractor reader correctly inputs column units.
+    """
+    table = ascii.read('t/sextractor2.dat', Reader=ascii.SExtractor)
+    expected_units = ('None', 'pix', 'pix', 'mag', 'mag', 'None')
+    for i, colname in enumerate(table.colnames):
+        assert str(table[colname].unit) == expected_units[i]
