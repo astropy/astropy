@@ -763,9 +763,16 @@ def test_overlapping_names():
 
 def test_sextractor_units():
     """
-    Make sure that the SExtractor reader correctly inputs column units.
+    Make sure that the SExtractor reader correctly inputs descriptions and units.
     """
     table = ascii.read('t/sextractor2.dat', Reader=ascii.SExtractor)
-    expected_units = ('None', 'pix', 'pix', 'mag', 'mag', 'None')
+    expected_units = ['None', 'pix', 'pix', 'mag', 'mag', 'None']
+    expected_descrs = ['Running object number',
+                       'Windowed position estimate along x',
+                       'Windowed position estimate along y',
+                       'Kron-like elliptical aperture magnitude',
+                       'RMS error for AUTO magnitude',
+                       'Extraction flags']
     for i, colname in enumerate(table.colnames):
         assert str(table[colname].unit) == expected_units[i]
+        assert table[colname].description == expected_descrs[i]
