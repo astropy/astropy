@@ -30,9 +30,9 @@ PREFERRED_REPR_LON_LAT = {None: ('ra', 'dec'),
                           'altaz': ('az', 'alt')}
 
 
-__all__ = ['SkyCoordinate']
+__all__ = ['SkyCoord']
 
-class SkyCoordinate(object):
+class SkyCoord(object):
     _sky_coordinate_attrs = ('system', 'equinox', 'obstime', 'location')
 
     def __init__(self, *args, **kwargs):
@@ -149,7 +149,7 @@ class SkyCoordinate(object):
 
     def __repr__(self):
         return '<{0} {1}'.format(self.__class__.__name__, repr(self._coord)[1:])
-        
+
 
 def _get_coordinate_inputs(args, kwargs):
     """
@@ -201,8 +201,8 @@ def _parse_one_arg(*args, **kwargs):
     if isinstance(coords, six.string_types):
         is_scalar = True
         coords = [coords]
-        
-    if isinstance(coords, (SkyCoordinate, BaseCoordinateFrame)):
+
+    if isinstance(coords, (SkyCoord, BaseCoordinateFrame)):
         out['lon'] = coords.lonangle
         out['lat'] = coords.latangle
         if coords.distance is not None:
@@ -214,8 +214,8 @@ def _parse_one_arg(*args, **kwargs):
             raise ValueError('Cannot supply a `unit` keyword along with a coordinate input')
 
     elif isinstance(coords, collections.Sequence):
-        # NOTE: we do not support SkyCoordinate((ra, dec)).  It has to be 
-        # SkyCoordinate(ra, dec) or SkyCoordinate([(ra, dec)])
+        # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
+        # SkyCoord(ra, dec) or SkyCoord([(ra, dec)])
         lons = []
         lats = []
 
