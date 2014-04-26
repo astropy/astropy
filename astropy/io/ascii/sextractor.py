@@ -84,7 +84,6 @@ class SExtractorHeader(core.BaseHeader):
             else:
                 match = re_name_def.search(line)
                 if match:
-                    words = match.group(0).strip().strip('#').split()
                     colnumber = int(match.group(1))  # First string is the column number
                     colname = match.group(2)   # second string is the column name
                     colunit = match.group(3) # If no units are given, colunit = None
