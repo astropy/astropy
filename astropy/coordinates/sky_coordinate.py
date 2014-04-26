@@ -35,11 +35,8 @@ class SkyCoord(object):
     def __init__(self, *args, **kwargs):
         # *args, **kwargs needed for desired flexibility in inputs
 
-        system = kwargs.get('system')
-
-        if system not in FRAME_CLASSES:
-            raise ValueError('Coordinate system {0} not in allowed values {1}'
-                             .format(system, sorted(FRAME_CLASSES)))
+        # Get the coordinate system name from inputs
+        system = self._get_system(args, kwargs)
 
         # Set self attributes from kwargs.  If the attr is an input to the
         # coordinate class for the `system` then leave it in kwargs, otherwise
@@ -64,6 +61,25 @@ class SkyCoord(object):
         # potential conflicts like supplying an `ra` keyword along with an
         # inital coordinate arg, or missing `unit`, etc.
         self._coord = FRAME_CLASSES[system](*args, **kwargs)
+
+    def _get_system(self, args, kwargs):
+        """
+        Determine the coordinate system from input args and kwargs.  This modifies
+        args or kwargs in-place to remove the item that provided `system`.
+        """
+        system = kwargs.pop('system', None)
+
+        if system is None:
+            for arg in args:
+                if arg in FRAME_NAMES:
+                    system = arg
+                    args.remove(system)
+                    break
+
+        if system not in FRAME_NAMES:
+            raise ValueError('Coordinate system {0} not in allowed values {1}'
+                             .format(system, sorted(FRAME_NAMES)))
+        return system
 
     def transform_to(self, system):
         """
