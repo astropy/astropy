@@ -77,7 +77,7 @@ class SExtractorHeader(core.BaseHeader):
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
-        re_name_def = re.compile(r'^\s*#\s*([0-9]+)\s+(\w+)(?:\s.*\[(.+)\])?.*')
+        re_name_def = re.compile(r'^\s*#\s*([0-9]+)\s+(\w+)\s*(\w[^\[]*\w)?(?:\s+\[(.+)\])?.*')
         for line in lines:
             if not line.startswith('#'):
                 break                   # End of header lines
@@ -86,8 +86,9 @@ class SExtractorHeader(core.BaseHeader):
                 if match:
                     colnumber = int(match.group(1))  # First string is the column number
                     colname = match.group(2)   # second string is the column name
-                    colunit = match.group(3) # If no units are given, colunit = None
-                    columns[colnumber] = (colname, colunit)
+                    coldescr = match.group(3)   # third string is the column description
+                    colunit = match.group(4) # If no units are given, colunit = None
+                    columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
         previous_column = 0
@@ -95,8 +96,9 @@ class SExtractorHeader(core.BaseHeader):
             if n != previous_column + 1:
                 for c in range(previous_column+1, n):
                     column_name = columns[previous_column][0]+"_%d" % (c-previous_column)
-                    column_unit = columns[previous_column][1]
-                    columns[c] = (column_name, column_unit)
+                    column_descr = columns[previous_column][1]
+                    column_unit = columns[previous_column][2]
+                    columns[c] = (column_name, column_descr, column_unit)
             previous_column = n
 
         # Add the columns in order to self.names
@@ -111,5 +113,6 @@ class SExtractorHeader(core.BaseHeader):
         self.cols = []
         for n in colnumbers:
             col = core.Column(name=columns[n][0])
-            col.unit = columns[n][1]
+            col.description = columns[n][1]
+            col.unit = columns[n][2]
             self.cols.append(col)
