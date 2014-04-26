@@ -144,6 +144,48 @@ def _parse_keysel(keysel):
     return keysel_flags
 
 
+class NoConvergence(Exception):
+    """
+    An error class used to report non-convergence and/or divergence of
+    numerical methods. It is used to report errors in the iterative solution
+    used by the :py:meth:`~stwcs.hstwcs.HSTWCS.all_sky2pix`\ .
+
+    Attributes
+    ----------
+
+    best_solution : numpy.array
+        Best solution achieved by the method.
+
+    accuracy : float
+        Accuracy of the :py:attr:`best_solution`\ .
+
+    niter : int
+        Number of iterations performed by the numerical method to compute
+        :py:attr:`best_solution`\ .
+
+    divergent : None, numpy.array
+        Indices of the points in :py:attr:`best_solution` array for which the
+        solution appears to be divergent. If the solution does not diverge,
+        `divergent` will be set to `None`.
+
+    slow_conv : None, numpy.array
+        Indices of the points in :py:attr:`best_solution` array for which the
+        solution failed to converge within the specified maximum number
+        of iterations. If there are no non-converging poits (i.e., if
+        the required accuracy has been achieved for all points) then
+        `slow_conv` will be set to `None`.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(NoConvergence, self).__init__(*args)
+
+        self.best_solution = kwargs.pop('best_solution', None)
+        self.accuracy      = kwargs.pop('accuracy', None)
+        self.niter         = kwargs.pop('niter', None)
+        self.divergent     = kwargs.pop('divergent', None)
+        self.slow_conv     = kwargs.pop('slow_conv', None)
+
+
 class FITSFixedWarning(AstropyWarning):
     """
     The warning raised when the contents of the FITS header have been
@@ -1238,41 +1280,207 @@ naxis kwarg.
     def wcs_pix2sky(self, *args, **kwargs):
         return self.wcs_pix2world(*args, **kwargs)
 
-    def _all_world2pix(self, world, origin, tolerance, **kwargs):
-        try:
-            import scipy.optimize
-        except ImportError:
-            raise ImportError(
-                "You must have Scipy installed to use this method. " +
-                "See <http://www.scipy.org>.")
-        pix = []
-        for i in range(len(world)):
-            x0 = self.wcs_world2pix(np.atleast_2d(world[i]), origin,
-                **kwargs).flatten()
-            func = lambda pix: (self.all_pix2world(np.atleast_2d(pix),
-                origin, **kwargs) - world[i]).flatten()
-            # Use Broyden inverse because it is (a) present in a wide range of
-            # Scipy version, (b) provides an option for the absolute tolerance,
-            # and (c) is suitable for small-scale problems (i.e., a few
-            # variables, rather than hundreds of variables).
-            soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
-            pix.append(soln.flatten())
-        return np.asarray(pix)
+    def _all_world2pix(self, world, origin, tolerance, maxiter, adaptive,
+                       detect_divergence, quiet):
+        #####################################################################
+        ##                INITIALIZE ITERATIVE PROCESS:                    ##
+        #####################################################################
+        pix0 = self.wcs_world2pix(world, origin) # initial approximation
+                                                 # (WCS based only)
+
+        # see if iterative solution is required (when any of the
+        # non-CD-matrix corrections are present). If not required
+        # return initial approximation (pix0).
+        if self.sip is None and \
+           self.cpdis1 is None and self.cpdis2 is None and \
+           self.det2im1 is None and self.det2im2 is None:
+            # no non-WCS corrections are detected - return initial approximation
+            return pix0
+
+        pix  = pix0.copy() # 0-order solution
+
+        # initial correction:
+        dpix = self.pix2foc(pix, origin) - pix0
+        # If pix2foc does not apply all the required distortion
+        # corrections then replace the above line with:
+        #dpix = self.wcs_world2pix(self.all_pix2world(pix, origin), \
+        #                          origin) - pix0
+
+        # update initial solution:
+        pix -= dpix
+
+        # norn (L2) of the correction:
+        #dnprev   = np.linalg.norm(dpix, axis=1)
+        dnprev     = np.sum(dpix*dpix, axis=1)
+        dn         = dnprev
+        tol2 = tolerance**2
+
+        # prepare for iterative process
+        iterlist = range(1, maxiter+1)
+        ind      = None
+        inddiv   = None
+
+        npts      = world.shape[0]
+
+        # turn off numpy runtime warnings for 'invalid' and 'over':
+        old_invalid = np.geterr()['invalid']
+        old_over    = np.geterr()['over']
+        np.seterr(invalid = 'ignore', over = 'ignore')
+
+        #####################################################################
+        ##                     NON-ADAPTIVE ITERATIONS:                    ##
+        #####################################################################
+        if not adaptive:
+            for k in iterlist:
+                # check convergence:
+                if np.max(dn) < tol2:
+                    break
+
+                # find correction to the previous solution:
+                dpix = self.pix2foc(pix, origin) - pix0
+                # If pix2foc does not apply all the required distortion
+                # corrections then replace the above line with:
+                #dpix = self.wcs_world2pix( \
+                #    self.all_pix2world(pix, origin), origin) - pix0
+
+                # update norn (L2) of the correction:
+                #dn = np.linalg.norm(dpix, axis=1)
+                dn = np.sum(dpix*dpix, axis=1)
+
+                # check for divergence (we do this in two stages
+                # to optimize performance for the most common
+                # scenario when succesive approximations converge):
+                if detect_divergence:
+                    if np.any(dn > dnprev):
+                        inddiv, = np.where(
+                            np.logical_and(dn > dnprev, dn >= tol2))
+                        if inddiv.shape[0] > 0:
+                            # apply correction only to the converging points:
+                            pix[ind] -= dpix[ind]
+                            # switch to adaptive iterations:
+                            ind, = np.where((dn >= tol2) & \
+                                        (dn <= dnprev) & np.isfinite(dn))
+                            iterlist = iterlist[k:]
+                            adaptive = True
+                            break
+                    #dnprev[ind] = dn[ind]
+                    dnprev = dn
+
+                # apply correction:
+                pix -= dpix
+
+        #####################################################################
+        ##                      ADAPTIVE ITERATIONS:                       ##
+        #####################################################################
+        if adaptive:
+            if ind is None:
+                ind = np.asarray(range(npts), dtype=np.int64)
+                #ind, = np.where(np.linalg.norm(dpix, axis=1) >= tolerance)
+
+            for k in iterlist:
+                # check convergence:
+                if ind.shape[0] == 0:
+                    break
+
+                # find correction to the previous solution:
+                dpix[ind] = self.pix2foc(pix[ind], origin) - pix0[ind]
+                # If pix2foc does not apply all the required distortion
+                # corrections then replace the above line with:
+                #dpix[ind] = self.wcs_world2pix( \
+                #    self.all_pix2world(pix[ind], origin), origin) - pix0[ind]
+
+                # update norn (L2) of the correction:
+                #dn = np.linalg.norm(dpix, axis=1)
+                dn = np.sum(dpix*dpix, axis=1)
+                # apply correction:
+                pix[ind] -= dpix[ind]
+
+                # update indices of elements that still need correction:
+                if detect_divergence:
+                    #ind = ind[np.where((dn[ind] >= tol2) & \
+                                       #(dn[ind] <= dnprev[ind]))]
+                    ind, = np.where((dn >= tol2) & (dn <= dnprev))
+                    dnprev[ind] = dn[ind]
+                else:
+                    ind, = np.where(dn >= tol2)
+                    #ind = ind[np.where(dn[ind] >= tolerance)]
+
+        #####################################################################
+        ##         FINAL DETECTION OF INVALID, DIVERGING,                  ##
+        ##         AND FAILED-TO-CONVERGE POINTS                           ##
+        #####################################################################
+        # Identify diverging and/or invalid points:
+        invalid = ((~np.all(np.isfinite(pix),axis=1)) | (~np.isfinite(dn))) &\
+                   (np.all(np.isfinite(world),axis=1))
+        # When detect_divergence==False, dnprev is outdated (it is the norm
+        # of the very first correction). Still better than nothing...
+        inddiv, = np.where(((dn >= tol2) & (dn > dnprev)) | invalid)
+        if inddiv.shape[0] == 0:
+            inddiv = None
+        # identify points that did not converge within 'maxiter' iterations:
+        if k >= maxiter:
+            ind, = np.where((dn >= tol2) & (dn <= dnprev) & (~invalid))
+            if ind.shape[0] == 0:
+                ind = None
+        else:
+            ind = None
+
+        #####################################################################
+        ##      RAISE EXCEPTION IF DIVERGING OR TOO SLOWLY CONVERGING      ##
+        ##      DATA POINTS HAVE BEEN DETECTED:                            ##
+        #####################################################################
+        if (ind is not None or inddiv is not None) and not quiet:
+            # restore previous numpy error settings:
+            np.seterr(invalid = old_invalid, over = old_over)
+
+            if inddiv is None:
+                raise NoConvergence("'WCS.all_world2pix' failed to "        \
+                    "converge to the requested accuracy after {:d} "         \
+                    "iterations.".format(k), best_solution = pix,            \
+                    accuracy = np.abs(dpix), niter = k,                      \
+                    slow_conv = ind, divergent = None)
+            else:
+                raise NoConvergence("'WCS.all_world2pix' failed to "        \
+                    "converge to the requested accuracy.{0:s}"               \
+                    "After {1:d} iterations, the solution is diverging "     \
+                    "at least for one input point."                          \
+                    .format(os.linesep, k), best_solution = pix,             \
+                    accuracy = np.abs(dpix), niter = k,                      \
+                    slow_conv = ind, divergent = inddiv)
+
+        #####################################################################
+        ##                    FINALIZE AND RETURN:                         ##
+        #####################################################################
+        # restore previous numpy error settings:
+        np.seterr(invalid = old_invalid, over = old_over)
+
+        return pix
+
 
     def all_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        tolerance = kwargs.pop('tolerance', 1e-6)
+
+        tolerance = kwargs.pop('tolerance', 1e-4)
+        maxiter   = kwargs.pop('maxiter', 20)
+        adaptive  = kwargs.pop('adaptive', False)
+        detect_div= kwargs.pop('detect_divergence', True)
+        quiet     = kwargs.pop('quiet', False)
+
         return self._array_converter(lambda *args, **kwargs:
-            self._all_world2pix(*args, tolerance=tolerance, **kwargs),
+            self._all_world2pix(*args, tolerance=tolerance, maxiter = maxiter,
+                        adaptive = adaptive,
+                        detect_divergence = detect_div, quiet = quiet),
             'input', *args,
             **kwargs)
     all_world2pix.__doc__ = """
-        Transforms world coordinates to pixel coordinates, using numerical
-        iteration to invert the method `~astropy.wcs.WCS.all_pix2world` within a
-        tolerance of 1e-6 pixels.
+        all_world2pix(*arg, accuracy=1.0e-4, maxiter=20, adaptive=False, \
+detect_divergence=True, quiet=False)
 
-        Note that to use this function, you must have Scipy installed.
+        Transforms world coordinates to pixel coordinates, using numerical
+        iteration to invert the full forward transformation
+        `~astropy.wcs.WCS.all_pix2world` with complete distortion model.
+
 
         Parameters
         ----------
@@ -1283,10 +1491,113 @@ naxis kwarg.
 
         {1}
 
-        tolerance : float, optional
+        tolerance : float, optional (Default = 1.0e-4)
             Tolerance of solution. Iteration terminates when the iterative
-            solver estimates that the true solution is within this many pixels
-            current estimate. Default value is 1e-6 (pixels).
+            solver estimates that the "true solution" is within this many
+            pixels current estimate, more specifically, when the correction
+            to the solution found during the previous iteration is smaller
+            (in the sence of the L2 norm) than `tolerance`\ .
+
+        maxiter : int, optional (Default = 20)
+            Maximum number of iterations allowed to reach a solution.
+
+        adaptive : bool, optional (Default = False)
+            Specifies whether to adaptively select only points that did not
+            converge to a solution whithin the required accuracy for the
+            next iteration. Default is recommended for HST as well as most
+            other instruments.
+
+            .. note::
+               The :py:meth:`all_world2pix` uses a vectorized implementation
+               of the method of consecutive approximations (see `Notes`
+               section below) in which it iterates over *all* input poits
+               *regardless* until the required accuracy has been reached for
+               *all* input points. In some cases it may be possible that
+               *almost all* points have reached the required accuracy but
+               there are only a few of input data points for which additional
+               iterations may be needed (this depends mostly on the
+               characteristics of the geometric distortions for a given
+               instrument). In this situation it may be
+               advantageous to set `adaptive` = `True`\ in which case
+               :py:meth:`all_world2pix` will continue iterating *only* over
+               the points that have not yet converged to the required
+               accuracy. However, for the HST's ACS/WFC detector, which has
+               the strongest distortions of all HST instruments, testing has
+               shown that enabling this option would lead to a about 10-30\%
+               penalty in computational time (depending on specifics of the
+               image, geometric distortions, and number of input points to be
+               converted). Therefore, for HST instruments,
+               it is recommended to set `adaptive` = `False`\ . The only
+               danger in getting this setting wrong will be a performance
+               penalty.
+
+            .. note::
+               When `detect_divergence` is `True`\ , :py:meth:`all_world2pix` \
+               will automatically switch to the adaptive algorithm once
+               divergence has been detected.
+
+        detect_divergence : bool, optional (Default = False)
+            Specifies whether to perform a more detailed analysis of the
+            convergence to a solution. Normally :py:meth:`all_world2pix`
+            may not achieve the required accuracy
+            if either the `tolerance` or `maxiter` arguments are too low.
+            However, it may happen that for some geometric distortions
+            the conditions of convergence for the the method of consecutive
+            approximations used by :py:meth:`all_world2pix` may not be
+            satisfied, in which case consecutive approximations to the
+            solution will diverge regardless of the `tolerance` or `maxiter`
+            settings.
+
+            When `detect_divergence` is `False`\ , these divergent points
+            will be detected as not having achieved the required accuracy
+            (without further details). In addition, if `adaptive` is `False`
+            then the algorithm will not know that the solution (for specific
+            points) is diverging and will continue iterating and trying to
+            "improve" diverging solutions. This may result in NaN or Inf
+            values in the return results (in addition to a performance
+            penalties). Even when `detect_divergence` is
+            `False`\ , :py:meth:`all_world2pix`\ , at the end of the iterative
+            process, will identify invalid results (NaN or Inf) as "diverging"
+            solutions and will raise :py:class:`NoConvergence` unless
+            the `quiet` parameter is set to `True`\ .
+
+            When `detect_divergence` is `True`\ , :py:meth:`all_world2pix` will
+            detect points for
+            which current correction to the coordinates is larger than
+            the correction applied during the previous iteration **if** the
+            requested accuracy **has not yet been achieved**\ . In this case,
+            if `adaptive` is `True`, these points will be excluded from
+            further iterations and if `adaptive`
+            is `False`\ , :py:meth:`all_world2pix` will automatically
+            switch to the adaptive algorithm.
+
+            .. note::
+               When accuracy has been achieved, small increases in
+               current corrections may be possible due to rounding errors
+               (when `adaptive` is `False`\ ) and such increases
+               will be ignored.
+
+            .. note::
+               Setting `detect_divergence` to `True` will incurr about 5-10\%
+               performance penalty (in our testing on ACS/WFC images).
+               Because the benefits of enabling this feature outweigh
+               the small performance penalty, it is recommended to set
+               `detect_divergence` to `True`\ , unless extensive testing
+               of the distortion models for images from specific
+               instruments show a good stability of the numerical method
+               for a wide range of coordinates (even outside the image
+               itself).
+
+            .. note::
+               Indices of the diverging inverse solutions will be reported
+               in the `divergent` attribute of the
+               raised :py:class:`NoConvergence` exception object.
+
+        quiet : bool, optional (Default = False)
+            Do not throw :py:class:`NoConvergence` exceptions when the method
+            does not converge to a solution with the required accuracy
+            within a specified number of maximum iterations set by `maxiter`
+            parameter. Instead, simply return the found solution.
 
         Returns
         -------
@@ -1301,6 +1612,19 @@ naxis kwarg.
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
         members can be used to determine the order of the axes.
+
+        Using the method of consecutive approximations we iterate starting
+        with the initial approximation, which is computed using the
+        non-distorion-aware :py:meth:`wcs_world2pix` (or equivalent).
+
+        The :py:meth:`all_world2pix` function uses a vectorized implementation
+        of the method of consecutive approximations and therefore it is
+        highly efficient (>30x) when *all* data points that need to be
+        converted from sky coordinates to image coordinates are passed at
+        *once*\ . Therefore, it is advisable, whenever possible, to pass
+        as input a long array of all points that need to be converted to
+        :py:meth:`all_world2pix` instead of calling :py:meth:`all_world2pix`
+        for each data point. Also see the note to the `adaptive` parameter.
 
         Raises
         ------
@@ -1327,6 +1651,111 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
+
+        NoConvergence
+            The method did not converge to a
+            solution to the required accuracy within a specified number
+            of maximum iterations set by the `maxiter` parameter. To turn off
+            this exception, set `quiet` to `True`\ . Indices of the points
+            for which the requested accuracy was not achieved (if any)
+            will be listed in the `slow_conv` attribute of the
+            raised :py:class:`NoConvergence` exception object.
+
+            See :py:class:`NoConvergence` documetation for more details.
+
+        Examples
+        --------
+        >>> import astropy.io.fits as fits, astropy.wcs as wcs, numpy as np
+        >>> hdulist = fits.open('j94f05bgq_flt.fits')
+        >>> w = wcs.WCS(hdulist[('sci',1)].header, hdulist)
+        >>> hdulist.close()
+
+        >>> ra, dec = w.all_pix2world([1,2,3],[1,1,1],1); print(ra); print(dec)
+        [ 5.52645241  5.52649277  5.52653313]
+        [-72.05171776 -72.05171295 -72.05170814]
+        >>> radec = w.all_pix2world([[1,1],[2,1],[3,1]],1); print(radec)
+        [[  5.52645241 -72.05171776]
+         [  5.52649277 -72.05171295]
+         [  5.52653313 -72.05170814]]
+        >>> x, y = w.all_world2pix(ra,dec,1)
+        >>> print(x)
+        [ 1.00000233  2.00000232  3.00000233]
+        >>> print(y)
+        [ 0.99999997  0.99999997  0.99999998]
+        >>> xy = w.all_world2pix(radec,1)
+        >>> print(xy)
+        [[ 1.00000233  0.99999997]
+         [ 2.00000232  0.99999997]
+         [ 3.00000233  0.99999998]]
+        >>> xy = w.all_world2pix(radec,1, maxiter=3, tolerance=1.0e-10, \
+quiet=False)
+        NoConvergence: 'WCS.all_world2pix' failed to converge to the \
+requested accuracy after 3 iterations.
+
+        >>>
+        Now try to use some diverging data:
+        >>> divradec = w.all_pix2world([[1.0,1.0],[10000.0,50000.0],\
+[3.0,1.0]],1); print(divradec)
+        [[  5.52645241 -72.05171776]
+         [  7.15979392 -70.81405561]
+         [  5.52653313 -72.05170814]]
+
+        >>> try:
+        >>>   xy = w.all_world2pix(divradec,1, maxiter=20, tolerance=1.0e-4, \
+adaptive=False, detect_divergence=True, quiet=False)
+        >>> except wcs.wcs.NoConvergence as e:
+        >>>   print("Indices of diverging points: " + os.linesep + \
+str(e.divergent))
+        >>>   print("Indices of poorly converging points: " + os.linesep + \
+str(e.slow_conv))
+        >>>   print("Best solution: " + os.linesep + str(e.best_solution))
+        >>>   print("Achieved accuracy: " + os.linesep + str(e.accuracy))
+        >>>   raise e
+        Indices of diverging points: [1]
+        Indices of poorly converging points: None
+        Best solution:
+        [[  1.00000233e+00   9.99999967e-01]
+         [ -8.59516082e+11   6.61705197e+11]
+         [  3.00000233e+00   9.99999976e-01]]
+        Achieved accuracy:
+        [[  5.98554253e-05   6.79918148e-07]
+         [  8.59514088e+11   6.61703754e+11]
+         [  6.02334592e-05   6.59713067e-07]]
+        Traceback (innermost last):
+          File "<console>", line 9, in <module>
+        NoConvergence: 'WCS.all_world2pix' failed to converge to the \
+requested accuracy.
+        After 5 iterations, the solution is diverging at least for one \
+input point.
+
+        >>> try:
+        >>>   xy = w.all_world2pix(divradec,1, maxiter=20, tolerance=1.0e-4, \
+adaptive=False, detect_divergence=False, quiet=False)
+        >>> except wcs.wcs.NoConvergence as e:
+        >>>   print("Indices of diverging points: " + os.linesep + \
+str(e.divergent))
+        >>>   print("Indices of poorly converging points: " + os.linesep + \
+str(e.slow_conv))
+        >>>   print("Best solution: " + os.linesep + str(e.best_solution))
+        >>>   print("Achieved accuracy: " + os.linesep + str(e.accuracy))
+        >>>   raise e
+        Indices of diverging points: [1]
+        Indices of poorly converging points: None
+        Best solution:
+        [[  1.   1.]
+         [ nan  nan]
+         [  3.   1.]]
+        Achieved accuracy:
+        [[  0.   0.]
+         [ nan  nan]
+         [  0.   0.]]
+        Traceback (innermost last):
+          File "<console>", line 9, in <module>
+        NoConvergence: 'WCS.all_world2pix' failed to converge to the \
+requested accuracy.
+        After 20 iterations, the solution is diverging at least for one \
+input point.
+
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))

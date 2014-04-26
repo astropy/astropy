@@ -503,6 +503,59 @@ def test_validate_with_2_wcses():
     assert "WCS key 'A':" in six.text_type(results)
 
 
+def test_all_world2pix_direct(tolerance = 1.e-4, origin = 0, \
+                              random_npts = 250000, mag = 2):
+    """Test all_world2pix, iterative inverse of all_pix2world"""
+    from numpy import random
+    from datetime import datetime
+    
+    w = wcs.WCS('sip.fits')
+    origin = 0
+    
+    crpix  = w.wcs.crpix
+    ncoord = crpix.shape[0]
+    
+    # Assume that CRPIX is at the center of the image and that the image
+    # has an even number of pixels along each axis:
+    naxesi = list( 2 * crpix.astype(dtype = np.int) - origin )
+
+    # generate image pixel coordinates:
+    img_pix = np.dstack([i.flatten() for i in \
+                         np.meshgrid(*map(range, naxesi))])[0]
+    
+    # generage random data
+    startstate = random.get_state()
+    random.seed(123456789)
+    rnd_pix = np.random.rand(random_npts, ncoord)
+    random.set_state(startstate)
+    
+    # Scale random data to cover the entire image (or more, if 'mag' > 1).
+    # Assume that CRPIX is at the center of the image and that the image
+    # has an even number of pixels along each axis:
+    mwidth = 2 * mag * (crpix - origin)
+    rnd_pix = crpix - 0.5 * mwidth + (mwidth - 1) * rnd_pix
+    
+    # test (reference)  pixel coordinates in image coordinate system (CS):
+    test_pix  = np.append(img_pix, rnd_pix, axis = 0)
+    # test pixel coordinates in sky CS:
+    all_world = w.all_pix2world(test_pix, origin)
+
+    runtime_begin = datetime.now()
+    all_pix       = w.all_world2pix(all_world, origin, tolerance=tolerance)
+    runtime_end   = datetime.now()
+
+    errors  = np.linalg.norm(all_pix-test_pix, axis=1)
+    meanerr = np.mean(errors)
+    maxerr  = np.max(errors)
+    print("Finished running 'test_all_world2pix_direct'.{0:s}" \
+          "Mean error = {1:e}  (Max error = {2:e}).{0:s}" \
+          "Run time (astropy.wcs.WCS): {3}{0:s}" \
+          .format(os.linesep, meanerr, maxerr,
+                  runtime_end - runtime_begin))
+    
+    assert(maxerr < 2.0 * tolerance)
+
+
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
@@ -520,7 +573,7 @@ def test_all_world2pix():
 
         # First, check that the SIP distortion correction at least produces
         # some different answers from the WCS-only transform.
-        assert np.any(all_pix != wcs_pix)
+        #assert np.any(all_pix != wcs_pix)
 
         assert_allclose(all_world, world, rtol=0, atol=tolerance)
 
