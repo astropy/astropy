@@ -73,10 +73,11 @@ class SExtractorHeader(core.BaseHeader):
         """
 
         # This assumes that the columns are listed in order, one per line with a
-        # header comment string of the format: "# 1 ID"
+        # header comment string of the format: "# 1 ID short description [unit]"
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
-        re_name_def = re.compile(r'^\s*#\s*([0-9]+).*')  # E.g. '# 1 ID'
+        # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
+        re_name_def = re.compile(r'^\s*#\s*([0-9]+)\s+(\w+)(?:\s.*\[(.+)\])?.*')
         for line in lines:
             if not line.startswith('#'):
                 break                   # End of header lines
@@ -84,26 +85,32 @@ class SExtractorHeader(core.BaseHeader):
                 match = re_name_def.search(line)
                 if match:
                     words = match.group(0).strip().strip('#').split()
-                    colnumber = int(words[0])  # First string is the column number
-                    colname = words[1]   # second string is the column name
-                    columns[colnumber] = colname
+                    colnumber = int(match.group(1))  # First string is the column number
+                    colname = match.group(2)   # second string is the column name
+                    colunit = match.group(3) # If no units are given, colunit = None
+                    columns[colnumber] = (colname, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
         previous_column = 0
         for n in colnumbers:
             if n != previous_column + 1:
                 for c in range(previous_column+1, n):
-                    column_name = columns[previous_column]+"_%d" % (c-previous_column)
-                    columns[c] = column_name
+                    column_name = columns[previous_column][0]+"_%d" % (c-previous_column)
+                    column_unit = columns[previous_column][1]
+                    columns[c] = (column_name, column_unit)
             previous_column = n
 
         # Add the columns in order to self.names
         colnumbers = sorted(columns)
         self.names = []
         for n in colnumbers:
-            self.names.append(columns[n])
+            self.names.append(columns[n][0])
 
         if not self.names:
             raise core.InconsistentTableError('No column names found in SExtractor header')
 
-        self._set_cols_from_names()
+        self.cols = []
+        for n in colnumbers:
+            col = core.Column(name=columns[n][0])
+            col.unit = columns[n][1]
+            self.cols.append(col)
