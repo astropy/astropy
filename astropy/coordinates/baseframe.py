@@ -15,7 +15,6 @@ import numpy as np
 
 # Project
 from ..extern import six
-from ..time import Time
 from .. import units as u
 from .transformations import TransformGraph
 
@@ -486,6 +485,7 @@ def _convert_to_time(attr, value):
     Convert input value to a Time object and validate by running through the
     Time constructor.  Also check that the input was a scalar.
     """
+    from ..time import Time
     try:
         out = Time(value)
     except Exception as err:
