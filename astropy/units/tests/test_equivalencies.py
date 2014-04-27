@@ -515,3 +515,25 @@ def test_temperature():
     t_k = 0 * u.K
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
+
+
+def test_small_angle_distance(recwarn):
+    d = 10 * u.Mpc
+
+    qlength = 1 * u.kpc
+    qang = 1e-4 * u.radian
+
+    assert qlength.to(qang.unit, u.small_angle_distance(d)) == qang
+    assert qang.to(qlength.unit, u.small_angle_distance(d)) == qlength
+
+    #now check that the not-small-angle warning is issued
+    qlength = 1 * u.Mpc
+    qang = 1e-1 * u.radian
+
+    qlength.to(qang.unit, u.small_angle_distance(d))
+    w = recwarn.pop()
+    assert 'Angle in small_angle_distance is not small' in w.message.args[0]
+
+    qang.to(qlength.unit, u.small_angle_distance(d))
+    w = recwarn.pop()
+    assert 'Angle in small_angle_distance is not small' in w.message.args[0]

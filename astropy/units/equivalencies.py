@@ -17,7 +17,7 @@ from . import dimensionless_unscaled
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature']
+           'logarithmic', 'temperature', 'small_angle_distance']
 
 
 def dimensionless_angles():
@@ -460,8 +460,12 @@ def brightness_temperature(beam_area, disp):
 
 
 def temperature():
-    """Convert between Kelvin, Celsius, and Fahrenheit here because
-    Unit and CompositeUnit cannot do addition or subtraction properly.
+    """
+    Convert between degrees Kelvin, Celsius, and Fahrenheit.
+
+    This needs to be an equivalency because `~astropy.units.Unit` and
+    `~astropy.units.CompositeUnit` only allows scale factors,  and temperatures
+    require addition or subtraction.
     """
     from .imperial import deg_F
     return [
@@ -469,3 +473,47 @@ def temperature():
         (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
          lambda x: ((x - 32.0) / 1.8) + 273.15)]
+
+
+def small_angle_distance(distance):
+    r"""
+    Convert between angle and transverse physical separation at a particular
+    distance.  Only meanigful, if the angle is  is small enough that
+    :math:`\theta \approx \sin{\theta}`.
+
+    Parameters
+    ----------
+    distance : `Quantity` with length units
+        The line-of-sight distance to assume.
+
+    Returns
+    -------
+    equivs : list
+        The list of equivalencies for use with :method:`Quantity.to`
+    """
+    from math import radians
+    from warnings import warn
+    from ..utils.exceptions import AstropyWarning
+    from ..units import UnitsError
+
+    if not (hasattr(distance, 'unit') and distance.unit.is_equivalent(si.meter)):
+        raise UnitsError('small_angle_distance argument must be a Quantity of '
+                         'unit length')
+
+    ONE_DEG_IN_RAD = radians(1)
+
+    def rad_to_d(angle):
+        if np.any(angle > ONE_DEG_IN_RAD):
+            warn(AstropyWarning('Angle in small_angle_distance is not '
+                                'small:{0}'.format(angle)))
+        return angle*distance.value
+
+    def d_to_rad(d):
+        angle = d / distance.value
+
+        if np.any(angle > ONE_DEG_IN_RAD):
+            warn(AstropyWarning('Angle in small_angle_distance is not '
+                                'small:{0}'.format(angle)))
+        return angle
+
+    return [(si.radian, distance.unit, rad_to_d, d_to_rad)]

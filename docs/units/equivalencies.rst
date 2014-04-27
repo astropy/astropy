@@ -92,6 +92,24 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
+Small-Angle Approximation Distances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, converting transverse angular distances to physics
+separations are best done with the  `astropy.coordinates` package.
+However, in the case of small angles and large line-of-sight distances,
+the approximation :math:`d_{\rm LOS} \sin{theta} \approx d_{\rm LOS}
+\theta` can be used to reasonable accuracy.  The
+:func:`~astropy.units.equivalencies.small_angle_distance` equivalency
+handles this, allowing conversion between angles and distances given a
+line-of-sight distance::
+
+  >>> from astropy import units as u
+  >>> (1*u.arcsec).to(u.pc, u.small_angle_distance(10*u.kpc))
+  <Quantity 0.0484813681109536 pc>
+  >>> (1*u.parsec).to(u.arcsec, u.small_angle_distance(10*u.kpc))
+  <Quantity 20.626480624709636 arcsec>
+
 Spectral Units
 ^^^^^^^^^^^^^^
 
