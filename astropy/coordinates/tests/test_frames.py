@@ -204,3 +204,27 @@ def test_sep():
 
     sep3d = i3.separation_3d(i4)
     assert_allclose(sep3d.to(u.kpc).value, np.array([1, 1]))
+
+
+def test_time_inputs():
+    """
+    Test validation and conversion of inputs for equinox and obstime attributes.
+    """
+    from ...time import Time
+    from ..builtin_frames import FK4
+
+    c = FK4(1 * u.deg, 2 * u.deg, equinox='J2001.5', obstime='2000-01-01 12:00:00')
+    assert c.equinox == Time('J2001.5')
+    assert c.obstime == Time('2000-01-01 12:00:00')
+
+    with pytest.raises(ValueError) as err:
+        c = FK4(1 * u.deg, 2 * u.deg, equinox=1.5)
+    assert 'Invalid time input' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
+    assert 'Invalid time input' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        c = FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    assert "must be a single (scalar) value" in str(err)

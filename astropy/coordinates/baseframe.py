@@ -15,11 +15,14 @@ import numpy as np
 
 # Project
 from ..extern import six
+from ..time import Time
 from .. import units as u
 from .transformations import TransformGraph
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
+# Frame attributes that must be times
+TIME_FRAME_ATTRS = ('equinox', 'obstime')
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -130,7 +133,12 @@ class BaseCoordinateFrame(object):
             # with an underscore
 
             if fnm in kwargs:
-                setattr(self, '_' + fnm, kwargs.pop(fnm))
+                value = kwargs.pop(fnm)
+                # If attribute is a time (equinox, obstime) then validate and force
+                # into a Time object by running through the Time constructor
+                if fnm in TIME_FRAME_ATTRS:
+                    value = _convert_to_time(fnm, value)
+                setattr(self, '_' + fnm, value)
             else:
                 setattr(self, '_' + fnm, fdefault)
 
@@ -471,3 +479,21 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
+
+
+def _convert_to_time(attr, value):
+    """
+    Convert input value to a Time object and validate by running through the
+    Time constructor.  Also check that the input was a scalar.
+    """
+    try:
+        out = Time(value)
+    except Exception as err:
+        raise ValueError('Invalid time input {0}={1!r}\n{2}'
+                         .format(attr, value, err))
+
+    if not out.isscalar:
+        raise ValueError('Time input {0}={1!r} must be a single (scalar) value'
+                         .format(attr, value))
+
+    return out
