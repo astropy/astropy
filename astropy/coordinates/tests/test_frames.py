@@ -83,17 +83,18 @@ def test_frame_repr():
     from ..builtin_frames import ICRS, FK5
 
     i = ICRS()
-    assert repr(i) == '<ICRS frame>'
+    assert repr(i) == '<ICRS Frame>'
 
     f5 = FK5()
-    assert repr(f5).startswith('<FK5 frame: equinox=')
+    assert repr(f5).startswith('<FK5 Frame: equinox=')
 
     i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
-    assert repr(i2).startswith('<ICRS coordinate: ')
-    assert 'ra=' in repr(i2)
-    assert 'distance=' in repr(i3)
+    assert repr(i2) == '<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>'
+    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
+                        'distance=3.0 kpc>')
+
 
 def test_realizing():
     from ..builtin_frames import ICRS, FK5

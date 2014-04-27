@@ -298,37 +298,49 @@ class BaseCoordinateFrame(object):
             return True
 
     def __repr__(self):
-        from .representation import SphericalRepresentation
-        from .representation import UnitSphericalRepresentation
+        from .representation import SphericalRepresentation, \
+                                    UnitSphericalRepresentation
 
-        content = ['<' + self.__class__.__name__]
+        frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
+                                for attrnm in self.frame_attr_names])
+
         if self.has_data:
-            content[-1] += ' coordinate:'
             if self.preferred_representation:
-                #special-case the Spherical->UnitSpherical if no `distance`
-                #TODO: possibly generalize this somehow?
-                prefrep = self.represent_as(self.preferred_representation)
-                nodistance = (prefrep.__class__ == SphericalRepresentation and
-                             self.data.__class__ == UnitSphericalRepresentation)
+                if (self.preferred_representation == SphericalRepresentation and
+                    isinstance(self.data, UnitSphericalRepresentation)):
+                    data = self.data.represent_as(UnitSphericalRepresentation)
+                else:
+                    data = self.data.represent_as(self.preferred_representation)
 
-                for prefnm, repnm in six.iteritems(self.preferred_attr_names):
-                    if nodistance and repnm == 'distance':
-                        continue
-                    datastr = str(getattr(prefrep, repnm))
-                    content.append(prefnm + '=' + datastr + ',')
+                data_repr = repr(data)
+                for nmpref, nmrepr in six.iteritems(self.preferred_attr_names):
+                    data_repr = data_repr.replace(nmrepr, nmpref)
+
             else:
-                content.append(repr(self.data) + ',')
+                data = self.data
+                data_repr = repr(self.data)
+
+            if data_repr.startswith('<' + data.__class__.__name__):
+                # standard form from BaseRepresentation
+                if frameattrs:
+                    frameattrs = frameattrs + ', '
+
+                #remove both the leading "<" and the space after the name
+                data_repr = data_repr[(len(self.data.__class__.__name__) + 2):]
+
+                return '<{0} Coordinate: {1}{2}'.format(self.__class__.__name__,
+                                                        frameattrs, data_repr)
+            else:
+                # should only happen if a representation has a non-standard
+                # __repr__ method, and we just punt to that
+                if frameattrs:
+                    frameattrs = ': ' + frameattrs + ', '
+                s = '<{0} Coordinate{1}Data:\n{2}>'
+                return s.format(self.__class__.__name__, frameattrs, data_repr)
         else:
-            content[-1] += ' frame:'
-
-        for nm in self.frame_attr_names:
-            content.append(nm + '=' + str(getattr(self, nm)) + ',')
-
-        if content[-1][-1] in (',', ':'):
-            #remove trailing comma/colon
-            content[-1] = content[-1][:-1]
-
-        return ' '.join(content) + '>'
+            if frameattrs:
+                frameattrs = ': ' + frameattrs
+            return '<{0} Frame{1}>'.format(self.__class__.__name__, frameattrs)
 
     def __getitem__(self, view):
         if self.has_data:
