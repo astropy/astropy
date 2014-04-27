@@ -658,7 +658,7 @@ class CoordinateTransform(object):
             An object that has the attributes necessary to fully specify the
             frame.  That is, it must have attributes with names that match the
             keys of `tosys.frame_attr_names`. Typically this is of class
-            `toframe`, but it *might* be some other class as long as it has the
+            `tosys`, but it *might* be some other class as long as it has the
             appropriate attributes.
 
         Returns
