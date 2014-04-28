@@ -107,8 +107,9 @@ class TestDatabase(object):
         with pytest.raises(MissingCatalog):
             method1('foofoo')
 
-    def test_legal_addition(self):
-        """Test legal catalog addition and listing."""
+    def test_changes(self):
+        """Test catalog addition, listing, deletion, and merge."""
+        # Addition and listing
         self.db.add_catalog(
             'new_cat', vos_catalog.VOSCatalog.create('new_cat', 'new_url'))
         self.db.add_catalog_by_url('bar', 'bar.foo', allow_duplicate_url=True)
@@ -116,11 +117,6 @@ class TestDatabase(object):
         assert self.db.list_catalogs(pattern='f') == ['foo']
         assert self.db.list_catalogs_by_url() == ['bar.foo', 'new_url']
         assert self.db.list_catalogs_by_url(pattern='r.f') == ['bar.foo']
-
-    def test_illegal_addition(self):
-        """Test illegal catalog addition."""
-        with pytest.raises(VOSError):
-            self.db.add_catalog('foo2', 'not_a_cat')
 
         with pytest.raises(DuplicateCatalogName):
             self.db.add_catalog(
@@ -130,27 +126,14 @@ class TestDatabase(object):
             self.db.add_catalog(
                 'foo3', vos_catalog.VOSCatalog.create('foo3', 'bar.foo'))
 
-    def test_legal_deletion(self):
-        """Test legal catalog deletion.
-        Deletion by URL calls ``delete_catalog()`` method.
-
-        """
+        # Deletion
+        # Note: Deletion by URL calls delete_catalog() method.
         self.db.delete_catalog_by_url('bar.foo')
         assert self.db.list_catalogs() == ['new_cat']
         assert self.db.list_catalogs_by_url() == ['new_url']
         assert self.db._url_keys['bar.foo'] == []
 
-    @pytest.mark.parametrize(
-        'methodname', ['delete_catalog', 'delete_catalog_by_url'])
-    def test_illegal_deletion(self, methodname):
-        """Test illegal catalog deletion."""
-        method = getattr(self.db, methodname)
-
-        with pytest.raises(MissingCatalog):
-            method('not_there')
-
-    def test_legal_merge(self):
-        """Test legal database merger."""
+        # Merge
         other_db = vos_catalog.VOSDatabase.create_empty()
         other_db.add_catalog(
             'o_cat', vos_catalog.VOSCatalog.create('o_title', 'o_url'))
@@ -165,6 +148,20 @@ class TestDatabase(object):
         assert self.db.list_catalogs_by_url() == ['new_url']
         assert other_db.list_catalogs() == ['o_cat', 'o_cat2']
         assert other_db.list_catalogs_by_url() == ['o_url', 'o_url2']
+
+    def test_illegal_addition(self):
+        """Test illegal catalog addition."""
+        with pytest.raises(VOSError):
+            self.db.add_catalog('foo2', 'not_a_cat')
+
+    @pytest.mark.parametrize(
+        'methodname', ['delete_catalog', 'delete_catalog_by_url'])
+    def test_illegal_deletion(self, methodname):
+        """Test illegal catalog deletion."""
+        method = getattr(self.db, methodname)
+
+        with pytest.raises(MissingCatalog):
+            method('not_there')
 
     def test_illegal_merge(self):
         """Test illegal database merger."""
