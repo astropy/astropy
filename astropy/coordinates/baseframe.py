@@ -56,7 +56,7 @@ class FrameMeta(type):
         if pref_repr:
             # create properties for the preferred_attr_names
             for propnm, reprnm in pref_attrs.items():
-                clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
+                clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm, propnm))
 
         #also make properties for the frame_attr_names to make them immutible
         #after creation
@@ -73,16 +73,20 @@ class FrameMeta(type):
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
     @staticmethod
-    def repr_getter_factory(reprnm):
+    def repr_getter_factory(reprnm, propertynm):
         def getter(self):
             rep = self.represent_as(self.preferred_representation)
-            return getattr(rep, reprnm)
+            val = getattr(rep, reprnm)
+            if propertynm in self.preferred_attr_units:
+                return val.to(self.preferred_attr_units[propertynm])
+            else:
+                return val
         return getter
 
     @staticmethod
     def frame_attr_factory(attrnm):
         def getter(self):
-            return getattr(self, '_'+ attrnm)
+            return getattr(self, '_' + attrnm)
         return getter
 
 
