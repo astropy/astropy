@@ -248,7 +248,7 @@ def test_transform_api():
     fk5_J2001_frame = FK5(equinox=J2001)
 
     # if they do not have data, the string instead is the frame specification
-    assert repr(fk5_J2001_frame) == "<FK5 frame: equinox=J2001.000>"
+    assert repr(fk5_J2001_frame) == "<FK5 Frame: equinox=J2001.000>"
 
     #  Note that, although a frame object is immutable and can't have data added, it
     #  can be used to create a new object that does have data by giving the
