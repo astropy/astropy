@@ -19,6 +19,7 @@ from ...utils.exceptions import AstropyUserWarning
 from astropy.units.format.fits import UnitScaleError
 
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from . import FITS_rec
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
 
@@ -220,10 +221,12 @@ def write_table_fits(input, output, overwrite=False):
     if input.masked:
         #float column's default mask value needs to be Nan
         for column in six.itervalues(input.columns):
-            if column.dtype.kind == 'f' and np.allclose(column.get_fill_value(), 1e20):
+            fill_value = column.get_fill_value()
+            if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
                 column.set_fill_value(np.nan)
 
-        table_hdu = BinTableHDU(np.array(input.filled()))
+        fits_rec = FITS_rec.from_columns(np.array(input.filled()))
+        table_hdu = BinTableHDU(fits_rec)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -240,7 +243,8 @@ def write_table_fits(input, output, overwrite=False):
 
             col.null = fill_value.astype(input[col.name].dtype)
     else:
-        table_hdu = BinTableHDU(np.array(input))
+        fits_rec = FITS_rec.from_columns(np.array(input.filled()))
+        table_hdu = BinTableHDU(fits_rec)
 
     # Set units for output HDU
     for col in table_hdu.columns:

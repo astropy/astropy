@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 from numpy.testing import assert_allclose
 
+from ... import fits
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
 from .... import units as u
@@ -224,6 +225,7 @@ class TestMultipleHDU(object):
         assert len(l) == 0
         assert equal_data(t, self.data1)
 
+
 def test_masking_regression_1795():
     """
     Regression test for #1795 - this bug originally caused columns where TNULL
@@ -239,8 +241,8 @@ def test_masking_regression_1795():
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t['c4'].data == np.array([False, True]))
 
+
 def test_scale_error():
-    from astropy.table import Table
     a = [1, 4, 5]
     b = [2.0, 5.0, 8.2]
     c = ['x', 'y', 'z']
@@ -249,3 +251,21 @@ def test_scale_error():
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits',format='fits', overwrite=True)
     assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
+
+
+def test_bool_column(tmpdir):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/1953
+
+    Ensures that Table columns of bools are properly written to a FITS table.
+    """
+
+    arr = np.ones(5, dtype=bool)
+    arr[::2] == False
+
+    t = Table([arr])
+    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+
+    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+        assert hdul[1].data['col0'].dtype == np.dtype('bool')
+        assert np.all(hdul[1].data['col0'] == arr)
