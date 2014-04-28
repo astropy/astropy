@@ -8,12 +8,11 @@ from ..extern import six
 from ..units import Unit
 
 from .angles import Latitude, Longitude
-from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph
 
 __all__ = ['SkyCoord']
 
-# Create FRAME_CLASSES dictionary mapping of system name: frame class.
+# Create FRAME_CLASSES dictionary mapping of frame name: frame class.
 FRAME_NAMES = frame_transform_graph.get_aliases()
 FRAME_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
                      for name in FRAME_NAMES)
@@ -23,7 +22,7 @@ FRAME_CLASSES[None] = FRAME_CLASSES['icrs']
 CLASS_TO_NAME_MAP = dict((cls, name) for name, cls in FRAME_CLASSES.items())
 
 
-# Map coordinate system names to allowed frame-specific attributes such as
+# Map coordinate frame names to allowed frame-specific attributes such as
 # equinox or obstime.
 FRAME_ATTR_NAMES = dict((name, tuple(FRAME_CLASSES[name].frame_attr_names.keys()))
                         for name in FRAME_NAMES)
@@ -39,11 +38,11 @@ class SkyCoord(object):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for attr in ('system', 'equinox', 'obstime', 'location'):
+        for attr in ('frame', 'equinox', 'obstime', 'location'):
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = FRAME_CLASSES[self.system]
+        frame_cls = FRAME_CLASSES[self.frame]
         coord_kwargs = {}
         for attr, value in kwargs.items():
             if (attr in frame_cls.preferred_attr_names
@@ -54,8 +53,8 @@ class SkyCoord(object):
         self._coord = frame_cls(**coord_kwargs)
 
     @property
-    def system(self):
-        return self._system
+    def frame(self):
+        return self._frame
 
     @property
     def equinox(self):
@@ -79,11 +78,11 @@ class SkyCoord(object):
         """
         valid_kwargs = {}
 
-        # Put the SkyCoord attributes system, equinox, obstime, location into valid_kwargs
-        # dict.  `System` could come from args or kwargs, so set valid_kwargs['system']
+        # Put the SkyCoord attributes frame, equinox, obstime, location into valid_kwargs
+        # dict.  `Frame` could come from args or kwargs, so set valid_kwargs['frame']
         # accordingly.  The others must be specified by keyword args.  Pop them off
         # of kwargs in the process.
-        system = valid_kwargs['system'] = _get_system(args, kwargs)
+        frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
         for attr in ('equinox', 'obstime', 'location'):
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
@@ -91,7 +90,7 @@ class SkyCoord(object):
         lon_unit, lat_unit = _get_units(args, kwargs)
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance`
-        valid_kwargs.update(_get_preferred_attrs(system, lon_unit, lat_unit, kwargs))
+        valid_kwargs.update(_get_preferred_attrs(frame, lon_unit, lat_unit, kwargs))
 
         # Error if anything is still left in kwargs
         if kwargs:
@@ -103,7 +102,7 @@ class SkyCoord(object):
         if args:
             if len(args) == 1:
                 # One arg which must be a coordinate
-                coord_kwargs = _parse_coordinate_arg(args[0], system, lon_unit, lat_unit)
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
             elif len(args) == 2:
                 raise NotImplementedError()
             else:
@@ -117,19 +116,19 @@ class SkyCoord(object):
 
         return valid_kwargs
 
-    def transform_to(self, system):
+    def transform_to(self, frame):
         """
-        Transform this coordinate to a new system.
+        Transform this coordinate to a new frame.
 
         Parameters
         ----------
-        system : str
-            The system to transform this coordinate into.
+        frame : str
+            The frame to transform this coordinate into.
 
         Returns
         -------
         coord
-            A new object with this coordinate represented in the `system` system.
+            A new object with this coordinate represented in the `frame` frame.
 
         Raises
         ------
@@ -138,26 +137,26 @@ class SkyCoord(object):
         """
         from astropy.coordinates.errors import ConvertError
 
-        if system is None or self.system is None:
-            raise ValueError('Cannot transform coordinates to/from `system=None`')
+        if frame is None or self.frame is None:
+            raise ValueError('Cannot transform coordinates to/from `frame=None`')
 
-        if system not in FRAME_CLASSES:
-            raise ValueError("Output coordinate system '{0}' not in allowed values {1}"
-                             .format(system, sorted(FRAME_CLASSES)))
+        if frame not in FRAME_CLASSES:
+            raise ValueError("Output coordinate frame '{0}' not in allowed values {1}"
+                             .format(frame, sorted(FRAME_CLASSES)))
 
-        # Make a frame instance for the new system including the correct frame attributes.
+        # Make a frame instance for the new frame including the correct frame attributes.
         # Only define attributes that are not None.
-        frame_cls = FRAME_CLASSES[system]
-        frame_kwargs = dict((attr, getattr(self, attr)) for attr in FRAME_ATTR_NAMES[system]
+        frame_cls = FRAME_CLASSES[frame]
+        frame_kwargs = dict((attr, getattr(self, attr)) for attr in FRAME_ATTR_NAMES[frame]
                             if getattr(self, attr) is not None)
         frame = frame_cls(**frame_kwargs)
 
         out = deepcopy(self)
-        out._system = system
+        out._frame = frame
         out._coord = self._coord.transform_to(frame)
         if out._coord is None:
             raise ConvertError('Cannot transform from {0} to '
-                               '{1}'.format(self.system, system))
+                               '{1}'.format(self.frame, frame))
 
         return out
 
@@ -167,7 +166,7 @@ class SkyCoord(object):
         to, based on the alias attr in the master transform graph.
         """
 
-        if self.system == attr:
+        if self.frame == attr:
             return self
 
         nmsys = frame_transform_graph.lookup_name(attr)
@@ -203,48 +202,48 @@ class SkyCoord(object):
         return '<{0} {1}'.format(self.__class__.__name__, repr(self._coord)[1:])
 
 
-def _get_system(args, kwargs):
+def _get_frame(args, kwargs):
     """
-    Determine the coordinate system from input SkyCoord args and kwargs.  This
-    modifies args in-place to remove the item that provided `system`.  It
-    also infers the system if an input coordinate was provided and checks
+    Determine the coordinate frame from input SkyCoord args and kwargs.  This
+    modifies args in-place to remove the item that provided `frame`.  It
+    also infers the frame if an input coordinate was provided and checks
     for conflicts.
 
     """
-    system = kwargs.pop('system', None)
+    frame = kwargs.pop('frame', None)
 
-    # If no system is provided via keyword then check for a positional arg
-    # that is a valid system.
-    if system is None:
+    # If no frame is provided via keyword then check for a positional arg
+    # that is a valid frame.
+    if frame is None:
         for arg in args:
             if arg in FRAME_NAMES:
-                system = arg
-                args.remove(system)
+                frame = arg
+                args.remove(frame)
                 break
 
-    elif system not in FRAME_NAMES:
-        # System was provided so check that it is allowed.
-        raise ValueError('Coordinate system {0} not in allowed values {1}'
-                         .format(system, sorted(FRAME_NAMES)))
+    elif frame not in FRAME_NAMES:
+        # Frame was provided so check that it is allowed.
+        raise ValueError('Coordinate frame {0} not in allowed values {1}'
+                         .format(frame, sorted(FRAME_NAMES)))
 
-    # Check that the new system doesn't conflict with existing coordinate system
-    # if a coordinate is supplied in the args list.  If the system still had not
-    # been set by this point and a coordinate was supplied, then use that system.
+    # Check that the new frame doesn't conflict with existing coordinate frame
+    # if a coordinate is supplied in the args list.  If the frame still had not
+    # been set by this point and a coordinate was supplied, then use that frame.
     for arg in args:
-        coord_system = None
+        coord_frame = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_system = CLASS_TO_NAME_MAP[arg.__class__]
+            coord_frame = CLASS_TO_NAME_MAP[arg.__class__]
         elif isinstance(arg, SkyCoord):
-            coord_system = arg.system
+            coord_frame = arg.frame
 
-        if coord_system is not None:
-            if system is None:
-                system = coord_system
-            elif system != coord_system:
-                raise ValueError("Cannot override system='{0}' of input coordinate with "
-                                 "new system='{1}'.  Instead transform the coordinate."
-                                 .format(coord_system, system))
-    return system
+        if coord_frame is not None:
+            if frame is None:
+                frame = coord_frame
+            elif frame != coord_frame:
+                raise ValueError("Cannot override frame='{0}' of input coordinate with "
+                                 "new frame='{1}'.  Instead transform the coordinate."
+                                 .format(coord_frame, frame))
+    return frame
 
 
 def _get_units(args, kwargs):
@@ -273,7 +272,7 @@ def _get_units(args, kwargs):
     return lon_unit, lat_unit
 
 
-def _parse_coordinate_arg(coords, system, lon_unit, lat_unit):
+def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate
@@ -286,7 +285,7 @@ def _parse_coordinate_arg(coords, system, lon_unit, lat_unit):
 
     # Get the mapping of attribute type (e.g. 'lat', 'lon', 'distance')
     # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
-    frame_cls = FRAME_CLASSES[system]
+    frame_cls = FRAME_CLASSES[frame]
     attr_name_for_type = dict((attr_type, name) for name, attr_type in
                               frame_cls.preferred_attr_names.items())
 
@@ -296,8 +295,8 @@ def _parse_coordinate_arg(coords, system, lon_unit, lat_unit):
         coords = [coords]
 
     if isinstance(coords, (SkyCoord, BaseCoordinateFrame)):
-        # Note that during parsing of `system` it is checked that any coordinate
-        # args have the same system as explicitly supplied, so don't worry here.
+        # Note that during parsing of `frame` it is checked that any coordinate
+        # args have the same frame as explicitly supplied, so don't worry here.
 
         for attr, attr_type in coords.preferred_attr_names.items():
             value = getattr(coords, attr)
@@ -344,15 +343,15 @@ def _parse_coordinate_arg(coords, system, lon_unit, lat_unit):
     return valid_kwargs
 
 
-def _get_preferred_attrs(system, lon_unit, lat_unit, kwargs):
+def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
     """
     Find instances of the "preferred attributes" for specifying longitude,
-    latitude, and distance for this system.  Pop them off of kwargs, run
+    latitude, and distance for this frame.  Pop them off of kwargs, run
     through the appropriate class constructor (to validate and apply unit), and
     put into the output valid_kwargs.
     """
     valid_kwargs = {}
-    frame_cls = FRAME_CLASSES[system]
+    frame_cls = FRAME_CLASSES[frame]
     for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
                                       (Latitude, 'lat', lat_unit),
                                       (None, 'distance', None)):
