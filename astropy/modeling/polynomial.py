@@ -9,8 +9,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import collections
 
-from textwrap import dedent
-
 import numpy as np
 
 from .core import FittableModel, Model, SerialCompositeModel, format_input
@@ -122,6 +120,12 @@ class PolynomialModel(PolynomialBase):
             self._validate_params(**params)
 
         super(PolynomialModel, self).__init__(param_dim=param_dim, **params)
+
+    def __repr__(self):
+        return self._format_repr([self.degree])
+
+    def __str__(self):
+        return self._format_str([('Degree', self.degree)])
 
     @property
     def degree(self):
@@ -258,6 +262,14 @@ class OrthoPolynomialBase(PolynomialBase):
 
         super(OrthoPolynomialBase, self).__init__(param_dim=param_dim,
                                                   **params)
+
+    def __repr__(self):
+        return self._format_repr([self.x_degree, self.y_degree])
+
+    def __str__(self):
+        return self._format_str(
+            [('X-Degree', self.x_degree),
+             ('Y-Degree', self.y_degree)])
 
     def get_num_coeff(self):
         """
@@ -1019,39 +1031,12 @@ class _SIP1D(Model):
         super(_SIP1D, self).__init__(param_dim=param_dim, **params)
 
     def __repr__(self):
-        fmt = """
-        Model: {0}
-        order: {1}
-        coeff_prefix: {2}
-        param_dim: {3}
-        params: {4}
-        """.format(
-              self.__class__.__name__,
-              self.order,
-              self.coeff_prefix,
-              self.param_dim,
-              indent('\n'.join('{0}: {1}'.format(n, getattr(self, '_' + n))
-                     for n in self.param_names), width=19))
-
-        return dedent(fmt[1:])
+        return self._format_repr(args=[self.order, self.coeff_prefix])
 
     def __str__(self):
-        fmt = """
-        Model: {0}
-        order: {1}
-        coeff_prefix: {2}
-        Parameter sets: {3}
-        Parameters:
-                   {3}
-        """.format(
-              self.__class__.__name__,
-              self.order,
-              self.coeff_prefix,
-              self.param_dim,
-              indent('\n'.join('{0}: {1}'.format(n, getattr(self, '_' + n))
-                     for n in self.param_names), width=19))
-
-        return dedent(fmt[1:])
+        return self._format_str(
+            [('Order', self.order),
+             ('Coeff. Prefix', self.coeff_prefix)])
 
     def get_num_coeff(self, ndim):
         """
@@ -1184,6 +1169,17 @@ class _SIPModel(SerialCompositeModel):
         super(_SIPModel, self).__init__([self.shift_a, self.shift_b,
                                          self.sip1d_a, self.sip1d_b])
 
+    def __repr__(self):
+        return '<{0}({1!r})>'.format(self.__class__.__name__,
+                                     list(self._transforms))
+    def __str__(self):
+        parts = ['Model: {0}'.format(self.__class__.__name__)]
+        for model in self._transforms:
+            parts.append(indent(str(model), width=4))
+            parts.append('')
+
+        return '\n'.join(parts)
+
 
 class SIP(_SIPModel):
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
@@ -1204,24 +1200,6 @@ class SIP(_SIPModel):
         else:
             raise NotImplementedError("An analytical inverse transform has "
                                       "not been implemented for this model.")
-
-    def __repr__(self):
-        models = [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
-        fmt = fmt + fmt1
-        return fmt
-
-    def __str__(self):
-        models = [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
-        fmt = fmt + fmt1
-        return fmt
 
     def __call__(self, x, y):
         """
@@ -1272,23 +1250,3 @@ class InverseSIP(_SIPModel):
         else:
             raise NotImplementedError("An analytical inverse transform has "
                                       "not been implemented for this model.")
-
-    def __repr__(self):
-        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(),
-                  self.shift_b.inverse()]
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
-        fmt = fmt + fmt1
-        return fmt
-
-    def __str__(self):
-        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(),
-                  self.shift_b.inverse()]
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
-        fmt = fmt + fmt1
-        return fmt

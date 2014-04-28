@@ -50,13 +50,13 @@ The `astropy.modeling` package defines a number of models that live inside
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     >>> print(g)
     Model: Gaussian1D
-    n_inputs:   1
-    Degree: N/A
+    Inputs: 1
+    Outputs: 1
     Parameter sets: 1
     Parameters:
-               amplitude: Parameter('amplitude', value=1.2)
-               mean: Parameter('mean', value=0.9)
-               stddev: Parameter('stddev', value=0.5)
+        amplitude mean stddev
+        --------- ---- ------
+              1.2  0.9    0.5
 
 Model parameters can be accessed as attributes:
 
