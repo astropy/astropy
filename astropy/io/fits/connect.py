@@ -17,6 +17,7 @@ from ... import log
 from ... import units as u
 
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from . import FITS_rec
 from .hdu.hdulist import fitsopen as fits_open
 
 
@@ -216,7 +217,9 @@ def write_table_fits(input, output, overwrite=False):
 
     # Create a new HDU object
     if input.masked:
-        table_hdu = BinTableHDU(np.array(input.filled()))
+        fits_rec = FITS_rec.from_columns(np.array(input.filled()))
+        table_hdu = BinTableHDU(fits_rec)
+
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
@@ -233,7 +236,8 @@ def write_table_fits(input, output, overwrite=False):
 
             col.null = fill_value.astype(input[col.name].dtype)
     else:
-        table_hdu = BinTableHDU(np.array(input))
+        fits_rec = FITS_rec.from_columns(np.array(input.filled()))
+        table_hdu = BinTableHDU(fits_rec)
 
     # Set units for output HDU
     for col in table_hdu.columns:

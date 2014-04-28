@@ -51,6 +51,9 @@ Bug Fixes
   - Improved behavior when writing large compressed images on OSX by removing
     an unncessary check for platform architecture. [#2345]
 
+  - Fixed an issue where Astropy ``Table`` objects containing boolean columns
+    were not correctly written out to FITS files. [#1953]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
