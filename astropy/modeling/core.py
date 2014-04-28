@@ -186,18 +186,20 @@ class _ModelMeta(abc.ABCMeta):
 
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
-    def _repr_latex_(cls):
-        parts = []
-        # Some versions of mathjax are missing \texttt
-        parts.append(r'\mathord{{\tt{{\text{{{0}({1})}}}}}}'.format(
-            cls.__name__, ', '.join(b.__name__ for b in cls.__bases__)))
-        parts.append(cls._formula_)
-        parts.append(r'\text{where}')
-        parts.append('\n'.join(
-            r'{0}\ \text{{is {1}}} \\'.format(getattr(cls, name).latex, name)
-            for name in cls.param_names))
+    def _repr_html_(cls):
+        parts = ['<code>{0}({1})</code>'.format(
+            cls.__name__, ', '.join(b.__name__ for b in cls.__bases__))]
+        parts.append('')
+        parts.append('<p>\n$$\n{0}\n$$\n</p>'.format(cls._formula_))
+        parts.append('<p>where</p>')
+        parts.append('<dl>\n{0}\n</dl>'.format('\n'.join(
+            '<dt>${0}$</dt><dd>{1}</dd>'.format(getattr(cls, name).latex, name)
+            for name in cls.param_names)))
 
-        return '$$\n{0}\n$$'.format(' \\\\[1em]\n'.join(parts))
+        return '<br/>\n'.join(parts)
+
+    def _repr_latex_(cls):
+        return '${0}$'.format(cls._formula_)
 
 
 @six.add_metaclass(_ModelMeta)
