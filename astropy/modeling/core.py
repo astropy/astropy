@@ -186,6 +186,19 @@ class _ModelMeta(abc.ABCMeta):
 
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
+    def _repr_latex_(cls):
+        parts = []
+        # Some versions of mathjax are missing \texttt
+        parts.append(r'\mathord{{\tt{{\text{{{0}({1})}}}}}}'.format(
+            cls.__name__, ', '.join(b.__name__ for b in cls.__bases__)))
+        parts.append(cls._formula_)
+        parts.append(r'\text{where}')
+        parts.append('\n'.join(
+            r'{0}\ \text{{is {1}}} \\'.format(getattr(cls, name).latex, name)
+            for name in cls.param_names))
+
+        return '$$\n{0}\n$$'.format(' \\\\[1em]\n'.join(parts))
+
 
 @six.add_metaclass(_ModelMeta)
 class Model(object):
