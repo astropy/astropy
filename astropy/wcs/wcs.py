@@ -1309,11 +1309,11 @@ naxis kwarg.
         # update initial solution:
         pix -= dpix
 
-        # norn (L2) of the correction:
-        #dnprev   = np.linalg.norm(dpix, axis=1)
-        dnprev     = np.sum(dpix*dpix, axis=1)
-        dn         = dnprev
-        tol2 = tolerance**2
+        # norm (L2) of the correction:
+        #dnprev = np.linalg.norm(dpix, axis=1)
+        dnprev  = np.sum(dpix*dpix, axis=1)
+        dn      = dnprev
+        tol2    = tolerance**2
 
         # prepare for iterative process
         iterlist = range(1, maxiter+1)
@@ -1343,7 +1343,7 @@ naxis kwarg.
                 #dpix = self.wcs_world2pix( \
                 #    self.all_pix2world(pix, origin), origin) - pix0
 
-                # update norn (L2) of the correction:
+                # update norm (L2) of the correction:
                 #dn = np.linalg.norm(dpix, axis=1)
                 dn = np.sum(dpix*dpix, axis=1)
 
@@ -1364,7 +1364,7 @@ naxis kwarg.
                             adaptive = True
                             break
                     #dnprev[ind] = dn[ind]
-                    dnprev = dn
+                    dnprev = dn # faster
 
                 # apply correction:
                 pix -= dpix
@@ -1389,7 +1389,7 @@ naxis kwarg.
                 #dpix[ind] = self.wcs_world2pix( \
                 #    self.all_pix2world(pix[ind], origin), origin) - pix0[ind]
 
-                # update norn (L2) of the correction:
+                # update norm (L2) of the correction:
                 #dn = np.linalg.norm(dpix, axis=1)
                 dn = np.sum(dpix*dpix, axis=1)
                 # apply correction:
@@ -1625,6 +1625,12 @@ detect_divergence=True, quiet=False)
         as input a long array of all points that need to be converted to
         :py:meth:`all_world2pix` instead of calling :py:meth:`all_world2pix`
         for each data point. Also see the note to the `adaptive` parameter.
+
+        See Also
+        --------
+        A detailed description of the algorithm is available on astropy's
+        GitHub page,
+        issue `#2373 <https://github.com/astropy/astropy/pull/2373>`_\ .
 
         Raises
         ------
