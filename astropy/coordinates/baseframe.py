@@ -20,9 +20,6 @@ from .transformations import TransformGraph
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
-# Frame attributes that must be times
-TIME_FRAME_ATTRS = ('equinox', 'obstime')
-
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
 
@@ -115,12 +112,20 @@ class BaseCoordinateFrame(object):
         A dictionary with keys that are the additional attributes necessary to
         specify the frame, and values that are the default values of those
         attributes.
+
+    * `time_attr_names`
+        A sequence of attribute names that must be `~astropy.time.Time` objects.
+        When given  as keywords in the initializer, these will be converted if
+        possible (e.g. from the string 'J2000' to the appropriate
+        `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
+
     """
 
     preferred_representation = None
     preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
     preferred_attr_units = {}  # maps preferred name to the "standard" unit/string repr
     frame_attr_names = {}  # maps attribute to default value
+    time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     def __init__(self, *args, **kwargs):
         from .representation import SphericalRepresentation, \
@@ -139,7 +144,7 @@ class BaseCoordinateFrame(object):
                 value = kwargs.pop(fnm)
                 # If attribute is a time (equinox, obstime) then validate and force
                 # into a Time object by running through the Time constructor
-                if fnm in TIME_FRAME_ATTRS:
+                if fnm in self.time_attr_names:
                     value = _convert_to_time(fnm, value)
                 setattr(self, '_' + fnm, value)
             else:
