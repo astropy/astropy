@@ -7,6 +7,7 @@ import abc
 import numpy as np
 
 from ..utils.compat import ignored
+from ..units import Quantity
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
@@ -154,6 +155,10 @@ class StdDevUncertainty(NDUncertainty):
             self.array = None
         elif isinstance(array, StdDevUncertainty):
             self.array = np.array(array.array, copy=copy, subok=True)
+        elif isinstance(array, Quantity):
+            raise ValueError("Quantity and NDData have not been "
+                             "integrated yet. Try initializing uncertainty "
+                             "using the Quantity's value as the data.")
         else:
             self.array = np.array(array, copy=copy, subok=True)
 

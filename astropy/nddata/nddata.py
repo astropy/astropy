@@ -7,7 +7,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from ..units import Unit, UnitsError, dimensionless_unscaled
+from ..units import Unit, Quantity, UnitsError, dimensionless_unscaled
 from .. import log
 
 from .flag_collection import FlagCollection
@@ -146,6 +146,11 @@ class NDData(object):
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
         else:
+            if isinstance(data, Quantity):
+                raise ValueError("Quantity and NDData have not been "
+                                 "integrated yet. Try initializing using the "
+                                 "Quantity's value as the NDData data and "
+                                 "its unit as the NDData unit.")
             if hasattr(data, 'mask'):
                 self.data = np.array(data.data, subok=True, copy=False)
 

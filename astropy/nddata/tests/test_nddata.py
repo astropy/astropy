@@ -489,6 +489,21 @@ def test_initializing_from_nduncertainty():
 
     assert u1.array is u2.array
 
+
+def test_initializing_nddata_from_quantity():
+    # Until nddata and quantity are integrated initializing with a quantity
+    # should raise an error.
+    with pytest.raises(ValueError):
+        NDData(u.adu * [1, 2, 3])
+
+
+def test_initializing_nduncertainty_from_quantity():
+    # Until nddata and quantity are integrated initializing with a quantity
+    # should raise an error.
+    with pytest.raises(ValueError):
+        StdDevUncertainty(u.adu * [1, 2, 3])
+
+
 def test_masked_array_input():
 
     with NumpyRNGContext(12345):
