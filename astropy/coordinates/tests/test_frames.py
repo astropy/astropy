@@ -88,11 +88,11 @@ def test_frame_repr():
     f5 = FK5()
     assert repr(f5).startswith('<FK5 Frame: equinox=')
 
-    i2 = ICRS(ra=1*u.hour, dec=2*u.deg)
-    i3 = ICRS(ra=1*u.hour, dec=2*u.deg, distance=3*u.kpc)
+    i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
+    i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
-    assert repr(i2) == '<ICRS Coordinate: ra=1.0 hourangle, dec=2.0 deg>'
-    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 hourangle, dec=2.0 deg, '
+    assert repr(i2) == '<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>'
+    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
                         'distance=3.0 kpc>')
 
     #converting from FK5 to ICRS and back changes the *internal* representation,
