@@ -106,9 +106,9 @@ class Parameter(object):
     # See the _nextid classmethod
     _nextid = 1
 
-    def __init__(self, name='', description='', default=None, getter=None,
-                 setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None):
+    def __init__(self, name='', description='', latex='', default=None,
+                 getter=None, setter=None, fixed=False, tied=False, min=None,
+                 max=None, model=None):
         super(Parameter, self).__init__()
 
         if model is not None and not name:
@@ -116,6 +116,13 @@ class Parameter(object):
 
         self._name = name
         self.__doc__ = description.strip()
+
+        if latex:
+            self._latex = latex
+        else:
+            # the default is just the name of the parameter
+            self._latex = r'\text{{{0}}}'.format(name)
+
         self._default = default
 
         self._default_fixed = fixed
@@ -222,6 +229,12 @@ class Parameter(object):
         """Parameter name"""
 
         return self._name
+
+    @property
+    def latex(self):
+        """LaTeX symbol for this parameter"""
+
+        return self._latex
 
     @property
     def default(self):

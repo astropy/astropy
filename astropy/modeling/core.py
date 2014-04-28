@@ -54,7 +54,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from .utils import array_repr_oneline
+from .utils import array_repr_oneline, format_formula
 
 from .parameters import Parameter, InputParameterError
 
@@ -149,6 +149,19 @@ class _ModelMeta(abc.ABCMeta):
                     "if the name argument is not given when initializing "
                     "them.")
             parameters[value.name] = value
+
+        if '_formula_' in members:
+            # Format the _formula_ template
+            formula_templ = members['_formula_']
+            parameter_symbols = dict((p.name, p.latex) for p in
+                                     parameters.values())
+            formula = format_formula(formula_templ, **parameter_symbols)
+            members['_formula_'] = formula
+
+            # Use the formatted formula in the docstring if applicable
+            if members.get('__doc__') is not None:  # I should hope so
+                members['__doc__'] = members['__doc__'].format(
+                    formula=formula)
 
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
