@@ -39,6 +39,12 @@ options:
         and not have their documentation generated, nor be includded in
         the summary table.
 
+    * ``:allowed-package-names: pkgormod1, [pkgormod2, pkgormod3, ...]``
+        Specifies the packages that functions/classes documented here are
+        allowed to be from, as comma-separated list of package names. If not
+        given, only objects that are actually in a subpackage of the package
+        currently being documented are included.
+
 This extension also adds one sphinx configuration option:
 
 * `automodsumm_writereprocessed`
@@ -97,6 +103,7 @@ class Automodsumm(AstropyAutosummary):
     option_spec['functions-only'] = flag
     option_spec['classes-only'] = flag
     option_spec['skip'] = _str_list_converter
+    option_spec['allowed-package-names'] = _str_list_converter
 
     def run(self):
         env = self.state.document.settings.env
@@ -163,9 +170,16 @@ class Automodsumm(AstropyAutosummary):
 
 #<-------------------automod-diagram stuff------------------------------------>
 class Automoddiagram(InheritanceDiagram):
+
+    option_spec = dict(InheritanceDiagram.option_spec)
+    option_spec['allowed-package-names'] = _str_list_converter
+
     def run(self):
         try:
-            nms, objs = find_mod_objs(self.arguments[0], onlylocals=True)[1:]
+            ols = self.options.get('allowed-package-names', [])
+            ols = True if len(ols) == 0 else ols  # if none are given, assume only local
+
+            nms, objs = find_mod_objs(self.arguments[0], onlylocals=ols)[1:]
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
@@ -276,11 +290,12 @@ def automodsumm_to_autosummary_lines(fn, app):
     #loop over all automodsumms in this document
     for i, (i1, i2, modnm, ops, rem) in enumerate(zip(indent1s, indent2s, mods,
                                                     opssecs, remainders)):
-        allindent = i1 + i2
+        allindent = i1 + ('' if i2 is None else i2)
 
         #filter out functions-only and classes-only options if present
         oplines = ops.split('\n')
         toskip = []
+        allowedpkgnms = []
         funcsonly = clssonly = False
         for i, ln in reversed(list(enumerate(oplines))):
             if ':functions-only:' in ln:
@@ -291,6 +306,9 @@ def automodsumm_to_autosummary_lines(fn, app):
                 del oplines[i]
             if ':skip:' in ln:
                 toskip.extend(_str_list_converter(ln.replace(':skip:', '')))
+                del oplines[i]
+            if ':allowed-package-names:' in ln:
+                allowedpkgnms.extend(_str_list_converter(ln.replace(':allowed-package-names:', '')))
                 del oplines[i]
         if funcsonly and clssonly:
             msg = ('Defined both functions-only and classes-only options. '
@@ -308,7 +326,8 @@ def automodsumm_to_autosummary_lines(fn, app):
                          '.. autosummary::'])
         newlines.extend(oplines)
 
-        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+        ols = True if len(allowedpkgnms) == 0 else allowedpkgnms
+        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=ols)):
             if nm in toskip:
                 continue
             if funcsonly and not inspect.isfunction(obj):
