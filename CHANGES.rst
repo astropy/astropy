@@ -105,7 +105,7 @@ New Features
 
   - `automodapi` and `automodsumm` now have an ``:allowed-package-names:``
     option that make it possible to document functions and classes that
-    are in a different namespace. [#2370]
+    are in a different namespace.  [#2370]
 
 - ``astropy.table``
 
