@@ -137,29 +137,24 @@ class SkyCoord(object):
             If there is no possible transformation route.
         """
         from astropy.coordinates.errors import ConvertError
-        import inspect
 
-        if self.system is None:
-            raise ValueError('Cannot transform coordinates if `system` is None')
+        if system is None or self.system is None:
+            raise ValueError('Cannot transform coordinates to/from `system=None`')
 
-        if isinstance(system, six.string_types):
-            if system not in FRAME_CLASSES:
-                raise ValueError('Coordinate system {0} not in allowed values {1}'
-                                 .format(system, sorted(FRAME_CLASSES)))
-            new_frame = FRAME_CLASSES[system]
-        else:
-            # Allow for a frame class or a frame class instance
-            new_frame = system
-            coord_cls = new_frame if inspect.isclass(new_frame) else new_frame.__class__
-            if (not issubclass(coord_cls, BaseCoordinateFrame)
-                    or coord_cls not in CLASS_TO_NAME_MAP):
-                raise ValueError('Coordinate system {0} must be a frame class or '
-                                 'frame class instance'.format(new_frame))
-            system = CLASS_TO_NAME_MAP[coord_cls]
+        if system not in FRAME_CLASSES:
+            raise ValueError("Output coordinate system '{0}' not in allowed values {1}"
+                             .format(system, sorted(FRAME_CLASSES)))
+
+        # Make a frame instance for the new system including the correct frame attributes.
+        # Only define attributes that are not None.
+        frame_cls = FRAME_CLASSES[system]
+        frame_kwargs = dict((attr, getattr(self, attr)) for attr in FRAME_ATTR_NAMES[system]
+                            if getattr(self, attr) is not None)
+        frame = frame_cls(**frame_kwargs)
 
         out = deepcopy(self)
         out._system = system
-        out._coord = self._coord.transform_to(new_frame)
+        out._coord = self._coord.transform_to(frame)
         if out._coord is None:
             raise ConvertError('Cannot transform from {0} to '
                                '{1}'.format(self.system, system))
