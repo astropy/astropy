@@ -187,16 +187,18 @@ class _ModelMeta(abc.ABCMeta):
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
     def _repr_html_(cls):
-        parts = ['<code>{0}({1})</code>'.format(
+        parts = ['<p><code>{0}({1})</code></p>'.format(
             cls.__name__, ', '.join(b.__name__ for b in cls.__bases__))]
         parts.append('')
-        parts.append('<p>\n$$\n{0}\n$$\n</p>'.format(cls._formula_))
+        parts.append('<ul style="list-style-type: none">'
+                     '<li>\n$$\n{0}\n$$\n</ul></li>'.format(cls._formula_))
         parts.append('<p>where</p>')
-        parts.append('<dl>\n{0}\n</dl>'.format('\n'.join(
-            '<dt>${0}$</dt><dd>{1}</dd>'.format(getattr(cls, name).latex, name)
+        parts.append('<ul style="list-style-type: none">\n{0}\n</ul>'.format(
+            '\n'.join('<li>${0}$ is {1}</lie>'.format(
+                getattr(cls, name).latex, name)
             for name in cls.param_names)))
 
-        return '<br/>\n'.join(parts)
+        return '\n'.join(parts)
 
     def _repr_latex_(cls):
         return '${0}$'.format(cls._formula_)
@@ -309,6 +311,37 @@ class Model(object):
 
     def __str__(self):
         return self._format_str()
+
+    def _repr_html_(self):
+        cls = type(self)
+        # Call the _ModelMeta type's _repr_html_
+        # TODO: To simplify matters consider breaking this out into a function
+        parts = [type(cls)._repr_html_(cls)]
+
+        params = [getattr(self, name) for name in self.param_names]
+
+        table = ['<table>', '  <thead>']
+        table.append('    <tr>' +
+            ''.join('<th>${0}$</th>'.format(p.latex) for p in params) +
+            '</tr>')
+        table.append('  </thead>')
+        table.append('  <tbody>')
+
+        for dim in range(self.param_dim):
+            if self.param_dim == 1:
+                values = [p.value for p in params]
+            else:
+                values = [p.value[dim] for p in params]
+            table.append('    <tr>' +
+                ''.join('<td>{0!r}</td>'.format(v) for v in values) +
+                '</tr>')
+
+        table.append('  </tbody>')
+        table.append('</table>')
+
+        parts.append('\n'.join(table))
+
+        return '\n'.join(parts)
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):

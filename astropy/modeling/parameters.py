@@ -164,7 +164,7 @@ class Parameter(object):
             return self
 
         return self.__class__(self._name, default=self._default,
-                              getter=self._getter,
+                              latex=self._latex, getter=self._getter,
                               setter=self._setter, model=obj)
 
     def __set__(self, obj, value):
