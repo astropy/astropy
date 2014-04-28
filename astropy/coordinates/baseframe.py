@@ -55,7 +55,7 @@ class FrameMeta(type):
 
         if pref_repr:
             # create properties for the preferred_attr_names
-            for propnm, reprnm in six.iteritems(pref_attrs):
+            for propnm, reprnm in pref_attrs.items():
                 clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm))
 
         #also make properties for the frame_attr_names to make them immutible
@@ -134,7 +134,7 @@ class BaseCoordinateFrame(object):
 
         representation = None  # if not set below, this is a frame with no data
 
-        for fnm, fdefault in six.iteritems(self.frame_attr_names):
+        for fnm, fdefault in self.frame_attr_names.items():
 
             # read-only properties for these attributes are made in the
             # metaclass  so we set the 'real' attrbiutes as the name prefaced
@@ -161,7 +161,7 @@ class BaseCoordinateFrame(object):
 
         elif pref_rep:
             pref_kwargs = {}
-            for nmkw, nmrep in six.iteritems(self.preferred_attr_names):
+            for nmkw, nmrep in self.preferred_attr_names.items():
                 if len(args) > 0:
                     #first gather up positional args
                     pref_kwargs[nmrep] = args.pop(0)
@@ -333,7 +333,7 @@ class BaseCoordinateFrame(object):
                     # first figure out how to map *representation* attribute
                     # names to units
                     comp_to_unit = {}
-                    for attnm, unit in six.iteritems(self.preferred_attr_units):
+                    for attnm, unit in self.preferred_attr_units.items():
                         if attnm not in self.preferred_attr_names:
                             msg = ('The attribute {0} in `preferred_attr_units`'
                                    ' is not in `preferred_attr_names`')
@@ -350,7 +350,7 @@ class BaseCoordinateFrame(object):
                     data = data.__class__(**datakwargs)
 
                 data_repr = repr(data)
-                for nmpref, nmrepr in six.iteritems(self.preferred_attr_names):
+                for nmpref, nmrepr in self.preferred_attr_names.items():
                     data_repr = data_repr.replace(nmrepr, nmpref)
 
             else:
@@ -500,7 +500,7 @@ class GenericFrame(BaseCoordinateFrame):
         super(GenericFrame, self).__init__(None)
 
         self.frame_attr_names = frame_attrs
-        for attrnm, attrval in six.iteritems(frame_attrs):
+        for attrnm, attrval in frame_attrs.items():
             setattr(self, attrnm, attrval)
 
     def __setattr__(self, name, value):
