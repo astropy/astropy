@@ -61,6 +61,7 @@ class ICRS(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'ra': u.hourangle, 'dec': u.degree}
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
     @property
@@ -117,6 +118,7 @@ class FK5(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'ra': u.hourangle, 'dec': u.degree}
     frame_attr_names = {'equinox': _EQUINOX_J2000}
 
     @staticmethod
@@ -176,6 +178,7 @@ class FK4(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'ra': u.hourangle, 'dec': u.degree}
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -225,6 +228,7 @@ class FK4NoETerms(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'ra': u.hourangle, 'dec': u.degree}
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -297,6 +301,7 @@ class Galactic(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('l', 'lon'), ('b', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'l': u.degree, 'b': u.degree}
     frame_attr_names = {}
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -331,6 +336,7 @@ class AltAz(BaseCoordinateFrame):
     preferred_representation = SphericalRepresentation
     preferred_attr_names = OrderedDict([('az', 'lon'), ('alt', 'lat'),
                                         ('distance', 'distance')])
+    preferred_attr_units = {'az': u.degree, 'alt': u.degree}
     frame_attr_names = {}
 
 

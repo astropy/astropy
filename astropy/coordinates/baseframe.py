@@ -56,7 +56,6 @@ class FrameMeta(type):
             raise ValueError('Could not find the expected BaseCoordinateFrame '
                              'class attributes.  Are you mis-using FrameMeta?')
 
-
         if pref_repr:
             # create properties for the preferred_attr_names
             for propnm, reprnm in six.iteritems(pref_attrs):
@@ -105,8 +104,12 @@ class BaseCoordinateFrame(object):
 
     * `preferred_attr_names`
         A dictionary mapping attribute names to be created on *this* class to
-        names of attributes on the `preferred_representation`.  If
+        names of attributes on the `preferred_representation`. If
         `preferred_representation` is None, this does nothing.
+
+    * `preferred_attr_units`
+        A dictionary mapping attribute names to their preferred human-readable
+        units. Keys must also be keys in `preferred_attr_names`.
 
     * `frame_attr_names`
         A dictionary with keys that are the additional attributes necessary to
@@ -116,6 +119,7 @@ class BaseCoordinateFrame(object):
 
     preferred_representation = None
     preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
+    preferred_attr_units = {}  # maps preferred name to the "standard" unit/string repr
     frame_attr_names = {}  # maps attribute to default value
 
     def __init__(self, *args, **kwargs):
@@ -318,6 +322,27 @@ class BaseCoordinateFrame(object):
                     data = self.data.represent_as(UnitSphericalRepresentation)
                 else:
                     data = self.data.represent_as(self.preferred_representation)
+
+                # if necessary, make a new representation with preferred units
+                if self.preferred_attr_units:
+                    # first figure out how to map *representation* attribute
+                    # names to units
+                    comp_to_unit = {}
+                    for attnm, unit in six.iteritems(self.preferred_attr_units):
+                        if attnm not in self.preferred_attr_names:
+                            msg = ('The attribute {0} in `preferred_attr_units`'
+                                   ' is not in `preferred_attr_names`')
+                            raise ValueError(msg.format(attnm))
+                        comp_to_unit[self.preferred_attr_names[attnm]] = unit
+
+                    #now actually create a new representation with the new units
+                    datakwargs = {}
+                    for comp in data.components:
+                        datakwargs[comp] = getattr(data, comp)
+                        newu = comp_to_unit.get(comp, None)
+                        if newu:
+                            datakwargs[comp] = datakwargs[comp].to(newu)
+                    data = data.__class__(**datakwargs)
 
                 data_repr = repr(data)
                 for nmpref, nmrepr in six.iteritems(self.preferred_attr_names):

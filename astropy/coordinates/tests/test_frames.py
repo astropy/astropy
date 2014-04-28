@@ -88,12 +88,25 @@ def test_frame_repr():
     f5 = FK5()
     assert repr(f5).startswith('<FK5 Frame: equinox=')
 
-    i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
-    i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
+    i2 = ICRS(ra=1*u.hour, dec=2*u.deg)
+    i3 = ICRS(ra=1*u.hour, dec=2*u.deg, distance=3*u.kpc)
 
-    assert repr(i2) == '<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>'
-    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
+    assert repr(i2) == '<ICRS Coordinate: ra=1.0 hourangle, dec=2.0 deg>'
+    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 hourangle, dec=2.0 deg, '
                         'distance=3.0 kpc>')
+
+    #converting from FK5 to ICRS and back changes the *internal* representation,
+    # but it should still come out in the preferred form
+
+    i4 = i2.transform_to(FK5).transform_to(ICRS)
+    assert repr(i2) == repr(i4)
+
+    #but that *shouldn't* hold if we turn off preferred_attr_units
+    class FakeICRS(ICRS):
+        preferred_attr_units = {}
+
+    fi = FakeICRS(i4.data)
+    assert repr(i2) != repr(fi)
 
 
 def test_realizing():
