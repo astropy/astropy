@@ -21,8 +21,7 @@ from .basic import (Basic,
                     Csv,
                     Tab,
                     NoHeader,
-                    CommentedHeader,
-                    CsvExel)
+                    CommentedHeader)
 from .cds import Cds
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML

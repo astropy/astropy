@@ -155,6 +155,18 @@ class Csv(Basic):
       num,ra,dec,radius,mag
       1,32.23222,10.1211,0.8,18.1
       2,38.12321,-88.1321,2.2,17.0
+
+    Plain csv (comma separated value) files typically contain as many entries
+    as there are columns on each line. In contrast, common spreadsheed editors
+    stop writing if all remaining cells on a line are empty, which can lead to 
+    lines where the rightmost entries are missing. This Reader can deal with
+    such files.
+
+    Example::
+
+      num,ra,dec,radius,mag
+      1,32.23222,10.1211
+      2,38.12321,-88.1321,2.2,17.0
     """
     _format_name = 'csv'
     _io_registry_suffix = '.csv'
@@ -167,6 +179,24 @@ class Csv(Basic):
         self.header.splitter.delimiter = ','
         self.header.start_line = 0
         self.data.start_line = 1 
+
+    def inconsistent_handler(self, str_vals, ncols):
+        '''Adjust row if it is too short.
+
+        If a data row is shorter than the header, add empty values to make it the 
+        right length.
+        Note that this will *not* be called if the row already matches the header.
+
+        :param str_vals: A list of value strings from the current row of the table.
+        :param ncols: The expected number of entries from the table header.
+        :returns:
+            list of strings to be parsed into data entries in the output table.
+        '''
+        if len(str_vals) < ncols:
+            str_vals.extend((ncols - len(str_vals)) * [''])
+
+        return str_vals
+
 
 class Rdb(Tab):
     """Read a tab-separated file with an extra line after the column definition
@@ -240,39 +270,3 @@ class RdbHeader(core.BaseHeader):
             rdb_types.append(rdb_type)
 
         lines.append(self.splitter.join(rdb_types))
-
-class CsvExel(Csv):
-    """Read a CSV file as written by MS Exel (TM) or similar.
-
-    Plain csv (comma separated value) files typically contain as many entries
-    as there are columns on each line; those entries can be empty for missing 
-    values. In contrast, commn spreadsheed editors stop writing if all
-    remaining cells on a line are empty.
-
-    Example::
-
-      num,ra,dec,radius,mag
-      1,32.23222,10.1211
-      2,38.12321,-88.1321,2.2,17.0
-    """
-    _format_name = 'csvExel'
-    _io_registry_suffix = '.XXX'
-    _io_registry_can_write = True
-    _description = 'CSV files written by spreadsheet editors'
-
-    def inconsistent_handler(self, str_vals, ncols):
-        '''Adjust row if it is too short.
-
-        If a data row is shorter than the header, add empty values to make it the 
-        right length.
-        Note that this will *not* be called if the row already matches the header.
-
-        :param str_vals: A list of value strings from the current row of the table.
-        :param ncols: The expected number of entries from the table header.
-        :returns:
-            list of strings to be parsed into data entries in the output table.
-        '''
-        if len(str_vals) < ncols:
-            str_vals.extend((ncols - len(str_vals)) * [''])
-
-        return str_vals

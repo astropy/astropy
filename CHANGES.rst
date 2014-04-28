@@ -50,12 +50,11 @@ New Features
 
   - A new ``csv`` format was added as a convenience for handling CSV (comma-
     separated values) data. [#1935]
+    This format also recognises rows with an inconsistent number of elements.
+    [#1562]
 
   - An option was added to guess the start of data for CDS format files when
     they do not strictly conform to the format standard. [#2241]
-
-  - A new ``csvExel`` format was added that reads CSV files written by common
-    spreadsheet programs even if there are missing values.
 
   - Added an HTML reader and writer to the ``astropy.io.ascii`` package.
     Parsing requires the installation of BeautifulSoup and is therefore
