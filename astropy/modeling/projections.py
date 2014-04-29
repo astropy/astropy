@@ -4,7 +4,7 @@
 Implements sky projections defined in WCS Paper II [1]_
 
 All angles are set and reported in deg but internally the code works and keeps
-all angles in radians. 
+all angles in radians.
 
 References
 ----------
@@ -102,7 +102,7 @@ class Pix2Sky_AZP(Zenithal):
     def _compute_rtheta(self, x, y):
         gamma = np.deg2rad(self.gamma)
         return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
-    
+
     @format_input
     def __call__(self, x, y):
         gamma = np.deg2rad(self.gamma)
@@ -167,7 +167,7 @@ class Sky2Pix_AZP(Zenithal):
                                     np.cos(theta) * np.cos(phi) *
                                     np.tan(gamma))
         return rtheta
-    
+
     @format_input
     def __call__(self, phi, theta):
         phi = np.deg2rad(phi)
@@ -208,7 +208,7 @@ class Sky2Pix_TAN(Zenithal):
 
     def inverse(self):
         return Pix2Sky_TAN()
-    
+
     @format_input
     def __call__(self, phi, theta):
         phi = np.deg2rad(phi)
@@ -247,7 +247,7 @@ class Sky2Pix_STG(Zenithal):
 
     def _compute_rtheta(self, theta):
         return (self.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
-    
+
     @format_input
     def __call__(self, phi, theta):
         phi = np.deg2rad(phi)
@@ -433,7 +433,7 @@ class Pix2Sky_CAR(Cylindrical):
 
     def inverse(self):
         return Sky2Pix_CAR()
-    
+
     @format_input
     def __call__(self, x, y):
         return x.copy(), y.copy()
@@ -545,13 +545,14 @@ class AffineTransformation2D(Model):
               x and y coordinates
         """
 
-        assert x.shape == y.shape
+        if x.shape != y.shape:
+            raise TypeError("Expected input arrays to have the same shape")
 
         shape = x.shape
         inarr = np.vstack([x.flatten(), y.flatten(), np.ones(x.size)])
 
-        assert inarr.shape[0] == 3 and inarr.ndim == 2, \
-            "Incompatible input shapes"
+        if inarr.shape[0] != 3 or inarr.ndim != 2:
+            raise TypeError("Incompatible input shapes")
 
         result = np.dot(self._augmented_matrix, inarr)
 
