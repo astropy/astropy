@@ -9,7 +9,7 @@ from numpy.testing import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
-from .. import  representation
+from .. import representation
 
 def test_create_data_frames():
     from ..builtin_frames import ICRS
@@ -251,3 +251,28 @@ def test_time_inputs():
     with pytest.raises(ValueError) as err:
         c = FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
     assert "must be a single (scalar) value" in str(err)
+
+
+def test_is_frame_attr_default():
+    """
+    Check that the `is_frame_attr_default` machinery works as expected
+    """
+    from ...time import Time
+    from ..builtin_frames import FK5
+
+    c1 = FK5(ra=1*u.deg, dec=1*u.deg)
+    c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.frame_attr_names['equinox'])
+    c3 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=Time('J2001.5'))
+
+    assert c1.equinox == c2.equinox
+    assert c1.equinox != c3.equinox
+
+    assert c1.is_frame_attr_default('equinox')
+    assert not c2.is_frame_attr_default('equinox')
+    assert not c3.is_frame_attr_default('equinox')
+
+    c4 = c1.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+    c5 = c2.realize_frame(representation.UnitSphericalRepresentation(3*u.deg, 4*u.deg))
+
+    assert c4.is_frame_attr_default('equinox')
+    assert not c5.is_frame_attr_default('equinox')
