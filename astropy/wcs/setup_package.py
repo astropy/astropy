@@ -8,6 +8,7 @@ from distutils.core import Extension
 import io
 from os.path import join
 import os.path
+import shutil
 import sys
 
 from astropy import setup_helpers
@@ -283,16 +284,35 @@ def get_extensions():
 def get_package_data():
     # Installs the testing data files
     api_files = [
+        'astropy_wcs.h',
         'astropy_wcs_api.h',
-        'wcsconfig.h',
-        'pyutil.h',
-        'util.h',
         'distortion.h',
+        'isnan.h',
         'pipeline.h',
-        'sip.h'
+        'pyutil.h',
+        'sip.h',
+        'util.h',
+        'wcsconfig.h',
         ]
     api_files = [join('include', 'astropy_wcs', x) for x in api_files]
     api_files.append(join('include', 'astropy_wcs_api.h'))
+
+    wcslib_headers = [
+        'cel.h',
+        'lin.h',
+        'prj.h',
+        'spc.h',
+        'spx.h',
+        'tab.h',
+        'wcs.h',
+        'wcserr.h',
+        'wcsmath.h',
+        'wcsprintf.h',
+        ]
+    for header in wcslib_headers:
+        shutil.copy(join('cextern', 'wcslib', 'C', header),
+                    join('astropy', 'wcs', 'include', 'wcslib', header))
+        api_files.append(join('include', 'wcslib', header))
 
     return {
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',

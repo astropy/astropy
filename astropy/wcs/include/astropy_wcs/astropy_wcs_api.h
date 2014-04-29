@@ -85,10 +85,10 @@ import_astropy_wcs(void) {
     AstropyWcs_API = (void **)PyCapsule_Import("astropy.wcs._wcs._ASTROPY_WCS_API", 0);
     if (AstropyWcs_API == NULL) goto exit;
   #else
-    pywcs_module = PyImport_ImportModule("astropy.wcs._wcs");
-    if (pywcs_module == NULL) goto exit;
+    wcs_module = PyImport_ImportModule("astropy.wcs._wcs");
+    if (wcs_module == NULL) goto exit;
 
-    c_api = PyObject_GetAttrString(pywcs_module, "_ASTROPY_WCS_API");
+    c_api = PyObject_GetAttrString(wcs_module, "_ASTROPY_WCS_API");
     if (c_api == NULL) goto exit;
 
     if (PyCObject_Check(c_api)) {
@@ -103,7 +103,7 @@ import_astropy_wcs(void) {
     PyErr_Format(
                  PyExc_ImportError, "module compiled against "        \
                  "ABI version '%x' but this version of astropy.wcs is '%x'", \
-                 (int)REVISION, (int)PyWcs_GetCVersion());
+                 (int)REVISION, (int)AstropyWcs_GetCVersion());
     return -1;
   }
 
