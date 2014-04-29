@@ -11,7 +11,7 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
 
-from ...extern.six import string_types
+from ...extern.six import string_types, text_type
 from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
@@ -325,8 +325,8 @@ class Card(_Verify):
                                  % _digits_NFSC)
 
     # FSC commentary card string which must contain printable ASCII characters.
-    _ascii_text = r'[ -~]*$'
-    _comment_FSC_RE = re.compile(_ascii_text)
+    # Note: \Z matches the end of the string without allowing newlines
+    _ascii_text_re = re.compile(r'[ -~]*\Z')
 
     # Checks for a valid value/comment string.  It returns a match object
     # for a valid value/comment string.
@@ -434,6 +434,7 @@ class Card(_Verify):
         self._invalid = False
 
         self._field_specifier = None
+
         # These are used primarily only by RVKCs
         self._rawkeyword = None
         self._rawvalue = None
@@ -573,28 +574,34 @@ class Card(_Verify):
                 "Floating point %r values are not allowed in FITS headers." %
                 value)
 
-        if isinstance(value, unicode):
-            try:
-                # Any string value must be encodable as ASCII
-                value.encode('ascii')
-            except UnicodeEncodeError:
+        if isinstance(value, text_type):
+            m = self._ascii_text_re.match(value)
+            if not m:
                 raise ValueError(
-                    'FITS header values must contain standard ASCII '
+                    'FITS header values must contain standard printable ASCII '
                     'characters; %r contains characters not representable in '
-                    'ASCII.' % value)
+                    'ASCII or non-printable characters.' % value)
         elif isinstance(value, bytes):
             # Allow str, but only if they can be decoded to ASCII text; note
             # this is not even allowed on Python 3 since the `bytes` type is
             # not included in `six.string_types`.  Presently we simply don't
             # allow bytes to be assigned to headers, as doing so would too
             # easily mask potential user error
+            valid = True
             try:
-                value.decode('ascii')
+                text_value = value.decode('ascii')
             except UnicodeDecodeError:
+                valid = False
+            else:
+                # Check against the printable characters regexp as well
+                m = self._ascii_text_re.match(text_value)
+                valid = m is not None
+
+            if not valid:
                 raise ValueError(
-                    'FITS header values must contain standard ASCII '
+                    'FITS header values must contain standard printable ASCII '
                     'characters; %r contains characters/bytes that do not '
-                    'represent characters in ASCII.' % value)
+                    'represent printable characters in ASCII.' % value)
         elif isinstance(value, np.bool_):
             value = bool(value)
 
@@ -611,6 +618,7 @@ class Card(_Verify):
 
         if different:
             self._value = value
+            self._rawvalue = None
             self._modified = True
             self._valuestring = None
             self._valuemodified = True
@@ -636,15 +644,33 @@ class Card(_Verify):
 
     @property
     def rawkeyword(self):
-        if self._rawkeyword is None and self.keyword:
-            self._rawkeyword = self.keyword
-        return self._rawkeyword
+        """On record-valued keyword cards this is the name of the standard <= 8
+        character FITS keyword that this RVKC is stored in.  Otherwise it is
+        the card's normal keyword.
+        """
+
+        if self._rawkeyword is not None:
+            return self._rawkeyword
+        elif self.field_specifier is not None:
+            self._rawkeyword = self.keyword.split('.', 1)[0]
+            return self._rawkeyword
+        else:
+            return self.keyword
 
     @property
     def rawvalue(self):
-        if self._rawvalue is None and self.value:
-            self._rawvalue = self.value
-        return self._rawvalue
+        """On record-valued keyword cards this is the raw string value in
+        the ``<field-specifier>: <value>`` format stored in the card in order
+        to represent a RVKC.  Otherwise it is the card's normal value.
+        """
+
+        if self._rawvalue is not None:
+            return self._rawvalue
+        elif self.field_specifier is not None:
+            self._rawvalue = '%s: %s' % (self.field_specifier, self.value)
+            return self._rawvalue
+        else:
+            return self.value
 
     @property
     def comment(self):
@@ -669,15 +695,14 @@ class Card(_Verify):
         if comment is None:
             comment = ''
 
-        if isinstance(comment, unicode):
-            try:
-                # Any string value must be encodable as ASCII
-                comment.encode('ascii')
-            except UnicodeEncodeError:
+        if isinstance(comment, text_type):
+            m = self._ascii_text_re.match(comment)
+            if not m:
                 raise ValueError(
-                    'FITS header comments must contain standard ASCII '
-                    'characters; %r contains characters not representable in '
-                    'ASCII.' % comment)
+                    'FITS header comments must contain standard printable '
+                    'ASCII characters; %r contains characters not '
+                    'representable in ASCII or non-printable characters.' %
+                    comment)
 
         oldcomment = self._comment
         if oldcomment is None:
@@ -839,11 +864,8 @@ class Card(_Verify):
                 return False
             match = self._rvkc_keyword_name_RE.match(keyword)
             if match and isinstance(value, (int, float)):
-                field_specifier = match.group('field_specifier')
-                self._keyword = '.'.join((match.group('keyword').upper(),
-                                          field_specifier))
-                self._field_specifier = field_specifier
-                self._value = value
+                self._init_rvkc(match.group('keyword'),
+                                match.group('field_specifier'), None, value)
                 return True
 
             # Testing for ': ' is a quick way to avoid running the full regular
@@ -1313,24 +1335,37 @@ class Card(_Verify):
 
         # verify the value, it may be fixable
         keyword, valuecomment = self._split()
-        m = self._value_FSC_RE.match(valuecomment)
-        if not (m or self.keyword in self._commentary_keywords):
-            errs.append(self.run_option(
-                option,
-                err_text='Card %r is not FITS standard (invalid value '
-                         'string: %s).' % (self.keyword, valuecomment),
-                fix_text=fix_text,
-                fix=self._fix_value))
+        if self.keyword in self._commentary_keywords:
+            # For commentary keywords all that needs to be ensured is that it
+            # contains only printable ASCII characters
+            if not self._ascii_text_re.match(valuecomment):
+                errs.append(self.run_option(
+                    option,
+                    err_text='Unprintable string %r; commentary cards may '
+                             'only contain printable ASCII characters' %
+                             valuecomment,
+                    fixable=False))
+        else:
+            m = self._value_FSC_RE.match(valuecomment)
+            if not m:
+                errs.append(self.run_option(
+                    option,
+                    err_text='Card %r is not FITS standard (invalid value '
+                             'string: %s).' % (self.keyword, valuecomment),
+                    fix_text=fix_text,
+                    fix=self._fix_value))
 
         # verify the comment (string), it is never fixable
         m = self._value_NFSC_RE.match(valuecomment)
         if m is not None:
             comment = m.group('comm')
             if comment is not None:
-                if not self._comment_FSC_RE.match(comment):
+                if not self._ascii_text_re.match(comment):
                     errs.append(self.run_option(
                         option,
-                        err_text='Unprintable string %r' % comment,
+                        err_text='Unprintable string %r; header comments may '
+                                 'only contain printable ASCII characters' %
+                                 comment,
                         fixable=False))
 
         return errs

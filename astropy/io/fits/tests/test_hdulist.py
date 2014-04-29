@@ -617,17 +617,24 @@ class TestHDUListFunctions(FitsTestCase):
                 assert orig_info == hdul2.info(output=False)
                 for idx in range(len(hdul)):
                     assert hdul[idx].header == hdul2[idx].header
-                    if hdul[idx].data is None or hdul2[idx].data is None:
-                        assert hdul[idx].data == hdul2[idx].data
-                    elif (hdul[idx].data.dtype.fields and
-                          hdul2[idx].data.dtype.fields):
+                    data = hdul[idx].data
+                    data2 = hdul2[idx].data
+
+                    if data is None or data2 is None:
+                        assert data == data2
+                    elif data.dtype.fields and data2.dtype.fields:
                         # Compare tables
-                        for n in hdul[idx].data.names:
-                            c1 = hdul[idx].data[n]
-                            c2 = hdul2[idx].data[n]
+                        for n in data.names:
+                            c1 = data[n]
+                            c2 = data2[n]
                             assert (c1 == c2).all()
+                    elif np.any(np.isnan(data)) or np.any(np.isnan(data2)):
+                        mask = np.isnan(data)
+                        mask2 = np.isnan(data2)
+                        assert np.sum(mask) == np.sum(mask2)
+                        assert np.all(data[~mask] == data2[~mask2])
                     else:
-                        assert (hdul[idx].data == hdul2[idx].data).all()
+                        assert (data == data2).all()
 
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':

@@ -681,6 +681,39 @@ class TestFileFunctions(FitsTestCase):
             mmap.mmap = old_mmap
             _File._mmap_available = None
 
+    def test_uncloseable_file(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2356
+
+        Demonstrates that FITS files can still be read from "file-like" objects
+        that don't have an obvious "open" or "closed" state.
+        """
+
+        class MyFileLike(object):
+            def __init__(self, foobar):
+                self._foobar = foobar
+
+            def read(self, n):
+                return self._foobar.read(n)
+
+            def seek(self, offset, whence=os.SEEK_SET):
+                self._foobar.seek(offset, whence)
+
+            def tell(self):
+                return self._foobar.tell()
+
+
+        with open(self.data('test0.fits'), 'rb') as f:
+            fileobj = MyFileLike(f)
+
+            with fits.open(fileobj) as hdul1:
+                with fits.open(self.data('test0.fits')) as hdul2:
+                    assert hdul1.info(output=False) == hdul2.info(output=False)
+                    for hdu1, hdu2 in zip(hdul1, hdul2):
+                        assert hdu1.header == hdu2.header
+                        if hdu1.data is not None and hdu2.data is not None:
+                            assert np.all(hdu1.data == hdu2.data)
+
     def _make_gzip_file(self, filename='test0.fits.gz'):
         gzfile = self.temp(filename)
         with open(self.data('test0.fits'), 'rb') as f:
