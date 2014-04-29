@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import re
 from copy import deepcopy
 import collections
 
@@ -199,7 +200,8 @@ class SkyCoord(object):
         return dir_values
 
     def __repr__(self):
-        return '<{0} {1}'.format(self.__class__.__name__, repr(self._coord)[1:])
+        out = re.sub('Coordinate:', self.__class__.__name__ + ':', repr(self._coord))
+        return out
 
 
 def _get_frame(args, kwargs):
