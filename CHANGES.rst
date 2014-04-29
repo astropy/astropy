@@ -58,6 +58,9 @@ New Features
     Parsing requires the installation of BeautifulSoup and is therefore
     an optional feature. [#2160]
 
+  - Added support for inputting column descriptions and column units
+    with the ``io.ascii.SExtractor`` reader. [#2372]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
