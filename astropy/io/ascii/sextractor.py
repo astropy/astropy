@@ -27,12 +27,17 @@ class SExtractor(core.BaseReader):
       # 2 ALPHA_J2000
       # 3 DELTA_J2000
       # 4 FLUX_RADIUS
-      # 7 MAG_AUTO
-      1 32.23222 10.1211 0.8 1.2 1.4 18.1
-      2 38.12321 -88.1321 2.2 2.4 3.1 17.0
+      # 7 MAG_AUTO [mag]
+      # 8 X2_IMAGE Variance along x [pixel**2]
+      # 9 X_MAMA Barycenter position along MAMA x axis [m**(-6)]
+      # 10 MU_MAX Peak surface brightness above background [mag * arcsec**(-2)]
+      1 32.23222 10.1211 0.8 1.2 1.4 18.1 1000.0 0.00304 -3.498
+      2 38.12321 -88.1321 2.2 2.4 3.1 17.0 1500.0 0.00908 1.401
 
     Note the skipped numbers since flux_radius has 3 columns.  The three FLUX_RADIUS
     columns will be named FLUX_RADIUS, FLUX_RADIUS_1, FLUX_RADIUS_2
+    Also note that a post-ID description (e.g. "Variance along x") is
+    optional and that units may be specified at the end of a line in brackets.
     """
     _format_name = 'sextractor'
     _io_registry_can_write = False
@@ -77,17 +82,22 @@ class SExtractorHeader(core.BaseHeader):
         # However, some may be missing and must be inferred from skipped column numbers
         columns = {}
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
-        re_name_def = re.compile(r'^\s*#\s*([0-9]+)\s+(\w+)\s*(\w[^\[]*\w)?(?:\s+\[(.+)\])?.*')
+        re_name_def = re.compile(r"""^ \s* \# \s*            # possible whitespace around #
+                                 (?P<colnumber> [0-9]+)\s+   # number of the column in table
+                                 (?P<colname> \w+) \s*       # name of the column
+                                 (?P<coldescr> \w [^\[]*\w)? # column description, match non-[
+                                 (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets 
+                                 """, re.VERBOSE)
         for line in lines:
             if not line.startswith('#'):
                 break                   # End of header lines
             else:
                 match = re_name_def.search(line)
                 if match:
-                    colnumber = int(match.group(1))  # First string is the column number
-                    colname = match.group(2)   # second string is the column name
-                    coldescr = match.group(3)   # third string is the column description
-                    colunit = match.group(4) # If no units are given, colunit = None
+                    colnumber = int(match.group('colnumber'))
+                    colname = match.group('colname')
+                    coldescr = match.group('coldescr')
+                    colunit = match.group('colunit') # If no units are given, colunit = None
                     columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
