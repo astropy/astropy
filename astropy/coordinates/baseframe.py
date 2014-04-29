@@ -121,7 +121,7 @@ class BaseCoordinateFrame(object):
 
     * `time_attr_names`
         A sequence of attribute names that must be `~astropy.time.Time` objects.
-        When given  as keywords in the initializer, these will be converted if
+        When given as keywords in the initializer, these will be converted if
         possible (e.g. from the string 'J2000' to the appropriate
         `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
 
@@ -134,6 +134,8 @@ class BaseCoordinateFrame(object):
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     def __init__(self, *args, **kwargs):
+        self._attr_names_with_defaults = []
+
         representation = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in self.frame_attr_names.items():
@@ -150,6 +152,7 @@ class BaseCoordinateFrame(object):
                 setattr(self, '_' + fnm, value)
             else:
                 setattr(self, '_' + fnm, fdefault)
+                self._attr_names_with_defaults.append(fnm)
 
         pref_rep = self.preferred_representation
         args = list(args)  # need to be able to pop them
@@ -220,7 +223,8 @@ class BaseCoordinateFrame(object):
             A new object with the same frame attributes as this one, but
             with the `representation` as the data.
         """
-        frattrs = dict([(nm, getattr(self, nm))for nm in self.frame_attr_names])
+        frattrs = dict([(nm, getattr(self, nm)) for nm in self.frame_attr_names
+                        if nm not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
     def represent_as(self, new_representation):
@@ -313,6 +317,25 @@ class BaseCoordinateFrame(object):
                 return False
         else:
             return True
+
+    def is_frame_attr_default(self, attrnm):
+        """
+        Determine whether or not a frame attribute has its value because it's
+        the default value, or because this frame was created with that value
+        explicitly requested.
+
+        Parameters
+        ----------
+        attrnm : str
+            The name of the attribute to check.
+
+        Returns
+        -------
+        isdefault : bool
+            True if the attribute `attrnm` has its value by default, False if it
+            was specified at creation of this frame.
+        """
+        return attrnm in self._attr_names_with_defaults
 
     def __repr__(self):
         frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
