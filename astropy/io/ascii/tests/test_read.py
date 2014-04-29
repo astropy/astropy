@@ -776,7 +776,7 @@ def test_sextractor_units():
                        'Kron-like elliptical aperture magnitude',
                        'RMS error for AUTO magnitude',
                        'Extraction flags',
-                       'Variance along x',
+                       None,
                        'Barycenter position along MAMA x axis',
                        'Peak surface brightness above background']
     for i, colname in enumerate(table.colnames):
