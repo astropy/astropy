@@ -172,7 +172,9 @@ class PolynomialModel(PolynomialBase):
 
     def _validate_params(self, **params):
         numcoeff = self._order
-        assert(len(params) == numcoeff)
+        if len(params) != numcoeff:
+            raise TypeError('%d parameter(s) provided but %d expected' %
+                            (len(params), numcoeff))
         valid_params = set(self._param_names)
         provided_params = set(params)
         diff = valid_params.difference(provided_params)
@@ -285,7 +287,9 @@ class OrthoPolynomialBase(PolynomialBase):
 
     def _validate_params(self, **params):
         numcoeff = self.get_num_coeff()
-        assert(len(params) == numcoeff)
+        if len(params) != numcoeff:
+            raise TypeError('%d parameter(s) provided but %d expected' %
+                            (len(params), numcoeff))
 
     def _invlex(self):
         # TODO: This is a very slow way to do this; fix it and related methods
@@ -374,8 +378,8 @@ class OrthoPolynomialBase(PolynomialBase):
         y : scalar, lis or array
         """
 
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
+        if x.shape != y.shape:
+            raise TypeError("Expected input arrays to have the same shape")
         if self.x_domain is not None:
             x = poly_map_domain(x, self.x_domain, self.x_window)
         if self.y_domain is not None:
@@ -761,8 +765,8 @@ class Polynomial2D(PolynomialModel):
         """
 
         invcoeff = self.invlex_coeff()
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
+        if x.shape != y.shape:
+            raise TypeError("Expected input arrays to have the same shape")
 
         return self.mhorner(x, y, invcoeff)
 
@@ -1068,7 +1072,9 @@ class _SIP1D(PolynomialBase):
 
     def _validate_params(self, ndim, **params):
         numcoeff = self.get_num_coeff(ndim)
-        assert(len(params) == numcoeff)
+        if len(params) != numcoeff:
+            raise TypeError('%d parameter(s) provided but %d expected' %
+                            (len(params), numcoeff))
 
     def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
