@@ -17,6 +17,8 @@ import numpy as np
 from ..extern import six
 from .. import units as u
 from .transformations import TransformGraph
+from .representation import BaseRepresentation, CartesianRepresentation, \
+                            SphericalRepresentation, UnitSphericalRepresentation
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
@@ -132,14 +134,9 @@ class BaseCoordinateFrame(object):
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     def __init__(self, *args, **kwargs):
-        from .representation import SphericalRepresentation, \
-                                    UnitSphericalRepresentation, \
-                                    BaseRepresentation
-
         representation = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in self.frame_attr_names.items():
-
             # read-only properties for these attributes are made in the
             # metaclass  so we set the 'real' attrbiutes as the name prefaced
             # with an underscore
@@ -318,9 +315,6 @@ class BaseCoordinateFrame(object):
             return True
 
     def __repr__(self):
-        from .representation import SphericalRepresentation, \
-                                    UnitSphericalRepresentation
-
         frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
                                 for attrnm in self.frame_attr_names])
 
@@ -411,7 +405,6 @@ class BaseCoordinateFrame(object):
         .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
 
         """
-        from .representation import UnitSphericalRepresentation
         from .angle_utilities import angular_separation
         from .angles import Angle
 
@@ -443,7 +436,6 @@ class BaseCoordinateFrame(object):
         ValueError
             If this or the other coordinate do not have distances.
         """
-        from .representation import UnitSphericalRepresentation
         from .distances import Distance
 
         if self.data.__class__ == UnitSphericalRepresentation:
@@ -471,8 +463,6 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        from .representation import CartesianRepresentation
-
         return self.represent_as(CartesianRepresentation)
 
     @property
@@ -482,8 +472,6 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        from .representation import SphericalRepresentation
-
         return self.represent_as(SphericalRepresentation)
 
 
