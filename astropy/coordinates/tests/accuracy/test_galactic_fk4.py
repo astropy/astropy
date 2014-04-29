@@ -13,15 +13,23 @@ from ....table import Table
 from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_fileobj
 
-TOLERANCE = 0.5  # arcseconds
+#the number of tests to run
+from . import N_ACCURACY_TESTS
 
+TOLERANCE = 0.3  # arcseconds
 
 def test_galactic_fk4():
     with get_pkg_data_fileobj('galactic_fk4.csv') as f:
         t = Table.read(f, format='ascii')
 
-    for i in range(len(t)):
+    if N_ACCURACY_TESTS >= len(t):
+        idxs = range(len(t))
+    else:
+        idxs = np.random.randint(len(t), size=N_ACCURACY_TESTS)
 
+    diffarcsec1 = []
+    diffarcsec2 = []
+    for i in idxs:
         # Extract row
         r = t[i]
 
@@ -34,7 +42,7 @@ def test_galactic_fk4():
                                   np.radians(r['ra_fk4']),
                                   np.radians(r['dec_fk4']))
 
-        assert np.degrees(diff) * 3600. < TOLERANCE
+        diffarcsec1.append(np.degrees(diff) * 3600.)
 
         # FK4 to Galactic
         c1 = FK4(ra=r['lon_in']*u.deg, dec=r['lat_in']*u.deg,
@@ -47,4 +55,7 @@ def test_galactic_fk4():
                                   np.radians(r['lon_gal']),
                                   np.radians(r['lat_gal']))
 
-        assert np.degrees(diff) * 3600. < TOLERANCE
+        diffarcsec2.append(np.degrees(diff) * 3600.)
+
+    np.testing.assert_array_less(diffarcsec1, TOLERANCE)
+    np.testing.assert_array_less(diffarcsec2, TOLERANCE)

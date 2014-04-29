@@ -13,15 +13,24 @@ from ....table import Table
 from ...angle_utilities import angular_separation
 from ....utils.data import get_pkg_data_fileobj
 
+#the number of tests to run
+from . import N_ACCURACY_TESTS
+
 TOLERANCE = 0.03  # arcseconds
 
 
-def test_icrs_no_e_fk5():
+def test_icrs_fk5():
     with get_pkg_data_fileobj('icrs_fk5.csv') as f:
         t = Table.read(f, format='ascii')
 
-    for i in range(len(t)):
+    if N_ACCURACY_TESTS >= len(t):
+        idxs = range(len(t))
+    else:
+        idxs = np.random.randint(len(t), size=N_ACCURACY_TESTS)
 
+    diffarcsec1 = []
+    diffarcsec2 = []
+    for i in idxs:
         # Extract row
         r = t[i]
 
@@ -34,7 +43,7 @@ def test_icrs_no_e_fk5():
                                   np.radians(r['ra_fk5']),
                                   np.radians(r['dec_fk5']))
 
-        assert np.degrees(diff) * 3600. < TOLERANCE
+        diffarcsec1.append(np.degrees(diff) * 3600.)
 
         # FK5 to ICRS
         c1 = FK5(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
@@ -46,4 +55,7 @@ def test_icrs_no_e_fk5():
                                   np.radians(r['ra_icrs']),
                                   np.radians(r['dec_icrs']))
 
-        assert np.degrees(diff) * 3600. < TOLERANCE
+        diffarcsec2.append(np.degrees(diff) * 3600.)
+
+    np.testing.assert_array_less(diffarcsec1, TOLERANCE)
+    np.testing.assert_array_less(diffarcsec2, TOLERANCE)
