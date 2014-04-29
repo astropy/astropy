@@ -187,9 +187,6 @@ class FK4(BaseCoordinateFrame):
             return self.equinox
         else:
             return self._obstime
-    @obstime.setter
-    def obstime(self, val):
-        self._obstime = val
 
 
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
@@ -237,9 +234,6 @@ class FK4NoETerms(BaseCoordinateFrame):
             return self.equinox
         else:
             return self._obstime
-    @obstime.setter
-    def obstime(self, val):
-        self._obstime = val
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
