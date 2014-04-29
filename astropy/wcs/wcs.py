@@ -60,8 +60,8 @@ if _wcs is not None:
 
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
-           'DistortionLookupTable', 'Sip', 'Tabprm', 'UnitConverter',
-           'Wcsprm', 'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
+           'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm',
+           'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
            'InconsistentAxisTypesError', 'InvalidTransformError',
            'InvalidCoordinateError', 'NoSolutionError',
            'InvalidSubimageSpecificationError',
@@ -73,7 +73,6 @@ if _wcs is not None:
     WCSBase = _wcs._Wcs
     DistortionLookupTable = _wcs.DistortionLookupTable
     Sip = _wcs.Sip
-    UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs.Wcsprm
     Tabprm = _wcs.Tabprm
     WcsError = _wcs.WcsError
@@ -94,19 +93,11 @@ if _wcs is not None:
             key.startswith('WCSHDO')):
             locals()[key] = val
             __all__.append(key)
-
-    UnitConverter = deprecated(
-        '0.2', name='UnitConverter', alternative='astropy.units')(
-            UnitConverter)
-    # This is to make Sphinx happy so it thinks the class comes from
-    # this file and will document it.
-    UnitConverter.__module__ = __name__
 else:
     WCSBase = object
     Wcsprm = object
     DistortionLookupTable = object
     Sip = object
-    UnitConverter = object
     Tabprm = object
     WcsError = None
     SingularMatrixError = None
@@ -548,7 +539,7 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
-    @deprecated("0.4", name="calcFootprint", alternative="calc_footprint")            
+    @deprecated("0.4", name="calcFootprint", alternative="calc_footprint")
     def calcFootprint(self, header=None, undistort=True, axes=None):
         return self.calc_footprint(header=header, undistort=undistort, axes=axes,
                                    center=True)
@@ -612,7 +603,7 @@ naxis kwarg.
                                 [0.5, naxis2 + 0.5],
                                 [naxis1 + 0.5, naxis2 + 0.5],
                                 [naxis1 + 0.5, 0.5]], dtype = np.float64)
-        
+
         if undistort:
             return self.all_pix2world(corners, 1)
         else:
@@ -1172,10 +1163,6 @@ naxis kwarg.
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('sky coordinates, in degrees', 8))
 
-    @deprecated("0.0", name="all_pix2sky", alternative="all_pix2world")
-    def all_pix2sky(self, *args, **kwargs):
-        return self.all_pix2world(*args, **kwargs)
-
     def wcs_pix2world(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
@@ -1244,10 +1231,6 @@ naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('world coordinates, in degrees', 8))
-
-    @deprecated("0.0", name="wcs_pix2sky", alternative="wcs_pix2world")
-    def wcs_pix2sky(self, *args, **kwargs):
-        return self.wcs_pix2world(*args, **kwargs)
 
     def _all_world2pix(self, world, origin, tolerance, **kwargs):
         try:
@@ -1404,10 +1387,6 @@ naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))
-
-    @deprecated("0.0", name="wcs_sky2pix", alternative="wcs_world2pix")
-    def wcs_sky2pix(self, *args, **kwargs):
-        return self.wcs_world2pix(*args, **kwargs)
 
     def pix2foc(self, *args):
         return self._array_converter(self._pix2foc, None, *args)
@@ -1735,13 +1714,6 @@ naxis kwarg.
         self.calc_footprint().tofile(f, sep=',')
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
-
-    naxis1 = deprecated_attribute('naxis1', '0.2')
-    naxis2 = deprecated_attribute('naxis2', '0.2')
-
-    @deprecated('0.2', message='This method should not be public')
-    def get_naxis(self, header=None):
-        return self._get_naxis(header=header)
 
     def _get_naxis(self, header=None):
         self._naxis1 = 0

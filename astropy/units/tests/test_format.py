@@ -276,24 +276,6 @@ def test_format_styles():
     for format_, s in format_s_pairs:
         yield _test_format_styles, format_, s
 
-def test_wcs_parse():
-    """
-    Tests that the output of to_string('fits') is also parsed by
-    wcslib.  Even if we deprecated access to wcslib's unit parser, we
-    may want to keep it around and hidden for this test.
-    """
-    def _test_wcs_parse(unit):
-        try:
-            fits_string = unit.decompose().to_string('fits')
-        except ValueError:
-            return
-        wcs.UnitConverter(fits_string, fits_string)
-
-    for key, val in u.__dict__.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
-            yield _test_wcs_parse, val
-
-
 def test_flatten_to_known():
     myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
     assert myunit.to_string('fits') == 'erg Hz-1'

@@ -284,13 +284,6 @@ relevant column number.
 It should be set to zero for an image header or pixel list.
 """
 
-convert = """
-convert(array)
-
-Perform the unit conversion on the elements of the given *array*,
-returning an array of the same shape.
-"""
-
 coord = """
 ``double array[K_M]...[K_2][K_1][M]`` The tabular coordinate array.
 
@@ -865,13 +858,6 @@ Alias for `~astropy.wcs.Wcsprm.has_pc`.  Maintained for backward
 compatibility.
 """
 
-have = """
-``string`` The name of the unit being converted from.
-
-This value always uses standard unit names, even if the
-`UnitConverter` was initialized with a non-standard unit name.
-"""
-
 i = """
 ``int`` (read-only)
 
@@ -1192,10 +1178,6 @@ reference frame.
 An undefined value is represented by NaN.
 """
 
-offset = """
-``double`` The offset of the unit conversion.
-"""
-
 p0 = """
 ``int array[M]`` Interpolated indices into the coordinate array.
 
@@ -1380,10 +1362,6 @@ piximg_matrix = """
 the ``CDELTia`` diagonal matrix and the ``PCi_ja`` matrix.
 """
 
-power = """
-``double`` The exponent of the unit conversion.
-"""
-
 print_contents = """
 print_contents()
 
@@ -1496,10 +1474,6 @@ See also
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
 """.format(__.ORIGIN())
-
-scale = """
-``double`` The scaling factor for the unit conversion.
-"""
 
 sense = """
 ``int array[M]`` +1 if monotonically increasing, -1 if decreasing.
@@ -2009,97 +1983,6 @@ ttype = """
 the wcstab array.
 """
 
-UnitConverter = """
-UnitConverter(have, want, translate_units='')
-
-An object for converting from one system of units to another.
-
-Use the returned object's `~astropy.wcs.UnitConverter.convert` method
-to convert values from *have* to *want*.
-
-This function is permissive in accepting whitespace in all contexts in
-a units specification where it does not create ambiguity (e.g. not
-between a metric prefix and a basic unit string), including in strings
-like ``"log (m ** 2)"`` which is formally disallowed.
-
-.. note:: Deprecated in Astropy 0.2
-
-   `UnitConverter` will be removed in a future version of astropy.
-   The `astropy.units` package should be used instead.
-
-Parameters
-----------
-
-have : str
-    FITS unit string to convert from, with or without surrounding
-    square brackets (for inline specifications); text following the
-    closing bracket is ignored.
-
-want : str
-    FITS unit string to convert to, with or without surrounding square
-    brackets (for inline specifications); text following the closing
-    bracket is ignored.
-
-ctrl : str, optional
-    Do potentially unsafe translations of non-standard unit strings.
-
-    Although ``\"S\"`` is commonly used to represent seconds, its
-    recognizes ``\"S\"`` formally as Siemens, however rarely that may
-    be translation to ``\"s\"`` is potentially unsafe since the
-    standard used.  The same applies to ``\"H\"`` for hours (Henry),
-    and ``\"D\"`` for days (Debye).
-
-    This string controls what to do in such cases, and is
-    case-insensitive.
-
-    - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
-
-    - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
-
-    - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
-
-    Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
-    does all of them.
-
-Raises
-------
-ValueError
-    Invalid numeric multiplier.
-
-SyntaxError
-    Dangling binary operator.
-
-SyntaxError
-    Invalid symbol in INITIAL context.
-
-SyntaxError
-    Function in invalid context.
-
-SyntaxError
-    Invalid symbol in EXPON context.
-
-SyntaxError
-    Unbalanced bracket.
-
-SyntaxError
-    Unbalanced parenthesis.
-
-SyntaxError
-    Consecutive binary operators.
-
-SyntaxError
-    Internal parser error.
-
-SyntaxError
-    Non-conformant unit specifications.
-
-SyntaxError
-    Non-conformant functions.
-
-ValueError
-    Potentially unsafe translation.
-"""
-
 unitfix = """
 unitfix(translate_units='')
 
@@ -2158,13 +2041,6 @@ An undefined value is represented by NaN.
 See also
 --------
 astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
-"""
-
-want = """
-``string`` The name of the unit being converted to.
-
-This value always uses standard unit names, even if the
-`UnitConverter` was initialized with a non-standard unit name.
 """
 
 wcs = """
