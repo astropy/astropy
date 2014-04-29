@@ -109,13 +109,22 @@ def format_input(func):
         result = func(self, *converted)
 
         if transposed:
-            return result.T
+            if self.n_outputs > 1:
+                result = [r.T for r in result]
+            else:
+            	return result.T
         elif scalar:
-            try:
-                return result[0]
-            except IndexError:
-                return result
-
+            if self.n_outputs >1:
+                try:
+                    result = [np.asscalar(r) for r in result]
+                except TypeError:
+                    pass
+                return tuple(result)
+            else:
+                try:
+                    result = result[0]
+                except (IndexError, TypeError):
+                    pass
         return result
 
     return wrapped_call
