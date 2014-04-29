@@ -13,6 +13,8 @@ from .baseframe import BaseCoordinateFrame, frame_transform_graph
 
 __all__ = ['SkyCoord']
 
+# ALL THESE FIXED MAPPINGS NEED TO BE DYNAMIC
+
 # Create FRAME_CLASSES dictionary mapping of frame name: frame class.
 FRAME_NAMES = frame_transform_graph.get_aliases()
 FRAME_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
@@ -23,10 +25,11 @@ FRAME_CLASSES[None] = FRAME_CLASSES['icrs']
 CLASS_TO_NAME_MAP = dict((cls, name) for name, cls in FRAME_CLASSES.items())
 
 
-# Map coordinate frame names to allowed frame-specific attributes such as
-# equinox or obstime.
-FRAME_ATTR_NAMES = dict((name, tuple(FRAME_CLASSES[name].frame_attr_names.keys()))
-                        for name in FRAME_NAMES)
+# Set of all possible frame-specific attributes
+FRAME_ATTR_NAMES_SET = set()
+for frame_cls in FRAME_CLASSES.values():
+    for attr in frame_cls.frame_attr_names.keys():
+        FRAME_ATTR_NAMES_SET.add(attr)
 
 
 class SkyCoord(object):
@@ -39,15 +42,16 @@ class SkyCoord(object):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        for attr in ('frame', 'equinox', 'obstime', 'location'):
+        self._frame = kwargs['frame']
+        for attr in FRAME_ATTR_NAMES_SET:
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
         frame_cls = FRAME_CLASSES[self.frame]
         coord_kwargs = {}
         for attr, value in kwargs.items():
-            if (attr in frame_cls.preferred_attr_names
-                    or attr in frame_cls.frame_attr_names):
+            if value is not None and (attr in frame_cls.preferred_attr_names
+                                      or attr in frame_cls.frame_attr_names):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
@@ -56,18 +60,6 @@ class SkyCoord(object):
     @property
     def frame(self):
         return self._frame
-
-    @property
-    def equinox(self):
-        return self._equinox
-
-    @property
-    def location(self):
-        return self._location
-
-    @property
-    def obstime(self):
-        return self._obstime
 
     def __len__(self):
         return len(self._coord)
@@ -84,7 +76,7 @@ class SkyCoord(object):
         # accordingly.  The others must be specified by keyword args.  Pop them off
         # of kwargs in the process.
         frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
-        for attr in ('equinox', 'obstime', 'location'):
+        for attr in FRAME_ATTR_NAMES_SET:
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
         # Get latitude and longitude units
@@ -153,7 +145,7 @@ class SkyCoord(object):
         # Make a frame instance for the new frame including the correct frame attributes.
         # Only define attributes that are not None.
         frame_cls = FRAME_CLASSES[frame]
-        frame_kwargs = dict((attr, getattr(self, attr)) for attr in FRAME_ATTR_NAMES[frame]
+        frame_kwargs = dict((attr, getattr(self, attr)) for attr in frame_cls.frame_attr_names
                             if getattr(self, attr) is not None)
         frame = frame_cls(**frame_kwargs)
 
@@ -173,17 +165,30 @@ class SkyCoord(object):
         """
 
         if self.frame == attr:
-            return self
+            return self  # Should this be a deepcopy of self?
 
-        nmsys = frame_transform_graph.lookup_name(attr)
-        if nmsys is not None and self._coord.is_transformable_to(nmsys):
-            return self.transform_to(attr)
-        else:
-            if not attr.startswith('_') and hasattr(self._coord, attr):
+        # Anything in the set of all possible frame_attr_names is handled
+        # here. If the attr is relevant for the current frame then delegate
+        # to self._coord otherwise get it from self._<attr>.
+        if attr in FRAME_ATTR_NAMES_SET:
+            if attr in self._coord.frame_attr_names:
                 return getattr(self._coord, attr)
             else:
-                msg = "'{0}' object has no attribute '{1}', nor a transform."
-                raise AttributeError(msg.format(self.__class__, attr))
+                return getattr(self, '_' + attr)
+
+        # Some attributes might not fall in the above category but still
+        # are available through self._coord.
+        if not attr.startswith('_') and hasattr(self._coord, attr):
+            return getattr(self._coord, attr)
+
+        # Try to interpret as a new frame for transforming.
+        frame_cls = frame_transform_graph.lookup_name(attr)
+        if frame_cls is not None and self._coord.is_transformable_to(frame_cls):
+            return self.transform_to(attr)
+
+        # Fail
+        raise AttributeError("'{0}' object has no attribute '{1}', nor a transform."
+                             .format(self.__class__, attr))
 
     @override__dir__
     def __dir__(self):
@@ -202,6 +207,9 @@ class SkyCoord(object):
         # Add public attributes of self._coord
         dir_values.update(set(attr for attr in dir(self._coord) if not attr.startswith('_')))
 
+        # Add all possible frame_attr_names
+        dir_values.update(FRAME_ATTR_NAMES_SET)
+        
         return dir_values
 
     def __repr__(self):
