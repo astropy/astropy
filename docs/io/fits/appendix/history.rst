@@ -14,7 +14,74 @@ Astropy.
    :local:
 
 
-3.2.1 (unreleased)
+3.2.3 (unreleased)
+------------------
+
+- Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
+  tables containing array columns (columns in which each element is an array
+  instead of a single scalar value). (spacetelescope/PyFITS#22)
+
+- Fixed an issue where PyFITS allowed newline characters in header values and
+  comments. (spacetelescope/PyFITS#51)
+
+- Fixed pickling of ``FITS_rec`` (table data) objects.
+  (spacetelescope/PyFITS#53)
+
+- Improved behavior when writing large compressed images on OSX by removing an
+  unncessary check for platform architecture. (spacetelescope/PyFITS#57)
+
+- Allow reading FITS files from file-like objects that do not have a
+  ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
+  concept). (spacetelescope/PyFITS#56)
+
+- Fixed duplicate insertion of commentary keywords on compressed image
+  headers. (spacetelescope/PyFITS#58)
+
+- Fixed minor issue with comparison of header commentary card values.
+  (spacetelescope/PyFITS#59)
+
+
+3.1.6 (unreleased)
+------------------
+
+- Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
+  tables containing array columns (columns in which each element is an array
+  instead of a single scalar value). (Backported from 3.2.3)
+
+- Fixed an issue where PyFITS allowed newline characters in header values and
+  comments. (Backported from 3.2.3)
+
+- Fixed pickling of ``FITS_rec`` (table data) objects.
+  (Backported from 3.2.3)
+
+- Improved behavior when writing large compressed images on OSX by removing an
+  unncessary check for platform architecture. (Backported from 3.2.3)
+
+- Allow reading FITS files from file-like objects that do not have a
+  ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
+  concept). (Backported from 3.2.3)
+
+- Fixed minor issue with comparison of header commentary card values.
+  (Backported from 3.2.3)
+
+
+3.2.2 (2014-03-28)
+------------------
+
+- Fixed a regression on deletion of record-valued keyword cards using
+  the Header wildcard syntax.  This was intended to be fixed before the
+  v3.2.1 release.
+
+
+3.1.5 (2014-03-25)
+------------------
+
+- Fixed a regression on deletion of record-valued keyword cards using
+  the Header wildcard syntax.  This was intended to be fixed before the
+  v3.1.4 release.
+
+
+3.2.1 (2014-03-04)
 ------------------
 
 - Nominal support for the upcoming Python 3.4.
@@ -90,7 +157,7 @@ Astropy.
   and not ``unicode`` objects. (spacetelescope/PyFITS#37)
 
 
-3.1.4 (unreleased)
+3.1.4 (2014-03-04)
 ------------------
 
 - Added missing features from the ``Header.insert()`` method that were
@@ -145,7 +212,7 @@ Astropy.
   and not ``unicode`` objects. (Backported from 3.2.1)
 
 
-3.0.13 (unreleased)
+3.0.13 (2014-03-04)
 -------------------
 
 - Fixed a bug where writing a file with ``checksum=True`` did not add the
@@ -154,11 +221,6 @@ Astropy.
 - Fixed an issue where validating an HDU's checksums removed the checksum from
   that HDU's header entirely (even if it was valid.)
   (Backported from 3.2.1)
-
-- Fixed an issue where the size of the heap was sometimes not computed
-  properly when writing an existing table containing variable-length array
-  columns to a new FITS file.  This could result in corruption in the new FITS
-  file. (Backported from 3.2.1)
 
 
 3.2 (2013-11-26)

@@ -643,7 +643,7 @@ class HDUList(list, _Verify):
         # make note of whether the input file object is already open, in which
         # case we should not close it after writing (that should be the job
         # of the caller)
-        closed = fileobj_closed(fileobj)
+        closed = isinstance(fileobj, string_types) or fileobj_closed(fileobj)
 
         # writeto is only for writing a new file from scratch, so the most
         # sensible mode to require is 'ostream'.  This can accept an open

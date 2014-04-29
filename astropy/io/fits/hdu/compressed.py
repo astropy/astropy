@@ -244,6 +244,10 @@ class CompImageHeader(Header):
 
         super(CompImageHeader, self)._update(card)
 
+        if keyword in Card._commentary_keywords:
+            # Otherwise this will result in a duplicate insertion
+            return
+
         remapped_keyword = self._remap_keyword(keyword)
         self._table_header._update((remapped_keyword,) + card[1:])
 

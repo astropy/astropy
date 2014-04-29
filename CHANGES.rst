@@ -435,6 +435,8 @@ Bug Fixes
   - Fixed an issue where Astropy ``Table`` objects containing boolean columns
     were not correctly written out to FITS files. [#1953]
 
+  - Several other bug fixes ported from PyFITS v3.2.3 [#2368]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

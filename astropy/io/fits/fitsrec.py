@@ -210,7 +210,8 @@ class FITS_rec(np.recarray):
         values that get used in __setstate__.
         """
 
-        reconst_func, reconst_func_args, state = super(FITS_rec, self).__reduce__()
+        reconst_func, reconst_func_args, state = \
+            super(FITS_rec, self).__reduce__()
 
         # Define FITS_rec-specific attrs that get added to state
         column_state = []
