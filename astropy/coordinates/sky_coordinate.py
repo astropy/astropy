@@ -105,9 +105,14 @@ class SkyCoord(object):
                 # One arg which must be a coordinate
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
             elif len(args) == 2:
-                raise NotImplementedError()
+                attr_name_for_type = dict((attr_type, name) for name, attr_type in
+                                          FRAME_CLASSES[frame].preferred_attr_names.items())
+                coord_kwargs = {}
+                coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=lon_unit)
+                coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=lat_unit)
             else:
-                raise ValueError()
+                raise ValueError('Must supply no more than two positional arguments, got {}'
+                                 .format(len(args)))
 
             for attr in coord_kwargs:
                 if attr in valid_kwargs:
