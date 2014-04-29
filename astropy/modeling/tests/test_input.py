@@ -11,6 +11,7 @@ from .. import models
 from .. import fitting
 from numpy.testing import utils
 from ...tests.helper import pytest
+from ..core import (Model, format_input)
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -306,3 +307,36 @@ class TestEvaluation(object):
         g = models.Gaussian2D(1., 5., 4., cov_matrix=cov)
         y, x = np.mgrid[:10, :10]
         g(x, y)
+
+
+class TestInputFormatter(Model):
+    """
+    A toy model to test format_input
+    """
+
+    n_inputs = 2
+    n_outputs = 2
+
+    def __init__(self):
+        super(TestInputFormatter, self).__init__()
+
+    @format_input
+    def __call__(self, x, y):
+        return x, y
+
+def test_format_input_scalars():
+    model = TestInputFormatter()
+    result = model(1, 2)
+    assert result == (1, 2)
+
+def test_format_input_arrays():
+    model = TestInputFormatter()
+    result = model([1, 1], [2, 2])
+    utils.assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
+
+def test_format_input_arrays_transposed():
+    model = TestInputFormatter()
+    input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
+    result = model(*input)
+    utils.assert_allclose(result, input)
+
