@@ -83,7 +83,7 @@ class SkyCoord(object):
         # dict.  `Frame` could come from args or kwargs, so set valid_kwargs['frame']
         # accordingly.  The others must be specified by keyword args.  Pop them off
         # of kwargs in the process.
-        frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
+        frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
         for attr in ('equinox', 'obstime', 'location'):
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
@@ -209,48 +209,80 @@ class SkyCoord(object):
         return out
 
 
-def _get_frame(args, kwargs):
+def _get_frame_class(frame):
+    """
+    Get a frame instance from the input `frame`, which could be a frame name
+    string, frame class, or frame instance.
+    """
+    import inspect
+
+    if isinstance(frame, six.string_types):
+        if frame not in FRAME_NAMES:
+            raise ValueError('Coordinate frame {0} not in allowed values {1}'
+                             .format(frame, sorted(FRAME_NAMES)))
+        frame_cls = FRAME_CLASSES[frame]
+
+    elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
+        frame_cls = frame
+
+    else:
+        raise ValueError('Coordinate frame {0} must be a frame name or frame class'
+                         .format(frame))
+
+    return frame_cls
+
+
+def _get_frame_name(args, kwargs):
     """
     Determine the coordinate frame from input SkyCoord args and kwargs.  This
-    modifies args in-place to remove the item that provided `frame`.  It
-    also infers the frame if an input coordinate was provided and checks
-    for conflicts.
+    modifies args and/or kwargs in-place to remove the item that provided
+    `frame`.  It also infers the frame if an input coordinate was provided and
+    checks for conflicts.
 
+    This allows for frame to be specified as a string like 'icrs' or a frame
+    class like ICRS, but not an instance ICRS() since the latter could have
+    non-default preferred attributes which would require a three-way merge.
     """
     frame = kwargs.pop('frame', None)
 
-    # If no frame is provided via keyword then check for a positional arg
-    # that is a valid frame.
-    if frame is None:
+    if frame is not None:
+        # Frame was provided as kwarg so validate and coerce into corresponding frame.
+        frame_cls = _get_frame_class(frame)
+        frame_name = CLASS_TO_NAME_MAP[frame_cls]
+    else:
+        # Look for the frame in args
         for arg in args:
-            if arg in FRAME_NAMES:
-                frame = arg
-                args.remove(frame)
+            try:
+                frame_cls = _get_frame_class(arg)
+            except ValueError:
+                pass
+            else:
+                frame_name = CLASS_TO_NAME_MAP[frame_cls]
+                args.remove(arg)
                 break
-
-    elif frame not in FRAME_NAMES:
-        # Frame was provided so check that it is allowed.
-        raise ValueError('Coordinate frame {0} not in allowed values {1}'
-                         .format(frame, sorted(FRAME_NAMES)))
+        else:
+            # Not in args nor kwargs
+            frame_name = None
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
     # been set by this point and a coordinate was supplied, then use that frame.
     for arg in args:
-        coord_frame = None
+        coord_frame_name = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame = CLASS_TO_NAME_MAP[arg.__class__]
+            coord_frame_name = CLASS_TO_NAME_MAP[arg.__class__]
         elif isinstance(arg, SkyCoord):
-            coord_frame = arg.frame
+            coord_frame_name = arg.frame
 
-        if coord_frame is not None:
-            if frame is None:
-                frame = coord_frame
-            elif frame != coord_frame:
+        if coord_frame_name is not None:
+            if frame_name is None:
+                frame_name = coord_frame_name
+            elif frame_name != coord_frame_name:
                 raise ValueError("Cannot override frame='{0}' of input coordinate with "
                                  "new frame='{1}'.  Instead transform the coordinate."
-                                 .format(coord_frame, frame))
-    return frame
+                                 .format(coord_frame_name, frame_name))
+
+    return frame_name
 
 
 def _get_units(args, kwargs):

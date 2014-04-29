@@ -30,6 +30,42 @@ def tst_transform_to():
         assert c_frame.dec == s_frame.dec
 
 
+def test_frame_init():
+    """
+    Different ways of providing the frame.
+    """
+    sc = SkyCoord(RA, DEC, frame='icrs')
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(RA, DEC, frame=ICRS)
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(RA, DEC, 'icrs')
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(RA, DEC, ICRS)
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord('icrs', RA, DEC)
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(ICRS, RA, DEC)
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(sc)
+    assert sc.frame == 'icrs'
+
+    sc = SkyCoord(C_ICRS)
+    assert sc.frame == 'icrs'
+
+    SkyCoord(C_ICRS, frame='icrs')
+    assert sc.frame == 'icrs'
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord(C_ICRS, frame='galactic')
+    assert 'Cannot override frame=' in str(err)
+
+
 def test_api():
     """
     Verify that the API take-2 examples run
