@@ -199,6 +199,11 @@ class BaseCoordinateFrame(object):
 
     @property
     def data(self):
+        """
+        The coordinate data for this object.  If this frame has no data, an
+        `AttributeError` will be raised.  Use `had_data` to check if data is
+        present on this frame object.
+        """
         if self._data is None:
             raise AttributeError('The frame object "{0}" does not have '
                                  'associated data'.format(repr(self)))
@@ -206,11 +211,15 @@ class BaseCoordinateFrame(object):
 
     @property
     def has_data(self):
+        """
+        True if this frame has `data`, False otherwise.
+        """
         return self._data is not None
 
     def realize_frame(self, representation):
         """
-        Generates a new frame *with data* from a frame without data.
+        Generates a new frame *with new data* from another frame (which may or
+        may not have data).
 
         Parameters
         ----------
@@ -228,6 +237,33 @@ class BaseCoordinateFrame(object):
         return self.__class__(representation, **frattrs)
 
     def represent_as(self, new_representation):
+        """
+        Generate and return a new representation of this frame's `data`.
+
+        Parameters
+        ----------
+        new_representation : subclass of BaseRepresentation
+            The type of representation to generate, as a *class* (not an
+            instance).
+
+        Returns
+        -------
+        newrep : whatever `new_representation` is
+            A new representation object of this frame's `data`.
+
+        Raises
+        ------
+        AttributeError
+            If this object had no `data`
+
+        Examples
+        --------
+        >>> from astropy import units as u
+        >>> from astropy.coordinates import ICRS, CartesianRepresentation
+        >>> coord = ICRS(0*u.deg, 0*u.deg)
+        >>> coord.represent_as(CartesianRepresentation)
+        <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
+        """
         cached_repr = self._rep_cache.get(new_representation.__name__, None)
         if not cached_repr:
             rep = self.data.represent_as(new_representation)
@@ -345,10 +381,9 @@ class BaseCoordinateFrame(object):
             if self.preferred_representation:
                 if (self.preferred_representation == SphericalRepresentation and
                     isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.data.represent_as(UnitSphericalRepresentation)
+                    data = self.represent_as(UnitSphericalRepresentation)
                 else:
-                    data = self.data.represent_as(self.preferred_representation)
-
+                    data = self.represent_as(self.preferred_representation)
                 # if necessary, make a new representation with preferred units
                 if self.preferred_attr_units:
                     # first figure out how to map *representation* attribute
