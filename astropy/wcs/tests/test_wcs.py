@@ -650,6 +650,22 @@ def test_calc_footprint_3():
                     [0.1, 0.5],
                     [359.9, 0.5],
                     [359.9, -0.5]])
- 
+
     footprint = w.calc_footprint(axes=axes, undistort=False, center=False)
     assert_allclose(footprint, ref)
+
+
+def test_sip():
+    # See #2107
+    header = get_pkg_data_contents('data/irac_sip.hdr', encoding='binary')
+    w = wcs.WCS(header)
+
+    x0, y0 = w.sip_pix2foc(200, 200, 0)
+
+    assert_allclose(72, x0, 1e-3)
+    assert_allclose(72, y0, 1e-3)
+
+    x1, y1 = w.sip_foc2pix(x0, y0, 0)
+
+    assert_allclose(200, x1, 1e-3)
+    assert_allclose(200, y1, 1e-3)

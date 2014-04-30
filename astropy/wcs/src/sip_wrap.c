@@ -148,6 +148,9 @@ PySip_pix2foc(
   int            origin     = 1;
   PyArrayObject* pixcrd     = NULL;
   PyArrayObject* foccrd     = NULL;
+  double*        foccrd_data = NULL;
+  unsigned int   nelem      = 0;
+  unsigned int   i, j;
   int            status     = -1;
   const char*    keywords[] = {
     "pixcrd", "origin", NULL };
@@ -188,6 +191,15 @@ PySip_pix2foc(
                        (const double*)PyArray_DATA(pixcrd),
                        (double*)PyArray_DATA(foccrd));
   unoffset_array(pixcrd, origin);
+
+  /* Adjust for crpix */
+  foccrd_data = (double *)PyArray_DATA(foccrd);
+  nelem = (unsigned int)PyArray_DIM(foccrd, 0);
+  for (i = 0; i < nelem; ++i) {
+    for (j = 0; j < 2; ++j) {
+      foccrd_data[i*2 + j] -= self->x.crpix[j];
+    }
+  }
   unoffset_array(foccrd, origin);
   Py_END_ALLOW_THREADS
 
@@ -220,6 +232,10 @@ PySip_foc2pix(
   PyArrayObject* foccrd     = NULL;
   PyArrayObject* pixcrd     = NULL;
   int            status     = -1;
+  double*        foccrd_data = NULL;
+  double*        pixcrd_data = NULL;
+  unsigned int   nelem      = 0;
+  unsigned int   i, j;
   const char*    keywords[] = {
     "foccrd", "origin", NULL };
 
@@ -254,11 +270,27 @@ PySip_foc2pix(
 
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(foccrd, origin);
+  /* Adjust for crpix */
+  foccrd_data = (double *)PyArray_DATA(foccrd);
+  nelem = (unsigned int)PyArray_DIM(foccrd, 0);
+  for (i = 0; i < nelem; ++i) {
+    for (j = 0; j < 2; ++j) {
+      foccrd_data[i*2 + j] += self->x.crpix[j];
+    }
+  }
+
   status = sip_foc2pix(&self->x,
                        (unsigned int)PyArray_DIM(pixcrd, 1),
                        (unsigned int)PyArray_DIM(pixcrd, 0),
                        (double*)PyArray_DATA(foccrd),
                        (double*)PyArray_DATA(pixcrd));
+
+  /* Adjust for crpix */
+  for (i = 0; i < nelem; ++i) {
+    for (j = 0; j < 2; ++j) {
+      foccrd_data[i*2 + j] -= self->x.crpix[j];
+    }
+  }
   unoffset_array(foccrd, origin);
   unoffset_array(pixcrd, origin);
   Py_END_ALLOW_THREADS
