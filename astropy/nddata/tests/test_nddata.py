@@ -12,10 +12,14 @@ from numpy.testing import assert_array_equal
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import pytest, raises
+from ... import units as u
 from ...utils import NumpyRNGContext
 
 
 class FakeUncertainty(NDUncertainty):
+
+    def __init__(self, *arg, **kwd):
+        pass
 
     def propagate_add(self, data, final_data):
         pass
@@ -27,6 +31,9 @@ class FakeUncertainty(NDUncertainty):
         pass
 
     def propagate_divide(self, data, final_data):
+        pass
+
+    def array(self):
         pass
 
 
@@ -257,11 +264,30 @@ def test_nddata_subtract_uncertainties_mismatch():
     assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for subtraction'
 
 
+@pytest.mark.parametrize('operation', [
+                         'add',
+                         'subtract',
+                         'multiply',
+                         'divide'])
+def test_uncertainty_unit_conversion_add_subtract(operation):
+    in_km = NDData([1, 1], unit=u.km, uncertainty=StdDevUncertainty([.1, .1]))
+    in_m = NDData(in_km.data * 1000, unit=u.m)
+    in_m.uncertainty = StdDevUncertainty(in_km.uncertainty.array * 1000)
+    operator_km = in_km.__getattribute__(operation)
+    combined = operator_km(in_m)
+    assert combined.unit == u.km
+    assert_array_equal(combined.uncertainty.array,
+                       np.sqrt(2) * in_km.uncertainty.array)
+
+
 def test_convert_unit_to():
     d = NDData(np.ones((5, 5)))
     d.unit = 'km'
+    d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
     d1 = d.convert_unit_to('m')
     assert np.all(d1 == np.array(1000.0))
+    assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
+    assert d1.unit == u.m
 
 
 @raises(ValueError)

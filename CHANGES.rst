@@ -294,6 +294,9 @@ Bug Fixes
   - Change construction of result of arithmetic and unit conversion to allow
     subclasses to require the presence of attribute like unit. [#2300]
 
+  - Scale uncertainties to correct units in arithmetic operations and unit
+    conversion. [#2393]
+
 - ``astropy.stats``
 
 - ``astropy.table``
