@@ -362,7 +362,7 @@ class NDData(object):
 
         if operand.uncertainty:
             operand_uncertainty = \
-                operand.uncertainty.__class__(operand_uncert_value)
+                operand.uncertainty.__class__(operand_uncert_value, copy=True)
         else:
             operand_uncertainty = None
 
@@ -377,9 +377,10 @@ class NDData(object):
         elif self.uncertainty is None and operand.uncertainty is None:
             result.uncertainty = None
         elif self.uncertainty is None:
-            result.uncertainty = operand.uncertainty
+            result.uncertainty = operand_uncertainty
         elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty
+            result.uncertainty = self.uncertainty.__class__(self.uncertainty,
+                                                            copy=True)
         else:  # both self and operand have uncertainties
             if (conf.warn_unsupported_correlated and
                 (not self.uncertainty.support_correlated or
@@ -408,11 +409,11 @@ class NDData(object):
         if self.mask is None and operand.mask is None:
             result.mask = None
         elif self.mask is None:
-            result.mask = operand.mask
+            result.mask = operand.mask.copy()
         elif operand.mask is None:
-            result.mask = self.mask
+            result.mask = self.mask.copy()
         else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
+            result.mask = self.mask & operand.mask  # copy implied by operator
 
         return result
 
@@ -490,9 +491,14 @@ class NDData(object):
             uncertainty = self.uncertainty.__class__(uncertainty_values)
         else:
             uncertainty = None
+        if self.mask is not None:
+            new_mask = self.mask.copy()
+        else:
+            new_mask = None
         # Call __class__ in case we are dealing with an inherited type
         result = self.__class__(data, uncertainty=uncertainty,
-                                mask=self.mask, flags=None, wcs=self.wcs,
+                                mask=new_mask, flags=None,
+                                wcs=self.wcs,
                                 meta=self.meta, unit=unit)
 
         return result
