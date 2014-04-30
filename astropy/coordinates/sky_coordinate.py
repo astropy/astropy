@@ -10,6 +10,7 @@ from ..units import Unit
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph
+from .representation import BaseRepresentation, SphericalRepresentation
 
 __all__ = ['SkyCoord']
 
@@ -375,6 +376,12 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
                          or attr not in coords._attr_names_with_defaults)
             if use_value and value is not None:
                 valid_kwargs[attr] = value
+
+    elif isinstance(coords, BaseRepresentation):
+        sph_coords = coords.represent_as(SphericalRepresentation)
+        valid_kwargs[attr_name_for_type['lon']] = sph_coords.lon
+        valid_kwargs[attr_name_for_type['lat']] = sph_coords.lat
+        valid_kwargs[attr_name_for_type['distance']] = sph_coords.distance
 
     elif isinstance(coords, collections.Sequence):
         # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
