@@ -63,7 +63,8 @@ class CdsHeader(core.BaseHeader):
         # me file ``self.readme``.
         if self.readme and self.data.table_name:
             in_header = False
-            f = open(self.readme, "r")
+            readme_inputter = core.BaseInputter()
+            f = readme_inputter.get_lines(self.readme)
             # Header info is not in data lines but in a separate file.
             lines = []
             comment_lines = 0
@@ -93,7 +94,6 @@ class CdsHeader(core.BaseHeader):
             else:
                 raise core.InconsistentTableError("Can't find table {0} in {1}".format(
                     self.data.table_name, self.readme))
-            f.close()
 
         found_line = False
 
@@ -234,6 +234,13 @@ class Cds(core.BaseReader):
       >>> table = ascii.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
       >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
       >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
+      
+    The table name and the CDS ReadMe file can be entered as URLs.  This can be used 
+    to directly load tables from the Internet.  For example, Vizier tables from the 
+    CDS::
+
+      >>> table = ascii.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
+      ...             readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe")
 
     If the header (ReadMe) and data are stored in a single file and there
     is content between the header and the data (for instance Notes), then the

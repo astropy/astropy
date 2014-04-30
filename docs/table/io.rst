@@ -31,6 +31,13 @@ the file format, for instance ``'ascii.daophot'``::
     >>> from astropy.table import Table
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
+It is possible to load tables directly from the Internet using URLs. For example,
+download tables from Vizier catalogues in CDS format (``'ascii.cds'``)::
+
+    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat", 
+    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe", 
+    ...         format="ascii.cds")
+
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
