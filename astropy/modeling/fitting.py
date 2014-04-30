@@ -641,7 +641,7 @@ class SLSQPFitter(Fitter):
             return np.sum(self._weights * res ** 2)
 
     def __call__(self, model, x, y, z=None, weights=None, verblevel=0,
-                 maxiter=DEFAULT_MAXITER, epsilon=DEFAULT_EPS):
+                 maxiter=DEFAULT_MAXITER, epsilon=DEFAULT_EPS, accuracy=1.e-6):
         """
         Fit data to this model.
 
@@ -665,6 +665,9 @@ class SLSQPFitter(Fitter):
             maximum number of iterations
         epsilon : float
             the step size for finite-difference derivative estimates
+        accuracy : float
+            The absolute accuracy desired in the error function.  See
+            `scipy.optimize.fmin_slsqp` for more on this.
 
         Returns
         ------
@@ -709,7 +712,7 @@ class SLSQPFitter(Fitter):
             optimize.fmin_slsqp(
             self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
             bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
-            acc=1.E-6, epsilon=DEFAULT_EPS)
+            acc=accuracy, epsilon=DEFAULT_EPS)
 
         self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info['final_func_val'] = final_func_val
