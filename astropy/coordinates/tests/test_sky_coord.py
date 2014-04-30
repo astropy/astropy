@@ -66,11 +66,28 @@ def test_frame_init():
     assert 'Cannot override frame=' in str(err)
 
 
-def test_preferred_attr_inheritance():
+def test_attr_inheritance():
     """
     When initializing from an existing coord the preferred attrs like
     equinox should be inherited to the SkyCoord.  If there is a conflict
     then raise an exception.
+    """
+    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc2 = SkyCoord(sc)
+    assert sc2.equinox == sc.equinox
+    assert sc2.obstime == sc.obstime
+
+    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc2 = SkyCoord(sc._coord)  # Doesn't have equinox there
+    assert sc2.equinox != sc.equinox
+    assert sc2.obstime != sc.obstime
+
+
+def test_frame_attr_getattr():
+    """
+    When accessing frame attributes like equinox, the value should come
+    from self._coord when that object has the relevant attribute, otherwise
+    from self.
     """
     sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
     assert sc.equinox == 'J1999'  # Just the raw value

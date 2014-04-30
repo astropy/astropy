@@ -96,6 +96,7 @@ class SkyCoord(object):
             if len(args) == 1:
                 # One arg which must be a coordinate
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
+
             elif len(args) == 2:
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                           FRAME_CLASSES[frame].preferred_attr_names.items())
@@ -209,7 +210,7 @@ class SkyCoord(object):
 
         # Add all possible frame_attr_names
         dir_values.update(FRAME_ATTR_NAMES_SET)
-        
+
         return dir_values
 
     def __repr__(self):
@@ -355,6 +356,13 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
                 valid_kwargs[attr] = value
             else:
                 raise ValueError("Unexpected attribute type '{0}'".format(attr_type))
+
+        for attr in FRAME_ATTR_NAMES_SET:
+            value = getattr(coords, attr, None)
+            use_value = (isinstance(coords, SkyCoord)
+                         or attr not in coords._attr_names_with_defaults)
+            if use_value and value is not None:
+                valid_kwargs[attr] = value
 
     elif isinstance(coords, collections.Sequence):
         # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
