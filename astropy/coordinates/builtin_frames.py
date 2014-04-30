@@ -38,10 +38,10 @@ class ICRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the ICRS system.
 
-    If you're looking for "J2000" coordinates, and aren't sure if you
-    want to use this or `FK5`, you probably want to use ICRS.
-    It's more well-defined as a catalog coordinate and is an inertial
-    system.
+    If you're looking for "J2000" coordinates, and aren't sure if you want to
+    use this or `FK5`, you probably want to use ICRS. It's more well-defined as
+    a catalog coordinate and is an inertial system, and is very close (within
+    tens of arcseconds) to J2000 equatorial.
 
     Parameters
     ----------
@@ -63,14 +63,6 @@ class ICRS(BaseCoordinateFrame):
                                         ('distance', 'distance')])
     preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
-
-    @property
-    def equinox(self):
-        """
-        ICRS is by design very close to equatorial J2000, so we call this the
-        equinox for ICRS.
-        """
-        return _EQUINOX_J2000
 
     @staticmethod
     def _icrs_to_fk5_matrix():
@@ -341,16 +333,16 @@ class AltAz(BaseCoordinateFrame):
 # ICRS to/from FK5 -------------------------------->
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
 def icrs_to_fk5(icrscoord, fk5frame):
-    # ICRS equinox should always be J2000, but just in case, use attribute
-    pmat = fk5frame._precession_matrix(icrscoord.equinox, fk5frame.equinox)
+    # ICRS is by design very close to J2000 equinox
+    pmat = fk5frame._precession_matrix(_EQUINOX_J2000, fk5frame.equinox)
     return pmat * icrscoord._ICRS_TO_FK5_J2000_MAT
 
 
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
 def fk5_to_icrs(fk5coord, icrsframe):
-    # ICRS equinox should always be J2000, but just in case, use attribute
-    pmat = fk5coord._precession_matrix(fk5coord.equinox, icrsframe.equinox)
+    # ICRS is by design very close to J2000 equinox
+    pmat = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
     return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat
 
 
