@@ -157,8 +157,10 @@ class Parameter(object):
             return self
 
         return self.__class__(self._name, default=self._default,
-                              getter=self._getter,
-                              setter=self._setter, model=obj)
+                              getter=self._getter, setter=self._setter,
+                              fixed=self._default_fixed,
+                              tied=self._default_tied, min=self._default_min,
+                              max=self._default_max, model=obj)
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
