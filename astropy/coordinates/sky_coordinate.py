@@ -116,11 +116,14 @@ class SkyCoord(object):
             # Copy the coord_kwargs into the final valid_kwargs dict.  For each
             # of the coord_kwargs ensure that there is no conflict with a value
             # specified by the user in the original kwargs.
-            for attr in coord_kwargs:
-                if attr in valid_kwargs and valid_kwargs[attr] is not None:
-                    raise ValueError("Cannot supply a '{0}' keyword along with a coordinate input"
-                                     .format(attr))
-                valid_kwargs[attr] = coord_kwargs[attr]
+            for attr, coord_value in coord_kwargs.items():
+                if (attr in valid_kwargs
+                        and valid_kwargs[attr] is not None
+                        and valid_kwargs[attr] != coord_value):
+                    raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
+                                     "keyword argument '{0}'={2!r}"
+                                     .format(attr, coord_value, valid_kwargs[attr]))
+                valid_kwargs[attr] = coord_value
 
         return valid_kwargs
 
