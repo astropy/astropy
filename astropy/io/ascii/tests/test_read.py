@@ -10,6 +10,7 @@ from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
+from ....units import Unit
 from distutils import version
 
 from .common import (raises, assert_equal, assert_almost_equal,
@@ -760,3 +761,24 @@ def test_overlapping_names():
     """
     t = ascii.read(['a b', '1 2'], names=['b', 'a'])
     assert t.colnames == ['b', 'a']
+
+def test_sextractor_units():
+    """
+    Make sure that the SExtractor reader correctly inputs descriptions and units.
+    """
+    table = ascii.read('t/sextractor2.dat', Reader=ascii.SExtractor, guess=False)
+    expected_units = [None, Unit('pix'), Unit('pix'), Unit('mag'),
+                Unit('mag'), None, Unit('pix**2'), Unit('m**(-6)'),
+                Unit('mag * arcsec**(-2)')]
+    expected_descrs = ['Running object number',
+                       'Windowed position estimate along x',
+                       'Windowed position estimate along y',
+                       'Kron-like elliptical aperture magnitude',
+                       'RMS error for AUTO magnitude',
+                       'Extraction flags',
+                       None,
+                       'Barycenter position along MAMA x axis',
+                       'Peak surface brightness above background']
+    for i, colname in enumerate(table.colnames):
+        assert table[colname].unit == expected_units[i]
+        assert table[colname].description == expected_descrs[i]
