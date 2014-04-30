@@ -297,6 +297,9 @@ Bug Fixes
   - Scale uncertainties to correct units in arithmetic operations and unit
     conversion. [#2393]
 
+  - Ensure uncertainty and mask members are copied in arithemetic and
+    convert_unit_to. [#2394]
+
 - ``astropy.stats``
 
 - ``astropy.table``

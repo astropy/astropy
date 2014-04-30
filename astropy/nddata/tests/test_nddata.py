@@ -264,6 +264,61 @@ def test_nddata_subtract_uncertainties_mismatch():
     assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for subtraction'
 
 
+@pytest.mark.parametrize('op1_unc,op2_unc', [
+                         (None, None),
+                         (StdDevUncertainty([1]), None),
+                         (None, StdDevUncertainty([1])),
+                         (StdDevUncertainty([1]), StdDevUncertainty([1]))
+                         ])
+def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
+    # Expectation is that the result of an arithmetic operation should be a
+    # new object whose members are not tied to the members of the operand.
+    # The only reliable test of this is to change elements of the result and
+    # see if the corresponding elements of the operands change.
+    # All four of the cases parametrized in this test do need to be checked
+    # because each of the four cases is handled separately in the code (well,
+    # except for the None, None case).
+    # Only one of the arithmetic operations need to be checked because the
+    # logic for propagating the uncertainties is common to all of the
+    # operations.
+    op1 = NDData([1], uncertainty=op1_unc)
+    op2 = NDData([1], uncertainty=op2_unc)
+
+    result = op1.add(op2)
+    if result.uncertainty:
+        result.uncertainty.array[0] = 0
+
+    if op1_unc:
+        assert op1.uncertainty.array[0] == 1
+    if op2_unc:
+        assert op2.uncertainty.array[0] == 1
+
+    result.data[0] = np.pi
+    assert op1.data[0] == 1
+    assert op2.data[0] == 1
+
+
+@pytest.mark.parametrize('op1_mask,op2_mask', [
+                         (None, None),
+                         (None, np.array([False])),
+                         (np.array([False]), None),
+                         (np.array([False]), np.array([False]))])
+def test_arithmetic_result_not_tied_to_operands_mask(op1_mask, op2_mask):
+    # See test_arithmetic_result_not_tied_to_operands_uncertainty for comments
+    op1 = NDData([1], mask=op1_mask)
+    op2 = NDData([1], mask=op2_mask)
+    result = op1.add(op2)
+
+    if result.mask is not None:
+        result.mask[0] = True
+
+    if op1_mask is not None:
+        assert op1.mask[0] == (not result.mask[0])
+
+    if op2_mask is not None:
+        assert op2.mask[0] == (not result.mask[0])
+
+
 @pytest.mark.parametrize('operation', [
                          'add',
                          'subtract',
@@ -281,13 +336,18 @@ def test_uncertainty_unit_conversion_add_subtract(operation):
 
 
 def test_convert_unit_to():
+    # convert_unit_to should return a copy of its input
     d = NDData(np.ones((5, 5)))
     d.unit = 'km'
     d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
+    d.mask = np.zeros_like(d, dtype=np.bool)
     d1 = d.convert_unit_to('m')
     assert np.all(d1 == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
     assert d1.unit == u.m
+    # changing the output mask should not change the original
+    d1.mask[0, 0] = True
+    assert d.mask[0, 0] != d1.mask[0, 0]
 
 
 @raises(ValueError)
