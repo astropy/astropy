@@ -32,6 +32,12 @@ process:
     be accessed via the `astropy.utils.data.get_data_filename` and
     `astropy.utils.data.get_data_fileobj` functions.
 
+* :func:`get_package_dir`
+    This function should return a dictionary mapping package names to
+    their location in the source tree.  Only required if you want to
+    install something from a non-standard location in the source tree,
+    such as ``cextern``.
+
 * :func:`get_extensions`
     This provides information for building C or Cython extensions. If defined,
     it should return a list of `distutils.core.Extension` objects controlling
