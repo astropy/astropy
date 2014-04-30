@@ -71,10 +71,11 @@ class SkyCoord(object):
         """
         valid_kwargs = {}
 
-        # Put the SkyCoord attributes frame, equinox, obstime, location into valid_kwargs
-        # dict.  `Frame` could come from args or kwargs, so set valid_kwargs['frame']
-        # accordingly.  The others must be specified by keyword args.  Pop them off
-        # of kwargs in the process.
+        # Put the SkyCoord attributes like frame, equinox, obstime, location
+        # into valid_kwargs dict.  `Frame` could come from args or kwargs, so
+        # set valid_kwargs['frame'] accordingly.  The others must be specified
+        # by keyword args or else get a None default.  Pop them off of kwargs
+        # in the process.
         frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
         for attr in FRAME_ATTR_NAMES_SET:
             valid_kwargs[attr] = kwargs.pop(attr, None)
@@ -82,7 +83,8 @@ class SkyCoord(object):
         # Get latitude and longitude units
         lon_unit, lat_unit = _get_units(args, kwargs)
 
-        # Grab any frame-specific attr names like `ra` or `l` or `distance`
+        # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
+        # and migrate to valid_kwargs.
         valid_kwargs.update(_get_preferred_attrs(frame, lon_unit, lat_unit, kwargs))
 
         # Error if anything is still left in kwargs
@@ -94,10 +96,14 @@ class SkyCoord(object):
         # and returns a dict with appropriate key/values for initializing frame class.
         if args:
             if len(args) == 1:
-                # One arg which must be a coordinate
+                # One arg which must be a coordinate.  In this case
+                # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
+                # along with any frame attributes like equinox or obstime which
+                # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
 
             elif len(args) == 2:
+                # Must be longitude, latitude.
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                           FRAME_CLASSES[frame].preferred_attr_names.items())
                 coord_kwargs = {}
@@ -107,8 +113,11 @@ class SkyCoord(object):
                 raise ValueError('Must supply no more than two positional arguments, got {}'
                                  .format(len(args)))
 
+            # Copy the coord_kwargs into the final valid_kwargs dict.  For each
+            # of the coord_kwargs ensure that there is no conflict with a value
+            # specified by the user in the original kwargs.
             for attr in coord_kwargs:
-                if attr in valid_kwargs:
+                if attr in valid_kwargs and valid_kwargs[attr] is not None:
                     raise ValueError("Cannot supply a '{0}' keyword along with a coordinate input"
                                      .format(attr))
                 valid_kwargs[attr] = coord_kwargs[attr]
