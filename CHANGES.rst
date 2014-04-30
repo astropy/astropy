@@ -224,7 +224,7 @@ API Changes
     or ``False``, even if units do not match (for which case a ``UnitsError``
     used to be raised).  [#2328]
 
-  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all 
+  - Applying ``float`` or ``int`` to a ``Quantity`` now works for all
     dimensionless quantities; they are automatically converted to unscaled
     dimensionless. [#2249]
 
@@ -234,10 +234,18 @@ API Changes
 
 - ``astropy.wcs``
 
-- ``calcFootprint`` was deprecated. It is replaced by ``calc_footprint``.
-  An optional boolean keyword ``center`` was added to ``calc_footprint``. 
-  It controls whether the centers or the corners of the pixels are used
-  in the computation. [#2384]
+  - ``calcFootprint`` was deprecated. It is replaced by
+    ``calc_footprint``.  An optional boolean keyword ``center`` was
+    added to ``calc_footprint``.  It controls whether the centers or
+    the corners of the pixels are used in the computation. [#2384]
+
+  - ``astropy.wcs.WCS.sip_pix2foc`` and
+    ``astropy.wcs.WCS.sip_foc2pix`` formerly did not conform to the
+    ``SIP`` standard: ``CRPIX`` was added to the ``foc`` result so
+    that it could be used as input to "core FITS WCS".  As of astropy
+    0.4, ``CRPIX`` is no longer added to the result, so the ``foc``
+    space is correct as defined in the `SIP convention
+    <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
 
 Bug Fixes
 ^^^^^^^^^
