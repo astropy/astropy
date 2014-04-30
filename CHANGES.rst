@@ -60,6 +60,8 @@ New Features
 
   - Added support for inputting column descriptions and column units
     with the ``io.ascii.SExtractor`` reader. [#2372]
+    
+  - Allow the use of non-local ReadMe files in the CDS reader. [#2329]
 
 - ``astropy.io.fits``
 
