@@ -45,7 +45,7 @@ class Gaussian1D(Fittable1DModel):
 
     Model formula:
 
-        .. math:: f(x) = A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+        .. math:: {formula}
 
     Examples
     --------
@@ -53,12 +53,12 @@ class Gaussian1D(Fittable1DModel):
     >>> def tie_center(model):
     ...         mean = 50 * model.stddev
     ...         return mean
-    >>> tied_parameters = {'mean': tie_center}
+    >>> tied_parameters = {{'mean': tie_center}}
 
     Specify that 'mean' is a tied parameter in one of two ways:
 
     >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
-    ...                             tied=tied_parameters)
+    ...                        tied=tied_parameters)
 
     or
 
@@ -72,7 +72,7 @@ class Gaussian1D(Fittable1DModel):
     Fixed parameters:
 
     >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
-    ...                        fixed={'stddev': True})
+    ...                        fixed={{'stddev': True}})
     >>> g1.stddev.fixed
     True
 
@@ -90,9 +90,14 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
 
-    amplitude = Parameter()
-    mean = Parameter()
-    stddev = Parameter()
+    _formula_ = (
+        r'f(x) = |amplitude| '
+        r'e^{- \frac{\left(x - |mean|\right)^{2}}{2 |stddev|^{2}}}'
+    )
+
+    amplitude = Parameter(latex='A')
+    mean = Parameter(latex='x_{0}')
+    stddev = Parameter(latex=r'\sigma')
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:

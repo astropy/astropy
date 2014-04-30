@@ -46,7 +46,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 import abc
 import functools
 import copy
-from textwrap import dedent
 
 import numpy as np
 
@@ -54,6 +53,8 @@ from ..utils import indent, isiterable
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
+from ..table import Table
+from .utils import array_repr_oneline, format_formula
 
 from .parameters import Parameter, InputParameterError
 
@@ -158,6 +159,18 @@ class _ModelMeta(abc.ABCMeta):
                     "them.")
             parameters[value.name] = value
 
+        if '_formula_' in members:
+            # Format the _formula_ template
+            formula_templ = members['_formula_']
+            parameter_symbols = dict((p.name, p.latex) for p in
+                                     parameters.values())
+            formula = format_formula(formula_templ, **parameter_symbols)
+
+            # Use the formatted formula in the docstring if applicable
+            if members.get('__doc__') is not None:  # I should hope so
+                members['__doc__'] = members['__doc__'].format(
+                    formula=formula)
+
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
         # parameters, since they can have a variable number of them
@@ -180,6 +193,23 @@ class _ModelMeta(abc.ABCMeta):
             members['param_names'] = param_names
 
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+    def _repr_html_(cls):
+        parts = ['<p><code>{0}({1})</code></p>'.format(
+            cls.__name__, ', '.join(b.__name__ for b in cls.__bases__))]
+        parts.append('')
+        parts.append('<ul style="list-style-type: none">'
+                     '<li>\n$$\n{0}\n$$\n</ul></li>'.format(cls._formula_))
+        parts.append('<p>where</p>')
+        parts.append('<ul style="list-style-type: none">\n{0}\n</ul>'.format(
+            '\n'.join('<li>${0}$ is {1}</lie>'.format(
+                getattr(cls, name).latex, name)
+            for name in cls.param_names)))
+
+        return '\n'.join(parts)
+
+    def _repr_latex_(cls):
+        return '${0}$'.format(cls._formula_)
 
 
 @six.add_metaclass(_ModelMeta)
@@ -285,29 +315,41 @@ class Model(object):
         self._initialize_parameters(args, kwargs)
 
     def __repr__(self):
-        fmt = "{0}(".format(self.__class__.__name__)
-        for name in self.param_names:
-            fmt1 = """
-            {0}={1},
-            """.format(name, getattr(self, name))
-            fmt += fmt1
-        fmt += ")"
-
-        return fmt
+        return self._format_repr()
 
     def __str__(self):
-        fmt = """
-        Model: {0}
-        Parameter sets: {1}
-        Parameters: \n{2}
-        """.format(
-              self.__class__.__name__,
-              self.param_dim,
-              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
-                               for n in self.param_names),
-                     width=19))
+        return self._format_str()
 
-        return dedent(fmt[1:])
+    def _repr_html_(self):
+        cls = type(self)
+        # Call the _ModelMeta type's _repr_html_
+        # TODO: To simplify matters consider breaking this out into a function
+        parts = [type(cls)._repr_html_(cls)]
+
+        params = [getattr(self, name) for name in self.param_names]
+
+        table = ['<table>', '  <thead>']
+        table.append('    <tr>' +
+            ''.join('<th>${0}$</th>'.format(p.latex) for p in params) +
+            '</tr>')
+        table.append('  </thead>')
+        table.append('  <tbody>')
+
+        for dim in range(self.param_dim):
+            if self.param_dim == 1:
+                values = [p.value for p in params]
+            else:
+                values = [p.value[dim] for p in params]
+            table.append('    <tr>' +
+                ''.join('<td>{0!r}</td>'.format(v) for v in values) +
+                '</tr>')
+
+        table.append('  </tbody>')
+        table.append('</table>')
+
+        parts.append('\n'.join(table))
+
+        return '\n'.join(parts)
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):
@@ -601,6 +643,73 @@ class Model(object):
         for name, value in params.items():
             setattr(self, name, value)
 
+    def _format_repr(self, args=[], kwargs={}, defaults={}):
+        """
+        Internal implementation of ``__repr__``.
+
+        This is separated out for ease of use by subclasses that wish to
+        override the default ``__repr__`` while keeping the same basic
+        formatting.
+        """
+
+        parts = ['<{0}('.format(self.__class__.__name__)]
+
+        parts.append(', '.join(repr(a) for a in args))
+
+        if args:
+            parts.append(', ')
+
+        parts.append(', '.join(
+            "{0}={1}".format(
+                name, array_repr_oneline(getattr(self, name).value))
+            for name in self.param_names))
+
+        for kwarg, value in kwargs.items():
+            if kwarg  in defaults and defaults[kwarg] != value:
+                continue
+            parts.append(', {0}={1!r}'.format(kwarg, value))
+
+        if self.param_dim > 1:
+            parts.append(", param_dim={0}".format(self.param_dim))
+
+        parts.append(')>')
+
+        return ''.join(parts)
+
+    def _format_str(self, keywords=[]):
+        """
+        Internal implementation of ``__str__``.
+
+        This is separated out for ease of use by subclasses that wish to
+        override the default ``__str__`` while keeping the same basic
+        formatting.
+        """
+
+        default_keywords = [
+            ('Model', self.__class__.__name__),
+            ('Inputs', self.n_inputs),
+            ('Outputs', self.n_outputs),
+            ('Parameter sets', self.param_dim)
+        ]
+
+        parts = ['{0}: {1}'.format(keyword, value)
+                 for keyword, value in default_keywords + keywords]
+
+        parts.append('Parameters:')
+
+        if self.param_dim == 1:
+            columns = [[getattr(self, name).value]
+                       for name in self.param_names]
+        else:
+            columns = [getattr(self, name).value
+                       for name in self.param_names]
+
+        param_table = Table(columns, names=self.param_names)
+
+        parts.append(indent(str(param_table), width=4))
+
+        return '\n'.join(parts)
+
 
 class FittableModel(Model):
     linear = True
@@ -610,52 +719,6 @@ class FittableModel(Model):
     # are given in columns or rows
     col_fit_deriv = True
     fittable = True
-
-    def __repr__(self):
-        try:
-            degree = str(self.degree)
-        except AttributeError:
-            degree = ""
-        try:
-            param_dim = str(self.param_dim)
-        except AttributeError:
-            param_dim = " "
-
-        if degree:
-            fmt = "<{0}({1}, ".format(self.__class__.__name__, repr(self.deg))
-        else:
-            fmt = "<{0}(".format(self.__class__.__name__)
-
-        for name in self.param_names:
-            fmt1 = "{0}={1}, ".format(name, getattr(self, name))
-            fmt += fmt1
-        if param_dim:
-            fmt += "param_dim={0})>".format(self.param_dim)
-
-        return fmt
-
-    def __str__(self):
-        try:
-            degree = str(self.degree)
-        except AttributeError:
-            degree = 'N/A'
-
-        fmt = """
-        Model: {0}
-        n_inputs:   {1}
-        Degree: {2}
-        Parameter sets: {3}
-        Parameters: \n{4}
-        """.format(
-              self.__class__.__name__,
-              self.n_inputs,
-              degree,
-              self.param_dim,
-              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
-                     for n in self.param_names),
-                     width=19))
-
-        return dedent(fmt[1:])
 
 
 class LabeledInput(dict):

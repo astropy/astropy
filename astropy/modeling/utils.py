@@ -7,6 +7,8 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import re
+
 import numpy as np
 
 from ..extern.six.moves import xrange
@@ -52,3 +54,33 @@ def comb(N, k):
     for j in xrange(min(k, N - k)):
         val = (val * (N - j)) / (j + 1)
     return val
+
+
+def array_repr_oneline(array):
+    """
+    Represents a multi-dimensional Numpy array flattened onto a single line.
+    """
+
+    r = np.array2string(array, separator=',', suppress_small=True)
+    return ' '.join(l.strip() for l in r.splitlines())
+
+
+def format_formula(templ, **parameters):
+    """
+    Format a model formula with the given LaTeX symbols for its parameters.
+
+    The template strings for formulae use a special syntax that uses pipe
+    (``|``) characters around a parameter name to indicate where a given
+    parameter's LaTeX symbol should be substituted.
+
+    This format is used instead of the standard Python string template
+    formatting due to the prevalence of curly braces (``{}``) in that format as
+    well as in LaTeX.
+    """
+
+    sub_re = r'\|(?P<param>{0})\|'.format('|'.join(parameters.keys()))
+
+    def sub_repl(m):
+        return parameters[m.group('param')]
+
+    return re.sub(sub_re, sub_repl, templ)

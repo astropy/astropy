@@ -488,7 +488,4 @@ def test_parametric_model_repr():
     moment"""
 
     m = models.Gaussian1D(1, 2, 3)
-    assert (repr(m) ==
-            "<Gaussian1D(amplitude=Parameter('amplitude', value=1.0), "
-            "mean=Parameter('mean', value=2.0), stddev=Parameter('stddev', "
-            "value=3.0), param_dim=1)>")
+    assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'
