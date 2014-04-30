@@ -10,7 +10,8 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, SphericalRepresentation)
+from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
+                            SphericalRepresentation, CartesianRepresentation)
 from ...time import Time
 
 RA = 1.0 * u.deg
@@ -19,7 +20,7 @@ C_ICRS = ICRS(RA, DEC)
 C_FK5 = C_ICRS.transform_to(FK5)
 J2001 = Time('J2001', scale='utc')
 
-allclose_1e8 = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
+allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
 
 
 def tst_transform_to():
@@ -31,6 +32,82 @@ def tst_transform_to():
         s_frame = s_icrs.transform_to(frame)
         assert c_frame.ra == s_frame.ra
         assert c_frame.dec == s_frame.dec
+
+
+def test_coord_init_string():
+    """
+    Spherical or Cartesian represenation input coordinates.
+    """
+    sc = SkyCoord('1d 2d')
+    assert allclose(sc.ra, 1 * u.deg)
+    assert allclose(sc.dec, 2 * u.deg)
+
+    sc = SkyCoord('1d', '2d')
+    assert allclose(sc.ra, 1 * u.deg)
+    assert allclose(sc.dec, 2 * u.deg)
+
+    sc = SkyCoord(u'1°2′3″', u'2°3′4″')
+    assert allclose(sc.ra, Angle(u'1°2′3″'))
+    assert allclose(sc.dec, Angle(u'2°3′4″'))
+
+    sc = SkyCoord(u'1°2′3″ 2°3′4″')
+    assert allclose(sc.ra, Angle(u'1°2′3″'))
+    assert allclose(sc.dec, Angle(u'2°3′4″'))
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord('1d 2d 3d')
+    assert "Cannot parse longitude and latitude" in str(err)
+
+
+def test_coord_init_list():
+    """
+    Spherical or Cartesian representation input coordinates.
+    """
+    sc = SkyCoord([('1d', '2d'),
+                   (1 * u.deg, 2 * u.deg),
+                   '1d 2d',
+                   (u'1°', u'2°'),
+                   u'1° 2°'], unit='deg')
+    assert allclose(sc.ra, Angle('1d'))
+    assert allclose(sc.dec, Angle('2d'))
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord(['1d 2d 3d'])
+    assert "Cannot parse longitude and latitude" in str(err)
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord([('1d', '2d', '3d')])
+    assert "Cannot parse longitude and latitude" in str(err)
+
+    sc = SkyCoord([1 * u.deg, 1 * u.deg], [2 * u.deg, 2 * u.deg])
+    assert allclose(sc.ra, Angle('1d'))
+    assert allclose(sc.dec, Angle('2d'))
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord([1 * u.deg, 2 * u.deg])  # this list is taken as RA w/ missing dec
+    assert "Cannot parse longitude and latitude" in str(err)
+
+
+def test_coord_init_representation():
+    """
+    Spherical or Cartesian represenation input coordinates.
+    """
+    coord = SphericalRepresentation(lon=8 * u.deg, lat=5 * u.deg, distance=1 * u.kpc)
+    sc = SkyCoord(coord, 'icrs')
+    assert allclose(sc.ra, coord.lon)
+    assert allclose(sc.dec, coord.lat)
+    assert allclose(sc.distance, coord.distance)
+
+    with pytest.raises(ValueError) as err:
+        SkyCoord(coord, 'icrs', ra='1d')
+    assert "conflicts with keyword argument 'ra'" in str(err)
+
+    coord = CartesianRepresentation(1, 2, 3)
+    sc = SkyCoord(coord, 'icrs')
+    sc_cart = sc.represent_as(CartesianRepresentation)
+    assert allclose(sc_cart.x, 1.0)
+    assert allclose(sc_cart.y, 2.0)
+    assert allclose(sc_cart.z, 3.0)
 
 
 def test_frame_init():
@@ -79,31 +156,31 @@ def test_attr_inheritance():
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
-    assert allclose_1e8(sc2.ra, sc.ra)
-    assert allclose_1e8(sc2.dec, sc.dec)
-    assert allclose_1e8(sc2.distance, sc.distance)
+    assert allclose(sc2.ra, sc.ra)
+    assert allclose(sc2.dec, sc.dec)
+    assert allclose(sc2.distance, sc.distance)
 
     sc2 = SkyCoord(sc._coord)  # Doesn't have equinox there so we get FK4 defaults
     assert sc2.equinox != sc.equinox
     assert sc2.obstime != sc.obstime
-    assert allclose_1e8(sc2.ra, sc.ra)
-    assert allclose_1e8(sc2.dec, sc.dec)
-    assert allclose_1e8(sc2.distance, sc.distance)
+    assert allclose(sc2.ra, sc.ra)
+    assert allclose(sc2.dec, sc.dec)
+    assert allclose(sc2.distance, sc.distance)
 
     sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
-    assert allclose_1e8(sc2.ra, sc.ra)
-    assert allclose_1e8(sc2.dec, sc.dec)
-    assert allclose_1e8(sc2.distance, sc.distance)
+    assert allclose(sc2.ra, sc.ra)
+    assert allclose(sc2.dec, sc.dec)
+    assert allclose(sc2.distance, sc.distance)
 
     sc2 = SkyCoord(sc._coord)  # sc._coord has equinox, obstime
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
-    assert allclose_1e8(sc2.ra, sc.ra)
-    assert allclose_1e8(sc2.dec, sc.dec)
-    assert allclose_1e8(sc2.distance, sc.distance)
+    assert allclose(sc2.ra, sc.ra)
+    assert allclose(sc2.dec, sc.dec)
+    assert allclose(sc2.distance, sc.distance)
 
 
 def test_attr_conflicts():
@@ -165,9 +242,8 @@ def test_api():
     """
 
     # NOT YET
-    if False:
-        sc = SkyCoord(SphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg, distance=1 * u.kpc),
-                      frame='icrs')
+    sc = SkyCoord(SphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg, distance=1 * u.kpc),
+                  frame='icrs')
 
     sc = SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
     sc = SkyCoord(l=120 * u.deg, b=5 * u.deg, frame='galactic')
