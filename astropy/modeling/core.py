@@ -156,7 +156,6 @@ class _ModelMeta(abc.ABCMeta):
             parameter_symbols = dict((p.name, p.latex) for p in
                                      parameters.values())
             formula = format_formula(formula_templ, **parameter_symbols)
-            members['_formula_'] = formula
 
             # Use the formatted formula in the docstring if applicable
             if members.get('__doc__') is not None:  # I should hope so
