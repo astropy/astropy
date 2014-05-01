@@ -41,10 +41,8 @@ by setting the ``allow_negative`` keyword argument to ``True``::
     >>> d = Distance(-42., u.kpc, allow_negative=True)
 
 If a ``distance`` is present, the coordinate can be converted into Cartesian
-coordinates using the :attr:`~astropy.coordinates.CartesianPoints.x` /
-:attr:`~astropy.coordinates.CartesianPoints.y` /
-:attr:`~astropy.coordinates.CartesianPoints.z` attributes (which are
-`~astropy.units.Quantity` objects)::
+coordinates using the `~astropy.coordinates.CartesianRepresentation` class, or
+the :attr:`~astropy.coordinates.CartesianRepresentation` attribute shorthand::
 
     >>> cart = c.represent_as(CartesianRepresentation)
     >>> cart.x
@@ -53,18 +51,20 @@ coordinates using the :attr:`~astropy.coordinates.CartesianPoints.x` /
     <Quantity 107.30093596881... kpc>
     >>> cart.z
     <Quantity 507.88990924863... kpc>
+    >>> cart = c.cartesian
+    >>> cart.x
+    <Quantity 568.71288821656... kpc>
 
 If a ``distance`` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
     >>> c2 = ICRS('00h42m44.3s', '+41d16m9s')
-    >>> cart2 = c2.represent_as(CartesianRepresentation)
-    >>> cart2.x
+    >>> c2.cartesian.x
     <Quantity 0.73858816651502...>
-    >>> cart2.y
+    >>> c2.cartesian.y
     <Quantity 0.13935186489455...>
-    >>> cart2.z
+    >>> c2.cartesian.z
     <Quantity 0.65959728473848...>
 
 
