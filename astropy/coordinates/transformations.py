@@ -28,7 +28,6 @@ import numpy as np
 
 from ..utils.compat import ignored
 from ..extern import six
-from ..utils import deprecated
 
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
@@ -153,12 +152,18 @@ class TransformGraph(object):
 
         inf = float('inf')
 
-        # special-case the 0-path and 1-path
+        # special-case the 0 or 1-path
         if tosys is fromsys:
-            return [tosys], 0
-        elif tosys in self._graph[fromsys]:
+            if tosys not in self._graph[fromsys]:
+                # Means there's no transform necessary to go from it to itself.
+                return [tosys], 0
+        if tosys in self._graph[fromsys]:
+            # this will also catch the case where tosys is fromsys, but has
+            # a defined transform.
             t = self._graph[fromsys][tosys]
             return [fromsys, tosys], float(t.priority if hasattr(t, 'priority') else 1)
+
+        #otherwise, need to construct the path:
 
         if fromsys in self._shortestpaths:
             # already have a cached result
@@ -251,8 +256,8 @@ class TransformGraph(object):
 
     def get_transform(self, fromsys, tosys):
         """
-        Determines or generates a transformation between two coordinate
-        systems.
+        Generates and returns the `CompositeTransform` for a transformation
+        between two coordinate systems.
 
         Parameters
         ----------
@@ -263,35 +268,42 @@ class TransformGraph(object):
 
         Returns
         -------
-        trans : `CoordinateTransform` or `None`
+        trans : `CompositeTransform` or `None`
             If there is a path from ``fromsys`` to ``tosys``, this is a
-            transform object for that path.  If `None`, no path could be found.
+            transform object for that path.   If no path could be found, this is
+            `None`.
+
+        Notes
+        -----
+        This function always returns a `CompositeTransform`, because
+        `CompositeTransform` is slightly more adaptable in the way it can be
+        called than other transform classes. Specifically, it takes care of
+        inetermediate steps of transformations in a way that is consistent with
+        1-hop transformations.
+
         """
         if not inspect.isclass(fromsys):
             raise TypeError('fromsys is not a class')
         if not inspect.isclass(fromsys):
             raise TypeError('tosys is not a class')
 
-        if tosys in self._graph[fromsys]:
-            return self._graph[fromsys][tosys]
-        else:
-            path, distance = self.find_shortest_path(fromsys, tosys)
+        path, distance = self.find_shortest_path(fromsys, tosys)
 
-            if path is None:
-                return None
+        if path is None:
+            return None
 
-            transforms = []
-            currsys = fromsys
-            for p in path[1:]:  # first element is fromsys so we skip it
-                transforms.append(self._graph[currsys][p])
-                currsys = p
+        transforms = []
+        currsys = fromsys
+        for p in path[1:]:  # first element is fromsys so we skip it
+            transforms.append(self._graph[currsys][p])
+            currsys = p
 
-            fttuple = (fromsys, tosys)
-            if fttuple not in self._composite_cache:
-                comptrans = CompositeTransform(transforms, fromsys, tosys,
-                                               register_graph=False)
-                self._composite_cache[fttuple] = comptrans
-            return self._composite_cache[fttuple]
+        fttuple = (fromsys, tosys)
+        if fttuple not in self._composite_cache:
+            comptrans = CompositeTransform(transforms, fromsys, tosys,
+                                           register_graph=False)
+            self._composite_cache[fttuple] = comptrans
+        return self._composite_cache[fttuple]
 
     def add_coord_name(self, name=None, coordcls=None):
         """
@@ -939,4 +951,6 @@ class CompositeTransform(CoordinateTransform):
                 curr_toframe = t.tosys(**frattrs)
             curr_coord = t(curr_coord, curr_toframe)
 
+        # this is safe even in the case enere self.transforms is empty, because
+        # coordinate objects are immutible, so copying is not needed
         return curr_coord
