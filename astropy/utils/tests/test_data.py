@@ -18,7 +18,7 @@ import sys
 from ...tests.helper import pytest
 from ..data import _get_download_cache_locs
 
-TESTURL = 'http://www.google.com/index.html'
+TESTURL = 'http://www.astropy.org'
 
 # General file object function
 
@@ -58,16 +58,16 @@ def test_url_nocache():
 
     from ..data import get_readable_fileobj
 
-    with get_readable_fileobj(TESTURL, cache=False) as googlepage:
-        assert googlepage.read().find('oogle</title>') > -1
+    with get_readable_fileobj(TESTURL, cache=False, encoding='utf-8') as page:
+        assert page.read().find('Astropy') > -1
 
 @remote_data
 def test_find_by_hash():
 
     from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
 
-    with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as googlepage:
-        hash = hashlib.md5(googlepage.read())
+    with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as page:
+        hash = hashlib.md5(page.read())
 
     hashstr = 'hash/' + hash.hexdigest()
 
@@ -245,9 +245,9 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert 'Not clearing data cache - cache inacessable' in str(w3.message)
 
     #now try with no cache
-    fnnocache = data.download_file(TESTURL, cache=False)
-    with open(fnnocache, 'rb') as googlepage:
-        assert googlepage.read().decode().find('oogle</title>') > -1
+    fnnocache = data.download_file(TESTURL, cache=False, encoding='utf-8')
+    with open(fnnocache, 'rb') as page:
+        assert page.read().decode().find('Astropy') > -1
 
     #no warnings should be raise in fileobj because cache is unnecessary
     assert len(recwarn.list) == 0
