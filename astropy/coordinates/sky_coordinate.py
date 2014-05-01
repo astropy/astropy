@@ -183,28 +183,26 @@ class SkyCoord(object):
         else:
             raise ValueError('Transform `frame` must be a frame name, class, or instance')
 
-        # new_frame = frame_cls(**frame_kwargs)
-
+        # Get the composite transform to the new frame
         trans = frame_transform_graph.get_transform(self.frame_cls, frame_cls)
         if trans is None:
-            if frame_cls is self.frame_cls:
-                # no transform needed, because it's self-to-self
-                return deepcopy(self)
             raise ConvertError('Cannot transform from {0} to {1}'
                                .format(self.frame_cls, frame_cls))
 
+        # Make a generic frame which will accept all the frame kwargs that
+        # are provided and allow for transforming through intermediate frames
+        # which may require one or more of those kwargs.
         generic_frame = GenericFrame(frame_kwargs)
-        newcoord = trans(self._coord, generic_frame)
 
-        return SkyCoord(newcoord, frame=frame_cls)
+        # Do the transformation, returning a coordinate frame of the desired
+        # final type (not generic).
+        new_coord = trans(self._coord, generic_frame)
 
-        # out = deepcopy(self)
-        # out._frame = frame
-        # out._coord = self._coord.transform_to(frame)
-        # if out._coord is None:
-        #     raise ConvertError('Cannot transform from {0} to '
-        #                        '{1}'.format(self.frame, frame))
-        # return out
+        # Finally make the new SkyCoord object from the `new_coord` and
+        # remaining frame_kwargs that are not frame_attributes in `new_coord`.
+        # We could remove overlaps here, but the init code is set up to accept
+        # overlaps as long as the values are identical (which they must be).
+        return SkyCoord(new_coord, **frame_kwargs)
 
     def __getattr__(self, attr):
         """
@@ -392,6 +390,9 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     if isinstance(coords, (SkyCoord, BaseCoordinateFrame)):
         # Note that during parsing of `frame` it is checked that any coordinate
         # args have the same frame as explicitly supplied, so don't worry here.
+
+        if not coords.has_data:
+            raise ValueError('Cannot initialize from a frame without coordinate data')
 
         for attr, attr_type in coords.preferred_attr_names.items():
             value = getattr(coords, attr)
