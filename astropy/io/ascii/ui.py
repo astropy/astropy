@@ -210,7 +210,7 @@ def _guess(table, read_kwargs):
             return reader.read(table)
         except (core.InconsistentTableError, ValueError):
             failed_kwargs.append(read_kwargs)
-            lines = ['\nERROR: Unable to guess table for with the guesses listed below:']
+            lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
                 sorted_keys = sorted([x for x in sorted(kwargs)
                                       if x not in ('Reader', 'Outputter')])
@@ -219,7 +219,7 @@ def _guess(table, read_kwargs):
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
                 keys_vals.extend(['%s: %s' % (key, repr(val)) for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
-            lines.append('ERROR: Unable to guess table for with the guesses listed above.')
+            lines.append('ERROR: Unable to guess table format with the guesses listed above.')
             lines.append('Check the table and try with guess=False '
                          'and appropriate arguments to read()')
             raise core.InconsistentTableError('\n'.join(lines))
