@@ -88,6 +88,7 @@ def galactic_to_sgr(gal_coord, sgr_frame):
     return Sagittarius(Lambda=Lambda, Beta=Beta,
                        distance=gal_coord.distance)
 
+# Sgr to Galactic coordinates
 @frame_transform_graph.transform(coord.FunctionTransform, Sagittarius, coord.Galactic)
 def sgr_to_galactic(sgr_coord, gal_frame):
     """ Compute the transformation from heliocentric Sgr coordinates to
