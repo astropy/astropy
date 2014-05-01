@@ -10,7 +10,7 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
+from ...coordinates import (ICRS, FK4, FK5, FK4NoETerms, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation)
 from ...time import Time
 
@@ -32,6 +32,59 @@ def test_transform_to():
         assert allclose(c_frame.ra, s_frame.ra)
         assert allclose(c_frame.dec, s_frame.dec)
         assert allclose(c_frame.distance, s_frame.distance)
+
+
+def test_round_tripping():
+    """
+    Test round tripping out and back using transform_to in every combination.
+    """
+    frames = [ICRS, FK4, FK5, FK4NoETerms, Galactic]
+    attrs0 = {}
+    attrs1 = {}
+    for frame_cls0 in frames:
+        for frame_cls1 in frames:
+            for equinox0 in (None, 'J1975.0'):
+                attrs0['equinox'] = equinox0
+
+                for obstime0 in (None, 'J1980.0'):
+                    attrs0['obstime'] = obstime0
+
+                    for equinox1 in (None, 'J1975.0'):
+                        attrs1['equinox'] = equinox1
+
+                        for obstime1 in (None, 'J1980.0'):
+                            attrs1['obstime'] = obstime1
+
+                            # Remove None values
+                            attrs0 = dict((k, v) for k, v in attrs0.items() if v is not None)
+                            attrs1 = dict((k, v) for k, v in attrs1.items() if v is not None)
+
+                            print(attrs0, equinox0, obstime0, frame_cls0)
+                            # Go out and back
+                            sc = SkyCoord(frame_cls0, RA, DEC, **attrs0)
+
+                            # Keep only frame attributes for frame1
+                            attrs1 = dict((attr, val) for attr, val in attrs1.items()
+                                          if attr in frame_cls1.frame_attr_names)
+                            sc2 = sc.transform_to(frame_cls1(**attrs1))
+
+                            # When coming back only keep frame0 attributes for transform_to
+                            attrs0 = dict((attr, val) for attr, val in attrs0.items()
+                                          if attr in frame_cls0.frame_attr_names)
+                            sc_rt = sc2.transform_to(frame_cls0(**attrs0))
+
+                            if frame_cls0 is Galactic:
+                                assert allclose(sc.l, sc_rt.l)
+                                assert allclose(sc.b, sc_rt.b)
+                            else:
+                                assert allclose(sc.ra, sc_rt.ra)
+                                assert allclose(sc.dec, sc_rt.dec)
+                            if equinox0:
+                                assert Time(sc.equinox) == Time(sc_rt.equinox)
+                            if obstime0:
+                                assert Time(sc.obstime) == Time(sc_rt.obstime)
+
+
 
 
 def test_coord_init_string():
