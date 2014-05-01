@@ -26,12 +26,12 @@ transverse proper kpc corresponding to an arcminute at z=3:
   >>> from astropy import cosmology
   >>> cosmology.core.set_current(cosmology.WMAP9)
   <astropy.utils.state._Context object at ...>
-  >>> cosmology.H(0)
+  >>> cosmology.get_current().H(0)
   <Quantity 69.3... km / (Mpc s)>
 
 .. doctest-requires:: scipy
 
-  >>> cosmology.kpc_proper_per_arcmin(3)
+  >>> cosmology.get_current().kpc_proper_per_arcmin(3)
   <Quantity 472.977... kpc / arcmin>
 
 All the functions available are listed in the `Reference/API`_
@@ -46,7 +46,7 @@ for that subpackage for more details, but, briefly, to access the floating
 point (or array) values:
 
   >>> from astropy import cosmology
-  >>> H0 = cosmology.H(0)
+  >>> H0 = cosmology.get_current().H(0)
   >>> H0.value, H0.unit
   (69.3..., Unit("km / (Mpc s)"))
 
@@ -161,27 +161,10 @@ energy, a flat Universe with a constant dark energy equation of state,
 but not necessarily a cosmological constant.  A variety of additional
 dark energy models are also supported -- see `Specifying a dark energy model`_.
 
-In addition to the `~astropy.cosmology.LambdaCDM` object, there
-are convenience functions that calculate some of these quantities
-without needing to explicitly give a cosmology - but there are more
-methods available if you work directly with the cosmology object.
+Getting Redshifts from Cosmological Quantities
+----------------------------------------------
 
-.. doctest-requires:: scipy
-
-  >>> from astropy import cosmology
-  >>> cosmology.kpc_proper_per_arcmin(3)
-  <Quantity 472.977... kpc / arcmin>
-  >>> cosmology.arcsec_per_kpc_proper(3)
-  <Quantity 0.1268... arcsec / kpc>
-
-These functions will perform calculations using the "current"
-cosmology. This is a specific cosmology that is currently active in
-``astropy`` and it's described further in the following section. They
-can also be explicitly given a cosmology using the ``cosmo`` keyword
-argument. A full list of convenience functions is included below, in
-the `Reference/API`_ section.
-
-Finally, if you know a cosmological quantity and you want to know the
+If you know a cosmological quantity and you want to know the
 redshift which it corresponds to, you can use ``z_at_value``:
 
 .. doctest-requires:: scipy
