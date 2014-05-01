@@ -22,48 +22,43 @@ uniform way.
 Getting Started
 ===============
 
+TODO: update to introduce SkyCoordinate first
+
 Coordinate objects are instantiated with a flexible and natural approach that
 supports both numeric angle values, (limited) string parsing, and can optionally
 include lists of multiple coordinates in one object::
 
     >>> from astropy.coordinates import ICRS, Galactic
     >>> from astropy import units as u
-    >>> ICRS(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
-    >>> ICRS('00h42m44.3s +41d16m9s')
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
-    >>> ICRS('00h42m44.3s +41d16m9s')
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
-    >>> ICRS(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], unit=(u.degree, u.degree))
-    <ICRS RA=[ 10.68458  83.82208] deg, Dec=[ 41.26917  -5.39111] deg>
+    >>> ICRS(ra=10.68458*u.degree, dec=41.26917*u.degree)
+    <ICRS Coordinate: ra=10.68458 deg, dec=41.26917 deg>
+    >>> ICRS('00h42m44.3s', '+41d16m9s')
+    <ICRS Coordinate: ra=10.6845833333 deg, dec=41.2691666667 deg>
+    >>> ICRS(ra=[10.68458, 83.82208]*u.degree, dec=[41.26917, -5.39111]*u.degree)
+    <ICRS Coordinate: (ra, dec) in deg
+        [(10.684579999999983, 41.26917), (83.82208000000003, -5.39111)]>
 
 The individual components of a coordinate are `~astropy.coordinates.Longitude`
 or `~astropy.coordinates.Latitude` objects, which are specialized versions
 of the general `~astropy.coordinates.Angle` class.  The component values are
 accessed using aptly named attributes::
 
-    >>> c = ICRS(ra=10.68458, dec=41.26917,
-    ...          unit=(u.degree, u.degree))
+    >>> c = ICRS(ra=10.68458*u.degree, dec=41.26917*u.degree)
     >>> c.ra
-    <Longitude 10.684579999999983 deg>
+    <Longitude 10.68457999999999 deg>
     >>> c.ra.hour
     0.712305333...
     >>> c.ra.hms
-    hms_tuple(h=0.0, m=42.0, s=44.299199999996262)
+    hms_tuple(h=0.0, m=42.0, s=44.29919999999...)
     >>> c.dec
     <Latitude 41.26917... deg>
     >>> c.dec.radian
-    0.7202828960652683
+    0.7202828960652...
 
 Coordinates can easily be converted to strings using the
 :meth:`~astropy.coordinates.Angle.to_string` method::
 
-    >>> c.to_string()
-    '0h42m44.2992s 41d16m09.012s'
-    >>> c.to_string(precision=1)
-    '0h42m44.3s 41d16m09.0s'
-    >>> c.to_string(precision=1, sep=' ')
-    '0 42 44.3 41 16 09.0'
+TODO: update to show formatting with SkyCoordinate
 
 To convert to some other coordinate system, the easiest method is to use
 attribute-style access with short names for the built-in systems, but
@@ -71,10 +66,11 @@ explicit transformations via the
 :meth:`~astropy.coordinates.SphericalCoordinatesBase.transform_to` method
 are also available::
 
-    >>> c.galactic
-    <Galactic l=121.17430 deg, b=-21.57280 deg>
-    >>> c.transform_to(Galactic)
-    <Galactic l=121.17430 deg, b=-21.57280 deg>
+TODO: SkyCoordinate
+.. >>> c.galactic
+.. <Galactic l=121.17430 deg, b=-21.57280 deg>
+.. >>> c.transform_to(Galactic)
+.. <Galactic l=121.17430 deg, b=-21.57280 deg>
 
 Distance from the origin (which is system-dependent, but often the
 Earth center) can also be assigned to a coordinate. This specifies a
@@ -82,14 +78,13 @@ unique point in 3D space, which also allows conversion to Cartesian
 coordinates::
 
     >>> from astropy.coordinates import Distance
-    >>> c = ICRS(ra=10.68458, dec=41.26917,
-    ...          unit=(u.degree, u.degree),
-    ...          distance=Distance(770, u.kpc))
-    >>> c.x
+    >>> c = ICRS(ra=10.68458*u.degree, dec=41.26917*u.degree,
+    ...          distance=770*u.kpc)
+    >>> c.cartesian.x
     <Quantity 568.712865423523... kpc>
-    >>> c.y
+    >>> c.cartesian.y
     <Quantity 107.300897404202... kpc>
-    >>> c.z
+    >>> c.cartesian.z
     <Quantity 507.889942918757... kpc>
 
 Coordinate objects can also store arrays of coordinates instead of a
@@ -98,10 +93,11 @@ transforming many individual coordinate objects separtely.  It also
 allows coordinate objects to be used to find matches between two sets
 of coordinates::
 
-    >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
-    >>> c = ICRS(ra1, dec1, unit=(u.degree, u.degree))  # doctest: +SKIP
-    >>> catalog = ICRS(ra2, dec2, unit=(u.degree, u.degree))  # doctest: +SKIP
-    >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)  # doctest: +SKIP
+TODO: update with SkyCoordinate
+.. >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
+.. >>> c = ICRS(ra1*u.degree, dec1*u.degree)  # doctest: +SKIP
+.. >>> catalog = ICRS(ra2*u.degree, dec2*u.degree)  # doctest: +SKIP
+.. >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)  # doctest: +SKIP
 
 These array coordinates can also be indexed in the same way as numpy
 arrays::
@@ -115,6 +111,7 @@ arrays::
     True
 
 
+TODO: update for SkyCoordinate
 The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects (if you have an active internet
 connection). All subclasses of
@@ -124,16 +121,16 @@ accepts a string and queries `Sesame
 <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates for that
 object::
 
-    >>> c = ICRS.from_name("M42")  # doctest: +REMOTE_DATA
-    >>> c.ra, c.dec  # doctest: +SKIP
-    (<Longitude 83.82208... deg>, <Latitude -5.39111... deg>)
+.. >>> c = ICRS.from_name("M42")  # doctest: +REMOTE_DATA
+.. >>> c.ra, c.dec  # doctest: +SKIP
+.. (<Longitude 83.82208... deg>, <Latitude -5.39111... deg>)
 
 This works for any subclass of
 `~astropy.coordinates.SphericalCoordinatesBase`::
 
-    >>> c = Galactic.from_name("M42")  # doctest: +REMOTE_DATA
-    >>> c.l, c.b  # doctest: +SKIP
-    (<Longitude 3.64797... rad>, <Latitude -0.33827... rad>)
+.. >>> c = Galactic.from_name("M42")  # doctest: +REMOTE_DATA
+.. >>> c.l, c.b  # doctest: +SKIP
+.. (<Longitude 3.64797... rad>, <Latitude -0.33827... rad>)
 
 .. note::
 
