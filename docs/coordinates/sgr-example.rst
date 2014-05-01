@@ -5,133 +5,70 @@ Example: Defining a new spherical coordinate system
 
 This document describes in detail how to subclass and define a custom
 spherical coordinate system, as mentioned in :doc:`designing` and the
-docstring for `~astropy.coordinates.SphericalCoordinatesBase`. In this
+docstring for `~astropy.coordinates.BaseCoordinateFrame`. In this
 example, we will define a coordinate system defined by the plane of orbit of
 the Sagittarius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et
 al. 2003).  The Sgr coordinate system is often referred to in terms of two
 angular coordinates, :math:`\Lambda,B`.
 
-We'll start by using a template to generate a descriptive docstring for our
-subclass. Then we'll add some glue to the default initializer to recognize
-that we want to call the coordinates ``'Lambda'`` and ``'Beta'``. Then we
-have to define the transformation from this coordinate system to some other
-built-in system, in this case we will use spherical Galactic Coordinates as
-defined in `~astropy.coordinates.Galactic`.
+We need to define a subclass of `~astropy.coordinates.BaseCoordinateFrame`
+that knows the preferred names and units of the coordinate system angles.
+In this case, these are Lambda and Beta. Then we have to define the
+transformation from this coordinate system to some other built-in system.
+Here we will use spherical Galactic coordinates as defined in
+`~astropy.coordinates.Galactic`.
 
-The first step is to create a new class for our coordinates, let's call it
-``SgrCoordinates`` and make it a subclass of
-`~astropy.coordinates.SphericalCoordinatesBase`::
+The first step is to create a new class, which we'll call
+``Sagittarius`` and make it a subclass of
+`~astropy.coordinates.BaseCoordinateFrame`::
 
     import astropy.coordinates as coord
+    from astropy.coordinates import frame_transform_graph
+    from astropy.coordinates.angles import rotation_matrix
 
-    class SgrCoordinates(coord.SphericalCoordinatesBase):
-        """ A spherical coordinate system defined by the orbit of the
-            Sagittarius dwarf galaxy, as described in
-                http://adsabs.harvard.edu/abs/2003ApJ...599.1082M
-            and further explained in
-                http://www.astro.virginia.edu/~srm4n/Sgr/.
+    @frame_transform_graph.add_coord_name
+    class Sagittarius(coord.BaseCoordinateFrame):
+        """
+        A Heliocentric spherical coordinate system defined by the orbit
+        of the Sagittarius dwarf galaxy, as described in
+            http://adsabs.harvard.edu/abs/2003ApJ...599.1082M
+        and further explained in
+            http://www.astro.virginia.edu/~srm4n/Sgr/.
+
+        Parameters
+        ----------
+        representation : `BaseRepresentation` or None
+            A representation object or None to have no data (or use the other keywords)
+        Lambda : `Angle`, optional, must be keyword
+            The longitude for this object (`Beta` must also be given and `representation`
+            must be None).
+        Beta : `Angle`, optional, must be keyword
+            The Declination for this object (`Lambda` must also be given and
+            `representation` must be None).
+        distance : `Quantity`, optional, must be keyword
+            The Distance for this object along the line-of-sight.
+            (`representation` must be None).
 
         """
 
-We can use some convenience variables defined at the superclass level to
-generate a descriptive docstring for our subclass::
+        preferred_representation = coord.SphericalRepresentation
+        preferred_attr_names = OrderedDict([('Lambda', 'lon'), ('Beta', 'lat'),
+                                            ('distance', 'distance')])
+        preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
 
-    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase. \
-            _init_docstring_param_templ.format(lonnm='Lambda', latnm='Beta'))
+Line by line, the first few are simply imports. Next, the decorator method
+``@coord.frame_transform_graph.add_coord_name`` tells the global transform
+graph to recognize this as a new coordinate name. Next we define the class
+as subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include
+a descriptive docstring. The final three lines are class-level attributes
+that specify the preferred representation -- e.g., spherical, cartesian, etc.
+-- the names of the individual coordinates, and the preferred units.
 
-This may look scary, but let's break down what it is doing. ``__doc__`` is a
-class attribute defined in the superclass,
-`~astropy.coordinates.SphericalCoordinatesBase`, and is just a string with a
-placeholder for a docstring specific to this subclass. We specify that
-extra, descriptive text by using ``format()`` with the ``params`` keyword.
-``params`` expects a string describing the variable names of our current
-coordinate system. We can generate this from a template as well by
-formatting another class attribute and telling it what we want to name our
-coordinates (in this case, Lambda and Beta). The template string is defined
-as a class attribute ``_init_docstring_param_templ``, and expects the name
-of the longitude-equivalent (Lambda) and latitude-equivalent (Beta)
-coordinates::
-
-    coord.SphericalCoordinatesBase._init_docstring_param_templ
-                                  .format(lonnm='Lambda', latnm='Beta')
-
-If this looks strange or complicated, just remember that we're just doing
-this to help the user (this will provide them with a nice docstring if they
-look at the help for this class). **The bottom line:** if you want to define
-a custom spherical coordinate system with two angular coordinates, copy and
-paste the below line into the class definition and change ``'Lambda'`` to
-the name of your longitude coordinate, and ``'Beta'`` to the name of your
-latitude coordinate.::
-
-    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase. \
-            _init_docstring_param_templ.format(lonnm='Lambda', latnm='Beta'))
-
-Next we can define our subclass' initializer, ``__init__()``. We start by
-calling ``__init__()`` on the superclass. Then, we add a catch to see if the
-user passed in another `~astropy.coordinates.SphericalCoordinatesBase`
-object in. If so, we can just transform those coordinates to
-``SgrCoordinates`` and copy the attributes directly. Otherwise, we have to
-tell our subclass how to parse the arguments and keyword arguments that the
-user passed in. We do this with the ``_initialize_latlon()``
-classmethod. This convenience function accepts the name of the longitude
-coordinate, the name of the latitude coordinate, and the arguments and
-keyword arguments passed to this initializer. This function will handle
-parsing the args and kwargs to validate and sanitize the input from the
-user.::
-
-    def __init__(self, *args, **kwargs):
-        super(SgrCoordinates, self).__init__()
-
-        if len(args) == 1 and len(kwargs) == 0 and
-            isinstance(args[0], coord.SphericalCoordinatesBase):
-
-            newcoord = args[0].transform_to(self.__class__)
-            self._lonangle = newcoord._lonangle
-            self._latangle = newcoord._latangle
-            self._distance = newcoord._distance
-        else:
-            super(SgrCoordinates, self).
-                _initialize_latlon('Lambda', 'Beta', args, kwargs)
-
-Next we have to tell the class what to use for the longitude and latitude
-when doing coordinate transformations with other coordinate systems. We do
-that by defining properties of the class -- in this case ``Lambda`` and
-``Beta`` -- that reference the internal names for the longitude and
-latitude::
-
-    @property
-    def Lambda(self):
-        return self._lonangle
-
-    @property
-    def Beta(self):
-        return self._latangle
-
-Finally, we customize the default string formatting by specifying the string
-names of the longitude and latitude, as well as the default numerical
-representation (degree minute second for longitude and degree
-minute second for latitude)::
-
-    # strings used for making __repr__ work
-    _repr_lon_name = 'Lambda'
-    _repr_lat_name = 'Beta'
-
-    # Default format for to_string
-    _default_string_style = 'dmsdms'
-
-Now our coordinate system is set up! You can now create ``SgrCoordinates``
-objects by passing any valid specifiers accepted by
-`~astropy.coordinates.SphericalCoordinatesBase`, but you won't be able to
-transform to and from any other coordinate systems because we haven't yet
-defined how to do that.
-
-We will define the coordinate transformation as a function that accepts a
-`~astropy.coordinates.Galactic` object and returns an ``SgrCoordinates``
-object. We could alternatively define the transformation by specifying a
-transformation matrix ( `~astropy.coordinates.static_transform_matrix`), but
-in this case the transformation is from a left-handed coordinate system to a
-right- handed system, so we need more control over the transformation. We'll
-start by constructing the rotation matrix, using the helper function
+Next we have to define the transformation to some other built-in coordinate
+system; we will use Galactic coordinates. We can do this by defining functions
+that return transformation matrices, or by simply defining function that accept
+a coordinate and returns a new coordinate in the new system. We'll start by
+constructing the rotation matrix, using the helper function
 ``rotation_matrix()`` ::
 
     # Define the Euler angles (from Law & Majewski 2010)
@@ -147,17 +84,17 @@ start by constructing the rotation matrix, using the helper function
 
 This is done at the module level, since it will be used by both the
 transformation from Sgr to Galactic as well as the inverse from Galactic to
-Sgr.  Now we can define our first transformation function::
+Sgr. Now we can define our first transformation function::
 
     # Galactic to Sgr coordinates
-    @transformations.transform_function(coord.Galactic, SgrCoordinates)
-    def galactic_to_sgr(galactic_coord):
+    @frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)
+    def galactic_to_sgr(gal_coord, sgr_frame):
         """ Compute the transformation from Galactic spherical to
             heliocentric Sgr coordinates.
         """
 
-        l = np.atleast_1d(galactic_coord.l.radian)
-        b = np.atleast_1d(galactic_coord.b.radian)
+        l = np.atleast_1d(gal_coord.l.radian)
+        b = np.atleast_1d(gal_coord.b.radian)
 
         X = cos(b)*cos(l)
         Y = cos(b)*sin(l)
@@ -168,26 +105,26 @@ Sgr.  Now we can define our first transformation function::
         Zs = -Zs
 
         # Calculate the angular coordinates lambda,beta
-        Lambda = np.degrees(np.arctan2(Ys,Xs))
-        Lambda[Lambda < 0] = Lambda[Lambda < 0] + 360
-        Beta = np.degrees(np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs)))
+        Lambda = np.arctan2(Ys,Xs)*u.radian
+        Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
+        Beta = np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs))*u.radian
 
-        return SgrCoordinates(Lambda, Beta, distance=galactic_coord.distance,
-                              unit=(u.degree, u.degree))
+        return Sagittarius(Lambda=Lambda, Beta=Beta,
+                           distance=gal_coord.distance)
 
-The decorator ``@transformations.transform_function(coord.Galactic,
-SgrCoordinates)`` registers this function with the `~astropy.coordinates`
+The decorator ``@frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)`` registers this function with the `~astropy.coordinates`
 subpackage as a transformation.  Inside the function, we simply follow the
 same procedure as detailed by David Law's `transformation code
 <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_. Note that in this
 case, both coordinate systems are heliocentric, so we can simply copy any
 distance from the `~astropy.coordinates.Galactic` object.
 
-We then register the inverse transformation by using the Transpose of the
-rotation matrix::
+We then register the inverse transformation by using the transpose of the
+rotation matrix (which is faster to compute than the inverse)::
 
-    @transformations.transform_function(SgrCoordinates, coord.Galactic)
-    def sgr_to_galactic(sgr_coord):
+    # Sgr to Galactic coordinates
+    @frame_transform_graph.transform(coord.FunctionTransform, Sagittarius, coord.Galactic)
+    def sgr_to_galactic(sgr_coord, gal_frame):
         """ Compute the transformation from heliocentric Sgr coordinates to
             spherical Galactic.
         """
@@ -201,26 +138,25 @@ rotation matrix::
 
         X, Y, Z = sgr_matrix.T.dot(np.array([Xs, Ys, Zs]))
 
-        l = np.degrees(np.arctan2(Y,X))
-        b = np.degrees(np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z)))
+        l = np.arctan2(Y,X)*u.radian
+        b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
         if l<0:
-            l += 360
+            l += 2*np.pi*u.radian
 
-        return coord.Galactic(l, b, distance=sgr_coord.distance,
-                              unit=(u.degree, u.degree))
+        return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
 
-Now that we've registered these transformations between ``SgrCoordinates``
+Now that we've registered these transformations between ``Sagittarius``
 and `~astropy.coordinates.Galactic`, we can transform between *any*
-coordinate system and ``SgrCoordinates`` (as long as the other system has a
+coordinate system and ``Sagittarius`` (as long as the other system has a
 path to transform to `~astropy.coordinates.Galactic`). For example, to
-transform from ICRS coordinates to ``SgrCoordinates``, we simply::
+transform from ICRS coordinates to ``Sagittarius``, we simply::
 
-    >>> from astropy import units as u
+    >>> import astropy.units as u
     >>> import astropy.coordinates as coord
-    >>> icrs = coord.ICRS(280.161732, 11.91934, unit=(u.degree,u.degree))
-    >>> icrs.transform_to(SgrCoordinates)  # doctest: +SKIP
-    <SgrCoordinates Lambda=346.81827 deg, Beta=-39.28367 deg>
+    >>> icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
+    >>> icrs.transform_to(Sagittarius)  # doctest: +SKIP
+    <Sagittarius Coordinate Lambda=346.81827... deg, Beta=-39.28367... deg>
 
 The complete code for the above example is included below for reference.
 

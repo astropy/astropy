@@ -50,7 +50,6 @@ class Sagittarius(coord.BaseCoordinateFrame):
     preferred_attr_names = OrderedDict([('Lambda', 'lon'), ('Beta', 'lat'),
                                         ('distance', 'distance')])
     preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
-    frame_attr_names = {}
 
 # Define the Euler angles (from Law & Majewski 2010)
 phi = np.radians(180+3.75)
