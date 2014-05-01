@@ -147,6 +147,7 @@ class Tab(Basic):
         self.data.splitter.process_val = None
         self.data.splitter.skipinitialspace = False
 
+
 class Csv(Basic):
     """Read a CSV (comma-separated-values) file.
 
@@ -196,6 +197,12 @@ class Csv(Basic):
             str_vals.extend((ncols - len(str_vals)) * [''])
 
         return str_vals
+
+    def write(self, table):
+        from ...table import set_masked_print_string
+        with set_masked_print_string(''):
+            lines = super(Csv, self).write(table)
+        return lines
 
 
 class Rdb(Tab):
