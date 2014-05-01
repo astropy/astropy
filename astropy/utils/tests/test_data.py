@@ -8,14 +8,13 @@ from __future__ import (absolute_import, division, print_function,
 
 from ...extern import six
 
-from ...tests.helper import remote_data, raises
+from ...tests.helper import remote_data, raises, pytest
 
 import hashlib
 import io
 import os
 import sys
 
-from ...tests.helper import pytest
 from ..data import _get_download_cache_locs
 
 TESTURL = 'http://www.astropy.org'
@@ -86,7 +85,7 @@ def test_find_by_hash():
     from ..data import get_pkg_data_filename
 
     #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
-    with raises(URLError):
+    with pytest.raises(URLError):
         get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
 
 
@@ -210,7 +209,7 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
         raise OSError
     monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
 
-    with raises(OSError):
+    with pytest.raises(OSError):
         #make sure the config dir search fails
         paths.get_cache_dir()
 
