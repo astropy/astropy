@@ -551,7 +551,7 @@ class GenericFrame(BaseCoordinateFrame):
 
         self.frame_attr_names = frame_attrs
         for attrnm, attrval in frame_attrs.items():
-            setattr(self, attrnm, attrval)
+            super(GenericFrame, self).__setattr__(attrnm, attrval)
 
     def __setattr__(self, name, value):
         if name in self.frame_attr_names:

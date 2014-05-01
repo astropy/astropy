@@ -9,7 +9,7 @@ from ..extern import six
 from ..units import Unit
 
 from .angles import Latitude, Longitude
-from .baseframe import BaseCoordinateFrame, frame_transform_graph
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .representation import BaseRepresentation, SphericalRepresentation
 
 __all__ = ['SkyCoord']
@@ -61,6 +61,10 @@ class SkyCoord(object):
     @property
     def frame(self):
         return self._frame
+
+    @property
+    def frame_cls(self):
+        return self._coord.__class__
 
     def __len__(self):
         return len(self._coord)
@@ -152,25 +156,55 @@ class SkyCoord(object):
         if frame is None or self.frame is None:
             raise ValueError('Cannot transform coordinates to/from `frame=None`')
 
-        if frame not in FRAME_CLASSES:
-            raise ValueError("Output coordinate frame '{0}' not in allowed values {1}"
-                             .format(frame, sorted(FRAME_CLASSES)))
+        frame_kwargs = {}
 
-        # Make a frame instance for the new frame including the correct frame attributes.
-        # Only define attributes that are not None.
-        frame_cls = FRAME_CLASSES[frame]
-        frame_kwargs = dict((attr, getattr(self, attr)) for attr in frame_cls.frame_attr_names
-                            if getattr(self, attr) is not None)
-        frame = frame_cls(**frame_kwargs)
+        # Frame name (string) or frame class?  Coerce into an instance.
+        try:
+            frame_cls = _get_frame_class(frame)
+            frame = frame_cls()
+        except:
+            pass
 
-        out = deepcopy(self)
-        out._frame = frame
-        out._coord = self._coord.transform_to(frame)
-        if out._coord is None:
-            raise ConvertError('Cannot transform from {0} to '
-                               '{1}'.format(self.frame, frame))
+        if isinstance(frame, BaseCoordinateFrame):
+            frame_cls = frame.__class__
 
-        return out
+            # Set the keyword args for making a new frame instance for the
+            # transform.  If the supplied frame instance has a non-default
+            # value set then use that, otherwise use the self attribute value
+            # if it is not None.
+            for attr in FRAME_ATTR_NAMES_SET:
+                self_val = getattr(self, attr, None)
+                frame_val = getattr(frame, attr, None)
+                if (frame_val is not None and
+                        attr not in frame._attr_names_with_defaults):
+                    frame_kwargs[attr] = frame_val
+                elif self_val is not None:
+                    frame_kwargs[attr] = self_val
+        else:
+            raise ValueError('Transform `frame` must be a frame name, class, or instance')
+
+        # new_frame = frame_cls(**frame_kwargs)
+
+        trans = frame_transform_graph.get_transform(self.frame_cls, frame_cls)
+        if trans is None:
+            if frame_cls is self.frame_cls:
+                # no transform needed, because it's self-to-self
+                return deepcopy(self)
+            raise ConvertError('Cannot transform from {0} to {1}'
+                               .format(self.frame_cls, frame_cls))
+
+        generic_frame = GenericFrame(frame_kwargs)
+        newcoord = trans(self._coord, generic_frame)
+
+        return SkyCoord(newcoord, frame=frame_cls)
+
+        # out = deepcopy(self)
+        # out._frame = frame
+        # out._coord = self._coord.transform_to(frame)
+        # if out._coord is None:
+        #     raise ConvertError('Cannot transform from {0} to '
+        #                        '{1}'.format(self.frame, frame))
+        # return out
 
     def __getattr__(self, attr):
         """
@@ -233,8 +267,8 @@ class SkyCoord(object):
 
 def _get_frame_class(frame):
     """
-    Get a frame instance from the input `frame`, which could be a frame name
-    string, frame class, or frame instance.
+    Get a frame class from the input `frame`, which could be a frame name
+    string, or frame class.
     """
     import inspect
 
