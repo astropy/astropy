@@ -7,6 +7,7 @@ from .column import Column, MaskedColumn
 from .table import Table, TableColumns, Row
 from .np_utils import TableMergeError
 from .operations import join, hstack, vstack
+from .pprint import set_masked_print_string
 
 # Import routines that connect readers/writers to astropy.table
 from ..io.ascii import connect

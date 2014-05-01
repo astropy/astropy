@@ -8,7 +8,7 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 from ...table import pprint
-from ...extern.six import PY3
+from ...extern.six import PY3, StringIO
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
@@ -345,5 +345,32 @@ def test_pprint_nameless_col():
     """Regression test for #2213, making sure a nameless column can be printed
     using None as the name.
     """
-    col = table.Column([1.,2.])
+    col = table.Column([1., 2.])
     assert str(col).startswith('None')
+
+
+def test_set_masked_print_string():
+    t = table.Table([[1, 2], [3, 4]], names=['a', 'b'], masked=True)
+    t['a'].mask = [True, False]
+    t['b'].mask = [False, True]
+
+    out = StringIO()
+    with table.set_masked_print_string('MASKED'):
+        t.write(out, format='ascii.fixed_width')
+
+    assert out.getvalue().splitlines() == ['|      a |      b |',
+                                           '| MASKED |      3 |',
+                                           '|      2 | MASKED |']
+
+    with table.set_masked_print_string('MASKED'):
+        out = t.pformat()
+
+    assert out == ['  a      b   ',
+                   '------ ------',
+                   'MASKED      3',
+                   '     2 MASKED']
+    out = t.pformat()
+    assert out == [' a   b ',
+                   '--- ---',
+                   ' --   3',
+                   '  2  --']
