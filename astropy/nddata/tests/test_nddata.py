@@ -126,6 +126,17 @@ def test_nddata_uncertainty_invalid_type(uncertainty):
     assert exc.value.args[0] == 'Uncertainty must be an instance of a NDUncertainty object'
 
 
+def test_nddata_init_from_nddata_data_argument_only():
+    ndd1 = NDData([1])
+    ndd2 = NDData(ndd1)
+    assert ndd2.wcs == ndd1.wcs
+    assert ndd2.uncertainty == ndd1.uncertainty
+    assert ndd2.mask == ndd1.mask
+    assert ndd2.flags == ndd1.flags
+    assert ndd2.unit == ndd1.unit
+    assert ndd2.meta == ndd1.meta
+
+
 def test_nddata_copy_ref():
     """
     Tests to ensure that creating a new NDData object copies by *reference*.

@@ -12,11 +12,14 @@ n-dimensional Numpy array::
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
 
-or by passing it an `~astropy.nddata.NDData` object:
+Note that the data in ``ndd`` is a reference to the original ``array``, so changing the data in ``ndd`` will change the corresponding data in ``array`` in most circumstances.
+
+An `~astropy.nddata.NDData` object can also be instantiated by passing it an `~astropy.nddata.NDData` object:
 
     >>> ndd1 = NDData(array)
     >>> ndd2 = NDData(ndd1)
 
+As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so changes to one will affect the other.
 
 This object has a few attributes in common with Numpy:
 

@@ -113,6 +113,12 @@ class NDData(object):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=False)
+            self.uncertainty = data.uncertainty
+            self.mask = data.mask
+            self.flags = data.flags
+            self.wcs = data.wcs
+            self.meta = data.meta
+            self.unit = data.unit
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
