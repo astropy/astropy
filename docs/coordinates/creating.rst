@@ -1,7 +1,8 @@
 Creating Coordinate Objects
 ---------------------------
 
-TODO: We might want to first introduce SkyCoordinate.
+TODO: We might want to first introduce SkyCoordinate with many of the
+same example as below.
 
 Creating new coordinate objects is of course crucial to using
 `~astropy.coordinates`.  The typical way to create a new coordinate object
@@ -55,20 +56,12 @@ same unit rules apply as for scalar angles.::
         ...
     UnitsError: No unit was given - must be some kind of angle
 
-
-
 .. warning::
     If you try to create an angle using a tuple for each angle instead of a
     list or `numpy` array, it will be interpreted as ``(hours, minutes,
     seconds)`` or ``(degrees, arcmin, arcsec)``.  So if you actually want
     multiple coordinates from a tuple, convert it to a list or array.
 
+TODO: update for SkyCoordinate?
 One final way to create coordinates is to copy them from an already
 existing coordinate object::
-
-    >>> i1 = ICRS(187.70592, 12.39112, unit=(u.degree, u.degree))
-    >>> i2 = ICRS(i1)
-    >>> i1
-    <ICRS RA=187.70592 deg, Dec=12.39112 deg>
-    >>> i2
-    <ICRS RA=187.70592 deg, Dec=12.39112 deg>
