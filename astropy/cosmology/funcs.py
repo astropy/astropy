@@ -11,6 +11,7 @@ import numpy as np
 from .core import default_cosmology as _default_cosmology
 from .core import CosmologyError
 from ..units import Quantity
+from ..utils import deprecated
 
 __all__ = ['H',  'age',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
            'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume', 
@@ -147,6 +148,7 @@ zmin and zmax satisfying fval = func(z).""")
     return zbest
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.age')
 def age(z, cosmo=None):
     """ Age of the universe in Gyr at redshift `z`.
 
@@ -169,6 +171,7 @@ def age(z, cosmo=None):
     return cosmo.age(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.comoving_volume')
 def comoving_volume(z, cosmo=None):
     """ Comoving volume in cubic Mpc at redshift `z`.
 
@@ -215,6 +218,7 @@ def differential_comoving_volume(z, cosmo=None):
         cosmo = _default_cosmology.get()
     return cosmo.differential_comoving_volume(z)
 
+@deprecated(since='0.4', alternative='<Cosmology object>.kpc_comoving_per_arcmin')
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
     arcminute at redshift `z`.
@@ -235,6 +239,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
     return cosmo.kpc_comoving_per_arcmin(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.kpc_proper_per_arcmin')
 def kpc_proper_per_arcmin(z, cosmo=None):
     """ Separation in transverse proper kpc corresponding to an
     arcminute at redshift `z`.
@@ -255,6 +260,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
     return cosmo.kpc_proper_per_arcmin(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.arcsec_per_kpc_comoving')
 def arcsec_per_kpc_comoving(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a comoving kpc
     at redshift `z`.
@@ -275,6 +281,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
     return cosmo.arcsec_per_kpc_comoving(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.arcsec_per_kpc_proper')
 def arcsec_per_kpc_proper(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a proper kpc at
     redshift `z`.
@@ -295,6 +302,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
     return cosmo.arcsec_per_kpc_proper(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.distmod')
 def distmod(z, cosmo=None):
     """ Distance modulus at redshift `z`.
 
@@ -320,6 +328,7 @@ def distmod(z, cosmo=None):
     return cosmo.distmod(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.H')
 def H(z, cosmo=None):
     """ Hubble parameter (km/s/Mpc) at redshift `z`.
 
@@ -338,6 +347,7 @@ def H(z, cosmo=None):
     return cosmo.H(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.scale_factor')
 def scale_factor(z, cosmo=None):
     """ Scale factor at redshift `z`.
 
@@ -358,6 +368,7 @@ def scale_factor(z, cosmo=None):
     return cosmo.scale_factor(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.critical_density')
 def critical_density(z, cosmo=None):
     """ Critical density in grams per cubic cm at redshift `z`.
 
@@ -376,6 +387,7 @@ def critical_density(z, cosmo=None):
     return cosmo.critical_density(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.lookback_time')
 def lookback_time(z, cosmo=None):
     """ Lookback time in Gyr to redshift `z`.
 
@@ -401,6 +413,7 @@ def lookback_time(z, cosmo=None):
     return cosmo.lookback_time(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.comoving_distance')
 def comoving_distance(z, cosmo=None):
     """ Comoving distance in Mpc at redshift `z`.
 
@@ -422,6 +435,7 @@ def comoving_distance(z, cosmo=None):
     return cosmo.comoving_distance(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.angular_diameter_distance')
 def angular_diameter_distance(z, cosmo=None):
     """ Angular diameter distance in Mpc at a given redshift.
 
@@ -444,6 +458,7 @@ def angular_diameter_distance(z, cosmo=None):
     return cosmo.angular_diameter_distance(z)
 
 
+@deprecated(since='0.4', alternative='<Cosmology object>.luminosity_distance')
 def luminosity_distance(z, cosmo=None):
     """ Luminosity distance in Mpc at redshift `z`.
 
