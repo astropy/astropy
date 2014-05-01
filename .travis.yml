@@ -3,106 +3,83 @@ language: python
 python:
     - 2.6
     - 2.7
-    - 3.2
     - 3.3
+    - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
-    global:
-        - PIP_ASTROPY_WHEEL="pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel --no-index"
-        - PIP_PYPI="pip install --use-wheel"
     matrix:
-        - SETUP_CMD='egg_info' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+        - SETUP_CMD='egg_info' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
 
 matrix:
     include:
 
         # Do a coverage test in Python 2
         - python: 2.7
-          env: NUMPY_VERSION=1.8.0 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
+          env: NUMPY_VERSION=1.8 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - python: 2.7
-          env: SETUP_CMD='build_sphinx -w' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true
+          env: SETUP_CMD='build_sphinx -w' NUMPY_VERSION=1.8 OPTIONAL_DEPS=true
           # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
         # There is a bug in pytest-xdist that prevents it from working
         # on Python 3.x.  See:
         # https://bitbucket.org/hpk42/pytest/issue/301/internal-error-during-test-collecting
-        - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
         - python: 3.3
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
+        - python: 3.4
+          env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
-        - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+        - python: 3.3
+          env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try alternate numpy versions
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.6 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
-          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.5 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
 
 before_install:
 
     # Use utf8 encoding. Should be default, but this is insurance against
     # future changes
     - export PYTHONIOENCODING=UTF8
-
-    # Install the pip that supports wheel
-    - pip install setuptools --upgrade
-    - pip install pip --upgrade
-    - pip install wheel
-
-    # We do this to make sure we get dependencies so pip works below
-    # Note that travis does *not* use python packages installed via apt - it
-    # does all the building in an isolated virtualenv
-    - sudo apt-get update
-
-    # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install python-numpy cython libatlas-dev liblapack-dev gfortran; fi
-
-    # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then sudo apt-get install python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
-
-    # DOCUMENTATION DEPENDENCIES
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
-
+    - source .setup_conda.sh $TRAVIS_PYTHON_VERSION
+    - export PATH=/home/travis/anaconda/bin:$PATH
 
 install:
 
+    # CONDA
+    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
+    - source activate test
+
     # CORE DEPENDENCIES
-    # These command run pip, trying a wheel. If they fail the build aborts.
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL --upgrade "numpy==$NUMPY_VERSION"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "Cython==0.19.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then pip install "pytest==2.5.2"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then pip install "pytest-xdist==1.10"; fi
+    # These command run pip first trying a wheel, and then falling back on
+    # source build
+    - if [[ $SETUP_CMD != egg_info ]]; then conda install --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist; fi
 
     # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "scipy==0.13.1"; fi
-    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "h5py==2.1.3"; fi
-    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "beautifulsoup4"; fi
+    - if $OPTIONAL_DEPS; then conda install --yes scipy h5py; fi
+    - if $OPTIONAL_DEPS; then pip install beautifulsoup4; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_ASTROPY_WHEEL "Sphinx>=1.2b3"; fi
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_ASTROPY_WHEEL "matplotlib==1.3.0"; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then conda install --yes Sphinx matplotlib; fi
 
     # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_ASTROPY_WHEEL "coverage" ; fi
-    # coveralls is a quick install and wheels*.astropy.org don't build it, so
-    # install from pypi.
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_PYPI "coveralls"; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
 
 script:
     - python setup.py $SETUP_CMD
