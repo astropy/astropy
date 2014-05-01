@@ -362,6 +362,9 @@ def test_convert_unit_to():
     # changing the output mask should not change the original
     d1.mask[0, 0] = True
     assert d.mask[0, 0] != d1.mask[0, 0]
+    d.flags = np.zeros_like(d.data)
+    d1 = d.convert_unit_to('m')
+    assert (d1.flags == d.flags).all()
 
 
 @raises(ValueError)
