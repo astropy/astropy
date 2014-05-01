@@ -154,20 +154,26 @@ class Csv(Basic):
     Example::
 
       num,ra,dec,radius,mag
-      1,32.23222,10.1211,0.8,18.1
-      2,38.12321,-88.1321,2.2,17.0
+      1,32.23222,10.1211,,,
+      2,38.12321,-88.1321,,17.0
 
-    Plain csv (comma separated value) files typically contain as many entries
+    Plain CSV (comma separated value) files typically contain as many entries
     as there are columns on each line. In contrast, common spreadsheed editors
-    stop writing if all remaining cells on a line are empty, which can lead to 
+    stop writing if all remaining cells on a line are empty, which can lead to
     lines where the rightmost entries are missing. This Reader can deal with
     such files.
 
-    Example::
+    Masked values (indicated by an empty '' field value when reading) are
+    written out in the same way with an empty ('') field.  This is different
+    from the typical default for `io.ascii` in which missing values are
+    indicated by ``--``.
+
+    Example with missing rightmost entries::
 
       num,ra,dec,radius,mag
       1,32.23222,10.1211
-      2,38.12321,-88.1321,2.2,17.0
+      2,38.12321,-88.1321,,17.0
+
     """
     _format_name = 'csv'
     _io_registry_suffix = '.csv'
