@@ -488,7 +488,7 @@ class NDData(object):
         elif operand.mask is None:
             result.mask = self.mask.copy()
         else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask  # copy implied by operator
+            result.mask = self.mask | operand.mask  # copy implied by operator
 
         return result
 

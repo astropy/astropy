@@ -218,6 +218,18 @@ def test_nddata_add_mismatch_shape():
     assert exc.value.args[0] == "operand shapes do not match"
 
 
+def test_nddata_add_with_masks():
+    # numpy masked arrays mask the result of binary operations if the
+    # mask of either operand is set.
+    # Does NDData?
+    ndd1 = NDData([1, 2], mask=np.array([True, False]))
+    other_mask = ~ ndd1.mask
+    ndd2 = NDData([1, 2], mask=other_mask)
+    result = ndd1.add(ndd2)
+    # The result should have all entries masked...
+    assert result.mask.all()
+
+
 def test_nddata_add_uncertainties():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = StdDevUncertainty(array=np.ones((5, 5)))
