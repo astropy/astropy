@@ -27,28 +27,28 @@ matrix:
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8 --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8 --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
         # There is a bug in pytest-xdist that prevents it from working
         # on Python 3.x.  See:
         # https://bitbucket.org/hpk42/pytest/issue/301/internal-error-during-test-collecting
         - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
         - python: 3.3
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+          env: SETUP_CMD='test --parallel=8 --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
         - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+          env: SETUP_CMD='test --remote-data' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try alternate numpy versions
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8 --remote-data' OPTIONAL_DEPS=false
         - python: 2.7
-          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8 --remote-data' OPTIONAL_DEPS=false
 
 before_install:
 
