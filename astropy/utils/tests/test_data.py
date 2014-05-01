@@ -8,14 +8,14 @@ from __future__ import (absolute_import, division, print_function,
 
 from ...extern import six
 
-from ...tests.helper import remote_data, raises, pytest
+from ...tests.helper import remote_data, raises, pytest, catch_warnings
 
 import hashlib
 import io
 import os
 import sys
 
-from ..data import _get_download_cache_locs
+from ..data import _get_download_cache_locs, CacheMissingWarning
 
 TESTURL = 'http://www.astropy.org'
 
@@ -182,7 +182,7 @@ def test_get_pkg_data_contents():
 
 
 @remote_data
-def test_data_noastropy_fallback(monkeypatch, recwarn):
+def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
     be located is correct
@@ -194,10 +194,10 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     # needed for testing the *real* lock at the end
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
-    #better yet, set the configuration to make sure the temp files are deleted
+    # better yet, set the configuration to make sure the temp files are deleted
     data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)
 
-    #make sure the config and cache directories are not searched
+    # make sure the config and cache directories are not searched
     monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
     monkeypatch.delenv('XDG_CONFIG_HOME')
     monkeypatch.setenv('XDG_CACHE_HOME', 'bar')
@@ -210,46 +210,51 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
 
     with pytest.raises(OSError):
-        #make sure the config dir search fails
+        # make sure the config dir search fails
         paths.get_cache_dir()
 
-    #first try with cache
-    fnout = data.download_file(TESTURL, cache=True)
+    # first try with cache
+    with catch_warnings(CacheMissingWarning) as w:
+        fnout = data.download_file(TESTURL, cache=True)
+
     assert os.path.isfile(fnout)
 
-    assert len(recwarn.list) > 1
-    w1 = recwarn.pop()
-    w2 = recwarn.pop()
+    assert len(w) > 1
 
-    assert w1.category == data.CacheMissingWarning
+    w1 = w.pop(0)
+    w2 = w.pop(0)
+
+    assert w1.category == CacheMissingWarning
     assert 'Remote data cache could not be accessed' in w1.message.args[0]
-    assert w2.category == data.CacheMissingWarning
+    assert w2.category == CacheMissingWarning
     assert 'File downloaded to temporary location' in w2.message.args[0]
     assert fnout == w2.message.args[1]
 
-    #clearing the cache should be a no-up that doesn't affect fnout
-    data.clear_download_cache(TESTURL)
+    # clearing the cache should be a no-up that doesn't affect fnout
+    with catch_warnings(CacheMissingWarning) as w:
+        data.clear_download_cache(TESTURL)
     assert os.path.isfile(fnout)
 
-    #now remove it so tests don't clutter up the temp dir
-    #this should get called at exit, anyway, but we do it here just to make
-    #sure it's working correctly
+    # now remove it so tests don't clutter up the temp dir this should get
+    # called at exit, anyway, but we do it here just to make sure it's working
+    # correctly
     data._deltemps()
     assert not os.path.isfile(fnout)
 
-    assert len(recwarn.list) > 0
-    w3 = recwarn.pop()
+    assert len(w) > 0
+    w3 = w.pop()
 
     assert w3.category == data.CacheMissingWarning
     assert 'Not clearing data cache - cache inacessable' in str(w3.message)
 
     #now try with no cache
-    fnnocache = data.download_file(TESTURL, cache=False, encoding='utf-8')
+    with catch_warnings(CacheMissingWarning) as w:
+        fnnocache = data.download_file(TESTURL, cache=False, encoding='utf-8')
     with open(fnnocache, 'rb') as page:
         assert page.read().decode().find('Astropy') > -1
 
-    #no warnings should be raise in fileobj because cache is unnecessary
-    assert len(recwarn.list) == 0
+    # no warnings should be raise in fileobj because cache is unnecessary
+    assert len(w) == 0
 
     # lockdir determined above as the *real* lockdir, not the temp one
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
