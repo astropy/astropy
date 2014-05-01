@@ -357,3 +357,10 @@ def test_write_fill_values():
 
     for test_def in test_defs_fill_value:
         check_write_table(test_def, data)
+
+
+def test_write_csv_masked():
+    out = StringIO()
+    t = ascii.read(['a,b', '1,', ',4'])
+    ascii.write(t, out, format='csv')
+    assert out.getvalue() == 'a,b\n1,\n,4\n'
