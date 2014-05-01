@@ -23,15 +23,15 @@ J2001 = Time('J2001', scale='utc')
 allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
 
 
-def tst_transform_to():
+def test_transform_to():
     for frame in (FK5, FK5(equinox=Time('J1975.0')),
-                  FK4, FK4(equinox=Time('J1975.0')),
-                  Galactic):
+                  FK4, FK4(equinox=Time('J1975.0'))):
         c_frame = C_ICRS.transform_to(frame)
         s_icrs = SkyCoord(RA, DEC, frame='icrs')
         s_frame = s_icrs.transform_to(frame)
-        assert c_frame.ra == s_frame.ra
-        assert c_frame.dec == s_frame.dec
+        assert allclose(c_frame.ra, s_frame.ra)
+        assert allclose(c_frame.dec, s_frame.dec)
+        assert allclose(c_frame.distance, s_frame.distance)
 
 
 def test_coord_init_string():
@@ -241,7 +241,6 @@ def test_api():
     Verify that the API take-2 examples run
     """
 
-    # NOT YET
     sc = SkyCoord(SphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg, distance=1 * u.kpc),
                   frame='icrs')
 
@@ -253,16 +252,15 @@ def test_api():
 
     # The next example raises an error because the high-level class must always
     # have position data.
-    if False:
-        with pytest.raises(ValueError):
-            sc = SkyCoord(FK5(equinox=J2001))  # raises ValueError
+    with pytest.raises(ValueError):
+        sc = SkyCoord(FK5(equinox=J2001))  # raises ValueError
 
     # similarly, the low-level object can always be accessed
 
     # NOT YET.  NEVER?
-    # assert str(sframe) == '<ICRS RA=120.000 deg, Dec=5.00000 deg>'
+    # assert str(sc.frame) == '<ICRS RA=120.000 deg, Dec=5.00000 deg>'
 
-    # Should (eventually) support a variety of possible complex string formats
+    # Supports a variety of possible complex string formats
     sc = SkyCoord('8h00m00s +5d00m00.0s', frame='icrs')
 
     # In the next example, the unit is only needed b/c units are ambiguous.  In
@@ -271,8 +269,7 @@ def test_api():
 
     # The next one would yield length-2 array coordinates, because of the comma
 
-    # NOT YET
-    # sc = SkyCoord(['8h 5d', '2°5\'12.3" 0.3rad'], frame='icrs')
+    sc = SkyCoord(['8h 5d', '2°2′3″ 0.3rad'], frame='icrs')
 
     # It should also interpret common designation styles as a coordinate
     # NOT YET
@@ -288,22 +285,22 @@ def test_api():
 
     # transformation is done the same as for low-level classes, which it delegates to
 
-    # NOT YET
-    # scfk5_j2001 = stransform_to(FK5(equinox=J2001))
+    sc_fk5_j2001 = sc.transform_to(FK5(equinox=J2001))
+    assert sc_fk5_j2001.equinox == J2001
 
     # The key difference is that the high-level class remembers frame information
     # necessary for round-tripping, unlike the low-level classes:
     sc1 = SkyCoord(ra=8 * u.hour, dec=5 * u.deg, equinox=J2001, frame='fk5')
     sc2 = sc1.transform_to('icrs')
+
     # The next assertion succeeds, but it doesn't mean anything for ICRS, as ICRS
     # isn't defined in terms of an equinox
     assert sc2.equinox == J2001
+
     # But it *is* necessary once we transform to FK5
     sc3 = sc2.transform_to('fk5')
     assert sc3.equinox == J2001
-    assert sc1.ra == sc3.ra
-    # Note that this did *not* work in the low-level class example shown above,
-    # because the ICRS low-level class does not store `equinox`.
+    assert allclose(sc1.ra, sc3.ra)
 
     # `SkyCoord` will also include the attribute-style access that is in the
     # v0.2/0.3 coordinate objects.  This will *not* be in the low-level classes
