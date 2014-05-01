@@ -340,7 +340,10 @@ def test_convert_unit_to():
     d = NDData(np.ones((5, 5)))
     d.unit = 'km'
     d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
-    d.mask = np.zeros_like(d, dtype=np.bool)
+    # workaround because zeros_like does not support dtype arg until v1.6
+    # and NDData accepts only bool ndarray as mask
+    tmp = np.zeros_like(d)
+    d.mask = np.array(tmp, dtype=np.bool)
     d1 = d.convert_unit_to('m')
     assert np.all(d1 == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
