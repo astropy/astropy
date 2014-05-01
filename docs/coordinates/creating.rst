@@ -41,27 +41,21 @@ angle. For the exact rules for how each string is parsed, see the
         ...
     UnitsError: No unit specified
 
-You can also directly specify the units for both to resolve
-ambiguities in parsing the angle strings::
-
-    >>> ICRS("14.12412 -41:08:15.162342", unit=(u.hour, u.degree))
-    <ICRS Coordinate: ra=211.8618 deg, dec=-41.137545095 deg>
-    >>> ICRS("54:7:26.832 -41:08:15.162342", unit=(u.degree, u.degree))
-    <ICRS RA=54.12412 deg, Dec=-41.13755 deg>
-    >>> ICRS('3 4 5 +6 7 8', unit=(u.hour, u.degree))
-    <ICRS RA=46.02083 deg, Dec=6.11889 deg>
-    >>> ICRS('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
-    <ICRS RA=46.02083 deg, Dec=6.11889 deg>
-
 It's also possible to create coordinates using lists or `numpy` arrays.  The
 same unit rules apply as for scalar angles.::
 
-    >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654], unit=(u.degree, u.degree))
-    <ICRS RA=[ 187.70592  123.45678] deg, Dec=[ 12.39112   9.87654] deg>
+    >>> ICRS([187.70592, 123.45678]*u.degree, [12.39112, 9.87654]*u.degree)
+    <ICRS Coordinate: (ra, dec) in deg
+        [(187.70592, 12.39112), (123.45677999999998, 9.87654)]>
+    >>> ICRS([187.70592*u.degree, 8.23*u.hourangle], [12.39112*u.degree, 1.2*u.radian])
+    <ICRS Coordinate: (ra, dec) in deg
+        [(187.70592, 12.39112), (123.44999999999999, 68.75493541569878)]>
     >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654])
     Traceback (most recent call last):
         ...
     UnitsError: No unit was given - must be some kind of angle
+
+
 
 .. warning::
     If you try to create an angle using a tuple for each angle instead of a
