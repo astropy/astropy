@@ -1,5 +1,7 @@
 import numpy as np
 
+from . import settings
+
 # Algorithm inspired by PGSBOX from WCSLIB by M. Calabretta
 
 
@@ -27,8 +29,8 @@ def find_coordinate_range(transform, extent, coord_types):
         ``'scalar'`` value.
     '''
 
-    # Sample coordinates on a 50 x 50 grid.
-    NX = NY = 50
+    # Sample coordinates on a NX x NY grid.
+    NX = NY = settings.COORDINATE_RANGE_SAMPLES
     x = np.linspace(extent[0], extent[1], NX + 1)
     y = np.linspace(extent[2], extent[3], NY + 1)
     xp, yp = np.meshgrid(x, y)
@@ -43,25 +45,20 @@ def find_coordinate_range(transform, extent, coord_types):
         if coord_type in ['longitude', 'latitude']:
 
             # Iron out coordinates along first row
-
-            for ix in range(1, NX + 1):
-
-                wjump = xw[0, ix] - xw[0, ix - 1]
-                if np.abs(wjump) > 180.:
-                    wjump = wjump + np.sign(wjump) * 180.
-                    wjump = 360. * (wjump / 360.).astype(int)
-                    xw[0, ix] -= wjump
+            wjump = xw[0, 1:] - xw[0, :-1]
+            reset = np.abs(wjump) > 180.
+            if np.any(reset):
+                wjump = wjump + np.sign(wjump) * 180.
+                wjump = 360. * (wjump / 360.).astype(int)
+                xw[0, 1:][reset] -= wjump[reset]
 
             # Now iron out coordinates along all columns, starting with first row.
-
-            for iy in range(1, NY + 1):
-
-                wjump = xw[iy,:] - xw[iy - 1,:]
-                reset = np.abs(wjump) > 180.
-                if np.any(reset):
-                    wjump = wjump + np.sign(wjump) * 180.
-                    wjump = 360. * (wjump / 360.).astype(int)
-                    xw[iy,:][reset] -= wjump[reset]
+            wjump = xw[1:] - xw[:1]
+            reset = np.abs(wjump) > 180.
+            if np.any(reset):
+                wjump = wjump + np.sign(wjump) * 180.
+                wjump = 360. * (wjump / 360.).astype(int)
+                xw[1:][reset] -= wjump[reset]
 
         xw_min = np.nanmin(xw)
         xw_max = np.nanmax(xw)

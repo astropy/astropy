@@ -14,6 +14,7 @@ from .ticks import Ticks
 from .ticklabels import TickLabels
 from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
+from . import settings
 
 from . import six
 
@@ -302,10 +303,12 @@ class CoordinateHelper(object):
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
-        frame = self.frame.sample(1000)
+        frame = self.frame.sample(settings.FRAME_BOUNDARY_SAMPLES)
 
         self.ticks.clear()
         self.ticklabels.clear()
+        lblinfo = []
+        lbl_world = []
 
         for axis, spine in frame.iteritems():
 
@@ -365,7 +368,7 @@ class CoordinateHelper(object):
             for t in tick_world_coordinates:
 
                 # Find steps where a tick is present
-                intersections = np.nonzero(((t > w1) & (t < w2)) | ((t < w1) & (t > w2)))[0]
+                intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
 
                 # Loop over ticks, and find exact pixel coordinates by linear
                 # interpolation
@@ -374,10 +377,10 @@ class CoordinateHelper(object):
                     imax = imin + 1
 
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_data_i = spine.data[imin,0] + frac * (spine.data[imax,0] - spine.data[imax,0])
-                    y_data_i = spine.data[imin,1] + frac * (spine.data[imax,1] - spine.data[imax,1])
-                    x_pix_i = spine.pixel[imin,0] + frac * (spine.pixel[imax,0] - spine.pixel[imax,0])
-                    y_pix_i = spine.pixel[imin,1] + frac * (spine.pixel[imax,1] - spine.pixel[imax,1])
+                    x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
+                    y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
+                    x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
+                    y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
                     delta_angle = tick_angle[imax] - tick_angle[imin]
                     if delta_angle > 180.:
                         delta_angle -= 360.
@@ -396,12 +399,20 @@ class CoordinateHelper(object):
                                    angle=angle_i,
                                    axis_displacement=imin + frac)
 
-                    self.ticklabels.add(axis=axis,
-                                        pixel=(x_pix_i, y_pix_i),
-                                        world=world,
-                                        angle=spine.normal_angle[imin],
-                                        text=self._formatter_locator.formatter([world], spacing=spacing)[0],
-                                        axis_displacement=imin + frac)
+                    # store information to pass to ticklabels.add
+                    # it's faster to format many ticklabels at once outside
+                    # of the loop
+                    lblinfo.append(dict(axis=axis,
+                                   pixel=(x_pix_i, y_pix_i),
+                                   world=world,
+                                   angle=spine.normal_angle[imin],
+                                   axis_displacement=imin + frac))
+                    lbl_world.append(world)
+
+        # format tick labels, add to scene
+        text = self._formatter_locator.formatter(lbl_world, spacing=spacing)
+        for kwargs, txt in zip(lblinfo, text):
+            self.ticklabels.add(text=txt, **kwargs)
 
     def _update_grid_lines(self):
 
