@@ -60,11 +60,11 @@ unit sphere::
 
     >>> c2 = ICRS('00h42m44.3s', '+41d16m9s')
     >>> cart2 = c2.represent_as(CartesianRepresentation)
-    >>> c2.x
+    >>> cart2.x
     <Quantity 0.73858816651502...>
-    >>> c2.y
+    >>> cart2.y
     <Quantity 0.13935186489455...>
-    >>> c2.z
+    >>> cart2.z
     <Quantity 0.65959728473848...>
 
 
