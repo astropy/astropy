@@ -60,6 +60,7 @@ def get_package_data():
                                    't/vots_spec.dat',
                                    't/whitespace.dat',
                                    't/simple_csv.csv',
+                                   't/simple_csv_missing.csv',
                                    ]
     }
 
