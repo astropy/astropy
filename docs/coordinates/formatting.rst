@@ -30,5 +30,5 @@ string expressions, such as IAU-style coordinates or even full sentences::
 
   >>> 'SDSS J{0}{1}'.format(c.ra.to_string(sep='', precision=2, pad=True), c.dec.to_string(sep='', precision=2, alwayssign=True, pad=True))
   'SDSS J1874221.31+122328.03'
-  >>> 'The galaxy M87, at an RA of {0.ra.deg:.1f} and dec of {0.dec.deg:.1f} degrees, has an impressive jet.'.format(c)
+  >>> 'The galaxy M87, at an RA of {0.ra.deg:.1f} and Dec of {0.dec.deg:.1f} degrees, has an impressive jet.'.format(c)
   'The galaxy M87, at an RA of 187.7 and Dec of 12.4 degrees, has an impressive jet.'
