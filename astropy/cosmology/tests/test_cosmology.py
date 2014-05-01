@@ -730,9 +730,9 @@ def test_integral():
     assert np.allclose(cosmo.comoving_distance([1, 2, 3, 5]),
                        cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]), rtol=1e-7)
     assert np.allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
-    assert np.allclose(cosmo.efunc([1, 2, 6]), 
+    assert np.allclose(cosmo.efunc([1, 2, 6]),
                        cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
-    assert np.allclose(cosmo.inv_efunc([1, 2, 6]), 
+    assert np.allclose(cosmo.inv_efunc([1, 2, 6]),
                        cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
@@ -1066,7 +1066,8 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError')
+    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError',
+            'deprecated')
 
     core.set_current('Planck13')
     for name in funcs.__all__:
