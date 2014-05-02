@@ -34,55 +34,61 @@ def test_transform_to():
         assert allclose(c_frame.distance, s_frame.distance)
 
 
-def test_round_tripping():
+# set up for parametrized test
+rt_sets = []
+rt_frames = [ICRS, FK4, FK5, FK4NoETerms, Galactic]
+for rt_frame0 in rt_frames:
+    for rt_frame1 in rt_frames:
+            for equinox0 in (None, 'J1975.0'):
+                for obstime0 in (None, 'J1980.0'):
+                    for equinox1 in (None, 'J1975.0'):
+                        for obstime1 in (None, 'J1980.0'):
+                            rt_sets.append([rt_frame0, rt_frame1,
+                                            equinox0, equinox1,
+                                            obstime0, obstime1])
+rt_args = 'frame0,frame1,equinox0,equinox1,obstime0,obstime1'
+@pytest.mark.parametrize(rt_args, rt_sets)
+def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     """
     Test round tripping out and back using transform_to in every combination.
     """
-    frames = [ICRS, FK4, FK5, FK4NoETerms, Galactic]
-    attrs0 = {}
-    attrs1 = {}
-    for frame_cls0 in frames:
-        for frame_cls1 in frames:
-            for equinox0 in (None, 'J1975.0'):
-                attrs0['equinox'] = equinox0
+    attrs0 = {'equinox': equinox0, 'obstime': obstime0}
+    attrs1 = {'equinox': equinox1, 'obstime': obstime1}
 
-                for obstime0 in (None, 'J1980.0'):
-                    attrs0['obstime'] = obstime0
+    # Remove None values
+    attrs0 = dict((k, v) for k, v in attrs0.items() if v is not None)
+    attrs1 = dict((k, v) for k, v in attrs1.items() if v is not None)
 
-                    for equinox1 in (None, 'J1975.0'):
-                        attrs1['equinox'] = equinox1
+    # Go out and back
+    sc = SkyCoord(frame0, RA, DEC, **attrs0)
 
-                        for obstime1 in (None, 'J1980.0'):
-                            attrs1['obstime'] = obstime1
+    # Keep only frame attributes for frame1
+    attrs1 = dict((attr, val) for attr, val in attrs1.items()
+                  if attr in frame1.frame_attr_names)
+    sc2 = sc.transform_to(frame1(**attrs1))
 
-                            # Remove None values
-                            attrs0 = dict((k, v) for k, v in attrs0.items() if v is not None)
-                            attrs1 = dict((k, v) for k, v in attrs1.items() if v is not None)
+    # When coming back only keep frame0 attributes for transform_to
+    attrs0 = dict((attr, val) for attr, val in attrs0.items()
+                  if attr in frame0.frame_attr_names)
+    # also, if any are None, fill in with defaults
+    for attrnm in frame0.frame_attr_names:
+        if attrs0.get(attrnm, None) is None:
+            if attrnm=='obstime' and frame0.frame_attr_names[attrnm] is None:
+                attrs0[attrnm] = attrs0['equinox']
+            else:
+                attrs0[attrnm] = frame0.frame_attr_names[attrnm]
+    sc_rt = sc2.transform_to(frame0(**attrs0))
 
-                            print(attrs0, equinox0, obstime0, frame_cls0)
-                            # Go out and back
-                            sc = SkyCoord(frame_cls0, RA, DEC, **attrs0)
-
-                            # Keep only frame attributes for frame1
-                            attrs1 = dict((attr, val) for attr, val in attrs1.items()
-                                          if attr in frame_cls1.frame_attr_names)
-                            sc2 = sc.transform_to(frame_cls1(**attrs1))
-
-                            # When coming back only keep frame0 attributes for transform_to
-                            attrs0 = dict((attr, val) for attr, val in attrs0.items()
-                                          if attr in frame_cls0.frame_attr_names)
-                            sc_rt = sc2.transform_to(frame_cls0(**attrs0))
-
-                            if frame_cls0 is Galactic:
-                                assert allclose(sc.l, sc_rt.l)
-                                assert allclose(sc.b, sc_rt.b)
-                            else:
-                                assert allclose(sc.ra, sc_rt.ra)
-                                assert allclose(sc.dec, sc_rt.dec)
-                            if equinox0:
-                                assert Time(sc.equinox) == Time(sc_rt.equinox)
-                            if obstime0:
-                                assert Time(sc.obstime) == Time(sc_rt.obstime)
+    if frame0 is Galactic:
+        assert allclose(sc.l, sc_rt.l)
+        assert allclose(sc.b, sc_rt.b)
+    else:
+        assert allclose(sc.ra, sc_rt.ra)
+        assert allclose(sc.dec, sc_rt.dec)
+    if equinox0:
+        assert Time(sc.equinox) == Time(sc_rt.equinox)
+    if obstime0:
+        assert Time(sc.obstime) == Time(sc_rt.obstime)
 
 
 
