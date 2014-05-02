@@ -298,3 +298,19 @@ def test_frame_attr_getattr():
     sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999')
     assert sc.equinox == Time('J1999')
     assert sc.obstime == Time('J1999')
+
+
+def test_to_string():
+    """
+    Basic testing of converting SkyCoord to strings.  This just tests
+    for a single input coordinate and and 1-element list.  It does not
+    test the underlying `Angle.to_string` method itself.
+    """
+    coord = '1h2m3s 1d2m3s'
+    for wrap in (lambda x: x, lambda x: [x]):
+        sc = SkyCoord(wrap(coord))
+        assert sc.to_string() == wrap('15.5125 1.03417')
+        assert sc.to_string('dms') == wrap('15d30m45s 1d02m03s')
+        assert sc.to_string('hmsdms') == wrap('01h02m03s +01d02m03s')
+        with_kwargs = sc.to_string('hmsdms', precision=3, pad=True, alwayssign=True)
+        assert with_kwargs == wrap('+01h02m03.000s +01d02m03.000s')
