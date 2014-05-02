@@ -71,6 +71,15 @@ def test_to_string_fields():
     assert a.to_string(fields=3) == r'1d06m48.078s'
 
 
+def test_to_string_padding():
+    a = Angle(0.5653, unit=u.deg)
+    assert a.to_string(unit='deg', sep=':', pad=True) == r'00:33:55.08'
+
+    # Test to make sure negative angles are padded correctly
+    a = Angle(-0.5653, unit=u.deg)
+    assert a.to_string(unit='deg', sep=':', pad=True) == r'-00:33:55.08'
+
+
 def test_sexagesimal_rounding_up():
     a = Angle(359.9999999999, unit=u.deg)
 

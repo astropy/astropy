@@ -137,10 +137,6 @@ its contents, edit astropy/wcs/docstrings.py
 #ifndef __DOCSTRINGS_H__
 #define __DOCSTRINGS_H__
 
-#if defined(_MSC_VER)
-void fill_docstrings(void);
-#endif
-
 """)
     for key in keys:
         val = docs[key]
@@ -165,32 +161,19 @@ MSVC, do not support string literals greater than 256 characters.
 #include <string.h>
 #include "astropy_wcs/docstrings.h"
 
-#if defined(_MSC_VER)
 """)
     for key in keys:
         val = docs[key]
-        c_file.write('char doc_{0}[{1}];\n'.format(key, len(val)))
+        c_file.write('char doc_{0}[{1}] = {{\n'.format(key, len(val)))
+        for i in range(0, len(val), 12):
+            section = val[i:i+12]
+            if six.PY2:
+                section = [ord(x) for x in section]
+            c_file.write('    ');
+            c_file.write(''.join('0x{0:02x}, '.format(x) for x in section))
+            c_file.write('\n')
 
-    c_file.write("\nvoid fill_docstrings(void)\n{\n")
-    for key in keys:
-        val = docs[key]
-        # For portability across various compilers, we need to fill the
-        # docstrings in 256-character chunks
-        for i in range(0, len(val), 256):
-            chunk = string_escape(val[i:i + 256]).replace('"', '\\"')
-            c_file.write('   strncpy(doc_{0} + {1}, "{2}", {3});\n'.format(
-                key, i, chunk, min(len(val) - i, 256)))
-        c_file.write("\n")
-    c_file.write("\n}\n\n")
-
-    c_file.write("#else /* UNIX */\n")
-
-    for key in keys:
-        val = docs[key]
-        c_file.write('char doc_{0}[{1}] = "{2}";\n\n'.format(
-            key, len(val), string_escape(val).replace('"', '\\"')))
-
-    c_file.write("#endif\n")
+        c_file.write("    };\n\n")
 
     setup_helpers.write_if_different(
         join(WCSROOT, 'src', 'docstrings.c'),

@@ -61,7 +61,7 @@ e = EMConstant('e', 'Electron charge', 1.602176565e-19, 'C', 0.000000035e-19,
                'CODATA 2010', system='si')
 
 # Electric constant
-eps0 = EMConstant('eps0', 'Electic constant', 8.854187817e-12, 'F/m', 0.0,
+eps0 = EMConstant('eps0', 'Electric constant', 8.854187817e-12, 'F/m', 0.0,
                   'CODATA 2010', system='si')
 
 # Avogadro's number

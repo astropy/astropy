@@ -16,9 +16,21 @@ Bug Fixes
     ``sexagisimal_to_string``, it now includes seperators only between
     items [#2183]
 
+  - Ensure comparisons involving ``Distance`` objects do not raise exceptions;
+    also ensure operations that lead to units other than length return
+    ``Quantity``. [#2206, #2250]
+
+  - Multiplication and division of ``Angle`` objects is now
+    supported. [#2273]
+
+  - Fixed ``Angle.to_string`` functionality so that negative angles have the
+    correct amount of padding when ``pad=True``. [#2337]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
+
+  - Be more carful about converting to floating point internally [#1815, #1818]
 
 - ``astropy.io.ascii``
 
@@ -29,11 +41,25 @@ Bug Fixes
     type conversion (e.g. overflowing the native C long type), fall through to
     using string. Previously this generated an exception [#2234].
 
+  - Some CDS files mark missing values with ``"---"``, others with ``"--"``.
+    Recognize any string with one to four dashes as null value. [#1335]
+
 - ``astropy.io.fits``
+
+  - Allow pickling of ``FITS_rec`` objects. [#1597]
+
+  - Improved behavior when writing large compressed images on OSX by removing
+    an unncessary check for platform architecture. [#2345]
+
+  - Fixed an issue where Astropy ``Table`` objects containing boolean columns
+    were not correctly written out to FITS files. [#1953]
 
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
+
+  - Allow readers/writers with the same name to be attached to different
+    classes. [#2312]
 
 - ``astropy.io.votable``
 
@@ -48,8 +74,8 @@ Bug Fixes
 
 - ``astropy.stats``
 
-  - Ensure the ``axis`` keyword in :func:`astropy.stats.funcs` can now
-    be used for all axes. [#2173]
+  - Ensure the ``axis`` keyword in ``astropy.stats.funcs`` can now be used for
+    all axes. [#2173]
 
 - ``astropy.table``
 
@@ -57,9 +83,23 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed pickling of ``Time`` objects. [#2123]
+
 - ``astropy.units``
 
+  - ``Quantity._repr_latex_()`` returns ``NotImplementedError`` for quantity
+    arrays instead of an uninformative formatting exception. [#2258]
+
+  - Ensure ``Quantity.flat`` always returns ``Quantity``. [#2251]
+
 - ``astropy.utils``
+
+  - Progress bars will now be displayed inside the IPython
+    qtconsole. [#2230]
+
+  - ``data.download_file()`` now evaluates ``REMOTE_TIMEOUT()`` at runtime
+    rather than import time. Previously, setting ``REMOTE_TIMEOUT`` after
+    import had no effect on the function's behavior. [#2302]
 
 - ``astropy.vo``
 
@@ -68,6 +108,10 @@ Bug Fixes
     [#2240, #2242]
 
 - ``astropy.wcs``
+
+  - Fixed a bug where calling ``astropy.wcs.Wcsprm.sub`` with
+    ``WCSSUB_CELESTIAL`` may cause memory corruption due to
+    underallocation of a temporary buffer. [#2350]
 
 - Misc
 
@@ -101,27 +145,26 @@ Bug Fixes
   - Fixed a bug where using ``==`` on two array coordinates wouldn't
     work. [#1832]
 
-  - Fixed bug which caused `len()` not to work for coordinate objects
-    and added a `shape` property to get appropriately array-like
-    behavior. [#1761, #2014]
+  - Fixed bug which caused ``len()`` not to work for coordinate objects and
+    added a ``.shape`` property to get appropriately array-like behavior.
+    [#1761, #2014]
 
-  - ``astropy.coordinates.transformations.CompositeStaticMatrixTransform``
-    no longer attempts to reference the undefined variable
-    ``self.matrix`` during instantiation. [#1944]
+  - Fixed a bug where sexagesimal notation would sometimes include
+    exponential notation in the last field. [#1908, #1913]
 
-  - Fixed pickling of ``Longitude``, ensuring ``wrap_angle`` is
-    preserved [#1961]
+  - Fixed pickling of ``Longitude``, ensuring ``wrap_angle`` is preserved
+    [#1961]
 
-  - Allow `sep` argument in `Angle.to_string` to be empty (resulting in no
+  - Allow ``sep`` argument in ``Angle.to_string`` to be empty (resulting in no
     separators) [#1989]
 
 - ``astropy.io.ascii``
 
-  - Allow passing unicode delimiters when reading or writing tables.
-    The delimiter must be convertible to pure ASCII.  [#1949]
+  - Allow passing unicode delimiters when reading or writing tables.  The
+    delimiter must be convertible to pure ASCII.  [#1949]
 
-  - Fix a problem when reading a table and renaming the columns to names
-    that already exist. [#1991]
+  - Fix a problem when reading a table and renaming the columns to names that
+    already exist. [#1991]
 
 - ``astropy.io.fits``
 
@@ -135,23 +178,28 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
-  - The `write_null_values` kwarg to `VOTable.to_xml`, when set to `False` (the
-    default) would produce non-standard VOTable files.  Therefore, this
-    functionality has been replaced by a better understanding that knows which
-    fields in a VOTable may be left empty (only `char`, `float` and `double` in
-    VOTable 1.1 and 1.2, and all fields in VOTable 1.3).  The kwarg is still
-    accepted but it will be ignored, and a warning is emitted.
+  - The ``write_null_values`` kwarg to ``VOTable.to_xml``, when set to
+    ``False`` (the default) would produce non-standard VOTable files.
+    Therefore, this functionality has been replaced by a better understanding
+    that knows which fields in a VOTable may be left empty (only ``char``,
+    ``float`` and ``double`` in VOTable 1.1 and 1.2, and all fields in VOTable
+    1.3).  The kwarg is still accepted but it will be ignored, and a warning is
+    emitted.  [#1809]
 
-  - Printing out a `astropy.io.votable.tree.Table` object using `repr`
-    or `str` now uses the pretty formatting in `astropy.table`, so
-    it's possible to easily preview the contents of a
-    `VOTable`. [#1766]
+  - Printing out a ``astropy.io.votable.tree.Table`` object using ``repr`` or
+    ``str`` now uses the pretty formatting in ``astropy.table``, so it's
+    possible to easily preview the contents of a ``VOTable``. [#1766]
 
 - ``astropy.modeling``
 
-  - Raise a `NotImplementedError` when fitting composite models. [#1915]
+  - Fixed bug in computation of model derivatives in ``LinearLSQFitter``.
+    [#1903]
 
-  - Fixed bug in computation of ``Gaussian2D`` model. [#2038]
+  - Raise a ``NotImplementedError`` when fitting composite models. [#1915]
+
+  - Fixed bug in the computation of the ``Gaussian2D`` model. [#2038]
+
+  - Fixed bug in the computation of the ``AiryDisk2D`` model. [#2093]
 
 - ``astropy.sphinx``
 
@@ -162,18 +210,18 @@ Bug Fixes
   - The column string representation for n-dimensional cells with only
     one element has been fixed. [#1522]
 
-  - Fix a problem that caused MaskedColumn.__getitem__ to not preserve column
-    metadata. [#1471]
+  - Fix a problem that caused ``MaskedColumn.__getitem__`` to not preserve
+    column metadata. [#1471, #1872]
 
   - With Numpy prior to version 1.6.2, tables with Unicode columns now
     sort correctly. [#1867]
 
-  - `astropy.table` can now print out tables with Unicode columns
-    containing non-ascii characters. [#1864]
+  - ``astropy.table`` can now print out tables with Unicode columns containing
+    non-ascii characters. [#1864]
 
   - Columns can now be named with Unicode strings, as long as they contain only
-    ascii characters.  This makes using `astropy.table` easier on Python 2 when
-    `from __future__ import unicode_literals` is used. [#1864]
+    ascii characters.  This makes using ``astropy.table`` easier on Python 2
+    when ``from __future__ import unicode_literals`` is used. [#1864]
 
   - Allow pickling of ``Table``, ``Column``, and ``MaskedColumn`` objects. [#792]
 
@@ -182,9 +230,12 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Fix a problem when converting to one of the formats `unix`,
-    `cxcsec`, `gps` or `plot_date` when the time scale is `UT1`, `TDB`
-    or `TCB` [#1732]
+  - Fix a problem where scale conversion problem in TimeFromEpoch
+    was not showing a useful error [#2046]
+
+  - Fix a problem when converting to one of the formats ``unix``, ``cxcsec``,
+    ``gps`` or ``plot_date`` when the time scale is ``UT1``, ``TDB`` or ``TCB``
+    [#1732]
 
   - Fix a bug when computing the TDB to TT offset.  The transform routine was
     using meters instead of kilometers for the Earth vector.  [#1929]
@@ -208,8 +259,8 @@ Bug Fixes
 
   - Fix error for inplace operations on non-contiguous quantities [#1834].
 
-  - The definition of the unit `bar` has been corrected to `1e5
-    Pascal` from `100 Pascal` [#1910]
+  - The definition of the unit ``bar`` has been corrected to "1e5
+    Pascal" from "100 Pascal" [#1910]
 
   - For units that are close to known units, but not quite, for
     example due to differences in case, the exception will now include
@@ -222,13 +273,12 @@ Bug Fixes
     standard, due to the ambiguity of parsing, so a warning is raised
     when it is encountered. [#1911]
 
-  - The use of ``angstrom`` (with a lower case ``a``) is now accepted
-    in FITS unit strings, since it is in common usage.  However, since
-    it is not officially part of the FITS standard, a warning will be
-    issued when it is encountered.  [#1911]
+  - The use of "angstrom" (with a lower case "a") is now accepted in FITS unit
+    strings, since it is in common usage.  However, since it is not officially
+    part of the FITS standard, a warning will be issued when it is encountered.
+    [#1911]
 
-  - Pickling unrecognized units will not raise a
-    `AttributeError`. [#2047]
+  - Pickling unrecognized units will not raise a `AttributeError`. [#2047]
 
   - `astropy.units` now correctly preserves the precision of
     fractional powers. [#2070]
@@ -241,60 +291,54 @@ Bug Fixes
 
 - ``astropy.utils``
 
-  - Bug fix for :func:`astropy.utils.timer.RunTimePredictor.do_fit`. [#1905]
+  - Fixed crash in ``timer.RunTimePredictor.do_fit``. [#1905]
 
-  - Fixed `astropy.utils.compat.argparse` for Python 3.1. [#2017]
+  - Fixed ``astropy.utils.compat.argparse`` for Python 3.1. [#2017]
 
 - ``astropy.wcs``
 
-  - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
-    being ignored when none was present in the FITS file. [#1845]
+  - ``astropy.wcs.WCS``, ``astropy.wcs.WCS.fix`` and
+    ``astropy.wcs.find_all_wcs`` now have a ``translate_units`` keyword
+    argument that is passed down to ``astropy.wcs.Wcsprm.fix``.  This can be
+    used to specify any unsafe translations of units from rarely used ones to
+    more commonly used ones.
 
-  - `astropy.wcs.WCS`, `astropy.wcs.WCS.fix` and
-    `astropy.wcs.find_all_wcs` now have a `translate_units` keyword
-    argument that is passed down to `astropy.wcs.Wcsprm.fix`.  This
-    can be used to specify any unsafe translations of units from
-    rarely used ones to more commonly used ones.
-
-    Although ``"S"`` is commonly used to represent seconds,
-    its translation to ``"s"`` is potentially unsafe since the
-    standard recognizes ``"S"`` formally as Siemens, however
-    rarely that may be used.  The same applies to ``"H"`` for
-    hours (Henry), and ``"D"`` for days (Debye).
+    Although ``"S"`` is commonly used to represent seconds, its translation to
+    ``"s"`` is potentially unsafe since the standard recognizes ``"S"``
+    formally as Siemens, however rarely that may be used.  The same applies to
+    ``"H"`` for hours (Henry), and ``"D"`` for days (Debye).
 
     When these sorts of changes are performed, a warning is emitted
     (but this reporting requires a patched version of wcslib,
     distributed with astropy). [#1854]
 
-  - When a unit is "fixed" by `astropy.wcs.WCS.fix` or
-    `astropy.wcs.Wcsprm.unitfix`, it now correctly reports the
-    ``CUNIT`` field that was changed.  (This requires that astropy
-    was built with the locally distributed version of wcslib). [#1854]
-
-  - `astropy.wcs.WCS.to_header` will now raise a more meaningful
+  - ``astropy.wcs.WCS.to_header`` will now raise a more meaningful
     exception when the WCS information is inavlid or inconsistent in
     some way. [#1854]
 
-  - A new function, `astropy.wcs.get_include`, has been added to get
-    the location of the `astropy.wcs` C header files. [#1755]
+  - When a unit is "fixed" by ``astropy.wcs.WCS.fix`` or
+    ``astropy.wcs.Wcsprm.unitfix``, it now correctly reports the ``CUNIT``
+    field that was changed. [#1854]
 
-  - `astropy.wcs.Wcsprm.set` is called from within the
-    `astropy.wcs.WCS` constructor, therefore any invalid information
-    in the keywords will be raised from the constructor, rather than
-    on a subsequent call to a transformation method. [#1918]
+  - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is being
+    ignored when none was present in the FITS file. [#1845]
 
-  - Fix a memory corruption bug when using `astropy.wcs.Wcs.sub` with
-    `~astropy.wcs.WCSSUB_CELESTIAL`. [#1960]
+  - ``astropy.wcs.Wcsprm.set`` is called from within the ``astropy.wcs.WCS``
+    constructor, therefore any invalid information in the keywords will be
+    raised from the constructor, rather than on a subsequent call to a
+    transformation method. [#1918]
 
-  - Fixed the AttributeError exception which was raised when using
-    :func:`astropy.wcs.WCS.footprint_to_file`. [#1912]
+  - Fix a memory corruption bug when using ``astropy.wcs.Wcs.sub`` with
+    ``astropy.wcs.WCSSUB_CELESTIAL``. [#1960]
 
-  - Fixed a NameError exception which was raised when using
-    :func:`astropy.wcs.validate` or the `wcslint` script. [#2053]
+  - Fixed the ``AttributeError`` exception that was raised when using
+    ``astropy.wcs.WCS.footprint_to_file``. [#1912]
 
-  - Fixed a bug where named WCSes may be erroneously reported as ``'
-    '`` when using :func:`astropy.wcs.validate` or the `wcslint`
-    script. [#2053]
+  - Fixed a ``NameError`` exception that was raised when using
+    ``astropy.wcs.validate`` or the ``wcslint`` script. [#2053]
+
+  - Fixed a bug where named WCSes may be erroneously reported as ``' '`` when
+    using ``astropy.wcs.validate`` or the ``wcslint`` script. [#2053]
 
   - Fixed a bug where error messages about incorrect header keywords
     may not be propagated correctly, resulting in a "NULL error object
@@ -302,17 +346,19 @@ Bug Fixes
 
 - Misc
 
-  - There are a number of improvements to make `astropy` work better
-    on big endian platforms, such as MIPS, PPC, s390x and
-    SPARC. [#1849]
+  - There are a number of improvements to make Astropy work better on big
+    endian platforms, such as MIPS, PPC, s390x and SPARC. [#1849]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- The doctests in the ``.rst`` files in the ``docs`` folder are now tested
-  along with the other unit tests.  This is in addition to the testing of
-  doctests in docstrings that was already being performed.  See
-  ``docs/development/testguide.rst`` for more information.
+- A new function, ``astropy.wcs.get_include``, has been added to get the
+  location of the ``astropy.wcs`` C header files. [#1755]
+
+- The doctests in the ``.rst`` files in the ``docs`` folder are now
+  tested along with the other unit tests.  This is in addition to the
+  testing of doctests in docstrings that was already being performed.
+  See ``docs/development/testguide.rst`` for more information. [#1771]
 
 - Fix a problem where import fails on Python 3 if setup.py exists
   in current directory. [#1877]
@@ -341,9 +387,11 @@ New Features
         >>> print(unicode(u.degree))
         °
 
-    See :ref:`handling-unicode` for more information. [#1441]
+    See `handling-unicode
+    <http://docs.astropy.org/en/v0.3/development/codeguide.html#unicode-guidelines>`_
+    for more information. [#1441]
 
-    - `astropy.utils.misc.find_api_page` is now imported into the top-level.
+    - ``astropy.utils.misc.find_api_page`` is now imported into the top-level.
       This allows usage like ``astropy.find_api_page(astropy.units.Quantity)``.
       [#1779]
 
@@ -351,29 +399,30 @@ New Features
 
   - New class-based system for generating kernels, replacing ``make_kernel``.
     [#1255] The ``astropy.nddata.convolution`` sub-package has now been moved
-    to `astropy.convolution`. [#1451]
+    to ``astropy.convolution``. [#1451]
 
 - ``astropy.coordinates``
 
-  - Two classes `astropy.coordinates.Longitude` and `astropy.coordinates.Latitude`
-    have been added.  These are derived from the new `Angle` class and used for
-    all longitude-like (RA, azimuth, galactic L) and latitude-like coordinates
-    (Dec, elevation, galactic B) respectively.  The `Longitude` class provides
-    auto-wrapping capability and `Latitude` performs bounds checking.
+  - Two classes ``astropy.coordinates.Longitude`` and
+    ``astropy.coordinates.Latitude`` have been added.  These are derived from
+    the new ``Angle`` class and used for all longitude-like (RA, azimuth,
+    galactic L) and latitude-like coordinates (Dec, elevation, galactic B)
+    respectively.  The ``Longitude`` class provides auto-wrapping capability
+    and ``Latitude`` performs bounds checking.
 
-  - `astropy.coordinates.Distance` supports conversion to and from distance
+  - ``astropy.coordinates.Distance`` supports conversion to and from distance
     modulii. [#1472]
 
-  - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
-    support arrays of coordinates, enabling large speed-ups for some
-    operations on multiple coordinates at the same time. These coordinates
-    can also be indexed using standard slicing or any Numpy-compatible
-    indexing. [#1535, #1615]
+  - ``astropy.coordinates.SphericalCoordinateBase`` and derived classes now
+    support arrays of coordinates, enabling large speed-ups for some operations
+    on multiple coordinates at the same time. These coordinates can also be
+    indexed using standard slicing or any Numpy-compatible indexing. [#1535,
+    #1615]
 
   - Array coordinates can be matched to other array coordinates, finding the
     closest matches between the two sets of coordinates (see the
-    `~astropy.coordinates.matching.match_coordinates_3d` and
-    `~astropy.coordinates.matching.match_coordinates_sky` functions). [#1535]
+    ``astropy.coordinates.matching.match_coordinates_3d`` and
+    ``astropy.coordinates.matching.match_coordinates_sky`` functions). [#1535]
 
 - ``astropy.cosmology``
 
@@ -427,15 +476,15 @@ New Features
 - ``astropy.stats``
 
   - Added robust statistics functions
-    `~astropy.stats.funcs.median_absolute_deviation`,
-    `~astropy.stats.funcs.biweight_location`, and
-    `~astropy.stats.funcs.biweight_midvariance`. [#621]
+    ``astropy.stats.funcs.median_absolute_deviation``,
+    ``astropy.stats.funcs.biweight_location``, and
+    ``astropy.stats.funcs.biweight_midvariance``. [#621]
 
-  - Added `~astropy.stats.funcs.signal_to_noise_oir_ccd` for computing the
+  - Added ``astropy.stats.funcs.signal_to_noise_oir_ccd`` for computing the
     signal to noise ratio for source being observed in the optical/IR using a
     CCD. [#870]
 
-  - Add ``axis=int`` option to `astropy.stats.funcs.sigma_clip` to allow
+  - Add ``axis=int`` option to ``stropy.stats.funcs.sigma_clip`` to allow
     clipping along a given axis for multidimensional data. [#1083]
 
 - ``astropy.table``
@@ -549,9 +598,9 @@ New Features
     method returns ``True`` if the unit is equivalent to any of the units
     listed in the tuple. [#1521]
 
-  - `def_unit` can now take a 2-tuple of names of the form (short, long), where
-    each entry is a list.  This allows for handling strange units that might
-    have multiple short names. [#1543]
+  - ``def_unit`` can now take a 2-tuple of names of the form (short, long),
+    where each entry is a list.  This allows for handling strange units that
+    might have multiple short names. [#1543]
 
   - Added ``dimensionless_angles`` equivalency, which allows conversion of any
     power of radian to dimensionless. [#1161]
@@ -639,62 +688,63 @@ API Changes
 
 - ``astropy.coordinates``
 
-  - The `astropy.coordinates.Angle` class is now a subclass of
-    `astropy.units.Quantity`. This means it has all of the methods of a
+  - The ``astropy.coordinates.Angle`` class is now a subclass of
+    ``astropy.units.Quantity``. This means it has all of the methods of a
     `numpy.ndarray`. [#1006]
 
-  - The `astropy.coordinates.Distance` class is now a subclass of
-    `astropy.units.Quantity`. This means it has all of the methods of a
+  - The ``astropy.coordinates.Distance`` class is now a subclass of
+    ``astropy.units.Quantity``. This means it has all of the methods of a
     `numpy.ndarray`. [#1472]
 
-    - All angular units are now supported, not just `radian`, `degree`
-      and `hour`, but now `arcsecond` and `arcminute` as well.  The
-      object will retain its native unit, so when printing out a value
-      initially provided in hours, its `to_string()` will, by default,
-      also be expressed in hours.
+    - All angular units are now supported, not just ``radian``, ``degree`` and
+      ``hour``, but now ``arcsecond`` and ``arcminute`` as well.  The object
+      will retain its native unit, so when printing out a value initially
+      provided in hours, its ``to_string()`` will, by default, also be
+      expressed in hours.
 
-    - The `Angle` class now supports arrays of angles.
+    - The ``Angle`` class now supports arrays of angles.
 
-    - To be consistent with `units.Unit`, `Angle.format` has been deprecated
-      and renamed to `Angle.to_string`.
+    - To be consistent with ``units.Unit``, ``Angle.format`` has been
+      deprecated and renamed to ``Angle.to_string``.
 
-    - To be consistent with `astropy.units`, all plural forms of unit names
+    - To be consistent with ``astropy.units``, all plural forms of unit names
       have been removed.  Therefore, the following properties of
-      `astropy.coordinates.Angle` should be renamed:
+      ``astropy.coordinates.Angle`` should be renamed:
 
       - ``radians`` -> ``radian``
       - ``degrees`` -> ``degree``
       - ``hours`` -> ``hour``
 
-    - Multiplication and division of two `Angle` objects used to raise
+    - Multiplication and division of two ``Angle`` objects used to raise
       `NotImplementedError`.  Now they raise `TypeError`.
 
-  - The `astropy.coordinates.Angle` class no longer has a ``bounds`` attribute
-    so there is no bounds-checking or auto-wrapping at this level.  This allows
-    ``Angle`` objects to be used in arbitrary arithmetic expressions
-    (e.g. coordinate distance computation).
+  - The ``astropy.coordinates.Angle`` class no longer has a ``bounds``
+    attribute so there is no bounds-checking or auto-wrapping at this level.
+    This allows ``Angle`` objects to be used in arbitrary arithmetic
+    expressions (e.g. coordinate distance computation).
 
-  - The `astropy.coordinates.RA`and `astropy.coordinates.Dec` classes have
-    been removed and replaced with `astropy.coordinates.Longitude` and
-    `astropy.coordinates.Latitude` respectively.  These are now used for
-    the components of Galactic and Horizontal (Alt-Az) coordinates as well
-    instead of plain `Angle` objects.
+  - The ``astropy.coordinates.RA`` and ``astropy.coordinates.Dec`` classes have
+    been removed and replaced with ``astropy.coordinates.Longitude`` and
+    ``astropy.coordinates.Latitude`` respectively.  These are now used for the
+    components of Galactic and Horizontal (Alt-Az) coordinates as well instead
+    of plain ``Angle`` objects.
 
-  - `astropy.coordinates.angles.rotation_matrix` and
-    `astropy.coordinates.angles.angle_axis` now take a `unit` kwarg
-    instead of `degrees` kwarg to specify the units of the angles.
-    `rotation_matrix` will also take the unit from the given `Angle`
-    object if no unit is provided.
+  - ``astropy.coordinates.angles.rotation_matrix`` and
+    ``astropy.coordinates.angles.angle_axis`` now take a ``unit`` kwarg instead
+    of ``degrees`` kwarg to specify the units of the angles.
+    ``rotation_matrix`` will also take the unit from the given ``Angle`` object
+    if no unit is provided.
 
   - The ``AngularSeparation`` class has been removed.  The output of the
-    coordinates `separation()` method is now an `astropy.coordinates.Angle`.
-    [#1007]
+    coordinates ``separation()`` method is now an
+    ``astropy.coordinates.Angle``.  [#1007]
 
-  - The coordinate classes have been renamed in a way that remove the ``Coordinates``
-    at the end of the class names.  E.g., `ICRSCoordinates` from previous versions is
-    now called `ICRS`. [#1614]
+  - The coordinate classes have been renamed in a way that remove the
+    ``Coordinates`` at the end of the class names.  E.g., ``ICRSCoordinates``
+    from previous versions is now called ``ICRS``. [#1614]
 
-  - `HorizontalCoordinates` are now named `AltAz`, to reflect more common terminology.
+  - ``HorizontalCoordinates`` are now named ``AltAz``, to reflect more common
+    terminology.
 
 - ``astropy.cosmology``
 
@@ -799,8 +849,8 @@ API Changes
 
 - ``astropy.nddata``
 
-  - The `astropy.nddata.convolution` sub-package has now been moved to
-    `astropy.convolution`, and the `make_kernel` function has been removed.
+  - The ``astropy.nddata.convolution`` sub-package has now been moved to
+    ``astropy.convolution``, and the ``make_kernel`` function has been removed.
     (the kernel classes should be used instead) [#1451]
 
 - ``astropy.stats.funcs``
@@ -1158,9 +1208,8 @@ Bug Fixes
 - ``astropy.wcs``
 
   - When passing a single array to the wcs transformation functions,
-    (`astropy.wcs.Wcs.all_pix2world`, etc.), its second dimension must
-    now exactly match the number of dimensions in the
-    transformation. [#1395]
+    (``astropy.wcs.Wcs.all_pix2world``, etc.), its second dimension must now
+    exactly match the number of dimensions in the transformation. [#1395]
 
   - Improved error message when incorrect arguments are passed to
     ``WCS.wcs_world2pix``. [#1394]
@@ -1344,7 +1393,7 @@ Bug Fixes
 
   - Slightly refactored how tables containing variable-length array columns are
     handled to add two improvements: Fixes an issue where accessing the data
-    after a call to the `astropy.io.fits.getdata` convenience function caused
+    after a call to the ``astropy.io.fits.getdata`` convenience function caused
     an exception, and allows the VLA data to be read from an existing mmap of
     the FITS file.
 
@@ -1566,9 +1615,9 @@ Bug Fixes
 
   - Fixed ``TypeError`` when calling ``WCS.to_header_string()``. [#822]
 
-  - Added new method `WCS.all_world2pix` for converting from world coordinates
-    to pixel space, including inversion of the astrometric distortion
-    correction. [#1066, #1281]
+  - Added new method ``WCS.all_world2pix`` for converting from world
+    coordinates to pixel space, including inversion of the astrometric
+    distortion correction. [#1066, #1281]
 
 
 - Misc
@@ -1741,9 +1790,9 @@ see the "What's New" section of the documentation for more details.
 
   - From updating the the underlying wcslib 4.16:
 
-    - When `astropy.wcs.WCS` constructs a default coordinate
-      representation it will give it the special name "DEFAULTS", and
-      will not report "Found one coordinate representation".
+    - When ``astropy.wcs.WCS`` constructs a default coordinate representation
+      it will give it the special name "DEFAULTS", and will not report "Found
+      one coordinate representation".
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1786,17 +1835,17 @@ Other Changes and Additions
   system-installed version of CFITSIO.  This corresponds to PyFITS ticket 169.
   [#318]
 
-- Moved `astropy.config.data` to `astropy.utils.data` and re-factored the I/O
-  routines to separate out the generic I/O code that can be used to open any
-  file or resource from the code used to access Astropy-related data. The
-  'core' I/O routine is now `get_readable_fileobj`, which can be used to
-  access any local as well as remote data, supports caching, and can
-  decompress gzip and bzip2 files on-the-fly. [#425]
+- Moved ``astropy.config.data`` to ``astropy.utils.data`` and re-factored the
+  I/O routines to separate out the generic I/O code that can be used to open
+  any file or resource from the code used to access Astropy-related data. The
+  'core' I/O routine is now ``get_readable_fileobj``, which can be used to
+  access any local as well as remote data, supports caching, and can decompress
+  gzip and bzip2 files on-the-fly. [#425]
 
 - Added a classmethod to
-  `astropy.coordinates.coordsystems.SphericalCoordinatesBase` that performs a
+  ``astropy.coordinates.coordsystems.SphericalCoordinatesBase`` that performs a
   name resolve query using Sesame to retrieve coordinates for the requested
-  object. This works for any subclass of `SphericalCoordinatesBase`, but
+  object. This works for any subclass of ``SphericalCoordinatesBase``, but
   requires an internet connection. [#556]
 
 - ``astropy.nddata.convolution`` removed requirement of PyFFTW3; uses Numpy's
@@ -1911,14 +1960,14 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
-  - The `Table` class now maintains a single array object which is a
+  - The ``Table`` class now maintains a single array object which is a
     Numpy masked array.  For variable-length columns, the object that
     is stored there is also a Numpy masked array.
 
   - Changed the ``pedantic`` configuration option to be ``False`` by default
     due to the vast proliferation of non-compliant VO Tables. [#296]
 
-  - Renamed `astropy.io.vo` to `astropy.io.votable`.
+  - Renamed ``astropy.io.vo`` to ``astropy.io.votable``.
 
 - ``astropy.table``
 

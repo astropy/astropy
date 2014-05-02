@@ -140,8 +140,7 @@ class TestRunner(object):
         if test_path:
             base, ext = os.path.splitext(test_path)
             if ext == '.py':
-                test_path = os.path.join(package_path,
-                                         os.path.abspath(test_path))
+                test_path = os.path.abspath(test_path)
                 all_args += test_path
             elif ext == '.rst':
                 if docs_path is None:
@@ -149,7 +148,12 @@ class TestRunner(object):
                     raise ValueError(
                         "Can not test .rst files without a docs_path specified.")
                 else:
-                    test_path = os.path.join(docs_path, test_path)
+                    # Since we aren't testing any Python files within
+                    # the astropy tree, we need to forcibly load the
+                    # astropy py.test plugins, and then turn on the
+                    # doctest_rst plugin.
+                    all_args += ' -p astropy.tests.pytest_plugins --doctest-rst '
+                    test_path = os.path.join(docs_path, '..', test_path)
                     all_args += test_path
             else:
                 raise ValueError("Test file path must be to a .py or .rst file")
@@ -202,7 +206,7 @@ class TestRunner(object):
                 # requires importing astropy.config and thus screwing
                 # up coverage results for those packages.
                 coveragerc = os.path.join(
-                    package_path, package, 'tests', 'coveragerc')
+                    package_path, 'tests', 'coveragerc')
 
                 # We create a coveragerc that is specific to the version
                 # of Python we're running, so that we can mark branches
@@ -462,16 +466,29 @@ class raises(object):
         @raises(ZeroDivisionError)
         def test_foo():
             x = 1/0
+
+    This can also be used a context manager, in which case it is just an alias
+    for the `pytest.raises` context manager (because the two have the same name
+    this help avoid confusion by being flexible).
     """
+
     # pep-8 naming exception -- this is a decorator class
     def __init__(self, exc):
         self._exc = exc
+        self._ctx = None
 
     def __call__(self, func):
         @functools.wraps(func)
         def run_raises_test(*args, **kwargs):
             pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
+
+    def __enter__(self):
+        self._ctx = pytest.raises(self._exc)
+        return self._ctx.__enter__()
+
+    def __exit__(self, *exc_info):
+        return self._ctx.__exit__(*exc_info)
 
 
 class catch_warnings(warnings.catch_warnings):

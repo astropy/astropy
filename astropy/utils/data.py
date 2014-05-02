@@ -846,7 +846,7 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TIMEOUT()):
+def download_file(remote_url, cache=False, show_progress=True, timeout=None):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -865,6 +865,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
         Whether to display a progress bar during the download (default
         is `True`)
 
+    timeout : float, optional
+        Timeout for the requests in seconds (default is the configurable
+        REMOTE_TIMEOUT, which is 3s by default)
+
     Returns
     -------
     local_path : str
@@ -880,6 +884,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
 
     missing_cache = False
 
+    if timeout is None:
+        # use configfile default
+        timeout = REMOTE_TIMEOUT()
+
     if cache:
         try:
             dldir, urlmapfn = _get_download_cache_locs()
@@ -889,12 +897,19 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
+
+    if six.PY2 and isinstance(remote_url, six.text_type):
+        # shelve DBs don't accept unicode strings in Python 2
+        url_key = remote_url.encode('utf-8')
+    else:
+        url_key = remote_url
+
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
             with _open_shelve(urlmapfn, True) as url2hash:
-                if str(remote_url) in url2hash:
-                    return url2hash[str(remote_url)]
+                if url_key in url2hash:
+                    return url2hash[url_key]
 
         with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
@@ -944,11 +959,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
                     # We check now to see if another process has
                     # inadvertently written the file underneath us
                     # already
-                    if str(remote_url) in url2hash:
-                        return url2hash[str(remote_url)]
+                    if url_key in url2hash:
+                        return url2hash[url_key]
                     local_path = os.path.join(dldir, hash.hexdigest())
                     shutil.move(f.name, local_path)
-                    url2hash[str(remote_url)] = local_path
+                    url2hash[url_key] = local_path
             finally:
                 _release_download_cache_lock()
         else:
@@ -980,7 +995,7 @@ def _do_download_files_in_parallel(args):
 
 
 def download_files_in_parallel(urls, cache=False, show_progress=True,
-                               timeout=REMOTE_TIMEOUT()):
+                               timeout=None):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
     all files have downloaded.  The result is a list of local file paths
@@ -998,7 +1013,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         Whether to display a progress bar during the download (default
         is `True`)
 
-    timeout : float
+    timeout : float, optional
         Timeout for the requests in seconds (default is the configurable
         REMOTE_TIMEOUT, which is 3s by default)
 
@@ -1013,6 +1028,10 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
         progress = sys.stdout
     else:
         progress = io.BytesIO()
+
+    if timeout is None:
+        # use configfile default
+        timeout = REMOTE_TIMEOUT()
 
     # Combine duplicate URLs
     combined_urls = list(set(urls))
@@ -1079,20 +1098,24 @@ def clear_download_cache(hashorurl=None):
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
                 assert _is_inside(filepath, dldir), \
-                       ("attempted to use clear_download_cache on a location" +
-                        " that's not inside the data cache directory")
+                       ("attempted to use clear_download_cache on a path "
+                        "outside the data cache directory")
+
+                # shelve DBs don't accept unicode strings as keys in Python 2
+                if six.PY2 and isinstance(hashorurl, six.text_type):
+                    hash_key = hashorurl.encode('utf-8')
+                else:
+                    hash_key = hashorurl
 
                 if os.path.exists(filepath):
                     for k, v in list(six.iteritems(url2hash)):
                         if v == filepath:
                             del url2hash[k]
                     os.unlink(filepath)
-
-                elif hashorurl in url2hash:
-                    filepath = url2hash[hashorurl]
-                    del url2hash[hashorurl]
+                elif hash_key in url2hash:
+                    filepath = url2hash[hash_key]
+                    del url2hash[hash_key]
                     os.unlink(filepath)
-
                 else:
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))

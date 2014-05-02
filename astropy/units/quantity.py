@@ -55,6 +55,56 @@ def _can_have_arbitrary_unit(value):
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
 
+class QuantityIterator(object):
+    """
+    Flat iterator object to iterate over Quantities
+
+    A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
+    ``q``.  It allows iterating over the array as if it were a 1-D array,
+    either in a for-loop or by calling its `next` method.
+
+    Iteration is done in C-contiguous style, with the last index varying the
+    fastest. The iterator can also be indexed using basic slicing or
+    advanced indexing.
+
+    See Also
+    --------
+    Quantity.flatten : Returns a flattened copy of an array.
+
+    Notes
+    -----
+    `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.
+    It is not exported by the `units` module.  Instead of instantiating a
+    `QuantityIterator` directly, use `Quantity.flat`.
+    """
+    def __init__(self, q):
+        self._quantity = q
+        self._dataiter = q.view(np.ndarray).flat
+
+    def __iter__(self):
+        return self
+
+    def __getitem__(self, indx):
+        out = self._dataiter.__getitem__(indx)
+        if not isinstance(out, np.ndarray):
+            out = out.__array__()
+        out = out.view(type(self._quantity))
+        out._unit = self._quantity.unit
+        return out
+
+    def __setitem__(self, index, value):
+        self._dataiter[index] = self._quantity._to_own_unit(value)
+
+    def __next__(self):
+        """
+        Return the next value, or raise StopIteration.
+        """
+        out = next(self._dataiter)
+        return self._quantity.__quantity_instance__(out, self._quantity.unit)
+
+    next = __next__
+
+
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
@@ -233,7 +283,7 @@ class Quantity(np.ndarray):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
-            result = self  # no need for a view since we are returning the object itself
+            result = self  # no view needed since we return the object itself
 
             # in principle, if self is also an argument, it could be rescaled
             # here, since it won't be needed anymore.  But maybe not change
@@ -391,16 +441,16 @@ class Quantity(np.ndarray):
         return Quantity(val, unit, **kwargs)
 
     def __reduce__(self):
-        # patch to pickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+        # patch to pickle Quantity objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         object_state = list(super(Quantity, self).__reduce__())
         object_state[2] = (object_state[2], self.__dict__)
         return tuple(object_state)
 
     def __setstate__(self, state):
-        # patch to unpickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+        # patch to unpickle Quantity objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         nd_state, own_state = state
         super(Quantity, self).__setstate__(nd_state)
@@ -631,10 +681,10 @@ class Quantity(np.ndarray):
         result_tuple = super(Quantity, self.__class__).__divmod__(
             self.view(np.ndarray), other_value)
 
-        return (self.__quantity_instance__(
-                result_tuple[0], dimensionless_unscaled, copy=False),
-                self.__quantity_instance__(
-                result_tuple[1], self.unit, copy=False))
+        return (self.__quantity_instance__(result_tuple[0],
+                                           dimensionless_unscaled, copy=False),
+                self.__quantity_instance__(result_tuple[1],
+                                           self.unit, copy=False))
 
     def __pos__(self):
         """
@@ -752,7 +802,7 @@ class Quantity(np.ndarray):
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
         if self.unit is None:
-            unitstr = _UNIT_NOT_INITIALIZED
+            unitstr = _UNIT_NOT_INITIALISED
         else:
             unitstr = self.unit.to_string()
 
@@ -764,7 +814,7 @@ class Quantity(np.ndarray):
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
         arrstr = np.array2string(self.view(np.ndarray), separator=',',
-            prefix=prefixstr)
+                                 prefix=prefixstr)
         if self.unit is None:
             unitstr = _UNIT_NOT_INITIALISED
         else:
@@ -777,14 +827,20 @@ class Quantity(np.ndarray):
 
     def _repr_latex_(self):
         """
-        Generate latex representation of unit name.  This is used by
-        the IPython notebook to show it all latexified.
+        Generate latex representation of the quantity and its unit.
+        This is used by the IPython notebook to show it all latexified.
+        It only works for scalar quantities; for arrays, the standard
+        reprensation is returned.
 
         Returns
         -------
         lstr
             LaTeX string
         """
+
+        if not self.isscalar:
+            raise NotImplementedError('Cannot represent Quantity arrays '
+                                      'in LaTex format')
 
         # Format value
         latex_value = "{0:g}".format(self.value)
@@ -816,9 +872,10 @@ class Quantity(np.ndarray):
             value = self.value
             full_format_spec = format_spec
         return format("{0} {1:s}".format(value,
-                                  self.unit.to_string() if
-                                  self.unit is not None
-                                  else _UNIT_NOT_INITIALISED), full_format_spec)
+                                         self.unit.to_string()
+                                         if self.unit is not None
+                                         else _UNIT_NOT_INITIALISED),
+                      full_format_spec)
 
     def decompose(self, bases=[]):
         """
@@ -940,7 +997,23 @@ class Quantity(np.ndarray):
         self.view(np.ndarray).fill(self._to_own_unit(value))
 
     # Shape manipulation: resize cannot be done (does not own data), but
-    # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.
+    # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.  Only
+    # the flat iterator needs to be overwritten, otherwise single items are
+    # returned as numbers.
+    @property
+    def flat(self):
+        """A 1-D iterator over the Quantity array.
+
+        This returns a `QuantityIterator` instance, which behaves the same as
+        the `~np.flatiter` instance returned by `~np.ndarray.flat`, and is
+        similar to, but not a subclass of, Python's built-in iterator object.
+        """
+        return QuantityIterator(self)
+
+    @flat.setter
+    def flat(self, value):
+        y = self.ravel()
+        y[:] = value
 
     # Item selection and manipulation
     # take, repeat, sort, compress, diagonal OK

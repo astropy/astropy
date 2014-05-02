@@ -189,29 +189,6 @@ class Angle(u.Quantity):
 
         return obj
 
-    def __add__(self, other):
-        return super(Angle, self).__add__(other)
-
-    def __sub__(self, other):
-        return super(Angle, self).__sub__(other)
-
-    def __mul__(self, other):
-        if isinstance(other, type(self)):
-            raise TypeError(
-                "multiplication is not supported between two {0} "
-                "objects".format(
-                    type(self).__name__))
-        return super(Angle, self).__mul__(other)
-
-    def __div__(self, other):
-        if isinstance(other, type(self)):
-            raise TypeError(
-                "division is not supported between two {0} objects".format(
-                    type(self).__name__))
-        return super(Angle, self).__div__(other)
-
-    __truediv__ = __div__
-
     @property
     def hour(self):
         """

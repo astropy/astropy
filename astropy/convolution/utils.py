@@ -77,8 +77,8 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
     Parameters
     ----------
-    model : :class:`~astropy.modeling.core.ParametricModel` instance
-        Instance of a :class:`~astropy.modeling.core.ParametricModel` to be evaluated.
+    model : `~astropy.modeling.ParametricModel`
+        Model to be evaluated.
     x_range : tuple
         x range in which the model is evaluated.
     y_range : tuple, optional
@@ -97,15 +97,19 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
                 Discretize model by taking the average
                 on an oversampled grid.
             * ``'integrate'``
-                Discretize model by integrating the model 
+                Discretize model by integrating the model
                 over the bin using `scipy.integrate.quad`.
                 Very slow.
     factor : float or int
         Factor of oversampling. Default = 10.
 
+    Returns
+    -------
+    array : `numpy.array`
+        Model value array
+
     Notes
     -----
-
     The ``oversample`` mode allows to conserve the integral on a subpixel
     scale. Here is the example of a normalized Gaussian1D:
 

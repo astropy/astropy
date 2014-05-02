@@ -274,6 +274,17 @@ def test_read_basic_table():
         assert t['B'][i] == data['B'][i]
 
 
+def test_register_readers_with_same_name_on_different_classes():
+    # No errors should be generated if the same name is registered for
+    # different objects...but this failed under python3
+    io_registry.register_reader('test', TestData, lambda: TestData())
+    io_registry.register_reader('test', Table, lambda: Table())
+    t = TestData.read(format='test')
+    assert isinstance(t, TestData)
+    tbl = Table.read(format='test')
+    assert isinstance(tbl, Table)
+
+
 def teardown_function(function):
     _readers.update(_READERS_ORIGINAL)
     _writers.update(_WRITERS_ORIGINAL)

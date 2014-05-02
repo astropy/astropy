@@ -565,7 +565,7 @@ The column data values, shape, and data type are specified in one of two ways:
   - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
   - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
-  If no ``dtype`` value is provide then the type is inferred using
+  If no ``dtype`` value is provided then the type is inferred using
   ``np.array(data)``.  When ``data`` is provided then the ``shape``
   and ``length`` arguments are ignored.
 
