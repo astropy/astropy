@@ -52,3 +52,12 @@ def comb(N, k):
     for j in xrange(min(k, N - k)):
         val = (val * (N - j)) / (j + 1)
     return val
+
+
+def array_repr_oneline(array):
+    """
+    Represents a multi-dimensional Numpy array flattened onto a single line.
+    """
+
+    r = np.array2string(array, separator=',', suppress_small=True)
+    return ' '.join(l.strip() for l in r.splitlines())

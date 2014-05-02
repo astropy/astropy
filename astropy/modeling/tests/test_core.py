@@ -32,13 +32,16 @@ class NonFittableModel(Model):
 def test_Model():
     """Some silly tests just to have all lines in the Model code covered by unit tests"""
     m = NonFittableModel(42)
-    assert (repr(m) == "NonFittableModel(\n"
-                       "            a=Parameter('a', value=42.0),\n"
-                       "            )")
-    assert (str(m) == "Model: NonFittableModel\n"
-                      "Parameter sets: 1\n"
-                      "Parameters: \n"
-                      "           a: Parameter('a', value=42.0)\n")
+    assert repr(m) == "<NonFittableModel(a=42.0)>"
+    assert (str(m) ==
+        "Model: NonFittableModel\n"
+        "Inputs: 1\n"
+        "Outputs: 1\n"
+        "Parameter sets: 1\n"
+        "Parameters:\n"
+        "     a  \n"
+        "    ----\n"
+        "    42.0")
 
     assert m.param_dim == 1
 
