@@ -929,26 +929,21 @@ class CompositeTransform(CoordinateTransform):
     def __call__(self, fromcoord, toframe):
         curr_coord = fromcoord
         for t in self.transforms:
-            #need to make sure `toframe` is actually the correct intermediate
-            #frame type
-            if isinstance(toframe, t.tosys):
-                curr_toframe = toframe
-            else:
-                #build an intermediate frame with attributes taken from either
-                #`toframe`, or if not there, `fromframe, or if not there, use
-                #the defaults
-                #TODO: caching this information when creating the transform may
-                # speed things up a lot
-                frattrs = {}
-                for inter_frame_attr_nm in t.tosys.frame_attr_names:
-                    if hasattr(fromcoord, inter_frame_attr_nm):
-                        attr = getattr(fromcoord, inter_frame_attr_nm)
-                        frattrs[inter_frame_attr_nm] = attr
-                    elif hasattr(toframe, inter_frame_attr_nm):
-                        attr = getattr(toframe, inter_frame_attr_nm)
-                        frattrs[inter_frame_attr_nm] = attr
+            #build an intermediate frame with attributes taken from either
+            #`fromframe`, or if not there, `toframe`, or if not there, use
+            #the defaults
+            #TODO: caching this information when creating the transform may
+            # speed things up a lot
+            frattrs = {}
+            for inter_frame_attr_nm in t.tosys.frame_attr_names:
+                if hasattr(toframe, inter_frame_attr_nm):
+                    attr = getattr(toframe, inter_frame_attr_nm)
+                    frattrs[inter_frame_attr_nm] = attr
+                elif hasattr(fromcoord, inter_frame_attr_nm):
+                    attr = getattr(fromcoord, inter_frame_attr_nm)
+                    frattrs[inter_frame_attr_nm] = attr
 
-                curr_toframe = t.tosys(**frattrs)
+            curr_toframe = t.tosys(**frattrs)
             curr_coord = t(curr_coord, curr_toframe)
 
         # this is safe even in the case enere self.transforms is empty, because
