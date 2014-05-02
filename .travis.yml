@@ -43,7 +43,9 @@ matrix:
           env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try alternate numpy versions
-        - python: 3.2
+        - python: 2.7
+          env: NUMPY_VERSION=1.7 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
+        - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
@@ -55,6 +57,9 @@ before_install:
     - export PYTHONIOENCODING=UTF8
     - source .setup_conda.sh $TRAVIS_PYTHON_VERSION
     - export PATH=/home/travis/anaconda/bin:$PATH
+
+    # DOCUMENTATION DEPENDENCIES
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install graphviz texlive-latex-extra dvipng; fi
 
 install:
 
