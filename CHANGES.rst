@@ -91,6 +91,8 @@ New Features
     replacement for the capability of ``MatrixRotation2D`` to accept an
     arbitrary matrix, while also adding a translation capability. [#2269]
 
+  - Added ``GaussianAbsorption1D`` model. [#2215]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -219,7 +221,7 @@ API Changes
     Now, this conversion is only done if explicitly requested or if any
     of the input values is actually masked. [#1185]
 
-  - The repr() function of ``astropy.table.Table`` now shows the units 
+  - The repr() function of ``astropy.table.Table`` now shows the units
     if any columns have the unit attribute set.  [#2180]
 
 - ``astropy.time``
@@ -303,8 +305,6 @@ Bug Fixes
     kwarg. [#2138]
 
 - ``astropy.modeling``
-
-  - Added ``GaussianAbsorption1D`` model. [#2215]
 
 - ``astropy.nddata``
 
