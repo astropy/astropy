@@ -15,7 +15,7 @@ import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
                             sesame_database, _parse_response)
-from ..builtin_frames import ICRS
+from ..sky_coordinate import SkyCoord
 from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, pytest
 from ... import units as u
@@ -120,9 +120,9 @@ def test_names():
         icrs = get_icrs_coordinates("ngc 3642")
     except NameResolveError:
         ra,dec = _parse_response(_cached_ngc3642["all"])
-        icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+        icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
-    icrs_true = ICRS("11h 22m 18.014s", "59d 04m 27.27s")
+    icrs_true = SkyCoord(ra="11h 22m 18.014s", dec="59d 04m 27.27s")
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 3)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 3)
 
@@ -130,9 +130,9 @@ def test_names():
         icrs = get_icrs_coordinates("castor")
     except NameResolveError:
         ra,dec = _parse_response(_cached_castor["all"])
-        icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+        icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
-    icrs_true = ICRS("07h 34m 35.87s", "+31d 53m 17.8s")
+    icrs_true = SkyCoord(ra="07h 34m 35.87s", dec="+31d 53m 17.8s")
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 3)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 3)
 
@@ -147,10 +147,10 @@ def test_database_specify():
     for db in ["simbad", "vizier", "all"]:
         with sesame_database.set(db):
             try:
-                icrs = ICRS.from_name(name)
+                icrs = SkyCoord.from_name(name)
             except NameResolveError:
                 ra,dec = _cached_ngc3642[db]
-                icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+                icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
             time.sleep(1)
 
@@ -159,9 +159,9 @@ def test_database_specify():
     for db in ["simbad",  "all"]:
         with sesame_database.set(db):
             try:
-                icrs = ICRS.from_name(name)
+                icrs = SkyCoord.from_name(name)
             except NameResolveError:
                 ra,dec = _cached_castor[db]
-                icrs = ICRS(ra, dec, unit=(u.degree, u.degree))
+                icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
             time.sleep(1)
