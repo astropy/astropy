@@ -270,40 +270,51 @@ class SkyCoord(object):
         """
         A string representation of the coordinates.
 
+        The default styles definitions are::
+
+          'decimal': 'lat': {'decimal': True, 'unit': "deg"}
+                     'lon': {'decimal': True, 'unit': "deg"}
+          'dms': 'lat': {'unit': "deg"}
+                 'lon': {'unit': "deg"}
+          'hmsdms': 'lat': {'alwayssign': True, 'pad': True, 'unit': "deg"}
+                    'lon': {'pad': True, 'unit': "hour"}
+
         See :meth:`~astropy.coordinates.Angle.to_string` for details and
         keyword arguments (the two angles forming the coordinates are are
         both :class:`~astropy.coordinates.Angle` instances). Keyword
-        arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.
+        arguments have precedence over the style defaults and are passed
+        to :meth:`~astropy.coordinates.Angle.to_string`.
 
         Parameters
         ----------
         style : {'hmsdms', 'dms', 'decimal'}
             The formatting specification to use. These encode the three most
-            common ways to represent coordinates. If `None` is passed, the
-            defaults for the current coordinate class is used.
+            common ways to represent coordinates. The default is `decimal`.
         kwargs
-            Keyword arguments are passed to
-            :meth:`~astropy.coordinates.Angle.to_string`.
+            Keyword args passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
         sph_coord = self._coord.represent_as(SphericalRepresentation)
 
-        styles = {'hmsdms': {'lonargs': {'unit': u.hour},
-                             'latargs': {'unit': u.degree}},
+        styles = {'hmsdms': {'lonargs': {'unit': u.hour, 'pad': True},
+                             'latargs': {'unit': u.degree, 'pad': True, 'alwayssign': True}},
                   'dms': {'lonargs': {'unit': u.degree},
                           'latargs': {'unit': u.degree}},
                   'decimal': {'lonargs': {'unit': u.degree, 'decimal': True},
                               'latargs': {'unit': u.degree, 'decimal': True}}
                   }
 
-        lonargs = kwargs.copy()
-        latargs = kwargs.copy()
+        lonargs = {}
+        latargs = {}
 
         if style in styles:
             lonargs.update(styles[style]['lonargs'])
             latargs.update(styles[style]['latargs'])
         else:
             raise ValueError('Invalid style.  Valid options are: {0}'.format(",".join(styles)))
+
+        lonargs.update(kwargs)
+        latargs.update(kwargs)
 
         if np.isscalar(sph_coord.lon.value):
             coord_string = (sph_coord.lon.to_string(**lonargs)
