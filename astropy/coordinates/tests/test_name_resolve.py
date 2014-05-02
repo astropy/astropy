@@ -14,7 +14,7 @@ import time
 import numpy as np
 
 from ..name_resolve import (get_icrs_coordinates, NameResolveError,
-                            sesame_database, _parse_response)
+                            sesame_database, _parse_response, sesame_url)
 from ..sky_coordinate import SkyCoord
 from ...extern.six.moves import urllib
 from ...tests.helper import remote_data, pytest
@@ -119,7 +119,7 @@ def test_names():
     try:
         icrs = get_icrs_coordinates("ngc 3642")
     except NameResolveError:
-        ra,dec = _parse_response(_cached_ngc3642["all"])
+        ra, dec = _parse_response(_cached_ngc3642["all"])
         icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
     icrs_true = SkyCoord(ra="11h 22m 18.014s", dec="59d 04m 27.27s")
@@ -136,32 +136,22 @@ def test_names():
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 3)
     np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 3)
 
+
 @remote_data
-def test_database_specify():
-
+@pytest.mark.parametrize(("name", "db_dict"), [('ngc 3642', _cached_ngc3642),
+                                               ('castor', _cached_castor)])
+def test_database_specify(name, db_dict):
     # First check that sesame is up
-    if urllib.request.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
-        pytest.skip("SESAME appears to be down, skipping test_database_specify.py:test_names()...")
+    if urllib.request.urlopen(sesame_url.get()).getcode() != 200:
+        pytest.skip("SESAME appears to be down, skipping "
+                    "test_name_resolve.py:test_database_specify()...")
 
-    name = "ngc 3642"
-    for db in ["simbad", "vizier", "all"]:
+    for db in db_dict.keys():
         with sesame_database.set(db):
             try:
                 icrs = SkyCoord.from_name(name)
             except NameResolveError:
-                ra,dec = _cached_ngc3642[db]
+                ra, dec = db_dict[db]
                 icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
 
-            time.sleep(1)
-
-    name = "castor"
-    # Don't search ned or vizier since castor isn't in either
-    for db in ["simbad",  "all"]:
-        with sesame_database.set(db):
-            try:
-                icrs = SkyCoord.from_name(name)
-            except NameResolveError:
-                ra,dec = _cached_castor[db]
-                icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
-
-            time.sleep(1)
+        time.sleep(1)
