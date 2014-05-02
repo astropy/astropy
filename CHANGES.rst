@@ -26,6 +26,9 @@ Bug Fixes
   - Fixed ``Angle.to_string`` functionality so that negative angles have the
     correct amount of padding when ``pad=True``. [#2337]
 
+  - Mixing strings and quantities in the ``Angle`` constructor now
+    works.  For example: ``Angle(['1d', 1. * u.d])``.  [#2398]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]

@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 """Test initalization of angles not already covered by the API tests"""
 
 import numpy as np
-from numpy.testing.utils import assert_allclose
+from numpy.testing.utils import assert_allclose, assert_array_equal
 
 from ..angles import Longitude, Latitude, Angle
 from ...tests.helper import pytest
@@ -318,3 +318,12 @@ def test_multiply_divide():
     a3 = a1 / a2
     assert_allclose(a3.value, [.25, .4, .5])
     assert a3.unit == u.dimensionless_unscaled
+
+def test_mixed_string_and_quantity():
+    a1 = Angle(['1d', 1. * u.deg])
+    assert_array_equal(a1.value, [1., 1.])
+    assert a1.unit == u.deg
+
+    a2 = Angle(['1d', 1 * u.rad * np.pi, '3d'])
+    assert_array_equal(a2.value, [1., 180., 3.])
+    assert a2.unit == u.deg

@@ -15,7 +15,7 @@ import numpy as np
 from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
-from ..utils import deprecated
+from ..utils import deprecated, isiterable
 
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
@@ -97,45 +97,48 @@ class Angle(u.Quantity):
                             angle))
 
                 angle = angle.value
+        else:
+            angle = cls._tuple_to_float(angle, unit)
 
-        angle = cls._tuple_to_float(angle, unit)
+            if isinstance(angle, six.string_types):
+                # We need to modify this value from within
+                # convert_string_to_angle, and the only way to do that across
+                # Python 2.6 - 3.3 is to use this "store it in a list" trick.
+                determined_unit = [unit]
 
-        try:
-            angle = np.asarray(angle)
-        except ValueError as e:
-            raise TypeError(str(e))
+                def convert_string_to_angle(x):
+                    ang, new_unit = util.parse_angle(six.text_type(x), unit)
+                    if determined_unit[0] is None:
+                        determined_unit[0] = new_unit
+                    if new_unit is not None:
+                        return new_unit.to(
+                            determined_unit[0],
+                            cls._tuple_to_float(ang, new_unit))
+                    else:
+                        return cls._tuple_to_float(ang, determined_unit[0])
 
-        if angle.dtype.type in (np.string_, np.unicode_):
-            # We need to modify this value from within
-            # convert_string_to_angle, and the only way to do that
-            # across Python 2.6 - 3.3 is to use this "store it in a
-            # list" trick.
-            determined_unit = [unit]
+                convert_string_to_angle_ufunc = np.vectorize(
+                    convert_string_to_angle,
+                    otypes=[np.float_])
+                angle = convert_string_to_angle_ufunc(angle)
+                unit = determined_unit[0]
+            elif (isinstance(angle, np.ndarray) and
+                    angle.dtype.kind not in 'SUVO'):
+                pass
+            elif isiterable(angle):
+                angle = [Angle(x, unit) for x in angle]
+                if unit is None:
+                    unit = angle[0].unit
+                angle = [x.to(unit) for x in angle]
 
-            def convert_string_to_angle(x):
-                ang, new_unit = util.parse_angle(six.text_type(x), unit)
-                if determined_unit[0] is None:
-                    determined_unit[0] = new_unit
-                if new_unit is not None:
-                    return new_unit.to(
-                        determined_unit[0], cls._tuple_to_float(ang, new_unit))
-                else:
-                    return cls._tuple_to_float(ang, determined_unit[0])
+        self = super(Angle, cls).__new__(
+            cls, angle, unit, dtype=dtype, copy=copy)
 
-            convert_string_to_angle_ufunc = np.vectorize(
-                convert_string_to_angle,
-                otypes=[np.float_])
-            angle = convert_string_to_angle_ufunc(angle)
-            unit = determined_unit[0]
-
-        elif angle.dtype.kind not in 'iuf':
+        if self.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
 
         if unit is None:
             raise u.UnitsError("No unit was specified")
-
-        self = super(Angle, cls).__new__(
-            cls, angle, unit, dtype=dtype, copy=copy)
 
         return self
 
