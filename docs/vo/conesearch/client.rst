@@ -5,13 +5,232 @@ Using `astropy.vo.client`
 
 This subpackage contains modules supporting VO client-side operations.
 
+
+.. _vo-sec-client-cat-manip:
+
+Catalog Manipulation
+--------------------
+
+You can manipulate a VO catalog using
+`~astropy.vo.client.vos_catalog.VOSCatalog`, which is basically a dictionary
+with added functionalities.
+
+.. _vo-sec-client-cat-manip-examples:
+
+Examples
+^^^^^^^^
+
+>>> from astropy.vo.client.vos_catalog import VOSCatalog
+
+You can create a VO catalog from scratch with your own VO service by
+providing its title and access URL, and optionally any other metadata
+as key-value pairs:
+
+>>> my_cat = VOSCatalog.create(
+...     'My Own', 'http://ex.org/cgi-bin/cs.pl?',
+...     description='My first VO service.', creator='J. Doe', year=2013)
+>>> print(my_cat)
+title: My Own
+url: http://ex.org/cgi-bin/cs.pl?
+>>> print(my_cat.dumps())
+{
+    "creator": "J. Doe",
+    "description": "My first VO service.",
+    "title": "My Own",
+    "url": "http://ex.org/cgi-bin/cs.pl?",
+    "year": 2013
+}
+
+You can modify and add fields:
+
+>>> my_cat['year'] = 2014
+>>> my_cat['new_field'] = 'Hello world'
+>>> print(my_cat.dumps())
+{
+    "creator": "J. Doe",
+    "description": "My first VO service.",
+    "new_field": "Hello world",
+    "title": "My Own",
+    "url": "http://ex.org/cgi-bin/cs.pl?",
+    "year": 2014
+}
+
+In addition, you can also delete an existing field, except the compulsory
+title and access URL:
+
+>>> my_cat.delete_attribute('description')
+>>> print(my_cat.dumps())
+{
+    "creator": "J. Doe",
+    "new_field": "Hello world",
+    "title": "My Own",
+    "url": "http://ex.org/cgi-bin/cs.pl?",
+    "year": 2014
+}
+
+
+.. _vo-sec-client-db-manip:
+
+Database Manipulation
+---------------------
+
+You can manipulate VO database using
+`~astropy.vo.client.vos_catalog.VOSDatabase`, which is basically a nested
+dictionary with added functionalities.
+
+.. _vo-sec-client-db-manip-examples:
+
+Examples
+^^^^^^^^
+
+>>> from astropy.vo.client.vos_catalog import VOSDatabase
+
+You can choose to start with an empty database:
+
+>>> my_db = VOSDatabase.create_empty()
+>>> print(my_db.dumps())
+{
+    "__version__": 1,
+    "catalogs": {}
+}
+
+Add the custom catalog from
+:ref:`VO catalog examples <vo-sec-client-cat-manip-examples>` to database:
+
+>>> my_db.add_catalog('My Catalog 1', my_cat)
+>>> print(my_db)
+My Catalog 1
+>>> print(my_db.dumps())
+{
+    "__version__": 1,
+    "catalogs": {
+        "My Catalog 1": {
+            "creator": "J. Doe",
+            "new_field": "Hello world",
+            "title": "My Own",
+            "url": "http://ex.org/cgi-bin/cs.pl?",
+            "year": 2014
+        }
+    }
+}
+
+You can write/read the new database to/from a JSON file:
+
+>>> my_db.to_json('my_vo_database.json', clobber=True)
+>>> my_db = VOSDatabase.from_json('my_vo_database.json')
+
+You can also load a database from a VO registry. The process is described in
+:ref:`vo-sec-validator-build-db`, except that here, validation is not done,
+so ``validate_xxx`` keys are not added. This might generate a lot of warnings,
+especially if the registry has duplicate entries of similar services, so
+here, we silently ignore all the warnings:
+
+>>> import warnings
+>>> from astropy.vo.validator.validate import CS_MSTR_LIST
+>>> with warnings.catch_warnings():
+...     warnings.simplefilter('ignore')
+...     registry_db = VOSDatabase.from_registry(
+...         CS_MSTR_LIST(), encoding='binary', cache=False)
+Downloading http://vao.stsci.edu/directory/NVORegInt.asmx/...
+|===========================================|  25M/ 25M (100.00%)        00s
+>>> len(registry_db)
+11937
+
+Find catalog names containing ``'usno*a2'`` in the registry database:
+
+>>> usno_a2_list = registry_db.list_catalogs(pattern='usno*a2')
+>>> usno_a2_list
+[u'ROSAT All-Sky Survey Bright Source Catalog USNO A2 Cross-Associations 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'USNO-A2 Catalogue 1',
+ u'USNO-A2.0 1',
+ u'USNO-SA2.0 1']
+
+Find access URLs containing ``'stsci'`` in the registry database:
+
+>>> stsci_urls = registry_db.list_catalogs_by_url(pattern='stsci')
+>>> stsci_urls
+['http://archive.stsci.edu/befs/search.php?',
+ 'http://archive.stsci.edu/copernicus/search.php?', ...,
+ 'http://galex.stsci.edu/gxWS/ConeSearch/gxConeSearch.aspx?',
+ 'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&']
+
+Extract a catalog titled ``'USNO-A2 Catalogue 1'`` from the registry:
+
+>>> usno_a2 = registry_db.get_catalog('USNO-A2 Catalogue 1')
+>>> print(usno_a2)
+title: USNO-A2 Catalogue
+url: http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&
+
+Extract a catalog by known access URL from the registry (the iterator version
+of this functionality is
+:func:`~astropy.vo.client.vos_catalog.VOSDatabase.get_catalogs_by_url`,
+which is useful in the case of multiple entries with same access URL):
+
+>>> gsc = registry_db.get_catalog_by_url(
+...     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/305/out&')
+>>> print(gsc)
+title: The Guide Star Catalog, Version 2.3.2 (GSC2.3) (STScI, 2006)
+url: http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/305/out&
+
+Add all ``'usno*a2'`` catalogs from registry to your database:
+
+>>> for name, cat in registry_db.get_catalogs():
+...     if name in usno_a2_list:
+...         my_db.add_catalog(name, cat)
+>>> my_db.list_catalogs()
+[u'My Catalog 1',
+ u'ROSAT All-Sky Survey Bright Source Catalog USNO A2 Cross-Associations 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'USNO-A2 Catalogue 1',
+ u'USNO-A2.0 1',
+ u'USNO-SA2.0 1']
+
+You can delete a catalog from the database either by name or access URL:
+
+>>> my_db.delete_catalog('USNO-SA2.0 1')
+>>> my_db.delete_catalog_by_url(
+...     'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&')
+>>> my_db.list_catalogs()
+[u'My Catalog 1',
+ u'ROSAT All-Sky Survey Bright Source Catalog USNO A2 Cross-Associations 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'USNO-A2.0 1']
+
+You can also merge two database together. In this example, the second database
+contains a simple catalog that only has given name and access URL:
+
+>>> other_db = VOSDatabase.create_empty()
+>>> other_db.add_catalog_by_url(
+...     'My Guide Star Catalogue',
+...     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/305/out&')
+>>> print(other_db.dumps())
+{
+    "__version__": 1,
+    "catalogs": {
+        "My Guide Star Catalogue": {
+            "title": "My Guide Star Catalogue",
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/305/out&"
+        }
+    }
+}
+>>> merged_db = my_db.merge(other_db)
+>>> merged_db.list_catalogs()
+[u'My Catalog 1',
+ u'My Guide Star Catalogue',
+ u'ROSAT All-Sky Survey Bright Source Catalog USNO A2 Cross-Associations 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'USNO-A2.0 1']
+
+
 .. _vo-sec-client-vos:
 
 General VO Services Access
 --------------------------
 
-`astropy.vo.client.vos_catalog` contains common utilities for accessing
-simple VO services.
+`astropy.vo.client.vos_catalog` also contains common utilities for accessing
+simple VO services already validated by STScI (see
+:ref:`vo-sec-validator-validate`).
 
 .. _vo-sec-vos-config:
 
@@ -21,8 +240,11 @@ Configurable Items
 These parameters are set via :ref:`astropy_config`:
 
 * ``astropy.io.votable.table.PEDANTIC``
+    Set strictness of VO table parser (``False`` is recommended).
 * ``astropy.utils.data.REMOTE_TIMEOUT``
+    Timeout for remote service access.
 * ``astropy.vo.client.vos_catalog.BASEURL``
+    URL (or path) where VO Service database is stored.
 
 Examples
 ^^^^^^^^
@@ -36,8 +258,6 @@ also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_good.json
 |============================================|  56/ 56k (100.00%)        00s
->>> my_db
-<astropy.vo.client.vos_catalog.VOSDatabase at 0x2b0f3d0>
 >>> print(my_db)
 Guide Star Catalog 2.3 1
 SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1
@@ -52,77 +272,14 @@ If you get timeout error, you need to use a custom timeout as follows:
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
-Find catalog names containing ``'usno*a2'``:
-
->>> my_db.list_catalogs(pattern='usno*a2')
-[u'The USNO-A2.0 Catalogue (Monet+ 1998) 1', u'USNO-A2 Catalogue 1']
-
-Get information for a catalog titled ``'USNO-A2 Catalogue 1'``:
-
->>> my_cat = my_db.get_catalog('USNO-A2 Catalogue 1')
->>> my_cat
-<astropy.vo.client.vos_catalog.VOSCatalog at 0x1f78150>
->>> print(my_cat)
-title: USNO-A2 Catalogue
-url: http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&
->>> print(my_cat.dumps())
-{
-    "capabilityClass": "ConeSearch",
-    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
-    "capabilityValidationLevel": "",
-    "contentLevel": "#University#Research#Amateur#",
-    # ...
-    "version": "",
-    "waveband": "#Optical#"
-}
->>> my_cat.keys()
-[u'validate_network_error',
- u'capabilityClass',
- u'updated',
- # ...
- u'identifier',
- u'validate_xmllint']
->>> my_cat['url']
-u'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&'
->>> my_cat['maxRadius']
-1.0
-
-One can also get information for a catalog using its URL.
-If a URL yields multiple catalogs (this can happen when the service provider
-re-register the URL with a different title), only the first match is returned:
-
->>> my_cat2 = my_db.get_catalog_by_url(
-...     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&')
->>> print(my_cat2.dumps())
-{
-    "capabilityClass": "ConeSearch",
-    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
-    "capabilityValidationLevel": "",
-    "contentLevel": "#Research#",
-    # ...
-    "version": "15-Sep-1999",
-    "waveband": "#Optical#"
-}
-
 To see validation warnings generated by :ref:`vo-sec-validator-validate`
-for the catalog above:
+for the one of the catalogs above:
 
->>> for w in my_cat2['validate_warnings']:
+>>> my_cat = my_db.get_catalog('Guide Star Catalog 2.3 1')
+>>> for w in my_cat['validate_warnings']:
 ...     print(w)
-/.../vo.xml:13:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1...
-
-To get all the matching catalogs by URL:
-
->>> matched_cats = [cat for key, cat in my_db.get_catalogs_by_url(
-...     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&')]
->>> for c in matched_cats:
-...     print(str(c))
-title: The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99)
-url: http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&
-
-To get all catalogs in the database:
-
->>> all_cats = [cat for key, cat in my_db.get_catalogs()]
+/.../vo.xml:136:0: W50: Invalid unit string 'pixel'
+/.../vo.xml:155:0: W48: Unknown attribute 'nrows' on TABLEDATA
 
 By default, pedantic is ``False``:
 
@@ -143,7 +300,7 @@ To call a given VO service; In this case, a Cone Search
 <Quantity 0.5 deg>
 >>> result = vos_catalog.call_vo_service(
 ...     'conesearch_good',
-...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr},
+...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.value},
 ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...
@@ -151,7 +308,7 @@ WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 WARNING: W03: ... Implictly generating an ID from a name 'RA(ICRS)'...
 WARNING: W03: ... Implictly generating an ID from a name 'DE(ICRS)'...
 >>> result
-<astropy.io.votable.tree.Table at 0x3cc4850>
+<Table rows=36184 names=('_r','_RAJ2000','_DEJ2000', ...>
 
 To repeat the above and suppress *all* the screen outputs (not recommended):
 
@@ -160,9 +317,27 @@ To repeat the above and suppress *all* the screen outputs (not recommended):
 ...     warnings.simplefilter('ignore')
 ...     result = vos_catalog.call_vo_service(
 ...         'conesearch_good',
-...         kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr},
+...         kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.value},
 ...         catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
 ...         verbose=False)
+
+You can also use custom VO database, say, ``'my_vo_database.json'`` from
+:ref:`VO database examples <vo-sec-client-db-manip-examples>`:
+
+>>> import os
+>>> from astropy.vo.client.vos_catalog import BASEURL
+>>> with BASEURL.set_temp(os.curdir):
+...     try:
+...         result = vos_catalog.call_vo_service(
+...             'my_vo_database',
+...             kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree,
+...                     'SR': sr.value})
+...     except Exception as e:
+...         print(e)
+Trying http://ex.org/cgi-bin/cs.pl?
+Downloading http://ex.org/cgi-bin/cs.pl?SR=0.5&DEC=-72.0814444&RA=6.0223292
+|===========================================| 1.8k/1.8k (100.00%)        00s
+None of the available catalogs returned valid results.
 
 
 .. _vo-sec-client-scs:
@@ -205,7 +380,7 @@ where the user has more control of which catalog(s) to search, et cetera.
 
 .. warning::
 
-    When Cone Search returns warnings, user should decide
+    When Cone Search returns warnings, you should decide
     whether the results are reliable by inspecting the
     warning codes in `astropy.io.votable.exceptions`.
 
@@ -216,10 +391,11 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-* ``astropy.utils.data.REMOTE_TIMEOUT``
 * ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
+    Cone Search database name to query.
 
-Also depends on :ref:`General VO Services Access Configurable Items <vo-sec-vos-config>`.
+Also depends on
+:ref:`General VO Services Access Configurable Items <vo-sec-vos-config>`.
 
 .. _vo-sec-scs-examples:
 
@@ -228,8 +404,7 @@ Examples
 
 >>> from astropy.vo.client import conesearch
 
-Shows a sorted list of Cone Search services to be searched
-(to inspect them in detail, see :ref:`vo-sec-client-vos`):
+Shows a sorted list of Cone Search services to be searched:
 
 >>> conesearch.list_catalogs()
 [u'Guide Star Catalog 2.3 1',
@@ -248,6 +423,12 @@ Shows a sorted list of Cone Search services to be searched
  u'Two Micron All Sky Survey (2MASS) 2',
  u'USNO-A2 Catalogue 1',
  u'USNO-A2.0 1']
+
+To inspect them in detail, do the following and then refer to the examples in
+:ref:`vo-sec-client-db-manip`:
+
+>>> from astropy.vo.client import vos_catalog
+>>> good_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
 Select a catalog to search:
 
@@ -405,7 +586,7 @@ u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&'
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 # ...
 >>> t_est  # Predicted execution time
-19.272144977377838
+10.757875269998323
 >>> n_est  # Predicted number of objects
 37340
 
@@ -427,7 +608,7 @@ would defeat the purpose of the prediction itself:
 ...     c, sr, catalog_db=result.url, verbose=False)
 INFO: conesearch_timer took 11.5103080273 s on AVERAGE for 1 call(s). [...]
 >>> t_real  # Actual execution time
-11.510308027267456
+9.33926796913147
 >>> tab.array.size  # Actual number of objects
 36184
 
@@ -445,14 +626,12 @@ Therefore, the order of catalog names given in ``catalog_db`` is important:
  u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1']
 >>> gsc_result = conesearch.conesearch(c, sr, catalog_db=gsc_cats)
 Trying http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
-WARNING: W25: ... failed with: timed out [...]
-Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&
-Downloading ...
-WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+WARNING: W50: ... Invalid unit string 'pixel' [...]
+WARNING: W48: ... Unknown attribute 'nrows' on TABLEDATA [...]
 >>> gsc_result.array.size
-2997
+74276
 >>> gsc_result.url
-u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&'
+u'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&'
 
 To repeat the Cone Search above with the services listed in a
 different order:
@@ -476,7 +655,7 @@ To obtain results from *all* the services above:
 
 >>> all_gsc_results = conesearch.search_all(c, sr, catalog_db=gsc_cats)
 Trying http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
-WARNING: W25: ... failed with: <urlopen error timed out> [...]
+Downloading ...
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
@@ -485,16 +664,14 @@ Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&
 Downloading ...
-WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
->>> all_gsc_results
-{u'http://.../220/out&': <astropy.io.votable.tree.Table at 0x2988e10>,
- u'http://.../254/out&': <astropy.io.votable.tree.Table at 0x2993350>,
- u'http://.../255/out&': <astropy.io.votable.tree.Table at 0x298de90>}
+>>> len(all_gsc_results)
+4
 >>> for url, tab in all_gsc_results.items():
-...     print('{0} has {1} results'.format(url[-17:], tab.array.size))
-source=I/254/out& has 2998 results
-source=I/255/out& has 2997 results
-source=I/220/out& has 2997 results
+...     print('{0} has {1} results'.format(url, tab.array.size))
+http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/254/out& has 2998 results
+http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out& has 2997 results
+http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23& has 74276 results
+http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out& has 2997 results
 
 To repeat the above asynchronously:
 
@@ -529,3 +706,25 @@ Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_warn.json
  u'The USNO-B1.0 Catalog 1',
  u'USNO-A V2.0, A Catalog of Astrometric Standards 1',
  u'USNO-B1 Catalogue 1']
+>>> result = conesearch.conesearch(c, sr)
+Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/284/out&
+Downloading ...
+WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+>>> result.array.data.size
+50000
+
+You can also use custom Cone Search database, say, ``'my_vo_database.json'``
+from :ref:`VO database examples <vo-sec-client-db-manip-examples>`:
+
+>>> import os
+>>> from astropy.vo.client.vos_catalog import BASEURL
+>>> BASEURL.set(os.curdir)
+>>> conesearch.CONESEARCH_DBNAME.set('my_vo_database')
+>>> conesearch.list_catalogs()
+[u'My Catalog 1']
+>>> result = conesearch.conesearch(c, sr)
+Trying http://ex.org/cgi-bin/cs.pl?
+Downloading ...
+|===========================================| 1.8k/1.8k (100.00%)        00s
+# ...
+VOSError: None of the available catalogs returned valid results.

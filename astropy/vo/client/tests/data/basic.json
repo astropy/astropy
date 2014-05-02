@@ -1,0 +1,10 @@
+{
+    "__version__": 1,
+    "content": ["A", "B", "C"],
+    "catalogs": {
+        "foo": {
+            "title": "bar",
+            "url": "bar.foo"
+        }
+    }
+}

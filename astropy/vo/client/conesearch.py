@@ -11,10 +11,12 @@ import numpy as np
 # LOCAL
 from . import vos_catalog
 from .async import AsyncBase
+from .exceptions import ConeSearchError, VOSError
 from ... import units as u
 from ...config.configuration import ConfigurationItem
-from ...coordinates import Angle, ICRS, SphericalCoordinatesBase
+from ...coordinates import ICRS, SphericalCoordinatesBase
 from ...logger import log
+from ...units import Quantity
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
@@ -30,10 +32,6 @@ __doctest_skip__ = ['AsyncConeSearch', 'AsyncSearchAll']
 
 CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch_good',
                                       'Conesearch database name.')
-
-
-class ConeSearchError(Exception):  # pragma: no cover
-    pass
 
 
 class AsyncConeSearch(AsyncBase):
@@ -79,7 +77,7 @@ class AsyncConeSearch(AsyncBase):
 
     """
     def __init__(self, *args, **kwargs):
-        AsyncBase.__init__(self, conesearch, *args, **kwargs)
+        super(AsyncConeSearch, self).__init__(conesearch, *args, **kwargs)
 
 
 def conesearch(center, radius, verb=1, **kwargs):
@@ -99,12 +97,12 @@ def conesearch(center, radius, verb=1, **kwargs):
               be converted internally to
               `~astropy.coordinates.ICRS`.
 
-    radius : float or `~astropy.coordinates.Angle` object
+    radius : float or `~astropy.units.quantity.Quantity`
         Radius of the cone to search:
 
             - If float is given, it is assumed to be in decimal degrees.
-            - If astropy angle object or angular quantity is given,
-              it is internally converted to degrees.
+            - If astropy quantity is given, it is internally converted
+              to degrees.
 
     verb : {1, 2, 3}
         Verbosity indicating how many columns are to be returned
@@ -167,7 +165,7 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     Returns
     -------
-    obj : `astropy.io.votable.tree.Table` object
+    obj : `astropy.io.votable.tree.Table`
         First table from first successful VO service request.
 
     Raises
@@ -283,7 +281,7 @@ def search_all(*args, **kwargs):
     for name, catalog in catalogs:
         try:
             result = conesearch(catalog_db=catalog, *args, **kwargs)
-        except vos_catalog.VOSError:
+        except VOSError:
             pass
         else:
             all_results[result.url] = result
@@ -469,7 +467,7 @@ def conesearch_timer(*args, **kwargs):
     t : float
         Run time in seconds.
 
-    obj : `astropy.io.votable.tree.Table` object
+    obj : `astropy.io.votable.tree.Table`
         First table from first successful VO service request.
 
     """
@@ -498,9 +496,9 @@ def _validate_coord(center):
 
 def _validate_sr(radius):
     """Validate search radius."""
-    if isinstance(radius, Angle):
-        sr_angle = radius
+    if isinstance(radius, Quantity):
+        sr_angle = radius.to(u.degree)
     else:
-        sr_angle = Angle(radius, unit=u.degree)
+        sr_angle = radius * u.degree
 
-    return sr_angle.degree
+    return sr_angle.value

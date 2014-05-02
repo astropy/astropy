@@ -4,30 +4,25 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ...extern import six
 
 # STDLIB
-import json
 import multiprocessing
 import os
-import time
 import warnings
 
-from collections import defaultdict
-from copy import deepcopy
-
-# THIRD PARTY
-import numpy as np
-
 # LOCAL
+from .exceptions import ValidationMultiprocessingError, InvalidValidationAttribute
 from ..client import vos_catalog
+from ..client.exceptions import VOSError
 from ...config.configuration import ConfigurationItem
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
-from ...utils.data import get_readable_fileobj, get_pkg_data_contents
+from ...utils import OrderedDict  # For 2.6 compatibility
+from ...utils.data import get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
-from ...utils.misc import JsonCustomEncoder
-from ...utils.xml.unescaper import unescape_all
 from ...utils.exceptions import AstropyUserWarning
+from ...utils.timer import timefunc
+from ...utils.xml.unescaper import unescape_all
 
 # Temporary solution until STScI VAO registry formally provides
 # <testQuery> tags
@@ -56,9 +51,10 @@ NONCRIT_WARNINGS = ConfigurationItem(
     'VO Table warning codes that are considered non-critical',
     'list')
 
-_OUT_ROOT = None  # Set by `check_conesearch_sites`
+_OUT_ROOT = None  # Set by check_conesearch_sites()
 
 
+@timefunc(1)
 def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
                            url_list=CS_URLS()):
     """Validate Cone Search Services.
@@ -88,7 +84,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     parallel : bool
         Enable multiprocessing.
 
-    url_list : list of string
+    url_list : list of string or `None`
         Only check these access URLs against
         ``astropy.vo.validator.validate.CS_MSTR_LIST`` and ignore the others,
         which will not appear in output files.
@@ -97,20 +93,17 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     Raises
     ------
-    AssertionError
-        Parameter failed assertion test.
-
     IOError
         Invalid destination directory.
 
     timeout
         URL request timed out.
 
+    ValidationMultiprocessingError
+        Multiprocessing failed.
+
     """
     global _OUT_ROOT
-
-    # Start timer
-    t_beg = time.time()
 
     if (not isinstance(destdir, six.string_types) or len(destdir) == 0 or
             os.path.exists(destdir) and not os.path.isdir(destdir)):
@@ -126,18 +119,16 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         os.mkdir(_OUT_ROOT)
 
     # Output files
-    db_file = {}
+    db_file = OrderedDict()
     db_file['good'] = os.path.join(destdir, 'conesearch_good.json')
     db_file['warn'] = os.path.join(destdir, 'conesearch_warn.json')
     db_file['excp'] = os.path.join(destdir, 'conesearch_exception.json')
     db_file['nerr'] = os.path.join(destdir, 'conesearch_error.json')
 
     # JSON dictionaries for output files
-    js_template = {'__version__': 1, 'catalogs': {}}
-    js_mstr = deepcopy(js_template)
     js_tree = {}
     for key in db_file:
-        js_tree[key] = deepcopy(js_template)
+        js_tree[key] = vos_catalog.VOSDatabase.create_empty()
 
         # Delete existing files, if any, to be on the safe side.
         # Else can cause confusion if program exited prior to
@@ -147,92 +138,72 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             if verbose:
                 log.info('Existing file {0} deleted'.format(db_file[key]))
 
-    # Get all Cone Search sites
-    with get_readable_fileobj(CS_MSTR_LIST(), encoding='binary',
-                              show_progress=verbose) as fd:
-        tab_all = votable.parse_single_table(fd, pedantic=False)
-    arr_cone = tab_all.array.data[np.where(
-        tab_all.array['capabilityClass'] == b'ConeSearch')]
+    # Master VO database from registry. Silence all the warnings.
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        js_mstr = vos_catalog.VOSDatabase.from_registry(
+            CS_MSTR_LIST(), encoding='binary', show_progress=verbose)
 
-    assert arr_cone.size > 0, \
-        'astropy.vo.validator.validate.CS_MSTR_LIST yields no valid result'
-
-    fixed_urls = [unescape_all(cur_url) for cur_url in arr_cone['accessURL']]
-    uniq_urls = set(fixed_urls)
-
-    if url_list is None:
-        url_list = uniq_urls
-    else:
-        tmp_list = [cur_url.encode('utf-8') if isinstance(cur_url, str)
-                    else cur_url for cur_url in set(url_list)]
-        url_list = [unescape_all(cur_url) for cur_url in tmp_list]
-
+    # Validate only a subset of the services.
+    if url_list is not None:
+        # Make sure URL is unique and fixed.
+        url_list = set(six.moves.map(unescape_all, [cur_url.encode('utf-8') if isinstance(cur_url, str) else cur_url for cur_url in url_list]))
+        uniq_rows = len(url_list)
+        url_list_processed = []  # To track if given URL is valid in registry
         if verbose:
             log.info('Only {0}/{1} site(s) are validated'.format(
-                len(url_list), len(uniq_urls)))
+                uniq_rows, len(js_mstr)))
+    # Validate all services.
+    else:
+        uniq_rows = len(js_mstr)
 
-    uniq_rows = len(url_list)
-
-    # Re-structure dictionary for JSON file
-
-    col_names = tab_all.array.dtype.names
-    title_counter = defaultdict(int)
     key_lookup_by_url = {}
 
-    for cur_url in url_list:
-        num_match = fixed_urls.count(cur_url)
+    # Process each catalog in the registry.
+    for cur_key, cur_cat in js_mstr.get_catalogs():
+        cur_url = cur_cat['url']
 
-        if num_match == 0:
-            warnings.warn('{0} not found in cs_mstr_list! Skipping...'.format(cur_url),
-                          AstropyUserWarning)
+        # Skip if:
+        #   a. not a Cone Search service
+        #   b. not in given subset, if any
+        if ((cur_cat['capabilityClass'] != b'ConeSearch') or
+                (url_list is not None and cur_url not in url_list)):
             continue
 
-        i = fixed_urls.index(cur_url)
-        n_ignored = num_match - 1
-        row_d = {'duplicatesIgnored': n_ignored}
-        if verbose and n_ignored > 0:  # pragma: no cover
-            log.info('{0} has {1} ignored duplicate entries in '
-                     'cs_mstr_list'.format(cur_url, n_ignored))
-
-        cur_title = arr_cone[i]['title']
-        title_counter[cur_title] += 1
-
-        if isinstance(cur_title, bytes):  # pragma: py3
-            cat_key = '{0} {1}'.format(cur_title.decode('ascii'),
-                                       title_counter[cur_title])
-        else:  # pragma: py2
-            cat_key = '{0} {1}'.format(cur_title, title_counter[cur_title])
-
-        for col in col_names:
-            if col == 'accessURL':
-                row_d['url'] = fixed_urls[i]
-            else:
-                row_d[col] = arr_cone[i][col]
-
-        # Use testQuery to return non-empty VO table
-        testquery_pars = parse_cs(arr_cone[i]['resourceID'])
+        # Use testQuery to return non-empty VO table with max verbosity.
+        testquery_pars = parse_cs(cur_cat['resourceID'])
         cs_pars_arr = ['='.join([key, testquery_pars[key]]).encode('utf-8')
                        for key in testquery_pars]
-
-        # Max verbosity
         cs_pars_arr += [b'VERB=3']
-        js_mstr['catalogs'][cat_key] = row_d
-        key_lookup_by_url[cur_url + b'&'.join(cs_pars_arr)] = cat_key
 
-    # Validate URLs
+        # Track the service.
+        key_lookup_by_url[cur_url + b'&'.join(cs_pars_arr)] = cur_key
+        if url_list is not None:
+            url_list_processed.append(cur_url)
+
+    # Give warning if any of the user given subset is not in the registry.
+    if url_list is not None:
+        url_list_skipped = url_list - set(url_list_processed)
+        n_skipped = len(url_list_skipped)
+        if n_skipped > 0:
+            warn_str = '{0} not found in registry! Skipped:\n'.format(n_skipped)
+            for cur_url in url_list_skipped:
+                warn_str += '\t{0}\n'.format(cur_url)
+            warnings.warn(warn_str, AstropyUserWarning)
 
     all_urls = list(key_lookup_by_url)
 
+    # Validate URLs
     if parallel:
         mp_list = []
         pool = multiprocessing.Pool()
         mp_proc = pool.map_async(_do_validation, all_urls,
                                  callback=mp_list.append)
         mp_proc.wait()
-        assert len(mp_list) > 0, \
-            'Multiprocessing pool callback returned empty list'
+        if len(mp_list) < 1:  # pragma: no cover
+            raise ValidationMultiprocessingError(
+                'Multiprocessing pool callback returned empty list.')
         mp_list = mp_list[0]
-
     else:
         mp_list = [_do_validation(cur_url) for cur_url in all_urls]
 
@@ -240,20 +211,18 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     for r in mp_list:
         db_key = r['out_db_name']
         cat_key = key_lookup_by_url[r.url]
-        js_tree[db_key]['catalogs'][cat_key] = js_mstr['catalogs'][cat_key]
-        _copy_r_to_db(r, js_tree[db_key]['catalogs'][cat_key])
+        cur_cat = js_mstr.get_catalog(cat_key)
+        _copy_r_to_cat(r, cur_cat)
+        js_tree[db_key].add_catalog(cat_key, cur_cat)
 
     # Write to HTML
-
     html_subsets = result.get_result_subsets(mp_list, _OUT_ROOT)
     html.write_index(html_subsets, all_urls, _OUT_ROOT)
-
     if parallel:
         html_subindex_args = [(html_subset, uniq_rows)
                               for html_subset in html_subsets]
         mp_proc = pool.map_async(_html_subindex, html_subindex_args)
         mp_proc.wait()
-
     else:
         for html_subset in html_subsets:
             _html_subindex((html_subset, uniq_rows))
@@ -262,24 +231,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     n = {}
     n_tot = 0
     for key in db_file:
-        n[key] = len(js_tree[key]['catalogs'])
+        n[key] = len(js_tree[key])
         n_tot += n[key]
+        js_tree[key].to_json(db_file[key], clobber=True)
         if verbose:
             log.info('{0}: {1} catalog(s)'.format(key, n[key]))
-        with open(db_file[key], 'w') as f_json:
-            f_json.write(json.dumps(js_tree[key], cls=JsonCustomEncoder,
-                                    sort_keys=True, indent=4))
 
-    # End timer
-    t_end = time.time()
-
+    # Checksum
     if verbose:
-        log.info('total: {0} catalog(s)'.format(n_tot))
-        log.info('Validation of {0} site(s) took {1:.3f} s'.format(
-            uniq_rows, t_end - t_beg))
+        log.info('total: {0} out of {1} catalog(s)'.format(n_tot, uniq_rows))
 
     if n['good'] == 0:  # pragma: no cover
-        warnings.warn('No good sites available for Cone Search.', AstropyUserWarning)
+        warnings.warn(
+            'No good sites available for Cone Search.', AstropyUserWarning)
 
 
 def _do_validation(url):
@@ -312,7 +276,7 @@ def _do_validation(url):
             try:
                 tab = vos_catalog.vo_tab_parse(votable.table.parse(
                     r.get_vo_xml_path(), pedantic=False), r.url, {})
-            except (E19, IndexError, vos_catalog.VOSError) as e:  # pragma: no cover
+            except (E19, IndexError, VOSError) as e:  # pragma: no cover
                 lines.append(str(e))
                 nexceptions += 1
         lines = [str(x.message) for x in warning_lines] + lines
@@ -342,10 +306,16 @@ def _categorize_result(r):
 
     Parameters
     ----------
-    r : `astropy.io.votable.validator.result.Result` object
+    r : `astropy.io.votable.validator.result.Result`
+
+    Raises
+    ------
+    InvalidValidationAttribute
+        Unhandled validation result attributes.
 
     """
-    if 'network_error' in r and r['network_error'] is not None:  # pragma: no cover
+    if ('network_error' in r and
+            r['network_error'] is not None):  # pragma: no cover
         r['out_db_name'] = 'nerr'
         r['expected'] = 'broken'
     elif ((r['nexceptions'] == 0 and r['nwarnings'] == 0) or
@@ -359,9 +329,8 @@ def _categorize_result(r):
         r['out_db_name'] = 'warn'
         r['expected'] = 'incorrect'
     else:  # pragma: no cover
-        raise vos_catalog.VOSError(
-            'Unhandled validation result attributes: '
-            '{0}'.format(r._attributes))
+        raise InvalidValidationAttribute(
+            'Unhandled validation result attributes: {0}'.format(r._attributes))
 
 
 def _html_subindex(args):
@@ -370,16 +339,16 @@ def _html_subindex(args):
     html.write_index_table(_OUT_ROOT, *subset, total=total)
 
 
-def _copy_r_to_db(r, db):
-    """Copy validation result attributes to given JSON database entry.
+def _copy_r_to_cat(r, cat):
+    """Copy validation result attributes to given VO catalog.
 
     Parameters
     ----------
-    r : `astropy.io.votable.validate.result.Result` object
+    r : `astropy.io.votable.validate.result.Result`
 
-    db : dict
+    cat : `astropy.vo.client.vos_catalog.VOSCatalog`
 
     """
     for key in r._attributes:
         new_key = 'validate_' + key
-        db[new_key] = r._attributes[key]
+        cat[new_key] = r._attributes[key]

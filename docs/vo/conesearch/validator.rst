@@ -30,10 +30,10 @@ a user-defined list of services or all of them.
 All Cone Search queries are done using RA, DEC, and SR given by
 ``<testQuery>`` XML tag in the registry, and maximum verbosity.
 In an uncommon case where ``<testQuery>`` is not defined for a service,
-it uses a default search for ``RA=0&DEC=0&SR=1``.
+it uses a default search for ``RA=0&DEC=0&SR=0.1``.
 
 The results are separated into 4 groups below. Each group
-is stored as a JSON database:
+is stored as a JSON file of `~astropy.vo.client.vos_catalog.VOSDatabase`:
 
 #. ``conesearch_good.json``
      Passed validation without critical warnings and
@@ -78,34 +78,23 @@ include or exclude any warnings or exceptions, as desired.
 However, this should be done with caution. Adding exceptions
 to non-critical list is not recommended.
 
-Building the Database
-^^^^^^^^^^^^^^^^^^^^^
+.. _vo-sec-validator-build-db:
 
-Each Cone Search service is a catalog in the JSON database,
-which is represented by a nested dictionary::
+Building the Database from Registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    {
-        "__version__": 1,
-        "catalogs": {
-            "catalog 1": {
-                "some key": "some value",
-                # ...
-            },
-            "catalog 2": {
-                "some key": "some value",
-                # ...
-            },
-            # ...
-        }
-    }
+Each Cone Search service is a `~astropy.vo.client.vos_catalog.VOSCatalog` in
+a `~astropy.vo.client.vos_catalog.VOSDatabase` (see
+:ref:`vo-sec-client-cat-manip` and :ref:`vo-sec-client-db-manip`).
 
 In the master registry, there are duplicate catalog titles with
 different access URLs, duplicate access URLs with different titles,
 duplicate catalogs with slightly different descriptions, etc.
 
 A Cone Search service is really defined by its access URL
-regardless of title, description, etc. The validator ensures
-each access URL is unique across all the output databases.
+regardless of title, description, etc. By default,
+:func:`~astropy.vo.client.vos_catalog.VOSDatabase.from_registry` ensures
+each access URL is unique across the database.
 However, for user-friendly catalog listing, its title will be
 the catalog key, not the access URL.
 
@@ -152,10 +141,13 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-* ``astropy.utils.data.REMOTE_TIMEOUT``
 * ``astropy.vo.validator.validate.CS_MSTR_LIST``
+    VO registry query URL that should return a VO table with all the desired
+    VO services.
 * ``astropy.vo.validator.validate.CS_URLS``
+    Subset of Cone Search access URLs to validate.
 * ``astropy.vo.validator.validate.NONCRIT_WARNINGS``
+    List of VO table parser warning codes that are considered non-critical.
 
 Also depends on properties in
 :ref:`Simple Cone Search Configurable Items <vo-sec-scs-config>`.
@@ -167,76 +159,57 @@ Examples
 
 >>> from astropy.vo.validator import validate
 
-Validate default Cone Search sites with multiprocessing
-and write results in the current directory. Reading the
-master registry can be slow, so setting timeout to at least
-30 seconds is recommended:
+Validate default Cone Search sites with multiprocessing and write results
+in the current directory. Reading the master registry can be slow, so the
+default timeout is internally set to 60 seconds for it. However,
+``astropy.utils.data.REMOTE_TIMEOUT`` should still be set to account for
+accessing the individual services (at least 30 seconds is recommended).
+In addition, all VO table warnings from the registry are suppressed because
+we are not trying to validate the registry itself but the services it contains:
 
 >>> from astropy.utils.data import REMOTE_TIMEOUT
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     validate.check_conesearch_sites()
 Downloading http://vao.stsci.edu/directory/NVORegInt.asmx/...
-WARNING: W20: None:2:0: W20: No version number specified in file...
+|===========================================|  25M/ 25M (100.00%)        00s
+INFO: Only 30/11938 site(s) are validated [astropy.vo.validator.validate]
 # ...
-INFO: Only 31/11144 site(s) are validated [astropy.vo.server.validate]
-Downloading http://nvo.stsci.edu/vor10/getRecord.aspx?...
-# ...
-INFO: warn: 15 catalog(s) [astropy.vo.server.validate]
-INFO: good: 15 catalog(s) [astropy.vo.server.validate]
-INFO: nerr: 1 catalog(s) [astropy.vo.server.validate]
-INFO: excp: 0 catalog(s) [astropy.vo.server.validate]
-INFO: total: 31 catalog(s) [astropy.vo.server.validate]
-INFO: Validation of 31 site(s) took 129.094 s [astropy.vo.server.validate]
+INFO: good: 14 catalog(s) [astropy.vo.validator.validate]
+INFO: warn: 12 catalog(s) [astropy.vo.validator.validate]
+INFO: excp: 0 catalog(s) [astropy.vo.validator.validate]
+INFO: nerr: 4 catalog(s) [astropy.vo.validator.validate]
+INFO: total: 30 out of 30 catalog(s) [astropy.vo.validator.validate]
+INFO: check_conesearch_sites took 451.05685997 s on AVERAGE...
 
-From the master registry, select Cone Search access URLs
-hosted by ``'stsci.edu'``:
+Validate only Cone Search access URLs hosted by ``'stsci.edu'`` without verbose
+outputs (except warnings that are controlled by :py:mod:`warnings`) or
+multiprocessing, and write results in ``'subset'`` sub-directory instead of the
+current directory. For this example, we use ``registry_db`` from
+:ref:`VO database examples <vo-sec-client-db-manip-examples>`:
 
->>> import numpy as np
->>> from astropy.io.votable import parse_single_table
->>> from astropy.utils.data import get_readable_fileobj
->>> with REMOTE_TIMEOUT.set_temp(30):
-...     with get_readable_fileobj(validate.CS_MSTR_LIST(),
-...                               encoding='binary') as fd:
-...         tab_all = parse_single_table(fd)
-Downloading http://vao.stsci.edu/directory/NVORegInt.asmx/...
-|===========================================|  23M/ 23M (100.00%)        00s
-WARNING: W20: None:2:0: W20: No version number specified in file...
-# ...
->>> arr = tab_all.array.data[
-...     np.where(tab_all.array['capabilityClass'] == b'ConeSearch')]
->>> urls = [s for s in arr['accessURL'] if b'stsci.edu' in s]
+>>> urls = registry_db.list_catalogs_by_url(pattern='stsci.edu')
 >>> urls
-['http://archive.stsci.edu/hst/search.php?sci_data_set_name=Y*&amp;',
- 'http://archive.stsci.edu/tues/search.php?',
- 'http://archive.stsci.edu/hst/search.php?sci_data_set_name=J*&amp;',
- 'http://archive.stsci.edu/hut/search.php?', ...,
- 'http://archive.stsci.edu/kepler/kepler_fov/search.php?',
- 'http://archive.stsci.edu/kepler/confirmed_planets/search.php?']
-
-Validate only the URLs found above without verbose
-outputs (except warnings that are controlled by :py:mod:`warnings`)
-or multiprocessing, and write results in
-``'subset'`` sub-directory instead of the current directory:
-
+['http://archive.stsci.edu/befs/search.php?',
+ 'http://archive.stsci.edu/copernicus/search.php?', ...,
+ 'http://galex.stsci.edu/gxWS/ConeSearch/gxConeSearch.aspx?',
+ 'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&']
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     validate.check_conesearch_sites(
 ...         destdir='./subset', verbose=False, parallel=False, url_list=urls)
-WARNING: W49: ... Empty cell illegal for integer fields...
-# ...
+INFO: check_conesearch_sites took 84.7241549492 s on AVERAGE...
 
 Add ``'W24'`` from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
->>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W24'])
->>> with REMOTE_TIMEOUT.set_temp(30):
-...     validate.check_conesearch_sites()
+>>> from astropy.vo.validator.validate import NONCRIT_WARNINGS
+>>> with NONCRIT_WARNINGS.set_temp(NONCRIT_WARNINGS() + ['W24']):
+...     with REMOTE_TIMEOUT.set_temp(30):
+...         validate.check_conesearch_sites()
 
-Reset the list of ignored warnings back to default value.
 Validate *all* Cone Search services in the master registry
 (this will take a while) and write results in ``'all'`` sub-directory:
 
->>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS.defaultvalue)
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     validate.check_conesearch_sites(destdir='./all', url_list=None)
 
@@ -277,8 +250,9 @@ the actual VO Table returned by the Cone Search query:
 Inspection of Validation Results
 --------------------------------
 
-`~astropy.vo.validator.inspect` inspects results from
-:ref:`vo-sec-validator-validate`. It reads in JSON databases
+`astropy.vo.validator.inspect` inspects results from
+:ref:`vo-sec-validator-validate`. It reads in JSON files of
+`~astropy.vo.client.vos_catalog.VOSDatabase`
 residing in ``astropy.vo.client.vos_catalog.BASEURL``, which
 can be changed to point to a different location.
 
@@ -292,31 +266,32 @@ This parameter is set via :ref:`astropy_config`:
 Examples
 ^^^^^^^^
 
+>>> from astropy.vo.validator import inspect
+
 Load Cone Search validation results from
 ``astropy.vo.client.vos_catalog.BASEURL``
 (by default, the one used by :ref:`vo-sec-client-scs`):
 
->>> from astropy.vo.validator import inspect
 >>> r = inspect.ConeSearchResults()
-Downloading .../conesearch_good.json
-|============================================|  56/ 56k (100.00%)        00s
-Downloading .../conesearch_warn.json
-|============================================|  94/ 94k (100.00%)        00s
-Downloading .../conesearch_exception.json
-|============================================|  45/ 45  (100.00%)        00s
-Downloading .../conesearch_error.json
-|============================================|   1/  1k (100.00%)        00s
+Downloading http://.../conesearch_good.json
+|===========================================|  48k/ 48k (100.00%)        00s
+Downloading http://.../conesearch_warn.json
+|===========================================|  85k/ 85k (100.00%)        00s
+Downloading http://.../conesearch_exception.json
+|===========================================| 3.0k/3.0k (100.00%)        00s
+Downloading http://.../conesearch_error.json
+|===========================================| 4.0k/4.0k (100.00%)        00s
 
-Print tally. In this example, there are 15 Cone Search services that
-passed validation with non-critical warnings, 15 with critical warnings,
-none with exceptions, and 1 with network error:
+Print tally. In this example, there are 13 Cone Search services that
+passed validation with non-critical warnings, 14 with critical warnings,
+1 with exceptions, and 2 with network error:
 
 >>> r.tally()
-good: 15 catalog(s)
-warn: 15 catalog(s)
-exception: 0 catalog(s)
-error: 1 catalog(s)
-total: 31 catalog(s)
+good: 13 catalog(s)
+warn: 14 catalog(s)
+exception: 1 catalog(s)
+error: 2 catalog(s)
+total: 30 catalog(s)
 
 Print a list of good Cone Search catalogs, each with title, access URL,
 warning codes collected, and individual warnings:
@@ -376,9 +351,9 @@ validation of STScI Cone Search services done in
 >>> with BASEURL.set_temp('./subset/'):
 >>>     r = inspect.ConeSearchResults()
 >>> r.tally()
-good: 21 catalog(s)
+good: 19 catalog(s)
 warn: 7 catalog(s)
-exception: 0 catalog(s)
+exception: 2 catalog(s)
 error: 0 catalog(s)
 total: 28 catalog(s)
 >>> r.catkeys['good']

@@ -158,6 +158,8 @@ New Features
     previously the SAMPy package, which has been refactored for use in
     Astropy). [#1907]
 
+  - Enhanced functionalities for ``VOSCatalog`` and ``VOSDatabase``. [#1206]
+
 - ``astropy.wcs``
 
   - astropy now requires wcslib version 4.20 or later.  The version of
