@@ -84,6 +84,16 @@ def test_nddata_mask_valid():
         NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
 
 
+@pytest.mark.parametrize('mask_in', [
+                         np.array([True, False]),
+                         np.array([1, 0]),
+                         [True, False],
+                         [1, 0]])
+def test_nddata_mask_init_without_np_array(mask_in):
+    ndd = NDData([1, 1], mask=mask_in)
+    assert (ndd.mask == mask_in).all()
+
+
 @pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
 def test_nddata_mask_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:

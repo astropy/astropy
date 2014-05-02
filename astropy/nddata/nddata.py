@@ -42,11 +42,12 @@ class NDData(object):
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
 
-    mask : `~numpy.ndarray`, optional
-        Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values must be `False` where
-        the data is *valid* and `True` when it is not (like Numpy
-        masked arrays). If ``data`` is a numpy masked array, providing
+    mask : `~numpy.ndarray`-like, optional
+        Mask for the data, given as a boolean Numpy array or any object that
+        can be converted to a boolean Numpy array with a shape
+        matching that of the data. The values must be ``False`` where
+        the data is *valid* and ``True`` when it is not (like Numpy
+        masked arrays). If `data` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 
