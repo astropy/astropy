@@ -1455,7 +1455,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1,2],[3,4],[5,6]], names=('a','b','c'))
-            >>> t.pprint()
+            >>> print(t)
              a   b   c
             --- --- ---
               1   3   5
@@ -1464,7 +1464,7 @@ class Table(object):
         Renaming column 'a' to 'aa'::
 
             >>> t.rename_column('a' , 'aa')
-            >>> t.pprint()
+            >>> print(t)
              aa  b   c
             --- --- ---
               1   3   5
@@ -1509,7 +1509,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
            >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
-           >>> t.pprint()
+           >>> print(t)
             a   b   c
            --- --- ---
              1   4   7
@@ -1518,7 +1518,7 @@ class Table(object):
         Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'::
 
            >>> t.add_row([3,6,9])
-           >>> t.pprint()
+           >>> print(t)
              a   b   c
              --- --- ---
              1   4   7
@@ -1661,7 +1661,7 @@ class Table(object):
 
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                   Max  Miller  12
@@ -1671,7 +1671,7 @@ class Table(object):
         Sorting according to standard sorting rules, first 'name' then 'firstname'::
 
             >>> t.sort(['name','firstname'])
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                  John Jackson  18
@@ -1704,7 +1704,7 @@ class Table(object):
 
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                   Max  Miller  12
@@ -1714,7 +1714,7 @@ class Table(object):
         Reversing order::
 
             >>> t.reverse()
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                  John Jackson  18
