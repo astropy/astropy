@@ -130,6 +130,8 @@ New Features
 
   - `Time` now supports ISO format strings that end in "Z". [#2211, #2203]
 
+  - `TimeDelta` now supports a dog year format. [#????]
+
 - ``astropy.units``
 
   - Support for the unit format `Office of Guest Investigator Programs (OGIP)

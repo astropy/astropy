@@ -29,7 +29,7 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimePlotDate', 'TimeDatetime', 'TimeString',
            'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
-           'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
+           'TimeDeltaSec', 'TimeDeltaJD', 'TimeDeltaDogYear', 'ScaleValueError',
            'OperandTypeError', 'TimeEpochDateString',
            'TimeBesselianEpochString', 'TimeJulianEpochString',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
@@ -2055,6 +2055,12 @@ class TimeDeltaJD(TimeDeltaFormat):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
     unit = 1.
+
+
+class TimeDeltaDogYear(TimeDeltaFormat):
+    """Time delta in Dog Years (7 dog years = 365.25 Julian days)"""
+    name = 'dog_year'
+    unit = 365.25 / 7
 
 
 class ScaleValueError(Exception):

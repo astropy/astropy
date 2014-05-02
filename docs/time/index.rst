@@ -658,6 +658,7 @@ Format            Class
 =========  ===================================================
 sec        :class:`~astropy.time.TimeDeltaSec`
 jd         :class:`~astropy.time.TimeDeltaJD`
+dog_year   :class:`~astropy.time.TimeDeltaDogYear`
 =========  ===================================================
 
 Examples
@@ -690,6 +691,11 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000'
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
+
+To see when your dog born on midnight of 2000-Jan-1 turns 100 in dog years::
+
+   >>> print Time('2000-01-01') + TimeDelta(100.0, format='dog_year')
+   2014-04-14 20:34:14.143
 
 Time Scales for Time Deltas
 ---------------------------

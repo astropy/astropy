@@ -58,6 +58,11 @@ class TestTimeDelta():
         t2 = self.t + dt
         assert t2.iso == self.t2.iso
 
+        # Dog years
+        t3 = Time('2000-01-01')
+        t4 = t3 + TimeDelta(100.0, format='dog_year')
+        assert t4.iso == '2014-04-14 20:34:14.143'
+
         # delta_time + delta_time
         dt2 = dt + self.dt
         assert allclose_sec(dt2.sec, 86501.0)
