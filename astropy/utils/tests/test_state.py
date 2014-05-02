@@ -37,7 +37,7 @@ def test_alias():
     assert str(w[0].message) == (
         "'astropy.cosmology.core.DEFAULT_COSMOLOGY' is deprecated, "
         "and is no longer defined as a configuration item. Use "
-        "'astropy.cosmology.core.default_cosmology.set_temp()' instead.")
+        "'astropy.cosmology.core.default_cosmology.set()' instead.")
 
     with catch_warnings() as w:
         core.DEFAULT_COSMOLOGY.reload()

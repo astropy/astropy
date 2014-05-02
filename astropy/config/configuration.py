@@ -408,10 +408,11 @@ class ConfigItem(object):
 
         if len(options) > 1:
             warn(
-                "Config parameter '{0}' in section [{1}] is defined by "
-                "more than one alias: {2}".format(
+                "Config parameter '{0}' in section [{1}] is given by "
+                "more than one alias in the config file ({2}). "
+                "Using the first.".format(
                     self.name, self.module,
-                    ['.'.join(x[1], x[2]) for x in options]))
+                    ', '.join(['.'.join(x[1:3]) for x in options])))
 
         val = options[0][0]
 

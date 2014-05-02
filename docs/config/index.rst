@@ -173,8 +173,10 @@ it with the version number in the filename, for example
 ``astropy.0.4.cfg``.  You can compare this file to your
 ``astropy.cfg`` file to see what needs to be changed or updated.
 
-Developer Usage
-===============
+.. _config-developer:
+
+Adding new configuration items
+==============================
 
 Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
@@ -189,8 +191,10 @@ function is somewhat personal preference. It is the preferred form of
 persistent configuration, however, and astropy packages must all use
 it (and it is recommended for affiliated packages).
 
-The reference guide below describes the interface for a creating
-``conf`` object with a number of configuration parameters::
+The reference guide below describes the interface for creating a
+``conf`` object with a number of configuration parameters.  They
+should be defined at the top level, i.e. in the ``__init__.py`` of
+each subpackage that has configuration items::
 
     """ This is the docstring at the beginning of a module
     """
@@ -212,6 +216,28 @@ The reference guide below describes the interface for a creating
         #to get the value of these options, I might do:
         something = conf.some_setting + 2
         return conf.another_setting + ' Also, I added text.'
+
+The configuration items also need to be added to the config file
+template.  For astropy, this file is in ``astropy/astropy.cfg``.  For
+an affiliated package called, for example, ``packagename``, the file
+is in ``packagename/packagename.cfg``.  For the example above, the
+following content would be added to the config file template:
+
+.. code-block:: ini
+
+    [subpackage]
+    ## Description of some_setting
+    # some_setting = 1
+
+    ## Description of another_setting
+    # another_setting = foo
+
+Note that the key/value pairs are commented out.  This will allow for
+changing the default values in a future version of astropy without
+requiring the user to edit their configuration file to take advantage
+of the new defaults.  By convention, the descriptions of each
+parameter are in comment lines starting with two hash characters
+(``##``) to distinguish them from commented out key/value pairs.
 
 Item Types and Validation
 -------------------------
@@ -254,7 +280,7 @@ via the ``cfgtype`` option::
 If the default value's type doesn't match ``cfgtype``, the
 `~astropy.config.ConfigItem` cannot be created::
 
-    an_int_setting = ConfigurationItem(
+    an_int_setting = ConfigItem(
         4.2, 'A description.', cfgtype='integer')
 
 In summary, the default behavior (of automatically determining ``cfgtype``)
@@ -291,10 +317,10 @@ Below is a list of the valid values here for quick reference:
 Usage Tips
 ----------
 
-Keep in mind is that `~astropy.config.ConfigurationItem` objects can
-be changed at runtime by users. So it is always recommended to read
-their values immediately before use instead of just storing their
-initial value to some other variable (or used as a default for a
+Keep in mind is that `~astropy.config.ConfigItem` objects can be
+changed at runtime by users. So it is always recommended to read their
+values immediately before use instead of just storing their initial
+value to some other variable (or used as a default for a
 function). For example, the following will work, but is incorrect
 usage::
 

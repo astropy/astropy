@@ -10,6 +10,7 @@ import warnings
 from contextlib import contextmanager
 
 from . import config as _config
+from . import conf as _conf
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
@@ -368,13 +369,13 @@ class AstropyLogger(Logger):
         '''
         Enable colorized output
         '''
-        _config.use_color = True
+        _conf.use_color = True
 
     def disable_color(self):
         '''
         Disable colorized output
         '''
-        _config.use_color = False
+        _conf.use_color = False
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
@@ -575,7 +576,7 @@ class StreamHandler(logging.StreamHandler):
         else:
             stream = sys.stderr
 
-        if record.levelno < logging.DEBUG or not _config.use_color:
+        if record.levelno < logging.DEBUG or not _conf.use_color:
             print(record.levelname, end='', file=stream)
         elif(record.levelno < logging.INFO):
             color_print(record.levelname, 'magenta', end='', file=stream)

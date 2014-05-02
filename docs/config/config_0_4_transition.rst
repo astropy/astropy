@@ -59,7 +59,7 @@ release cycle, and will be removed altogether in astropy 0.5.
      - New Python location
    * - ``[] unicode_output``
      - ``UNICODE_OUTPUT``
-     - unchanged
+     - *unchanged*
      - ``conf.unicode_output``
    * - ``[coordinates.name_resolve] name_resolve_timeout``
      - ``coordinates.name_resolve.NAME_RESOLVE_TIMEOUT``
@@ -67,31 +67,31 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``astropy.utils.data.conf.remote_timeout``
    * - ``[coordinates.name_resolve] sesame_url``
      - ``coordinates.name_resolve.SESAME_URL``
-     - removed
+     - *removed*
      - ``coordinates.name_resolve.sesame_url.get/set``
    * - ``[coordinates.name_resolve] sesame_database``
      - ``coordinates.name_resolve.SESAME_DATABASE``
-     - removed
+     - *removed*
      - ``coordinates.name_resolve.sesame_database.get/set``
    * - ``[cosmology.core] default_cosmology``
      - ``cosmology.core.DEFAULT_COSMOLOGY``
-     - removed
+     - *removed*
      - ``cosmology.default_cosmology.get/set``
    * - ``[io.fits] enable_record_valued_keyword_cards``
      - ``io.fits.ENABLE_RECORD_VALUED_KEYWORD_CARDS``
-     - unchanged
+     - *unchanged*
      - ``io.fits.conf.enable_record_valued_keyword_cards``
    * - ``[io.fits] extension_name_case_sensitive``
      - ``io.fits.EXTENSION_NAME_CASE_SENSITIVE``
-     - unchanged
+     - *unchanged*
      - ``io.fits.conf.extension_name_case_sensitive``
    * - ``[io.fits] strip_header_whitespace``
      - ``io.fits.STRIP_HEADER_WHITESPACE``
-     - unchanged
+     - *unchanged*
      - ``io.fits.conf.strip_header_whitespace``
    * - ``[io.fits] use_memmap``
      - ``io.fits.USE_MEMMAP``
-     - unchanged
+     - *unchanged*
      - ``io.fits.conf.use_memmap``
    * - ``[io.votable.table] pedantic``
      - ``io.votable.table.PEDANTIC``
@@ -99,31 +99,31 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``io.votable.conf.pedantic``
    * - ``[logger] log_exceptions``
      - ``logger.LOG_EXCEPTIONS``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_exceptions``
    * - ``[logger] log_file_format``
      - ``logger.LOG_FILE_FORMAT``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_file_format``
    * - ``[logger] log_file_level``
      - ``logger.LOG_FILE_LEVEL``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_file_level``
    * - ``[logger] log_file_path``
      - ``logger.LOG_FILE_PATH``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_file_path``
    * - ``[logger] log_level``
      - ``logger.LOG_LEVEL``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_level``
    * - ``[logger] log_to_file``
      - ``logger.LOG_TO_FILE``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_to_file``
    * - ``[logger] log_warnings``
      - ``logger.LOG_WARNINGS``
-     - unchanged
+     - *unchanged*
      - ``logger.conf.log_warnings``
    * - ``[logger] use_color``
      - ``logger.USE_COLOR``
@@ -151,27 +151,27 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``conf.use_color``
    * - ``[utils.data] compute_hash_block_size``
      - ``astropy.utils.data.COMPUTE_HASH_BLOCK_SIZE``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.compute_hash_block_size``
    * - ``[utils.data] dataurl``
      - ``astropy.utils.data.DATAURL``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.dataurl``
    * - ``[utils.data] delete_temporary_downloads_at_exit``
      - ``astropy.utils.data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.delete_temporary_downloads_at_exit``
    * - ``[utils.data] download_cache_block_size``
      - ``astropy.utils.data.DOWNLOAD_CACHE_BLOCK_SIZE``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.download_cache_block_size``
    * - ``[utils.data] download_cache_lock_attempts``
      - ``astropy.utils.data.download_cache_lock_attempts``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.download_cache_lock_attempts``
    * - ``[utils.data] remote_timeout``
      - ``astropy.utils.data.REMOTE_TIMEOUT``
-     - unchanged
+     - *unchanged*
      - ``astropy.utils.data.conf.remote_timeout``
    * - ``[vo.client.conesearch] conesearch_dbname``
      - ``vo.client.conesearch.CONESEARCH_DBNAME``
@@ -279,8 +279,9 @@ Moving/renaming configuration items in Python
 moved from an astropy 0.3-style ``ConfigurationItem`` to an astropy
 0.4-style ``ConfigItem`` inside of a ``ConfigNamespace``.
 
-In the above example, the following adds backward-compatible hooks so the
-old Python locations of the configuration items will continue to work from user code::
+In the above example, the following adds backward-compatible hooks so
+the old Python locations of the configuration items will continue to
+work from user code::
 
     ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
         '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
