@@ -374,8 +374,10 @@ class NDData(object):
 
         data = operation(self.data, operand_data)
         # Call __class__ in case we are dealing with an inherited type
+
+        new_wcs = deepcopy(self.wcs)
         result = self.__class__(data, uncertainty=None,
-                                mask=None, flags=None, wcs=self.wcs,
+                                mask=None, flags=None, wcs=new_wcs,
                                 meta=None, unit=self.unit)
 
         if propagate_uncertainties is None:

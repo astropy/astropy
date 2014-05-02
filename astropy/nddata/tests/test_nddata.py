@@ -330,6 +330,21 @@ def test_arithmetic_result_not_tied_to_operands_mask(op1_mask, op2_mask):
         assert op2.mask[0] == (not result.mask[0])
 
 
+def test_arithmetic_result_not_tied_to_operands_wcs_unit():
+    # Unlike the previous two tests, we only need to check a case where both
+    # operands have the same wcs because operands with different wcs is not
+    # supported
+    op1 = NDData([1], wcs=np.array([1]), unit='m')
+    op2 = NDData([1], wcs=np.array([1]), unit='m')
+    result = op1.add(op2)
+    result.wcs[0] = 12345
+    assert op1.wcs[0] != result.wcs[0]
+    assert op2.wcs[0] != result.wcs[0]
+    result.unit = u.km
+    assert op1.unit != u.km
+    assert op2.unit != u.km
+
+
 @pytest.mark.parametrize('operation', [
                          'add',
                          'subtract',
