@@ -314,3 +314,20 @@ def test_to_string():
         assert sc.to_string('hmsdms') == wrap('01h02m03s +01d02m03s')
         with_kwargs = sc.to_string('hmsdms', precision=3, pad=True, alwayssign=True)
         assert with_kwargs == wrap('+01h02m03.000s +01d02m03.000s')
+
+
+def test_seps():
+    sc1 = SkyCoord('icrs', 0*u.deg, 1*u.deg)
+    sc2 = SkyCoord('icrs', 0*u.deg, 2*u.deg)
+
+    sep = sc1.separation(sc2)
+
+    assert (sep - 1*u.deg)/u.deg < 1e-10
+
+    with pytest.raises(ValueError):
+        sc1.separation_3d(sc2)
+
+
+    sc3 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
+    sc4 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=2*u.kpc)
+    sep3d = sc3.separation_3d(sc4)

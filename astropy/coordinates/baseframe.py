@@ -447,7 +447,7 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.SphericalCoordinatesBase`
+        other : `~astropy.coordinates.BaseCoordinateFrame`
             The coordinate to get the separation to.
 
         Returns
@@ -481,7 +481,7 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.SphericalCoordinatesBase`
+        other : `~astropy.coordinates.BaseCoordinateFrame`
             The coordinate system to get the distance to.
 
         Returns

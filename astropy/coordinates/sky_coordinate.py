@@ -14,7 +14,8 @@ from .. import units as u
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
-from .representation import BaseRepresentation, SphericalRepresentation
+from .representation import BaseRepresentation, SphericalRepresentation, \
+                            UnitSphericalRepresentation
 
 __all__ = ['SkyCoord']
 
@@ -377,6 +378,93 @@ class SkyCoord(object):
                                  latangle.to_string(**latargs))]
 
         return coord_string
+
+    #high-level convinience methods
+    def separation(self, other):
+        """
+        Computes on-sky separation between this coordinate and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate to get the separation to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Angle`
+            The on-sky separation between this and the ``other`` coordinate.
+
+        Notes
+        -----
+        The separation is calculated using the Vincenty formula, which
+        is stable at all locations, including poles and antipodes [1]_.
+
+        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+
+        """
+        from . import Angle
+        from .angle_utilities import angular_separation
+
+        if isinstance(other, self.__class__):
+            self_in_other_system = self.transform_to(other.frame)
+        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
+            # it's a frame
+            self_in_other_system = self.transform_to(other.__class__)
+        else:
+            raise TypeError('Can only get separation to another SkyCoord or a '
+                            'coordinate frame with data')
+
+        lon1 = self_in_other_system.spherical.lon
+        lat1 = self_in_other_system.spherical.lat
+        lon2 = other.spherical.lon
+        lat2 = other.spherical.lat
+
+        # Get the separation as a Quantity, convert to Angle in degrees
+        sep = angular_separation(lon1, lat1, lon2, lat2)
+        return Angle(sep, unit=u.degree)
+
+    def separation_3d(self, other):
+        """
+        Computes three dimensional separation between this coordinate
+        and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate to get the separation to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates.
+
+        Raises
+        ------
+        ValueError
+            If this or the other coordinate do not have distances.
+        """
+        from . import Distance
+
+        if self.data.__class__ == UnitSphericalRepresentation:
+            raise ValueError('This object does not have a distance; cannot '
+                             'compute 3d separation.')
+        if other.data.__class__ == UnitSphericalRepresentation:
+            raise ValueError('The other object does not have a distance; '
+                             'cannot compute 3d separation.')
+
+        if isinstance(other, self.__class__):
+            self_in_other_system = self.transform_to(other.frame)
+        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
+            # it's a frame
+            self_in_other_system = self.transform_to(other.__class__)
+
+        dx = self_in_other_system.cartesian.x - other.cartesian.x
+        dy = self_in_other_system.cartesian.y - other.cartesian.y
+        dz = self_in_other_system.cartesian.z - other.cartesian.z
+
+        distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
+        return Distance(distval, dx.unit)
+
 
     # Name resolve
     @classmethod
