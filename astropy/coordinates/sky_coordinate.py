@@ -4,9 +4,13 @@ import re
 from copy import deepcopy
 import collections
 
+import numpy as np
+
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+from ..extern.six.moves import zip
 from ..units import Unit
+from .. import units as u
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
@@ -261,6 +265,58 @@ class SkyCoord(object):
     def __repr__(self):
         out = re.sub('Coordinate:', self.__class__.__name__ + ':', repr(self._coord))
         return out
+
+    def to_string(self, style='decimal', **kwargs):
+        """
+        A string representation of the coordinates.
+
+        See :meth:`~astropy.coordinates.Angle.to_string` for details and
+        keyword arguments (the two angles forming the coordinates are are
+        both :class:`~astropy.coordinates.Angle` instances). Keyword
+        arguments are passed to :meth:`~astropy.coordinates.Angle.to_string`.
+
+        Parameters
+        ----------
+        style : {'hmsdms', 'dms', 'decimal'}
+            The formatting specification to use. These encode the three most
+            common ways to represent coordinates. If `None` is passed, the
+            defaults for the current coordinate class is used.
+        kwargs
+            Keyword arguments are passed to
+            :meth:`~astropy.coordinates.Angle.to_string`.
+        """
+
+        sph_coord = self._coord.represent_as(SphericalRepresentation)
+
+        styles = {'hmsdms': {'lonargs': {'unit': u.hour},
+                             'latargs': {'unit': u.degree}},
+                  'dms': {'lonargs': {'unit': u.degree},
+                          'latargs': {'unit': u.degree}},
+                  'decimal': {'lonargs': {'unit': u.degree, 'decimal': True},
+                              'latargs': {'unit': u.degree, 'decimal': True}}
+                  }
+
+        lonargs = kwargs.copy()
+        latargs = kwargs.copy()
+
+        if style in styles:
+            lonargs.update(styles[style]['lonargs'])
+            latargs.update(styles[style]['latargs'])
+        else:
+            raise ValueError('Invalid style.  Valid options are: {0}'.format(",".join(styles)))
+
+        if np.isscalar(sph_coord.lon.value):
+            coord_string = (sph_coord.lon.to_string(**lonargs)
+                            + " " +
+                            sph_coord.lat.to_string(**latargs))
+        else:
+            coord_string = []
+            for lonangle, latangle in zip(sph_coord.lon, sph_coord.lat):
+                coord_string += [(lonangle.to_string(**lonargs)
+                                 + " " +
+                                 latangle.to_string(**latargs))]
+
+        return coord_string
 
 
 def _get_frame_class(frame):
