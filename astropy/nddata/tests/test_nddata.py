@@ -102,6 +102,18 @@ def test_nddata_mask_invalid_shape(shape):
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
 
+@pytest.mark.parametrize('flags_in', [
+                         np.array([True, False]),
+                         np.array([1, 0]),
+                         [True, False],
+                         [1, 0],
+                         np.array(['a', 'b']),
+                         ['a', 'b']])
+def test_nddata_flags_init_without_np_array(flags_in):
+    ndd = NDData([1, 1], flags=flags_in)
+    assert (ndd.flags == flags_in).all()
+
+
 def test_nddata_uncertainty_init():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
