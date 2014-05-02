@@ -78,6 +78,17 @@ class BaseRepresentation(object):
         return self.__class__(*(getattr(self, component)[view]
                                 for component in self.components))
 
+    def __len__(self):
+        if self.isscalar:
+            raise TypeError("'{cls}' object with scalar values have no "
+                            "len()".format(cls=self.__class__.__name__))
+        else:
+            return len(getattr(self, self.components[0]))
+
+    @property
+    def shape(self):
+        return getattr(self, self.components[0]).shape
+
     @property
     def isscalar(self):
         return getattr(self, self.components[0]).isscalar
