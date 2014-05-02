@@ -634,9 +634,9 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
     from .. import conf
 
     return VOSDatabase.from_json(
-        urllib.parse.urljoin(conf.vos_baseurl, dbname + '.json',
-                             encoding='utf8', cache=cache,
-                             show_progress=verbose)
+        urllib.parse.urljoin(conf.vos_baseurl, dbname + '.json'),
+        encoding='utf8', cache=cache,
+        show_progress=verbose)
 
 
 def _get_catalogs(service_type, catalog_db, **kwargs):
