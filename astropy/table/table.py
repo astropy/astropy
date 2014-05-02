@@ -37,7 +37,10 @@ _NUMPY_VERSION = version.LooseVersion(np.__version__)
 _BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
 
 
-__doctest_skip__ = ['Table.read', 'Table.write']
+__doctest_skip__ = ['Table.read', 'Table.write',
+                    'Table.convert_bytestring_to_unicode',
+                    'Table.convert_unicode_to_bytestring',
+                    ]
 
 
 class TableColumns(OrderedDict):
