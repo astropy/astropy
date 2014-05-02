@@ -18,23 +18,31 @@ from .representation import BaseRepresentation, SphericalRepresentation
 
 __all__ = ['SkyCoord']
 
-# ALL THESE FIXED MAPPINGS NEED TO BE DYNAMIC
+# Define some convenience mappings.  These are used like module constants
+# but are actually dynamically evaluated.
 
-# Create FRAME_CLASSES dictionary mapping of frame name: frame class.
-FRAME_NAMES = frame_transform_graph.get_aliases()
-FRAME_CLASSES = dict((name, frame_transform_graph.lookup_name(name))
-                     for name in FRAME_NAMES)
-FRAME_CLASSES[None] = FRAME_CLASSES['icrs']
+def FRAME_NAMES():
+    """Dictionary mapping of frame name: frame class."""
+    return frame_transform_graph.get_aliases()
 
-# Inverse mapping is useful
-CLASS_TO_NAME_MAP = dict((cls, name) for name, cls in FRAME_CLASSES.items())
+def FRAME_CLASSES():
+    """Mapping from frame name to class"""
+    out = dict((name, frame_transform_graph.lookup_name(name))
+               for name in FRAME_NAMES())
+    out[None] = out['icrs']
+    return out
 
+def CLASS_TO_NAME_MAP():
+    """Mapping from frame class to name"""
+    return dict((cls, name) for name, cls in FRAME_CLASSES().items())
 
-# Set of all possible frame-specific attributes
-FRAME_ATTR_NAMES_SET = set()
-for frame_cls in FRAME_CLASSES.values():
-    for attr in frame_cls.frame_attr_names.keys():
-        FRAME_ATTR_NAMES_SET.add(attr)
+def FRAME_ATTR_NAMES_SET():
+    """Set of all possible frame-specific attributes"""
+    out = set()
+    for frame_cls in FRAME_CLASSES().values():
+        for attr in frame_cls.frame_attr_names.keys():
+            out.add(attr)
+    return out
 
 
 class SkyCoord(object):
@@ -89,11 +97,11 @@ class SkyCoord(object):
 
         # Set internal versions of object state attributes
         self._frame = kwargs['frame']
-        for attr in FRAME_ATTR_NAMES_SET:
+        for attr in FRAME_ATTR_NAMES_SET():
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = FRAME_CLASSES[self.frame]
+        frame_cls = FRAME_CLASSES()[self.frame]
         coord_kwargs = {}
         for attr, value in kwargs.items():
             if value is not None and (attr in frame_cls.preferred_attr_names
@@ -127,7 +135,7 @@ class SkyCoord(object):
         # by keyword args or else get a None default.  Pop them off of kwargs
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
-        for attr in FRAME_ATTR_NAMES_SET:
+        for attr in FRAME_ATTR_NAMES_SET():
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
         # Get latitude and longitude units
@@ -155,7 +163,7 @@ class SkyCoord(object):
             elif len(args) == 2:
                 # Must be longitude, latitude.
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                          FRAME_CLASSES[frame].preferred_attr_names.items())
+                                          FRAME_CLASSES()[frame].preferred_attr_names.items())
                 coord_kwargs = {}
                 coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=lon_unit)
                 coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=lat_unit)
@@ -217,7 +225,7 @@ class SkyCoord(object):
             # transform.  If the supplied frame instance has a non-default
             # value set then use that, otherwise use the self attribute value
             # if it is not None.
-            for attr in FRAME_ATTR_NAMES_SET:
+            for attr in FRAME_ATTR_NAMES_SET():
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
                 if (frame_val is not None and
@@ -261,7 +269,7 @@ class SkyCoord(object):
         # Anything in the set of all possible frame_attr_names is handled
         # here. If the attr is relevant for the current frame then delegate
         # to self._coord otherwise get it from self._<attr>.
-        if attr in FRAME_ATTR_NAMES_SET:
+        if attr in FRAME_ATTR_NAMES_SET():
             if attr in self._coord.frame_attr_names:
                 return getattr(self._coord, attr)
             else:
@@ -291,7 +299,7 @@ class SkyCoord(object):
 
         # determine the aliases that this can be transformed to.
         dir_values = set()
-        for name, frame_cls in FRAME_CLASSES.items():
+        for name, frame_cls in FRAME_CLASSES().items():
             if self._coord.is_transformable_to(frame_cls):
                 dir_values.add(name)
 
@@ -299,7 +307,7 @@ class SkyCoord(object):
         dir_values.update(set(attr for attr in dir(self._coord) if not attr.startswith('_')))
 
         # Add all possible frame_attr_names
-        dir_values.update(FRAME_ATTR_NAMES_SET)
+        dir_values.update(FRAME_ATTR_NAMES_SET())
 
         return dir_values
 
@@ -409,10 +417,10 @@ def _get_frame_class(frame):
     import inspect
 
     if isinstance(frame, six.string_types):
-        if frame not in FRAME_NAMES:
+        if frame not in FRAME_NAMES():
             raise ValueError('Coordinate frame {0} not in allowed values {1}'
-                             .format(frame, sorted(FRAME_NAMES)))
-        frame_cls = FRAME_CLASSES[frame]
+                             .format(frame, sorted(FRAME_NAMES())))
+        frame_cls = FRAME_CLASSES()[frame]
 
     elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
         frame_cls = frame
@@ -440,7 +448,7 @@ def _get_frame_name(args, kwargs):
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
-        frame_name = CLASS_TO_NAME_MAP[frame_cls]
+        frame_name = CLASS_TO_NAME_MAP()[frame_cls]
     else:
         # Look for the frame in args
         for arg in args:
@@ -449,7 +457,7 @@ def _get_frame_name(args, kwargs):
             except ValueError:
                 pass
             else:
-                frame_name = CLASS_TO_NAME_MAP[frame_cls]
+                frame_name = CLASS_TO_NAME_MAP()[frame_cls]
                 args.remove(arg)
                 break
         else:
@@ -462,7 +470,7 @@ def _get_frame_name(args, kwargs):
     for arg in args:
         coord_frame_name = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_name = CLASS_TO_NAME_MAP[arg.__class__]
+            coord_frame_name = CLASS_TO_NAME_MAP()[arg.__class__]
         elif isinstance(arg, SkyCoord):
             coord_frame_name = arg.frame
 
@@ -517,7 +525,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
 
     # Get the mapping of attribute type (e.g. 'lat', 'lon', 'distance')
     # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
-    frame_cls = FRAME_CLASSES[frame]
+    frame_cls = FRAME_CLASSES()[frame]
     attr_name_for_type = dict((attr_type, name) for name, attr_type in
                               frame_cls.preferred_attr_names.items())
 
@@ -544,7 +552,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
             else:
                 raise ValueError("Unexpected attribute type '{0}'".format(attr_type))
 
-        for attr in FRAME_ATTR_NAMES_SET:
+        for attr in FRAME_ATTR_NAMES_SET():
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord)
                          or attr not in coords._attr_names_with_defaults)
@@ -599,7 +607,7 @@ def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
     put into the output valid_kwargs.
     """
     valid_kwargs = {}
-    frame_cls = FRAME_CLASSES[frame]
+    frame_cls = FRAME_CLASSES()[frame]
     for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
                                       (Latitude, 'lat', lat_unit),
                                       (None, 'distance', None)):
