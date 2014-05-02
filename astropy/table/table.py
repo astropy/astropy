@@ -610,8 +610,16 @@ class Table(object):
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
-        s = "<{3} rows={0} names=({1})>\n{2}".format(
-            self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
+        if any(col.unit for col in self.columns.values()):
+            units = ("{0}".format( 
+                    col.unit if col.unit is None else '\''+str(col.unit)+'\'') 
+                    for col in self.columns.values())
+            s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
+                self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__
+                ,','.join(units))
+        else:
+            s = "<{3} rows={0} names=({1})>\n{2}".format(
+                self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
         return s
 
     def __unicode__(self):

@@ -217,6 +217,9 @@ API Changes
     Now, this conversion is only done if explicitly requested or if any
     of the input values is actually masked. [#1185]
 
+  - The repr() function of ``astropy.table.Table`` now shows the units 
+    if any columns have the unit attribute set.  [#2180]
+
 - ``astropy.time``
 
   - Correct use of UT in TDB calculation [#1938, #1939].

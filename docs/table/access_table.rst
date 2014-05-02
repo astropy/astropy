@@ -162,7 +162,7 @@ meta-data and column definitions are copied.
 ::
 
   >>> t[2:5]  # Table object with rows 2:5 (reference)
-  <Table rows=3 names=('a','b','c')>
+  <Table rows=3 names=('a','b','c') units=('m sec^-1',None,None)>
   array([(6, 7, 8), (9, 10, 11), (12, 13, 14)],
         dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')])
 

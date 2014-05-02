@@ -54,6 +54,15 @@ about the table values and column definitions as follows::
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
+One can also assign an unit to the columns. If any column has an unit 
+assigned, all units would be shown as follows::
+
+  >>> t['b'].unit = 's'
+  >>> t
+  <Table rows=3 names=('a','b','c') units=(None,'s',None)>
+  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')], 
+        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+
 From within the IPython notebook, the table is displayed as a formatted HTML table:
 
 .. image:: table_repr_html.png
@@ -62,7 +71,8 @@ If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
   >>> print(t)
-    a   b   c
+   a   b   c
+       s
   --- --- ---
     1 2.0   x
     4 5.0   y
@@ -112,6 +122,7 @@ columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
    a   b   c
+       s
   --- --- ---
     1 2.0   x
     4 5.0   y
@@ -132,6 +143,7 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
    a    b    c
+        s
   --- ----- ---
    -1 100.0   x
     8 100.0   W
