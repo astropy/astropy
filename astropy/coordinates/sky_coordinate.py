@@ -38,6 +38,47 @@ for frame_cls in FRAME_CLASSES.values():
 
 
 class SkyCoord(object):
+    """
+    A high-level celestial coordinate object.  This class represents celestial
+    coordinates of various different types of coordinate systems using a single
+    class.
+
+
+    The actual frames/coordinate-systems available are the systems that are
+    registered in the  `astropy.coordinates.frame_transform_graph` - E.g.,
+    `~astropy.coordinates.ICRS`. see the documentation for specific frame classes
+    to see the exact attributes available and how they are interpreted.
+
+    Because it supports different kinds of frames, `SkyCoord` can be initialized
+    in a variety of ways:
+
+    * A single positional argument that is an
+      `~astropy.coordinates.BaseCoordinateFrame` object.
+    * A positional argument that is a string or list of strings of a form like
+      "1h12m43.2s +1d12m43s", and a `frame` keyword (see Parameters section
+      below)
+    * A positional argument that is a string or list of strings of a form like
+      "1:12:43.2s +1:12:43", a `unit` argument that is a 2-tuple (e.g.,
+      ``(u.deg, u.deg)`` and a `frame` keyword (see Parameters section below)
+    * A `frame` keyword (see Parameters section below), and keywords appropriate
+      for that frame (matching the frame class' initializer).
+    * A `~astropy.coordinates.BaseRepresentation` instance and a `frame` keyword
+      (see Parameters section below).
+    * Additional keywords will be interpreted as attributes of this `SkyCoord`,
+      but will only be used by the containing coordinate if it is transformed.
+
+
+    Parameters
+    ----------
+    frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
+        The type of coordinate frame this `SkyCoord` should represent.  If a
+        string, it should be one of the aliases available in `astropy.coordinates.frame_transform_graph`,
+        typically an all-lower-case version of the system name.
+    others
+        Other parameters depend on the type of frame - see above.
+
+
+    """
 
     def __init__(self, *args, **kwargs):
         # Parse the args and kwargs to assemble a sanitized and validated
@@ -465,7 +506,8 @@ def _get_units(args, kwargs):
 def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     """
     Single unnamed arg supplied.  This must be:
-    - Coordinate
+    - Coordinate frame with data
+    - Representation
     - List or tuple of:
       - String which splits into two values
       - Iterable with two values
