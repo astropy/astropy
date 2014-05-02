@@ -279,7 +279,7 @@ class Gaussian2D(Fittable2DModel):
         elif cov_matrix is not None:
             cov_matrix = np.array(cov_matrix)
             if cov_matrix.shape != (2, 2):
-                raise TypeError("Covariance matrix must be 2x2")
+                raise ValueError("Covariance matrix must be 2x2")
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]

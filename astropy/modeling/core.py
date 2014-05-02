@@ -99,14 +99,14 @@ def format_input(func):
                 converted.append(np.array([arg]).T)
             elif arg.ndim == 2:
                 if arg.shape[-1] != self.param_dim:
-                    raise TypeError("Cannot broadcast with shape ({0}, {1})".
-                                    format(arg.shape[0], arg.shape[1]))
+                    raise ValueError("Cannot broadcast with shape ({0}, {1})".
+                                     format(arg.shape[0], arg.shape[1]))
                 converted.append(arg)
             elif arg.ndim > 2:
                 if arg.shape[0] != self.param_dim:
-                    raise TypeError("Cannot broadcast with shape ({0}, {1}, "
-                                    "{2})".format(arg.shape[0],
-                                                  arg.shape[1], arg.shape[2]))
+                    raise ValueError("Cannot broadcast with shape ({0}, {1}, "
+                                     "{2})".format(arg.shape[0],
+                                                   arg.shape[1], arg.shape[2]))
                 transposed = True
                 converted.append(arg.T)
 
@@ -118,7 +118,7 @@ def format_input(func):
             else:
                 return result.T
         elif scalar:
-            if self.n_outputs >1:
+            if self.n_outputs > 1:
                 try:
                     result = [np.asscalar(r) for r in result]
                 except TypeError:
@@ -876,8 +876,8 @@ class SerialCompositeModel(_CompositeModel):
 
         if transforms and inmap and outmap:
             if not (len(transforms) == len(inmap) == len(outmap)):
-                raise TypeError("Expected sequences of transform, "
-                                "inmap and outmap to have the same length")
+                raise ValueError("Expected sequences of transform, "
+                                 "inmap and outmap to have the same length")
 
         if inmap is None:
             inmap = [None] * len(transforms)
@@ -979,8 +979,8 @@ class SummedCompositeModel(_CompositeModel):
         n_outputs = n_inputs
         for transform in self._transforms:
             if not (transform.n_inputs == transform.n_outputs == n_inputs):
-                raise TypeError("A SummedCompositeModel expects n_inputs = "
-                                "n_outputs for all transforms")
+                raise ValueError("A SummedCompositeModel expects n_inputs = "
+                                 "n_outputs for all transforms")
 
         super(SummedCompositeModel, self).__init__(transforms, n_inputs,
                                                    n_outputs)
@@ -1021,7 +1021,7 @@ class SummedCompositeModel(_CompositeModel):
         else:
             result = self._transforms[0](*data)
             if self.n_inputs != self.n_outputs:
-                raise TypeError("Expected equal number of inputs and outputs")
+                raise ValueError("Expected equal number of inputs and outputs")
             for tr in self._transforms[1:]:
                 result += tr(*data)
             return result

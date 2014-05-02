@@ -546,13 +546,13 @@ class AffineTransformation2D(Model):
         """
 
         if x.shape != y.shape:
-            raise TypeError("Expected input arrays to have the same shape")
+            raise ValueError("Expected input arrays to have the same shape")
 
         shape = x.shape
         inarr = np.vstack([x.flatten(), y.flatten(), np.ones(x.size)])
 
         if inarr.shape[0] != 3 or inarr.ndim != 2:
-            raise TypeError("Incompatible input shapes")
+            raise ValueError("Incompatible input shapes")
 
         result = np.dot(self._augmented_matrix, inarr)
 
@@ -597,7 +597,7 @@ class AffineTransformation2D(Model):
     @staticmethod
     def _create_augmented_matrix(matrix, translation):
         augmented_matrix = np.empty((3, 3), dtype=np.float)
-        augmented_matrix[0:2,0:2] = matrix
+        augmented_matrix[0:2, 0:2] = matrix
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]
         return augmented_matrix

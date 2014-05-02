@@ -136,7 +136,7 @@ class TestSummedComposite(object):
     def test_inputs_outputs_mismatch(self):
         p2 = models.Polynomial2D(1)
         ch2 = models.Chebyshev2D(1, 1)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             SummedCompositeModel([p2, ch2])
 
 

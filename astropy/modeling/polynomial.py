@@ -379,7 +379,7 @@ class OrthoPolynomialBase(PolynomialBase):
         """
 
         if x.shape != y.shape:
-            raise TypeError("Expected input arrays to have the same shape")
+            raise ValueError("Expected input arrays to have the same shape")
         if self.x_domain is not None:
             x = poly_map_domain(x, self.x_domain, self.x_window)
         if self.y_domain is not None:
@@ -766,7 +766,7 @@ class Polynomial2D(PolynomialModel):
 
         invcoeff = self.invlex_coeff()
         if x.shape != y.shape:
-            raise TypeError("Expected input arrays to have the same shape")
+            raise ValueError("Expected input arrays to have the same shape")
 
         return self.mhorner(x, y, invcoeff)
 
