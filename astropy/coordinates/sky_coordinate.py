@@ -329,6 +329,36 @@ class SkyCoord(object):
 
         return coord_string
 
+    # Name resolve
+    @classmethod
+    def from_name(cls, name):
+        """
+        Given a name, query the CDS name resolver to attempt to retrieve
+        coordinate information for that object. The search database, sesame
+        url, and  query timeout can be set through configuration items in
+        ``astropy.coordinates.name_resolve`` -- see docstring for
+        `~astropy.coordinates.get_icrs_coordinates` for more
+        information.
+
+        Parameters
+        ----------
+        name : str
+            The name of the object to get coordinates for, e.g. ``'M42'``.
+
+        Returns
+        -------
+        coord : SkyCoord
+            Instance of the SkyCoord class.
+        """
+
+        from .name_resolve import get_icrs_coordinates
+
+        icrs = get_icrs_coordinates(name)
+        if cls == icrs.__class__:
+            return icrs
+        else:
+            return icrs.transform_to(cls)
+
 
 def _get_frame_class(frame):
     """
