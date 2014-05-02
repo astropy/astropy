@@ -81,11 +81,10 @@ def test_find_by_hash():
 
 @remote_data
 def test_find_by_hash():
-    from urllib2 import URLError
     from ..data import get_pkg_data_filename
 
     #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
-    with pytest.raises(URLError):
+    with pytest.raises(six.moves.urllib.error.URLError):
         get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
 
 
@@ -249,9 +248,9 @@ def test_data_noastropy_fallback(monkeypatch):
 
     #now try with no cache
     with catch_warnings(CacheMissingWarning) as w:
-        fnnocache = data.download_file(TESTURL, cache=False, encoding='utf-8')
+        fnnocache = data.download_file(TESTURL, cache=False)
     with open(fnnocache, 'rb') as page:
-        assert page.read().decode().find('Astropy') > -1
+        assert page.read().decode('utf-8').find('Astropy') > -1
 
     # no warnings should be raise in fileobj because cache is unnecessary
     assert len(w) == 0
