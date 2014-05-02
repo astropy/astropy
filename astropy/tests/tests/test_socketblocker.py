@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..helper import pytest
+from ..disable_internet import no_internet
 from astropy.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
 from astropy.extern.six.moves.urllib.request import urlopen
 from threading import Thread
@@ -9,7 +10,9 @@ import time
 
 def test_outgoing_fails():
     with pytest.raises(IOError):
-        urlopen('http://www.astropy.org')
+        with no_internet():
+            urlopen('http://www.astropy.org')
+
 
 class StoppableHTTPServer(BaseHTTPServer.HTTPServer,object):
     def __init__(self, *args):
@@ -19,7 +22,7 @@ class StoppableHTTPServer(BaseHTTPServer.HTTPServer,object):
     def handle_request(self):
         self.stop = True
         super(StoppableHTTPServer, self).handle_request()
-     
+
     def serve_forever(self):
         """
         Serve until stop set, which will happen if any request is handled
