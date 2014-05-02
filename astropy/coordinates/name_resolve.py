@@ -20,7 +20,7 @@ from .. import config as _config
 from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
-from .builtin_frames import ICRS
+from .sky_coordinate import SkyCoord
 from ..utils import data
 from ..utils import state
 
@@ -187,4 +187,4 @@ def get_icrs_coordinates(name):
 
         raise NameResolveError(err)
 
-    return ICRS(ra, dec, unit=(u.degree, u.degree))
+    return SkyCoord(ra=ra, dec=dec, unit=(u.degree,u.degree))
