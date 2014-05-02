@@ -393,6 +393,8 @@ def test_simple_slicing():
     assert d1.shape == (5, 5)
     d2 = d1[2:3, 2:3]
     assert d2.shape == (1, 1)
+    d3 = d1[2, 2]
+    assert d3.shape == ()
 
 
 def test_slicing_reference():
@@ -402,6 +404,15 @@ def test_slicing_reference():
     # asserting that the new nddata contains references to the original nddata
     assert d2.data.base is d1.data
     assert d2.uncertainty.array.base is d1.uncertainty.array
+
+
+def test_slicing_with_mask_or_flag():
+    # Regression test for #2170
+    ndd = NDData([1, 2, 3], mask=np.array([False, False, False]),
+                 flags=np.array([-1, -1, -1]))
+    assert ndd[0].shape == ()
+    assert not ndd[0].mask
+    assert ndd[0].flags == -1
 
 
 def test_initializing_from_nddata():

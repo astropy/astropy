@@ -290,12 +290,18 @@ class NDData(object):
 
         if self.mask is not None:
             new_mask = self.mask[item]
+            # mask setter expects an array, always
+            if new_mask.shape == ():
+                new_mask = np.array(new_mask)
         else:
             new_mask = None
 
         if self.flags is not None:
             if isinstance(self.flags, np.ndarray):
                 new_flags = self.flags[item]
+                # flags setter expects an array, always
+                if new_flags.shape == ():
+                    new_flags = np.array(new_flags)
             elif isinstance(self.flags, FlagCollection):
                 raise NotImplementedError('Slicing complex Flags is currently not implemented')
         else:
