@@ -466,16 +466,29 @@ class raises(object):
         @raises(ZeroDivisionError)
         def test_foo():
             x = 1/0
+
+    This can also be used a context manager, in which case it is just an alias
+    for the `pytest.raises` context manager (because the two have the same name
+    this help avoid confusion by being flexible).
     """
+
     # pep-8 naming exception -- this is a decorator class
     def __init__(self, exc):
         self._exc = exc
+        self._ctx = None
 
     def __call__(self, func):
         @functools.wraps(func)
         def run_raises_test(*args, **kwargs):
             pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
+
+    def __enter__(self):
+        self._ctx = pytest.raises(self._exc)
+        return self._ctx.__enter__()
+
+    def __exit__(self, *exc_info):
+        return self._ctx.__exit__(*exc_info)
 
 
 class catch_warnings(warnings.catch_warnings):

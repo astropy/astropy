@@ -639,8 +639,10 @@ class Time(object):
 
             >>> from astropy.utils.iers import IERS_A, IERS_A_URL
             >>> from astropy.utils.data import download_file
+            >>> t = Time(['1974-01-01', '2000-01-01'], scale='utc')
             >>> iers_a_file = download_file(IERS_A_URL,
             ...                             cache=True)        # doctest: +REMOTE_DATA
+            Downloading ... [Done]
             >>> iers_a = IERS_A.open(iers_a_file)              # doctest: +REMOTE_DATA
             >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)  # doctest: +REMOTE_DATA
 

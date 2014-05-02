@@ -901,8 +901,10 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
         if cache:
             # We don't need to acquire the lock here, since we are only reading
             with _open_shelve(urlmapfn, True) as url2hash:
-                if str(remote_url) in url2hash:
-                    return url2hash[str(remote_url)]
+                # shelve DBs don't accept unicode strings
+                key = remote_url.encode('utf-8')
+                if key in url2hash:
+                    return url2hash[key]
 
         with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
@@ -952,11 +954,13 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                     # We check now to see if another process has
                     # inadvertently written the file underneath us
                     # already
-                    if str(remote_url) in url2hash:
-                        return url2hash[str(remote_url)]
+                    # shelve DBs don't accept unicode strings as keys
+                    key = remote_url.encode('utf-8')
+                    if key in url2hash:
+                        return url2hash[key]
                     local_path = os.path.join(dldir, hash.hexdigest())
                     shutil.move(f.name, local_path)
-                    url2hash[str(remote_url)] = local_path
+                    url2hash[key] = local_path
             finally:
                 _release_download_cache_lock()
         else:
@@ -1091,20 +1095,21 @@ def clear_download_cache(hashorurl=None):
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = os.path.join(dldir, hashorurl)
                 assert _is_inside(filepath, dldir), \
-                       ("attempted to use clear_download_cache on a location" +
-                        " that's not inside the data cache directory")
+                       ("attempted to use clear_download_cache on a path "
+                        "outside the data cache directory")
+
+                # shelve DBs don't accept unicode strings as keys
+                hash_key = hashorurl.encode('utf-8')
 
                 if os.path.exists(filepath):
                     for k, v in list(six.iteritems(url2hash)):
                         if v == filepath:
                             del url2hash[k]
                     os.unlink(filepath)
-
-                elif hashorurl in url2hash:
-                    filepath = url2hash[hashorurl]
-                    del url2hash[hashorurl]
+                elif hash_key in url2hash:
+                    filepath = url2hash[hash_key]
+                    del url2hash[hash_key]
                     os.unlink(filepath)
-
                 else:
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))

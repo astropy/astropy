@@ -123,6 +123,7 @@ def get_icrs_coordinates(name):
         try:
             # Retrieve ascii name resolve data from CDS
             resp = urllib.request.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
+            resp_data = resp.read()
             break
         except urllib.error.URLError as e:
             # This catches a timeout error, see:
@@ -131,15 +132,21 @@ def get_icrs_coordinates(name):
                 # If it was a timeout, try with the next URL
                 continue
             else:
-                raise NameResolveError("Unable to retrieve coordinates for name "
-                                       "'{0}'".format(name))
+                raise NameResolveError(
+                    "Unable to retrieve coordinates for name '{0}'; "
+                    "connection timed out".format(name))
+        except socket.timeout:
+            # There are some cases where urllib2 does not catch socket.timeout
+            # especially while receiving response data on an already previously
+            # working request
+            raise NameResolveError(
+                "Unable to retrieve coordinates for name '{0}'; connection "
+                "timed out".format(name))
 
     # All Sesame URL's timed out...
     else:
         raise NameResolveError("All Sesame queries timed out. Unable to "
                                "retrieve coordinates.")
-
-    resp_data = resp.read()
 
     ra,dec = _parse_response(resp_data)
 
