@@ -180,9 +180,16 @@ class Result:
         if 'xmllint' not in self:
             # Now check the VO schema based on the version in
             # the file.
-            success, stdout, stderr = xmlutil.validate_schema(path, version)
-            self['xmllint'] = (success == 0)
-            self['xmllint_content'] = stderr
+            try:
+                success, stdout, stderr = xmlutil.validate_schema(path, version)
+            # OSError is raised when XML file eats all memory and
+            # system sends kill signal.
+            except OSError as e:
+                self['xmllint'] = None
+                self['xmllint_content'] = str(e)
+            else:
+                self['xmllint'] = (success == 0)
+                self['xmllint_content'] = stderr
 
         warning_types = set()
         for line in lines:
