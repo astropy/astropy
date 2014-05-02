@@ -897,14 +897,19 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
+
+    if six.PY2 and isinstance(remote_url, six.text_type):
+        # shelve DBs don't accept unicode strings in Python 2
+        url_key = remote_url.encode('utf-8')
+    else:
+        url_key = remote_url
+
     try:
         if cache:
             # We don't need to acquire the lock here, since we are only reading
             with _open_shelve(urlmapfn, True) as url2hash:
-                # shelve DBs don't accept unicode strings
-                key = remote_url.encode('utf-8')
-                if key in url2hash:
-                    return url2hash[key]
+                if url_key in url2hash:
+                    return url2hash[url_key]
 
         with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
@@ -954,13 +959,11 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
                     # We check now to see if another process has
                     # inadvertently written the file underneath us
                     # already
-                    # shelve DBs don't accept unicode strings as keys
-                    key = remote_url.encode('utf-8')
-                    if key in url2hash:
-                        return url2hash[key]
+                    if url_key in url2hash:
+                        return url2hash[url_key]
                     local_path = os.path.join(dldir, hash.hexdigest())
                     shutil.move(f.name, local_path)
-                    url2hash[key] = local_path
+                    url2hash[url_key] = local_path
             finally:
                 _release_download_cache_lock()
         else:
@@ -1098,8 +1101,11 @@ def clear_download_cache(hashorurl=None):
                        ("attempted to use clear_download_cache on a path "
                         "outside the data cache directory")
 
-                # shelve DBs don't accept unicode strings as keys
-                hash_key = hashorurl.encode('utf-8')
+                # shelve DBs don't accept unicode strings as keys in Python 2
+                if six.PY2 and isinstance(hashorurl, six.text_type):
+                    hash_key = hashorurl.encode('utf-8')
+                else:
+                    hash_key = hashorurl
 
                 if os.path.exists(filepath):
                     for k, v in list(six.iteritems(url2hash)):

@@ -77,11 +77,10 @@ def test_find_by_hash():
 
 @remote_data
 def test_find_by_hash():
-    from urllib2 import URLError
     from ..data import get_pkg_data_filename
 
     #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
-    with pytest.raises(URLError):
+    with pytest.raises(six.moves.urllib.error.URLError):
         get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
 
 
