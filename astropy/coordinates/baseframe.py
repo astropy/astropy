@@ -303,8 +303,8 @@ class BaseCoordinateFrame(object):
                                                     new_frame.__class__)
         if trans is None:
             if new_frame is self.__class__:
-                # no special transform needed
-                return copy.deepcopy(self)
+                # no special transform needed, but should update frame info
+                return new_frame.realize_frame(self.data)
             msg = 'Cannot transform from {0} to {1}'
             raise ConvertError(msg.format(self.__class__, new_frame.__class__))
         return trans(self, new_frame)
