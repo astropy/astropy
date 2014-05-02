@@ -263,7 +263,7 @@ class _AngleParser(object):
                     "Syntax error parsing angle {0!r}".format(angle))
 
         if unit is None and found_unit is None:
-                raise u.UnitsError("No unit specified")
+            raise u.UnitsError("No unit specified")
 
         return found_angle, found_unit
 

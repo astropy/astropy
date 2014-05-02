@@ -62,7 +62,7 @@ New Features
 
   - Added support for inputting column descriptions and column units
     with the ``io.ascii.SExtractor`` reader. [#2372]
-    
+
   - Allow the use of non-local ReadMe files in the CDS reader. [#2329]
 
 - ``astropy.io.fits``
@@ -424,6 +424,9 @@ Bug Fixes
 
   - Fixed ``Angle.to_string`` functionality so that negative angles have the
     correct amount of padding when ``pad=True``. [#2337]
+
+  - Mixing strings and quantities in the ``Angle`` constructor now
+    works.  For example: ``Angle(['1d', 1. * u.d])``.  [#2398]
 
 - ``astropy.cosmology``
 
