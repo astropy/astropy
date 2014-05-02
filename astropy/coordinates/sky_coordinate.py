@@ -405,11 +405,11 @@ class SkyCoord(object):
         from . import Angle
         from .angle_utilities import angular_separation
 
-        if isinstance(other, self.__class__):
+        if isinstance(other, SkyCoord):
             self_in_other_system = self.transform_to(other.frame)
         elif isinstance(other, BaseCoordinateFrame) and other.has_data:
             # it's a frame
-            self_in_other_system = self.transform_to(other.__class__)
+            self_in_other_system = self.transform_to(other)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
@@ -445,18 +445,21 @@ class SkyCoord(object):
         """
         from . import Distance
 
+        if isinstance(other, SkyCoord):
+            self_in_other_system = self.transform_to(other.frame)
+        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
+            # it's a frame
+            self_in_other_system = self.transform_to(other)
+        else:
+            raise TypeError('Can only get separation to another SkyCoord or a '
+                            'coordinate frame with data')
+
         if self.data.__class__ == UnitSphericalRepresentation:
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
         if other.data.__class__ == UnitSphericalRepresentation:
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
-
-        if isinstance(other, self.__class__):
-            self_in_other_system = self.transform_to(other.frame)
-        elif isinstance(other, BaseCoordinateFrame) and other.has_data:
-            # it's a frame
-            self_in_other_system = self.transform_to(other.__class__)
 
         dx = self_in_other_system.cartesian.x - other.cartesian.x
         dy = self_in_other_system.cartesian.y - other.cartesian.y
@@ -465,6 +468,143 @@ class SkyCoord(object):
         distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
         return Distance(distval, dx.unit)
 
+    def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
+        """
+        Finds the nearest on-sky matches of this coordinate in a set of
+        catalog coordinates.
+
+        Parameters
+        ----------
+        catalogcoord : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The base catalog in which to search for matches. Typically this
+            will be a coordinate object that is an array (i.e.,
+            ``catalogcoord.isscalar == False``)
+        nthneighbor : int, optional
+            Which closest neighbor to search for.  Typically ``1`` is
+            desired here, as that is correct for matching one set of
+            coordinates to another. The next likely use case is ``2``,
+            for matching a coordinate catalog against *itself* (``1``
+            is inappropriate because each point will find itself as the
+            closest match).
+
+        Returns
+        -------
+        idx : integer array
+            Indecies into ``catalogcoord`` to get the matched points
+            for each ``matchcoord``. Shape matches this coordinate.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches
+            ``matchcoord``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches this
+            coordinate.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        See Also
+        --------
+        astropy.coordinates.match_coordinates_sky
+        """
+        from .matching import match_coordinates_sky
+
+        if isinstance(catalogcoord, SkyCoord):
+            self_as_other_coord = self.transform_to(catalogcoord.frame)._coord
+            other_coord = catalogcoord._coord
+            if hasattr(catalogcoord, '_kdtree_sky'):
+                other_coord._kdtree_sky = catalogcoord._kdtree_sky
+
+        elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
+            # it's a frame
+            self_as_other_coord = self.transform_to(catalogcoord)._coord
+            other_coord = catalogcoord
+        else:
+            raise TypeError('Can only get separation to another SkyCoord or a '
+                            'coordinate frame with data')
+
+        res = match_coordinates_sky(self_as_other_coord, other_coord,
+                                    nthneighbor=nthneighbor,
+                                    storekdtree='_kdtree_sky')
+
+        #update the cached KD-Tree - this is a no-op if its already cached
+        if catalogcoord is not other_coord:
+            catalogcoord._kdtree_sky = other_coord._kdtree_sky
+        return res
+
+    def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
+        """
+        Finds the nearest 3-dimensional matches of this coordinate to a set
+        of catalog coordinates.
+
+        This finds the 3-dimensional closest neighbor, which is only different
+        from the on-sky distance if ``distance`` is set in this object or the
+        ``catalogcoord`` object.
+
+        Parameters
+        ----------
+        catalogcoord : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The base catalog in which to search for matches. Typically this
+            will be a coordinate object that is an array (i.e.,
+            ``catalogcoord.isscalar == False``)
+        nthneighbor : int, optional
+            Which closest neighbor to search for.  Typically ``1`` is
+            desired here, as that is correct for matching one set of
+            coordinates to another.  The next likely use case is
+            ``2``, for matching a coordinate catalog against *itself*
+            (``1`` is inappropriate because each point will find
+            itself as the closest match).
+
+        Returns
+        -------
+        idx : integer array
+            Indecies into ``catalogcoord`` to get the matched points
+            for each ``matchcoord``. Shape matches this coordinate.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches
+            ``matchcoord``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the closest match for each
+            ``matchcoord`` and the ``matchcoord``. Shape matches this
+            coordinate.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        See Also
+        --------
+        astropy.coordinates.match_coordinates_3d
+        """
+        from .matching import match_coordinates_3d
+
+        if isinstance(catalogcoord, SkyCoord):
+            self_as_other_coord = self.transform_to(catalogcoord.frame)._coord
+            other_coord = catalogcoord._coord
+            if hasattr(catalogcoord, '_kdtree_3d'):
+                other_coord._kdtree_3d = catalogcoord._kdtree_3d
+
+        elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
+            # it's a frame
+            self_as_other_coord = self.transform_to(catalogcoord)._coord
+            other_coord = catalogcoord
+        else:
+            raise TypeError('Can only get separation to another SkyCoord or a '
+                            'coordinate frame with data')
+
+        res = match_coordinates_3d(self_as_other_coord, other_coord,
+                                   nthneighbor=nthneighbor,
+                                   storekdtree='_kdtree_3d')
+
+        #update the cached KD-Tree - this is a no-op if its already cached
+        if catalogcoord is not other_coord:
+            catalogcoord._kdtree_3d = other_coord._kdtree_3d
+        return res
 
     # Name resolve
     @classmethod

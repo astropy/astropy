@@ -331,3 +331,7 @@ def test_seps():
     sc3 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
     sc4 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=2*u.kpc)
     sep3d = sc3.separation_3d(sc4)
+
+def test_matching():
+    pass
+    # most of this is in test_matching, this only does the sky-coordinate convinience function.

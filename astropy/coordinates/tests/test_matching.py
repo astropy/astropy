@@ -22,8 +22,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-#TODO: un-xfail when matching is implemented on high-level classes
-@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
     from .. import ICRS
@@ -44,8 +42,6 @@ def test_matching_function():
     npt.assert_array_less(d3d.value, 0.02)
 
 
-#TODO: un-xfail when matching is implemented on high-level classes
-@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d_and_sky():
     from .. import ICRS
@@ -57,20 +53,18 @@ def test_matching_function_3d_and_sky():
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog)
     npt.assert_array_equal(idx, [2, 3])
 
-    npt.assert_array_almost_equal(d2d.degree, [1, 1.9])
-    npt.assert_array_less(d3d.value, [0.02, .2])
-    assert d3d.value[1] > 0.02
+
+    npt.assert_allclose(d2d.degree, [1, 1.9])
+    assert np.abs(d3d[0].to(u.kpc).value - np.radians(1)) < 1e-6
+    assert np.abs(d3d[1].to(u.kpc).value - 5*np.radians(1.9)) < 1e-5
 
     idx, d2d, d3d = match_coordinates_sky(cmatch, ccatalog)
-    npt.assert_array_equal(idx, [2, 1])
+    npt.assert_array_equal(idx, [3, 1])
 
-    npt.assert_array_almost_equal(d2d.degree, [1, 0.1])
-    npt.assert_array_less(d3d.value, [0.02, .2])
-    assert d3d.value[1] < 0.02
+    npt.assert_allclose(d2d.degree, [0, 0.1])
+    npt.assert_allclose(d3d.to(u.kpc).value, [4, 4.0000019])
 
 
-#TODO: un-xfail when matching is implemented on high-level classes
-@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_kdtree_storage():
     from .. import ICRS
@@ -85,17 +79,15 @@ def test_kdtree_storage():
     idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree=True)
     assert hasattr(ccatalog, '_kdtree')
 
-    assert not hasattr(ccatalog, 'tilsitcheese')
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree='tilsitcheese')
-    assert hasattr(ccatalog, 'tilsitcheese')
-    assert not hasattr(cmatch, 'tilsitcheese')
+    assert not hasattr(ccatalog, 'tislit_cheese')
+    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, storekdtree='tislit_cheese')
+    assert hasattr(ccatalog, 'tislit_cheese')
+    assert not hasattr(cmatch, 'tislit_cheese')
 
 
-#TODO: un-xfail when matching is implemented on high-level classes
-@pytest.mark.xfail
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_method():
-    from .. import ICRS
+    from .. import ICRS, SkyCoord
     from ...utils import NumpyRNGContext
     from ..matching import match_coordinates_3d, match_coordinates_sky
 
@@ -105,21 +97,20 @@ def test_matching_method():
         ccatalog = ICRS(np.random.rand(100) * 360. * u.degree,
                        (np.random.rand(100) * 180. - 90.)*u.degree)
 
-    idx1, d2d1, d3d1 = cmatch.match_to_catalog_3d(ccatalog)
+    idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_3d(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_3d(cmatch, ccatalog)
 
     npt.assert_array_equal(idx1, idx2)
-    npt.assert_array_equal(d2d1, d2d2)
-    npt.assert_array_equal(d3d1, d3d2)
-
+    npt.assert_allclose(d2d1, d2d2)
+    npt.assert_allclose(d3d1, d3d2)
 
     #should be the same as above because there's no distance, but just make sure this method works
-    idx1, d2d1, d3d1 = cmatch.match_to_catalog_sky(ccatalog)
+    idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_sky(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_sky(cmatch, ccatalog)
 
     npt.assert_array_equal(idx1, idx2)
-    npt.assert_array_equal(d2d1, d2d2)
-    npt.assert_array_equal(d3d1, d3d2)
+    npt.assert_allclose(d2d1, d2d2)
+    npt.assert_allclose(d3d1, d3d2)
 
 
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
