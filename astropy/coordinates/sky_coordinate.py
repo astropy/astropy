@@ -264,7 +264,7 @@ class SkyCoord(object):
         # remaining frame_kwargs that are not frame_attributes in `new_coord`.
         # We could remove overlaps here, but the init code is set up to accept
         # overlaps as long as the values are identical (which they must be).
-        return SkyCoord(new_coord, **frame_kwargs)
+        return self.__class__(new_coord, **frame_kwargs)
 
     def __getattr__(self, attr):
         """
