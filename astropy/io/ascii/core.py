@@ -552,6 +552,9 @@ class BaseData(object):
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
                                    if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
+                if numpy.ma.masked in col.fill_values and hasattr(col, 'mask'):
+                    for i in col.mask.nonzero()[0]:
+                        col.str_vals[i] = col.fill_values[numpy.ma.masked]
 
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):

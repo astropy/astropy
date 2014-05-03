@@ -13,6 +13,8 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
+import numpy as np
+
 from . import core
 
 
@@ -178,7 +180,8 @@ class Csv(Basic):
         self.data.splitter.delimiter = ','
         self.header.splitter.delimiter = ','
         self.header.start_line = 0
-        self.data.start_line = 1 
+        self.data.start_line = 1
+        self.data.fill_values.append((np.ma.masked,''))
 
     def inconsistent_handler(self, str_vals, ncols):
         '''Adjust row if it is too short.

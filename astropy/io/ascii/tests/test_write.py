@@ -9,7 +9,10 @@ try:
 except ImportError:
     from io import StringIO
 
+import numpy as np
+
 from ... import ascii
+from .... import table
 
 from .common import setup_function, teardown_function
 
@@ -316,6 +319,30 @@ a b c
          ),
 ]
 
+test_def_masked_fill_value = [
+    dict(kwargs=dict(fill_values = [('1', 'w'), (np.ma.masked, 'X')]),
+         out="""\
+a b c
+X 2 3
+w w X
+"""
+         ),
+    dict(kwargs=dict(fill_values = [('1', 'w'), (np.ma.masked, 'XXX')],
+                     formats={'a': '%4.1f'}),
+         out="""\
+a b c
+XXX 2 3
+1.0 w XXX
+"""
+         ),
+    dict(kwargs=dict(Writer  = ascii.Csv),
+         out="""\
+a,b,c
+,2,3
+1,1,
+"""
+         ),
+]
 
 def check_write_table(test_def, table):
     out = StringIO()
@@ -356,4 +383,15 @@ def test_write_fill_values():
     data = ascii.read(tab_to_fill)
 
     for test_def in test_defs_fill_value:
+        check_write_table(test_def, data)
+
+
+def test_write_fill_masked_different():
+    '''see discussion in #2255'''
+    data = ascii.read(tab_to_fill)
+    data = table.Table(data, masked = True)
+    data['a'].mask = [True, False]
+    data['c'].mask = [False, True]
+    
+    for test_def in test_def_masked_fill_value:
         check_write_table(test_def, data)
