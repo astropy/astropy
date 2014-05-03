@@ -7,11 +7,9 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
-import copy
 import inspect
 
 # Dependencies
-import numpy as np
 
 # Project
 from ..extern import six

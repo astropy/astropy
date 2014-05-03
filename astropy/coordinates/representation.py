@@ -353,7 +353,7 @@ class SphericalRepresentation(BaseRepresentation):
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """
-    Representation of points on a unit sphere
+    Representation of points on a unit sphere.
 
     Parameters
     ----------

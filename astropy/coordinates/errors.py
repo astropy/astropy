@@ -29,14 +29,17 @@ class IllegalHourError(RangeError):
     """
     Raised when an hour value is not in the range [0,24).
 
-    Usage::
-
-        if not 0 <= hr < 24:
-        raise IllegalHourError(hour)
-
     Parameters
     ----------
     hour : int, float
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        if not 0 <= hr < 24:
+           raise IllegalHourError(hour)
     """
     def __init__(self, hour):
         self.hour = hour
@@ -68,13 +71,18 @@ class IllegalMinuteError(RangeError):
     """
     Raised when an minute value is not in the range [0,60].
 
-    Usage:
-        if not 0 <= min < 60:
-            raise IllegalMinuteError(minute)
-
     Parameters
     ----------
     minute : int, float
+
+    Examples
+    --------
+    
+    .. code-block:: python
+
+        if not 0 <= min < 60:
+            raise IllegalMinuteError(minute)
+
     """
     def __init__(self, minute):
         self.minute = minute
@@ -106,13 +114,17 @@ class IllegalSecondError(RangeError):
     """
     Raised when an second value (time) is not in the range [0,60].
 
-    Usage:
-        if not 0 <= sec < 60:
-            raise IllegalSecondError(second)
-
     Parameters
     ----------
     second : int, float
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        if not 0 <= sec < 60:
+            raise IllegalSecondError(second)
     """
     def __init__(self, second):
         self.second = second

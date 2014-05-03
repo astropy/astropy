@@ -37,8 +37,8 @@ def test_distances():
 
     #try all the different ways to initialize a Distance
     distance = Distance(12, u.parsec)
-    d2 = Distance(40, unit=u.au)
-    d3 = Distance(value=5, unit=u.kpc)
+    Distance(40, unit=u.au)
+    Distance(value=5, unit=u.kpc)
 
     # need to provide a unit
     with pytest.raises(u.UnitsError):
@@ -116,7 +116,6 @@ def test_distances_scipy():
     The distance-related tests that require scipy due to the cosmology
     module needing scipy integration routines
     """
-    from .. import Distance
     from ...cosmology import WMAP5
 
     #try different ways to initialize a Distance
@@ -211,13 +210,13 @@ def test_negative_distance():
     """ Test optional kwarg allow_negative """
 
     with pytest.raises(ValueError):
-        d = Distance([-2, 3.1], u.kpc)
+        Distance([-2, 3.1], u.kpc)
 
     with pytest.raises(ValueError):
-        d = Distance([-2, -3.1], u.kpc)
+        Distance([-2, -3.1], u.kpc)
 
     with pytest.raises(ValueError):
-        d = Distance(-2, u.kpc)
+        Distance(-2, u.kpc)
 
     d = Distance(-2, u.kpc, allow_negative=True)
     assert d.value == -2

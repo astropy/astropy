@@ -392,9 +392,11 @@ class TransformGraph(object):
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None):
         """
-        Converts this transform graph to the graphviz_ DOT format, and
-        optionally saves it (requires graphviz_ be installed and on your
-        path).
+        Converts this transform graph to the graphviz_ DOT format.
+        
+        Optionally saves it (requires `graphviz`_ be installed and on your path).
+
+        .. _graphviz: http://www.graphviz.org/
 
         Parameters
         ----------
@@ -420,8 +422,6 @@ class TransformGraph(object):
         -------
         dotgraph : str
             A string with the DOT format graph.
-
-        .. _graphviz: http://www.graphviz.org/
         """
 
         nodes = []
@@ -552,18 +552,21 @@ class TransformGraph(object):
 
         Examples
         --------
-        graph = TransformGraph()
 
-        class Frame1(BaseCoordinateFrame):
-            ...
+        ::
 
-        class Frame2(BaseCoordinateFrame):
-            ...
-
-        graph.transform(FunctionTransform, Frame1, Frame2)
-        def f1_to_f2(f1_obj):
-            ... do something with f1_obj ...
-            return f2_obj
+            graph = TransformGraph()
+    
+            class Frame1(BaseCoordinateFrame):
+               ...
+    
+            class Frame2(BaseCoordinateFrame):
+                ...
+    
+            graph.transform(FunctionTransform, Frame1, Frame2)
+            def f1_to_f2(f1_obj):
+                ... do something with f1_obj ...
+                return f2_obj
 
 
         """
