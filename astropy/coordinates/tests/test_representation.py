@@ -67,6 +67,7 @@ class TestSphericalRepresentation(object):
         assert isinstance(s1.lat, Latitude)
         assert isinstance(s1.distance, Distance)
 
+    @pytest.mark.xfail
     def test_init_array_nocopy(self):
 
         lon = Longitude([8, 9] * u.hourangle)
@@ -209,6 +210,7 @@ class TestUnitSphericalRepresentation(object):
         assert isinstance(s1.lon, Longitude)
         assert isinstance(s1.lat, Latitude)
 
+    @pytest.mark.xfail
     def test_init_array_nocopy(self):
 
         lon = Longitude([8, 9] * u.hourangle)
@@ -342,6 +344,7 @@ class TestPhysicsSphericalRepresentation(object):
         assert isinstance(s1.theta, Angle)
         assert isinstance(s1.r, Distance)
 
+    @pytest.mark.xfail
     def test_init_array_nocopy(self):
 
         phi = Angle([8, 9] * u.hourangle)
@@ -694,6 +697,7 @@ class TestCylindricalRepresentation(object):
         assert_allclose(s1.phi.value,[2,3,4])
         assert_allclose(s1.z.value,[3,4,5])
 
+    @pytest.mark.xfail
     def test_init_array_nocopy(self):
 
         rho = [8, 9, 10] * u.pc
