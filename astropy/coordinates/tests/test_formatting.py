@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # TEST_UNICODE_LITERALS
+"""
+Tests the Angle string formatting capabilities.  SkyCoord formatting is in
+test_sky_coord
+"""
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -105,42 +109,6 @@ def test_sexagesimal_rounding_up():
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), six.text_type)
-
-
-import numpy as np
-from .. import ICRS, FK4, FK4NoETerms, FK5, Galactic, AltAz
-
-
-@pytest.mark.parametrize('frame', [ICRS, FK4, FK4NoETerms, FK5])
-def test_coordinate_to_string_vector_hms(frame):
-
-    C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == ['0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
-    assert C.to_string(precision=1) == ['0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
-
-
-@pytest.mark.parametrize('frame', [Galactic, AltAz])
-def test_coordinate_to_string_vector_dms(frame):
-
-    C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == ['0d00m00s 0d00m00s', '12d03m00s 13d30m00s']
-    assert C.to_string(precision=1) == ['0d00m00.0s 0d00m00.0s', '12d03m00.0s 13d30m00.0s']
-
-
-@pytest.mark.parametrize('frame', [ICRS, FK4, FK4NoETerms, FK5])
-def test_coordinate_to_string_scalar_hms(frame):
-
-    C = frame(12.05*u.deg, 13.5*u.deg)
-    assert C.to_string(precision=0) == '0h48m12s 13d30m00s'
-    assert C.to_string(precision=1) == '0h48m12.0s 13d30m00.0s'
-
-
-@pytest.mark.parametrize('frame', [Galactic, AltAz])
-def test_coordinate_to_string_scalar_dms(frame):
-
-    C = frame(12.05*u.deg, 13.5*u.deg)
-    assert C.to_string(precision=0) == '12d03m00s 13d30m00s'
-    assert C.to_string(precision=1) == '12d03m00.0s 13d30m00.0s'
 
 
 def test_to_string_radian_with_precision():
