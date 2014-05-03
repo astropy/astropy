@@ -195,7 +195,7 @@ class NDData(object):
                 raise TypeError("mask must be a Numpy array")
         else:
             # internal representation should be one numpy understands
-            self._mask = value #np.ma.nomask
+            self._mask = np.ma.nomask
 
     @property
     def flags(self):

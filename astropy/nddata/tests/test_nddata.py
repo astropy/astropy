@@ -171,6 +171,22 @@ def test_ndddata_with_mask_acts_like_masked_array():
         assert np.all(result[~result.mask] == - input_data[~input_mask])
 
 
+def test_nddata_unmasked_in_operation_with_masked_numpy_array():
+    # test for #2417
+    ndd = NDData([1, 2, 3])
+    np_data = -np.ones_like(ndd)
+    np_mask = np.array([True, False, True])
+    np_arr_masked = np.ma.masked_array(np_data, mask=np_mask, copy=True)
+    # check multiplication in both orders as in test above
+    result1 = ndd * np_arr_masked
+    result2 = np_arr_masked * ndd
+    for result in [result1, result2]:
+        # multiplying by a masked numpy array should return a masked array
+        assert isinstance(result, np.ma.MaskedArray)
+        assert np.all(result.mask == np_mask)
+        assert np.all(result[~result.mask] == -ndd.data[~np_mask])
+
+
 def test_nddata_add():
     d1 = NDData(np.ones((5, 5)))
     d2 = NDData(np.ones((5, 5)))
