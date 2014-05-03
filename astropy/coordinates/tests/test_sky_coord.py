@@ -327,11 +327,20 @@ def test_seps():
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-
     sc3 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
     sc4 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=2*u.kpc)
     sep3d = sc3.separation_3d(sc4)
 
-def test_matching():
-    pass
-    # most of this is in test_matching, this only does the sky-coordinate convinience function.
+    assert sep3d == 1*u.kpc
+
+
+def test_repr():
+    sc1 = SkyCoord('icrs', 0*u.deg, 1*u.deg)
+    sc2 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
+
+    assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
+    assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
+
+    sc3 = SkyCoord('icrs', 0.1*u.deg, [1, 2.5]*u.deg)
+    assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
+                         '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')

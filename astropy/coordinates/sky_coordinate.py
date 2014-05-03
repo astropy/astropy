@@ -321,8 +321,11 @@ class SkyCoord(object):
         return dir_values
 
     def __repr__(self):
-        out = re.sub('Coordinate:', self.__class__.__name__ + ':', repr(self._coord))
-        return out
+        s = '<{clsnm} ({coonm})'
+        s = s.format(clsnm=self.__class__.__name__,
+                     coonm=self._coord.__class__.__name__)
+        crepr = repr(self._coord)
+        return s + crepr[crepr.index(':'):]
 
     def to_string(self, style='decimal', **kwargs):
         """
