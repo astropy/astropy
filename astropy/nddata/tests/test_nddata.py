@@ -153,6 +153,24 @@ def test_nddata_conversion():
     assert nd.dtype == np.dtype(int)
 
 
+def test_ndddata_with_mask_acts_like_masked_array():
+    # test for #2414
+    input_mask = np.array([True, False, False])
+    input_data = np.array([1, 2, 3])
+    ndd_masked = NDData(input_data.copy(), mask=input_mask.copy())
+    other = - np.ones_like(input_data)
+    result1 = ndd_masked * other
+    result2 = other * ndd_masked
+    # Test for both orders of multiplication -- if multiplication is
+    # eventually overridden for NDData the result can depend on order.
+    for result in [result1, result2]:
+        # Result should be a masked array because input NDData was masked
+        assert isinstance(result, np.ma.MaskedArray)
+        # Result mask should match input mask because other has no mask
+        assert np.all(result.mask == input_mask)
+        assert np.all(result[~result.mask] == - input_data[~input_mask])
+
+
 def test_nddata_add():
     d1 = NDData(np.ones((5, 5)))
     d2 = NDData(np.ones((5, 5)))

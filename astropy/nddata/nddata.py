@@ -175,7 +175,10 @@ class NDData(object):
 
     @property
     def mask(self):
-        return self._mask
+        if self._mask is np.ma.nomask:
+            return None
+        else:
+            return self._mask
 
     @mask.setter
     def mask(self, value):
@@ -191,7 +194,8 @@ class NDData(object):
             else:
                 raise TypeError("mask must be a Numpy array")
         else:
-            self._mask = value
+            # internal representation should be one numpy understands
+            self._mask = value #np.ma.nomask
 
     @property
     def flags(self):
@@ -277,7 +281,16 @@ class NDData(object):
         if self.mask is not None:
             return np.ma.masked_array(self.data, self.mask)
         else:
-            return self.data
+            return np.array(self.data)
+
+    def __array_prepare__(self, array, context=None):
+        """
+        This ensures that a masked array is returned if self is masked.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(array, self.mask)
+        else:
+            return array
 
     def __getitem__(self, item):
 
