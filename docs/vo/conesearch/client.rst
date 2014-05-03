@@ -239,7 +239,6 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-<<<<<<< HEAD:docs/vo/conesearch/client.rst
 * `astropy.io.votable.conf.pedantic`
   Set strictness of VO table parser (``False`` is recommended).
 * `astropy.utils.data.conf.remote_timeout`
