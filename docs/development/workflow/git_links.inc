@@ -52,6 +52,7 @@
 .. _rebase without tears: http://matthew-brett.github.com/pydagogue/rebase_without_tears.html
 .. _resolving a merge: http://schacon.github.com/git/user-manual.html#resolving-a-merge
 .. _ipython git workflow: http://mail.scipy.org/pipermail/ipython-dev/2010-October/006746.html
+.. _ipython notebook on using git in science: http://nbviewer.ipython.org/github/fperez/reprosw/blob/master/Version%20Control.ipynb
 
 .. other stuff
 .. _python: http://www.python.org
