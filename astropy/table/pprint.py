@@ -12,7 +12,7 @@ import sys
 import numpy as np
 
 from .. import log
-from ..utils.console import Getch, color_print
+from ..utils.console import Getch, color_print, terminal_size
 
 if six.PY3:
     def default_format_func(format_, val):
