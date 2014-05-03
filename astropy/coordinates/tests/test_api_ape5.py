@@ -410,8 +410,8 @@ def test_highlevel_api():
     #assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
 
     if HAS_SCIPY:
-        cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg, distance=[5, 6]*u.kpc)
-        cat2 = coords.SkyCoord(ra=[1, 2, 2.01]*u.hr, dec=[3, 4, 5]*u.deg, distance=[5, 200, 6]*u.kpc)
+        cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg, distance=[5, 6]*u.kpc, frame='icrs')
+        cat2 = coords.SkyCoord(ra=[1, 2, 2.01]*u.hr, dec=[3, 4, 5]*u.deg, distance=[5, 200, 6]*u.kpc, frame='icrs')
         idx1, sep2d1, dist3d1 = cat1.match_to_catalog_sky(cat2)
         idx2, sep2d2, dist3d2 = cat1.match_to_catalog_3d(cat2)
 
@@ -420,12 +420,14 @@ def test_highlevel_api():
     # additional convenience functionality for the future should be added as methods
     # on `SkyCoord`, *not* the low-level classes.
 
+
 @pytest.mark.remote_data
 def test_highlevel_api_remote():
     m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
 
-    assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
+    assert str(m31icrs) == '<ICRS SkyCoord: ra=10.6847083 deg, dec=41.26875 deg>'
 
-    m31fk5 = coords.SkyCoord.from_name('M31', frame='FK5')
+    m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 
-    assert m31.icrs.frame != m31fk5.frame
+    assert m31icrs.frame != m31fk4.frame
+    assert np.abs(m31icrs.ra - m31fk4.ra) > .5*u.deg

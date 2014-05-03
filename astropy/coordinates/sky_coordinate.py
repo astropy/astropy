@@ -414,7 +414,7 @@ class SkyCoord(object):
         from .angle_utilities import angular_separation
 
         if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
+            self_in_other_system = self.transform_to(other._coord)
         elif isinstance(other, BaseCoordinateFrame) and other.has_data:
             # it's a frame
             self_in_other_system = self.transform_to(other)
@@ -454,7 +454,7 @@ class SkyCoord(object):
         from . import Distance
 
         if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.frame)
+            self_in_other_system = self.transform_to(other.coordobj)
         elif isinstance(other, BaseCoordinateFrame) and other.has_data:
             # it's a frame
             self_in_other_system = self.transform_to(other)
@@ -521,14 +521,14 @@ class SkyCoord(object):
         from .matching import match_coordinates_sky
 
         if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.frame)._coord
-            other_coord = catalogcoord._coord
+            self_as_other_coord = self.transform_to(catalogcoord.coordobj).coordobj
+            other_coord = catalogcoord.coordobj
             if hasattr(catalogcoord, '_kdtree_sky'):
                 other_coord._kdtree_sky = catalogcoord._kdtree_sky
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
             # it's a frame
-            self_as_other_coord = self.transform_to(catalogcoord)._coord
+            self_as_other_coord = self.transform_to(catalogcoord).coordobj
             other_coord = catalogcoord
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -592,14 +592,14 @@ class SkyCoord(object):
         from .matching import match_coordinates_3d
 
         if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.frame)._coord
-            other_coord = catalogcoord._coord
+            self_as_other_coord = self.transform_to(catalogcoord.frame).coordobj
+            other_coord = catalogcoord.coordobj
             if hasattr(catalogcoord, '_kdtree_3d'):
                 other_coord._kdtree_3d = catalogcoord._kdtree_3d
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
             # it's a frame
-            self_as_other_coord = self.transform_to(catalogcoord)._coord
+            self_as_other_coord = self.transform_to(catalogcoord).coordobj
             other_coord = catalogcoord
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -787,7 +787,9 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
             elif attr_type == 'lat':
                 valid_kwargs[attr] = Latitude(value, unit=lat_unit)
             elif attr_type == 'distance':
-                valid_kwargs[attr] = value
+                # don't pass on a distance if no distance was initially given
+                if not isinstance(coords.data, UnitSphericalRepresentation):
+                    valid_kwargs[attr] = value
             else:
                 raise ValueError("Unexpected attribute type '{0}'".format(attr_type))
 

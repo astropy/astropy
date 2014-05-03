@@ -181,4 +181,8 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
             isinstance(newmatch.data, UnitSphericalRepresentation)):
         sep3d = catalogcoord[idx].separation_3d(newmatch)
 
+    #update the kdtree on the actual passed-in coordinate
+    if storekdtree:
+        setattr(catalogcoord, storekdtree, getattr(newcat_u, storekdtree))
+
     return idx, sep2d, sep3d
