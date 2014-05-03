@@ -15,6 +15,7 @@ from .core import (InconsistentTableError,
                    BaseReader,
                    BaseSplitter, DefaultSplitter, WhitespaceSplitter,
                    convert_numpy,
+                   masked
                    )
 from .basic import (Basic,
                     Rdb,

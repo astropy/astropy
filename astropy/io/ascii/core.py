@@ -32,6 +32,13 @@ from . import connect
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
 
+class MaskedConstant(numpy.ma.core.MaskedConstant):
+    def __hash__(self):
+        '''All instances of this class shall have the same hash.'''
+        # Any large number will do.
+        return 1234567890
+
+masked = MaskedConstant()
 
 class InconsistentTableError(ValueError):
     """
@@ -552,9 +559,9 @@ class BaseData(object):
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
                                    if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
-                if numpy.ma.masked in col.fill_values and hasattr(col, 'mask'):
+                if masked in col.fill_values and hasattr(col, 'mask'):
                     for i in col.mask.nonzero()[0]:
-                        col.str_vals[i] = col.fill_values[numpy.ma.masked]
+                        col.str_vals[i] = col.fill_values[masked]
 
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):

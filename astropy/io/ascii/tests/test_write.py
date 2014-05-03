@@ -9,8 +9,6 @@ try:
 except ImportError:
     from io import StringIO
 
-import numpy as np
-
 from ... import ascii
 from .... import table
 
@@ -320,14 +318,14 @@ a b c
 ]
 
 test_def_masked_fill_value = [
-    dict(kwargs=dict(fill_values = [('1', 'w'), (np.ma.masked, 'X')]),
+    dict(kwargs=dict(fill_values = [('1', 'w'), (ascii.masked, 'X')]),
          out="""\
 a b c
 X 2 3
 w w X
 """
          ),
-    dict(kwargs=dict(fill_values = [('1', 'w'), (np.ma.masked, 'XXX')],
+    dict(kwargs=dict(fill_values = [('1', 'w'), (ascii.masked, 'XXX')],
                      formats={'a': '%4.1f'}),
          out="""\
 a b c
