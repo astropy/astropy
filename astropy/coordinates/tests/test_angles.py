@@ -116,13 +116,6 @@ def test_angle_ops():
     a1 - a2
     -a1
 
-    # division and multiplication have no unambiguous meaning here
-    with pytest.raises(TypeError):
-        a1 / a2
-
-    with pytest.raises(TypeError):
-        a1 * a2
-
     assert_allclose((a1 * 2).hour, 2 * 3.6082746666700003)
     assert abs((a1 / 3.123456).hour - 3.60827466667 / 3.123456) < 1e-10
 
