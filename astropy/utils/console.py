@@ -67,7 +67,8 @@ from .misc import deprecated, isiterable
 
 __all__ = [
     'isatty', 'color_print', 'human_time', 'human_file_size',
-    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner']
+    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner',
+    'terminal_size']
 
 
 # Only use color by default on Windows if IPython is installed.
@@ -97,6 +98,28 @@ def isatty(file):
     elif hasattr(file, 'isatty'):
         return file.isatty()
     return False
+
+def terminal_size(file=stdio.stdout):
+    """
+    Returns a tuple (height, width) containing the height and width of
+    the terminal.
+
+    This function relies on dependencies which will probably fail on
+    Windows, so if any error occurs then None is returned.
+    """
+
+    try:
+        import termios
+        import fcntl
+        # Don't import numpy at module level since it may not be
+        # available in all contexts that this module is imported
+        import numpy as np
+        data = fcntl.ioctl(file, termios.TIOCGWINSZ, '\0' * 8)
+        arr = np.fromstring(data, dtype=np.int16)
+        # arr will be equal to (height, width, xpixels, ypixels)
+        return arr[:2]
+    except:
+        return None
 
 
 def _color_text(text, color):
@@ -439,12 +462,7 @@ class ProgressBar(six.Iterator):
 
     def _handle_resize(self, signum=None, frame=None):
         if self._should_handle_resize:
-            # Don't import numpy at module level since it may not be
-            # available in all contexts that this module is imported
-            import numpy as np
-            data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
-            arr = np.fromstring(data, dtype=np.int16)
-            terminal_width = arr[1]
+            terminal_width = terminal_size()[1]
         else:
             try:
                 terminal_width = int(os.environ.get('COLUMNS'))
