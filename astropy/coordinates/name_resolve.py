@@ -122,8 +122,8 @@ def get_icrs_coordinates(name):
 
     Returns
     -------
-    coord : SphericalCoordinatesBase
-        An `ICRS` instance for the object name specified.
+    coord : `astropy.coordinates.ICRS` object
+        The object's coordinates in the ICRS frame.
 
     """
     from .. import conf
@@ -187,4 +187,6 @@ def get_icrs_coordinates(name):
 
         raise NameResolveError(err)
 
-    return SkyCoord(ra=ra, dec=dec, unit=(u.degree,u.degree), frame='icrs')
+    # use SkyCoord for its string-parsing capabilities
+    sc = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame='icrs')
+    return sc.coordobj

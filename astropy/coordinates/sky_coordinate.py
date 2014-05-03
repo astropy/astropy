@@ -120,6 +120,14 @@ class SkyCoord(object):
     def frame_cls(self):
         return self._coord.__class__
 
+    @property
+    def coordobj(self):
+        """
+        The low-level coordinate object for this `SkyCoord`
+        """
+        return self._coord
+
+
     def __len__(self):
         return len(self._coord)
 
@@ -197,7 +205,7 @@ class SkyCoord(object):
 
         Returns
         -------
-        coord
+        coord : `SkyCoord`
             A new object with this coordinate represented in the `frame` frame.
 
         Raises
@@ -608,7 +616,7 @@ class SkyCoord(object):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name):
+    def from_name(cls, name, frame='icrs'):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
@@ -621,6 +629,8 @@ class SkyCoord(object):
         ----------
         name : str
             The name of the object to get coordinates for, e.g. ``'M42'``.
+        frame : str or `BaseCoordinateFrame` class or instance
+            The frame to transform the object to.
 
         Returns
         -------
@@ -630,11 +640,12 @@ class SkyCoord(object):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs = get_icrs_coordinates(name)
-        if cls == icrs.__class__:
-            return icrs
+        icrs_coord = get_icrs_coordinates(name)
+        icrs_sky_coord = cls(icrs_coord)
+        if frame in ('icrs', icrs_coord.__class__):
+            return icrs_sky_coord
         else:
-            return icrs.transform_to(cls)
+            return icrs_sky_coord.transform_to(frame)
 
 
 def _get_frame_class(frame):

@@ -405,8 +405,9 @@ def test_highlevel_api():
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.
 
-    m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
-    assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
+    #in remote-data test below!
+    #m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
+    #assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
 
     if HAS_SCIPY:
         cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg, distance=[5, 6]*u.kpc)
@@ -418,3 +419,13 @@ def test_highlevel_api():
 
     # additional convenience functionality for the future should be added as methods
     # on `SkyCoord`, *not* the low-level classes.
+
+@pytest.mark.remote_data
+def test_highlevel_api_remote():
+    m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
+
+    assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
+
+    m31fk5 = coords.SkyCoord.from_name('M31', frame='FK5')
+
+    assert m31.icrs.frame != m31fk5.frame
