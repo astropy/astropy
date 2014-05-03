@@ -257,8 +257,6 @@ def test_array_indexing():
     assert c3.equinox == c1.equinox
     assert c4.equinox == c1.equinox
 
-#TODO: remove this when len is back in coordinates
-@pytest.mark.xfail
 def test_array_len():
     from .. import ICRS
 

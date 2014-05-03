@@ -85,6 +85,9 @@ class BaseRepresentation(object):
         else:
             return len(getattr(self, self.components[0]))
 
+    def __nonzero__(self):
+        return self.isscalar or len(self) != 0
+
     @property
     def shape(self):
         return getattr(self, self.components[0]).shape

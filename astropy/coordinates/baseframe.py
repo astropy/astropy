@@ -216,6 +216,20 @@ class BaseCoordinateFrame(object):
         """
         return self._data is not None
 
+    def __len__(self):
+        return len(self.data)
+
+    def __nonzero__(self):
+        return self.isscalar or len(self) != 0
+
+    @property
+    def shape(self):
+        return self.data.shape
+
+    @property
+    def isscalar(self):
+        return self.data.isscalar
+
     def realize_frame(self, representation):
         """
         Generates a new frame *with new data* from another frame (which may or
