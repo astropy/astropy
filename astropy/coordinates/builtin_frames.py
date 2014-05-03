@@ -419,8 +419,11 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     else:
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
 
+    # if no obstime was given in the new frame, use the old one for consistency
+    newobstime = fk4coord._obstime if fk4noeframe._obstime is None else fk4noeframe._obstime
+
     fk4noe = FK4NoETerms(representation, equinox=fk4coord.equinox,
-                         obstime=fk4coord.obstime)
+                         obstime=newobstime)
     if fk4coord.equinox != fk4noeframe.equinox:
         #precession
         fk4noe = fk4noe.transform_to(fk4noeframe)
