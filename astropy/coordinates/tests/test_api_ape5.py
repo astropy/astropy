@@ -350,9 +350,10 @@ def test_highlevel_api():
         sc = coords.SkyCoord(coords.FK5(equinox=J2001))  # raises ValueError
 
     # similarly, the low-level object can always be accessed
+    assert repr(sc.coordobj) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
 
-    # NOT YET.  NEVER?
-    # assert str(sc.frame) == '<ICRS RA=120.000 deg, Dec=5.00000 deg>'
+    # and  the string representation will be inherited from the low-level class.
+    assert repr(sc) == '<ICRS SkyCoord: ra=120.0 deg, dec=5.0 deg>'
 
     # Supports a variety of possible complex string formats
     sc = coords.SkyCoord('8h00m00s +5d00m00.0s', frame='icrs')
@@ -368,11 +369,6 @@ def test_highlevel_api():
     # It should also interpret common designation styles as a coordinate
     # NOT YET
     # sc = coords.SkyCoord('SDSS J123456.89-012345.6', frame='icrs')
-
-    # the string representation can be inherited from the low-level class.
-
-    # NOT YET
-    # assert str(sc) == '<SkyCoord (ICRS) RA=120.000 deg, Dec=5.00000 deg>'
 
     # but it should also be possible to provide formats for outputting to strings,
     # similar to `Time`.  This can be added right away or at a later date.
