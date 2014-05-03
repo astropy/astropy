@@ -1907,7 +1907,8 @@ class TestHeaderFunctions(FitsTestCase):
         of a header value.
 
         By default extra whitespace is stripped off, but if
-        fits.STRIP_HEADER_WHITESPACE = False it should not be stripped.
+        `fits.conf.strip_header_whitespace` = False it should not be
+        stripped.
         """
 
         h = fits.Header()
@@ -1919,14 +1920,11 @@ class TestHeaderFunctions(FitsTestCase):
         assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
         assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
 
-        fits.STRIP_HEADER_WHITESPACE.set(False)
-        try:
+        with fits.conf.set_temp('strip_header_whitespace', False):
             assert h['FOO'] == 'Bar      '
             assert h['QUX'] == 'Bar        '
             assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
             assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
-        finally:
-            fits.STRIP_HEADER_WHITESPACE.set(True)
 
         assert h['FOO'] == 'Bar'
         assert h['QUX'] == 'Bar'

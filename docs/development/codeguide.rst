@@ -224,8 +224,8 @@ characters to the console or to files will not work.  However, for
 those that have a correctly configured Unicode environment, we should
 allow them to opt-in to take advantage of Unicode output when
 appropriate.  Therefore, there is a global configuration option,
-`astropy.UNICODE_OUTPUT` to enable Unicode output of values, set to
-`False` by default.
+`astropy.conf.unicode_output` to enable Unicode output of values, set
+to `False` by default.
 
 The following conventions should be used for classes that define the
 standard string conversion methods (``__str__``, ``__repr__``,
@@ -242,14 +242,15 @@ to refer to `str` on Python 2 and `bytes` on Python 3.
   instance" containing only 7-bit characters.
 
 - ``__unicode__`` on Python 2 / ``__str__`` on Python 3: Return a
-  "unicode instance".  If `astropy.UNICODE_OUTPUT` is `False`, it must
-  contain only 7-bit characters.  If `astropy.UNICODE_OUTPUT` is
-  `True`, it may contain non-ascii characters when applicable.
+  "unicode instance".  If `astropy.conf.unicode_output` is `False`, it
+  must contain only 7-bit characters.  If
+  `astropy.conf.unicode_output` is `True`, it may contain non-ascii
+  characters when applicable.
 
 - ``__format__``: Return a "unicode instance".  If
   `astropy.UNICODE_OUTPUT` is `False`, it must contain only 7-bit
-  characters.  If `astropy.UNICODE_OUTPUT` is `True`, it may contain
-  non-ascii characters when applicable.
+  characters.  If `astropy.conf.unicode_output` is `True`, it may
+  contain non-ascii characters when applicable.
 
 For classes that are expected to roundtrip through strings (unicode or
 bytes), the parser must accept either the output of ``__str__`` or
@@ -268,7 +269,7 @@ compatibility::
     from __future__ import unicode_literals
 
     from astropy.extern import six
-    from astropy import UNICODE_OUTPUT
+    from astropy import conf
 
     class FloatList(object):
         def __init__(self, init):
@@ -289,7 +290,7 @@ compatibility::
             __str__ = __bytes__
 
         def __unicode__(self):
-            if astropy.UNICODE_OUTPUT():
+            if astropy.conf.unicode_output:
                 return '‖'.join(six.text_type(x) for x in self.x)
             else:
                 return self.__bytes__().decode('ascii')

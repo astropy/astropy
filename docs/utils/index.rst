@@ -49,6 +49,9 @@ Reference/API
 .. automodapi:: astropy.utils.timer
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.state
+    :no-inheritance-diagram:
+
 File Downloads
 --------------
 
@@ -79,7 +82,3 @@ The ``astropy.utils.xml.*`` modules provide various
 .. automodapi:: astropy.utils.xml.writer
     :no-inheritance-diagram:
     :headings: ^"
-
-
-
-

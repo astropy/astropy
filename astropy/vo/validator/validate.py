@@ -12,7 +12,7 @@ import warnings
 from .exceptions import ValidationMultiprocessingError, InvalidValidationAttribute
 from ..client import vos_catalog
 from ..client.exceptions import VOSError
-from ...config.configuration import ConfigurationItem
+from ...config.configuration import ConfigAlias
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
@@ -31,32 +31,24 @@ from .tstquery import parse_cs
 
 __all__ = ['check_conesearch_sites']
 
-CS_MSTR_LIST = ConfigurationItem(
-    'cs_mstr_list',
-    'http://vao.stsci.edu/directory/NVORegInt.asmx/VOTCapabilityPredOpt?'
-    'predicate=1%3D1&capability=conesearch&VOTStyleOption=2',
-    'Cone Search services master list for validation.')
+CS_MSTR_LIST = ConfigAlias(
+    '0.4', 'CS_MSTR_LIST', 'conesearch_master_list',
+    'astropy.vo.validator.validate', 'astropy.vo.validator')
 
-CS_URLS = ConfigurationItem(
-    'cs_urls',
-    get_pkg_data_contents(
-        os.path.join('data', 'conesearch_urls.txt')).split(),
-    'Only check these Cone Search URLs.',
-    'list')
+CS_URLS = ConfigAlias(
+    '0.4', 'CS_URLS', 'conesearch_urls',
+    'astropy.vo.validator.validate', 'astropy.vo.validator')
 
-NONCRIT_WARNINGS = ConfigurationItem(
-    'noncrit_warnings',
-    ['W03', 'W06', 'W07', 'W09', 'W10', 'W15', 'W17', 'W20', 'W21', 'W22',
-     'W27', 'W28', 'W29', 'W41', 'W42', 'W48', 'W50'],
-    'VO Table warning codes that are considered non-critical',
-    'list')
+NONCRIT_WARNINGS = ConfigAlias(
+    '0.4', 'NONCRIT_WARNINGS', 'noncritical_warnings',
+    'astropy.vo.validator.validate', 'astropy.vo.validator')
 
 _OUT_ROOT = None  # Set by check_conesearch_sites()
 
 
 @timefunc(1)
 def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
-                           url_list=CS_URLS()):
+                           url_list='default'):
     """Validate Cone Search Services.
 
     .. note::
@@ -68,7 +60,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     Parameters
     ----------
-    destdir : str
+    destdir : str, optional
         Directory to store output files. Will be created if does
         not exist. Existing files with these names will be deleted
         or replaced:
@@ -78,18 +70,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             * conesearch_exception.json
             * conesearch_error.json
 
-    verbose : bool
+    verbose : bool, optional
         Print extra info to log.
 
-    parallel : bool
+    parallel : bool, optional
         Enable multiprocessing.
 
-    url_list : list of string or `None`
+    url_list : list of string, optional
         Only check these access URLs against
-        ``astropy.vo.validator.validate.CS_MSTR_LIST`` and ignore the others,
-        which will not appear in output files.
-        By default, check those in ``astropy.vo.validator.validate.CS_URLS``.
-        If `None`, check everything.
+        `astropy.vo.validator.conf.conesearch_master_list` and ignore
+        the others, which will not appear in output files.  By
+        default, check those in
+        `astropy.vo.validator.conf.conesearch_urls`.  If `None`, check
+        everything.
 
     Raises
     ------
@@ -103,7 +96,11 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         Multiprocessing failed.
 
     """
+    from .. import conf
     global _OUT_ROOT
+
+    if url_list == 'default':
+        url_list = conf.conesearch_urls
 
     if (not isinstance(destdir, six.string_types) or len(destdir) == 0 or
             os.path.exists(destdir) and not os.path.isdir(destdir)):
@@ -250,7 +247,7 @@ def _do_validation(url):
     """Validation for multiprocessing support."""
     votable.table.reset_vo_warnings()
 
-    r = result.Result(url, root=_OUT_ROOT, timeout=REMOTE_TIMEOUT())
+    r = result.Result(url, root=_OUT_ROOT, timeout=data.conf.remote_timeout)
     r.validate_vo()
 
     _categorize_result(r)
@@ -314,12 +311,13 @@ def _categorize_result(r):
         Unhandled validation result attributes.
 
     """
-    if ('network_error' in r and
-            r['network_error'] is not None):  # pragma: no cover
+    from .. import conf
+
+    if 'network_error' in r and r['network_error'] is not None:  # pragma: no cover
         r['out_db_name'] = 'nerr'
         r['expected'] = 'broken'
     elif ((r['nexceptions'] == 0 and r['nwarnings'] == 0) or
-            r['warning_types'].issubset(NONCRIT_WARNINGS())):
+            r['warning_types'].issubset(conf.noncritical_warnings)):
         r['out_db_name'] = 'good'
         r['expected'] = 'good'
     elif r['nexceptions'] > 0:  # pragma: no cover

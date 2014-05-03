@@ -528,19 +528,15 @@ def generate_build_ext_command(packagename, release):
 
             invalidate_caches()
 
+        # REMOVE: in astropy 0.5
         if not self.distribution.is_pure() and os.path.isdir(self.build_lib):
             # Finally, generate the default astropy.cfg; this can only be done
             # after extension modules are built as some extension modules
             # include config items.  We only do this if it's not pure python,
             # though, because if it is, we already did it in build_py
-            default_cfg = generate_default_config(
-                    os.path.abspath(self.build_lib),
-                    self.distribution.packages[0])
-            if default_cfg:
-                default_cfg = os.path.relpath(default_cfg)
-                self.copy_file(default_cfg,
-                               os.path.join(self.build_lib, default_cfg),
-                               preserve_mode=False)
+            generate_default_config(
+                os.path.abspath(self.build_lib),
+                self.distribution.packages[0], self)
 
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
@@ -606,27 +602,24 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         # first run the normal build_py
         SetuptoolsBuildPy.run(self)
 
+        # REMOVE: in astropy 0.5
         if self.distribution.is_pure():
             # Generate the default astropy.cfg - we only do this here if it's
             # pure python.  Otherwise, it'll happen at the end of build_exp
-            default_cfg = generate_default_config(
-                    os.path.abspath(self.build_lib),
-                    self.distribution.packages[0])
-            if default_cfg:
-                default_cfg = os.path.relpath(default_cfg)
-                self.copy_file(default_cfg,
-                               os.path.join(self.build_lib, default_cfg),
-                               preserve_mode=False)
+            generate_default_config(
+                os.path.abspath(self.build_lib),
+                self.distribution.packages[0], self)
 
 
-def generate_default_config(build_lib, package):
+# REMOVE: in astropy 0.5
+def generate_default_config(build_lib, package, command):
     config_path = os.path.relpath(package)
     filename = os.path.join(config_path, package + '.cfg')
 
     if os.path.exists(filename):
-        log.info('regenerating default {0}.cfg file'.format(package))
-    else:
-        log.info('generating default {0}.cfg file'.format(package))
+        return
+
+    log.info('generating default {0}.cfg file in {1}'.format(package, filename))
 
     if PY3:
         builtins = 'builtins'
@@ -657,7 +650,10 @@ def generate_default_config(build_lib, package):
     stdout, stderr = proc.communicate()
 
     if proc.returncode == 0 and os.path.exists(filename):
-        return filename
+        default_cfg = os.path.relpath(filename)
+        command.copy_file(default_cfg,
+                          os.path.join(command.build_lib, default_cfg),
+                          preserve_mode=False)
     else:
         msg = ('Generation of default configuration item failed! Stdout '
                'and stderr are shown below.\n'
@@ -666,6 +662,8 @@ def generate_default_config(build_lib, package):
             msg = msg.decode('UTF-8')
         log.error(msg.format(stdout=stdout.decode('UTF-8'),
                              stderr=stderr.decode('UTF-8')))
+        raise RuntimeError()
+
 
 
 def add_command_option(command, name, doc, is_bool=False):
@@ -1074,6 +1072,9 @@ def get_package_info(srcdir):
     package_data = {}
     package_dir = {}
     skip_2to3 = []
+
+    # Add the package's .cfg file
+    package_data[''] = [srcdir + ".cfg"]
 
     # Use the find_packages tool to locate all packages and modules
     packages = filter_packages(find_packages())

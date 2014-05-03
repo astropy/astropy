@@ -15,33 +15,48 @@ publication, NOST 100-2.0.
 
 from . import py3compat
 
-from ...config import ConfigurationItem
+from ... import config as _config
 
 # Set module-global boolean variables
 # TODO: Make it possible to set these variables via environment variables
 # again, once support for that is added to Astropy
-ENABLE_RECORD_VALUED_KEYWORD_CARDS = ConfigurationItem(
-    'enabled_record_valued_keyword_cards', True,
-    'If True, enable support for record-valued keywords as described by '
-    'FITS WCS Paper IV. Otherwise they are treated as normal keywords.')
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.io.fits`.
+    """
 
-EXTENSION_NAME_CASE_SENSITIVE = ConfigurationItem(
-    'extension_name_case_sensitive', False,
-    'If True, extension names (i.e. the EXTNAME keyword) should be '
-    'treated as case-sensitive.')
+    enable_record_valued_keyword_cards = _config.ConfigItem(
+        True,
+        'If True, enable support for record-valued keywords as described by '
+        'FITS WCS Paper IV. Otherwise they are treated as normal keywords.',
+        aliases=['astropy.io.fits.enabled_record_valued_keyword_cards'])
+    extension_name_case_sensitive = _config.ConfigItem(
+        False,
+        'If True, extension names (i.e. the ``EXTNAME`` keyword) should be '
+        'treated as case-sensitive.')
+    strip_header_whitespace = _config.ConfigItem(
+        True,
+        'If True, automatically remove trailing whitespace for string values in '
+        'headers.  Otherwise the values are returned verbatim, with all '
+        'whitespace intact.')
+    use_memmap = _config.ConfigItem(
+        True,
+        'If True, use memory-mapped file access to read/write the data in '
+        'FITS files. This generally provides better performance, especially '
+        'for large files, but may affect performance in I/O-heavy '
+        'applications.')
+conf = Conf()
 
-STRIP_HEADER_WHITESPACE = ConfigurationItem(
-    'strip_header_whitespace', True,
-    'If True, automatically remove trailing whitespace for string values in '
-    'headers.  Otherwise the values are returned verbatim, with all '
-    'whitespace intact.')
 
-USE_MEMMAP = ConfigurationItem(
-    'use_memmap', True,
-    'If True, use memory-mapped file access to read/write the data in '
-    'FITS files. This generally provides better performance, especially '
-    'for large files, but may affect performance in I/O-heavy '
-    'applications.')
+ENABLE_RECORD_VALUED_KEYWORD_CARDS = _config.ConfigAlias(
+    '0.4', 'ENABLE_RECORD_VALUED_KEYWORD_CARDS',
+    'enable_record_valued_keyword_cards')
+EXTENSION_NAME_CASE_SENSITIVE = _config.ConfigAlias(
+    '0.4', 'EXTENSION_NAME_CASE_SENSITIVE', 'extension_name_case_sensitive')
+STRIP_HEADER_WHITESPACE = _config.ConfigAlias(
+    '0.4', 'STRIP_HEADER_WHITESPACE', 'strip_header_whitespace')
+USE_MEMMAP = _config.ConfigAlias(
+    '0.4', 'USE_MEMMAP', 'use_memmap')
 
 
 # Public API compatibility imports
@@ -66,9 +81,9 @@ from .header import Header
 from .verify import VerifyError
 
 
-__all__ = (card.__all__ + column.__all__ + convenience.__all__ +
-           hdu.__all__ +
+__all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
+           convenience.__all__ + hdu.__all__ +
            ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'new_table', 'Header', 'VerifyError',
+            'new_table', 'Header', 'VerifyError', 'conf',
             'EXTENSION_NAME_CASE_SENSITIVE', 'USE_MEMMAP',
             'ENABLE_RECORD_VALUED_KEYWORD_CARDS'])

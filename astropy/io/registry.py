@@ -108,7 +108,7 @@ def _update__doc__(data_class, readwrite):
 
     # Get the available formats as a table, then munge the output of pformat() a bit and
     # put it into the docstring.
-    new_lines = format_table.pformat(max_lines=-1)
+    new_lines = format_table.pformat(max_lines=-1, max_width=80)
     table_rst_sep = re.sub('-', '=', new_lines[1])
     new_lines[1] = table_rst_sep
     new_lines.insert(0, table_rst_sep)

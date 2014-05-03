@@ -9,7 +9,7 @@ import numpy as np
 from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
-from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
+from . import conf
 from ...extern.six import string_types, integer_types, text_type
 from ...extern.six.moves import xrange
 from ...utils import deprecated
@@ -546,7 +546,7 @@ class Card(_Verify):
         else:
             self._value = value = ''
 
-        if STRIP_HEADER_WHITESPACE() and isinstance(value, string_types):
+        if conf.strip_header_whitespace and isinstance(value, string_types):
             value = value.rstrip()
 
         return value
@@ -605,7 +605,7 @@ class Card(_Verify):
         elif isinstance(value, np.bool_):
             value = bool(value)
 
-        if (STRIP_HEADER_WHITESPACE() and
+        if (conf.strip_header_whitespace and
             (isinstance(oldvalue, string_types) and
              isinstance(value, string_types))):
             # Ignore extra whitespace when comparing the new value to the old
@@ -851,7 +851,7 @@ class Card(_Verify):
             self._check_if_rvkc('DP1     = AXIS.1: 2')
         """
 
-        if not ENABLE_RECORD_VALUED_KEYWORD_CARDS():
+        if not conf.enable_record_valued_keyword_cards:
             return False
 
         if len(args) == 1:

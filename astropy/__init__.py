@@ -74,13 +74,31 @@ if not _ASTROPY_SETUP_:
     _check_numpy()
 
 
-from .config import ConfigurationItem
+from . import config as _config
+import sys
 
 
-UNICODE_OUTPUT = ConfigurationItem(
-    'unicode_output', False,
-    'Use Unicode characters when outputting values, and writing widgets '
-    'to the console.')
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy`.
+    """
+
+    unicode_output = _config.ConfigItem(
+        False,
+        'When True, use Unicode characters when outputting values, and '
+        'displaying widgets at the console.')
+    use_color = _config.ConfigItem(
+        sys.platform != 'win32',
+        'When True, use ANSI color escape sequences when writing to the console.',
+        aliases=['astropy.utils.console.USE_COLOR', 'astropy.logger.USE_COLOR'])
+conf = Conf()
+
+
+UNICODE_OUTPUT = _config.ConfigAlias(
+    '0.4', 'UNICODE_OUTPUT', 'unicode_output')
+
+
+del sys
 
 
 # set up the test command
@@ -217,7 +235,6 @@ def _initialize_astropy():
             raise
 
     # add these here so we only need to cleanup the namespace at the end
-    config_dir = None
     config_dir = os.path.dirname(__file__)
 
     try:

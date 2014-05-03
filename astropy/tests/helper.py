@@ -482,10 +482,23 @@ class astropy_test(Command, object):
             # Run the tests in a subprocess--this is necessary since
             # new extension modules may have appeared, and this is the
             # easiest way to set up a new environment
+
+            # On Python 3.x prior to 3.3, the creation of .pyc files
+            # is not atomic.  py.test jumps through some hoops to make
+            # this work by parsing import statements and carefully
+            # importing files atomically.  However, it can't detect
+            # when __import__ is used, so its carefulness still fails.
+            # The solution here (admittedly a bit of a hack), is to
+            # turn off the generation of .pyc files altogether by
+            # passing the `-B` switch to `python`.  This does mean
+            # that each core will have to compile .py file to bytecode
+            # itself, rather than getting lucky and borrowing the work
+            # already done by another core.  Compilation is an
+            # insignificant fraction of total testing time, though, so
+            # it's probably not worth worrying about.
             retcode = subprocess.call([sys.executable, '-B', '-c', cmd],
                                       cwd=testing_path, close_fds=False)
         finally:
-
             # Remove temporary directory
             shutil.rmtree(tmp_dir)
 
@@ -640,46 +653,44 @@ def assert_follows_unicode_guidelines(
         ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
         If not provided, no roundtrip testing will be performed.
     """
-    from .. import UNICODE_OUTPUT
+    from .. import conf
     from ..extern import six
 
-    UNICODE_OUTPUT.set(False)
+    with conf.set_temp('unicode_output', False):
+        bytes_x = bytes(x)
+        unicode_x = six.text_type(x)
+        repr_x = repr(x)
 
-    bytes_x = bytes(x)
-    unicode_x = six.text_type(x)
-    repr_x = repr(x)
+        assert isinstance(bytes_x, bytes)
+        bytes_x.decode('ascii')
+        assert isinstance(unicode_x, six.text_type)
+        unicode_x.encode('ascii')
+        assert isinstance(repr_x, six.string_types)
+        if isinstance(repr_x, bytes):
+            repr_x.decode('ascii')
+        else:
+            repr_x.encode('ascii')
 
-    assert isinstance(bytes_x, bytes)
-    bytes_x.decode('ascii')
-    assert isinstance(unicode_x, six.text_type)
-    unicode_x.encode('ascii')
-    assert isinstance(repr_x, six.string_types)
-    if isinstance(repr_x, bytes):
-        repr_x.decode('ascii')
-    else:
-        repr_x.encode('ascii')
+        if roundtrip is not None:
+            assert x.__class__(bytes_x) == x
+            assert x.__class__(unicode_x) == x
+            assert eval(repr_x, roundtrip) == x
 
-    if roundtrip is not None:
-        assert x.__class__(bytes_x) == x
-        assert x.__class__(unicode_x) == x
-        assert eval(repr_x, roundtrip) == x
+    with conf.set_temp('unicode_output', True):
+        bytes_x = bytes(x)
+        unicode_x = six.text_type(x)
+        repr_x = repr(x)
 
-    UNICODE_OUTPUT.set(True)
+        assert isinstance(bytes_x, bytes)
+        bytes_x.decode('ascii')
+        assert isinstance(unicode_x, six.text_type)
+        assert isinstance(repr_x, six.string_types)
+        if isinstance(repr_x, bytes):
+            repr_x.decode('ascii')
+        else:
+            repr_x.encode('ascii')
 
-    bytes_x = bytes(x)
-    unicode_x = six.text_type(x)
-    repr_x = repr(x)
-
-    assert isinstance(bytes_x, bytes)
-    bytes_x.decode('ascii')
-    assert isinstance(unicode_x, six.text_type)
-    assert isinstance(repr_x, six.string_types)
-    if isinstance(repr_x, bytes):
-        repr_x.decode('ascii')
-    else:
-        repr_x.encode('ascii')
-
-    if roundtrip is not None:
-        assert x.__class__(bytes_x) == x
-        assert x.__class__(unicode_x) == x
-        assert eval(repr_x, roundtrip) == x
+        if roundtrip is not None:
+            assert x.__class__(bytes_x) == x
+            assert x.__class__(unicode_x) == x
+            assert eval(repr_x, roundtrip) == x

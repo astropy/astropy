@@ -1,11 +1,10 @@
 from ..hub_proxy import SAMPHubProxy
 from ..hub import SAMPHubServer
 
-# By default, tests should not use the internet.
-from ..utils import ALLOW_INTERNET
+from .. import conf
 
 def setup_module(module):
-    ALLOW_INTERNET.set(False)
+    conf.use_internet = False
 
 
 class TestHubProxy(object):

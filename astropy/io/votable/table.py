@@ -22,17 +22,16 @@ from . import exceptions
 from . import tree
 from ...utils.xml import iterparser
 from ...utils import data
-from ...config import ConfigurationItem
+from ...config import ConfigAlias
 
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
 
 
-PEDANTIC = ConfigurationItem(
-    'pedantic',
-    False,
-    'When True, treat fixable violations of the VOTable spec as exceptions.')
+PEDANTIC = ConfigAlias(
+    '0.4', 'PEDANTIC', 'pedantic',
+    'astropy.io.votable.table', 'astropy.io.votable')
 
 
 def parse(source, columns=None, invalid='exception', pedantic=None,
@@ -109,11 +108,13 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """
+    from . import conf
+
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
 
     if pedantic is None:
-        pedantic = PEDANTIC()
+        pedantic = conf.pedantic
 
     config = {
         'columns'      :      columns,

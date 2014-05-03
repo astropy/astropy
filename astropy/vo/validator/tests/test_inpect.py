@@ -9,7 +9,7 @@ import tempfile
 
 # LOCAL
 from .. import inspect
-from ...client.vos_catalog import BASEURL
+from ....vo import conf
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
 
 
@@ -21,7 +21,7 @@ class TestConeSearchResults(object):
     def setup_class(self):
         self.datadir = 'data'
         self.out_dir = tempfile.mkdtemp()
-        BASEURL.set(_find_pkg_data_path(self.datadir) + os.sep)
+        conf.vos_baseurl = _find_pkg_data_path(self.datadir) + os.sep
         self.r = inspect.ConeSearchResults()
 
     def test_catkeys(self):
@@ -63,5 +63,5 @@ class TestConeSearchResults(object):
                      'The USNO-A2.0 Catalogue (Monet+ 1998) 1')
 
     def teardown_class(self):
-        BASEURL.set(BASEURL.defaultvalue)
+        conf.reset('vos_baseurl')
         shutil.rmtree(self.out_dir)

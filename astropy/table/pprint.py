@@ -14,8 +14,7 @@ import numpy as np
 from .. import log
 from ..utils.compat import ignored
 from ..utils.console import Getch, color_print
-from ..config import ConfigurationItem
-
+from ..config import ConfigAlias
 
 if six.PY3:
     def default_format_func(format_, val):
@@ -27,12 +26,11 @@ if six.PY3:
 elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
-MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
-                              'the pretty-printer to use if it cannot determine the terminal size. '
-                              'Negative numbers mean no limit.')
-MAX_WIDTH = ConfigurationItem('max_width', 80, 'Maximum number of characters '
-                              'for the pretty-printer to use per line if it cannot determine the '
-                              'terminal size.  Negative numbers mean no limit.')
+
+MAX_LINES = ConfigAlias(
+    '0.4', 'MAX_LINES', 'max_lines', 'astropy.table.pprint', 'astropy.table')
+MAX_WIDTH = ConfigAlias(
+    '0.4', 'MAX_WIDTH', 'max_width', 'astropy.table.pprint', 'astropy.table')
 
 
 def _get_pprint_size(max_lines=None, max_width=None):
@@ -42,11 +40,11 @@ def _get_pprint_size(max_lines=None, max_width=None):
     If no value of `max_lines` is supplied then the height of the screen
     terminal is used to set `max_lines`.  If the terminal height cannot be
     determined then the default will be determined using the
-    `astropy.table.pprint.MAX_LINES` configuration item. If a negative value
+    `astropy.table.conf.max_lines` configuration item. If a negative value
     of `max_lines` is supplied then there is no line limit applied.
 
     The same applies for max_width except the configuration item is
-    `astropy.table.pprint.MAX_WIDTH`.
+    `astropy.table.conf.max_width`.
 
     Parameters
     ----------
@@ -75,7 +73,8 @@ def _get_pprint_size(max_lines=None, max_width=None):
             if width > 10:
                 width -= 1
         except:
-            lines, width = MAX_LINES(), MAX_WIDTH()
+            from . import conf
+            lines, width = conf.max_lines, conf.max_width
 
     if max_lines is None:
         max_lines = lines

@@ -178,6 +178,16 @@ API Changes
 
 - ``astropy.config``
 
+  - The configuration system received a major overhaul, as part of
+    APE3.  It is no longer possible to save configuration items from
+    Python, but instead users must edit the configuration file
+    directly.  The locations of configuration items have moved, and
+    some have been changed to science state values.  The old locations
+    should continue to work until astropy 0.5, but deprecation
+    warnings will be displayed.  See :ref:`config-0-4-transition` for a
+    detailed description of the changes and how to update existing
+    code. [#2094]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``

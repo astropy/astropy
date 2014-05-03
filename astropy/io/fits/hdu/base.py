@@ -10,7 +10,7 @@ import warnings
 
 import numpy as np
 
-from .. import EXTENSION_NAME_CASE_SENSITIVE
+from .. import conf
 from ..card import Card
 from ..file import _File
 from ..header import Header, HEADER_END_RE, _pad_length
@@ -144,7 +144,7 @@ class _BaseHDU(object):
     def name(self, value):
         if not isinstance(value, string_types):
             raise TypeError("'name' attribute must be a string")
-        if not EXTENSION_NAME_CASE_SENSITIVE():
+        if not conf.extension_name_case_sensitive:
             value = value.upper()
         if 'EXTNAME' in self._header:
             self._header['EXTNAME'] = value
@@ -1036,7 +1036,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         # handles anyone who might use the before/after keywords to set the
         # position of the EXTNAME keyword.  Setting self.name = name does some
         # additional processing on the value such as handling
-        # EXTENSION_NAME_CASE_SENSITIVE
+        # conf.extension_name_case_sensitive
         self.name = value
 
     @deprecated('0.3', alternative='the ``.ver`` attribute or `Header.set`',

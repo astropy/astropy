@@ -22,7 +22,8 @@ def get_package_data():
             'data/*.dat.gz',
             'data/*.dat.bz2',
             'data/*.txt',
-            'data/.hidden_file.txt'],
+            'data/.hidden_file.txt',
+            'data/*.cfg'],
         'astropy.utils.iers': [
             'data/ReadMe.eopc04_IAU2000',
             'data/ReadMe.finals2000A',

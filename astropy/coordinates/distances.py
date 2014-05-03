@@ -84,7 +84,7 @@ class Distance(u.Quantity):
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
                 distmod=None, dtype=None, copy=True, allow_negative=False):
-        from ..cosmology import get_current
+        from ..cosmology import default_cosmology
 
         if isinstance(value, u.Quantity):
             # This includes Distances as well
@@ -104,7 +104,7 @@ class Distance(u.Quantity):
                                      'constructor')
 
                 if cosmology is None:
-                    cosmology = get_current()
+                    cosmology = default_cosmology.get()
 
                 ld = cosmology.luminosity_distance(z)
 

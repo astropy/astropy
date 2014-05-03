@@ -265,8 +265,8 @@ class TestCore(FitsTestCase):
 
     def test_extension_name_case_sensitive(self):
         """
-        Tests that setting fits.EXTENSION_NAME_CASE_SENSITIVE at runtime
-        works.
+        Tests that setting fits.conf.extension_name_case_sensitive at
+        runtime works.
         """
 
         if 'PYFITS_EXTENSION_NAME_CASE_SENSITIVE' in os.environ:
@@ -277,14 +277,11 @@ class TestCore(FitsTestCase):
         assert hdu.name == 'SCI'
         assert hdu.header['EXTNAME'] == 'SCI'
 
-        try:
-            fits.EXTENSION_NAME_CASE_SENSITIVE.set(True)
+        with fits.conf.set_temp('extension_name_case_sensitive', True):
             hdu = fits.ImageHDU()
             hdu.name = 'sCi'
             assert hdu.name == 'sCi'
             assert hdu.header['EXTNAME'] == 'sCi'
-        finally:
-            fits.EXTENSION_NAME_CASE_SENSITIVE.set(False)
 
         hdu.name = 'sCi'
         assert hdu.name == 'SCI'

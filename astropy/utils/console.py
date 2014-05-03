@@ -57,9 +57,10 @@ try:
 except ImportError:
     _HAVE_IPYTHON = False
 
-from ..config import ConfigurationItem
+from ..config import ConfigAlias
 from ..extern import six
 from ..extern.six.moves import range
+from .. import conf
 
 from .misc import deprecated, isiterable
 
@@ -70,10 +71,8 @@ __all__ = [
 
 
 # Only use color by default on Windows if IPython is installed.
-USE_COLOR = ConfigurationItem(
-    'use_color', sys.platform != 'win32' or _HAVE_IPYTHON,
-    'When True, use ANSI color escape sequences when writing to the console.')
-from ..import UNICODE_OUTPUT
+USE_COLOR = ConfigAlias(
+    '0.4', 'USE_COLOR', 'use_color', 'astropy.utils.console', 'astropy')
 
 
 _DEFAULT_ENCODING = 'utf-8'
@@ -239,13 +238,12 @@ def color_print(*args, **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-
     file = kwargs.get('file', stdio.stdout)
 
     end = kwargs.get('end', '\n')
 
     write = file.write
-    if isatty(file) and USE_COLOR():
+    if isatty(file) and conf.use_color:
         for i in range(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
@@ -663,7 +661,7 @@ class Spinner(object):
         self._file = file
         self._step = step
         if chars is None:
-            if UNICODE_OUTPUT():
+            if conf.unicode_output:
                 chars = self._default_unicode_chars
             else:
                 chars = self._default_ascii_chars
@@ -846,7 +844,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     if file is None:
         file = stdio.stdout
 
-    if UNICODE_OUTPUT():
+    if conf.unicode_output:
         ellipsis = '…'
     else:
         ellipsis = '...'

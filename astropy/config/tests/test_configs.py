@@ -6,19 +6,9 @@ from __future__ import (absolute_import, division, print_function,
 from ...tests.helper import catch_warnings
 
 import io
-import os
-import shutil
-import sys
 
-try:
-    # used by test_get_config_items
-    from ..configuration import ConfigurationItem
-
-    TESTCONF1 = ConfigurationItem('test1', 1, 'descr')
-    TESTCONF2 = ConfigurationItem('test2', 2, 'descr')
-except:
-    # if this fails on import, don't worry - the tests will catch it.
-    pass
+from ...utils.data import get_pkg_data_filename
+from .. import configuration
 
 
 def test_paths():
@@ -41,11 +31,6 @@ def test_config_file():
 
     reload_config('astropy')
 
-    # saving shouldn't change the file, because reload should have made sure it
-    # is based on the current file.  But don't do it if there's no file
-    if os.path.exists(apycfg.filename):
-        save_config('astropy')
-
 
 def test_configitem():
     from ..configuration import ConfigurationItem, get_config
@@ -58,77 +43,16 @@ def test_configitem():
 
     sec = get_config(ci.module)
     assert sec['tstnm'] == 34
-    assert sec.comments['tstnm'][0] == ''
-    assert sec.comments['tstnm'][1] == 'this is a Description'
 
     ci.description = 'updated Descr'
     ci.set(32)
     assert ci() == 32
-    assert sec.comments['tstnm'][1] == 'updated Descr'
 
     # It's useful to go back to the default to allow other test functions to
     # call this one and still be in the default configuration.
     ci.description = 'this is a Description'
     ci.set(34)
     assert ci() == 34
-    assert sec.comments['tstnm'][1] == 'this is a Description'
-
-
-def test_configitem_save(tmpdir):
-    from ..configuration import ConfigurationItem, get_config
-
-    ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
-    apycfg = get_config(ci.module)
-
-    # now try saving
-
-    while apycfg.parent is not apycfg:
-        apycfg = apycfg.parent
-    f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'w') as fd:
-        apycfg.write(fd)
-    with io.open(f.strpath, 'rU') as fd:
-        lns = [x.strip() for x in fd.readlines()]
-
-    assert 'tstnm2 = 42' in lns
-    assert '# this is another Description' in lns
-
-    oldfn = apycfg.filename
-    try:
-        # We had used LocalPath's `copy` method here, but it copies
-        # the file in TEXT mode, destroying newlines on Windows.  We
-        # need to do a binary copy.
-        shutil.copy(tmpdir.join('astropy.cfg').strpath,
-             tmpdir.join('astropy.cfg2').strpath)
-        # tmpdir.join('astropy.cfg').copy(tmpdir.join('astropy.cfg2'))
-        apycfg.filename = tmpdir.join('astropy.cfg2').realpath().strpath
-
-        ci.set(30)
-        ci.save()
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 30' in lns
-
-        ci.save(31)
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 31' in lns
-
-        # also try to save one that doesn't yet exist
-        apycfg.filename = tmpdir.join('astropy.cfg3').realpath().strpath
-        ci.save()
-
-        with io.open(apycfg.filename, 'rU') as f:
-            lns = [x.strip() for x in f.readlines()]
-            assert '[config.tests.test_configs]' in lns
-            assert 'tstnm2 = 30' in lns
-
-    finally:
-        apycfg.filename = oldfn
 
 
 def test_configitem_types():
@@ -182,7 +106,6 @@ def test_configitem_options(tmpdir):
     with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in f.readlines()]
 
-    assert '# Options: op1, op2, op3' in lns
     assert 'tstnmo = op2' in lns
 
 
@@ -213,31 +136,11 @@ def test_config_noastropy_fallback(monkeypatch):
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
-    with catch_warnings() as w:
+    with catch_warnings(configuration.ConfigurationMissingWarning) as w:
         test_configitem()
-    assert len(w) > 0
+    assert len(w) == 1
     w = w[0]
-    assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
-    assert 'and configuration cannot be saved due to' in str(w.message)
-
-
-def test_get_config_items():
-    """ Checks if the get_config_items function is working correctly, using
-    `ConfigurationItem` objects from this module.
-    """
-
-    from ..configuration import get_config_items
-
-    itemslocal = get_config_items(sys.modules['astropy.config.tests.test_configs'])
-    itemslocalnone = get_config_items(None)
-    itemsname = get_config_items('astropy.config.tests.test_configs')
-
-    assert itemslocal == itemsname
-    assert itemslocal == itemslocalnone
-
-    assert 'TESTCONF1' in itemslocal.keys()
-    assert 'TESTCONF2' in itemslocal.keys()
 
 
 def test_configitem_setters():
@@ -264,3 +167,99 @@ def test_configitem_setters():
         pass
 
     assert ci() == 43
+
+
+def test_empty_config_file():
+    from ..configuration import is_unedited_config_file
+
+    fn = get_pkg_data_filename('data/empty.cfg')
+    assert is_unedited_config_file(fn)
+
+    fn = get_pkg_data_filename('data/not_empty.cfg')
+    assert not is_unedited_config_file(fn)
+
+    fn = get_pkg_data_filename('data/astropy.0.3.cfg')
+    assert is_unedited_config_file(fn)
+
+
+def test_alias():
+    import astropy
+
+    with catch_warnings() as w:
+        with astropy.UNICODE_OUTPUT.set_temp(False):
+            pass
+
+    assert len(w) == 1
+    assert str(w[0].message) == (
+        "Since 0.4, config parameter 'astropy.UNICODE_OUTPUT' is deprecated. "
+        "Use 'astropy.conf.unicode_output' instead.")
+
+
+def test_alias2():
+    from ...coordinates import name_resolve
+    from ...utils.data import conf
+
+    # REMOVE in astropy 0.5
+
+    with catch_warnings() as w:
+        x = name_resolve.NAME_RESOLVE_TIMEOUT()
+    assert x == 3
+    assert len(w) == 1
+    assert str(w[0].message) == (
+        "Since 0.4, config parameter "
+        "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
+        "Use 'astropy.utils.data.conf.remote_timeout' instead.")
+
+    with catch_warnings() as w:
+        name_resolve.NAME_RESOLVE_TIMEOUT.set(10)
+    assert conf.remote_timeout == 10
+    assert len(w) == 1
+    assert str(w[0].message) == (
+        "Since 0.4, config parameter "
+        "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
+        "Use 'astropy.utils.data.conf.remote_timeout' instead.")
+
+    with catch_warnings() as w:
+        with name_resolve.NAME_RESOLVE_TIMEOUT.set_temp(42):
+            assert conf.remote_timeout == 42
+    assert len(w) == 1
+    assert str(w[0].message) == (
+        "Since 0.4, config parameter "
+        "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
+        "Use 'astropy.utils.data.conf.remote_timeout' instead.")
+    assert name_resolve.NAME_RESOLVE_TIMEOUT() == 10
+    assert conf.remote_timeout == 10
+
+    with catch_warnings() as w:
+        name_resolve.NAME_RESOLVE_TIMEOUT.reload()
+    assert len(w) == 1
+    assert str(w[0].message) == (
+        "Since 0.4, config parameter "
+        "'astropy.coordinates.name_resolve.NAME_RESOLVE_TIMEOUT' is deprecated. "
+        "Use 'astropy.utils.data.conf.remote_timeout' instead.")
+    assert x == 3
+    assert name_resolve.NAME_RESOLVE_TIMEOUT() == 3
+
+
+class TestAliasRead(object):
+    def setup_class(self):
+        configuration._override_config_file = get_pkg_data_filename('data/alias.cfg')
+
+    def test_alias_read(self):
+        from astropy.utils.data import conf
+
+        with catch_warnings() as w:
+            conf.reload()
+            assert conf.remote_timeout == 42
+
+        assert len(w) == 1
+        assert str(w[0].message) == (
+            "Config parameter 'name_resolve_timeout' in section "
+            "[astropy.coordinates.name_resolve] is deprecated. Use "
+            "'remote_timeout' in section [astropy.utils.data] instead.")
+
+    def teardown_class(self):
+        from astropy.utils.data import conf
+
+        configuration._override_config_file = None
+        conf.reload()

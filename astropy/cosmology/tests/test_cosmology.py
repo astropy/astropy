@@ -706,17 +706,18 @@ def test_integral():
 
 
 def test_current():
-    core.set_current('WMAP7')
-    cosmo = core.get_current()
-    assert cosmo == core.WMAP7
-    core.set_current('WMAP5')
-    assert core.get_current() == core.WMAP5
-    core.set_current('WMAP9')
-    assert core.get_current() == core.WMAP9
-    core.set_current('Planck13')
-    assert core.get_current() == core.Planck13
-    core.set_current(cosmo)
-    assert core.get_current() == cosmo
+    with core.default_cosmology.set('WMAP7'):
+        cosmo = core.get_current()
+        assert cosmo == core.WMAP7
+    with core.default_cosmology.set('WMAP5'):
+        core.set_current('WMAP5')
+        assert core.get_current() == core.WMAP5
+    with core.default_cosmology.set('WMAP9'):
+        core.set_current('WMAP9')
+        assert core.get_current() == core.WMAP9
+    with core.default_cosmology.set('Planck13'):
+        core.set_current('Planck13')
+        assert core.get_current() == core.Planck13
 
 
 def test_wz():
@@ -1037,7 +1038,7 @@ def test_z_at_value_roundtrip():
     skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError')
 
     core.set_current('Planck13')
-    for name in dir(funcs):
+    for name in funcs.__all__:
         if name.startswith('_') or name in skip:
             continue
         f = getattr(funcs, name)
