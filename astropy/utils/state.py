@@ -1,6 +1,6 @@
 """
 A simple class to manage a piece of global science state.  See
-:ref:`config-devel` for more details.
+:ref:`config-developer` for more details.
 """
 from contextlib import contextmanager
 import warnings
@@ -23,12 +23,15 @@ class ScienceState(object):
 
     Examples
     --------
-    class MyState(ScienceState):
-        @classmethod
-        def validate(cls, value):
-            if value not in ('A', 'B', 'C'):
-                raise ValueError("Must be one of A, B, C")
-            return value
+
+    ::
+
+        class MyState(ScienceState):
+            @classmethod
+            def validate(cls, value):
+                if value not in ('A', 'B', 'C'):
+                    raise ValueError("Must be one of A, B, C")
+                return value
     """
 
     def __init__(self):
