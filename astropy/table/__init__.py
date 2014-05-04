@@ -28,7 +28,7 @@ conf = Conf()
 
 
 from .column import Column, MaskedColumn
-from .table import Table, TableColumns, Row
+from .table import Table, TableColumns, Row, TableFormatter
 from .np_utils import TableMergeError
 from .operations import join, hstack, vstack
 

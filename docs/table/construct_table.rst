@@ -699,7 +699,19 @@ frequently desirable to change the behavior of the internal class objects which
 are contained or created by a Table.  This includes rows, columns, formatting,
 and the columns container.  In order to do this the subclass needs to declare
 what class to use (if it is different from the built-in version).  This is done by
-specifying the following class attributes::
+specifying one or more of the class attributes ``Row``, ``Column``,
+``MaskedColumn``, ``TableColumns``, or ``TableFormatter``.
+
+The following trivial example overrides all of these with do-nothing
+subclasses, but in practice you would override only the necessary subcomponents::
+
+  >>> from astropy.table import Table, Row, Column, MaskedColumn, TableColumns, TableFormatter
+
+  >>> class MyRow(Row): pass
+  >>> class MyColumn(Column): pass
+  >>> class MyMaskedColumn(MaskedColumn): pass
+  >>> class MyTableColumns(TableColumns): pass
+  >>> class MyTableFormatter(TableFormatter): pass
 
   >>> class MyTable(Table):
   ...     """
@@ -715,7 +727,7 @@ specifying the following class attributes::
 Example
 """"""""
 
-As an example, suppose you have a table of data with a certain set of fixed
+As a more practical example, suppose you have a table of data with a certain set of fixed
 columns, but you also want to carry an arbitrary dictionary of keyword=value
 parameters for each row and then access those values using the same item access
 syntax as if they were columns.  It is assumed here that the extra parameters
