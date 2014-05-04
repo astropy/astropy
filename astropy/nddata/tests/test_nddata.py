@@ -379,20 +379,47 @@ def test_arithmetic_result_not_tied_to_operands_wcs_unit():
     assert op2.unit != u.km
 
 
-@pytest.mark.parametrize('operation', [
-                         'add',
-                         'subtract',
-                         'multiply',
-                         'divide'])
-def test_uncertainty_unit_conversion_add_subtract(operation):
+# first operand has unit km, second has unit m
+@pytest.mark.parametrize('operation,result_unit', [
+                         ('add', u.km),
+                         ('subtract', u.km),
+                         ('multiply', u.km * u.m),
+                         ('divide', u.km / u.m)])
+def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
     in_km = NDData([1, 1], unit=u.km, uncertainty=StdDevUncertainty([.1, .1]))
     in_m = NDData(in_km.data * 1000, unit=u.m)
     in_m.uncertainty = StdDevUncertainty(in_km.uncertainty.array * 1000)
     operator_km = in_km.__getattribute__(operation)
     combined = operator_km(in_m)
-    assert combined.unit == u.km
-    assert_array_equal(combined.uncertainty.array,
-                       np.sqrt(2) * in_km.uncertainty.array)
+    assert combined.unit == result_unit
+    if operation in ['add', 'subtract']:
+        # uncertainty is not scaled by result values
+        assert_array_equal(combined.uncertainty.array,
+                           np.sqrt(2) * in_km.uncertainty.array)
+    else:
+        # uncertainty is scaled by result
+        assert_array_equal(combined.uncertainty.array,
+                np.sqrt(2) * in_km.uncertainty.array * combined.data)
+
+
+@pytest.mark.parametrize('unit1,unit2,op,result_unit', [
+                         (None, None, 'add', None),
+                         (None, None, 'multiply', None),
+                         (None, u.m, 'multiply', u.m),
+                         (u.dimensionless_unscaled, None, 'multiply',
+                          u.dimensionless_unscaled),
+                         (u.adu, u.adu, 'add', u.adu),
+                         (u.adu, u.adu, 'subtract', u.adu),
+                         (u.adu, u.adu, 'divide', u.dimensionless_unscaled),
+                         (u.adu, u.m, 'multiply', u.m * u.adu)
+                         ])
+def test_arithmetic_unit_calculation(unit1, unit2, op, result_unit):
+    # Test for #2413
+    ndd1 = NDData([1], unit=unit1)
+    ndd2 = NDData([1], unit=unit2)
+    ndd1_method = ndd1.__getattribute__(op)
+    result = ndd1_method(ndd2)
+    assert result.unit == result_unit
 
 
 def test_convert_unit_to():

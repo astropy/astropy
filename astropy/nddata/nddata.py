@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
-from ..units import Unit
+from ..units import Unit, UnitsError, dimensionless_unscaled
 from .. import log
 
 from .flag_collection import FlagCollection
@@ -365,19 +365,71 @@ class NDData(object):
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if not (self.unit is None and operand.unit is None):
-            if (self.unit is None or operand.unit is None
-                    or not self.unit.is_equivalent(operand.unit)):
-                raise ValueError("operand units do not match")
+        # get a sensible placeholder if .unit is None
+        self_unit = self.unit or dimensionless_unscaled
+        operand_unit = operand.unit or dimensionless_unscaled
+
+        # This check could be rolled into the calculation of the result
+        # but checking now avoids a potentially expensive calculation that
+        # would fail anyway.
+        try:
+            # Quantity is designed to work with numpy ufuncs, but plain
+            # Unit is not, so convert units to quantities
+            result_unit = operation(1 * self_unit, 1 * operand_unit).unit
+        except UnitsError:
+            # current API raises ValueError in this case, not UnitError
+            raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
+
+        # Instead of manually scaling the operand data just let Quantity
+        # handle it.
+        # Order of the arguments is important here if the operation is
+        # addition or subtraction and the units of the operands are different
+        # but compatible. NDData follows the convention that Quantity follows
+        # in that case, with the units of the first operand (i.e. self)
+        # determining the units of the result.
+        data = operation(self.data * self_unit, operand.data * operand_unit)
+
+        result_unit = data.unit
+        # If neither self nor operand had units then should return a result
+        # that has no unit. A check that the result_unit is dimensionless
+        # should not be necessary, but also does no harm.
+        if (self.unit is None and operand.unit is None):
+            if (result_unit == dimensionless_unscaled):
+                result_unit = None
+            else:
+                raise ValueError("arithmetic result was not unitless even "
+                                 "though operands were unitless")
+        data = data.value
+        new_wcs = deepcopy(self.wcs)
+
+        # Call __class__ in case we are dealing with an inherited type
+        result = self.__class__(data, uncertainty=None,
+                                mask=None, flags=None, wcs=new_wcs,
+                                meta=None, unit=result_unit)
 
         # Prepare to scale uncertainty if it is needed
         if operand.uncertainty:
             operand_uncert_value = operand.uncertainty.array
 
-        if self.unit is not None:
+        # By this point the arithmetic has succeeded, so the input units were
+        # consistent with each other given the operation.
+        #
+        # If the operation is addition or subtraction then need to ensure that
+        # the uncertainty of the operand is the same units as the result
+        # (which will be the same as self.unit).
+
+        # The data ought to also be scaled in this case -- for addition of
+        # a StdDevUncertainty this isn't really necessary but other
+        # uncertainties when added/subtracted may depend on both the operand
+        # uncertainty and the operand data.
+
+        # Since the .unit.to methods create a copy, avoid the conversion
+        # unless it is necessary.
+        if (operation in [np.add, np.subtract] and
+                self.unit != operand.unit):
             operand_data = operand.unit.to(self.unit, operand.data)
             if operand.uncertainty:
                 operand_uncert_value = operand.unit.to(self.unit,
@@ -386,18 +438,12 @@ class NDData(object):
             operand_data = operand.data
 
         if operand.uncertainty:
+            # Create a copy here in case this is returned as the uncertainty
+            # of the result.
             operand_uncertainty = \
                 operand.uncertainty.__class__(operand_uncert_value, copy=True)
         else:
             operand_uncertainty = None
-
-        data = operation(self.data, operand_data)
-        # Call __class__ in case we are dealing with an inherited type
-
-        new_wcs = deepcopy(self.wcs)
-        result = self.__class__(data, uncertainty=None,
-                                mask=None, flags=None, wcs=new_wcs,
-                                meta=None, unit=self.unit)
 
         if propagate_uncertainties is None:
             result.uncertainty = None
