@@ -231,7 +231,7 @@ details.
 
       >>> t = Table([(-99, 2), (3, 4)], names=('a', 'b'))
       >>> ascii.write(t, sys.stdout, fill_values = [('-99.00', 'no data')], 
-                      formats={'a': '%4.2f'})
+      ...             formats={'a': '%4.2f'})
       a b
       "no data" 3
       2.00 4
