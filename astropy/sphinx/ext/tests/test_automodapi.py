@@ -63,7 +63,6 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: api/
-    {empty}
 
 Classes
 ^^^^^^^
@@ -71,7 +70,6 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: api/
-    {empty}
 
 Class Inheritance Diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,6 +77,7 @@ Class Inheritance Diagram
 .. automod-diagram:: astropy.sphinx.ext.tests.test_automodapi
     :private-bases:
     :parts: 1
+    {empty}
 
 This comes after
 """.format(empty='').replace('/', os.sep)
@@ -111,7 +110,6 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: api/
-    {empty}
 
 Classes
 ^^^^^^^
@@ -119,7 +117,6 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: api/
-    {empty}
 
 
 This comes after
@@ -154,7 +151,6 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: api/
-    {empty}
 
 Classes
 *******
@@ -162,7 +158,6 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: api/
-    {empty}
 
 Class Inheritance Diagram
 *************************
@@ -170,6 +165,7 @@ Class Inheritance Diagram
 .. automod-diagram:: astropy.sphinx.ext.tests.test_automodapi
     :private-bases:
     :parts: 1
+    {empty}
 
 
 This comes after
@@ -214,7 +210,6 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
     :toctree: api/
-    {empty}
 
 
 This comes after
