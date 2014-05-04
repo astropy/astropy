@@ -90,20 +90,25 @@ deviation uncertainties on the pixel values, you can do::
 Arithmetic
 ----------
 
-Provided that the world coordinate system (WCS), units, and shape match, two
-:class:`~astropy.nddata.NDData` instances can be added or subtracted
+Provided that the world coordinate system (WCS) and shape match, and that the units are consisten, two
+:class:`~astropy.nddata.NDData` instances can be added, subtracted, multiplied or divided
 from each other, with uncertainty propagation, creating a new
 :class:`~astropy.nddata.NDData` object::
 
     ndd3 = ndd1.add(ndd2)
     ndd4 = ndd1.subtract(ndd2)
+    ndd5 = ndd1.multiply(ndd2)
+    ndd6 = ndd1.divide(ndd2)
 
-The purpose of the :meth:`~astropy.nddata.nddata.NDData.add` and
-:meth:`~astropy.nddata.nddata.NDData.subtract` methods is to allow the
-combination of two data objects that have common WCS, units, and shape, with
-consistent behavior for masks and flags, and with a framework to propagate
-uncertainties. These methods are intended for use by sub-classes and functions
-that deal with more complex combinations.
+The purpose of the :meth:`~astropy.nddata.nddata.NDData.add`,
+:meth:`~astropy.nddata.nddata.NDData.subtract`,
+:meth:`~astropy.nddata.nddata.NDData.multiply` and
+:meth:`~astropy.nddata.nddata.NDData.divide` methods is to allow the combination
+of two data objects that have common WCS and shape and units consistent with the
+operation performed, with consistent behavior for masks, and with a framework to
+propagate uncertainties. Currently any flags on the operands are dropped so that
+the result of the operation always has no flags. These methods are intended for
+use by sub-classes and functions that deal with more complex combinations.
 
 .. warning:: Uncertainty propagation is still experimental, and does not take into
              account correlated uncertainties.
