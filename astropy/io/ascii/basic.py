@@ -149,6 +149,7 @@ class Tab(Basic):
         self.data.splitter.process_val = None
         self.data.splitter.skipinitialspace = False
 
+
 class Csv(Basic):
     """Read a CSV (comma-separated-values) file.
 
@@ -160,9 +161,13 @@ class Csv(Basic):
 
     Plain csv (comma separated value) files typically contain as many entries
     as there are columns on each line. In contrast, common spreadsheed editors
-    stop writing if all remaining cells on a line are empty, which can lead to 
+    stop writing if all remaining cells on a line are empty, which can lead to
     lines where the rightmost entries are missing. This Reader can deal with
     such files.
+    Masked values (indicated by an empty '' field value when reading) are
+    written out in the same way with an empty ('') field.  This is different
+    from the typical default for `io.ascii` in which missing values are
+    indicated by ``--``.
 
     Example::
 
@@ -181,12 +186,12 @@ class Csv(Basic):
         self.header.splitter.delimiter = ','
         self.header.start_line = 0
         self.data.start_line = 1
-        self.data.fill_values.append((core.masked,''))
+        self.data.fill_values.append((core.masked, ''))
 
     def inconsistent_handler(self, str_vals, ncols):
         '''Adjust row if it is too short.
 
-        If a data row is shorter than the header, add empty values to make it the 
+        If a data row is shorter than the header, add empty values to make it the
         right length.
         Note that this will *not* be called if the row already matches the header.
 

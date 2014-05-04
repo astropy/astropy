@@ -567,8 +567,9 @@ class BaseData(object):
                                    if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
                 if masked in col.fill_values and hasattr(col, 'mask'):
+                    mask_val = col.fill_values[masked]
                     for i in col.mask.nonzero()[0]:
-                        col.str_vals[i] = col.fill_values[masked]
+                        col.str_vals[i] = mask_val
 
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):

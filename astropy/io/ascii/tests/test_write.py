@@ -106,7 +106,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     dict(
         kwargs=dict(Writer=ascii.AASTex, caption='Mag values \\label{tab1}', latexdict={
                     'units': {'MAG': '[mag]', 'XCENTER': '[pixel]'}, 'tabletype': 'deluxetable*',
-                    'tablealign':'htpb'}),
+                    'tablealign': 'htpb'}),
         out="""\
 \\begin{deluxetable*}{ccccccccccc}[htpb]
 \\tablecaption{Mag values \\label{tab1}}
@@ -119,8 +119,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """
     ),
     dict(
-        kwargs=dict(Writer=ascii.Latex, caption='Mag values \\label{tab1}', latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}', 'data_end': [
-                    '\\hline', '\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
+        kwargs=dict(Writer=ascii.Latex, caption='Mag values \\label{tab1}',
+                    latexdict={'preamble': '\\begin{center}', 'tablefoot': '\\end{center}',
+                               'data_end': ['\\hline', '\\hline'],
+                               'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'},
                     'tabletype': 'table*',
                     'tablealign': 'h'},
                     col_align='|lcccccccccc|'),
@@ -159,7 +161,7 @@ tablefoot
 \\end{tabletype}
 """
          ),
-    dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css':'table,th,td{border:1px solid black;'}),
+    dict(kwargs=dict(Writer=ascii.HTML, htmldict={'css': 'table,th,td{border:1px solid black;'}),
          out="""\
 <html>
  <head>
@@ -318,14 +320,14 @@ a b c
 ]
 
 test_def_masked_fill_value = [
-    dict(kwargs=dict(fill_values = [('1', 'w'), (ascii.masked, 'X')]),
+    dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'X')]),
          out="""\
 a b c
 X 2 3
 w w X
 """
          ),
-    dict(kwargs=dict(fill_values = [('1', 'w'), (ascii.masked, 'XXX')],
+    dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'XXX')],
                      formats={'a': '%4.1f'}),
          out="""\
 a b c
@@ -333,7 +335,7 @@ XXX 2 3
 1.0 w XXX
 """
          ),
-    dict(kwargs=dict(Writer  = ascii.Csv),
+    dict(kwargs=dict(Writer=ascii.Csv),
          out="""\
 a,b,c
 ,2,3
@@ -341,6 +343,7 @@ a,b,c
 """
          ),
 ]
+
 
 def check_write_table(test_def, table):
     out = StringIO()
@@ -387,9 +390,9 @@ def test_write_fill_values():
 def test_write_fill_masked_different():
     '''see discussion in #2255'''
     data = ascii.read(tab_to_fill)
-    data = table.Table(data, masked = True)
+    data = table.Table(data, masked=True)
     data['a'].mask = [True, False]
     data['c'].mask = [False, True]
-    
+
     for test_def in test_def_masked_fill_value:
         check_write_table(test_def, data)
