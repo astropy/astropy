@@ -25,12 +25,12 @@ from . import format as unit_format
 # TODO: Support functional units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsError', 'UnitsException', 'UnitsWarning', 'UnitBase',
-    'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit',
-    'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
-    'get_current_unit_registry', 'set_enabled_units',
-    'add_enabled_units', 'set_enabled_equivalencies',
-    'add_enabled_equivalencies', 'dimensionless_unscaled', 'one']
+    'UnitsError', 'UnitsWarning', 'UnitBase', 'NamedUnit',
+    'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
+    'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
+    'set_enabled_units', 'add_enabled_units',
+    'set_enabled_equivalencies', 'add_enabled_equivalencies',
+    'dimensionless_unscaled', 'one']
 
 
 def _flatten_units_collection(items):
@@ -433,10 +433,6 @@ class UnitsError(Exception):
     """
     The base class for unit-specific exceptions.
     """
-
-
-# deprecated alias.  Remove in astropy 0.4
-UnitsException = UnitsError
 
 
 class UnitsWarning(AstropyWarning):

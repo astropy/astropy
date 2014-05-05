@@ -438,7 +438,7 @@ def test_invalid_equivalency():
 
 
 def test_irrelevant_equivalency():
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         u.m.to(u.kg, equivalencies=[(u.m, u.l)])
 
 

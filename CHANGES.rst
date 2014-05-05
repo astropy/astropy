@@ -257,6 +257,10 @@ API Changes
     dimensionless quantities; they are automatically converted to unscaled
     dimensionless. [#2249]
 
+  - The exception ``astropy.units.UnitException``, which was
+    deprecated in astropy 0.2, has been removed.  Use
+    ``astropy.units.UnitError`` instead [#2386]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -275,6 +279,22 @@ API Changes
     0.4, ``CRPIX`` is no longer added to the result, so the ``foc``
     space is correct as defined in the `SIP convention
     <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
+
+  - ``astropy.wcs.UnitConverter``, which was deprecated in astropy
+    0.2, has been removed.  Use the `astropy.units` module
+    instead. [#2386]
+
+  - The following methods on ``astropy.wcs.WCS``, which were
+    deprecated in astropy 0.1, have been removed [#2386]:
+
+    - ``all_pix2sky`` -> ``all_pix2world``
+    - ``wcs_pix2sky`` -> ``wcs_pix2world``
+    - ``wcs_sky2pix`` -> ``wcs_world2pix``
+
+  - The ``naxis1`` and ``naxis2`` attributes and the ``get_naxis``
+    method of ``astropy.wcs.WCS``, which were deprecated in astropy
+    0.2, have been removed.  Use the shape of the underlying FITS data
+    array instead.  [#2386]
 
 Bug Fixes
 ^^^^^^^^^
