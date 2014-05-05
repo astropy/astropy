@@ -112,8 +112,9 @@ def test_sip_hst():
     """
     Test SIP againts astropy.wcs
     """
+
     test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
-    hdr=fits.Header.fromfile(test_file, endcard=False, padding=False, sep='\n')
+    hdr=fits.Header.fromtextfile(test_file)
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
     wobj = wcs.WCS(hdr)
@@ -130,8 +131,9 @@ def test_sip_irac():
     """
     Test forward and inverse SIP againts astropy.wcs
     """
+
     test_file = get_pkg_data_filename(os.path.join('./data', 'irac_sip.hdr'))
-    hdr=fits.Header.fromfile(test_file, padding=False)
+    hdr=fits.Header.fromtextfile(test_file)
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
     wobj = wcs.WCS(hdr)
