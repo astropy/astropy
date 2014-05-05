@@ -114,7 +114,7 @@ def test_sip_hst():
     """
 
     test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
-    hdr=fits.Header.fromtextfile(test_file)
+    hdr = fits.Header.fromtextfile(test_file)
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
     wobj = wcs.WCS(hdr)
@@ -123,7 +123,9 @@ def test_sip_hst():
     a_order = a_pars.pop('A_ORDER')
     b_order = b_pars.pop('B_ORDER')
     sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars)
-    astwcs_result = wobj.sip_pix2foc([[1, 1]], 1)[0] - [1, 1]
+    coords = [1, 1]
+    rel_coords = [1 - crpix1, 1 - crpix2]
+    astwcs_result = wobj.sip_pix2foc([coords], 1)[0] - rel_coords
     utils.assert_allclose(sip(1, 1), astwcs_result)
 
 
@@ -133,7 +135,7 @@ def test_sip_irac():
     """
 
     test_file = get_pkg_data_filename(os.path.join('./data', 'irac_sip.hdr'))
-    hdr=fits.Header.fromtextfile(test_file)
+    hdr = fits.Header.fromtextfile(test_file)
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
     wobj = wcs.WCS(hdr)
