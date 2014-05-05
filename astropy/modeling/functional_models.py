@@ -451,7 +451,7 @@ class Redshift(Fittable1DModel):
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
 
     """
-    z = Parameter('z')
+    z = Parameter(description='redshift')
 
     def __init__(self, z, **constraints):
         if not isinstance(z, collections.Sequence):
