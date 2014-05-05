@@ -504,6 +504,10 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed the ``SIP`` and ``InverseSIP`` models both so that they work in the
+    first place, and so that they return results consistent with the SIP
+    functions in ``astropy.wcs``. [#2177]
+
 - ``astropy.nddata``
 
 - ``astropy.sphinx``
