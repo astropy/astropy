@@ -39,20 +39,20 @@ object by supplying one or more input time values as well as the `time format`_ 
 In general any output values have the same shape (scalar or array) as the input.
 
   >>> from astropy.time import Time
-  >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
-  >>> t = Time(times, format='iso', scale='utc')
+  >>> times = ['1999-01-01T00:00:00.123456789', '2010-01-01T00:00:00']
+  >>> t = Time(times, format='isot', scale='utc')
   >>> t
-  <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
+  <Time object: scale='utc' format='isot' value=['1999-01-01T00:00:00.123' '2010-01-01T00:00:00.000']>
   >>> t[1]
-  <Time object: scale='utc' format='iso' value=2010-01-01 00:00:00.000>
+  <Time object: scale='utc' format='isot' value=2010-01-01T00:00:00.000>
 
-The ``format`` argument specifies how to interpret the input values, e.g. ISO
-or JD or Unix time.  The ``scale`` argument specifies the `time scale`_ for the
+The ``format`` argument specifies how to interpret the input values,
+e.g. ISO or JD or Unix time.  The ``scale`` argument specifies the `time scale`_ for the
 values, e.g. UTC or TT or UT1.  The ``scale`` argument is optional and
 defaults to UTC except for `Time from epoch formats`_.
 We could have written the above as::
 
-  >>> t = Time(times, format='iso')
+  >>> t = Time(times, format='isot')
 
 When the format of the input can be unambiguously determined then the
 ``format`` argument is not required, so we can simplify even further::
@@ -73,12 +73,12 @@ TT.  This uses the same attribute mechanism as above but now returns a new
 
   >>> t2 = t.tt
   >>> t2
-  <Time object: scale='tt' format='iso' value=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
+  <Time object: scale='tt' format='isot' value=['1999-01-01T00:01:04.307' '2010-01-01T00:01:06.184']>
   >>> t2.jd
   array([ 2451179.5007443 ,  2455197.50076602])
 
-Note that both the ISO and JD representations of ``t2`` are different than for
-``t`` because they are expressed relative to the TT time scale.
+Note that both the ISO (ISOT) and JD representations of ``t2`` are different
+than for ``t`` because they are expressed relative to the TT time scale.
 
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
@@ -92,12 +92,12 @@ can only have scales in which one day is always equal to 86400 seconds.
 
   >>> import numpy as np
   >>> t[0] + dt * np.linspace(0.,1.,12)
-  <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2000-01-01 06:32:43.930'
-   '2000-12-31 13:05:27.737' '2001-12-31 19:38:11.544'
-   '2003-01-01 02:10:55.351' '2004-01-01 08:43:39.158'
-   '2004-12-31 15:16:22.965' '2005-12-31 21:49:06.772'
-   '2007-01-01 04:21:49.579' '2008-01-01 10:54:33.386'
-   '2008-12-31 17:27:17.193' '2010-01-01 00:00:00.000']>
+  <Time object: scale='utc' format='isot' value=['1999-01-01T00:00:00.123' '2000-01-01T06:32:43.930'
+   '2000-12-31T13:05:27.737' '2001-12-31T19:38:11.544'
+   '2003-01-01T02:10:55.351' '2004-01-01T08:43:39.158'
+   '2004-12-31T15:16:22.965' '2005-12-31T21:49:06.772'
+   '2007-01-01T04:21:49.579' '2008-01-01T10:54:33.386'
+   '2008-12-31T17:27:17.193' '2010-01-01T00:00:00.000']>
 
   >>> t.sidereal_time('apparent', 'greenwich')
   <Longitude [ 6.68050179, 6.70281947] hourangle>
@@ -708,7 +708,7 @@ scales, the |TimeDelta| inherits the scale of the first |Time| object::
 
 When |TimeDelta| objects are added or subtracted from |Time| objects, scales
 are converted appropriately, with the final scale being that of the |Time|
-object:: 
+object::
 
   >>> t2 + dt
   <Time object: scale='tcg' format='iso' value=2012-01-01 00:00:00.000>
@@ -719,7 +719,7 @@ object::
 
 |TimeDelta| objects can be converted only to objects with compatible scales,
 i.e., scales for which it is not necessary to know the times that were
-differenced:: 
+differenced::
 
   >>> dt.tt
   <TimeDelta object: scale='tt' format='jd' value=364.99999974...>
