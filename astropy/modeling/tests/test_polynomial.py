@@ -147,14 +147,15 @@ def test_sip_irac():
     b_order = b_pars.pop('B_ORDER')
     ap_order = ap_pars.pop('AP_ORDER')
     bp_order = bp_pars.pop('BP_ORDER')
-    _ = a_pars.pop('A_DMAX')
-    _ = b_pars.pop('B_DMAX')
+    del a_pars['A_DMAX']
+    del b_pars['B_DMAX']
     pix = [200, 200]
+    rel_pix = [200 - crpix1, 200 - crpix2]
     sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars,
               ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
               bp_coeff=bp_pars)
     invsip = sip.inverse()
-    foc = wobj.sip_pix2foc([pix], 1) - pix
-    newpix = (wobj.sip_foc2pix(foc, 1) - foc)[0]
-    utils.assert_allclose(sip(*pix), foc[0])
-    utils.assert_allclose(invsip(*foc[0]), newpix)
+    foc = wobj.sip_pix2foc([pix], 1)
+    newpix = wobj.sip_foc2pix(foc, 1)[0]
+    utils.assert_allclose(sip(*pix), foc[0] - rel_pix)
+    utils.assert_allclose(invsip(*foc[0]) + foc[0] - rel_pix, newpix - pix)

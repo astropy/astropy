@@ -1202,15 +1202,21 @@ class InverseSIP(Model):
         self._bp_order = bp_order
         self._ap_coeff = ap_coeff
         self._bp_coeff = bp_coeff
-        # define the 0th term in order to use Polynomial1D
-        self._ap_coeff['AP_0_0'] = ap_coeff.get('AP_0_0', 0)
-        self._bp_coeff['BP_0_0'] = bp_coeff.get('BP_0_0', 0)
-        self.sip1d_ap = Polynomial2D(degree=ap_order, coeff_prefix='AP_',
-                                param_dim=param_dim, **ap_coeff)
-        self.sip1d_bp = Polynomial2D(degree=bp_order, coeff_prefix='BP_',
-                                      param_dim=param_dim, **bp_coeff)
-        super(InverseSIP, self).__init__(param_dim=1)
 
+        # define the 0th term in order to use Polynomial2D
+        ap_coeff.setdefault('AP_0_0', 0)
+        bp_coeff.setdefault('BP_0_0', 0)
+
+        ap_coeff_params = dict((k.replace('AP_', 'c'), v)
+                               for k, v in ap_coeff.items())
+        bp_coeff_params = dict((k.replace('BP_', 'c'), v)
+                               for k, v in bp_coeff.items())
+
+        self.sip1d_ap = Polynomial2D(degree=ap_order, param_dim=param_dim,
+                                     **ap_coeff_params)
+        self.sip1d_bp = Polynomial2D(degree=bp_order, param_dim=param_dim,
+                                     **bp_coeff_params)
+        super(InverseSIP, self).__init__(param_dim=param_dim)
 
     def __call__(self, x, y):
         x1 = self.sip1d_ap(x, y)
