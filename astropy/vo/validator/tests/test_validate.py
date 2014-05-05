@@ -17,11 +17,13 @@ import sys
 import tempfile
 
 # LOCAL
+from .. import conf
 from .. import validate
 from ..exceptions import ValidationMultiprocessingError
 from ...client.vos_catalog import VOSDatabase
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
+from ....utils import data
 
 
 __doctest_skip__ = ['*']
