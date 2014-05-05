@@ -1,0 +1,241 @@
+SIMPLE  =                    T                                                  
+BITPIX  =                  -32 / FOUR-BYTE SINGLE PRECISION FLOATING POINT      
+NAXIS   =                    2 / STANDARD FITS FORMAT                           
+NAXIS1  =                  256 / STANDARD FITS FORMAT                           
+NAXIS2  =                  256 / STANDARD FITS FORMAT                           
+EXTEND  =                    T / TAPE MAY HAVE STANDARD FITS EXTENSIONS         
+ORIGIN  = 'SIRTF Science Center' / Organization generating this FITS file       
+CREATOR = 'S8.9.0'             / SW version used to create this FITS file       
+TELESCOP= 'SIRTF   '           / SIRTF spacecraft                               
+INSTRUME= 'IRAC    '           / SIRTF instrument ID                            
+COMMENT   Controlled data files (CDFs) used:                                    
+COMMENT   w_bqd_files_to_copy_to_sandbox.nl, fileID = 2                         
+COMMENT   w_bqd_pointrefine.nl, fileID = 120903                                 
+CHNLNUM =                    1 / 1 digit instrument channel number              
+EXPTYPE = 'sci     '           / Exposure Type                                  
+REQTYPE = 'AOR     '           / Request type (AOR, IER, or  SER)               
+AOT_TYPE= 'IracMap '           / Observation template type                      
+AORLABEL= 'NSMLT-0013 HP'      / AOR Label                                      
+FOVID   =                   74 / Field of View ID                               
+FOVNAME = 'IRAC_Center_of_4.5&8.0umArray' / Field of View Name                  
+                                                                                
+          / PROPOSAL INFORMATION                                                
+                                                                                
+OBSRVR  = 'Giovanni Fazio'     / Observer Name (Last, First)                    
+OBSRVRID=                    2 / Observer ID of Principal Investigator          
+PROCYCL =                    1 / Proposal Cycle                                 
+PROGID  =                   35 / Program ID                                     
+PROTITLE= 'MULTIPLICTY AND INFRARED COLORS OF NEARBY MLT DWARFS' / Program Title
+PROGCAT =                   29 / Program Category                               
+                                                                                
+          / TIME AND EXPOSURE INFORMATION                                       
+                                                                                
+DATE_OBS= '2003-12-06T10:46:35.021' / Date & time at DCE start                  
+MJD_OBS =            52979.449 / [days] MJD at DCE start (,JD-2400000.05)       
+UTCS_OBS=        123979595.021 / [sec] J2000 ephem. time at DCE start           
+SCLK_OBS=        755174834.035 / [sec] SCLK time (since 1/1/1980) at DCE start  
+SAMPTIME=                  0.2 / [sec] Sample integration time                  
+FRAMTIME=                  30. / [sec] Time spent integrating (whole array)     
+COMMENT   Photons in Well = Flux[photons/sec/pixel] * FRAMTIME                  
+EXPTIME =                 26.8 / [sec] Effective integration time per pixel     
+COMMENT   DN per pixel = Flux[photons/sec/pixel] / GAIN * EXPTIME               
+AINTBEG =            43146779. / [Secs since IRAC turn-on] Time of integ. start 
+ATIMEEND=            431497.75 / [Secs since IRAC turn-on] Time of integ. end   
+AFOWLNUM=                   16 / Fowler number                                  
+AWAITPER=                  118 / [0.2 sec] Wait period                          
+ANUMREPS=                    1 / Number of repeat integrations                  
+AREADMOD=                    0 / Full (0) or subarray (1)                       
+ABARREL =                    4 / Barrel shift                                   
+APEDSIG =                    0 / 0=Normal, 1=Pedestal, 2=Signal                 
+                                                                                
+          / TARGET AND POINTING INFORMATION                                     
+                                                                                
+OBJECT  = 'BRI0021-02'         / Target Name                                    
+OBJTYPE = 'TargetFixedSingle'  / Object Type                                    
+CRVAL1  =     6.15501347619052 / [deg] RA at CRPIX1,CRPIX2 averaged over DCE    
+CRVAL2  =    -2.07230798888938 / [deg] DEC at CRPIX1,CRPIX2 averaged over DCE   
+RA_HMS  = '00h24m37.2s'        / [hh:mm:ss.s] CRVAL1 as sexagesimal             
+DEC_DMS = '-02d04m20s'         / [dd:mm:ss] CRVAL2 as sexagesimal               
+RADESYS = 'ICRS    '           / International Celestial Reference System       
+EQUINOX =  2000.               / Equinox for ICRF celestial coord. system       
+CD1_1   = -0.000147943581033529                                                 
+CD1_2   = 0.000305150643914974                                                  
+CD2_1   = 0.000305100010374518                                                  
+CD2_2   = 0.000147710276207053                                                  
+CTYPE1  = 'RA---TAN-SIP'       / RA---TAN with distortion in pixel space        
+CTYPE2  = 'DEC--TAN-SIP'       / DEC--TAN with distortion in pixel space        
+CRPIX1  =                 128. / Reference pixel along axis 1                   
+CRPIX2  =                 128. / Reference pixel along axis 2                   
+CRDER1  = 0.000630078723280563 / [deg] Uncertainty in CRVAL1                    
+CRDER2  = 0.000630066308654874 / [deg] Uncertainty in CRVAL2                    
+UNCRTPA =  0.00186634833181778 / [deg] Uncertainty in position angle            
+CSDRADEC= 5.27382080384386E-06 / [deg] Costandard deviation in RA and Dec       
+SIGRA   =    0.141175326515381 / [arcsec] RMS dispersion of RA over DCE         
+SIGDEC  =   0.0260011516228373 / [arcsec] RMS dispersion of DEC over DCE        
+SIGPA   =    0.786707814443969 / [arcsec] RMS dispersion of PA over DCE         
+PA      =      64.170376337596 / [deg] Position angle of axis 2 (E of N) (was OR
+RA_RQST =     6.15510111508666 / [deg] Requested RA at CRPIX1, CRPIX2           
+DEC_RQST=    -2.07249338178042 / [deg] Requested Dec at CRPIX1, CRPIX2          
+PM_RA   =              -1.4108 / [arcsec/yr] Proper Motion in RA (J2000)        
+PM_DEC  =              1.50775 / [arcsec/yr] Proper Motion in Dec (J200)        
+RMS_JIT =  0.00840644136311876 / [arcsec] RMS jitter during DCE                 
+RMS_JITY=  0.00544908399993541 / [arcsec] RMS jitter during DCE along Y         
+RMS_JITZ=  0.00640122956573203 / [arcsec] RMS jitter during DCE along Z         
+SIG_JTYZ=  0.00350446005496643 / [arcsec] Costadard deviation of jitter in YZ   
+PTGDIFF =    0.738140521808859 / [arcsec] Offset btwn actual and rqsted pntng   
+RA_REF  =     6.10241222222221 / [deg] Commanded RA (J2000) of ref. position    
+DEC_REF =    -1.97235500000001 / [deg] Commanded Dec (J2000) of ref. position   
+USEDBPHF=                    T / T if Boresight Pointing History File was used  
+                                                                                
+          / DISTORTION KEYWORDS                                                 
+                                                                                
+A_ORDER =                    2 / polynomial order, axis 1, detector to sky      
+A_0_2   =            6.666E-06 / distortion coefficient                         
+A_1_1   =            1.801E-05 / distortion coefficient                         
+A_2_0   =           -2.353E-05 / distortion coefficient                         
+A_DMAX  =                 0.58 / [pixel] maximum correction                     
+B_ORDER =                    2 / polynomial order, axis 2, detector to sky      
+B_0_2   =            2.601E-05 / distortion coefficient                         
+B_1_1   =           -2.944E-05 / distortion coefficient                         
+B_2_0   =           -1.226E-06 / distortion coefficient                         
+B_DMAX  =                0.902 / [pixel] maximum correction                     
+AP_ORDER=                    2 / polynomial order, axis 1, sky to detector      
+AP_0_1  =           -5.463E-06 / distortion coefficient                         
+AP_0_2  =           -6.666E-06 / distortion coefficient                         
+AP_1_0  =             1.14E-05 / distortion coefficient                         
+AP_1_1  =           -1.801E-05 / distortion coefficient                         
+AP_2_0  =            2.353E-05 / distortion coefficient                         
+BP_ORDER=                    2 / polynomial order, axis 2, sky to detector      
+BP_0_1  =            1.975E-05 / distortion coefficient                         
+BP_0_2  =           -2.601E-05 / distortion coefficient                         
+BP_1_0  =           -1.495E-05 / distortion coefficient                         
+BP_1_1  =            2.944E-05 / distortion coefficient                         
+BP_2_0  =            1.225E-06 / distortion coefficient                         
+                                                                                
+          / PHOTOMETRY                                                          
+                                                                                
+BUNIT   = 'MJy/sr  '           / Units of image data                            
+FLUXCONV=                0.111 / Flux Conv. factor (MJy/Str per DN/sec)         
+GAIN    =                  3.3 / e/DN conversion                                
+                                                                                
+          / GENERAL MAPPING KEYWORDS                                            
+                                                                                
+CYCLENUM=                    6 / Current cycle number                           
+DITHPOS =                    1 / Current dither position                        
+                                                                                
+          / IRAC MAPPING KEYWORDS                                               
+                                                                                
+READMODE= 'FULL    '           / Readout mode                                   
+DITHSCAL= 'small   '           / Dither scale (small, medium, large)            
+                                                                                
+          / INSTRUMENT TELEMETRY DATA                                           
+                                                                                
+ASHTCON =                    2 / Shutter condition (1:closed, 2: open)          
+AWEASIDE=                    0 / WEA side in use (0:B, 1:A)                     
+ACTXSTAT=                    0 / Cmded transcal status                          
+ATXSTAT =                    0 / transcal status                                
+ACFLSTAT=                    0 / Cmded floodcal status                          
+AFLSTAT =                    0 / floodcal status                                
+AVRSTUCC=                 -3.5 / [Volts] Cmded VRSTUC Bias                      
+AVRSTBEG=          -3.51078391 / [Volts] VRSTUC Bias at start integration       
+AVDETC  =                -2.75 / [Volts] Cmded VDET Bias                        
+AVDETBEG=          -2.75721574 / [Volts] VDET Bias at start of integration      
+AVGG1C  =           -3.6500001 / [Volts] Cmded VGG1 Bias                        
+AVGG1BEG=           -3.2065742 / [Volts] VGG1 Bias at start of integration      
+AVDDUCC =                   -3 / [Volts] Cmded VDDUC Bias                       
+AVDDUBEG=                   -3 / [Volts] VDDUC Bias at start integration        
+AVGGCLC =                    1 / [Volts] Cmnded VGGCL clock rail voltage        
+AVGGCBEG=                    1 / [Volts] VGGCL clock rail voltage               
+AHTRIBEG=         204.70100403 / [uAmps] Heater current at start of integ       
+AHTRVBEG=           2.39006352 / [Volts] Heater Voltage at start integ.         
+AFPAT2B =          15.02370644 / [Deg_K] FPA Temp sensor #2 at start integ.     
+AFPAT2BT=          431446.8125 / [Sec] FPA Temp sensor #2 time tag              
+AFPAT2E =          15.02312088 / [Deg_K] FPA temp sensor #2, end integ.         
+AFPAT2ET=          431476.9375 / [Sec] FPA temp sensor #2 time tag              
+ACTENDT =          20.46821594 / [Deg_C] C&T board thermistor                   
+AFPECTE =          18.34936523 / [Deg_C] FPE control board thermistor           
+AFPEATE =          21.90242577 / [Deg_C] FPE analog board thermistor            
+ASHTEMPE=          21.59600639 / [Deg_C] Shutter board thermistor               
+ATCTEMPE=          22.81523895 / [Deg_C] Temp. controller board thermistor      
+ACETEMPE=          20.49869537 / [Deg_C] Calib. electronics board thermistor    
+APDTEMPE=          21.47408295 / [Deg_C] PDU board thermistor                   
+ACATMP1E=           1.31549275 / [Deg_K] CA Temp, end integration for temp1     
+ACATMP2E=           1.29850066 / [Deg_K] CA Temp, end integration for temp2     
+ACATMP3E=           1.33064687 / [Deg_K] CA Temp, end integration for temp3     
+ACATMP4E=            1.3274169 / [Deg_K] CA Temp, end integration for temp4     
+ACATMP5E=            1.3255291 / [Deg_K] CA Temp, end integration for temp5     
+ACATMP6E=           1.32403958 / [Deg_K] CA Temp, end integration for temp6     
+ACATMP7E=           1.32282794 / [Deg_K] CA Temp, end integration for temp7     
+ACATMP8E=           1.31592035 / [Deg_K] CA Temp, end integration for temp8     
+                                                                                
+          / DATA FLOW KEYWORDS                                                  
+                                                                                
+ORIGIN0 = 'JPL_FOS '           / Site where RAW FITS file was written           
+CREATOR0= 'J5.1.0  '           / SW system that created RAW FITS                
+DATE    = '2003-12-17T00:52:57' / [YYYY-MM-DDThh:mm:ss UTC] file creation date  
+AORKEY  =              3937792 / AOR or EIR key. Astrnmy Obs Req/Instr Eng Req  
+EXPID   =                   11 / Exposure ID (0-9999)                           
+DCENUM  =                    0 / DCE number (0-9999)                            
+TLMGRPS =                    1 / expected number of groups                      
+FILE_VER=                    1 / Version of the raw file made by SIS            
+RAWFILE = 'IRAC.1.0003937792.0011.0000.01.mipl.fits' / Raw data file name       
+CPT_VER = '3.0.94  '           / Channel Param Table FOS versioN                
+CTD_VER = '3.0.94S '           / Cmded telemetry data version                   
+EXPDFLAG=                    F / (T/F) expedited DCE                            
+MISS_LCT=                    0 / Total Missed Line Cnt in this FITS             
+MANCPKT =                    F / T if this FITS is Missing Ancillary Data       
+MISSDATA=                    F / T if this FITS is Missing Image Data           
+PAONUM  =                  206 / PAO Number                                     
+CAMPAIGN= 'IRAC003500'         / Campaign                                       
+DCEID   =              6086781 / Data-Collection-Event ID                       
+DCEINSID=               626089 / DCE Instance ID                                
+DPID    =              2631728 / Data Product Instance ID                       
+PIPENUM =                  107 / Pipeline Script Number                         
+SOS_VER =                    2 / Data-Product Version                           
+PLVID   =                    4 / Pipeline Version ID                            
+CALID   =                    6 / CalTrans Version ID                            
+                                                                                
+SDRKEPID=                28809 / Sky Dark ensemble product ID                   
+                                                                                
+PMSKFBID=                  341 / Pixel mask ID                                  
+LINCFBID=                  357 / Fall-back Linearity correction ID              
+FLATFBID=                  718 / Fall-back flat ID                              
+FLXCFBID=                  349 / Flux conversion ID                             
+MBLTFBID=                  696 / Muxbleed Lookup Table ID                       
+MBCFFBID=                  704 / Muxbleed Coefficients ID                       
+                                                                                
+          / PROCESSING HISTORY                                                  
+                                                                                
+HISTORY job.c ver: 1.000000                                                     
+HISTORY TRANHEAD                  v.         11.9, ran Tue Dec 16 16:52:35 2003 
+HISTORY CALTRANS                 v.        2.7, ran Tue Dec 16 16:52:44 2003    
+HISTORY cvti2r4           v.  1.25 A30501, generated 12/16/03 at 16:52:44       
+HISTORY FFCORR                 v. 1.000, ran Tue Dec 16 16:52:46 2003           
+HISTORY MUXBLEEDCORR              v.        1.600, ran Tue Dec 16 16:52:50 2003 
+HISTORY FOWLINEARIZE              v.     4.800000, ran Tue Dec 16 16:52:50 2003 
+HISTORY DARKSUBNG                 v. 1.000, ran Tue Dec 16 16:52:51 2003        
+HISTORY DARKDRIFT                 v.          3.5, ran Tue Dec 16 16:52:52 2003 
+HISTORY FLATAP                    v. 1.300   Tue Dec 16 16:52:53 2003           
+HISTORY DNTOFLUX                  v.          3.7, ran Tue Dec 16 16:52:57 2003 
+HISTORY PREDICTSAT                v.     3.500000, ran Tue Dec 16 16:57:59 2003 
+HISTORY CALTRANS                 v.        2.7, ran Tue Dec 16 17:07:31 2003    
+HISTORY PTNTRAN                   v.          1.2, ran Tue Dec 16 17:07:32 2003 
+HISTORY FPGen                     v.         1.22, ran Tue Dec 16 17:07:33 2003 
+HISTORY CALTRANS                 v.        2.7, ran Wed Dec 17 06:14:18 2003    
+SOFTWARE= 'pointingrefine'     / Pointing refinement using pnt-src correlation  
+PTGVERSN=                  5.3 / Version number of pointingrefine program       
+RARFND  =     6.15526023786181 / [deg] Refined RA                               
+DECRFND =    -2.07244250543341 / [deg] Refined DEC                              
+CT2RFND =    -64.5569826743286 / [deg] Refined CROTA2                           
+PA_RFND =     64.5569826743286 / [deg] Refined PA (= -CROTA2_refined)           
+ERARFND = 0.000535377007940228 / [deg] Error in refined RA                      
+EDECRFND=  0.00123072014833503 / [deg] Error in refined DEC                     
+EPA_RFND=     2.28015678741471 / [deg] Error in refined PA or CROTA2            
+NASTROM =                    6 / # Astrometric sources for absolute refinement  
+RARESID =   -0.887761029918005 / [arcsec] Residual: Observed-Refined RA         
+DECRESID=    0.484259558515454 / [arcsec] Residual: Observed-Refined DEC        
+PA_RESID=     -1391.7828122373 / [arcsec] Residual: Observed-Refined PA         
+CD11RFND= -0.000145881550132727 / [deg/pix] Refined CD matrix element 1_1       
+CD12RFND= 0.000306140372692502 / [deg/pix] Refined CD matrix element 1_2        
+CD21RFND=  0.00030609131452955 / [deg/pix] Refined CD matrix element 2_1        
+CD22RFND= 0.000145647908967425 / [deg/pix] Refined CD matrix element 2_2        
