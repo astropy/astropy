@@ -222,7 +222,7 @@ details.
       N/A 3
       2 4
 
-  If no fill value is applied for masked values in ``astropy.io.ascii``, the default set
+  If no ``fill_values`` is applied for masked values in ``astropy.io.ascii``, the default set
   with ``np.ma.set_fill_value`` applies (usually that is also ``'--'``)::
 
       >>> ascii.write(t, sys.stdout, fill_values=[])
