@@ -6,15 +6,18 @@ Tests for polynomial models.
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
+import os
 import numpy as np
 
 from numpy.testing import utils
 from .. import fitting
 from ...tests.helper import pytest
+from ... import wcs
+from ...io import fits
 from ..polynomial import (Chebyshev1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Legendre2D, Polynomial2D)
+                          Chebyshev2D, Legendre2D, Polynomial2D, SIP)
 from ..functional_models import Linear1D
+from ...utils.data import get_pkg_data_filename
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -103,3 +106,56 @@ class TestFitting(object):
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
+
+
+def test_sip_hst():
+    """
+    Test SIP againts astropy.wcs
+    """
+
+    test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
+    hdr = fits.Header.fromtextfile(test_file)
+    crpix1 = hdr['CRPIX1']
+    crpix2 = hdr['CRPIX2']
+    wobj = wcs.WCS(hdr)
+    a_pars = dict(**hdr['A_*'])
+    b_pars = dict(**hdr['B_*'])
+    a_order = a_pars.pop('A_ORDER')
+    b_order = b_pars.pop('B_ORDER')
+    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars)
+    coords = [1, 1]
+    rel_coords = [1 - crpix1, 1 - crpix2]
+    astwcs_result = wobj.sip_pix2foc([coords], 1)[0] - rel_coords
+    utils.assert_allclose(sip(1, 1), astwcs_result)
+
+
+def test_sip_irac():
+    """
+    Test forward and inverse SIP againts astropy.wcs
+    """
+
+    test_file = get_pkg_data_filename(os.path.join('./data', 'irac_sip.hdr'))
+    hdr = fits.Header.fromtextfile(test_file)
+    crpix1 = hdr['CRPIX1']
+    crpix2 = hdr['CRPIX2']
+    wobj = wcs.WCS(hdr)
+    a_pars = dict(**hdr['A_*'])
+    b_pars = dict(**hdr['B_*'])
+    ap_pars = dict(**hdr['AP_*'])
+    bp_pars = dict(**hdr['BP_*'])
+    a_order = a_pars.pop('A_ORDER')
+    b_order = b_pars.pop('B_ORDER')
+    ap_order = ap_pars.pop('AP_ORDER')
+    bp_order = bp_pars.pop('BP_ORDER')
+    del a_pars['A_DMAX']
+    del b_pars['B_DMAX']
+    pix = [200, 200]
+    rel_pix = [200 - crpix1, 200 - crpix2]
+    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars,
+              ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
+              bp_coeff=bp_pars)
+    invsip = sip.inverse()
+    foc = wobj.sip_pix2foc([pix], 1)
+    newpix = wobj.sip_foc2pix(foc, 1)[0]
+    utils.assert_allclose(sip(*pix), foc[0] - rel_pix)
+    utils.assert_allclose(invsip(*foc[0]) + foc[0] - rel_pix, newpix - pix)
