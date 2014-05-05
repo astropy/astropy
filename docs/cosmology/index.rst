@@ -24,14 +24,14 @@ calculate the Hubble constant at z=0 (i.e., ``H0``), and the number of
 transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
-  >>> cosmology.core.set_current(cosmology.WMAP9)
+  >>> cosmology.default_cosmology.set(cosmology.WMAP9)
   <astropy.utils.state._Context object at ...>
-  >>> cosmology.get_current().H(0)
+  >>> cosmology.default_cosmology.get().H(0)
   <Quantity 69.3... km / (Mpc s)>
 
 .. doctest-requires:: scipy
 
-  >>> cosmology.get_current().kpc_proper_per_arcmin(3)
+  >>> cosmology.default_cosmology.get().kpc_proper_per_arcmin(3)
   <Quantity 472.977... kpc / arcmin>
 
 All the functions available are listed in the `Reference/API`_
@@ -46,7 +46,7 @@ for that subpackage for more details, but, briefly, to access the floating
 point (or array) values:
 
   >>> from astropy import cosmology
-  >>> H0 = cosmology.get_current().H(0)
+  >>> H0 = cosmology.default_cosmology.get().H(0)
   >>> H0.value, H0.unit
   (69.3..., Unit("km / (Mpc s)"))
 
@@ -191,7 +191,7 @@ it's possible to specify a "current" cosmology.
 You can set the current cosmology to a pre-defined value by using the
 "default_cosmology" option in the ``[cosmology.core]`` section of the
 configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the `~astropy.cosmology.set_current` function to set a
+use the :func:`astropy.cosmology.default_cosmology.set` function to set a
 cosmology for the current Python session.
 
 If you haven't set a current cosmology using one of the methods
@@ -218,7 +218,7 @@ parameters and print a warning message letting you know this. The
     reserved for interactive work or cases where the flexibility of
     quickly changing between different cosmologies is for some reason
     useful. Alternatively, putting (for example)
-    ``cosmology.set_current(WMAP9)`` at the top of your code will
+    ``cosmology.default_cosmology.set(WMAP9)`` at the top of your code will
     ensure that the right cosmology is always used.
 
 Built-in Cosmologies
