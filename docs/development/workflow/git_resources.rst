@@ -23,6 +23,7 @@ Tutorials and summaries
 * `git foundation`_ expands on the `git parable`_.
 * Fernando Perez' git page |emdash| `Fernando's git page`_ |emdash| many
   links and tips
+* Fernando Perez's `ipython notebook on using git in science`_
 * A good but technical page on `git concepts`_
 * `git svn crash course`_: git for those of us used to subversion_
 
