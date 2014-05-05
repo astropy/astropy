@@ -297,20 +297,13 @@ cmp : int
     When 0, all fields must be identical.  The following constants may
     be or'ed together to loosen the comparison.
 
-    - ``WCSEQ_SET: Apply `~astropy.wcs.Wcsprm.set` to each, to
-      resolve, e.g., ``CDi_j`` vs. ``PCi_j``.
+    - ``WCSCOMPARE_IGNORE_ANCILLARY``: Ignores ancillary keywords,
+      such as ``DATE-OBS``, that don't change the WCS transformation.
 
-    - ``WCSEQ_FIX``: Apply `~astropy.wcs.Wcsprm.fix` to each, to
-      translate non-standard usage. Implies ``WCSEQ_SET``, since
-      ``fix`` calls ``set``.
+    - ``WCSCOMPARE_INTEGER_TRANSLATION``: Treats WCSes that differ
+      only in ``CRPIXj`` with an integral difference as identical.
 
-    - ``WCSEQ_IGNORE_ANCILLARY``: Ignores ancillary keywords, such as
-      ``DATE-OBS``, that don't change the WCS transformation.
-
-    - ``WCSEQ_INTEGER_TRANSLATION``: Treats WCSes that differ only in
-      ``CRPIXj`` with an integral difference as identical.
-
-    - ``WCSEQ_TRANSLATION``: Treats WCSes that differ only in
+    - ``WCSCOMPARE_TRANSLATION``: Treats WCSes that differ only in
       ``CRPIXj`` as identical.
 
 other : Wcsprm

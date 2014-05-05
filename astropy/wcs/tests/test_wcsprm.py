@@ -641,7 +641,7 @@ def test_toheader():
 
 def test_velangl():
     w = _wcs.Wcsprm()
-    assert w.velangl == 0.0
+    assert np.isnan(w.velangl)
     w.velangl = 42.0
     assert w.velangl == 42.0
     del w.velangl
@@ -750,4 +750,4 @@ def test_compare():
     assert w == w2
 
     assert not w.compare(0, w2)
-    assert w.compare(_wcs.WCSEQ_IGNORE_ANCILLARY, w2)
+    assert w.compare(_wcs.WCSCOMPARE_IGNORE_ANCILLARY, w2)

@@ -312,9 +312,9 @@
 *   if any were specified on input).
 *
 *
-* wcseq() - Compare two wcsprm structs for equality
+* wcscompare() - Compare two wcsprm structs for equality
 * -------------------------------------------------
-* wcseq() compares two wcsprm structs for equality.
+* wcscompare() compares two wcsprm structs for equality.
 *
 * Given:
 *   cmp       int       A bit field controlling the strictness of the
@@ -322,19 +322,16 @@
 *                       The following constants may be or'ed together to
 *                       loosen the comparison.
 *
-*                       - WCSEQ_SET: Apply wcsset() to each, to resolve, e.g.,
-*                         CDi_j vs. PCi_j.
-*                       - WCSEQ_FIX: Apply wcsfix() to each, to translate
-*                         non-standard usage.  Implies WCSEQ_SET, since
-*                         wcsfix() calls wcsset().
-*                       - WCSEQ_IGNORE_ANCILLARY: Ignores ancillary keywords,
-*                         such as DATE-OBS that don't change the WCS
-*                         transformation.
-*                       - WCSEQ_INTEGER_TRANSLATION: Treats WCSes that differ
-*                         only in CRPIXj with an integral difference as
-*                         identical.
-*                       - WCSEQ_TRANSLATION: Treats WCSes that differ only in
-*                         CRPIXj as identical.
+*                       - WCSCOMPARE_IGNORE_ANCILLARY: Ignores
+*                         ancillary keywords, such as DATE-OBS that
+*                         don't change the WCS transformation.
+*
+*                       - WCSCOMPARE_INTEGER_TRANSLATION: Treats WCSes
+*                         that differ only in CRPIXj with an integral
+*                         difference as identical.
+*
+*                       - WCSCOMPARE_TRANSLATION: Treats WCSes that
+*                         differ only in CRPIXj as identical.
 *
 *   wcs1      struct wcsprm*
 *                       The first wcsprm struct to compare.
@@ -1385,9 +1382,9 @@ extern "C" {
 #define WCSSUB_STOKES    0x1010
 
 
-#define WCSEQ_IGNORE_ANCILLARY     0x0001
-#define WCSEQ_INTEGER_TRANSLATION  0x0002
-#define WCSEQ_TRANSLATION          0x0004
+#define WCSCOMPARE_IGNORE_ANCILLARY     0x0001
+#define WCSCOMPARE_INTEGER_TRANSLATION  0x0002
+#define WCSCOMPARE_TRANSLATION          0x0004
 
 
 extern const char *wcs_errmsg[];
@@ -1570,7 +1567,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs);
 int wcssub(int alloc, const struct wcsprm *wcssrc, int *nsub, int axes[],
            struct wcsprm *wcsdst);
 
-int wcseq(int cmp, struct wcsprm *wcs1, struct wcsprm *wcs2, int *equal);
+int wcscompare(int cmp, struct wcsprm *wcs1, struct wcsprm *wcs2, int *equal);
 
 int wcsfree(struct wcsprm *wcs);
 

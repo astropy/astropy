@@ -516,6 +516,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
   memset(wcs->dateavg, 0, 72);
   wcs->mjdobs     = UNDEFINED;
   wcs->mjdavg     = UNDEFINED;
+  wcs->velangl    = UNDEFINED;
 
   wcs->ntab = 0;
   wcs->tab  = 0x0;
@@ -978,7 +979,7 @@ cleanup:
 
 /*--------------------------------------------------------------------------*/
 
-int wcseq(
+int wcscompare(
   int cmp,
   struct wcsprm *wcs1,
   struct wcsprm *wcs2,
@@ -1004,9 +1005,9 @@ int wcseq(
   naxis = wcs1->naxis;
   naxis2 = wcs1->naxis*wcs1->naxis;
 
-  if (cmp & WCSEQ_TRANSLATION) {
+  if (cmp & WCSCOMPARE_TRANSLATION) {
     /* Don't compare crpix */
-  } else if (cmp & WCSEQ_INTEGER_TRANSLATION) {
+  } else if (cmp & WCSCOMPARE_INTEGER_TRANSLATION) {
     for (i = 0; i < naxis; ++i) {
       diff = wcs1->crpix[i] - wcs2->crpix[i];
       if ((double)(int)(diff) != diff) {
@@ -1076,7 +1077,7 @@ int wcseq(
     }
   }
 
-  if (!(cmp & WCSEQ_IGNORE_ANCILLARY)) {
+  if (!(cmp & WCSCOMPARE_IGNORE_ANCILLARY)) {
     if (strncmp(wcs1->alt, wcs2->alt, 4) ||
         wcs1->colnum != wcs2->colnum ||
         !wcsutil_intEq(naxis, wcs1->colax, wcs2->colax) ||
