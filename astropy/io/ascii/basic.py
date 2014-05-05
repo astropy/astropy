@@ -186,7 +186,7 @@ class Csv(Basic):
         self.header.splitter.delimiter = ','
         self.header.start_line = 0
         self.data.start_line = 1
-        self.data.fill_values.append((core.masked, ''))
+        self.data.fill_values = [(core.masked, '')]
 
     def inconsistent_handler(self, str_vals, ncols):
         '''Adjust row if it is too short.

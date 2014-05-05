@@ -456,12 +456,17 @@ class BaseData(object):
     comment = None
     splitter_class = DefaultSplitter
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
-    formats = {}
-    fill_values = []
     fill_include_names = None
     fill_exclude_names = None
 
     def __init__(self):
+        # Need to make sure fill_values list is instance attribute, not class attribute.
+        # On read, this will be overwritten by the default in the ui.read (thus, in
+        # the current implementation there can be no different default for different
+        # Readers). On write, ui.py does not specify a default, so this line here matters.
+        # Currently, the default matches the numpy default for masked values. 
+        self.fill_values = [(masked, '--')]
+        self.formats = {}
         self.splitter = self.__class__.splitter_class()
 
     def process_lines(self, lines):

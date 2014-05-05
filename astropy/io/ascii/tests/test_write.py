@@ -320,6 +320,13 @@ a b c
 ]
 
 test_def_masked_fill_value = [
+    dict(kwargs=dict(),
+         out="""\
+a b c
+-- 2 3
+1 1 --
+"""
+         ),
     dict(kwargs=dict(fill_values=[('1', 'w'), (ascii.masked, 'X')]),
          out="""\
 a b c

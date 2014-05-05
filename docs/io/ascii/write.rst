@@ -202,7 +202,7 @@ details.
 
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace values with special meaning.
-  The syntax is the same as used on input.
+  The syntax is the same as used on input. 
   See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
 
   There is a special value ``astropy.io.ascii.masked`` that is used a say "output this string
@@ -222,6 +222,13 @@ details.
       N/A 3
       2 4
 
+  If no fill value is applied for masked values in ``astropy.io.ascii``, the default set
+  with ``np.ma.set_fill_value`` applies (usually that is also ``'--'``)::
+
+      >>> ascii.write(t, sys.stdout, fill_values=[])
+      a b
+      -- 3
+      2 4
 
   Note that when writing a table all values are converted to strings, 
   before any value is replaced. Because ``fill_values`` only replaces cells that 
