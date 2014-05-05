@@ -46,7 +46,7 @@ matrix:
 
         # Try alternate numpy versions
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
 
