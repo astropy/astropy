@@ -375,7 +375,7 @@ PyWcsprm_init(
       return -1;
     }
 
-    if (convert_rejections_to_warnings(wcsprintf_buf())) {
+    if (convert_rejections_to_warnings()) {
       free(colsel_ints);
       wcsvfree(&nwcs, &wcs);
       return -1;
@@ -612,7 +612,7 @@ PyWcsprm_find_all_wcs(
     return NULL;
   }
 
-  if (convert_rejections_to_warnings(wcsprintf_buf())) {
+  if (convert_rejections_to_warnings()) {
     wcsvfree(&nwcs, &wcs);
     return NULL;
   }
