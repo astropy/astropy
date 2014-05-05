@@ -1088,7 +1088,7 @@ class _SIP1D(PolynomialBase):
     def _eval_sip(self, x, y, coef):
         x = np.asarray(x, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
-        if self.coeff_prefix == 'a':
+        if self.coeff_prefix == 'A':
             result = np.zeros(x.shape)
         else:
             result = np.zeros(y.shape)
@@ -1184,11 +1184,11 @@ class SIP(Model):
             raise NotImplementedError("SIP inverse coefficients are not available.")
 
     def __call__(self, x, y):
-        x = self.shift_a(x)
-        y = self.shift_b(y)
-        x1 = self.sip1d_a(x, y)
-        y1 = self.sip1d_b(x, y)
-        return x1, y1
+        u = self.shift_a(x)
+        v = self.shift_b(y)
+        f = self.sip1d_a(u, v)
+        g = self.sip1d_b(u, v)
+        return f, g
 
 
 class InverseSIP(Model):
