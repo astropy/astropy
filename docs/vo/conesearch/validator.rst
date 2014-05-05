@@ -200,7 +200,6 @@ Add ``'W24'`` from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
-<<<<<<< HEAD:docs/vo/conesearch/validator.rst
 >>> from astropy.vo.validator.validate import conf
 >>> with conf.set_temp('noncritical_warnings', conf.noncritical_warnings + ['W24']):
 ...     with data.conf.set_temp('remote_timeout', 30):
@@ -209,7 +208,6 @@ This is *not* recommended unless you know exactly what you are doing:
 Validate *all* Cone Search services in the master registry
 (this will take a while) and write results in ``'all'`` sub-directory:
 
-<<<<<<< HEAD:docs/vo/conesearch/validator.rst
 >>> with data.conf.set_temp('remote_timeout', 30):
 ...     validate.check_conesearch_sites(destdir='./all', url_list=None)
 
