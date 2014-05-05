@@ -84,3 +84,22 @@ def test_Gaussian2DRotation():
     value1 = g1(*point1)
     value2 = g2(*point2)
     assert_allclose(value1, value2)
+
+
+def test_Redshift():
+    """Like ``test_ScaleModel()``."""
+    # Scale by a scalar
+    m = models.Redshift(0.4)
+    assert m(0) == 0
+    np.testing.assert_array_equal(m([1, 2]), [1.4, 2.8])
+
+    inv_m = m.inverse()
+    np.testing.assert_allclose(inv_m(m([1, 2])), [1, 2])
+
+    # Scale by a list
+    m = models.Redshift([-0.5, 0, 0.5])
+    np.testing.assert_array_equal(m(0), 0)
+    np.testing.assert_array_equal(m([1, 2]), [[0.5, 1, 1.5], [1, 2, 3]])
+
+    inv_m = m.inverse()
+    np.testing.assert_allclose(inv_m(m([1, 2])), [[1, 1, 1], [2, 2, 2]])
