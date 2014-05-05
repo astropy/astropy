@@ -478,6 +478,13 @@ def test_default_missing():
                              '  1   3  --  --',
                              '  2  -- 4.0  ss']
 
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine, fill_values=None)
+    assert dat.masked is False
+    assert dat.pformat() == [' a   b   c   d ',
+                             '--- --- --- ---',
+                             '  1   3        ',
+                             '  2     4.0  ss']
+
     dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine, fill_values=[])
     assert dat.masked is False
     assert dat.pformat() == [' a   b   c   d ',
