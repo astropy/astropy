@@ -1754,7 +1754,7 @@ naxis kwarg.
             print('CDELT    : {!r} {!r}'.format(
                 self.wcs.cdelt[0], self.wcs.cdelt[1]))
         print('NAXIS    : {!r} {!r}'.format(
-            self.naxis1, self.naxis2))
+            self._naxis1, self._naxis2))
 
     def get_axis_types(self):
         """
