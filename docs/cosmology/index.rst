@@ -35,8 +35,8 @@ transverse proper kpc corresponding to an arcminute at z=3:
   <Quantity 472.977... kpc / arcmin>
 
 All the functions available are listed in the `Reference/API`_
-section. These will use the "current" cosmology to calculate the
-values (see `The Current Cosmology`_ section below for more
+section. These will use the "default" cosmology to calculate the
+values (see `The Default Cosmology`_ section below for more
 details). If you haven't set this explicitly, they will use the 9-year
 WMAP cosmological parameters and print a warning message.
 
@@ -179,47 +179,35 @@ a value. In this case you can use the ``zmin`` and ``zmax`` keywords to
 restrict the search range.
 
 
-The Current Cosmology
+The Default Cosmology
 ---------------------
 
-Sometimes it's useful for Astropy functions to assume a default
-cosmology so that the desired cosmology doesn't have to be specified
-every time the function is called -- the convenience functions
-described in the previous section are one example. For these cases
-it's possible to specify a "current" cosmology.
+Sometimes it's useful for to assume a default cosmology so that the
+exact cosmology doesn't have to be specified every time the function is
+called. For these cases it's possible to specify a "default" cosmology.
 
-You can set the current cosmology to a pre-defined value by using the
+You can set the default cosmology to a pre-defined value by using the
 "default_cosmology" option in the ``[cosmology.core]`` section of the
 configuration file (see :ref:`astropy_config`). Alternatively, you can
 use the :func:`astropy.cosmology.default_cosmology.set` function to set a
 cosmology for the current Python session.
 
-If you haven't set a current cosmology using one of the methods
-described above, then the cosmology module will use the 9-year WMAP
-parameters and print a warning message letting you know this. The
-9-year WMAP and Planck 2013 cosmologies are also available:
-
-.. doctest-requires:: scipy
-
-  >>> from astropy.cosmology import WMAP9   # WMAP 9-year
-  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
-  10.442...
-  >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
-  <Quantity 10.511... Gyr>
+If you haven't set a default cosmology using one of the methods
+described above, then the cosmology module will default to using the
+9-year WMAP parameters.
 
 .. note::
-
     In general it's better to use an explicit cosmology (for example
-    ``WMAP9.H(0)`` instead of ``cosmology.H(0)``). The motivation for
+    ``WMAP9.H(0)`` instead of
+    ``cosmology.default_cosmology.get().H(0)``).  The motivation for
     this is that when you go back to use the code at a later date or
-    share your scripts with someone else, the default cosmology may
-    have changed. Use of the convenience functions should generally be
-    reserved for interactive work or cases where the flexibility of
-    quickly changing between different cosmologies is for some reason
-    useful. Alternatively, putting (for example)
-    ``cosmology.default_cosmology.set(WMAP9)`` at the top of your code will
-    ensure that the right cosmology is always used.
+    share your scripts with someone else, the default cosmology may have
+    changed. Use of the default cosmology should generally be reserved
+    for interactive work or cases where the flexibility of quickly
+    changing between different cosmologies is for some reason useful.
+    Alternatively, putting (for example)
+    ``cosmology.default_cosmology.set(WMAP9)`` at the top of your code
+    will ensure that the right cosmology is always used.
 
 Built-in Cosmologies
 --------------------
@@ -229,9 +217,12 @@ the WMAP and Planck satellite data. For example,
 
 .. doctest-requires:: scipy
 
+   >>> from astropy.cosmology import WMAP9   # WMAP 9-year
+  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
+  10.442...
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.luminosity_distance(2)         # luminosity distance to z=2
-  <Quantity 15932.668... Mpc>
+  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
+  <Quantity 10.511... Gyr>
 
 A full list of the pre-defined cosmologies is given by
 ``cosmology.parameters.available``, and summarized below:
@@ -259,7 +250,7 @@ Using `cosmology` inside Astropy
 --------------------------------
 
 If you are writing code for the Astropy core or an affiliated
-package, it is strongly recommended that you use the current cosmology
+package, it is strongly recommended that you use the default cosmology
 through the `~astropy.cosmology.default_cosmology` science state
 object. It is also recommended that you provide an override option
 something like the following::
@@ -272,7 +263,7 @@ something like the following::
 
 	... your code here ...
 
-This ensures that all code consistently uses the current cosmology
+This ensures that all code consistently uses the default cosmology
 unless explicitly overridden.
 
 Specifying a dark energy model
