@@ -375,9 +375,10 @@ PyWcsprm_init(
       return -1;
     }
 
+    wcsvfree(&nwcs, &wcs);
+
     if (convert_rejections_to_warnings(wcsprintf_buf())) {
       free(colsel_ints);
-      wcsvfree(&nwcs, &wcs);
       return -1;
     }
 
@@ -413,6 +414,7 @@ PyWcsprm_init(
     }
 
     if (nwcs == 0) {
+      wcsvfree(&nwcs, &wcs);
       PyErr_SetString(
           WcsExc_NoWcsKeywordsFound,
           "No WCS keywords found in the given header");
@@ -612,8 +614,9 @@ PyWcsprm_find_all_wcs(
     return NULL;
   }
 
+  wcsvfree(&nwcs, &wcs);
+
   if (convert_rejections_to_warnings(wcsprintf_buf())) {
-    wcsvfree(&nwcs, &wcs);
     return NULL;
   }
 
