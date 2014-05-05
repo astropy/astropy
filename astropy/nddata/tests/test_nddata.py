@@ -114,6 +114,15 @@ def test_nddata_flags_init_without_np_array(flags_in):
     assert (ndd.flags == flags_in).all()
 
 
+@pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
+def test_nddata_flags_invalid_shape(shape):
+    with pytest.raises(ValueError) as exc:
+        with NumpyRNGContext(789):
+            NDData(np.random.random((10, 10)), flags=np.random.random(shape))
+    assert exc.value.args[0] == 'dimensions of flags do not match data'
+
+
+
 def test_nddata_uncertainty_init():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)

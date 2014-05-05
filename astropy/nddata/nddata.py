@@ -176,16 +176,11 @@ class NDData(object):
     @mask.setter
     def mask(self, value):
         if value is not None:
-            if isinstance(value, np.ndarray):
-                if value.dtype != np.bool_:
-                    raise TypeError("mask must be a boolean Numpy array")
-                else:
-                    if value.shape != self.shape:
-                        raise ValueError("dimensions of mask do not match data")
-                    else:
-                        self._mask = value
+            mask = np.array(value, dtype=np.bool_, copy=False)
+            if mask.shape != self.shape:
+                raise ValueError("dimensions of mask do not match data")
             else:
-                raise TypeError("mask must be a Numpy array")
+                self._mask = mask
         else:
             self._mask = value
 
@@ -196,18 +191,17 @@ class NDData(object):
     @flags.setter
     def flags(self, value):
         if value is not None:
-            if isinstance(value, np.ndarray):
-                if value.shape != self.shape:
-                    raise ValueError("dimensions of flags do not match data")
-                else:
-                    self._flags = value
-            elif isinstance(value, FlagCollection):
+            if isinstance(value, FlagCollection):
                 if value.shape != self.shape:
                     raise ValueError("dimensions of FlagCollection does not match data")
                 else:
                     self._flags = value
             else:
-                raise TypeError("flags should be a Numpy array or a FlagCollection instance")
+                flags = np.array(value, copy=False)
+                if flags.shape != self.shape:
+                    raise ValueError("dimensions of flags do not match data")
+                else:
+                    self._flags = flags
         else:
             self._flags = value
 
