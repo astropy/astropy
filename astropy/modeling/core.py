@@ -113,7 +113,7 @@ def format_input(func):
             if self.n_outputs > 1:
                 result = [r.T for r in result]
             else:
-            	return result.T
+                return result.T
         elif scalar:
             if self.n_outputs >1:
                 try:
@@ -781,22 +781,16 @@ class _CompositeModel(Model):
         self.fittable = False
 
     def __repr__(self):
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt_args = tuple(repr(tr) for tr in self._transforms)
-        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
-        fmt = fmt + fmt1
-        return fmt
+        return '<{0}([\n{1}\n])>'.format(
+            self.__class__.__name__,
+            indent(',\n'.join(repr(tr) for tr in self._transforms),
+                   width=4))
 
     def __str__(self):
-        fmt = """
-            Model:  {0}
-            """.format(self.__class__.__name__)
-        fmt_args = tuple(str(tr) for tr in self._transforms)
-        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
-        fmt = fmt + fmt1
-        return fmt
+        parts = ['Model: {0}'.format(self.__class__.__name__)]
+        for tr in self._transforms:
+            parts.append(indent(str(tr), width=4))
+        return '\n'.join(parts)
 
     def add_model(self, transf, inmap, outmap):
         self[transf] = [inmap, outmap]
@@ -807,6 +801,18 @@ class _CompositeModel(Model):
     def __call__(self):
         # implemented by subclasses
         raise NotImplementedError("Subclasses should implement this")
+
+    @property
+    def param_sets(self):
+        raise NotImplementedError(
+            "Composite models do not currently support multiple "
+            "parameter sets.")
+
+    @property
+    def parameters(self):
+        raise NotImplementedError(
+            "Composite models do not currently support the .parameters "
+            "array.")
 
 
 class SerialCompositeModel(_CompositeModel):
@@ -879,9 +885,13 @@ class SerialCompositeModel(_CompositeModel):
 
     def inverse(self):
         try:
-            transforms = [tr.inverse() for tr in self._transforms[::-1]]
+            transforms = []
+            for transform in self._transforms[::-1]:
+                transforms.append(transform.inverse())
         except NotImplementedError:
-            raise
+            raise NotImplementedError(
+                "An analytical inverse has not been implemented for "
+                "{0} models.".format(transform.__class__.__name__))
         if self._inmap is not None:
             inmap = self._inmap[::-1]
             outmap = self._outmap[::-1]
