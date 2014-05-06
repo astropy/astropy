@@ -563,7 +563,7 @@ class TransformGraph(object):
             class Frame2(BaseCoordinateFrame):
                 ...
     
-            graph.transform(FunctionTransform, Frame1, Frame2)
+            @graph.transform(FunctionTransform, Frame1, Frame2)
             def f1_to_f2(f1_obj):
                 ... do something with f1_obj ...
                 return f2_obj
