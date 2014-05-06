@@ -485,12 +485,12 @@ linked, as shown below::
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
-  >>> arr['a']  # column "a" of the input array
-  array([1, 4])
+  >>> print arr['a']  # column "a" of the input array
+  [1 4]
   >>> t = Table(arr, copy=False)
   >>> t['a'][1] = 99
-  >>> arr['a']  # arr['a'] got changed when we modified t['a']
-  array([ 1, 99])
+  >>> print arr['a']  # arr['a'] got changed when we modified t['a']
+  [ 1 99]
 
 Note that when referencing the data it is not possible to change the data types
 since that operation requires making a copy of the data.  In this case an error
