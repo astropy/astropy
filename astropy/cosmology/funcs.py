@@ -212,7 +212,7 @@ def differential_comoving_volume(z, cosmo=None):
       Differential comoving volume per redshift per steradian at 
       each input redshift."""
     if cosmo is None:
-        cosmo = _get_current()
+        cosmo = _default_cosmology.get()
     return cosmo.differential_comoving_volume(z)
 
 def kpc_comoving_per_arcmin(z, cosmo=None):
