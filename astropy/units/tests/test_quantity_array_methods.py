@@ -399,6 +399,19 @@ class TestArrayConversion(object):
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.diagonal())
 
+
+    def test_slice_to_quantity(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2003
+        """
+
+        a = np.random.uniform(size=(10, 8))
+        x, y, z = a[:,1:4].T * u.km/u.s
+        total = np.sum(a[:, 1] * u.km / u.s - x)
+
+        assert isinstance(total, u.Quantity)
+        assert total == (0.0 * u.km / u.s)
+
     def test_byte_type_view_field_changes(self):
         q1 = np.array([1, 2, 3], dtype=np.int64) * u.m / u.km
         q2 = q1.byteswap()
