@@ -868,8 +868,6 @@ class SerialCompositeModel(_CompositeModel):
         else:
             if n_outputs is None:
                 raise TypeError("Expected n_inputs and n_outputs")
-            n_inputs = n_inputs
-            n_outputs = n_outputs
 
         super(SerialCompositeModel, self).__init__(transforms, n_inputs,
                                                    n_outputs)
