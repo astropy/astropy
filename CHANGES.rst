@@ -122,6 +122,9 @@ Bug Fixes
     ``WCSSUB_CELESTIAL`` may cause memory corruption due to
     underallocation of a temporary buffer. [#2350]
 
+  - Fixed a memory allocation bug in ``astropy.wcs.Wcsprm.sub`` and
+    ``astropy.wcs.Wcsprm.copy``.  [#2439]
+
 - Misc
 
   - Fixes for compatibility with Python 3.4. [#1945]
