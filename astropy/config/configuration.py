@@ -394,11 +394,13 @@ class ConfigItem(object):
         for alias in self.aliases:
             module, name = alias.rsplit('.', 1)
             sec = get_config(module)
+            filename, module = module.split('.', 1)
             if name in sec:
                 warn(
-                    "Config parameter '{0}' in section [{1}] is deprecated. "
-                    "Use '{2}' in section [{3}] instead.".format(
-                        name, module, self.name, self.module),
+                    "Config parameter '{0}' in section [{1}] of the file '{2}' "
+                    "is deprecated. Use '{3}' in section [{4}] instead.".format(
+                        name, module, get_config_filename(filename),
+                        self.name, self.module.split('.', 1)[1]),
                     AstropyDeprecationWarning)
                 options.append((sec[name], module, name))
 
@@ -407,12 +409,13 @@ class ConfigItem(object):
             options.append((self.defaultvalue, None, None))
 
         if len(options) > 1:
+            filename, sec = self.module.split('.', 1)
             warn(
-                "Config parameter '{0}' in section [{1}] is given by "
-                "more than one alias in the config file ({2}). "
-                "Using the first.".format(
-                    self.name, self.module,
-                    ', '.join(['.'.join(x[1:3]) for x in options])))
+                "Config parameter '{0}' in section [{1}] of the file '{2}' is "
+                "given by more than one alias ({3}). Using the first.".format(
+                    self.name, sec, get_config_filename(filename),
+                    ', '.join([
+                        '.'.join(x[1:3]) for x in options if x[1] is not None])))
 
         val = options[0][0]
 

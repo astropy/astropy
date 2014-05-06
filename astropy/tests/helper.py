@@ -114,11 +114,6 @@ class TestRunner(object):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
-        # This prevents cyclical import problems that make it
-        # impossible to test packages that define Table types on their
-        # own.
-        from ..table import Table
-
         if coverage:
             warnings.warn(
                 "The coverage option is ignored on run_tests, since it "
@@ -256,6 +251,11 @@ class TestRunner(object):
         # case our default one in a temp directory), clear the config object
         # cache.
         configuration._cfgobjs.clear()
+
+        # This prevents cyclical import problems that make it
+        # impossible to test packages that define Table types on their
+        # own.
+        from ..table import Table
 
         try:
             result = pytest.main(args=all_args, plugins=plugins)

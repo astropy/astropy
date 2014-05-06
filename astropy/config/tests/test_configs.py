@@ -253,10 +253,9 @@ class TestAliasRead(object):
             assert conf.remote_timeout == 42
 
         assert len(w) == 1
-        assert str(w[0].message) == (
+        assert str(w[0].message).startswith(
             "Config parameter 'name_resolve_timeout' in section "
-            "[astropy.coordinates.name_resolve] is deprecated. Use "
-            "'remote_timeout' in section [astropy.utils.data] instead.")
+            "[coordinates.name_resolve]")
 
     def teardown_class(self):
         from astropy.utils.data import conf
