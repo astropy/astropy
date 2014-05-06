@@ -68,7 +68,7 @@ rst_epilog += """
 
 project = u'Astropy'
 author = u'The Astropy Developers'
-copyright = u'2011-2013, ' + author
+copyright = u'2011-2014, ' + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
