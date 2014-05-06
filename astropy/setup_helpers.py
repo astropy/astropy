@@ -1043,7 +1043,7 @@ def get_package_info(srcdir):
     This function obtains that information by iterating through all
     packages in ``srcdir`` and locating a ``setup_package.py`` module.
     This module can contain the following functions:
-    ``get_extensions()``, ``get_package_data()``,
+    ``get_extensions()``, ``get_package_data()``, ``get_package_dir()``,
     ``get_build_options()``, ``get_external_libraries()``,
     and ``requires_2to3()``.
 
@@ -1054,6 +1054,9 @@ def get_package_info(srcdir):
 
     - ``get_package_data()`` returns a dict formatted as required by
       the ``package_data`` argument to ``setup()``.
+
+    - ``get_package_dir()`` returns a dict of package names to directory
+      mappings, as used by the ``package_dir`` argument to ``setup()``.
 
     - ``get_build_options()`` returns a list of tuples describing the
       extra build options to add.
@@ -1071,6 +1074,7 @@ def get_package_info(srcdir):
     packages = []
     package_data = {}
     package_dir = {}
+    packages = []
     skip_2to3 = []
 
     # Add the package's .cfg file
@@ -1092,6 +1096,11 @@ def get_package_info(srcdir):
             libraries = setuppkg.get_external_libraries()
             for library in libraries:
                 add_external_library(library)
+        if hasattr(setuppkg, 'get_package_dir'):
+            package_dirs = setuppkg.get_package_dir()
+            for key, val in package_dirs.items():
+                package_dir[str(key)] = val
+                packages.append(str(key))
         if hasattr(setuppkg, 'requires_2to3'):
             requires_2to3 = setuppkg.requires_2to3()
         else:
@@ -1130,6 +1139,7 @@ def get_package_info(srcdir):
         'ext_modules': ext_modules,
         'packages': packages,
         'package_dir': package_dir,
+        'packages': packages,
         'package_data': package_data,
         'skip_2to3': skip_2to3
         }

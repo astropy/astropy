@@ -8,7 +8,6 @@ from distutils.core import Extension
 import io
 from os.path import join
 import os.path
-import shutil
 import sys
 
 from astropy import setup_helpers
@@ -308,17 +307,18 @@ def get_package_data():
         'wcsmath.h',
         'wcsprintf.h',
         ]
-    for header in wcslib_headers:
-        shutil.copy(join('cextern', 'wcslib', 'C', header),
-                    join('astropy', 'wcs', 'include', 'wcslib', header))
-        api_files.append(join('include', 'wcslib', header))
 
     return {
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
                                    'data/*.txt',
                                    'maps/*.hdr', 'spectra/*.hdr'],
-        str('astropy.wcs'): api_files
+        str('astropy.wcs'): api_files,
+        str('astropy.wcs.include.wcslib'): wcslib_headers
     }
+
+
+def get_package_dir():
+    return {'astropy.wcs.include.wcslib': 'cextern/wcslib/C'}
 
 
 def get_external_libraries():
