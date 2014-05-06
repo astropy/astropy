@@ -11,13 +11,6 @@ The `~astropy.coordinates` package provides classes for representing celestial
 coordinates, as well as tools for converting between standard systems in a
 uniform way.
 
-.. warning::
-    `~astropy.coordinates` is currently a work-in-progress, and thus it is
-    possible there will be significant API changes in later versions of
-    Astropy. If you have specific ideas for how it might be improved,
-    feel free to let us know on the `astropy-dev mailing list`_ or at
-    http://feedback.astropy.org
-
 
 Getting Started
 ===============
