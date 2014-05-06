@@ -182,8 +182,8 @@ replacements will be masked anyway in the end,
 but for integer columns ``<new>`` must be chosen
 in such a way that it can be converted to an integer, for float columns to a float etc.
 The default for most ascii formats is to replace missing values with ``"0"`` which can be
-converted to any numerical type or string. Any fill value you specifiy will overwrite
-this default. If you, e.g. want to replace missing values wiht ``"0"`` *and* replace
+converted to any numerical type or string. Any fill value you specify will overwrite
+this default. If you, e.g. want to replace missing values with ``"0"`` *and* replace
 ``"--"`` with -99, you need to specify ``fill_values=[("","0"), ("--", "-99")]``. If 
 you do not want to apply any fill_values (not even the default of the format), set
 ``fill_values=[]``.
