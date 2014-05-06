@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import contextlib
+
 from ..extern import six
 from ..extern.six import text_type
 from ..extern.six.moves import zip as izip
@@ -468,3 +470,48 @@ Browsing keys:
         if i0 >= len(tabcol) - delta_lines:
             i0 = len(tabcol) - delta_lines
         print("\n")
+
+
+@contextlib.contextmanager
+def set_masked_print_string(print_string):
+    """
+    Context manager to temporarily set the string used to represent masked
+    values when a table or column is printed or formatted.  This applies for
+    printing the table with `print`, using the `pprint` or `pformat` methods,
+    or using any of the `io.ascii` write formats.
+
+    Parameters
+    ----------
+    print_string : str
+        String for representing masked values in a masked table or column
+
+    Example
+    -------
+    Here we write the table to standard out in a fixed width format:
+    ::
+
+      >>> from astropy.table import Table, set_masked_print_string
+      >>> import sys
+      >>> t = Table([[1, 2], [3, 4]], names=['col'], masked=True)
+      >>> t['a'].mask = [True, False]
+      >>> t['b'].mask = [False, True]
+
+      >>> t.write(sys.stdout, format='ascii.fixed_width')
+      |  a |  b |
+      | -- |  3 |
+      |  2 | -- |
+
+      >>> with set_masked_print_string(''):
+      ...   t.write(sys.stdout, format='ascii.fixed_width')
+      | a | b |
+      |   | 3 |
+      | 2 |   |
+    """
+
+    mpo = np.ma.masked_print_option
+    orig_display = mpo.display()
+    try:
+        mpo.set_display(print_string)
+        yield
+    finally:
+        mpo.set_display(orig_display)

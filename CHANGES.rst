@@ -49,9 +49,9 @@ New Features
     [#855 and #1844].
 
   - A new ``csv`` format was added as a convenience for handling CSV (comma-
-    separated values) data. [#1935]
-    This format also recognises rows with an inconsistent number of elements.
-    [#1562]
+    separated values) data. This format also recognises rows with an
+    inconsistent number of elements and writes out missing values using a
+    blank '' field instead of '--'.  [#1935] [#1562] [#2255]
 
   - An option was added to guess the start of data for CDS format files when
     they do not strictly conform to the format standard. [#2241]
@@ -119,6 +119,9 @@ New Features
     are in a different namespace.  [#2370]
 
 - ``astropy.table``
+
+  - Add the ``set_masked_print_string`` context manager to control how
+    masked values are represented when outputting a masked table. [#2255]
 
 - ``astropy.time``
 
