@@ -22,7 +22,7 @@ uniform way.
 Getting Started
 ===============
 
-TODO: update to introduce SkyCoordinate first
+.. todo:: update to introduce SkyCoordinate first
 
 Coordinate objects are instantiated with a flexible and natural approach that
 supports both numeric angle values, (limited) string parsing, and can optionally
@@ -58,7 +58,7 @@ accessed using aptly named attributes::
 Coordinates can easily be converted to strings using the
 :meth:`~astropy.coordinates.Angle.to_string` method::
 
-TODO: update to show formatting with SkyCoordinate
+.. todo:: update to show formatting with SkyCoordinate
 
 To convert to some other coordinate system, the easiest method is to use
 attribute-style access with short names for the built-in systems, but
@@ -66,7 +66,7 @@ explicit transformations via the
 :meth:`~astropy.coordinates.SphericalCoordinatesBase.transform_to` method
 are also available::
 
-TODO: SkyCoordinate
+.. todo:: SkyCoordinate
 .. >>> c.galactic
 .. <Galactic l=121.17430 deg, b=-21.57280 deg>
 .. >>> c.transform_to(Galactic)
@@ -93,7 +93,7 @@ transforming many individual coordinate objects separtely.  It also
 allows coordinate objects to be used to find matches between two sets
 of coordinates::
 
-TODO: update with SkyCoordinate
+.. todo:: update with SkyCoordinate
 .. >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
 .. >>> c = ICRS(ra1*u.degree, dec1*u.degree)  # doctest: +SKIP
 .. >>> catalog = ICRS(ra2*u.degree, dec2*u.degree)  # doctest: +SKIP
@@ -111,7 +111,8 @@ arrays::
     True
 
 
-TODO: update for SkyCoordinate
+.. todo:: update for SkyCoordinate
+
 The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects (if you have an active internet
 connection). All subclasses of
@@ -194,12 +195,3 @@ Reference/API
 =============
 
 .. automodapi:: astropy.coordinates
-  :skip: ICRSCoordinates
-  :skip: FK5Coordinates
-  :skip: FK4Coordinates
-  :skip: FK4NoETermCoordinates
-  :skip: GalacticCoordinates
-  :skip: HorizontalCoordinates
-
-.. the ":skip:"s above are to not document the v0.3 backwards-compatibility
-.. names.  They will be removed in the next version
