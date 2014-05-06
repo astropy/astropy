@@ -18,8 +18,7 @@ from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
 from ...utils import OrderedDict  # For 2.6 compatibility
-from ...utils.data import get_pkg_data_contents
-from ...utils.data import REMOTE_TIMEOUT
+from ...utils import data
 from ...utils.exceptions import AstropyUserWarning
 from ...utils.timer import timefunc
 from ...utils.xml.unescaper import unescape_all
@@ -96,7 +95,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         Multiprocessing failed.
 
     """
-    from .. import conf
+    from . import conf
     global _OUT_ROOT
 
     if url_list == 'default':
@@ -311,7 +310,7 @@ def _categorize_result(r):
         Unhandled validation result attributes.
 
     """
-    from .. import conf
+    from . import conf
 
     if 'network_error' in r and r['network_error'] is not None:  # pragma: no cover
         r['out_db_name'] = 'nerr'

@@ -21,6 +21,7 @@ from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
 from .builtin_systems import ICRS
+from ..utils import data
 from ..utils import state
 
 __all__ = ["get_icrs_coordinates"]
@@ -48,17 +49,14 @@ class sesame_database(state.ScienceState):
     This specifies the default database that SESAME will query when
     using the name resolve mechanism in the coordinates
     subpackage. Default is to search all databases, but this can be
-    'all', 'simbad', 'ned', or 'vizier'.)
+    'all', 'simbad', 'ned', or 'vizier'.
     """
     _value = 'all'
 
     @classmethod
     def validate(cls, value):
-        if isinstance(value, six.string_types):
-            value = [value]
-        for subvalue in value:
-            if subvalue not in ['all', 'simbad', 'ned', 'vizier']:
-                raise ValueError("Unknown database '{0}'".format(subvalue))
+        if value not in ['all', 'simbad', 'ned', 'vizier']:
+            raise ValueError("Unknown database '{0}'".format(value))
         return value
 
 
@@ -152,7 +150,7 @@ def get_icrs_coordinates(name):
     for url in urls:
         try:
             # Retrieve ascii name resolve data from CDS
-            resp = urllib.request.urlopen(url, timeout=conf.remote_timeout)
+            resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
             resp_data = resp.read()
             break
         except urllib.error.URLError as e:
