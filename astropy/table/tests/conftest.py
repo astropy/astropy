@@ -17,6 +17,7 @@ between modules.
 
 from ...tests.helper import pytest
 from ... import table
+from .. import pprint
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
@@ -32,14 +33,48 @@ class MaskedTable(table.Table):
         table.Table.__init__(self, *args, **kwargs)
 
 
+class MyRow(table.Row):
+    pass
+
+
+class MyColumn(table.Column):
+    pass
+
+
+class MyMaskedColumn(table.MaskedColumn):
+    pass
+
+
+class MyTableColumns(table.TableColumns):
+    pass
+
+
+class MyTableFormatter(pprint.TableFormatter):
+    pass
+
+
+class MyTable(table.Table):
+    Row = MyRow
+    Column = MyColumn
+    MaskedColumn = MyMaskedColumn
+    TableColumns = MyTableColumns
+    TableFormatter = MyTableFormatter
+
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=['unmasked', 'masked', 'subclass'])
 def table_types(request):
     class TableTypes:
         def __init__(self, request):
-            self.Table = MaskedTable if request.param else table.Table
-            self.Column = table.MaskedColumn if request.param else table.Column
+            if request.param == 'unmasked':
+                self.Table = table.Table
+                self.Column = table.Column
+            elif request.param == 'masked':
+                self.Table = MaskedTable
+                self.Column = table.MaskedColumn
+            elif request.param == 'subclass':
+                self.Table = MyTable
+                self.Column = MyColumn
     return TableTypes(request)
 
 

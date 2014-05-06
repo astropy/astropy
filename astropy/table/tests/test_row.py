@@ -147,7 +147,7 @@ class TestRow():
         self._setup(table_types)
         table = self.t
         row = table[0]
-        assert format(row, "").startswith("<Row 0 of table")
+        assert format(row, "").startswith("<{0} 0 of table".format(row.__class__.__name__))
 
     def test_deprecated_attributes(self, table_types):
         self._setup(table_types)

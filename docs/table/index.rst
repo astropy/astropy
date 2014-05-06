@@ -24,6 +24,7 @@ notable features of this package are:
 * Perform :ref:`table_operations` like database joins and concatenation.
 * Manipulate multidimensional columns.
 * Methods for :ref:`read_write_tables` to files
+* Hooks for :ref:`subclassing_table` and its component classes
 
 Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use

@@ -23,7 +23,7 @@ from ..utils.console import color_print
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
-from .pprint import (_pformat_table, _more_tabcol)
+from .pprint import TableFormatter
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
 from .np_utils import fix_column_name
 
@@ -75,16 +75,16 @@ class TableColumns(OrderedDict):
         elif isinstance(item, int):
             return self.values()[item]
         elif isinstance(item, tuple):
-            return TableColumns([self[x] for x in item])
+            return self.__class__([self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns([self[x] for x in list(self)[item]])
+            return self.__class__([self[x] for x in list(self)[item]])
         else:
-            raise IndexError('Illegal key or index value for TableColumns '
-                             'object')
+            raise IndexError('Illegal key or index value for {} object'
+                             .format(self.__class__.__name__))
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in six.iterkeys(self))
-        return "<TableColumns names=({0})>".format(",".join(names))
+        return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
 
     def _rename_column(self, name, new_name):
         if new_name in self:
@@ -227,8 +227,8 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
-        return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype)
+        return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
+            self.index, self.data, self.dtype, self.__class__.__name__)
 
 
 collections.Sequence.register(Row)
@@ -267,6 +267,14 @@ class Table(object):
 
     meta = MetaData()
 
+    # Define class attributes for core container objects to allow for subclass
+    # customization.
+    Row = Row
+    Column = Column
+    MaskedColumn = MaskedColumn
+    TableColumns = TableColumns
+    TableFormatter = TableFormatter
+
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, dtypes=None):
 
@@ -278,8 +286,9 @@ class Table(object):
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
-        self.columns = TableColumns()
+        self.columns = self.TableColumns()
         self.meta = meta
+        self.formatter = self.TableFormatter()
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -290,7 +299,7 @@ class Table(object):
 
         default_names = None
 
-        if isinstance(data, Row):
+        if isinstance(data, self.Row):
             data = data._table[data._index:data._index + 1]
 
         if isinstance(data, (list, tuple)):
@@ -435,7 +444,7 @@ class Table(object):
 
             cols.append(newcol)
 
-        self.columns = TableColumns(cols)
+        self.columns = self.TableColumns(cols)
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are boths iterable and have
@@ -521,7 +530,7 @@ class Table(object):
         else:
             dtype = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtype).ravel()
-            columns = TableColumns()
+            columns = self.TableColumns()
 
             for name in names:
                 columns[name] = self.ColumnClass(name=name, data=self._data[name])
@@ -597,7 +606,7 @@ class Table(object):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
-        columns = TableColumns()
+        columns = table.TableColumns()
         table._data = data
 
         for name, col in zip(names, cols):
@@ -622,7 +631,7 @@ class Table(object):
         return s
 
     def __unicode__(self):
-        lines, n_header = _pformat_table(self)
+        lines, n_header = self.formatter._pformat_table(self)
         return '\n'.join(lines)
     if six.PY3:
         __str__ = __unicode__
@@ -662,8 +671,8 @@ class Table(object):
             for the unit.
         """
 
-        lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
-                                         show_unit)
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
+                                                        show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -788,9 +797,9 @@ class Table(object):
         lines : list
             Formatted table as a list of strings
         """
-        lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_unit, html,
-                                         tableid=tableid)
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
+                                                        show_name, show_unit, html,
+                                                        tableid=tableid)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -825,8 +834,8 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
         """
-        _more_tabcol(self, max_lines, max_width, show_name,
-                     show_unit)
+        self.formatter._more_tabcol(self, max_lines, max_width, show_name,
+                                    show_unit)
 
     def _repr_html_(self):
         # Since the user cannot provide input, need a sensible default
@@ -838,7 +847,7 @@ class Table(object):
         if isinstance(item, six.string_types):
             return self.columns[item]
         elif isinstance(item, int):
-            return Row(self, item)
+            return self.Row(self, item)
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
                                                      for x in item):
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
@@ -862,7 +871,7 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
-            NewColumn = MaskedColumn if self.masked else Column
+            NewColumn = self.MaskedColumn if self.masked else self.Column
 
             # Make sure value is an ndarray so we can get the dtype
             if not isinstance(value, np.ndarray):
@@ -958,14 +967,14 @@ class Table(object):
             else:
                 raise ValueError("masked should be one of True, False, None")
         if self._masked:
-            self._column_class = MaskedColumn
+            self._column_class = self.MaskedColumn
         else:
-            self._column_class = Column
+            self._column_class = self.Column
 
     @property
     def ColumnClass(self):
         if self._column_class is None:
-            return Column
+            return self.Column
         else:
             return self._column_class
 
@@ -1446,7 +1455,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1,2],[3,4],[5,6]], names=('a','b','c'))
-            >>> t.pprint()
+            >>> print(t)
              a   b   c
             --- --- ---
               1   3   5
@@ -1455,7 +1464,7 @@ class Table(object):
         Renaming column 'a' to 'aa'::
 
             >>> t.rename_column('a' , 'aa')
-            >>> t.pprint()
+            >>> print(t)
              aa  b   c
             --- --- ---
               1   3   5
@@ -1500,7 +1509,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
            >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
-           >>> t.pprint()
+           >>> print(t)
             a   b   c
            --- --- ---
              1   4   7
@@ -1509,7 +1518,7 @@ class Table(object):
         Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'::
 
            >>> t.add_row([3,6,9])
-           >>> t.pprint()
+           >>> print(t)
              a   b   c
              --- --- ---
              1   4   7
@@ -1652,7 +1661,7 @@ class Table(object):
 
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                   Max  Miller  12
@@ -1662,7 +1671,7 @@ class Table(object):
         Sorting according to standard sorting rules, first 'name' then 'firstname'::
 
             >>> t.sort(['name','firstname'])
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                  John Jackson  18
@@ -1695,7 +1704,7 @@ class Table(object):
 
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                   Max  Miller  12
@@ -1705,7 +1714,7 @@ class Table(object):
         Reversing order::
 
             >>> t.reverse()
-            >>> t.pprint()
+            >>> print(t)
             firstname   name  tel
             --------- ------- ---
                  John Jackson  18
