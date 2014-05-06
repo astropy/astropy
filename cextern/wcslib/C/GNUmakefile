@@ -69,7 +69,7 @@ endif
 
 # Test programs that don't require CFITSIO or PGPLOT...
 TEST_N := tlin tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub tpih1 tbth1 \
-          tfitshdr tunits twcsfix
+          tfitshdr tunits twcsfix twcscompare
 
 # ...and unofficial test programs.
 TEST_n := tspcaips tspcspxe tspctrne twcs_locale

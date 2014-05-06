@@ -183,6 +183,31 @@
 *                       wcserr_enable().
 *
 *
+* tabeq() - Compare two tabprm structs for equality
+* -------------------------------------------------
+* tabeq() compares two tabprm structs for equality.
+*
+* Given:
+*   cmp       int       A bit field controlling the strictness of the
+*                       comparison.  At present, this value must always be 0,
+*                       indicating a strict comparison.  In the future, other
+*                       options may be added.
+
+*   tab1      struct tabprm*
+*                       The first tabprm struct to compare.
+*
+*   tab2      struct tabprm*
+*                       The second tabprm struct to compare.
+*
+* Returned:
+*   equal     int *     Non-zero when the given structs are equal.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null pointer passed.
+*
+*
 * tabfree() - Destructor for the tabprm struct
 * --------------------------------------------
 * tabfree() frees memory allocated for the tabprm arrays by tabini().
@@ -550,6 +575,8 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab);
 int tabmem(struct tabprm *tab);
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst);
+
+int tabeq(int cmp, struct tabprm *tab1, struct tabprm *tab2, int *equal);
 
 int tabfree(struct tabprm *tab);
 

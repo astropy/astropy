@@ -33,6 +33,7 @@
 #include "wcserr.h"
 #include "wcsmath.h"
 #include "wcsprintf.h"
+#include "wcsutil.h"
 #include "tab.h"
 
 const int TABSET = 137;
@@ -407,6 +408,53 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 
   return 0;
 }
+
+/*--------------------------------------------------------------------------*/
+
+int tabeq(int cmp, struct tabprm *tab1, struct tabprm *tab2, int *equal)
+
+{
+  int status = 0;
+  int i, M;
+
+  if (tab1 == 0x0) return TABERR_NULL_POINTER;
+  if (tab2 == 0x0) return TABERR_NULL_POINTER;
+  if (equal == 0x0) return TABERR_NULL_POINTER;
+
+  *equal = 0;
+
+  if (tab1->M != tab2->M) {
+    return 0;
+  }
+
+  M = tab1->M;
+
+  if (!wcsutil_intEq(M, tab1->K, tab2->K) ||
+      !wcsutil_intEq(M, tab1->map, tab2->map) ||
+      !wcsutil_Eq(M, tab1->crval, tab2->crval)) {
+    return 0;
+  }
+
+  for (i = 0; i < M; ++i) {
+    if (tab1->index[i] == 0x0 && tab2->index[i] == 0x0) {
+      /* Both NULL, therefore equal */
+    } else if (tab1->index[i] == 0x0 || tab2->index[i] == 0x0) {
+      return 0;
+    } else {
+      if (!wcsutil_Eq(tab1->K[i], tab1->index[i], tab2->index[i])) {
+        return 0;
+      }
+    }
+  }
+
+  if (!wcsutil_Eq(tab1->nc * M, tab1->coord, tab2->coord)) {
+    return 0;
+  }
+
+  *equal = 1;
+  return 0;
+}
+
 
 /*--------------------------------------------------------------------------*/
 

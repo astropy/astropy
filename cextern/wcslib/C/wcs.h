@@ -312,6 +312,42 @@
 *   if any were specified on input).
 *
 *
+* wcscompare() - Compare two wcsprm structs for equality
+* -------------------------------------------------
+* wcscompare() compares two wcsprm structs for equality.
+*
+* Given:
+*   cmp       int       A bit field controlling the strictness of the
+*                       comparison.  When 0, all fields must be identical.
+*                       The following constants may be or'ed together to
+*                       loosen the comparison.
+*
+*                       - WCSCOMPARE_IGNORE_ANCILLARY: Ignores
+*                         ancillary keywords, such as DATE-OBS that
+*                         don't change the WCS transformation.
+*
+*                       - WCSCOMPARE_INTEGER_TRANSLATION: Treats WCSes
+*                         that differ only in CRPIXj with an integral
+*                         difference as identical.
+*
+*                       - WCSCOMPARE_TRANSLATION: Treats WCSes that
+*                         differ only in CRPIXj as identical.
+*
+*   wcs1      struct wcsprm*
+*                       The first wcsprm struct to compare.
+*
+*   wcs2      struct wcsprm*
+*                       The second wcsprm struct to compare.
+*
+* Returned:
+*   equal     int *     Non-zero when the given structs are equal.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null pointer passed.
+*
+*
 * wcscopy() macro - Copy routine for the wcsprm struct
 * ----------------------------------------------------
 * wcscopy() does a deep copy of one wcsprm struct to another.  As of
@@ -1346,6 +1382,11 @@ extern "C" {
 #define WCSSUB_STOKES    0x1010
 
 
+#define WCSCOMPARE_IGNORE_ANCILLARY     0x0001
+#define WCSCOMPARE_INTEGER_TRANSLATION  0x0002
+#define WCSCOMPARE_TRANSLATION          0x0004
+
+
 extern const char *wcs_errmsg[];
 
 enum wcs_errmsg_enum {
@@ -1369,7 +1410,7 @@ enum wcs_errmsg_enum {
   WCSERR_NO_SOLUTION     = 11,	/* No solution found in the specified
 				   interval. */
   WCSERR_BAD_SUBIMAGE    = 12,	/* Invalid subimage specification. */
-  WCSERR_NON_SEPARABLE   = 13	/* Non-separable subimage coordinate
+  WCSERR_NON_SEPARABLE   = 13 	/* Non-separable subimage coordinate
 				   system. */
 };
 
@@ -1525,6 +1566,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs);
 
 int wcssub(int alloc, const struct wcsprm *wcssrc, int *nsub, int axes[],
            struct wcsprm *wcsdst);
+
+int wcscompare(int cmp, struct wcsprm *wcs1, struct wcsprm *wcs2, int *equal);
 
 int wcsfree(struct wcsprm *wcs);
 

@@ -375,7 +375,7 @@ PyWcsprm_init(
       return -1;
     }
 
-    if (convert_rejections_to_warnings(wcsprintf_buf())) {
+    if (convert_rejections_to_warnings()) {
       free(colsel_ints);
       wcsvfree(&nwcs, &wcs);
       return -1;
@@ -612,7 +612,7 @@ PyWcsprm_find_all_wcs(
     return NULL;
   }
 
-  if (convert_rejections_to_warnings(wcsprintf_buf())) {
+  if (convert_rejections_to_warnings()) {
     wcsvfree(&nwcs, &wcs);
     return NULL;
   }
@@ -721,6 +721,44 @@ PyWcsprm_celfix(
   } else {
     wcserr_fix_to_python_exc(self->x.err);
     return NULL;
+  }
+}
+
+static PyObject *
+PyWcsprm_compare(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+  int cmp;
+  PyWcsprm *other;
+  int equal;
+  int status;
+
+  const char* keywords[] = {"cmp", "other", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "iO!:compare", (char **)keywords,
+          &cmp, &PyWcsprmType, &other)) {
+    return NULL;
+  }
+
+
+  wcsprm_python2c(&self->x);
+  wcsprm_python2c(&other->x);
+  status = wcscompare(cmp, &self->x, &other->x, &equal);
+  wcsprm_c2python(&self->x);
+  wcsprm_c2python(&other->x);
+
+  if (status) {
+    wcserr_fix_to_python_exc(self->x.err);
+    return NULL;
+  } else {
+    if (equal) {
+      Py_RETURN_TRUE;
+    } else {
+      Py_RETURN_FALSE;
+    }
   }
 }
 
@@ -1637,6 +1675,45 @@ PyWcsprm___str__(
   #else
   return PyString_FromString(wcsprintf_buf());
   #endif
+}
+
+PyObject *PyWcsprm_richcompare(PyObject *a, PyObject *b, int op) {
+  int equal;
+  int status;
+
+  struct wcsprm *ax;
+  struct wcsprm *bx;
+
+  if ((op == Py_EQ || op == Py_NE) &&
+      PyObject_TypeCheck(b, &PyWcsprmType)) {
+    ax = &((PyWcsprm *)a)->x;
+    bx = &((PyWcsprm *)b)->x;
+
+    wcsprm_python2c(ax);
+    wcsprm_python2c(bx);
+    status = wcscompare(
+        WCSCOMPARE_IGNORE_ANCILLARY,
+        ax, bx, &equal);
+    wcsprm_c2python(ax);
+    wcsprm_c2python(bx);
+
+    if (status == 0) {
+      if (op == Py_NE) {
+        equal = !equal;
+      }
+      if (equal) {
+        Py_RETURN_TRUE;
+      } else {
+        Py_RETURN_FALSE;
+      }
+    } else {
+      wcs_to_python_exc(&(((PyWcsprm *)a)->x));
+      return NULL;
+    }
+  }
+
+  Py_INCREF(Py_NotImplemented);
+  return Py_NotImplemented;
 }
 
 /*@null@*/ static PyObject*
@@ -3276,6 +3353,7 @@ static PyMethodDef PyWcsprm_methods[] = {
   {"bounds_check", (PyCFunction)PyWcsprm_bounds_check, METH_VARARGS|METH_KEYWORDS, doc_bounds_check},
   {"cdfix", (PyCFunction)PyWcsprm_cdfix, METH_NOARGS, doc_cdfix},
   {"celfix", (PyCFunction)PyWcsprm_celfix, METH_NOARGS, doc_celfix},
+  {"compare", (PyCFunction)PyWcsprm_compare, METH_VARARGS|METH_KEYWORDS, doc_compare},
   {"__copy__", (PyCFunction)PyWcsprm_copy, METH_NOARGS, doc_copy},
   {"cylfix", (PyCFunction)PyWcsprm_cylfix, METH_VARARGS|METH_KEYWORDS, doc_cylfix},
   {"datfix", (PyCFunction)PyWcsprm_datfix, METH_NOARGS, doc_datfix},
@@ -3336,7 +3414,7 @@ PyTypeObject PyWcsprmType = {
   doc_Wcsprm,                   /* tp_doc */
   0,                            /* tp_traverse */
   0,                            /* tp_clear */
-  0,                            /* tp_richcompare */
+  PyWcsprm_richcompare,         /* tp_richcompare */
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
   0,                            /* tp_iternext */
@@ -3402,5 +3480,8 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDO_PVn_ma)    ||
     CONSTANT(WCSHDO_CRPXna)    ||
     CONSTANT(WCSHDO_CNAMna)    ||
-    CONSTANT(WCSHDO_WCSNna));
+    CONSTANT(WCSHDO_WCSNna)    ||
+    CONSTANT(WCSCOMPARE_IGNORE_ANCILLARY) ||
+    CONSTANT(WCSCOMPARE_INTEGER_TRANSLATION) ||
+    CONSTANT(WCSCOMPARE_TRANSLATION));
 }

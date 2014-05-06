@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "wcserr.h"
+#include "wcsfix.h"
 #include "wcsmath.h"
 #include "wcsprintf.h"
 #include "wcstrig.h"
@@ -515,6 +516,7 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
   memset(wcs->dateavg, 0, 72);
   wcs->mjdobs     = UNDEFINED;
   wcs->mjdavg     = UNDEFINED;
+  wcs->velangl    = UNDEFINED;
 
   wcs->ntab = 0;
   wcs->tab  = 0x0;
@@ -973,6 +975,149 @@ cleanup:
   if (status && wcsdst->m_tab) free(wcsdst->m_tab);
 
   return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcscompare(
+  int cmp,
+  struct wcsprm *wcs1,
+  struct wcsprm *wcs2,
+  int *equal)
+
+{
+  int fix[NWCSFIX];
+  int i, j, naxis, naxis2;
+  double diff;
+  int tab_equal;
+  int status;
+
+  if (wcs1 == 0x0) return WCSERR_NULL_POINTER;
+  if (wcs2 == 0x0) return WCSERR_NULL_POINTER;
+  if (equal == 0x0) return WCSERR_NULL_POINTER;
+
+  *equal = 0;
+
+  if (wcs1->naxis != wcs2->naxis) {
+    return 0;
+  }
+
+  naxis = wcs1->naxis;
+  naxis2 = wcs1->naxis*wcs1->naxis;
+
+  if (cmp & WCSCOMPARE_TRANSLATION) {
+    /* Don't compare crpix */
+  } else if (cmp & WCSCOMPARE_INTEGER_TRANSLATION) {
+    for (i = 0; i < naxis; ++i) {
+      diff = wcs1->crpix[i] - wcs2->crpix[i];
+      if ((double)(int)(diff) != diff) {
+        return 0;
+      }
+    }
+  } else {
+    if (!wcsutil_Eq(naxis, wcs1->crpix, wcs2->crpix)) {
+      return 0;
+    }
+  }
+
+  if (!wcsutil_Eq(naxis2, wcs1->pc, wcs2->pc) ||
+      !wcsutil_Eq(naxis, wcs1->cdelt, wcs2->cdelt) ||
+      !wcsutil_Eq(naxis, wcs1->crval, wcs2->crval) ||
+      !wcsutil_strEq(naxis, wcs1->cunit, wcs2->cunit) ||
+      !wcsutil_strEq(naxis, wcs1->ctype, wcs2->ctype) ||
+      wcs1->lonpole != wcs2->lonpole ||
+      wcs1->latpole != wcs2->latpole ||
+      wcs1->restfrq != wcs2->restfrq ||
+      wcs1->restwav != wcs2->restwav ||
+      wcs1->npv != wcs2->npv ||
+      wcs1->nps != wcs2->nps) {
+    return 0;
+  }
+
+  /* Compare pv cards, which may not be in the same order */
+  for (i = 0; i < wcs1->npv; ++i) {
+    for (j = 0; j < wcs2->npv; ++j) {
+      if (wcs1->pv[i].i == wcs2->pv[j].i &&
+          wcs1->pv[i].m == wcs2->pv[j].m) {
+        if (wcs1->pv[i].value != wcs2->pv[j].value) {
+          return 0;
+        }
+        break;
+      }
+    }
+    /* We didn't find a match, so they are not equal */
+    if (j == wcs2->npv) {
+      return 0;
+    }
+  }
+
+  /* Compare ps cards, which may not be in the same order */
+  for (i = 0; i < wcs1->nps; ++i) {
+    for (j = 0; j < wcs2->nps; ++j) {
+      if (wcs1->ps[i].i == wcs2->ps[j].i &&
+          wcs1->ps[i].m == wcs2->ps[j].m) {
+        if (strncmp(wcs1->ps[i].value, wcs2->ps[j].value, 72)) {
+          return 0;
+        }
+        break;
+      }
+    }
+    /* We didn't find a match, so they are not equal */
+    if (j == wcs2->nps) {
+      return 0;
+    }
+  }
+
+  if (wcs1->flag != WCSSET || wcs2->flag != WCSSET) {
+    if (!wcsutil_Eq(naxis2, wcs1->cd, wcs2->cd) ||
+        !wcsutil_Eq(naxis, wcs1->crota, wcs2->crota) ||
+        wcs1->altlin != wcs2->altlin ||
+        wcs1->velref != wcs2->velref) {
+      return 0;
+    }
+  }
+
+  if (!(cmp & WCSCOMPARE_IGNORE_ANCILLARY)) {
+    if (strncmp(wcs1->alt, wcs2->alt, 4) ||
+        wcs1->colnum != wcs2->colnum ||
+        !wcsutil_intEq(naxis, wcs1->colax, wcs2->colax) ||
+        !wcsutil_strEq(naxis, wcs1->cname, wcs2->cname) ||
+        !wcsutil_Eq(naxis, wcs1->crder, wcs2->crder) ||
+        !wcsutil_Eq(naxis, wcs1->csyer, wcs2->csyer) ||
+        strncmp(wcs1->dateavg, wcs2->dateavg, 72) ||
+        strncmp(wcs1->dateobs, wcs2->dateobs, 72) ||
+        wcs1->equinox != wcs2->equinox ||
+        wcs1->mjdavg != wcs2->mjdavg ||
+        wcs1->mjdobs != wcs2->mjdobs ||
+        !wcsutil_Eq(3, wcs1->obsgeo, wcs2->obsgeo) ||
+        strncmp(wcs1->radesys, wcs2->radesys, 72) ||
+        strncmp(wcs1->specsys, wcs2->specsys, 72) ||
+        strncmp(wcs1->ssysobs, wcs2->ssysobs, 72) ||
+        wcs1->velosys != wcs2->velosys ||
+        wcs1->zsource != wcs2->zsource ||
+        strncmp(wcs1->ssyssrc, wcs2->ssyssrc, 72) ||
+        wcs1->velangl != wcs2->velangl ||
+        strncmp(wcs1->wcsname, wcs2->wcsname, 72)) {
+      return 0;
+    }
+  }
+
+  /* Compare tabular parameters */
+  if (wcs1->ntab != wcs2->ntab) {
+    return 0;
+  }
+
+  for (i = 0; i < wcs1->ntab; ++i) {
+    if ((status = tabeq(0, &wcs1->tab[i], &wcs2->tab[i], &tab_equal))) {
+      return status;
+    }
+    if (!tab_equal) {
+      return 0;
+    }
+  }
+
+  *equal = 1;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
