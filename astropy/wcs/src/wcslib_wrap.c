@@ -3353,7 +3353,7 @@ static PyMethodDef PyWcsprm_methods[] = {
   {"bounds_check", (PyCFunction)PyWcsprm_bounds_check, METH_VARARGS|METH_KEYWORDS, doc_bounds_check},
   {"cdfix", (PyCFunction)PyWcsprm_cdfix, METH_NOARGS, doc_cdfix},
   {"celfix", (PyCFunction)PyWcsprm_celfix, METH_NOARGS, doc_celfix},
-  {"compare", (PyCFunction)PyWcsprm_compare, METH_VARARGS, doc_compare},
+  {"compare", (PyCFunction)PyWcsprm_compare, METH_VARARGS|METH_KEYWORDS, doc_compare},
   {"__copy__", (PyCFunction)PyWcsprm_copy, METH_NOARGS, doc_copy},
   {"cylfix", (PyCFunction)PyWcsprm_cylfix, METH_VARARGS|METH_KEYWORDS, doc_cylfix},
   {"datfix", (PyCFunction)PyWcsprm_datfix, METH_NOARGS, doc_datfix},
