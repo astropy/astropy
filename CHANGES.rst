@@ -28,9 +28,6 @@ New Features
 
 - ``astropy.cosmology``
 
-  - ``age` and ``comoving_volume` convenience functions have been added to
-    ``astropy.cosmology``. [#1902]
-
   - Added ``z_at_value`` function to find the redshift at which a cosmology
     function matches a desired value. [#1909]
 

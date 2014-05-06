@@ -13,11 +13,10 @@ from .core import CosmologyError
 from ..units import Quantity
 from ..utils import deprecated
 
-__all__ = ['H',  'age',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
-           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume',
-           'critical_density', 'distmod',
-           'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin', 'lookback_time',
-           'luminosity_distance', 'scale_factor', 'z_at_value']
+__all__ = ['H',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
+           'arcsec_per_kpc_proper', 'comoving_distance', 'critical_density',
+           'distmod', 'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin',
+           'lookback_time', 'luminosity_distance', 'scale_factor', 'z_at_value']
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -146,53 +145,6 @@ zmin and zmax satisfying fval = func(z).""")
                              "Try re-running with a different zmin.")
 
     return zbest
-
-
-@deprecated(since='0.4', alternative='<Cosmology object>.age')
-def age(z, cosmo=None):
-    """ Age of the universe in Gyr at redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    t : astropy.units.Quantity
-      The age of the universe in Gyr at each input redshift.
-
-    See Also
-    --------
-    z_at_value : Find the redshift corresponding to an age.
-    """
-    if cosmo is None:
-        cosmo = _default_cosmology.get()
-    return cosmo.age(z)
-
-
-@deprecated(since='0.4', alternative='<Cosmology object>.comoving_volume')
-def comoving_volume(z, cosmo=None):
-    """ Comoving volume in cubic Mpc at redshift `z`.
-
-    This is the volume of the universe encompassed by redshifts
-    less than `z`. For the case of omega_k = 0 it is a sphere of
-    radius `comoving_distance(z)` but it is less intuitive if
-    omega_k is not 0.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    V : astropy.units.Quantity
-      Comoving volume in :math:`Mpc^3` at each input redshift.
-    """
-    if cosmo is None:
-        cosmo = _default_cosmology.get()
-    return cosmo.comoving_volume(z)
 
 
 @deprecated(since='0.4', alternative='<Cosmology object>.kpc_comoving_per_arcmin')
