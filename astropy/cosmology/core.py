@@ -1143,6 +1143,31 @@ class FLRW(Cosmology):
         else:
             return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsin(term3))
 
+    def differential_comoving_volume(self, z):
+        """Differential comoving volume at redshift z.
+        
+        Useful for calculating the effective comoving volume. 
+        For example, allows for integration over a comoving volume 
+        that has a sensitivity function that changes with redshift.
+        The total comoving volume is given by integrating 
+        differential_comoving_volume to redshift z 
+        and multiplying by a solid angle.
+                
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        dV : astropy.units.Quantity
+          Differential comoving volume per redshift per steradian at 
+          each input redshift."""
+        dh = self._hubble_distance
+        da = self.angular_diameter_distance(z)
+        zp1 = 1.0 + z 
+        return dh * (zp1 ** 2.0 * da ** 2.0) / u.Quantity(self.efunc(z), u.steradian)
+        
     def kpc_comoving_per_arcmin(self, z):
         """ Separation in transverse comoving kpc corresponding to an
         arcminute at redshift `z`.

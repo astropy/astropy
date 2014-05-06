@@ -13,10 +13,10 @@ from .core import CosmologyError
 from ..units import Quantity
 
 __all__ = ['H',  'age',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
-           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume',
-           'critical_density', 'distmod', 'kpc_comoving_per_arcmin',
-           'kpc_proper_per_arcmin', 'lookback_time', 'luminosity_distance',
-           'scale_factor', 'z_at_value']
+           'arcsec_per_kpc_proper', 'comoving_distance', 'comoving_volume', 
+           'differential_comoving_volume', 'critical_density', 'distmod', 
+           'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin', 'lookback_time', 
+           'luminosity_distance', 'scale_factor', 'z_at_value']
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -191,6 +191,29 @@ def comoving_volume(z, cosmo=None):
         cosmo = _default_cosmology.get()
     return cosmo.comoving_volume(z)
 
+def differential_comoving_volume(z, cosmo=None):
+    """Differential comoving volume at redshift z.
+    
+    Useful for calculating the effective comoving volume. 
+    For example, allows for integration over a comoving volume 
+    that has a sensitivity function that changes with redshift.
+    The total comoving volume is given by integrating 
+    differential_comoving_volume to redshift z 
+    and multiplying by a solid angle.
+            
+    Parameters
+    ----------
+    z : array_like
+      Input redshifts.
+
+    Returns
+    -------
+    dV : astropy.units.Quantity
+      Differential comoving volume per redshift per steradian at 
+      each input redshift."""
+    if cosmo is None:
+        cosmo = _default_cosmology.get()
+    return cosmo.differential_comoving_volume(z)
 
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
