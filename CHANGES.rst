@@ -65,6 +65,8 @@ New Features
 
   - Allow the use of non-local ReadMe files in the CDS reader. [#2329]
 
+  - Provide a mechanism to select how masked values are printed. [#2424]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the

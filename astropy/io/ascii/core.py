@@ -32,6 +32,20 @@ from . import connect
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
 
+class MaskedConstant(numpy.ma.core.MaskedConstant):
+    """A trivial extension of numpy.ma.masked
+
+    We want to be able to put the generic term ``masked`` into a dictionary.
+    In python 2.7 we can just use ``numpy.ma.masked``, but in python 3.1 and 3.2 that
+    is not hashable, see https://github.com/numpy/numpy/issues/4660
+    So, we need to extend it here with a hash value.
+    """
+    def __hash__(self):
+        '''All instances of this class shall have the same hash.'''
+        # Any large number will do.
+        return 1234567890
+
+masked = MaskedConstant()
 
 class InconsistentTableError(ValueError):
     """
@@ -442,12 +456,17 @@ class BaseData(object):
     comment = None
     splitter_class = DefaultSplitter
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
-    formats = {}
-    fill_values = []
     fill_include_names = None
     fill_exclude_names = None
 
     def __init__(self):
+        # Need to make sure fill_values list is instance attribute, not class attribute.
+        # On read, this will be overwritten by the default in the ui.read (thus, in
+        # the current implementation there can be no different default for different
+        # Readers). On write, ui.py does not specify a default, so this line here matters.
+        # Currently, the default matches the numpy default for masked values. 
+        self.fill_values = [(masked, '--')]
+        self.formats = {}
         self.splitter = self.__class__.splitter_class()
 
     def process_lines(self, lines):
@@ -552,6 +571,10 @@ class BaseData(object):
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
                                    if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
+                if masked in col.fill_values and hasattr(col, 'mask'):
+                    mask_val = col.fill_values[masked]
+                    for i in col.mask.nonzero()[0]:
+                        col.str_vals[i] = mask_val
 
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):

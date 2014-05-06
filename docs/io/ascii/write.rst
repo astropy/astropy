@@ -202,14 +202,47 @@ details.
 
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace values with special meaning.
-  The syntax is the same as used on input.
+  The syntax is the same as used on input. 
   See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
-  When writing a table, all values are converted to strings, before any value is replaced. Thus,
-  you need to provide the string representation (stripped of whitespace) for each value.
-  Example::
 
-    astropy.io.ascii.write(table, fill_values = [('nan', 'no data'),
-                                                       ('-999.0', 'no data')])
+  There is a special value ``astropy.io.ascii.masked`` that is used a say "output this string
+  for all masked values in a masked table (the default is to use a ``'--'``)::
+
+      >>> import sys
+      >>> from astropy.table import Table, Column, MaskedColumn
+      >>> from astropy.io import ascii
+      >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
+      >>> t['a'].mask = [True, False]
+      >>> ascii.write(t, sys.stdout)
+      a b
+      -- 3
+      2 4
+      >>> ascii.write(t, sys.stdout, fill_values=[(ascii.masked, 'N/A')])
+      a b
+      N/A 3
+      2 4
+
+  If no ``fill_values`` is applied for masked values in ``astropy.io.ascii``, the default set
+  with ``numpy.ma.masked_print_option.set_display`` applies (usually that is also ``'--'``)::
+
+      >>> ascii.write(t, sys.stdout, fill_values=[])
+      a b
+      -- 3
+      2 4
+
+  Note that when writing a table all values are converted to strings, 
+  before any value is replaced. Because ``fill_values`` only replaces cells that 
+  are an exact match to the specification, you need to provide the string representation 
+  (stripped of whitespace) for each value. For example, in the following commands `-99` is
+  formatted with two digits after the comma, so we need to replace `-99.00` and not `-99`::
+
+      >>> t = Table([(-99, 2), (3, 4)], names=('a', 'b'))
+      >>> ascii.write(t, sys.stdout, fill_values = [('-99.00', 'no data')], 
+      ...             formats={'a': '%4.2f'})
+      a b
+      "no data" 3
+      2.00 4
+
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.

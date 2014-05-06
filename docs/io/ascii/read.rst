@@ -176,7 +176,18 @@ of a number, e.g. ``"..."``, or a table may have special values like ``-999``
 that are chosen to indicate missing data.  The |read| function has a flexible
 system to accommodate these cases by replacing string values in the input data
 before they are converted.  This is done with the ``fill_values`` argument
-which replaces ``<old>`` with ``<new>`` before the type conversion is done::
+which replaces ``<old>`` with ``<new>`` before the type conversion is done. The 
+exact value of ``<new>`` does not matter, because all fields in the table with
+replacements will be masked anyway in the end, 
+but for integer columns ``<new>`` must be chosen
+in such a way that it can be converted to an integer, for float columns to a float etc.
+The default for most ascii formats is to replace missing values with ``"0"`` which can be
+converted to any numerical type or string. Any fill value you specify will overwrite
+this default. If you, e.g. want to replace missing values with ``"0"`` *and* replace
+``"--"`` with -99, you need to specify ``fill_values=[("","0"), ("--", "-99")]``. If 
+you do not want to apply any fill_values (not even the default of the format), set
+``fill_values=[]``.
+The exact defintion for the fill values is::
 
   fill_values = <fill_spec> | [<fill_spec1>, <fill_spec2>, ...]
   <fill_spec> = (<old>, <new>, <optional col name 1>, <optional col name 2>, ...)
@@ -184,6 +195,19 @@ which replaces ``<old>`` with ``<new>`` before the type conversion is done::
 Within the ``<fill_spec>`` tuple the ``<old>`` and ``<new>`` values must be
 strings.  These two values are then followed by zero or more column names.  If
 column names are included the replacement is limited to those columns listed.
+For any replacement, ``<old>`` has to be an exact match as can be seen in the example::
+
+  >>> table = ['day  rain     snow',    # column names
+  ...          'Mon  A        1.1',
+  ...          'Tue  AA       1.8',
+  ...          'Wed  AAA      2.5']
+  >>> print(ascii.read(table, fill_values=[('AA', '0.0')]))
+  day rain snow
+  --- ---- ----
+  Mon    A  1.1
+  Tue   --  1.8
+  Wed  AAA  2.5
+
 If no columns are specified then the replacement is done in every column,
 subject to filtering by ``fill_include_names`` and ``fill_exclude_names`` (see
 below).
