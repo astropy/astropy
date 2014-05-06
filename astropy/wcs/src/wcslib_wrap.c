@@ -1772,13 +1772,13 @@ PyWcsprm_sub(
 
   py_dest_wcs = (PyWcsprm*)PyWcsprm_cnew();
   py_dest_wcs->x.flag = -1;
-  status = wcsini(1, alloc_size, &py_dest_wcs->x);
+  status = wcsini(0, alloc_size, &py_dest_wcs->x);
   if (status != 0) {
     goto exit;
   }
 
   wcsprm_python2c(&self->x);
-  status = wcssub(0, &self->x, &nsub, axes, &py_dest_wcs->x);
+  status = wcssub(1, &self->x, &nsub, axes, &py_dest_wcs->x);
   wcsprm_c2python(&self->x);
   if (PyWcsprm_cset(py_dest_wcs, 0)) {
     goto exit;
