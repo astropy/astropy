@@ -34,7 +34,7 @@ New Features
   - Added ``z_at_value`` function to find the redshift at which a cosmology
     function matches a desired value. [#1909]
 
-  - Added ``differential_comoving_volume`` function to give the differential
+  - Added ``FLRW.differential_comoving_volume`` method to give the differential
     comoving volume at redshift z. [#2103]
 
   - The functional interface is now deprecated in favor of the more-explicit
