@@ -104,23 +104,31 @@ def terminal_size(file=stdio.stdout):
     Returns a tuple (height, width) containing the height and width of
     the terminal.
 
-    This function relies on dependencies which will probably fail on
-    Windows, so if any error occurs then None is returned.
+    This function will look for the width in height in multiple areas
+    before falling back on the width and height in astropy's
+    configuration.
     """
 
     try:
         import termios
         import fcntl
-        # Don't import numpy at module level since it may not be
-        # available in all contexts that this module is imported
-        import numpy as np
-        data = fcntl.ioctl(file, termios.TIOCGWINSZ, '\0' * 8)
-        arr = np.fromstring(data, dtype=np.int16)
-        # arr will be equal to (height, width, xpixels, ypixels)
-        return arr[:2]
+        import struct
+        s = struct.pack("HHHH", 0, 0, 0, 0)
+        x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
+        (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
+        if lines > 12:
+            lines -= 6
+        if width > 10:
+            width -= 1
+        return (lines, width)
     except:
-        return None
-
+        try: # see if POSIX standard variables will work
+            return (int(os.environ.get('LINES')),
+                    int(os.environ.get('COLUMNS')))
+        except:
+            # fall back on configuration variables
+            from ..table import conf
+            return conf.max_lines, conf.max_width
 
 def _color_text(text, color):
     """
@@ -461,13 +469,7 @@ class ProgressBar(six.Iterator):
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        if self._should_handle_resize:
-            terminal_width = terminal_size()[1]
-        else:
-            try:
-                terminal_width = int(os.environ.get('COLUMNS'))
-            except (TypeError, ValueError):
-                terminal_width = 78
+        terminal_width = terminal_size(self._file)[1]
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
