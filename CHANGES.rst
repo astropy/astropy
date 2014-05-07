@@ -129,6 +129,9 @@ Bug Fixes
 
   - Fixes for compatibility with Python 3.4. [#1945]
 
+  - ``import astropy; astropy.test()`` now correctly uses the same test
+    configuration as ``python setup.py test`` [#1811]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
