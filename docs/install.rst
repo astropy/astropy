@@ -9,7 +9,7 @@ Astropy has the following strict requirements:
 
 - `Python <http://www.python.org/>`_ 2.6 (>=2.6.5), 2.7, 3.1 or 3.2
 
-- `Numpy <http://www.numpy.org/>`_ |minimum_numpy_version| or later
+- `Numpy`_ |minimum_numpy_version| or later
 
 Astropy also depends on other packages for optional features:
 
@@ -19,7 +19,7 @@ Astropy also depends on other packages for optional features:
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files
 
-- `scipy <http://www.scipy.org/>`_: To power a variety of features (currently
+- `scipy`_: To power a variety of features (currently
   mainly cosmology-related functionality)
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
@@ -32,10 +32,10 @@ are needed. Astropy will import even if these dependencies are not installed.
 Installing Astropy
 ==================
 
-Using `pip`
------------
+Using pip
+-------------
 
-To install Astropy with `pip`, simply run::
+To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply run::
 
     pip install --no-deps astropy
 
@@ -59,8 +59,9 @@ To install Astropy with `pip`, simply run::
     If you get a ``PermissionError`` this means that you do not have the
     required administrative access to install new packages to your Python
     installation.  In this case you may consider using the ``--user`` option
-    to install the package into your home directory.  You can read more about
-    how to do this in the `pip documentation <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+    to install the package into your home directory.  You can read more
+    about how to do this in the `pip documentation
+    <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
@@ -84,7 +85,7 @@ run::
     There may be a delay of a day or to between when a new version of Astropy
     is released and when a package is available for Anaconda. You can check
     for the list of available versions with ``conda search astropy``.
-    
+
 .. note::
     Attempting to use ``pip`` to upgrade your installation of Astropy may result
     in a corrupted installation.
@@ -101,7 +102,7 @@ Testing an installed Astropy
 ----------------------------
 
 The easiest way to test your installed version of astropy is running
-correctly is to use the :func:`astropy.test` function::
+correctly is to use the :ref:`astropy.test()` function::
 
     import astropy
     astropy.test()
@@ -133,9 +134,9 @@ The `instructions for building Numpy from source
 <http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
-You will also need `Cython <http://cython.org/>`_ (v0.15 or later) installed 
-to build from source, unless you are installing a numbered release. (The 
-releases packages have the necessary C files packaged with them, and hence do 
+You will also need `Cython <http://cython.org/>`_ (v0.15 or later) installed
+to build from source, unless you are installing a numbered release. (The
+releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)
 
 .. note:: If you are using MacOS X, you will need to the XCode command line
@@ -143,12 +144,13 @@ not require Cython.)
           <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7
           (Lion) or later, you must also explicitly install the command line
           tools. You can do this by opening the XCode application, going to
-          **Preferences**, then **Downloads**, and then under **Components**,
-          click on the Install button to the right of **Command Line Tools**.
-          Alternatively, on 10.7 (Lion) or later, you do not need to install
-          XCode, you can download just the command line tools from
-          https://developer.apple.com/downloads/index.action (requires an Apple
-          developer account).
+          **Preferences**, then **Downloads**, and then under
+          **Components**, click on the Install button to the right of
+          **Command Line Tools**.  Alternatively, on 10.7 (Lion) or later,
+          you do not need to install XCode, you can download just the
+          command line tools from
+          https://developer.apple.com/downloads/index.action (requires an
+          Apple developer account).
 
 Obtaining the source packages
 -----------------------------
@@ -213,9 +215,10 @@ The Astropy source ships with the C source code of a number of
 libraries.  By default, these internal copies are used to build
 Astropy.  However, if you wish to use the system-wide installation of
 one of those libraries, you can pass one or more of the
-`--use-system-X` flags to the `setup.py build` command.
+``--use-system-X`` flags to the ``setup.py build`` command.
 
-For example, to build Astropy using the system `libexpat`, use::
+For example, to build Astropy using the system `libexpat
+<http://www.libexpat.org/>`_, use::
 
     python setup.py build --use-system-expat
 
@@ -227,9 +230,10 @@ To see which system libraries Astropy knows how to build against, use::
 
     python setup.py build --help
 
-As with all distutils commandline options, they may also be provided
-in a `setup.cfg` in the same directory as `setup.py`.  For example, to
-use the system `libexpat`, add the following to the `setup.cfg` file::
+As with all distutils commandline options, they may also be provided in a
+``setup.cfg`` in the same directory as ``setup.py``.  For example, to use
+the system `libexpat <http://www.libexpat.org/>`_, add the following to the
+``setup.cfg`` file::
 
     [build]
     use_system_expat=1
@@ -247,15 +251,16 @@ If upon running the ``setup.py`` script you get a message like
 
     (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
 
-this is because you have a very outdated version of the ``setuptools`` package
-which is used to install Python packages.  Normally Astropy will bootstrap a
-newer version of setuptools via the network, but setuptools suggests that you
-first *uninstall* the old version (the ``easy_install -U setuptools`` command).
-However, in the likely case that your version of setuptools was installed by an
-OS system package (on Linux check your package manager like apt or yum for
-a package called ``python-setuptools`` to be user).  In this case trying to
-uninstall with ``easy_install`` and without using ``sudo`` may not work, or may
-leave your system package in an inconsistent state.
+this is because you have a very outdated version of the `setuptools
+<https://pythonhosted.org/setuptools/>`_ package which is used to install
+Python packages.  Normally Astropy will bootstrap a newer version of
+setuptools via the network, but setuptools suggests that you first
+*uninstall* the old version (the ``easy_install -U setuptools`` command).
+However, in the likely case that your version of setuptools was installed by
+an OS system package (on Linux check your package manager like apt or yum
+for a package called ``python-setuptools`` to be user).  In this case trying
+to uninstall with ``easy_install`` and without using ``sudo`` may not work,
+or may leave your system package in an inconsistent state.
 
 As the best course of action at this point depends largely on the individual
 system and how it is configured, if you are not sure yourself what do please
@@ -353,3 +358,5 @@ installing astropy) is to run this from the root of the source tree::
     python setup.py test
 
 There are also alternative methods of :ref:`running-tests`.
+
+.. include:: development/workflow/known_projects.inc

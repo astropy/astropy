@@ -133,17 +133,18 @@ Now IPython will import all packages from your virtualenv where applicable.
 virtualenvwrapper
 -----------------
 
-`virtualenvwrapper`_ is a set of enhancements to virtualenv mostly implemented
-through simple shell scripts and aliases.  It automatically organizes all your
-virtualenvs under a single directory (as suggested above). To create a new
-virtualenv you can just use the `mkvirtualenv <env_name>` command and it will
-automatically create a new virtualenv of that name in the default location.
+`virtualenvwrapper`_ is a set of enhancements to virtualenv mostly
+implemented through simple shell scripts and aliases.  It automatically
+organizes all your virtualenvs under a single directory (as suggested
+above). To create a new virtualenv you can just use the ``'mkvirtualenv
+<env_name>'`` command and it will automatically create a new virtualenv of
+that name in the default location.
 
-To activate a virtualenv with virtualenvwrapper you don't need to think about
-the environment's location of the filesystem or which activate script to run.
-Simply run `workon <env_name>`.  You can also list all virtualenvs with
-`lsvirtualenv`.  That just scratches the surface of the goodies included with
-virtualenvwrapper.
+To activate a virtualenv with virtualenvwrapper you don't need to think
+about the environment's location of the filesystem or which activate script
+to run.  Simply run ``'workon <env_name>'``.  You can also list all
+virtualenvs with ``lsvirtualenv``.  That just scratches the surface of the
+goodies included with virtualenvwrapper.
 
 The one caveat is that it does not support csh-like shells.  For csh-like
 shells there exists `virtualenvwrapper-csh`_, which implements most of the

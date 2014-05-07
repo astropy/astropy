@@ -16,14 +16,16 @@ Interface and Dependencies
 --------------------------
 
 * All code must be compatible with Python 2.6, 2.7, as well as 3.1 and
-  later.  The use of `six <http://pythonhosted.org/six/>`__ for
-  writing code that is portable between Python 2.x and 3.x is
-  encouraged going forward.  However, much of our legacy code still
-  uses `2to3` to process Python 2.x files to be compatible with Python
-  3.x.
+  later.  The use of `six`_ for writing code that is portable between Python
+  2.x and 3.x is encouraged going forward.  However, much of our legacy code
+  still uses `2to3`_ to process Python 2.x files to be compatible with
+  Python 3.x.
+
+.. _six: http://pythonhosted.org/six/
+.. _2to3: https://docs.python.org/2/library/2to3.html
 
   Packages that use ``six`` must include the following in their
-  `setup_package.py` file::
+  ``setup_package.py`` file::
 
       def requires_2to3():
           return False
@@ -68,11 +70,11 @@ Interface and Dependencies
   the relevant component.
 
 * General utilities necessary for but not specific to the package or
-  sub-package should be placed in the :mod:`packagename.utils`. These
+  sub-package should be placed in the ``packagename.utils`` module. These
   utilities will be moved to the :mod:`astropy.utils` module when the
   package is integrated into the core package. If a utility is already
   present in :mod:`astropy.utils`, the package should always use that
-  utility instead of re-implementing it in :mod:`packagename.utils`.
+  utility instead of re-implementing it in ``packagename.utils`` module.
 
 
 Documentation and Testing
@@ -95,7 +97,7 @@ Documentation and Testing
 Data and Configuration
 ----------------------
 
-* Packages can include data in a directory named `data` inside a subpackage
+* Packages can include data in a directory named ``data`` inside a subpackage
   source directory as long as it is less than about 100 kb. These data should
   always be accessed via the :func:`astropy.utils.data.get_pkg_data_fileobj` or
   :func:`astropy.utils.data.get_pkg_data_filename` functions. If the data
@@ -224,7 +226,7 @@ characters to the console or to files will not work.  However, for
 those that have a correctly configured Unicode environment, we should
 allow them to opt-in to take advantage of Unicode output when
 appropriate.  Therefore, there is a global configuration option,
-`astropy.conf.unicode_output` to enable Unicode output of values, set
+``astropy.conf.unicode_output`` to enable Unicode output of values, set
 to `False` by default.
 
 The following conventions should be used for classes that define the
@@ -241,16 +243,15 @@ to refer to `str` on Python 2 and `bytes` on Python 3.
 - ``__str__`` on Python 2 / ``__bytes__`` on Python 3: Return a "bytes
   instance" containing only 7-bit characters.
 
-- ``__unicode__`` on Python 2 / ``__str__`` on Python 3: Return a
-  "unicode instance".  If `astropy.conf.unicode_output` is `False`, it
-  must contain only 7-bit characters.  If
-  `astropy.conf.unicode_output` is `True`, it may contain non-ascii
-  characters when applicable.
+- ``__unicode__`` on Python 2 / ``__str__`` on Python 3: Return a "unicode
+  instance".  If ``astropy.conf.unicode_output`` is `False`, it must contain
+  only 7-bit characters.  If ``astropy.conf.unicode_output`` is `True`, it
+  may contain non-ascii characters when applicable.
 
 - ``__format__``: Return a "unicode instance".  If
-  `astropy.UNICODE_OUTPUT` is `False`, it must contain only 7-bit
-  characters.  If `astropy.conf.unicode_output` is `True`, it may
-  contain non-ascii characters when applicable.
+  ``astropy.UNICODE_OUTPUT`` is `False`, it must contain only 7-bit
+  characters.  If ``astropy.conf.unicode_output`` is `True`, it may contain
+  non-ascii characters when applicable.
 
 For classes that are expected to roundtrip through strings (unicode or
 bytes), the parser must accept either the output of ``__str__`` or
@@ -260,9 +261,8 @@ roundtrip when that makes sense.
 This design generally follows Postel's Law: "Be liberal in what you
 accept, and conservative in what you send".
 
-The following example class shows a way to implement this (using `six
-<https://pypi.python.org/pypi/six/>`_ for Python 2 and 3 cross-version
-compatibility::
+The following example class shows a way to implement this (using `six`_ for
+Python 2 and 3 cross-version compatibility::
 
     # -*- coding: utf-8 -*-
 
@@ -298,7 +298,7 @@ compatibility::
             __str__ = __unicode__
 
 Additionally, there is a test helper,
-`astropy.test.helper.assert_follows_unicode_guidelines` to ensure that a
+``astropy.test.helper.assert_follows_unicode_guidelines`` to ensure that a
 class follows the Unicode guidelines outlined above.  The following
 example test will test that our example class above is compliant::
 
@@ -339,10 +339,9 @@ Including C Code
 Writing portable code for Python 2 and 3
 ----------------------------------------
 
-As of astropy 0.3, the `six <http://pythonhosted.org/six/>`__ library
-is included to allow supporting Python 2 and 3 from a single code
-base.  The use of the ``2to3`` tool is being phased out in favor of
-using ``six``.
+As of astropy 0.3, the `six`_ library is included to allow supporting Python
+2 and 3 from a single code base.  The use of the `2to3`_ tool is being
+phased out in favor of using ``six``.
 
 To start using ``six`` instead of ``2to3`` in a package, you first
 need to put the following in the package's ``setup_package.py`` file::
@@ -357,7 +356,7 @@ This section is mainly about moving existing code that works with
 Welcome to the ``__future__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The top of every `.py` file should include the following::
+The top of every ``.py`` file should include the following::
 
     from __future__ import (absolute_import, division, print_function,
                             unicode_literals)
@@ -365,14 +364,14 @@ The top of every `.py` file should include the following::
 This will make the Python 2 interpreter behave as close to Python 3 as
 possible.
 
-All files should also import `six`, whether they are using it or not,
-just to make moving code between modules easier, as `six` gets used *a
+All files should also import `six`_, whether they are using it or not,
+just to make moving code between modules easier, as `six`_ gets used *a
 lot*::
 
     from ..extern import six
 
-(where ``extern`` refers to `astropy.extern`).  Do not import `six`
-from the top-level: only import the copy of `six` included with
+(where ``extern`` refers to ``astropy.extern``).  Do not import `six`_
+from the top-level: only import the copy of `six`_ included with
 astropy.
 
 Finding places to use six
@@ -381,16 +380,16 @@ Finding places to use six
 Unfortunately, the only way to be certain that code works on both
 Python 2 and 3 is to make sure it is covered by unit tests.
 
-However, the `2to3` commandline tool can also be used to locate places
-that require special handling with `six`.  Starting from Python 2
+However, the `2to3`_ commandline tool can also be used to locate places
+that require special handling with `six`_.  Starting from Python 2
 code, or code that is known to work on both Python 2 and 3 by
-processing it with the `2to3` tool (which is most of the existing code
-in astropy), simply run `2to3` on the file to display the changes it
+processing it with the `2to3`_ tool (which is most of the existing code
+in astropy), simply run `2to3`_ on the file to display the changes it
 would make in diff format.  This diff can be used to highlight places
-that need to be updated to use `six`.
+that need to be updated to use `six`_.
 
 For example, most things that have been renamed between Python 2 and 3
-are in the `six.moves` namespace, so given this Python 2 code::
+are in the ``six.moves`` namespace, so given this Python 2 code::
 
     import cPickle
 
@@ -401,7 +400,7 @@ it can be replaced with::
 .. note::
 
     The `modernize <https://pypi.python.org/pypi/modernize>`_ tool
-    aims to convert Python 2 code to portable code that uses `six`,
+    aims to convert Python 2 code to portable code that uses `six`_,
     but at the time of this writing, it is not feature complete and
     misses many important transformations.
 
@@ -420,7 +419,7 @@ Python 2.
 
 For example, when specifying Numpy structured dtypes, all strings must
 be byte strings on Python 2 and unicode strings on Python 3.  The
-easiest way to handle this is to force cast them using `str()`, for
+easiest way to handle this is to force cast them using ``str()``, for
 example::
 
    x = np.array([1.0, 2.0, 3.0], dtype=[(str('name'), '>f8')])
@@ -428,7 +427,7 @@ example::
 The same is true of structure specifiers in the built-in `struct`
 module on Python 2.6.
 
-`pytest.mark.skipif` also requires a "native" string, i.e.::
+``pytest.mark.skipif`` also requires a "native" string, i.e.::
 
     @pytest.mark.skipif(str('CONDITIONAL'))
 
@@ -446,9 +445,9 @@ is simplest to read.  However, that results in code that behaves
 differently on Python 2 and 3, leading to subtle bugs that may not be
 detected by the regression tests.  Therefore, unless the loop in
 question is provably simple and doesn't call into other code, the
-`six` versions that ensure the same behavior on both Python 2 and 3
+`six`_ versions that ensure the same behavior on both Python 2 and 3
 should be used.  The following table shows the mapping of equivalent
-semantics between Python 2, 3 and six for `dict.items()`:
+semantics between Python 2, 3 and six for ``dict.items()``:
 
 ============================== ============================== ==============================
 Python 2                       Python 3                       six
@@ -466,15 +465,15 @@ Note that for keys only, ``list(d)`` is an acceptable shortcut to
 Issues with ``\u`` escapes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When `from __future__ import unicode_literals` is used, all string
-literals (not preceded with a `b`) will become unicode literals.
+When ``from __future__ import unicode_literals`` is used, all string
+literals (not preceded with a ``'b'``) will become unicode literals.
 
-Normally, one would use "raw" string literals to encode strings that
-contain a lot of slashes that we don't want Python to interpret as
-special characters.  Unfortunately, on Python 2, there is no way to
-represent `\u` in a raw unicode string literal, since it will always
-be interpreted as the start of a unicode character escape, such as
-`\u20af`.  The only solution is to use a regular (non-raw) string
+Normally, one would use "raw" string literals to encode strings that contain
+a lot of slashes that we don't want Python to interpret as special
+characters.  Unfortunately, on Python 2, there is no way to represent
+``'\u'`` in a raw unicode string literal, since it will always be
+interpreted as the start of a unicode character escape, such as
+``'\u20af'``.  The only solution is to use a regular (non-raw) string
 literal and repeat all slashes, e.g. ``"\\usepackage{foo}"``.
 
 The following shows the problem on Python 2::
@@ -521,10 +520,10 @@ Requirements Specific to Affiliated Packages
   <http://pypi.python.org/pypi>`_, with proper metadata for downloading and
   installing the source package.
 
-* The :mod:`astropy` root package name should not be used by affiliated
+* The ``astropy`` root package name should not be used by affiliated
   packages - it is reserved for use by the core package. Recommended naming
-  conventions for an affiliated package are either simply :mod:`packagename`
-  or :mod:`awastropy.packagename` ("affiliated with Astropy").
+  conventions for an affiliated package are either simply ``packagename``
+  or ``awastropy.packagename`` ("affiliated with Astropy").
 
 Examples
 --------
@@ -541,7 +540,7 @@ Properties vs. get\_/set\_
 This example shows a sample class illustrating the guideline regarding the use
 of properties as opposed to getter/setter methods.
 
-Let's assuming you've defined a :class:`Star` class and create an instance
+Let's assuming you've defined a ``':class:`Star`'`` class and create an instance
 like this::
 
     >>> s = Star(B=5.48, V=4.83)
@@ -714,8 +713,9 @@ might read::
         #the class is defined here
         pass
 
-This ensures that ``from submodule import *`` only imports :func:`foo` and
-:class:`AClass`, but not :class:`numpy.array` or :func:`numpy.linspace`.
+This ensures that ``from submodule import *`` only imports ``':func:`foo'``
+and ``':class:`AClass'``, but not ``':class:`numpy.array'`` or
+``':func:`numpy.linspace'``.
 
 .. _try-except-as-example:
 
@@ -740,7 +740,7 @@ Catching of exceptions should always use this syntax::
 This avoids the old style syntax of ``except ImportError, e`` or
 ``except (ValueError,TypeError), e``, which is dangerous because it's easy to
 instead accidentally do something like ``except ValueError,TypeError``, which
-won't catch `TypeError`.
+won't catch `~.exceptions.TypeError`.
 
 
 Additional Resources

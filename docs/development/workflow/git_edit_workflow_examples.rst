@@ -1,5 +1,6 @@
 :orphan:
 
+.. include:: links.inc
 .. _astropy-fix-example:
 
 ==============================================
@@ -58,17 +59,17 @@ version with::
 
 Set up an isolated workspace
 ----------------------------
-+ Make a new `git` branch for fixing this issue, check it out, and let my
++ Make a new `git`_ branch for fixing this issue, check it out, and let my
   GitHub account know about this branch::
 
     git branch fix-1761 astropy/master   # branch based on latest from GitHub
     git checkout fix-1761                   # switch to this branch
-    git push --set-upstream origin fix-1761 # tell my github acct about it 
+    git push --set-upstream origin fix-1761 # tell my github acct about it
 
 + Make a python environment just for this fix and switch to that environment.
   The example below shows the necessary steps in the Anaconda python
   distribution::
-  
+
         conda create -n apy-1761 --clone root  # Anaconda distribution only
         source activate apy-1761
 
@@ -94,9 +95,9 @@ You should at least run the relevant tests before you make any changes to make
 sure that your python environment is set up properly.
 
 The first challenge is figuring out where to look for relevant tests. `Issue
-1761`_ is a problem in the `coordinates` package, so the tests for it are in
-`astropy/coordinates/tests`. The rest of Astropy has a similar layout,
-described at :ref:`testing-guidelines`.
+1761`_ is a problem in the `~astropy.coordinates` package, so the tests for
+it are in ``astropy/coordinates/tests``. The rest of Astropy has a similar
+layout, described at :ref:`testing-guidelines`.
 
 Change to that directory and run the current tests with::
 
@@ -129,7 +130,7 @@ in an automated way, whether our fix actually works and to make sure future
 changes to code do not break our fix.
 
 Looking over the existing code in ``test_arrays.py``, each test is a function
-whose name starts with ``test_``; the last test in the file is 
+whose name starts with ``test_``; the last test in the file is
 ``test_array_indexing`` so an appropriate place to add the test is right after
 that.
 
@@ -161,10 +162,10 @@ result; an excerpt from the output is::
 
 Success!
 
-Add this test to your local `git` repo
---------------------------------------
+Add this test to your local `git`_ repo
+---------------------------------------
 
-Keep `git` commits small and focused on one logical piece at a time. The test
+Keep `git`_ commits small and focused on one logical piece at a time. The test
 we just wrote is one logical change, so we will commit it. You could, if you
 prefer, wait and commit this test along with your fix.
 
@@ -224,7 +225,7 @@ even easier; see :ref:`git_gui_options` if you are interested.
 Stage the change
 ++++++++++++++++
 
-`git` requires you to add changes in two steps:
+`git`_ requires you to add changes in two steps:
 
 + stage the change with ``git add test_arrays.py``; this adds the file to
   the list of items that will be added to the repo when you are ready to
@@ -241,7 +242,7 @@ places that you want to commit at the same time. Make your first changes,
 stage it, then make your second change and stage that. Once everything is
 staged, commit the changes as one commit.
 
-In this case, first stage the change:: 
+In this case, first stage the change::
 
     git add test_arrays.py
 
@@ -257,7 +258,7 @@ You get no notice at the command line that anything has changed, but
 
         modified:   test_arrays.py
 
-Note that `git` helpfully includes the command necessary to unstage the
+Note that `git`_ helpfully includes the command necessary to unstage the
 change if you want to.
 
 Commit your change
@@ -291,7 +292,7 @@ Write the code
 ++++++++++++++
 
 Now that we have a test written, we'll fix the issue. A full discussion of
-the fix is beyond the scope of this tutorial, but the fix is to add a 
+the fix is beyond the scope of this tutorial, but the fix is to add a
 ``__len__`` method to ``astropy.coordinates.SphericalCoordinatesBase`` in
 ``coordsystems.py``. All of the spherical coordinate systems inherit from
 this base class and it is this base class that implements the
@@ -318,7 +319,7 @@ There are a few levels at which you want to test:
   Success again!
 
 .. note::
-    Tests that are skipped or xfailed are fine. A fail or an error is not 
+    Tests that are skipped or xfailed are fine. A fail or an error is not
     fine. If you get stuck, ask on `astropy-dev mailing list`_ for help!
 
 Stage and commit your change
@@ -345,7 +346,7 @@ are still in the top level directory and check the ``git status``::
 Note that git knows what has changed no matter what directory you are in (as
 long as you are in one of the directories in the repo, that is).
 
-Stage the change with:: 
+Stage the change with::
 
     git add astropy/coordinates/coordsystems.py
 
@@ -369,7 +370,7 @@ However you do it, the message after committing should look like this::
 
     Closes #1761
 
-You can check the commit messages by running ``git log``. If the commit 
+You can check the commit messages by running ``git log``. If the commit
 message doesn't look right, ask about fixing it at `astropy-dev mailing list`_.
 
 Push your changes to your GitHub fork of astropy
@@ -396,9 +397,9 @@ have included but didn't:
 
 Both of these are mentioned in the pull request so it doesn't hurt to check
 them. In this case they also provide an opportunity to illustrate a feature
-of the `py.test` framework.
+of the `py.test`_ framework.
 
-I'll move back to the directory containing the tests with 
+I'll move back to the directory containing the tests with
 ``cd astropy/coordinates/tests`` to make it a bit easier to run just the test
 I want.
 
@@ -409,7 +410,7 @@ we used above:
 + Test the change
 
 The test passed; rather than committing this one change I'll also implement
-the check for the scalar case. 
+the check for the scalar case.
 
 One could imagine two different desirable outcomes here:
 
@@ -426,13 +427,13 @@ you chose and why; instructions for that are below.
 Testing for an expected error
 +++++++++++++++++++++++++++++
 
-In this case I opted for raising a ``TypeError``, because 
-the user needs to know that the coordinate they created is not going to 
-behave like an array of one coordinate if they try to index it later on. It 
-also provides an opportunity to demonstrate a test when the desired result 
+In this case I opted for raising a ``TypeError``, because
+the user needs to know that the coordinate they created is not going to
+behave like an array of one coordinate if they try to index it later on. It
+also provides an opportunity to demonstrate a test when the desired result
 is an error.
 
-The `py.test` framework makes testing for an exception relatively
+The `py.test`_ framework makes testing for an exception relatively
 easy; you put the code you expect to fail in a ``with`` block::
 
     with pytest.raises(TypeError):
@@ -454,7 +455,7 @@ lines were added::
 ``lonangle`` contains the ``Angle``s that represent longitude (sometimes this
 is an RA, sometimes a longitude). By simply calling ``len()`` on one of the
 angles in the array you get, for free, whatever behavior has been defined in
-the ``Angle`` class for handling the case of a scalar. 
+the ``Angle`` class for handling the case of a scalar.
 
 Adding an explicit check for the case of a scalar here would have the very
 big downside of having two things that need to be kept in sync: handling of
@@ -470,7 +471,7 @@ Follow the cycle you saw above:
 + ``git add`` to stage the changes
 + ``git commit`` to commit the changes
 
-The `git` commands, without their output, are::
+The `git`_ commands, without their output, are::
 
     git status
     git add astropy/coordinates/tests/test_arrays.py
@@ -489,14 +490,14 @@ proposing a new feature in a pull request you may need to wait on this change
 until the pull request is discussed.
 
 This issue was tagged for 0.3.1, as shown in the image below, so the changelog
-entry went there. 
+entry went there.
 
     .. image:: milestone.png
 
 The entry in ``CHANGES.rst`` should summarize was you did and include the
 issue number. For writing changelog entries you don't need to know much about
 the markup language being used (though you can read as much as you want about
-it at the `Sphinx primer`_); look at other entries and imitate. 
+it at the `Sphinx primer`_); look at other entries and imitate.
 
 For this issue the entry was the line that starts ``- Implemented``::
 
@@ -506,7 +507,7 @@ For this issue the entry was the line that starts ``- Implemented``::
 
 Starting the line with a ``-`` makes a bulleted list item, indenting it makes
 it a sublist of ``astropy.coordinates`` and putting ``len()`` in single
-backticks makes that text render in a typewriter font. 
+backticks makes that text render in a typewriter font.
 
 Commit your changes to the CHANGES.rst
 ++++++++++++++++++++++++++++++++++++++
@@ -529,7 +530,7 @@ Ask for your changes to be merged with a pull request
 -----------------------------------------------------
 
 This stage requires to go to your GitHub account and navigate to *your* copy
-of astropy; the url will be something like 
+of astropy; the url will be something like
 ``https://github.com/your-user-name/astropy``.
 
 Once there, select the branch that contains your fix from the branches

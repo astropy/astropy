@@ -1,5 +1,6 @@
 .. doctest-skip-all
 
+.. include:: workflow/known_projects.inc
 .. _testing-guidelines:
 
 ==================
@@ -13,23 +14,26 @@ packages).
 Testing Framework
 =================
 
-The testing framework used by Astropy is the `py.test <http://pytest.org/latest/>`_
-framework.
+The testing framework used by Astropy is the `py.test`_ framework.
+
+.. _py.test: http://pytest.org/latest/
+.. _pytest.main: http://pytest.org/latest/builtin.html#pytest.main
 
 .. _running-tests:
 
 Running Tests
 =============
 
-There are currently three different ways to invoke Astropy tests. Each method
-invokes py.test to run the tests but offers different options when calling.
+There are currently three different ways to invoke Astropy tests. Each
+method invokes `py.test`_ to run the tests but offers different options when
+calling.
 
-In addition to running the Astropy tests, these methods can also be called so
-that they check Python source code for
-`PEP8 compliance <http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8
-testing options require the
-`pytest-pep8 plugin <http://pypi.python.org/pypi/pytest-pep8>`_, which must be
-installed separately.
+In addition to running the Astropy tests, these methods can also be called
+so that they check Python source code for `PEP8 compliance
+<http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
+options require the `pytest-pep8 plugin
+<http://pypi.python.org/pypi/pytest-pep8>`_, which must be installed
+separately.
 
 setup.py test
 -------------
@@ -44,9 +48,9 @@ turn off regular testing and enable PEP8 testing.
 
 .. note::
 
-    This method of running the tests defaults to the version of `py.test` that
-    is bundled with Astropy. To use the locally-installed version, you can set
-    the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
+    This method of running the tests defaults to the version of `py.test`_
+    that is bundled with Astropy. To use the locally-installed version, you
+    can set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
 
         > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
 
@@ -58,7 +62,7 @@ code directory of astropy and simply type::
 
     py.test
 
-``py.test`` will look for files that `look like tests
+`py.test`_ will look for files that `look like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 in the current directory and all recursive directories then run all the code that
 `looks like tests
@@ -66,12 +70,12 @@ in the current directory and all recursive directories then run all the code tha
 within those files.
 
 .. note::
-    To test any compiled C/Cython extensions, you must run ``python
-    setup.py develop`` prior to running the py.test command-line
-    script.  Otherwise, any tests that make use of these extensions
-    will not succeed.  Similarly, in python 3, these tests will not
-    run correctly in the source code, because they need the ``2to3``
-    tool to be run on them.
+    To test any compiled C/Cython extensions, you must run ``python setup.py
+    develop`` prior to running the py.test command-line script.  Otherwise,
+    any tests that make use of these extensions will not succeed.
+    Similarly, in python 3, these tests will not run correctly in the source
+    code, because they need the `2to3
+    <https://docs.python.org/2/library/2to3.html>`_ tool to be run on them.
 
 You may specify a specific test file or directory at the command line::
 
@@ -89,7 +93,7 @@ of the matching string::
 py.test has a number of `command line usage options.
 <http://pytest.org/latest/usage.html>`_
 
-Turn on PEP8 testing by adding the ``--pep8`` flag to the ``py.test`` call. By
+Turn on PEP8 testing by adding the ``--pep8`` flag to the `py.test`_ call. By
 default regular tests will also be run but these can be turned off by adding
 ``-k pep8``::
 
@@ -97,8 +101,10 @@ default regular tests will also be run but these can be turned off by adding
 
 .. note::
     This method of running the tests uses the locally-installed version of
-    `py.test` rather than the bundled one, and hence will fail if the local
-    version it is not up-to-date enough (`py.test` 2.2 as of this writing).
+    `py.test`_ rather than the bundled one, and hence will fail if the local
+    version it is not up-to-date enough (`py.test`_ 2.2 as of this writing).
+
+.. _astropy.test():
 
 astropy.test()
 --------------
@@ -126,7 +132,7 @@ with the ``test_path`` option::
 The ``test_path`` must be specified either relative to the working directory
 or absolutely.
 
-By default ``astropy.test()`` will skip tests which retrieve data from the
+By default `astropy.test()`_ will skip tests which retrieve data from the
 internet. To turn these tests on use the ``remote_data`` flag::
 
     astropy.test('io.fits', remote_data=True)
@@ -140,9 +146,9 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
 
 .. note::
     This method of running the tests defaults to the version of
-    `py.test` that is bundled with Astropy. To use the locally-installed
+    `py.test`_ that is bundled with Astropy. To use the locally-installed
     version, you should set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment
-    variable (see :doc:`/config/index`) or the `py.test` method described
+    variable (see :doc:`/config/index`) or the `py.test`_ method described
     above.
 
 Tox
@@ -230,9 +236,8 @@ To use it from Python, do::
 Test coverage reports
 ^^^^^^^^^^^^^^^^^^^^^
 
-Astropy can use `coverage.py
-<http://nedbatchelder.com/code/coverage/>`_ to generate test coverage
-reports.  To generate a test coverage report, use::
+Astropy can use `coverage.py <http://nedbatchelder.com/code/coverage/>`_ to
+generate test coverage reports.  To generate a test coverage report, use::
 
     python setup.py test --coverage
 
@@ -240,22 +245,23 @@ There is a `coveragerc
 <http://nedbatchelder.com/code/coverage/config.html>`_ file that
 defines files to omit as well as lines to exclude.  It is installed
 along with astropy so that the ``astropy`` testing framework can use
-it.  In the source tree, it is at `astropy/tests/coveragerc`.
+it.  In the source tree, it is at ``astropy/tests/coveragerc``.
 
 Running tests in parallel
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It is possible to speed up astropy's tests using the `pytest-xdist`
-plugin.  This plugin can be installed using `pip`::
+It is possible to speed up astropy's tests using the `pytest-xdist
+<https://pypi.python.org/pypi/pytest-xdist>`_ plugin.  This plugin can be
+installed using `pip`_::
 
     pip install pytest-xdist
 
-Once installed, tests can be run in parallel using the `--parallel`
+Once installed, tests can be run in parallel using the ``'--parallel'``
 commandline option.  For example, to use 4 processes::
 
     python setup.py test --parallel=4
 
-Pass a negative number to `--parallel` to create the same number of
+Pass a negative number to ``'--parallel'`` to create the same number of
 processes as cores on your machine.
 
 Similarly, this feature can be invoked from Python::
@@ -275,7 +281,7 @@ Writing tests
 Consult the `test discovery rules
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 for detailed information on how to name files and tests so that they are
-automatically discovered by ``py.test``.
+automatically discovered by `py.test`_.
 
 Simple example
 --------------
@@ -345,12 +351,12 @@ Working with data files
 -----------------------
 
 Tests that need to make use of a data file should use the
-`~astropy.utils.data.get_data_fileobj` or
-`~astropy.utils.data.get_data_filename` functions.  These functions search
-locally first, and then on the astropy data server or an arbitrary URL, and
-return a file-like object or a local filename, respectively.  They automatically
-cache the data locally if remote data is obtained, and from then on the local
-copy will be used transparently.
+`~astropy.utils.data.get_pkg_data_fileobj` or
+`~astropy.utils.data.get_pkg_data_filename` functions.  These functions
+search locally first, and then on the astropy data server or an arbitrary
+URL, and return a file-like object or a local filename, respectively.  They
+automatically cache the data locally if remote data is obtained, and from
+then on the local copy will be used transparently.
 
 They also support the use of an MD5 hash to get a specific version of a data
 file.  This hash can be obtained prior to submitting a file to the astropy
@@ -584,7 +590,7 @@ Testing warnings
 ----------------
 
 In order to test that warnings are triggered as expected in certain
-situations, you can use the `astropy.tests.helper.catch_warnings`
+situations, you can use the ``astropy.tests.helper.catch_warnings``
 context manager.  Unlike the `warnings.catch_warnings` context manager
 in the standard library, this one will reset all warning state before
 hand so one is assured to get the warnings reported, regardless of
@@ -603,12 +609,11 @@ a real-world example::
 
 .. note::
 
-   Within ``py.test`` there is also the option of using the
-   ``recwarn`` function argument to test that warnings are triggered.
-   This method has been found to be problematic in at least one case
-   (`pull request 1174
+   Within `py.test`_ there is also the option of using the ``recwarn``
+   function argument to test that warnings are triggered.  This method has
+   been found to be problematic in at least one case (`pull request 1174
    <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-   so the `astropy.tests.helper.catch_warnings` context manager is
+   so the ``astropy.tests.helper.catch_warnings`` context manager is
    preferred.
 
 Testing with Unicode literals
@@ -639,7 +644,7 @@ block::
 
 Blocks of code that are intended to run only in Python 2.x or 3.x may
 also be marked so that they will be ignored when appropriate by
-`coverage.py`::
+``coverage.py``::
 
     if sys.version_info[0] >= 3:  # pragma: py3
         do_it_the_python3_way()

@@ -7,7 +7,7 @@ How to make a code contribution
 This document outlines the process for contributing code to the Astropy
 project.
 
-**Already experienced with git? Contributed before?** Jump right to 
+**Already experienced with git? Contributed before?** Jump right to
 :ref:`astropy-git`.
 
 Pre-requisites
@@ -36,11 +36,11 @@ fix is likely to take a while if you are not familiar with the Astropy source
 code! The developers are friendly and want you to help, so don't be shy about
 asking questions on the `astropy-dev mailing list`_.
 
-New to `git`?
-=============
+New to `git`_?
+==============
 
-Some `git` resources
---------------------
+Some `git`_ resources
+---------------------
 
 If you have never used git or have limited experience with it, take a few
 minutes to look at these resources:
@@ -48,7 +48,7 @@ minutes to look at these resources:
 * `Interactive tutorial`_ that runs in a browser
 * `Git Basics`_, part of a much longer `git book`_.
 
-In practice, you need only a handful of `git` commands to make contributions
+In practice, you need only a handful of `git`_ commands to make contributions
 to Astropy. There is a more extensive list of :ref:`git-resources` if you
 want more background.
 
@@ -56,7 +56,7 @@ Double check your setup
 -----------------------
 
 Before going further, make sure you have set up astropy as described in
-:ref:`get_devel`. 
+:ref:`get_devel`.
 
 In a terminal window, change directory to the one containing your clone of
 Astropy. Then, run ``git remote``; the output should look something like this::
@@ -64,14 +64,14 @@ Astropy. Then, run ``git remote``; the output should look something like this::
     your-github-username
     astropy
 
-If that works, also run ``git fetch --all``. If it runs without errors then 
+If that works, also run ``git fetch --all``. If it runs without errors then
 your installation is working and you have a complete list of all branches in
 your clone, ``your-github-username`` and ``astropy``.
 
-About names in `git`
---------------------
+About names in `git`_
+---------------------
 
-`git` is designed to be a *distributed* version control system. Each clone of
+`git`_ is designed to be a *distributed* version control system. Each clone of
 a repository is, itself, a repository. That can lead to some confusion,
 especially for the branch called ``master``. If you list all of the branches
 your clone of git knows about with ``git branch -a`` you will see there are
@@ -81,19 +81,19 @@ your clone of git knows about with ``git branch -a`` you will see there are
     remotes/your-github-username/master   # master on your fork of Astropy on GitHub
     remotes/astropy/master                # the official development branch of Astropy
 
-The naming scheme used by `git` will also be used here. A plain branch name,
+The naming scheme used by `git`_ will also be used here. A plain branch name,
 like ``master`` means a branch in your local copy of Astropy. A branch on a
-remote, like ``astropy`` , is labeled by that remote, ``astropy/master``. 
+remote, like ``astropy`` , is labeled by that remote, ``astropy/master``.
 
 This duplication of names can get very confusing for maintainers when trying
 to merge code contributions into the official master branch,
 ``astropy/master``. As a result, you should never do any work in your master
 branch, ``master``. Always work on a branch instead.
 
-Essential `git` commands
-------------------------
+Essential `git`_ commands
+-------------------------
 
-A full `git` tutorial is beyond the scope of this document but this list
+A full `git`_ tutorial is beyond the scope of this document but this list
 describes the few ``git`` commands you are likely to encounter in contributing
 to Astropy:
 
@@ -101,47 +101,47 @@ to Astropy:
   use as the basis for making your changes.
 * ``git branch`` makes a logically separate copy of Astropy to keep track of
   your changes.
-* ``git add`` stages files you have changed or created for addition to `git`.
-* ``git commit`` adds your staged changes to the repository. 
+* ``git add`` stages files you have changed or created for addition to `git`_.
+* ``git commit`` adds your staged changes to the repository.
 * ``git push`` copies the changes you committed to GitHub
 * ``git status`` to see a list of files that have been modified or created.
 
-.. note::    
+.. note::
     A good graphical interface to git makes some of these steps much
     easier. Some options are described in :ref:`git_gui_options`.
 
 If something goes wrong
 -----------------------
 
-`git` provides a number of ways to recover from errors. If you end up making a
-`git` mistake, do not hesitate to ask for help. An additional resource that
-walks you through recovering from `git` mistakes is the
+`git`_ provides a number of ways to recover from errors. If you end up making a
+`git`_ mistake, do not hesitate to ask for help. An additional resource that
+walks you through recovering from `git`_ mistakes is the
 `git choose-your-own-adventure`_.
 
 .. _astropy-git:
 
-Astropy Guidelines for `git`
-============================
+Astropy Guidelines for `git`_
+=============================
 
 * Don't use your ``master`` branch for anything.
 * Make a new branch, called a *feature branch*, for each separable set of
   changes: "one task, one branch" (`ipython git workflow`_).
 * Start that new *feature branch* from the most current development version
   of astropy (instructions are below).
-* Name your branch for the purpose of the changes, for example 
+* Name your branch for the purpose of the changes, for example
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
 * Make frequent commits, and always include a commit message. Each commit
   should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
 * Never merge changes from ``astropy/master`` into your feature branch. If
   changes in the development version require changes to our code you can
-  :ref:`rebase`. 
+  :ref:`rebase`.
 
-In addition there are a couple of `git` naming conventions used in this
+In addition there are a couple of `git`_ naming conventions used in this
 document:
 
 * Change the name of the remote ``origin`` to ``your-github-username``.
-* Name the remote that is the primary Astropy repository 
+* Name the remote that is the primary Astropy repository
   ``astropy``; in prior versions of this documentation it was referred to as
   ``upstream``.
 
@@ -170,14 +170,14 @@ see what you've done, and why you did it.
 A worked example that follows these steps for fixing an Astropy issue is at
 :ref:`astropy-fix-example`.
 
-Some additional topics related to `git` are in :ref:`additional-git`.
+Some additional topics related to `git`_ are in :ref:`additional-git`.
 
 .. _fetch-latest:
 
 Fetch the latest Astropy
 ========================
 
-From time to time you should fetch the development version (i.e. Astropy 
+From time to time you should fetch the development version (i.e. Astropy
 ``astropy/master``) changes from GitHub::
 
    git fetch astropy
@@ -219,7 +219,7 @@ changes on the latest version of Astropy::
 Connect the branch to GitHub
 ----------------------------
 
-At this point you have made and checked out a new branch, but `git` does not
+At this point you have made and checked out a new branch, but `git`_ does not
 know it should be connected to your fork on GitHub. You need that connection
 for your proposed changes to be managed by the Astropy maintainers on GitHub.
 
@@ -276,22 +276,22 @@ Conceptually, you will:
    documentation.
 #. Ideally, also make sure your changes do not break the documentation.
 #. Add tests of the code you contribute.
-#. Commit your changes in `git`
+#. Commit your changes in `git`_
 #. Repeat as necessary.
 
 
 In more detail
 --------------
 
-#. Make some changes to one or more files. You should follow the Astropy 
+#. Make some changes to one or more files. You should follow the Astropy
    :ref:`code-guide`. Each logical set of changes should be treated as one
    commit. For example, if you are fixing a known bug in Astropy and notice
    a different bug while implementing your fix, implement the fix to that new
-   bug as a different set of changes. 
+   bug as a different set of changes.
 
 #. Test that your changes do not lead to *regressions*, i.e. that your
    changes do not break existing code, by running the Astropy tests. You can
-   run all of the Astropy tests from ipython with:: 
+   run all of the Astropy tests from ipython with::
 
      import astropy
      astropy.test()
@@ -309,7 +309,7 @@ In more detail
 
 #. If you have sphinx installed, you can also check that
    the documentation builds and looks correct by running, from the
-   ``astropy`` directory:: 
+   ``astropy`` directory::
 
      python setup.py build_sphinx
 
@@ -319,8 +319,8 @@ In more detail
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at
    :ref:`testing-guidelines`, but if you have no experience writing tests or
-   with the `py.test` testing framework submit your changes without adding
-   tests, but mention in the pull request that you have not written tests. An 
+   with the `py.test`_ testing framework submit your changes without adding
+   tests, but mention in the pull request that you have not written tests. An
    example of writing a test is in :ref:`astropy-fix-example`.
 
 #. Stage your changes using ``git add`` and commit them using ``git commit``.
@@ -328,9 +328,9 @@ In more detail
    at :ref:`astropy-fix-example`.
 
    .. note::
-        Make your `git` commit messages short and descriptive. If a commit
+        Make your `git`_ commit messages short and descriptive. If a commit
         fixes an issue, include, on the second or later line of the commit
-        message, the issue number in the commit message, like this: 
+        message, the issue number in the commit message, like this:
         ``Closes #123``. Doing so will automatically close the issue when the
         pull request is accepted.
 
@@ -345,7 +345,7 @@ Add a changelog entry
 
 Add an entry to the file ``CHANGES.rst`` briefly describing the change you
 made. Include the pull request number if the change fixes an issue. An
-example entry, for the changes which fixed 
+example entry, for the changes which fixed
 `issue 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
 
   - `astropy.wcs.Wcs.printwcs` will no longer warn that `cdelt` is
@@ -416,13 +416,13 @@ Conceptually, rebasing means taking your changes and applying them to the latest
 version of the development branch of the official astropy as though that was the
 version you had originally branched from.
 
-Behind the scenes, `git` is deleting the changes and branch you made, making the
+Behind the scenes, `git`_ is deleting the changes and branch you made, making the
 changes others made to the development branch of Astropy, then re-making your
 branch from the development branch and applying your changes to your branch.
 This results in re-writing the history of commits, which is why you should do it
 only if asked.
 
-It is easier to make mistakes rebasing than other areas of `git`, so before you
+It is easier to make mistakes rebasing than other areas of `git`_, so before you
 start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
@@ -437,7 +437,7 @@ made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
 After the rebase you need to push your changes to GitHub; you will need force
-the push because `git` objects to re-writing the history of the respository
+the push because `git`_ objects to re-writing the history of the respository
 after you have pushed it somewhere::
 
     git push -f

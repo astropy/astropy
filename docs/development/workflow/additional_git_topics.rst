@@ -8,14 +8,14 @@ Some other things you might want to do
 Delete a branch on GitHub
 -------------------------
 
-`git` strongly encourages making a new branch each time you make a change in the
+`git`_ strongly encourages making a new branch each time you make a change in the
 code. At some point you will need to clean up the branches you no longer need--
 that point is *after* your changes have been accepted if you made a pull request
 for those changes.
 
 There are two places to delete the branch: in your local repo and on GitHub.
 
-You can do these independent of each other. 
+You can do these independent of each other.
 
 To delete both your local copy AND the GitHub copy from the command line follow
 these instructions::
@@ -35,9 +35,9 @@ these instructions::
    git push origin :my-unwanted-branch
 
 (Note the colon ``:`` before ``test-branch``.) See `Github's instructions for
-deleting a branch 
+deleting a branch
 <https://help.github.com/articles/creating-and-deleting-branches-within-your-repository>`_
-if you want to delete the GitHub copy through GitHub. 
+if you want to delete the GitHub copy through GitHub.
 
 Several people sharing a single repository
 ------------------------------------------
