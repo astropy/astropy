@@ -517,10 +517,6 @@ def test_convenience():
     assert funcs.angular_diameter_distance(3).unit == u.Mpc
     assert np.allclose(funcs.luminosity_distance(3).value, 26012.402789543696)
     assert funcs.luminosity_distance(3).unit == u.Mpc
-    assert np.allclose(funcs.age(3).value, 2.20407604076062)
-    assert funcs.age(3).unit == u.Gyr
-    assert np.allclose(funcs.comoving_volume(3).value, 1151993546079.626)
-    assert funcs.comoving_volume(3).unit == u.Mpc**3
 
     # arrays
     assert np.allclose(funcs.arcsec_per_kpc_comoving([0.1, 0.5]).value,
@@ -581,14 +577,14 @@ def test_differential_comoving_volume():
     otemp = lambda x: c_open.differential_comoving_volume(x).value
     ctemp = lambda x: c_closed.differential_comoving_volume(x).value
     # Multiply by solid_angle (4 * pi)
-    assert np.allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0] 
-                                 for redshift in redshifts]), 
+    assert np.allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0]
+                                 for redshift in redshifts]),
                        wright_flat, rtol=1e-2)
-    assert np.allclose(np.array([4.0 * np.pi * quad(otemp, 0, redshift)[0] 
-                                 for redshift in redshifts]), 
+    assert np.allclose(np.array([4.0 * np.pi * quad(otemp, 0, redshift)[0]
+                                 for redshift in redshifts]),
                        wright_open, rtol=1e-2)
-    assert np.allclose(np.array([4.0 * np.pi * quad(ctemp, 0, redshift)[0] 
-                                 for redshift in redshifts]), 
+    assert np.allclose(np.array([4.0 * np.pi * quad(ctemp, 0, redshift)[0]
+                                 for redshift in redshifts]),
                        wright_closed, rtol=1e-2)
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -730,9 +726,9 @@ def test_integral():
     assert np.allclose(cosmo.comoving_distance([1, 2, 3, 5]),
                        cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]), rtol=1e-7)
     assert np.allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
-    assert np.allclose(cosmo.efunc([1, 2, 6]), 
+    assert np.allclose(cosmo.efunc([1, 2, 6]),
                        cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
-    assert np.allclose(cosmo.inv_efunc([1, 2, 6]), 
+    assert np.allclose(cosmo.inv_efunc([1, 2, 6]),
                        cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
@@ -1066,7 +1062,8 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError')
+    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError',
+            'deprecated')
 
     core.set_current('Planck13')
     for name in funcs.__all__:

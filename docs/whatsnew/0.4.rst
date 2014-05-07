@@ -15,7 +15,7 @@ Inspecting FITS headers from the command line
 ---------------------------------------------
 
 The :ref:`astropy-io-fits` sub-package now provides a command line script for
-inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run 
+inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run
 ``fitsheader file.fits`` in your terminal to print the header information to
 the screen in a human-readable format. Run ``fitsheader --help`` to see the
 full usage documentation.
@@ -42,3 +42,6 @@ Deprecation and backward-incompatible changes
   or ``False``, even if units do not match (for which case a ``UnitsError``
   used to be raised).  [#2328]
 
+- The functional interfame for `astropy.cosmology` (e.g.
+  ``cosmology.H(0.5)`` is now deprecated in favor of the objected-oriented
+  approach (`WMAP9.H(0.5)`). [#2343]

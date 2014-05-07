@@ -28,14 +28,14 @@ New Features
 
 - ``astropy.cosmology``
 
-  - ``age` and ``comoving_volume` convenience functions have been added to
-    ``astropy.cosmology``. [#1902]
-
   - Added ``z_at_value`` function to find the redshift at which a cosmology
     function matches a desired value. [#1909]
 
-  - Added ``differential_comoving_volume`` function to give the differential 
+  - Added ``FLRW.differential_comoving_volume`` method to give the differential
     comoving volume at redshift z. [#2103]
+
+  - The functional interface is now deprecated in favor of the more-explicit
+    use of methods on cosmology objects. [#2343]
 
 - ``astropy.io.ascii``
 
