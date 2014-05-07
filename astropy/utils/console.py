@@ -12,6 +12,7 @@ import re
 import math
 import multiprocessing
 import os
+import struct
 import sys
 import threading
 import time
@@ -99,6 +100,7 @@ def isatty(file):
         return file.isatty()
     return False
 
+
 def terminal_size(file=stdio.stdout):
     """
     Returns a tuple (height, width) containing the height and width of
@@ -110,9 +112,6 @@ def terminal_size(file=stdio.stdout):
     """
 
     try:
-        import termios
-        import fcntl
-        import struct
         s = struct.pack("HHHH", 0, 0, 0, 0)
         x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
         (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
@@ -122,13 +121,14 @@ def terminal_size(file=stdio.stdout):
             width -= 1
         return (lines, width)
     except:
-        try: # see if POSIX standard variables will work
+        try:
+            # see if POSIX standard variables will work
             return (int(os.environ.get('LINES')),
                     int(os.environ.get('COLUMNS')))
-        except:
+        except TypeError:
             # fall back on configuration variables
-            from ..table import conf
             return conf.max_lines, conf.max_width
+
 
 def _color_text(text, color):
     """

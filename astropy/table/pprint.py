@@ -25,61 +25,6 @@ elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
 
-<<<<<<< HEAD
-=======
-MAX_LINES = ConfigAlias(
-    '0.4', 'MAX_LINES', 'max_lines', 'astropy.table.pprint', 'astropy.table')
-MAX_WIDTH = ConfigAlias(
-    '0.4', 'MAX_WIDTH', 'max_width', 'astropy.table.pprint', 'astropy.table')
-
-
-def _get_pprint_size(max_lines=None, max_width=None):
-    """Get the output size (number of lines and character width) for Column and
-    Table pformat/pprint methods.
-
-    If no value of `max_lines` is supplied then the height of the screen
-    terminal is used to set `max_lines`.  If the terminal height cannot be
-    determined then the default will be determined using the
-    `astropy.table.conf.max_lines` configuration item. If a negative value
-    of `max_lines` is supplied then there is no line limit applied.
-
-    The same applies for max_width except the configuration item is
-    `astropy.table.conf.max_width`.
-
-    Parameters
-    ----------
-    max_lines : int or None
-        Maximum lines of output (header + data rows)
-
-    max_width : int or None
-        Maximum width (characters) output
-
-    Returns
-    -------
-    max_lines, max_width : int
-
-    """
-    if max_lines is None or max_width is None:
-        lines, width = terminal_size()
-
-    if max_lines is None:
-        max_lines = lines
-    elif max_lines < 0:
-        max_lines = sys.maxsize
-    if max_lines < 6:
-        max_lines = 6
-
-    if max_width is None:
-        max_width = width
-    elif max_width < 0:
-        max_width = sys.maxsize
-    if max_width < 10:
-        max_width = 10
-
-    return max_lines, max_width
-
-
->>>>>>> Updated pprint to reflect changes in terminal_size()
 def _auto_format_func(format_, val):
     """Format ``val`` according to ``format_`` for both old- and new-
     style format specifications or using a user supplied function.
@@ -150,21 +95,7 @@ class TableFormatter(object):
 
         """
         if max_lines is None or max_width is None:
-            try:  # Will likely fail on Windows
-                import termios
-                import fcntl
-                import struct
-                s = struct.pack("HHHH", 0, 0, 0, 0)
-                fd_stdout = sys.stdout.fileno()
-                x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
-                (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
-                if lines > 12:
-                    lines -= 6
-                if width > 10:
-                    width -= 1
-            except:
-                from . import conf
-                lines, width = conf.max_lines, conf.max_width
+            lines, width = terminal_size()
 
         if max_lines is None:
             max_lines = lines

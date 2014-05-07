@@ -139,12 +139,12 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``table.conf.auto_colname``
    * - ``[table.pprint] max_lines``
      - ``table.pprint.MAX_LINES``
-     - ``[table] max_lines``
-     - ``table.conf.max_lines``
+     - ``[] max_lines``
+     - ``conf.max_lines``
    * - ``[table.pprint] max_width``
      - ``table.pprint.MAX_WIDTH``
-     - ``[table] max_width``
-     - ``table.conf.max_width``
+     - ``[] max_width``
+     - ``conf.max_width``
    * - ``[utils.console] use_color``
      - ``utils.console.USE_COLOR``
      - ``[] use_color``
