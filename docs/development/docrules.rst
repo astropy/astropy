@@ -509,9 +509,9 @@ Other points to keep in mind
   `<http://docs.scipy.org/numpy/Questions+Answers/>`_.
 
 * ``array_like`` : For functions that take arguments which can have not only
-  a type `ndarray`, but also types that can be converted to an ndarray
+  a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
-  with type `array_like`.
+  with type ``array_like``.
 
 Common reST concepts
 --------------------

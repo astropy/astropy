@@ -21,7 +21,7 @@ Astropy Core Package Documentation
     :height: 96px
     :target: http://www.astropy.org/
 
-Welcome to the `astropy` documentation! `astropy` is a community-driven
+Welcome to the ``astropy`` documentation! ``astropy`` is a community-driven
 package intended to contain much of the core functionality and some common
 tools needed for performing astronomy and astrophysics with Python.
 
@@ -109,8 +109,8 @@ Getting help
 If you want to get help or discuss issues with other Astropy users, you can sign
 up for the `astropy mailing list`_. Alternatively, the `astropy-dev mailing
 list`_ is where you should go to discuss more technical aspects of Astropy with
-the developers. You can also email the astropy developers privately at 
-`astropy-feedback@googlegroups.com`_...but remember that questions you ask 
+the developers. You can also email the astropy developers privately at
+`astropy-feedback@googlegroups.com`_...but remember that questions you ask
 publicly serve as resources for other users!
 
 .. _reporting_issues:
@@ -126,7 +126,7 @@ account <https://github.com>`_ on GitHub if you do not have one.
 
 If you prefer not to create a GitHub account, please report the issue to either
 the `astropy mailing list`_, the `astropy-dev mailing list`_ or sending a
-private email to the astropy core developers at 
+private email to the astropy core developers at
 `astropy-feedback@googlegroups.com <mailto:astropy-feedback@googlegroups.com>`_.
 
 Please include an example that demonstrates the issue that will allow the

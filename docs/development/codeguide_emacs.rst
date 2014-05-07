@@ -5,6 +5,7 @@
 .. _flymake: http://www.emacswiki.org/emacs/FlyMake
 .. _pyflakes: http://pypi.python.org/pypi/pyflakes
 .. _pep8: http://pypi.python.org/pypi/pep8
+.. include:: workflow/known_projects.inc
 
 The Astropy coding guidelines are listed in :doc:`codeguide`. This
 document will describe some configuration options for Emacs, that will
@@ -14,10 +15,11 @@ in configuration file, only the individual configurations are presented
 below.
 
 For this setup we will need flymake_, pyflakes_ and the pep8_ Python
-script, in addition to `python-mode`.
+script, in addition to ``python-mode``.
 
-Flymake comes with Emacs 23. The rest can be obtained from their
-websites, or can be installed using `easy_install` or `pip`.
+Flymake comes with Emacs 23. The rest can be obtained from their websites,
+or can be installed using `easy_install
+<http://pythonhosted.org//setuptools/easy_install.html>`_ or `pip`_.
 
 Global settings
 ===============
@@ -42,15 +44,15 @@ smaller value also, for example 72.
 
 .. code-block:: scheme
 
-  ;; Set the number to the number of columns to use. 
+  ;; Set the number to the number of columns to use.
   (setq-default fill-column 79)
 
   ;; Add Autofill mode to mode hooks.
   (add-hook 'text-mode-hook 'turn-on-auto-fill)
-   
+
   ;; Show line number in the mode line.
   (line-number-mode 1)
-   
+
   ;; Show column number in the mode line.
   (column-number-mode 1)
 
@@ -79,11 +81,11 @@ cursor will jump to the previous indentation level.
 .. code-block:: scheme
 
   (load-library "python")
-   
+
   (autoload 'python-mode "python-mode" "Python Mode." t)
   (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
   (add-to-list 'interpreter-mode-alist '("python" . python-mode))
-   
+
   (setq interpreter-mode-alist
         (cons '("python" . python-mode)
               interpreter-mode-alist)
@@ -105,7 +107,7 @@ Emacs configuration directory.
   ;; Highlight character at "fill-column" position.
   (require 'column-marker)
   (set-face-background 'column-marker-1 "red")
-  (add-hook 'python-mode-hook 
+  (add-hook 'python-mode-hook
             (lambda () (interactive)
               (column-marker-1 fill-column)))
 
@@ -117,14 +119,14 @@ red. When cursor is on such a line a message is displayed in the
 mini-buffer. When mouse pointer is on such a line a "tool tip" message
 is also shown.
 
-For flymake to work with `pep8` and `pyflakes`, create an
-executable file named `pychecker` with the following contents. This
+For flymake to work with `pep8`_ and `pyflakes`_, create an
+executable file named `pychecker`_ with the following contents. This
 file must be in the system path.
 
 .. code-block:: sh
 
   #!/bin/bash
-   
+
   pyflakes "$1"
   pep8 --ignore=E221,E701,E202 --repeat "$1"
   true
@@ -136,11 +138,11 @@ Add the following code to Emacs configurations.
   ;; Setup for Flymake code checking.
   (require 'flymake)
   (load-library "flymake-cursor")
-   
+
   ;; Script that flymake uses to check code. This script must be
   ;; present in the system path.
   (setq pycodechecker "pychecker")
-   
+
   (when (load "flymake" t)
     (defun flymake-pycodecheck-init ()
       (let* ((temp-file (flymake-init-create-temp-buffer-copy
@@ -151,10 +153,10 @@ Add the following code to Emacs configurations.
         (list pycodechecker (list local-file))))
     (add-to-list 'flymake-allowed-file-name-masks
                  '("\\.py\\'" flymake-pycodecheck-init)))
-   
+
   (add-hook 'python-mode-hook 'flymake-mode)
 
-.. note:: 
+.. note::
 
     Flymake will save files with suffix *_flymake* in the current
     directory. If it crashes for some reason, then these files will not
@@ -165,18 +167,18 @@ Add the following code to Emacs configurations.
 Delete trailing white spaces and blank lines
 --------------------------------------------
 
-To manually delete trailing whitespaces, press `C-t C-w`, which will
-run the command "delete-whitespaces`. This command is also run when a
-file is saved, and hence all trailing whitespaces will be deleted on
-saving a Python file.
+To manually delete trailing whitespaces, press ``C-t C-w``, which will run
+the command "delete-whitespaces`. This command is also run when a file is
+saved, and hence all trailing whitespaces will be deleted on saving a Python
+file.
 
 To make sure that all "words" are separated by only one space, type
-`M-SPC` (use the ALT key since `M-SPC` sometimes brings up a context
+``M-SPC`` (use the ALT key since ``M-SPC`` sometimes brings up a context
 menu.).
 
-To collapse a set of blank lines to one blank line, place the cursor on
-one of these and press `C-x C-o`. This is useful for deleting multiple
-black lines at the end of a file. 
+To collapse a set of blank lines to one blank line, place the cursor on one
+of these and press ``C-x C-o``. This is useful for deleting multiple black
+lines at the end of a file.
 
 .. code-block:: scheme
 
@@ -185,7 +187,7 @@ black lines at the end of a file.
             (lambda ()
               (local-set-key (kbd "C-t C-w")
                              'delete-trailing-whitespace)))
-   
+
   ;; Automatically remove trailing whitespace when file is saved.
   (add-hook 'python-mode-hook
         (lambda()
@@ -193,7 +195,7 @@ black lines at the end of a file.
                 '(lambda()
                    (save-excursion
                      (delete-trailing-whitespace))))))
-   
+
   ;; Use M-SPC (use ALT key) to make sure that words are separated by
   ;; just one space. Use C-x C-o to collapse a set of empty lines
   ;; around the cursor to one empty line. Useful for deleting all but

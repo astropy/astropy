@@ -1,5 +1,6 @@
 :orphan:
 
+.. include:: links.inc
 .. _install-git:
 
 ==========================
@@ -18,13 +19,13 @@ http://git-scm.com/downloads
 Essential configuration
 -----------------------
 
-Though technically not required to install `git` and get it running, configure `git` so that you get credit for your contributions::
+Though technically not required to install `git`_ and get it running, configure `git`_ so that you get credit for your contributions::
 
     git config --global user.name "Your Name"
     git config --global user.email you@yourdomain.example.com
 
 .. note::
-    Use the same email address here that you used for setting up your GitHub 
+    Use the same email address here that you used for setting up your GitHub
     account to save yourself a couple of steps later, when you connect your
     git to GitHub.
 
@@ -41,7 +42,7 @@ Get a git GUI (optional)
 ------------------------
 
 There are several good, free graphical interfaces for git.
-Even if you are proficient with `git` at the command line a GUI can be useful.
+Even if you are proficient with `git`_ at the command line a GUI can be useful.
 
 Mac and Windows:
 

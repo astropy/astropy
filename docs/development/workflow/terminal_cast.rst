@@ -1,5 +1,6 @@
 :orphan:
 
+.. include:: links.inc
 .. _terminal_cast:
 
 Terminal-cast of worked example
@@ -9,7 +10,7 @@ Terminal-cast of worked example
 
     The commands used for creating a new environment in this example work
     only in the Anaconda python distribution. For other distributions use
-    `virtualenvwrapper`; see :ref:`virtual_envs` for details.
+    `virtualenvwrapper`_; see :ref:`virtual_envs` for details.
 
 .. raw:: html
 

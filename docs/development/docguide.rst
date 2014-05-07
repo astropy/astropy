@@ -62,31 +62,31 @@ A custom Sphinx HTML theme is included in the astropy source tree and
 installed along with astropy. This allows the theme to be used by
 default from both astropy and affiliated packages. This is done by
 setting the theme in the global astropy sphinx configuration, which is
-imported in the sphinx configuration of both `astropy` and affiliated
+imported in the sphinx configuration of both ``astropy`` and affiliated
 packages.
 
-Using a different theme for `astropy` or affiliated packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using a different theme for ``astropy`` or affiliated packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A different theme can be used by overriding a few sphinx
 configuration variables set in the global configuration.
 
-* To use a different theme, set `html_theme` to the name of a desired
-  builtin Sphinx theme or a custom theme in
-  `package-name/docs/conf.py` (where `package-name` is "astropy" or
-  the name of the affiliated package).
+* To use a different theme, set ``'html_theme'`` to the name of a desired
+  builtin Sphinx theme or a custom theme in ``package-name/docs/conf.py``
+  (where ``'package-name'`` is "astropy" or the name of the affiliated
+  package).
 
 * To use a custom theme, additionally: place the theme in
-  `package-name/docs/_themes` and add `'_themes'` to the
-  `html_theme_path` variable. See the Sphinx_ documentation for more
+  ``package-name/docs/_themes`` and add ``'_themes'`` to the
+  ``'html_theme_path'`` variable. See the Sphinx_ documentation for more
   details on theming.
 
 Adding more custom themes to astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Additional custom themes can be included in the astropy source tree by
-placing them in the directory `astropy/astropy/sphinx/themes`, and
-editing `astropy/astropy/sphinx/setup_package.py` to include the theme
+placing them in the directory ``astropy/astropy/sphinx/themes``, and
+editing ``astropy/astropy/sphinx/setup_package.py`` to include the theme
 (so that it is installed).
 
 
@@ -122,13 +122,13 @@ This extension (and some related extensions) are a port of the
 written by the NumPy_ and SciPy_, projects, with some tweaks for
 Astropy.  Its main purposes is to reprocess docstrings from code into
 a form sphinx understands. Generally, there's no need to interact with
-it directly, as docstrings following the doc:`docrules` will be
+it directly, as docstrings following the :doc:`docrules` will be
 processed automatically.
 
 
 Other Extensions
 ^^^^^^^^^^^^^^^^
-`astropy.sphinx.ext` includes a few other extensions that are primarily
+``astropy.sphinx.ext`` includes a few other extensions that are primarily
 helpers for the other extensions or workarounds for undesired behavior.
 Their APIs are not included here because we may change them in the
 future.

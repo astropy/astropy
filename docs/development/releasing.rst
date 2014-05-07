@@ -52,7 +52,7 @@ procedure is that ensures a consistent release process each time.
  6. Be sure you're the "master" branch or, for a bug fix release, on the
     appropriate bug fix branch.  For example, if releasing version 0.2.2 make
     sure to::
-    
+
         $ git checkout v0.2.x
 
  7. Now install Astropy into the virtualenv::
@@ -97,7 +97,7 @@ procedure is that ensures a consistent release process each time.
      this will be appended automatically (ignore the message that says ".dev0
      will be appended"--it will actually be ".dev" without the 0).  For
      example, if the just-released version was "0.1" the default next version
-     will be "0.2".  If we want the next version to be, say "0.1.1", or "1.0", 
+     will be "0.2".  If we want the next version to be, say "0.1.1", or "1.0",
      then that must be entered manually.
 
  14. You will be shown a diff of CHANGES.rst showing that a new section has
@@ -146,7 +146,7 @@ procedure is that ensures a consistent release process each time.
 
  22. Update Readthedocs so that it builds docs for the corresponding github tag.
      Also verify that the ``stable`` Readthedocs version builds correctly for
-     the new version (it should trigger automatically once you've done the 
+     the new version (it should trigger automatically once you've done the
      previous step.)
 
  23. If this was a major/minor release (not a bug fix release) create a bug fix
@@ -179,7 +179,7 @@ procedure is that ensures a consistent release process each time.
      be updated by putting the previous release in as an older version, and updating
      the "latest developer version" link to point to the new release.
 
- 25. Run the ``upload_script.py`` script in `astropy-website` to update the actual
+ 25. Run the ``upload_script.py`` script in ``astropy-website`` to update the actual
      web site.
 
 Modifications for a beta/release candidate release
@@ -197,23 +197,23 @@ no problem.
 
 The primary modifications to the release procedure are:
 
-* When prompted for a version number (step #13), you will need to manually 
+* When prompted for a version number (step #13), you will need to manually
   enter something like "1.0b1" or "1.0rc1".  You should follow this numbering
   scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release is
   ordered "before" the main release by various automated tools.
 * On steps #18 and #19, where you register and upload to PyPI, it is important
-  that you add the option ``-r https://testpypi.python.org/pypi``.  This 
+  that you add the option ``-r https://testpypi.python.org/pypi``.  This
   ensures the release information and files are sent to the test server instead
-  of the real PyPI server.  This will probably require you to set up a 
-  ``~/.pypirc`` file appropriate for the testpypi server.  See 
+  of the real PyPI server.  This will probably require you to set up a
+  ``~/.pypirc`` file appropriate for the testpypi server.  See
   https://wiki.python.org/moin/TestPyPI for more on how to do this.
 * Do not do step #20 or later, as those are tasks for an actual release.
 
 .. note::
-    ``~/.pypirc`` files necessary for uploading to the testpypi server 
-    require you to include your password to be able to manage to do 
+    ``~/.pypirc`` files necessary for uploading to the testpypi server
+    require you to include your password to be able to manage to do
     ``register`` properly.  This can be insecure, because it means you have
-    to put your PyPI password in a plain-text file.  So you'll want to set 
+    to put your PyPI password in a plain-text file.  So you'll want to set
     the ``~/.pypirc`` file permissions to be quite restrictive, use a
     temporary PyPI password just for doing releases, or some other measure
     to ensure your password remains secure.
@@ -228,8 +228,8 @@ known as a "bug fix" release.  Bug fix releases should not change any user-
 visible interfaces.  They should only fix bugs on the previous major/minor
 release and may also refactor internal APIs or include omissions from previous
 releases--that is, features that were documented to exist but were accidentally
-left out of the previous release. They may also include changes to docstrings 
-that enhance clarity but do not describe new features (e.g., more examples, 
+left out of the previous release. They may also include changes to docstrings
+that enhance clarity but do not describe new features (e.g., more examples,
 typo fixes, etc).
 
 Bug fix releases are typically managed by maintaining one or more bug fix
@@ -384,7 +384,7 @@ doing cherry-picks into the bug fix branch.
 
     As discussed earlier, cherry-pick may result in merge conflicts.  If this
     occurs, the ``backport.sh`` script will exit and the conflict should be
-    resolved manually, followed by running ``git commit``.  To resume the 
+    resolved manually, followed by running ``git commit``.  To resume the
     ``backport.sh`` script after the merge conflict, it is currently necessary
     to edit the script to either remove or comment out the ``git cherry-pick``
     commands that already ran successfully.

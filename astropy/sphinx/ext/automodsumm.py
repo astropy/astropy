@@ -3,25 +3,26 @@
 This sphinx extension adds two directives for summarizing the public
 members of a module or package.
 
-These directives are primarily for use with the `automodapi` extension,
+These directives are primarily for use with the `automodapi`_ extension,
 but can be used independently.
 
+.. _automodsumm:
+
 =======================
-`automodsumm` directive
+automodsumm directive
 =======================
 
 This directive will produce an "autosummary"-style table for public
-attributes of a specified module. See the `sphinx.ext.autosummary`
-extension for details on this process. The main difference from the
-`autosummary` directive is that `autosummary` requires manually inputting
-all attributes that appear in the table, while this captures the entries
-automatically.
+attributes of a specified module. See the `sphinx.ext.autosummary`_ extension
+for details on this process. The main difference from the `autosummary`_
+directive is that `autosummary`_ requires manually inputting all attributes
+that appear in the table, while this captures the entries automatically.
 
 This directive requires a single argument that must be a module or
 package.
 
-It also accepts any options supported by the `autosummary` directive-
-see `sphinx.ext.autosummary` for details. It also accepts two additional
+It also accepts any options supported by the `autosummary`_ directive-
+see `sphinx.ext.autosummary`_ for details. It also accepts two additional
 options:
 
     * ``:classes-only:``
@@ -47,20 +48,24 @@ options:
 
 This extension also adds one sphinx configuration option:
 
-* `automodsumm_writereprocessed`
-    Should be a bool, and if True, will cause `automodsumm` to write files with
-    any ``automodsumm``  sections replaced with the content Sphinx processes
-    after ``automodsumm`` has run.   The output files are not actually used by
-    sphinx, so this option is only for figuring out the cause of sphinx warnings
-    or other debugging.   Defaults to `False`.
+* ``automodsumm_writereprocessed``
+    Should be a bool, and if True, will cause `automodsumm`_ to write files
+    with any ``automodsumm`` sections replaced with the content Sphinx
+    processes after ``automodsumm`` has run.  The output files are not
+    actually used by sphinx, so this option is only for figuring out the
+    cause of sphinx warnings or other debugging.  Defaults to `False`.
 
+.. _sphinx.ext.autosummary: http://sphinx-doc.org/latest/ext/autosummary.html
+.. _autosummary: http://sphinx-doc.org/latest/ext/autosummary.html#directive-autosummary
+
+.. _automod-diagram:
 
 ===========================
-`automod-diagram` directive
+automod-diagram directive
 ===========================
 
 This directive will produce an inheritance diagram like that of the
-`sphinx.ext.inheritance_diagram` extension.
+`sphinx.ext.inheritance_diagram`_ extension.
 
 This directive requires a single argument that must be a module or
 package. It accepts no options.
@@ -69,6 +74,7 @@ package. It accepts no options.
     Like 'inheritance-diagram', 'automod-diagram' requires
     `graphviz <http://www.graphviz.org/>`_ to generate the inheritance diagram.
 
+.. _sphinx.ext.inheritance_diagram: http://sphinx-doc.org/latest/ext/inheritance.html
 """
 
 import inspect

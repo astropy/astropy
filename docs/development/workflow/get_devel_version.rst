@@ -5,16 +5,16 @@ Try the development version
 ===========================
 
 .. note::
-    `git` is the name of a source code management system. It is used to keep 
+    `git`_ is the name of a source code management system. It is used to keep
     track of changes made to code and to manage contributions coming from
-    several different people. If you want to read more about `git` right now
+    several different people. If you want to read more about `git`_ right now
     take a look at `Git Basics`_.
 
-    If you have never used `git` before, allow one hour the first time you do
+    If you have never used `git`_ before, allow one hour the first time you do
     this. You will not need to do this every time you want to contribute;
     most of it is one-time setup. You can count on one hand the number of
-    `git` commands you will need to regularly use to keep your local copy
-    of `Astropy`_ up to date. If you find this taking more than an hour email 
+    `git`_ commands you will need to regularly use to keep your local copy
+    of `Astropy`_ up to date. If you find this taking more than an hour email
     the :ref:`astropy developers list for help <getting_help>`
 
 
@@ -27,7 +27,7 @@ Trying out the development version of Astropy is useful in three ways:
   reports more useful.
 * You will need to go through all of these steps before contributing any
   code to Astropy. Practicing now will save you time later if you plan to
-  contribute. 
+  contribute.
 
 Overview
 --------
@@ -82,51 +82,51 @@ Check by typing, in a terminal::
     $ git --version
     # if git is installed, will get something like: git version 1.8.4
 
-If `git` is not installed, `get it <http://git-scm.com/downloads>`_. 
+If `git`_ is not installed, `get it <http://git-scm.com/downloads>`_.
 
 **Basic git configuration:**
 
 Follow the instructions at `Set Up Git at GitHub`_ to take care of two
 essential items:
 
-+ Set your user name and email in your copy of `git`
++ Set your user name and email in your copy of `git`_
 
 + Set up authentication so you don't have to type your github password every
   time you need to access github from the command line. The default method at
   `Set Up Git at GitHub`_ may require administrative privleges; if that is a
-  problem, set up authentication 
+  problem, set up authentication
   `using SSH keys instead <https://help.github.com/articles/generating-ssh-keys>`_
 
-We also recommend setting up `git` so that when you copy changes from your 
+We also recommend setting up `git`_ so that when you copy changes from your
 computer to `GitHub`_ only the copy (called a *branch*) of Astropy that you are
 working on gets pushed up to GitHub. Do that with::
 
     git config --global push.default simple
 
-If you skip this step now it is not a problem; `git` will remind you to do it in
+If you skip this step now it is not a problem; `git`_ will remind you to do it in
 those cases when it is relevant.
 
 .. note::
 
     Make sure you make a note of which authentication method you set up
     because it affects the command you use to copy your GitHub fork to your
-    computer. 
+    computer.
 
     If you set up password caching (the default method) the URLs will look like
-    ``https://github.com/your-user-name/astropy.git``. 
-    
+    ``https://github.com/your-user-name/astropy.git``.
+
     If you set up SSH keys the URLs you use for making copies will look
     something like ``git@github.com:your-user-name/astropy.git``.
-   
+
 
 .. _clone_your_fork:
 
 Copy your fork of Astropy from GitHub to your computer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One of the commands below will make a complete copy of your `GitHub`_ fork of
-`Astropy`_ in a directory called `astropy`; which form you use depends on what
-kind of authentication you set up in the previous step::
+One of the commands below will make a complete copy of your `GitHub`_ fork
+of `Astropy`_ in a directory called ``astropy``; which form you use depends
+on what kind of authentication you set up in the previous step::
 
     # Use this form if you setup SSH keys...
     $ git clone git@github.com:your-user-name/astropy.git
@@ -143,27 +143,27 @@ Tell git where to look for changes in the development version of Astropy
 
 Right now your local copy of `Astropy`_ doesn't know where the development
 version of `Astropy`_ is. There is no easy way to keep your local copy up to
-date. In `git` the name for another location of the same repository is a
+date. In `git`_ the name for another location of the same repository is a
 *remote*. The repository that contains the latest "official" development
 version is traditionally called the *upstream* remote, but here we use a
-more meaningful name for the remote: *astropy*. 
+more meaningful name for the remote: *astropy*.
 
 Change into the ``astropy`` directory you created in the previous step and
-let `git` know about about the astropy remote::
+let `git`_ know about about the astropy remote::
 
     cd astropy
     git remote add astropy git://github.com/astropy/astropy.git
 
-You can check that everything is set up properly so far by asking `git` to
-show you all of the remotes it knows about for your local repository of 
+You can check that everything is set up properly so far by asking `git`_ to
+show you all of the remotes it knows about for your local repository of
 `Astropy`_ with ``git remote -v``, which should display something like::
 
     astropy   git://github.com/astropy/astropy.git (fetch)
     astropy   git://github.com/astropy/astropy.git (push)
     origin     git@github.com:your-user-name/astropy.git (fetch)
     origin     git@github.com:your-user-name/astropy.git (push)
-    
-Note that `git` already knew about one remote, called *origin*; that is your
+
+Note that `git`_ already knew about one remote, called *origin*; that is your
 fork of Astropy on `GitHub`_.
 
 To make more explicit that origin is really *your* fork of Astropy, rename that
@@ -176,8 +176,8 @@ remote to your `GitHub`_ user name::
 Create your own private workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One of the nice things about `git` is that it is easy to make what is
-essentially your own private workspace to try out coding ideas. `git`
+One of the nice things about `git`_ is that it is easy to make what is
+essentially your own private workspace to try out coding ideas. `git`_
 calls these workspaces *branches*.
 
 Your repository already has several branches; see them if you want by running
@@ -186,7 +186,7 @@ they exist on your remote copy of Astropy on GitHub.
 
 There is one special branch, called *master*. Right now it is the one you are
 working on; you can tell because it has a marker next to it in your list of
-branches: ``* master``. 
+branches: ``* master``.
 
 To make a long story short, you never want to work on master. Always work on a branch.
 
@@ -196,11 +196,11 @@ a meaningful more name)::
 
     git branch my-own-astropy
 
-You are *not quite* done yet. Git knows about this new branch; run 
+You are *not quite* done yet. Git knows about this new branch; run
 ``git branch`` and you get::
 
     * master
-      my-own-astropy 
+      my-own-astropy
 
 The ``*`` indicates you are still working on master. To work on your branch
 instead you need to *check out* the branch ``my-own-astropy``. Do that with::
@@ -227,7 +227,7 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`).
     straight to using a virtual python environment:
 
     + You use Python 3.
-    + You want to work on C or Cython code in `Astropy`_. 
+    + You want to work on C or Cython code in `Astropy`_.
 
 In the directory where your copy of `Astropy`_ is type::
 
@@ -252,8 +252,8 @@ should have dev in the name.
     will be used. That is fine for testing but you should make sure you change
     back to the stable version unless you are developing astropy. If you want
     to develop astropy, there is a better way of separating the development
-    version from the version you do science with. That method, using a 
-    `virtualenv`, is discussed at :ref:`virtual_envs`.
+    version from the version you do science with. That method, using a
+    `virtualenv`_, is discussed at :ref:`virtual_envs`.
 
     For now **remember to change back to your usual version** when you are
     done with this.
@@ -267,7 +267,7 @@ Testing is an important part of making sure `Astropy`_ produces reliable,
 reproducible results. Before you try out a new feature or think you have found
 a bug make sure the tests run properly on your system.
 
-If the test *don't* complete successfully, that is itself a bug--please 
+If the test *don't* complete successfully, that is itself a bug--please
 `report it <astropy issues page>`_.
 
 To run the tests, navigate back to the directory your copy of astropy is in on
@@ -281,7 +281,7 @@ this::
 
     4741 passed, 85 skipped, 11 xfailed
 
-Skips and xfails are fine, but if there are errors or failures please 
+Skips and xfails are fine, but if there are errors or failures please
 `report them <astropy issues page>`_.
 
 .. _try_devel:
@@ -295,7 +295,7 @@ If you are going through this to ramp up to making more contributions to
 If you are doing this because you have found a bug and are checking that it
 still exists in the development version, try running your code.
 
-Or, just for fun, try out one of the 
+Or, just for fun, try out one of the
 `new features <http://astropy.readthedocs.org/en/latest/changelog.html>`_ in
 the development version.
 
@@ -322,7 +322,7 @@ directory outside of the astropy distribution** and running this in python::
     '0.2.5'
 
 The actual version number you see will likely be different than this example,
-but it should not have `dev` in it.
+but it should not have ``'dev'`` in it.
 
 
 .. include:: links.inc

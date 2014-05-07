@@ -3,15 +3,17 @@
 This sphinx extension adds a tools to simplify generating the API
 documentation for Astropy packages and affiliated packages.
 
+.. _automodapi:
+
 ========================
-``automodapi`` directive
+automodapi directive
 ========================
 This directive takes a single argument that must be a module or package. It
 will produce a block of documentation that includes the docstring for the
-package, an `automodsumm` directive, and an `automod-diagram` if there are
-any classes in the module. If only the main docstring of the module/package
-is desired in the documentation, use ``automodule`` instead of
-``automodapi``.
+package, an :ref:`automodsumm` directive, and an :ref:`automod-diagram` if
+there are any classes in the module. If only the main docstring of the
+module/package is desired in the documentation, use `automodule`_ instead of
+`automodapi`_.
 
 It accepts the following options:
 
@@ -52,19 +54,20 @@ It accepts the following options:
 
 This extension also adds two sphinx configuration options:
 
-* `automodapi_toctreedirnm`
+* ``automodapi_toctreedirnm``
     This must be a string that specifies the name of the directory the
     automodsumm generated documentation ends up in. This directory path should
     be relative to the documentation root (e.g., same place as ``index.rst``).
     Defaults to ``'api'``.
 
-* `automodapi_writereprocessed`
-    Should be a bool, and if `True`, will cause `automodapi` to write files with
-    any ``automodapi``  sections replaced with the content Sphinx processes
-    after ``automodapi`` has run.   The output files are not actually used by
-    sphinx, so this option is only for figuring out the cause of sphinx warnings
-    or other debugging.   Defaults to `False`.
+* ``automodapi_writereprocessed``
+    Should be a bool, and if `True`, will cause `automodapi`_ to write files
+    with any `automodapi`_ sections replaced with the content Sphinx
+    processes after `automodapi`_ has run.  The output files are not
+    actually used by sphinx, so this option is only for figuring out the
+    cause of sphinx warnings or other debugging.  Defaults to `False`.
 
+.. _automodule: http://sphinx-doc.org/latest/ext/autodoc.html?highlight=automodule#directive-automodule
 """
 
 # Implementation note:
@@ -129,7 +132,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
     automodapi template form based on provided options.
 
     This is used with the sphinx event 'source-read' to replace
-    `automodapi` entries before sphinx actually processes them, as
+    `automodapi`_ entries before sphinx actually processes them, as
     automodsumm needs the code to be present to generate stub
     documentation.
 
