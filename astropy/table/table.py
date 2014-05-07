@@ -848,8 +848,12 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, int):
             return self.Row(self, item)
-        elif isinstance(item, (tuple, list)) and all(x in self.colnames
+        elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
                                                      for x in item):
+            bad_names = [x for x in item if x not in self.colnames]
+            if bad_names:
+                raise ValueError('Slice name(s) {0} not valid column name(s)'
+                                 .format(', '.join(bad_names)))
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)

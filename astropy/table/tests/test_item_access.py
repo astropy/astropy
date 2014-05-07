@@ -195,6 +195,18 @@ class TestTableItems(BaseTestItems):
             assert t2.masked == self.t.masked
             assert t2._column_class == self.t._column_class
 
+    def test_select_columns_fail(self, table_data):
+        """Selecting a column that doesn't exist fails"""
+        self.t = table_data.Table(table_data.COLS)
+
+        with pytest.raises(ValueError) as err:
+            self.t[['xxxx']]
+        assert 'Slice name(s) xxxx not valid column name(s)' in str(err)
+
+        with pytest.raises(ValueError) as err:
+            self.t[['xxxx', 'yyyy']]
+        assert 'Slice name(s) xxxx, yyyy not valid column name(s)' in str(err)
+
     def test_np_where(self, table_data):
         """Select rows using output of np.where"""
         t = table_data.Table(table_data.COLS)
