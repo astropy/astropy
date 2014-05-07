@@ -662,8 +662,6 @@ def generate_default_config(build_lib, package, command):
             msg = msg.decode('UTF-8')
         log.error(msg.format(stdout=stdout.decode('UTF-8'),
                              stderr=stderr.decode('UTF-8')))
-        raise RuntimeError()
-
 
 
 def add_command_option(command, name, doc, is_bool=False):
