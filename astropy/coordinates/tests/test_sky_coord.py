@@ -344,3 +344,27 @@ def test_repr():
     sc3 = SkyCoord('icrs', 0.1*u.deg, [1, 2.5]*u.deg)
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')
+
+
+def test_ops():
+    """
+    Tests miscellaneous operations like `len`
+    """
+    sc = SkyCoord('icrs', 0*u.deg, 1*u.deg)
+    sc_arr = SkyCoord('icrs', 0*u.deg, [1, 2]*u.deg)
+    sc_empty = SkyCoord('icrs', []*u.deg, []*u.deg)
+
+    assert sc.isscalar
+    assert not sc_arr.isscalar
+    assert not sc_empty.isscalar
+
+    with pytest.raises(TypeError):
+        len(sc)
+    assert len(sc_arr) == 2
+    assert len(sc_empty) == 0
+
+    assert bool(sc)
+    assert bool(sc_arr)
+    assert not bool(sc_empty)
+
+

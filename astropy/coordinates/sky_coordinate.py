@@ -131,6 +131,9 @@ class SkyCoord(object):
     def __len__(self):
         return len(self._coord)
 
+    def __nonzero__(self):
+        return self._coord.__nonzero__()
+
     def _parse_inputs(self, args, kwargs):
         """
         Assemble a validated and sanitized keyword args dict for instantiating a
