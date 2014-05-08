@@ -145,19 +145,24 @@ class BaseCoordinateFrame(object):
 
         use_skycoord = False
 
-        if len(args) > 0 and all(not isinstance(arg, BaseRepresentation) for arg in args):
-            warnings.warn("Initializing frames using positional arguments is "
-                          "now deprecated. Use SkyCoord or explicitly specify "
-                          "the argument names instead.", AstropyDeprecationWarning)
-            use_skycoord = True
+        if len(args) > 1 or (len(args) == 1 and not isinstance(args[0], BaseRepresentation)):
+            for arg in args:
+                if (not isinstance(arg, u.Quantity)
+                    and not isinstance(arg, BaseRepresentation)):
+                    warnings.warn("Initializing frames using non-Quantity "
+                                  "arguments is now deprecated. Use "
+                                  "SkyCoord or pass Quantity instances "
+                                  "instead.", AstropyDeprecationWarning)
+                    use_skycoord = True
+                    break
 
-        elif 'unit' in kwargs:
+        if 'unit' in kwargs and not use_skycoord:
             warnings.warn("Initializing frames using the ``unit`` argument is "
                           "now deprecated. Use SkyCoord or pass Quantity "
                           " instances to frames instead.", AstropyDeprecationWarning)
             use_skycoord = True
 
-        else:
+        if not use_skycoord:
             for key in cls.preferred_attr_names:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
