@@ -371,3 +371,20 @@ class TestInitFromNone():
         assert t['a'].dtype.type == np.float32
         assert t['b'].dtype.type == np.int32
         assert t.colnames == ['a', 'b']
+
+
+@pytest.mark.usefixtures('table_types')
+class TestInitFromRows():
+
+    def test_data_none_with_row(self, table_type):
+        rows = [[1, 'a'], [2, 'b']]
+        t = table_type(rows=rows, names=('a', 'b'))
+        assert np.all(t['a'] == [1, 2])
+        assert np.all(t['b'] == ['a', 'b'])
+        assert t.colnames == ['a', 'b']
+
+        rows = [(1, 'a'), (2, 'b')]
+        t = table_type(rows=rows, names=('a', 'b'))
+        assert np.all(t['a'] == [1, 2])
+        assert np.all(t['b'] == ['a', 'b'])
+        assert t.colnames == ['a', 'b']
