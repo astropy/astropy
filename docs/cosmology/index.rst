@@ -68,7 +68,7 @@ instance are immutable -- that is, if you want to change, say,
 the built in cosmologies are instances of classes as described below,
 not functions.
 
-Using `cosmology`
+Using cosmology
 =================
 
 Most of the functionality is enabled by the
@@ -188,8 +188,8 @@ called. For these cases it's possible to specify a "default" cosmology.
 
 You can set the default cosmology to a pre-defined value by using the
 "default_cosmology" option in the ``[cosmology.core]`` section of the
-configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the :func:`astropy.cosmology.default_cosmology.set` function to set a
+configuration file (see :ref:`astropy_config`). Alternatively, you can use
+the ``set`` function of `~astropy.cosmology.default_cosmology` to set a
 cosmology for the current Python session.
 
 If you haven't set a default cosmology using one of the methods
@@ -246,7 +246,7 @@ are available in the document tag for each object:
   (from Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18.
   Table 1 (WMAP + BAO + H0 ML).)
 
-Using `cosmology` inside Astropy
+Using cosmology inside Astropy
 --------------------------------
 
 If you are writing code for the Astropy core or an affiliated
@@ -389,7 +389,7 @@ The code in this sub-package is tested against several widely-used
 online cosmology calculators, and has been used to perform
 calculations in refereed papers. You can check the range of redshifts
 over which the code is regularly tested in the module
-`astropy.cosmology.tests.test_cosmology`. If you find any bugs, please
+``astropy.cosmology.tests.test_cosmology``. If you find any bugs, please
 let us know by `opening an issue at the github repository
 <https://github.com/astropy/astropy/issues>`_!
 
