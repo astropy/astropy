@@ -119,7 +119,7 @@ def get_descrs(arrays, col_name_map):
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError("The '{0}' columns have incompatible types: {1}"
-                                  .format(names[0],tme._incompat_types))
+                                  .format(names[0], tme._incompat_types))
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
