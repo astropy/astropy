@@ -68,8 +68,8 @@ instance are immutable -- that is, if you want to change, say,
 the built in cosmologies are instances of classes as described below,
 not functions.
 
-Using cosmology
-=================
+Using `astropy.cosmology`
+=========================
 
 Most of the functionality is enabled by the
 `~astropy.cosmology.FLRW` object. This represents a homogeneous
@@ -246,8 +246,8 @@ are available in the document tag for each object:
   (from Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18.
   Table 1 (WMAP + BAO + H0 ML).)
 
-Using cosmology inside Astropy
---------------------------------
+Using `astropy.cosmology` inside Astropy
+----------------------------------------
 
 If you are writing code for the Astropy core or an affiliated
 package, it is strongly recommended that you use the default cosmology
