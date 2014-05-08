@@ -1166,10 +1166,11 @@ class SIP(Model):
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
-                                     list(self._transforms))
+            [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b])
+
     def __str__(self):
         parts = ['Model: {0}'.format(self.__class__.__name__)]
-        for model in self._transforms:
+        for model in [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]:
             parts.append(indent(str(model), width=4))
             parts.append('')
 
@@ -1225,11 +1226,11 @@ class InverseSIP(Model):
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
-                                     list(self._transforms))
+            [self.sip1d_ap, self.sip1d_bp])
 
     def __str__(self):
         parts = ['Model: {0}'.format(self.__class__.__name__)]
-        for model in self._transforms:
+        for model in [self.sip1d_ap, self.sip1d_bp]:
             parts.append(indent(str(model), width=4))
             parts.append('')
 

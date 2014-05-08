@@ -134,7 +134,7 @@ def test_sip_irac():
     Test forward and inverse SIP againts astropy.wcs
     """
 
-    test_file = get_pkg_data_filename(os.path.join('./data', 'irac_sip.hdr'))
+    test_file = get_pkg_data_filename(os.path.join('data', 'irac_sip.hdr'))
     hdr = fits.Header.fromtextfile(test_file)
     crpix1 = hdr['CRPIX1']
     crpix2 = hdr['CRPIX2']
