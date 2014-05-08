@@ -8,11 +8,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 # Standard library
 import inspect
+import warnings
 
 # Dependencies
 
 # Project
 from ..extern import six
+from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
 from .transformations import TransformGraph
 from .representation import BaseRepresentation, CartesianRepresentation, \
@@ -130,6 +132,48 @@ class BaseCoordinateFrame(object):
     preferred_attr_units = {}  # maps preferred name to the "standard" unit/string repr
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
+
+    def __new__(cls, *args, **kwargs):
+
+        # Only do backward-compatibility if frame is previously defined one
+        frame_name = cls.__name__.lower()
+        if frame_name not in ['altaz', 'fk4', 'fk4noeterms', 'fk5', 'galactic', 'icrs']:
+            return super(BaseCoordinateFrame, cls).__new__(cls)
+
+        # This is provided for backward-compatibility with pre-0.4 API, can
+        # be removed in 0.5.
+
+        use_skycoord = False
+
+        if len(args) > 0 and all(not isinstance(arg, BaseRepresentation) for arg in args):
+            warnings.warn("Initializing frames using positional arguments is "
+                          "now deprecated. Use SkyCoord or explicitly specify "
+                          "the argument names instead.", AstropyDeprecationWarning)
+            use_skycoord = True
+
+        elif 'unit' in kwargs:
+            warnings.warn("Initializing frames using the ``unit`` argument is "
+                          "now deprecated. Use SkyCoord or pass Quantity "
+                          " instances to frames instead.", AstropyDeprecationWarning)
+            use_skycoord = True
+
+        else:
+            for key in cls.preferred_attr_names:
+                if key in kwargs:
+                    if not isinstance(kwargs[key], u.Quantity):
+                        warnings.warn("Initializing frames using non-Quantity "
+                                      "arguments is now deprecated. Use "
+                                      "SkyCoord or pass Quantity instances "
+                                      "instead.", AstropyDeprecationWarning)
+                        use_skycoord = True
+                        break
+
+        if use_skycoord:
+            kwargs['frame'] = frame_name
+            from .sky_coordinate import SkyCoord
+            return SkyCoord(*args, **kwargs)
+        else:
+            return super(BaseCoordinateFrame, cls).__new__(cls)
 
     def __init__(self, *args, **kwargs):
         self._attr_names_with_defaults = []
