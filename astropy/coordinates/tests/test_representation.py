@@ -57,7 +57,7 @@ class TestSphericalRepresentation(object):
 
         s1 = SphericalRepresentation(lon=[8, 9] * u.hourangle,
                                      lat=[5, 6] * u.deg,
-                                     distance=[1,2] * u.kpc)
+                                     distance=[1, 2] * u.kpc)
 
         assert_allclose(s1.lon.degree, [120, 135])
         assert_allclose(s1.lat.degree, [5, 6])
@@ -76,20 +76,13 @@ class TestSphericalRepresentation(object):
 
         s1 = SphericalRepresentation(lon=lon, lat=lat, distance=distance, copy=False)
 
-        lon[:] = [1,2] * u.rad
-        lat[:] = [3,4] * u.arcmin
-        distance[:] = [8,9] * u.Mpc
+        lon[:] = [1, 2] * u.rad
+        lat[:] = [3, 4] * u.arcmin
+        distance[:] = [8, 9] * u.Mpc
 
         assert_allclose_quantity(lon, s1.lon)
         assert_allclose_quantity(lat, s1.lat)
         assert_allclose_quantity(distance, s1.distance)
-
-    def test_init_str(self):
-
-        s1 = SphericalRepresentation(lon='2h6m3.3s', lat='0.1rad', distance=1 * u.kpc)
-        assert_allclose(s1.lon.degree, 31.513749999999995)
-        assert_allclose(s1.lat.degree, 5.729577951308233)
-        assert_allclose(s1.distance.kpc, 1.)
 
     def test_reprobj(self):
 
@@ -103,9 +96,9 @@ class TestSphericalRepresentation(object):
 
     def test_broadcasting(self):
 
-        s1 = SphericalRepresentation(lon=[8, 9]*u.hourangle,
-                                     lat=[5, 6]*u.deg,
-                                     distance=10*u.kpc)
+        s1 = SphericalRepresentation(lon=[8, 9] * u.hourangle,
+                                     lat=[5, 6] * u.deg,
+                                     distance=10 * u.kpc)
 
         assert_allclose_quantity(s1.lon, [120, 135] * u.degree)
         assert_allclose_quantity(s1.lat, [5, 6] * u.degree)
@@ -114,33 +107,36 @@ class TestSphericalRepresentation(object):
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = SphericalRepresentation(lon=[8, 9, 10]*u.hourangle,
-                                         lat=[5, 6]*u.deg,
+            s1 = SphericalRepresentation(lon=[8, 9, 10] * u.hourangle,
+                                         lat=[5, 6] * u.deg,
                                          distance=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters lon, lat, and distance cannot be broadcast"
 
+    # We deliberately disallow anything that is not directly a Quantity in
+    # these low-level classes, so we now check that initializing from a
+    # string or mixed unit lists raises a TypeError.
+
+    def test_init_str(self):
+
+        with pytest.raises(TypeError) as exc:
+            s1 = SphericalRepresentation(lon='2h6m3.3s',
+                                         lat='0.1rad',
+                                         distance=1 * u.kpc)
+        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
+
     def test_mixed_units(self):
 
-        # It's also possible to pass in scalar quantity lists with mixed
-        # units. These are converted to array quantities following the same
-        # rule as `Quantity`: all elements are converted to match the first
-        # element's units.
-
-        s1 = SphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
-                                     lat=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     distance=[1.*u.kpc, 500*u.pc])
-        assert s1.lon.unit == u.hourangle
-        assert s1.lat.unit == u.deg
-        assert s1.distance.unit == u.kpc
-        assert_allclose(s1.lon.value, [8,9])
-        assert_allclose(s1.lat.value, [5,6])
-        assert_allclose(s1.distance.value, [1,0.5])
+        with pytest.raises(TypeError) as exc:
+            s1 = SphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
+                                         lat=[5 * u.deg, (6 * np.pi / 180) * u.rad],
+                                         distance=1 * u.kpc)
+        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
 
     def test_readonly(self):
 
-        s1 = SphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
-                                     lat=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     distance=[1.*u.kpc, 500*u.pc])
+        s1 = SphericalRepresentation(lon=8 * u.hourangle,
+                                     lat=5 * u.deg,
+                                     distance=1. * u.kpc)
 
         with pytest.raises(AttributeError):
             s1.lon = 1. * u.deg
@@ -159,9 +155,9 @@ class TestSphericalRepresentation(object):
 
         s_slc = s[2:8:2]
 
-        assert_allclose_quantity(s_slc.lon, [2,4,6] * u.deg)
-        assert_allclose_quantity(s_slc.lat, [-2,-4,-6] * u.deg)
-        assert_allclose_quantity(s_slc.distance, [1,1,1] * u.kpc)
+        assert_allclose_quantity(s_slc.lon, [2, 4, 6] * u.deg)
+        assert_allclose_quantity(s_slc.lat, [-2, -4, -6] * u.deg)
+        assert_allclose_quantity(s_slc.distance, [1, 1, 1] * u.kpc)
 
     def test_getitem_scalar(self):
 
@@ -191,7 +187,7 @@ class TestUnitSphericalRepresentation(object):
     def test_init_lonlat(self):
 
         s2 = UnitSphericalRepresentation(Longitude(8, u.hour),
-                                     Latitude(5, u.deg))
+                                         Latitude(5, u.deg))
 
         assert s2.lon == 8. * u.hourangle
         assert s2.lat == 5. * u.deg
@@ -202,7 +198,7 @@ class TestUnitSphericalRepresentation(object):
     def test_init_array(self):
 
         s1 = UnitSphericalRepresentation(lon=[8, 9] * u.hourangle,
-                                     lat=[5, 6] * u.deg)
+                                         lat=[5, 6] * u.deg)
 
         assert_allclose(s1.lon.degree, [120, 135])
         assert_allclose(s1.lat.degree, [5, 6])
@@ -218,17 +214,11 @@ class TestUnitSphericalRepresentation(object):
 
         s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
 
-        lon[:] = [1,2] * u.rad
-        lat[:] = [3,4] * u.arcmin
+        lon[:] = [1, 2] * u.rad
+        lat[:] = [3, 4] * u.arcmin
 
         assert_allclose_quantity(lon, s1.lon)
         assert_allclose_quantity(lat, s1.lat)
-
-    def test_init_str(self):
-
-        s1 = UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
-        assert_allclose(s1.lon.degree, 31.513749999999995)
-        assert_allclose(s1.lat.degree, 5.729577951308233)
 
     def test_reprobj(self):
 
@@ -241,8 +231,8 @@ class TestUnitSphericalRepresentation(object):
 
     def test_broadcasting(self):
 
-        s1 = UnitSphericalRepresentation(lon=[8, 9]*u.hourangle,
-                                     lat=[5, 6]*u.deg)
+        s1 = UnitSphericalRepresentation(lon=[8, 9] * u.hourangle,
+                                         lat=[5, 6] * u.deg)
 
         assert_allclose_quantity(s1.lon, [120, 135] * u.degree)
         assert_allclose_quantity(s1.lat, [5, 6] * u.degree)
@@ -250,29 +240,31 @@ class TestUnitSphericalRepresentation(object):
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle,
-                                         lat=[5, 6]*u.deg)
+            s1 = UnitSphericalRepresentation(lon=[8, 9, 10] * u.hourangle,
+                                             lat=[5, 6] * u.deg)
         assert exc.value.args[0] == "Input parameters lon and lat cannot be broadcast"
+
+    # We deliberately disallow anything that is not directly a Quantity in
+    # these low-level classes, so we now check that initializing from a
+    # string or mixed unit lists raises a TypeError.
+
+    def test_init_str(self):
+
+        with pytest.raises(TypeError) as exc:
+            s1 = UnitSphericalRepresentation(lon='2h6m3.3s', lat='0.1rad')
+        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
 
     def test_mixed_units(self):
 
-        # It's also possible to pass in scalar quantity lists with mixed
-        # units. These are converted to array quantities following the same
-        # rule as `Quantity`: all elements are converted to match the first
-        # element's units.
-
-        s1 = UnitSphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
-                                     lat=[5*u.deg, (6*np.pi/180)*u.rad])
-
-        assert s1.lon.unit == u.hourangle
-        assert s1.lat.unit == u.deg
-        assert_allclose(s1.lon.value, [8,9])
-        assert_allclose(s1.lat.value, [5,6])
+        with pytest.raises(TypeError) as exc:
+            s1 = UnitSphericalRepresentation(lon=[8 * u.hourangle, 135 * u.deg],
+                                             lat=[5 * u.deg, (6 * np.pi / 180) * u.rad])
+        assert exc.value.args[0] == "lon should be a Quantity, Angle, or Longitude"
 
     def test_readonly(self):
 
-        s1 = UnitSphericalRepresentation(lon=[8*u.hourangle, 135*u.deg],
-                                     lat=[5*u.deg, (6*np.pi/180)*u.rad])
+        s1 = UnitSphericalRepresentation(lon=8 * u.hourangle,
+                                         lat=5 * u.deg)
 
         with pytest.raises(AttributeError):
             s1.lon = 1. * u.deg
@@ -287,8 +279,8 @@ class TestUnitSphericalRepresentation(object):
 
         s_slc = s[2:8:2]
 
-        assert_allclose_quantity(s_slc.lon, [2,4,6] * u.deg)
-        assert_allclose_quantity(s_slc.lat, [-2,-4,-6] * u.deg)
+        assert_allclose_quantity(s_slc.lon, [2, 4, 6] * u.deg)
+        assert_allclose_quantity(s_slc.lat, [-2, -4, -6] * u.deg)
 
     def test_getitem_scalar(self):
 
@@ -319,8 +311,8 @@ class TestPhysicsSphericalRepresentation(object):
     def test_init_phitheta(self):
 
         s2 = PhysicsSphericalRepresentation(Angle(8, u.hour),
-                                     Angle(5, u.deg),
-                                     Distance(10, u.kpc))
+                                            Angle(5, u.deg),
+                                            Distance(10, u.kpc))
 
         assert s2.phi == 8. * u.hourangle
         assert s2.theta == 5. * u.deg
@@ -333,8 +325,8 @@ class TestPhysicsSphericalRepresentation(object):
     def test_init_array(self):
 
         s1 = PhysicsSphericalRepresentation(phi=[8, 9] * u.hourangle,
-                                     theta=[5, 6] * u.deg,
-                                     r=[1,2] * u.kpc)
+                                            theta=[5, 6] * u.deg,
+                                            r=[1, 2] * u.kpc)
 
         assert_allclose(s1.phi.degree, [120, 135])
         assert_allclose(s1.theta.degree, [5, 6])
@@ -353,20 +345,13 @@ class TestPhysicsSphericalRepresentation(object):
 
         s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r, copy=False)
 
-        phi[:] = [1,2] * u.rad
-        theta[:] = [3,4] * u.arcmin
-        r[:] = [8,9] * u.Mpc
+        phi[:] = [1, 2] * u.rad
+        theta[:] = [3, 4] * u.arcmin
+        r[:] = [8, 9] * u.Mpc
 
         assert_allclose_quantity(phi, s1.phi)
         assert_allclose_quantity(theta, s1.theta)
         assert_allclose_quantity(r, s1.r)
-
-    def test_init_str(self):
-
-        s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', r=1 * u.kpc)
-        assert_allclose(s1.phi.degree, 31.513749999999995)
-        assert_allclose(s1.theta.degree, 5.729577951308233)
-        assert_allclose(s1.r.kpc, 1.)
 
     def test_reprobj(self):
 
@@ -380,9 +365,9 @@ class TestPhysicsSphericalRepresentation(object):
 
     def test_broadcasting(self):
 
-        s1 = PhysicsSphericalRepresentation(phi=[8, 9]*u.hourangle,
-                                     theta=[5, 6]*u.deg,
-                                     r=10*u.kpc)
+        s1 = PhysicsSphericalRepresentation(phi=[8, 9] * u.hourangle,
+                                            theta=[5, 6] * u.deg,
+                                            r=10 * u.kpc)
 
         assert_allclose_quantity(s1.phi, [120, 135] * u.degree)
         assert_allclose_quantity(s1.theta, [5, 6] * u.degree)
@@ -391,33 +376,34 @@ class TestPhysicsSphericalRepresentation(object):
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = PhysicsSphericalRepresentation(phi=[8, 9, 10]*u.hourangle,
-                                         theta=[5, 6]*u.deg,
-                                         r=[1, 2] * u.kpc)
+            s1 = PhysicsSphericalRepresentation(phi=[8, 9, 10] * u.hourangle,
+                                                theta=[5, 6] * u.deg,
+                                                r=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters phi, theta, and r cannot be broadcast"
+
+    # We deliberately disallow anything that is not directly a Quantity in
+    # these low-level classes, so we now check that initializing from a
+    # string or mixed unit lists raises a TypeError.
+
+    def test_init_str(self):
+
+        with pytest.raises(TypeError) as exc:
+            s1 = PhysicsSphericalRepresentation(phi='2h6m3.3s', theta='0.1rad', r=1 * u.kpc)
+        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_mixed_units(self):
 
-        # It's also possible to pass in scalar quantity lists with mixed
-        # units. These are converted to array quantities following the same
-        # rule as `Quantity`: all elements are converted to match the first
-        # element's units.
-
-        s1 = PhysicsSphericalRepresentation(phi=[8*u.hourangle, 135*u.deg],
-                                     theta=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     r=[1.*u.kpc, 500*u.pc])
-        assert s1.phi.unit == u.hourangle
-        assert s1.theta.unit == u.deg
-        assert s1.r.unit == u.kpc
-        assert_allclose(s1.phi.value, [8,9])
-        assert_allclose(s1.theta.value, [5,6])
-        assert_allclose(s1.r.value, [1,0.5])
+        with pytest.raises(TypeError) as exc:
+            s1 = PhysicsSphericalRepresentation(phi=[8 * u.hourangle, 135 * u.deg],
+                                                theta=[5 * u.deg, (6 * np.pi / 180) * u.rad],
+                                                r=[1. * u.kpc, 500 * u.pc])
+        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_readonly(self):
 
-        s1 = PhysicsSphericalRepresentation(phi=[8*u.hourangle, 135*u.deg],
-                                     theta=[5*u.deg, (6*np.pi/180)*u.rad],
-                                     r=[1.*u.kpc, 500*u.pc])
+        s1 = PhysicsSphericalRepresentation(phi=[8, 9] * u.hourangle,
+                                            theta=[5, 6] * u.deg,
+                                            r=[10, 20] * u.kpc)
 
         with pytest.raises(AttributeError):
             s1.phi = 1. * u.deg
@@ -431,20 +417,20 @@ class TestPhysicsSphericalRepresentation(object):
     def test_getitem(self):
 
         s = PhysicsSphericalRepresentation(phi=np.arange(10) * u.deg,
-                                    theta=-np.arange(10) * u.deg,
-                                    r=1 * u.kpc)
+                                           theta=np.arange(5, 15) * u.deg,
+                                           r=1 * u.kpc)
 
         s_slc = s[2:8:2]
 
-        assert_allclose_quantity(s_slc.phi, [2,4,6] * u.deg)
-        assert_allclose_quantity(s_slc.theta, [-2,-4,-6] * u.deg)
-        assert_allclose_quantity(s_slc.r, [1,1,1] * u.kpc)
+        assert_allclose_quantity(s_slc.phi, [2, 4, 6] * u.deg)
+        assert_allclose_quantity(s_slc.theta, [7, 9, 11] * u.deg)
+        assert_allclose_quantity(s_slc.r, [1, 1, 1] * u.kpc)
 
     def test_getitem_scalar(self):
 
         s = PhysicsSphericalRepresentation(phi=1 * u.deg,
-                                    theta=-2 * u.deg,
-                                    r=3 * u.kpc)
+                                           theta=2 * u.deg,
+                                           r=3 * u.kpc)
 
         with pytest.raises(TypeError):
             s_slc = s[0]
@@ -464,64 +450,64 @@ class TestCartesianRepresentation(object):
         assert s1.y.unit is u.kpc
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.x.value,1)
-        assert_allclose(s1.y.value,2)
-        assert_allclose(s1.z.value,3)
+        assert_allclose(s1.x.value, 1)
+        assert_allclose(s1.y.value, 2)
+        assert_allclose(s1.z.value, 3)
 
     def test_init_singleunit(self):
 
-        s1 = CartesianRepresentation(x=1,y=2,z=3,unit=u.kpc)
+        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
 
         assert s1.x.unit is u.kpc
         assert s1.y.unit is u.kpc
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.x.value,1)
-        assert_allclose(s1.y.value,2)
-        assert_allclose(s1.z.value,3)
+        assert_allclose(s1.x.value, 1)
+        assert_allclose(s1.y.value, 2)
+        assert_allclose(s1.z.value, 3)
 
     def test_init_override_unit(self):
 
-        s1 = CartesianRepresentation(x=1 * u.pc,y=2 * u.Mpc,z=3 * u.kpc,unit=u.kpc)
+        s1 = CartesianRepresentation(x=1 * u.pc, y=2 * u.Mpc, z=3 * u.kpc, unit=u.kpc)
 
         assert s1.x.unit is u.kpc
         assert s1.y.unit is u.kpc
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.x.value,0.001)
-        assert_allclose(s1.y.value,2000)
-        assert_allclose(s1.z.value,3)
+        assert_allclose(s1.x.value, 0.001)
+        assert_allclose(s1.y.value, 2000)
+        assert_allclose(s1.z.value, 3)
 
     def test_init_array(self):
 
-        s1 = CartesianRepresentation(x=[1,2,3] * u.pc,
-                                     y=[2,3,4]* u.Mpc,
-                                     z=[3,4,5] * u.kpc)
+        s1 = CartesianRepresentation(x=[1, 2, 3] * u.pc,
+                                     y=[2, 3, 4] * u.Mpc,
+                                     z=[3, 4, 5] * u.kpc)
 
         assert s1.x.unit is u.pc
         assert s1.y.unit is u.Mpc
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.x.value,[1,2,3])
-        assert_allclose(s1.y.value,[2,3,4])
-        assert_allclose(s1.z.value,[3,4,5])
+        assert_allclose(s1.x.value, [1, 2, 3])
+        assert_allclose(s1.y.value, [2, 3, 4])
+        assert_allclose(s1.z.value, [3, 4, 5])
 
     def test_init_one_array(self):
 
-        s1 = CartesianRepresentation(x=[1,2,3] * u.pc)
+        s1 = CartesianRepresentation(x=[1, 2, 3] * u.pc)
 
         assert s1.x.unit is u.pc
         assert s1.y.unit is u.pc
         assert s1.z.unit is u.pc
 
-        assert_allclose(s1.x.value,1)
-        assert_allclose(s1.y.value,2)
-        assert_allclose(s1.z.value,3)
+        assert_allclose(s1.x.value, 1)
+        assert_allclose(s1.y.value, 2)
+        assert_allclose(s1.z.value, 3)
 
     def test_init_one_array_size_fail(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1,2,3,4] * u.pc)
+            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
 
         # exception text differs on Python 2 and Python 3
         assert exc.value.args[0].startswith("too many values to unpack")
@@ -529,7 +515,7 @@ class TestCartesianRepresentation(object):
     def test_init_one_array_yz_fail(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1,2,3,4] * u.pc, y=[1,2]* u.pc)
+            s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
 
         assert exc.value.args[0] == "x, y, and z are required to instantiate CartesianRepresentation"
 
@@ -541,9 +527,9 @@ class TestCartesianRepresentation(object):
 
         s1 = CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
-        x[:] = [1,2,3] * u.kpc
-        y[:] = [9,9,8] * u.kpc
-        z[:] = [1,2,1] * u.kpc
+        x[:] = [1, 2, 3] * u.kpc
+        y[:] = [9, 9, 8] * u.kpc
+        z[:] = [1, 2, 1] * u.kpc
 
         assert_allclose_quantity(x, s1.x)
         assert_allclose_quantity(y, s1.y)
@@ -561,7 +547,7 @@ class TestCartesianRepresentation(object):
 
     def test_broadcasting(self):
 
-        s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=5 * u.kpc)
+        s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=5 * u.kpc)
 
         assert s1.x.unit == u.kpc
         assert s1.y.unit == u.kpc
@@ -574,7 +560,7 @@ class TestCartesianRepresentation(object):
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(x=[1,2] * u.kpc, y=[3,4] * u.kpc, z=[5,6,7] * u.kpc)
+            s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
 
     def test_mixed_units(self):
@@ -584,8 +570,8 @@ class TestCartesianRepresentation(object):
         # rule as `Quantity`: all elements are converted to match the first
         # element's units.
 
-        s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
-                                     y=[3 * u.kpc, 4 * u.pc] ,
+        s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
+                                     y=[3 * u.kpc, 4 * u.pc],
                                      z=[5. * u.cm, 6 * u.m])
 
         assert s1.x.unit == u.kpc
@@ -610,12 +596,12 @@ class TestCartesianRepresentation(object):
 
     def test_xyz(self):
 
-        s1 = CartesianRepresentation(x=1,y=2,z=3,unit=u.kpc)
+        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
 
         assert isinstance(s1.xyz, u.Quantity)
         assert s1.xyz.unit is u.kpc
 
-        assert_allclose(s1.xyz.value,[1,2,3])
+        assert_allclose(s1.xyz.value, [1, 2, 3])
 
     def test_unit_mismatch(self):
 
@@ -642,7 +628,6 @@ class TestCartesianRepresentation(object):
 
         s3 = CartesianRepresentation(x=1, y=2, z=3, unit=u.def_unit('banana'))
 
-
     def test_getitem(self):
 
         s = CartesianRepresentation(x=np.arange(10) * u.m,
@@ -651,9 +636,9 @@ class TestCartesianRepresentation(object):
 
         s_slc = s[2:8:2]
 
-        assert_allclose_quantity(s_slc.x, [2,4,6] * u.m)
-        assert_allclose_quantity(s_slc.y, [-2,-4,-6] * u.m)
-        assert_allclose_quantity(s_slc.z, [3,3,3] * u.km)
+        assert_allclose_quantity(s_slc.x, [2, 4, 6] * u.m)
+        assert_allclose_quantity(s_slc.y, [-2, -4, -6] * u.m)
+        assert_allclose_quantity(s_slc.z, [3, 3, 3] * u.km)
 
     def test_getitem_scalar(self):
 
@@ -679,23 +664,23 @@ class TestCylindricalRepresentation(object):
         assert s1.phi.unit is u.deg
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.rho.value,1)
-        assert_allclose(s1.phi.value,2)
-        assert_allclose(s1.z.value,3)
+        assert_allclose(s1.rho.value, 1)
+        assert_allclose(s1.phi.value, 2)
+        assert_allclose(s1.z.value, 3)
 
     def test_init_array(self):
 
-        s1 = CylindricalRepresentation(rho=[1,2,3] * u.pc,
-                                     phi=[2,3,4]* u.deg,
-                                     z=[3,4,5] * u.kpc)
+        s1 = CylindricalRepresentation(rho=[1, 2, 3] * u.pc,
+                                       phi=[2, 3, 4] * u.deg,
+                                       z=[3, 4, 5] * u.kpc)
 
         assert s1.rho.unit is u.pc
         assert s1.phi.unit is u.deg
         assert s1.z.unit is u.kpc
 
-        assert_allclose(s1.rho.value,[1,2,3])
-        assert_allclose(s1.phi.value,[2,3,4])
-        assert_allclose(s1.z.value,[3,4,5])
+        assert_allclose(s1.rho.value, [1, 2, 3])
+        assert_allclose(s1.phi.value, [2, 3, 4])
+        assert_allclose(s1.z.value, [3, 4, 5])
 
     @pytest.mark.xfail
     def test_init_array_nocopy(self):
@@ -706,7 +691,7 @@ class TestCylindricalRepresentation(object):
 
         s1 = CylindricalRepresentation(rho=rho, phi=phi, z=z, copy=False)
 
-        rho[:] = [9,2,3] * u.kpc
+        rho[:] = [9, 2, 3] * u.kpc
         phi[:] = [1, 2, 3] * u.arcmin
         z[:] = [-2, 3, 8] * u.kpc
 
@@ -726,7 +711,7 @@ class TestCylindricalRepresentation(object):
 
     def test_broadcasting(self):
 
-        s1 = CylindricalRepresentation(rho=[1,2] * u.kpc, phi=[3,4] * u.deg, z=5 * u.kpc)
+        s1 = CylindricalRepresentation(rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=5 * u.kpc)
 
         assert s1.rho.unit == u.kpc
         assert s1.phi.unit == u.deg
@@ -739,30 +724,26 @@ class TestCylindricalRepresentation(object):
     def test_broadcasting_mismatch(self):
 
         with pytest.raises(ValueError) as exc:
-            s1 = CylindricalRepresentation(rho=[1,2] * u.kpc, phi=[3,4] * u.deg, z=[5,6,7] * u.kpc)
+            s1 = CylindricalRepresentation(rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters rho, phi, and z cannot be broadcast"
+
+    # We deliberately disallow anything that is not directly a Quantity in
+    # these low-level classes, so we now check that initializing from a
+    # string or mixed unit lists raises a TypeError.
 
     def test_mixed_units(self):
 
-        # It's also possible to pass in scalar quantity lists with mixed
-        # units. These are converted to array quantities following the same
-        # rule as `Quantity`: all elements are converted to match the first
-        # element's units.
-
-        s1 = CylindricalRepresentation(rho=[1 * u.kpc,2 * u.Mpc],
-                                     phi=[3 * u.deg, 4 * u.arcmin] ,
-                                     z=[5. * u.cm, 6 * u.m])
-
-        assert s1.rho.unit == u.kpc
-        assert s1.phi.unit == u.deg
-        assert s1.z.unit == u.cm
-        assert_allclose(s1.rho.value, [1, 2000])
-        assert_allclose(s1.phi.value, [3, 4./60.])
-        assert_allclose(s1.z.value, [5, 600])
+        with pytest.raises(TypeError) as exc:
+            s1 = CylindricalRepresentation(rho=[1 * u.kpc, 2 * u.Mpc],
+                                           phi=[3 * u.deg, 4 * u.arcmin],
+                                           z=[5. * u.cm, 6 * u.m])
+        assert exc.value.args[0] == "phi should be a Quantity or Angle"
 
     def test_readonly(self):
 
-        s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=20 * u.deg, z=3 * u.kpc)
+        s1 = CylindricalRepresentation(rho=1 * u.kpc,
+                                       phi=20 * u.deg,
+                                       z=3 * u.kpc)
 
         with pytest.raises(AttributeError):
             s1.rho = 1. * u.kpc
@@ -779,11 +760,11 @@ class TestCylindricalRepresentation(object):
         q_nonlen = u.Quantity([1], u.kg)
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CylindricalRepresentation(rho=q_nonlen, phi=10*u.deg, z=q_len)
+            s1 = CylindricalRepresentation(rho=q_nonlen, phi=10 * u.deg, z=q_len)
         assert exc.value.args[0] == "rho and z should have matching physical types"
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CylindricalRepresentation(rho=q_len, phi=10*u.deg, z=q_nonlen)
+            s1 = CylindricalRepresentation(rho=q_len, phi=10 * u.deg, z=q_nonlen)
         assert exc.value.args[0] == "rho and z should have matching physical types"
 
     def test_getitem(self):
@@ -794,9 +775,9 @@ class TestCylindricalRepresentation(object):
 
         s_slc = s[2:8:2]
 
-        assert_allclose_quantity(s_slc.rho, [2,4,6] * u.pc)
-        assert_allclose_quantity(s_slc.phi, [-2,-4,-6] * u.deg)
-        assert_allclose_quantity(s_slc.z, [1,1,1] * u.kpc)
+        assert_allclose_quantity(s_slc.rho, [2, 4, 6] * u.pc)
+        assert_allclose_quantity(s_slc.phi, [-2, -4, -6] * u.deg)
+        assert_allclose_quantity(s_slc.z, [1, 1, 1] * u.kpc)
 
     def test_getitem_scalar(self):
 
@@ -807,10 +788,11 @@ class TestCylindricalRepresentation(object):
         with pytest.raises(TypeError):
             s_slc = s[0]
 
+
 def test_cartesian_spherical_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
-                                 y=[3 * u.kpc, 4 * u.pc] ,
+    s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
+                                 y=[3 * u.kpc, 4 * u.pc],
                                  z=[5. * u.cm, 6 * u.m])
 
     s2 = SphericalRepresentation.from_representation(s1)
@@ -830,8 +812,8 @@ def test_cartesian_spherical_roundtrip():
 
 def test_cartesian_physics_spherical_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
-                                 y=[3 * u.kpc, 4 * u.pc] ,
+    s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
+                                 y=[3 * u.kpc, 4 * u.pc],
                                  z=[5. * u.pc, 6 * u.kpc])
 
     s2 = PhysicsSphericalRepresentation.from_representation(s1)
@@ -874,9 +856,9 @@ def test_spherical_physics_spherical_roundtrip():
 
 def test_cartesian_cylindrical_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1 * u.kpc,2 * u.Mpc],
-                                 y=[3 * u.kpc, 4 * u.pc] ,
-                                 z=[5. * u.cm, 6 * u.m])
+    s1 = CartesianRepresentation(x=np.array([1., 2000.]) * u.kpc,
+                                 y=np.array([3000., 4.]) * u.pc,
+                                 z=np.array([5., 600.]) * u.cm)
 
     s2 = CylindricalRepresentation.from_representation(s1)
 
@@ -895,8 +877,8 @@ def test_cartesian_cylindrical_roundtrip():
 
 def test_unit_spherical_roundtrip():
 
-    s1 = UnitSphericalRepresentation(lon=[10. * u.deg, 30 * u.deg],
-                                     lat=[5. * u.arcmin, 6. * u.arcmin])
+    s1 = UnitSphericalRepresentation(lon=[10., 30.] * u.deg,
+                                     lat=[5., 6.] * u.arcmin)
 
     s2 = CartesianRepresentation.from_representation(s1)
 
@@ -909,23 +891,23 @@ def test_unit_spherical_roundtrip():
 
 
 def test_representation_repr():
-    r1 = SphericalRepresentation(lon=1*u.deg, lat=2.5*u.deg, distance=1*u.kpc)
+    r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert repr(r1) == '<SphericalRepresentation lon=1.0 deg, lat=2.5 deg, distance=1.0 kpc>'
 
-    r2 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc)
+    r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert repr(r2) == '<CartesianRepresentation x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>'
 
-    r3 = CartesianRepresentation(x=[1, 2, 3]*u.kpc, y=4*u.kpc, z=[9, 10, 11]*u.kpc)
+    r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
                         '    [(1.0, 4.0, 9.0), (2.0, 4.0, 10.0), (3.0, 4.0, 11.0)]>')
 
 
 def test_representation_str():
-    r1 = SphericalRepresentation(lon=1*u.deg, lat=2.5*u.deg, distance=1*u.kpc)
+    r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
     assert str(r1) == '(1.0 deg, 2.5 deg, 1.0 kpc)'
 
-    r2 = CartesianRepresentation(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc)
+    r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert str(r2) == '(1.0, 2.0, 3.0) kpc'
 
-    r3 = CartesianRepresentation(x=[1, 2, 3]*u.kpc, y=4*u.kpc, z=[9, 10, 11]*u.kpc)
+    r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert str(r3) == '[(1.0, 4.0, 9.0) (2.0, 4.0, 10.0) (3.0, 4.0, 11.0)] kpc'
