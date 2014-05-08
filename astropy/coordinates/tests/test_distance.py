@@ -66,7 +66,7 @@ def test_distances():
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
-    cart = CartesianRepresentation(x=2, y=4, z=8, unit=u.parsec)
+    cart = CartesianRepresentation(x=2 * u.pc, y=4 * u.pc, z=8 * u.pc)
     c2 = Galactic(cart)
 
     sep12 = c1.separation_3d(c2)

@@ -129,12 +129,6 @@ def test_representations_api():
     assert c1.xyz.unit ==  c2.xyz.unit == u.kpc
     npt.assert_allclose((c1.z / 1000) - c2.z, 0, atol=1e-10)
 
-    # CartesianRepresentation can also accept raw arrays and a `unit` keyword
-    # instead of having units attached to each of `x`, `y`, and `z`. Note that this
-    # is *not* the case for other representations - it's only sensible for
-    # Cartesian, because all of the data axes all have the same unit.
-    CartesianRepresentation(x=randn(100), y=randn(100), z=randn(100), unit=u.kpc)
-
     # representations convert into other representations via  `represent_as`
     srep = SphericalRepresentation(lon=90*u.deg, lat=0*u.deg, distance=1*u.pc)
     crep = srep.represent_as(CartesianRepresentation)

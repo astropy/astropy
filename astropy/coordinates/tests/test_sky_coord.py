@@ -167,7 +167,7 @@ def test_coord_init_representation():
         SkyCoord(coord, 'icrs', ra='1d')
     assert "conflicts with keyword argument 'ra'" in str(err)
 
-    coord = CartesianRepresentation(1, 2, 3)
+    coord = CartesianRepresentation(1*u.one, 2*u.one, 3*u.one)
     sc = SkyCoord(coord, 'icrs')
     sc_cart = sc.represent_as(CartesianRepresentation)
     assert allclose(sc_cart.x, 1.0)

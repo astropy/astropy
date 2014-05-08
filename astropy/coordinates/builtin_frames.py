@@ -414,7 +414,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
 
     #now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4coord.data, UnitSphericalRepresentation):
-        representation = CartesianRepresentation(x=x, y=y, z=z)
+        representation = CartesianRepresentation(x=x*u.one, y=y*u.one, z=z*u.one)
         representation = representation.represent_as(UnitSphericalRepresentation)
     else:
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
@@ -468,7 +468,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
 
     #now re-cast into an appropriate Representation, and precess if need be
     if isinstance(fk4noecoord.data, UnitSphericalRepresentation):
-        representation = CartesianRepresentation(x=x, y=y, z=z)
+        representation = CartesianRepresentation(x=x*u.one, y=y*u.one, z=z*u.one)
         representation = representation.represent_as(UnitSphericalRepresentation)
     else:
         representation = CartesianRepresentation(x=x*c.unit, y=y*c.unit, z=z*c.unit)
