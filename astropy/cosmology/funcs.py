@@ -13,16 +13,17 @@ from .core import CosmologyError
 from ..units import Quantity
 from ..utils import deprecated
 
-__all__ = ['H',  'angular_diameter_distance', 'arcsec_per_kpc_comoving',
+__all__ = ['H', 'angular_diameter_distance', 'arcsec_per_kpc_comoving',
            'arcsec_per_kpc_proper', 'comoving_distance', 'critical_density',
            'distmod', 'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin',
-           'lookback_time', 'luminosity_distance', 'scale_factor', 'z_at_value']
+           'lookback_time', 'luminosity_distance', 'scale_factor',
+           'z_at_value']
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
 
 def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
-    """ Find the redshift `z` at which `func(z) = fval`.
+    """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
     methods (for example Planck13.distmod) is equal to a known value.
@@ -33,8 +34,8 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
       be a unique solution. For example, in the standard Lambda CDM
       cosmology, there are two redshifts which give an angular
       diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force
-      `z_at_value` to find the solution you are interested in, use the
-      `zmin` and `zmax` keywords to limit the search range (see the
+      ``z_at_value`` to find the solution you are interested in, use the
+      ``zmin`` and ``zmax`` keywords to limit the search range (see the
       example below).
 
     Parameters
@@ -42,13 +43,13 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     func : function or method
        A function that takes a redshift as input.
     fval : astropy.Quantity instance
-       The value of `func(z)`.
+       The value of ``func(z)``.
     zmin : float, optional
-       The lower search limit for `z` (default 0).
+       The lower search limit for ``z`` (default 0).
     zmax : float, optional
-       The upper search limit for `z` (default 1000).
+       The upper search limit for ``z`` (default 1000).
     ztol : float, optional
-       The relative error in `z` acceptable for convergence.
+       The relative error in ``z`` acceptable for convergence.
     maxfun : int, optional
        The maximum number of function evaluations allowed in the
        optimization routine (default 500).
@@ -56,8 +57,8 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     Returns
     -------
     z : float
-      The redshift `z` satisfying `zmin < z < zmax` and `func(z) =
-      fval` within `ztol`.
+      The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
+      fval`` within ``ztol``.
 
     Notes
     -----
@@ -73,20 +74,23 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
     >>> import astropy.units as u
     >>> from astropy.cosmology import Planck13, z_at_value
 
-    # Generate 10^6 distance moduli between 23 and 43 for which we
-    # want to find the corresponding redshifts
+    Generate 10^6 distance moduli between 23 and 43 for which we
+    want to find the corresponding redshifts:
+
     >>> Dvals = (23 + np.random.rand(1e6) * 20) * u.mag
 
-    # Make a grid of distance moduli covering the redshift range we
-    # need using 50 equally log-spaced values between zmin and
-    # zmax. We use log spacing to adequately sample the steep part of
-    # the curve at low distance moduli.
+    Make a grid of distance moduli covering the redshift range we
+    need using 50 equally log-spaced values between zmin and
+    zmax. We use log spacing to adequately sample the steep part of
+    the curve at low distance moduli:
+
     >>> zmin = z_at_value(Planck13.distmod, Dvals.min())
     >>> zmax = z_at_value(Planck13.distmod, Dvals.max())
     >>> zgrid = np.logspace(zmin, zmax)
     >>> Dgrid = Planck13.distmod(zgrid)
 
-    # Finally interpolate to find the redshift at each distance modulus.
+    Finally interpolate to find the redshift at each distance modulus:
+
     >>> zvals = np.interp(Dvals.value, zgrid, Dgrid.value)
 
     Examples
@@ -150,7 +154,7 @@ zmin and zmax satisfying fval = func(z).""")
 @deprecated(since='0.4', alternative='<Cosmology object>.kpc_comoving_per_arcmin')
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
-    arcminute at redshift `z`.
+    arcminute at redshift ``z``.
 
     Parameters
     ----------
@@ -159,7 +163,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : astropy.units.Quantity
+    d : `~astropy.units.Quantity`
       The distance in comoving kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -171,7 +175,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
 @deprecated(since='0.4', alternative='<Cosmology object>.kpc_proper_per_arcmin')
 def kpc_proper_per_arcmin(z, cosmo=None):
     """ Separation in transverse proper kpc corresponding to an
-    arcminute at redshift `z`.
+    arcminute at redshift ``z``.
 
     Parameters
     ----------
@@ -180,7 +184,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : astropy.units.Quantity
+    d : `~astropy.units.Quantity`
       The distance in proper kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -192,7 +196,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
 @deprecated(since='0.4', alternative='<Cosmology object>.arcsec_per_kpc_comoving')
 def arcsec_per_kpc_comoving(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a comoving kpc
-    at redshift `z`.
+    at redshift ``z``.
 
     Parameters
     ----------
@@ -201,7 +205,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
 
     Returns
     -------
-    theta : astropy.units.Quantity
+    theta : `~astropy.units.Quantity`
       The angular separation in arcsec corresponding to a comoving kpc
       at each input redshift.
     """
@@ -213,7 +217,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
 @deprecated(since='0.4', alternative='<Cosmology object>.arcsec_per_kpc_proper')
 def arcsec_per_kpc_proper(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a proper kpc at
-    redshift `z`.
+    redshift ``z``.
 
     Parameters
     ----------
@@ -222,7 +226,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
 
     Returns
     -------
-    theta : astropy.units.Quantity
+    theta : `~astropy.units.Quantity`
       The angular separation in arcsec corresponding to a proper kpc
       at each input redshift.
     """
@@ -233,10 +237,10 @@ def arcsec_per_kpc_proper(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.distmod')
 def distmod(z, cosmo=None):
-    """ Distance modulus at redshift `z`.
+    """ Distance modulus at redshift ``z``.
 
     The distance modulus is defined as the (apparent magnitude -
-    absolute magnitude) for an object at redshift `z`.
+    absolute magnitude) for an object at redshift ``z``.
 
     Parameters
     ----------
@@ -245,7 +249,7 @@ def distmod(z, cosmo=None):
 
     Returns
     -------
-    distmod : astropy.units.Quantity
+    distmod : `~astropy.units.Quantity`
       Distance modulus at each input redshift.
 
     See Also
@@ -259,7 +263,7 @@ def distmod(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.H')
 def H(z, cosmo=None):
-    """ Hubble parameter (km/s/Mpc) at redshift `z`.
+    """ Hubble parameter (km/s/Mpc) at redshift ``z``.
 
     Parameters
     ----------
@@ -268,7 +272,7 @@ def H(z, cosmo=None):
 
     Returns
     -------
-    H : astropy.units.Quantity
+    H : `~astropy.units.Quantity`
       Hubble parameter at each input redshift.
     """
     if cosmo is None:
@@ -278,9 +282,9 @@ def H(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.scale_factor')
 def scale_factor(z, cosmo=None):
-    """ Scale factor at redshift `z`.
+    """ Scale factor at redshift ``z``.
 
-    The scale factor is defined as `a = 1 / (1 + z)`.
+    The scale factor is defined as ``a = 1 / (1 + z)``.
 
     Parameters
     ----------
@@ -299,7 +303,7 @@ def scale_factor(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.critical_density')
 def critical_density(z, cosmo=None):
-    """ Critical density in grams per cubic cm at redshift `z`.
+    """ Critical density in grams per cubic cm at redshift ``z``.
 
     Parameters
     ----------
@@ -308,7 +312,7 @@ def critical_density(z, cosmo=None):
 
     Returns
     -------
-    critdens : astropy.units.Quantity
+    critdens : `~astropy.units.Quantity`
       Critical density at each input redshift.
     """
     if cosmo is None:
@@ -318,10 +322,10 @@ def critical_density(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.lookback_time')
 def lookback_time(z, cosmo=None):
-    """ Lookback time in Gyr to redshift `z`.
+    """ Lookback time in Gyr to redshift ``z``.
 
     The lookback time is the difference between the age of the
-    Universe now and the age at redshift `z`.
+    Universe now and the age at redshift ``z``.
 
     Parameters
     ----------
@@ -330,7 +334,7 @@ def lookback_time(z, cosmo=None):
 
     Returns
     -------
-    t : astropy.units.Quantity
+    t : `~astropy.units.Quantity`
       Lookback time at each input redshift.
 
     See Also
@@ -344,7 +348,7 @@ def lookback_time(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.comoving_distance')
 def comoving_distance(z, cosmo=None):
-    """ Comoving distance in Mpc at redshift `z`.
+    """ Comoving distance in Mpc at redshift ``z``.
 
     The comoving distance along the line-of-sight between two objects
     remains constant with time for objects in the Hubble flow.
@@ -356,7 +360,7 @@ def comoving_distance(z, cosmo=None):
 
     Returns
     -------
-    codist : astropy.units.Quantity
+    codist : `~astropy.units.Quantity`
       Comoving distance at each input redshift.
     """
     if cosmo is None:
@@ -370,7 +374,7 @@ def angular_diameter_distance(z, cosmo=None):
 
     This gives the proper (sometimes called 'physical') transverse
     distance corresponding to an angle of 1 radian for an object at
-    redshift `z`.
+    redshift ``z``.
 
     Parameters
     ----------
@@ -379,7 +383,7 @@ def angular_diameter_distance(z, cosmo=None):
 
     Returns
     -------
-    angdist : astropy.units.Quantity
+    angdist : `~astropy.units.Quantity`
       Angular diameter distance at each input redshift.
     """
     if cosmo is None:
@@ -389,10 +393,10 @@ def angular_diameter_distance(z, cosmo=None):
 
 @deprecated(since='0.4', alternative='<Cosmology object>.luminosity_distance')
 def luminosity_distance(z, cosmo=None):
-    """ Luminosity distance in Mpc at redshift `z`.
+    """ Luminosity distance in Mpc at redshift ``z``.
 
     This is the distance to use when converting between the bolometric
-    flux from an object at redshift `z` and its bolometric luminosity.
+    flux from an object at redshift ``z`` and its bolometric luminosity.
 
     Parameters
     ----------
@@ -401,7 +405,7 @@ def luminosity_distance(z, cosmo=None):
 
     Returns
     -------
-    lumdist : astropy.units.Quantity
+    lumdist : `~astropy.units.Quantity`
       Luminosity distance at each input redshift.
 
     See Also
