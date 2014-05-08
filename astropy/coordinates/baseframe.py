@@ -133,15 +133,15 @@ class BaseCoordinateFrame(object):
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
+    # This is provided for backward-compatibility with pre-0.4 API, can
+    # be removed in 1.0
+
     def __new__(cls, *args, **kwargs):
 
         # Only do backward-compatibility if frame is previously defined one
         frame_name = cls.__name__.lower()
         if frame_name not in ['altaz', 'fk4', 'fk4noeterms', 'fk5', 'galactic', 'icrs']:
             return super(BaseCoordinateFrame, cls).__new__(cls)
-
-        # This is provided for backward-compatibility with pre-0.4 API, can
-        # be removed in 0.5.
 
         use_skycoord = False
 
