@@ -59,6 +59,10 @@ def test_representations_api():
     # Default is to copy arrays, but optionally, it can be a reference
     UnitSphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, copy=False)
 
+    # strings are parsed by `Latitude` and `Longitude` constructors, so no need to
+    # implement parsing in the Representation classes
+    UnitSphericalRepresentation(lon=Angle('2h6m3.3s'), lat=Angle('0.1rad'))
+
     # Or, you can give `Quantity`s with keywords, and they will be internally
     # converted to Angle/Distance
     c1 = SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, distance=10*u.kpc)
@@ -75,6 +79,14 @@ def test_representations_api():
     #when they can't be broadcast, it is a ValueError (same as Numpy)
     with raises(ValueError):
         c2 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
+
+    # It's also possible to pass in scalar quantity lists with mixed units. These
+    # are converted to array quantities following the same rule as `Quantity`: all
+    # elements are converted to match the first element's units.
+    c2 = UnitSphericalRepresentation(lon=Angle([8*u.hourangle, 135*u.deg]),
+                                     lat=Angle([5*u.deg, (6*np.pi/180)*u.rad]))
+    assert c2.lat.unit == u.deg and c2.lon.unit == u.hourangle
+    npt.assert_almost_equal(c2.lon[1].value, 9)
 
     # The Quantity initializer itself can also be used to force the unit even if the
     # first element doesn't have the right unit
