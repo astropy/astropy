@@ -21,7 +21,15 @@ class TestConeSearchResults(object):
     def setup_class(self):
         self.datadir = 'data'
         self.out_dir = tempfile.mkdtemp()
-        conf.vos_baseurl = _find_pkg_data_path(self.datadir) + os.sep
+        test_vos_path = _find_pkg_data_path(self.datadir) + os.sep
+
+        # Convert to a proper file:// URL--on *NIXen this is not necessary but
+        # Windows paths will blow up if we don't do this
+        test_vos_path = '/'.join(test_vos_path.split(os.sep))
+        if not test_vos_path.startswith('/'):
+            test_vos_path = '/' + test_vos_path
+
+        conf.vos_baseurl = 'file://' + test_vos_path
         self.r = inspect.ConeSearchResults()
 
     def test_catkeys(self):
