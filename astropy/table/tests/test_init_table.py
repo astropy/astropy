@@ -376,15 +376,28 @@ class TestInitFromNone():
 @pytest.mark.usefixtures('table_types')
 class TestInitFromRows():
 
-    def test_data_none_with_row(self, table_type):
-        rows = [[1, 'a'], [2, 'b']]
-        t = table_type(rows=rows, names=('a', 'b'))
-        assert np.all(t['a'] == [1, 2])
-        assert np.all(t['b'] == ['a', 'b'])
-        assert t.colnames == ['a', 'b']
+    def test_init_with_rows(self, table_type):
+        for rows in ([[1, 'a'], [2, 'b']],
+                     [(1, 'a'), (2, 'b')],
+                     ((1, 'a'), (2, 'b'))):
+            t = table_type(rows=rows, names=('a', 'b'))
+            assert np.all(t['a'] == [1, 2])
+            assert np.all(t['b'] == ['a', 'b'])
+            assert t.colnames == ['a', 'b']
+            assert t['a'].dtype.kind == 'i'
+            assert t['b'].dtype.kind in ('S', 'U')
 
-        rows = [(1, 'a'), (2, 'b')]
-        t = table_type(rows=rows, names=('a', 'b'))
-        assert np.all(t['a'] == [1, 2])
-        assert np.all(t['b'] == ['a', 'b'])
-        assert t.colnames == ['a', 'b']
+        rows = np.arange(6).reshape(2, 3)
+        t = table_type(rows=rows, names=('a', 'b', 'c'), dtype=['f8', 'f4', 'i8'])
+        assert np.all(t['a'] == [0, 3])
+        assert np.all(t['b'] == [1, 4])
+        assert np.all(t['c'] == [2, 5])
+        assert t.colnames == ['a', 'b', 'c']
+        assert t['a'].dtype.str.endswith('f8')
+        assert t['b'].dtype.str.endswith('f4')
+        assert t['c'].dtype.str.endswith('i8')
+
+    def test_init_with_rows_and_data(self, table_type):
+        with pytest.raises(ValueError) as err:
+            table_type(data=[[1]], rows=[[1]])
+        assert "Cannot supply both `data` and `rows` values" in str(err)
