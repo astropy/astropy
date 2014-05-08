@@ -21,12 +21,22 @@ INTERNET_OFF = False
 
 def check_internet_off(original_function):
     def new_function(*args, **kwargs):
+        hostname = socket.gethostname()
+        fqdn = socket.getfqdn()
+
         if isinstance(args[0], socket.socket):
             host = args[1][0]
             valid_hosts = ('localhost', '127.0.0.1', '::1')
+            if host in (hostname, fqdn):
+                host = 'localhost'
+                args = (args[0], (host, args[1][1])) + args[2:]
         else:
             host = args[0][0]
             valid_hosts = ('localhost', '127.0.0.1')
+            if host in (hostname, fqdn):
+                host = 'localhost'
+                args = ((host, args[0][1]),) + args[1:]
+
         if any([h in host for h in valid_hosts]):
             return original_function(*args, **kwargs)
         else:
