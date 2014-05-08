@@ -203,7 +203,7 @@ class SkyCoord(object):
 
         Parameters
         ----------
-        frame : str
+        frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
             The frame to transform this coordinate into.
 
         Returns
@@ -229,6 +229,9 @@ class SkyCoord(object):
             frame = frame_cls()
         except:
             pass
+
+        if isinstance(frame, SkyCoord):
+            frame = frame._coord  # Change to underlying coord frame instance
 
         if isinstance(frame, BaseCoordinateFrame):
             frame_cls = frame.__class__

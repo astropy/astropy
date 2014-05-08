@@ -30,7 +30,8 @@ allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
 
 def test_transform_to():
     for frame in (FK5, FK5(equinox=Time('J1975.0')),
-                  FK4, FK4(equinox=Time('J1975.0'))):
+                  FK4, FK4(equinox=Time('J1975.0')),
+                  SkyCoord(RA, DEC, 'fk4', equinox='J1980')):
         c_frame = C_ICRS.transform_to(frame)
         s_icrs = SkyCoord(RA, DEC, frame='icrs')
         s_frame = s_icrs.transform_to(frame)

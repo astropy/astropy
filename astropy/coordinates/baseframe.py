@@ -337,7 +337,7 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        new_frame : class or frame object
+        new_frame : class or frame object or SkyCoord object
             The frame to transform this coordinate frame into.
 
         Returns
@@ -359,6 +359,11 @@ class BaseCoordinateFrame(object):
         if inspect.isclass(new_frame):
             #means use the defaults for this class
             new_frame = new_frame()
+
+        if hasattr(new_frame, '_coord'):
+            # Input new_frame is not a frame instance or class and is most
+            # likely a SkyCoord object.
+            new_frame = new_frame._coord
 
         trans = frame_transform_graph.get_transform(self.__class__,
                                                     new_frame.__class__)
