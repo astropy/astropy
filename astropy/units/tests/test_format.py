@@ -188,7 +188,9 @@ def test_roundtrip_vo_unit():
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
         if skip_decompose:
             return
-        b = core.Unit(unit.decompose().to_string('vounit'), format='vounit')
+        u = unit.decompose().to_string('vounit')
+        assert '  ' not in u
+        b = core.Unit(u, format='vounit')
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     x = u_format.VOUnit()
@@ -349,3 +351,4 @@ def test_scaled_dimensionless():
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('vounit')
+\

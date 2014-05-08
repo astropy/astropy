@@ -128,13 +128,16 @@ class VOUnit(generic.Generic):
             s = ''
             if unit.scale != 1:
                 m, ex = utils.split_mantissa_exponent(unit.scale)
+                parts = []
                 if m:
-                    s += m + ' '
+                    parts.append(m)
                 if ex:
-                    s += ' 10'
+                    fex = '10'
                     if not ex.startswith('-'):
-                        s += '+'
-                    s += ex
+                        fex += '+'
+                    fex += ex
+                    parts.append(fex)
+                s += ' '.join(parts)
 
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
