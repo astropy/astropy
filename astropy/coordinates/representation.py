@@ -158,37 +158,33 @@ class CartesianRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    x, y, z : `~astropy.units.Quantity` or float or `~numpy.ndarray`
-        The x, y, and z coordinates of the point(s), which should either be
-        `~astropy.units.Quantity` instances, or can be passed as
-        float or `numpy.ndarray` provided that the ``unit`` parameter is
-        specified. If ``x``, ``y``, and ``z`` have different shapes, they
-        should be broadcastable.
-
-    unit : `~astropy.units.Unit`, optional
-        If ``x``, ``y``, or ``z`` are specified as float or
-        ``numpy.ndarray``, then ``unit`` should be specified to indicate the
-        units for these parameters. If ``x``, ``y``, or ``z`` are
-        `~astropy.units.Quantity` instances, and ``unit`` is specified, they
-        are converted to ``unit``.
+    x, y, z : `~astropy.units.Quantity`
+        The x, y, and z coordinates of the point(s). If ``x``, ``y``, and
+        ``z`` have different shapes, they should be broadcastable.
 
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
 
-    def __init__(self, x, y=None, z=None, unit=None, copy=True):
+    def __init__(self, x, y=None, z=None, copy=True):
 
         if y is None and z is None:
             x, y, z = x
         elif (y is None and z is not None) or (y is not None and z is None):
             raise ValueError("x, y, and z are required to instantiate CartesianRepresentation")
 
-        if unit is not None:
-            unit = u.Unit(unit)
+        if not isinstance(x, u.Quantity):
+            raise TypeError('x should be a Quantity')
 
-        x = u.Quantity(x, unit=unit, copy=copy)
-        y = u.Quantity(y, unit=unit, copy=copy)
-        z = u.Quantity(z, unit=unit, copy=copy)
+        if not isinstance(y, u.Quantity):
+            raise TypeError('y should be a Quantity')
+
+        if not isinstance(z, u.Quantity):
+            raise TypeError('z should be a Quantity')
+
+        x = u.Quantity(x, copy=copy)
+        y = u.Quantity(y, copy=copy)
+        z = u.Quantity(z, copy=copy)
 
         if not (x.unit.physical_type == y.unit.physical_type == z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")

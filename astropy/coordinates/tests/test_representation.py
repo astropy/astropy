@@ -456,7 +456,7 @@ class TestCartesianRepresentation(object):
 
     def test_init_singleunit(self):
 
-        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2* u.kpc, z=3* u.kpc)
 
         assert s1.x.unit is u.kpc
         assert s1.y.unit is u.kpc
@@ -464,18 +464,6 @@ class TestCartesianRepresentation(object):
 
         assert_allclose(s1.x.value, 1)
         assert_allclose(s1.y.value, 2)
-        assert_allclose(s1.z.value, 3)
-
-    def test_init_override_unit(self):
-
-        s1 = CartesianRepresentation(x=1 * u.pc, y=2 * u.Mpc, z=3 * u.kpc, unit=u.kpc)
-
-        assert s1.x.unit is u.kpc
-        assert s1.y.unit is u.kpc
-        assert s1.z.unit is u.kpc
-
-        assert_allclose(s1.x.value, 0.001)
-        assert_allclose(s1.y.value, 2000)
         assert_allclose(s1.z.value, 3)
 
     def test_init_array(self):
@@ -563,23 +551,17 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6, 7] * u.kpc)
         assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
 
+    # We deliberately disallow anything that is not directly a Quantity in
+    # these low-level classes, so we now check that initializing from a
+    # string or mixed unit lists raises a TypeError.
+
     def test_mixed_units(self):
 
-        # It's also possible to pass in scalar quantity lists with mixed
-        # units. These are converted to array quantities following the same
-        # rule as `Quantity`: all elements are converted to match the first
-        # element's units.
-
-        s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
-                                     y=[3 * u.kpc, 4 * u.pc],
-                                     z=[5. * u.cm, 6 * u.m])
-
-        assert s1.x.unit == u.kpc
-        assert s1.y.unit == u.kpc
-        assert s1.z.unit == u.cm
-        assert_allclose(s1.x.value, [1, 2000])
-        assert_allclose(s1.y.value, [3, 0.004])
-        assert_allclose(s1.z.value, [5, 600])
+        with pytest.raises(TypeError) as exc:
+            s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
+                                         y=[3 * u.kpc, 4 * u.pc],
+                                         z=[5. * u.cm, 6 * u.m])
+        assert exc.value.args[0] == "x should be a Quantity"
 
     def test_readonly(self):
 
@@ -596,7 +578,7 @@ class TestCartesianRepresentation(object):
 
     def test_xyz(self):
 
-        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kpc)
+        s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
 
         assert isinstance(s1.xyz, u.Quantity)
         assert s1.xyz.unit is u.kpc
@@ -622,11 +604,12 @@ class TestCartesianRepresentation(object):
 
     def test_unit_non_length(self):
 
-        s1 = CartesianRepresentation(x=1, y=2, z=3, unit=u.kg)
+        s1 = CartesianRepresentation(x=1 * u.kg, y=2 * u.kg, z=3 * u.kg)
 
-        s2 = CartesianRepresentation(x=1, y=2, z=3, unit=u.km / u.s)
+        s2 = CartesianRepresentation(x=1 * u.km / u.s, y=2 * u.km / u.s, z=3 * u.km / u.s)
 
-        s3 = CartesianRepresentation(x=1, y=2, z=3, unit=u.def_unit('banana'))
+        banana = u.def_unit('banana')
+        s3 = CartesianRepresentation(x=1 * banana, y=2 * banana, z=3 * banana)
 
     def test_getitem(self):
 
@@ -791,9 +774,9 @@ class TestCylindricalRepresentation(object):
 
 def test_cartesian_spherical_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
-                                 y=[3 * u.kpc, 4 * u.pc],
-                                 z=[5. * u.cm, 6 * u.m])
+    s1 = CartesianRepresentation(x=[1, 2000.] * u.kpc,
+                                 y=[3000., 4.] * u.pc,
+                                 z=[5., 6000.] * u.pc)
 
     s2 = SphericalRepresentation.from_representation(s1)
 
@@ -812,9 +795,9 @@ def test_cartesian_spherical_roundtrip():
 
 def test_cartesian_physics_spherical_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1 * u.kpc, 2 * u.Mpc],
-                                 y=[3 * u.kpc, 4 * u.pc],
-                                 z=[5. * u.pc, 6 * u.kpc])
+    s1 = CartesianRepresentation(x=[1, 2000.] * u.kpc,
+                                 y=[3000., 4.] * u.pc,
+                                 z=[5., 6000.] * u.pc)
 
     s2 = PhysicsSphericalRepresentation.from_representation(s1)
 
