@@ -1732,29 +1732,37 @@ naxis kwarg.
         self.wcs.cd = new_cd
 
     def printwcs(self):
-        """
-        Temporary function for internal use.
-        """
-        print('WCS Keywords\n')
-        if hasattr(self.wcs, 'cd'):
-            print('CD_11  CD_12: {!r} {!r}'.format(
-                self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
-            print('CD_21  CD_22: {!r} {!r}'.format(
-                self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
-        else:
-            print('PC_11  PC_12: {!r} {!r}'.format(
-                self.wcs.pc[0, 0], self.wcs.pc[0, 1]))
-            print('PC_21  PC_22: {!r} {!r}'.format(
-                self.wcs.pc[1, 0], self.wcs.pc[1, 1]))
-        print('CRVAL    : {!r} {!r}'.format(
-            self.wcs.crval[0], self.wcs.crval[1]))
-        print('CRPIX    : {!r} {!r}'.format(
-            self.wcs.crpix[0], self.wcs.crpix[1]))
-        if not self.wcs.has_cd():
-            print('CDELT    : {!r} {!r}'.format(
-                self.wcs.cdelt[0], self.wcs.cdelt[1]))
-        print('NAXIS    : {!r} {!r}'.format(
-            self._naxis1, self._naxis2))
+        print("WCS Keywords\n")
+        print("Number of WCS axes: {!r}".format(self.naxis))
+        sfmt = ': ' +  '{!r}  ' * self.naxis
+
+        s = 'CTYPE ' + sfmt
+        print(s.format(*self.wcs.ctype))
+
+        s = 'CRVAL ' + sfmt
+        print(s.format(*self.wcs.crval))
+
+        s = 'CRPIX ' + sfmt
+        print(s.format(*self.wcs.crpix))        
+
+        if hasattr(self.wcs, 'pc'):
+            for i in range(self.naxis):
+                s = ''
+                for j in range(self.naxis):
+                    s += ''.join(['PC', str(i+1), '_', str(j+1), ' '])
+                s += sfmt
+                print(s.format(*self.wcs.pc[i]))
+            s = 'CDELT ' + sfmt
+            print(s.format(*self.wcs.cdelt))
+        elif hasattr(self.wcs, 'cd'):
+            for i in range(self.naxis):
+                s = ''
+                for j in range(self.naxis):
+                    s += "".join(['CD', str(i+1), '_', str(j+1), ' '])
+                s += sfmt
+                print(s.format(*self.wcs.cd[i]))
+
+        print('NAXIS    : {!r} {!r}'.format(self._naxis1, self._naxis2))
 
     def get_axis_types(self):
         """

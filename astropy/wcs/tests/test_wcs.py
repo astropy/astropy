@@ -561,3 +561,15 @@ def test_sip():
 
     assert_allclose(200, x1, 1e-3)
     assert_allclose(200, y1, 1e-3)
+
+def test_printwcs():
+    """
+    Just make sure that it runs
+    """
+    h = get_pkg_data_contents('spectra/orion-freq-1.hdr', encoding='binary')
+    w = wcs.WCS(h)
+    w.printwcs()
+    h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    w = wcs.WCS(h)
+    w.printwcs()
+
