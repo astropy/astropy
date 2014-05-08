@@ -112,7 +112,9 @@ class Angle(u.Quantity):
                 angle = cls._tuple_to_float(angle, unit)
                 if new_unit is not None and unit is not None and new_unit != unit:
                     angle = new_unit.to(unit, angle)
-            elif isiterable(angle) and not isinstance(angle, u.Quantity):
+            elif (isiterable(angle) and
+                  not (isinstance(angle, np.ndarray) and
+                       angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit) for x in angle]
                 if unit is None:
                     unit = angle[0].unit
