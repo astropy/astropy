@@ -422,9 +422,6 @@ Other Changes and Additions
   <http://nedbatchelder.com/code/coverage/>`__, not
   ``pytest-cov``. [#2112]
 
-- ``import astropy; astropy.test()`` now correctly uses the same test
-  configuration as ``python setup.py test`` [#1811]
-
 - The included version of py.test has been upgraded to 2.5.1. [#1970]
 
 - The included version of six.py has been upgraded to 1.5.2. [#2006]
@@ -575,6 +572,9 @@ Bug Fixes
 - Misc
 
   - Fixes for compatibility with Python 3.4. [#1945]
+
+  - ``import astropy; astropy.test()`` now correctly uses the same test
+    configuration as ``python setup.py test`` [#1811]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
