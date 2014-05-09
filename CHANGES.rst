@@ -439,6 +439,8 @@ Other Changes and Additions
 - The developer documentation has been extensively rearranged and
   rewritten. [#1712]
 
+- Use of setuptools has been simplified somewhat.
+
 0.3.2 (unreleased)
 ------------------
 

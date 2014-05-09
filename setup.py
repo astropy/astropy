@@ -5,8 +5,12 @@ import glob
 import os
 import sys
 
-import setuptools_bootstrap
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup
 
 #A dirty hack to get around some early import/configurations ambiguities
 if sys.version_info[0] >= 3:
@@ -14,8 +18,6 @@ if sys.version_info[0] >= 3:
 else:
     import __builtin__ as builtins
 builtins._ASTROPY_SETUP_ = True
-
-from distutils.dist import Distribution
 
 import astropy
 from astropy.setup_helpers import (register_commands, adjust_compiler,
