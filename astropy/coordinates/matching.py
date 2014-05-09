@@ -13,6 +13,7 @@ from .representation import UnitSphericalRepresentation
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky']
 
+
 def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_kdtree_3d'):
     """
     Finds the nearest 3-dimensional matches of a coordinate or coordinates in
@@ -24,9 +25,9 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
 
     Parameters
     ----------
-    matchcoord : `~astropy.coordinates.BaseCoordinateFrame`
+    matchcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The coordinate(s) to match to the catalog.
-    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame`
+    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The base catalog in which to search for matches. Typically this will
         be a coordinate object that is an array (i.e.,
         ``catalogcoord.isscalar == False``)
@@ -38,7 +39,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
         itself as the closest match).
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord``, as an attrbute in ``catalogcoord`` with the
+        in the ``catalogcoord``, as an attribute in ``catalogcoord`` with the
         provided name.  This dramatically speeds up subsequent calls with the
         same catalog. If False, the KD-Tree is discarded after use.
 
@@ -126,9 +127,9 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
     Parameters
     ----------
-    matchcoord : `~astropy.coordinates.BaseCoordinateFrame`
+    matchcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The coordinate(s) to match to the catalog.
-    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame`
+    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The base catalog in which to search for matches. Typically this will
         be a coordinate object that is an array (i.e.,
         ``catalogcoord.isscalar == False``)
