@@ -14,6 +14,7 @@ from ..registry import _readers, _writers, _identifiers
 from .. import registry as io_registry
 from ...table import Table
 from ...extern.six.moves import zip
+from ...extern.six import StringIO
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
@@ -297,3 +298,26 @@ def teardown_function(function):
     _readers.update(_READERS_ORIGINAL)
     _writers.update(_WRITERS_ORIGINAL)
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
+
+
+class TestSubclass:
+    """
+    Test using registry with a Table sub-class
+    """
+    def test_read_table_subclass(self):
+        class MyTable(Table):
+            pass
+        data = ['a b', '1 2']
+        mt = MyTable.read(data, format='ascii')
+        t = Table.read(data, format='ascii')
+        assert np.all(mt == t)
+        assert mt.colnames == t.colnames
+        assert type(mt) is MyTable
+
+    def test_write_table_subclass(self):
+        buffer = StringIO()
+        class MyTable(Table):
+            pass
+        mt = MyTable([[1], [2]], names=['a', 'b'])
+        mt.write(buffer, format='ascii')
+        assert buffer.getvalue() == 'a b\n1 2\n'

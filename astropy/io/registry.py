@@ -45,7 +45,8 @@ def get_formats(data_class=None):
     rows = []
 
     for format_class in format_classes:
-        if data_class is not None and format_class[1] is not data_class:
+        if (data_class is not None
+                and not _is_best_match(data_class, format_class[1], format_classes)):
             continue
 
         has_read = 'Yes' if format_class in _readers else 'No'
@@ -244,7 +245,7 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
-        if data_class is data_class_required:
+        if _is_best_match(data_class_required, data_class, _identifiers):
             if _identifiers[(data_format, data_class)](
                 origin, path, fileobj, *args, **kwargs):
                 valid_formats.append(data_format)
@@ -263,8 +264,11 @@ def _get_format_table_str(data_class, readwrite):
 
 
 def get_reader(data_format, data_class):
-    if (data_format, data_class) in _readers:
-        return _readers[(data_format, data_class)]
+    # Get all the readers that work for `data_format`
+    readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
+    for reader_format, reader_class in readers:
+        if _is_best_match(data_class, reader_class, readers):
+            return _readers[(reader_format, reader_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise Exception("No reader defined for format '{0}' and class '{1}'.\n"
@@ -274,8 +278,10 @@ def get_reader(data_format, data_class):
 
 
 def get_writer(data_format, data_class):
-    if (data_format, data_class) in _writers:
-        return _writers[(data_format, data_class)]
+    writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
+    for writer_format, writer_class in writers:
+        if _is_best_match(data_class, writer_class, writers):
+            return _writers[(writer_format, writer_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
         raise Exception("No writer defined for format '{0}' and class '{1}'.\n"
@@ -321,16 +327,25 @@ def read(cls, *args, **kwargs):
                 'read', cls, path, fileobj, args, kwargs)
 
         reader = get_reader(format, cls)
-        table = reader(*args, **kwargs)
+        data = reader(*args, **kwargs)
 
-        if not isinstance(table, cls):
-            raise TypeError(
-                "reader should return a {0} instance".format(cls.__name__))
+        if not isinstance(data, cls):
+            if issubclass(cls, data.__class__):
+                # User has read with a subclass where only the parent class is
+                # registered.  This returns the parent class, so try coercing to 
+                # desired subclass.
+                try:
+                    data = cls(data)
+                except:
+                    raise TypeError('could not convert reader output to {0} class'
+                                    .format(cls.__name__))
+            else:
+                raise TypeError("reader should return a {0} instance".format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
 
-    return table
+    return data
 
 
 def write(data, *args, **kwargs):
@@ -362,6 +377,20 @@ def write(data, *args, **kwargs):
     writer = get_writer(format, data.__class__)
     writer(data, *args, **kwargs)
 
+
+def _is_best_match(class1, class2, format_classes):
+    """
+    Determine if class2 is the "best" match for class1 in the list
+    of classes.  It is assumed that (class2 in classes) is True.
+    class2 is the the best match if:
+      - class1 is class2 => class1 was directly registered.
+      - OR class1 is a subclass of class2 and class1 is not in classes.
+        In this case the subclass will use the parent reader/writer.
+    """
+    classes = [cls for fmt, cls in format_classes]
+    is_best_match = ((class1 is class2) or (issubclass(class1, class2)
+                                            and class1 not in classes))
+    return is_best_match
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     """
