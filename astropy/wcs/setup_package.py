@@ -316,8 +316,9 @@ def get_package_data():
     return {
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
                                    'data/*.txt',
-                                   'maps/*.hdr', 'spectra/*.hdr'],
-        str('astropy.wcs'): api_files
+                                   'maps/*.hdr', 'spectra/*.hdr',
+                                   'extension/*.c'],
+        str('astropy.wcs'): api_files,
     }
 
 
