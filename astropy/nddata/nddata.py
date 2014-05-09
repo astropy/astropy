@@ -3,9 +3,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import collections
-from copy import deepcopy
-
 import numpy as np
 
 from ..units import Unit
@@ -13,7 +10,6 @@ from .. import log
 
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
-from ..utils.compat.odict import OrderedDict
 from ..io import registry as io_registry
 from ..config import ConfigAlias
 from ..utils.metadata import MetaData
@@ -48,9 +44,9 @@ class NDData(object):
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values must be ``False`` where
-        the data is *valid* and ``True`` when it is not (like Numpy
-        masked arrays). If `data` is a numpy masked array, providing
+        matching that of the data. The values must be `False` where
+        the data is *valid* and `True` when it is not (like Numpy
+        masked arrays). If ``data`` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 
@@ -80,9 +76,9 @@ class NDData(object):
 
     Raises
     ------
-    ValueError
+    ValueError :
         If the `uncertainty` or `mask` inputs cannot be broadcast (e.g., match
-        shape) onto `data`.
+        shape) onto ``data``.
 
     Notes
     -----
@@ -310,7 +306,7 @@ class NDData(object):
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
-        {name} another dataset (`operand`) to this dataset.
+        {name} another dataset (``operand``) to this dataset.
 
         Parameters
         ----------
@@ -330,12 +326,12 @@ class NDData(object):
         This method requires the datasets to have identical WCS
         properties, equivalent units, and identical shapes. Flags and
         meta-data get set to None in the resulting dataset. The unit
-        in the result is the same as the unit in `self`. Uncertainties
+        in the result is the same as the unit in ``self``. Uncertainties
         are propagated, although correlated errors are not supported
         by any of the built-in uncertainty classes.  If uncertainties
         are assumed to be correlated, a warning is issued by default
         (though this can be disabled via the
-        `astropy.nddata.conf.warn_unsupported_correlated`
+        ``astropy.nddata.conf.warn_unsupported_correlated``
         configuration item). Values masked in either dataset before
         the operation are masked in the resulting dataset.
         """
@@ -382,8 +378,8 @@ class NDData(object):
                 result.uncertainty = method(operand, result.data)
             except IncompatibleUncertaintiesException:
                 raise IncompatibleUncertaintiesException(
-                    "Cannot propagate uncertainties of type {0:s} with uncertainties of "
-                    "type {1:s} for {2:s}".format(
+                    "Cannot propagate uncertainties of type {0:s} with "
+                    "uncertainties of type {1:s} for {2:s}".format(
                         self.uncertainty.__class__.__name__,
                         operand.uncertainty.__class__.__name__,
                         name))
