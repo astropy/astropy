@@ -633,6 +633,14 @@ class TestHDUListFunctions(FitsTestCase):
                         mask2 = np.isnan(data2)
                         assert np.sum(mask) == np.sum(mask2)
                         assert np.all(data[~mask] == data2[~mask2])
+                    elif (any(dim == 0 for dim in hdul[idx].data.shape) or
+                          any(dim == 0 for dim in hdul2[idx].data.shape)):
+                        # For some reason some combinations of Python and Numpy
+                        # on Windows result in MemoryErrors when trying to work
+                        # on memmap arrays with more than one dimension but
+                        # some dimensions of size zero, so include a special
+                        # case for that
+                        return hdul[idx].data.shape == hdul2[idx].data.shape
                     else:
                         assert (data == data2).all()
 

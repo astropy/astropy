@@ -24,8 +24,29 @@ import sys
 from functools import wraps
 
 
-__all__ = [
-    'inspect_getmodule', 'invalidate_caches', 'override__dir__']
+__all__ = ['inspect_getmodule', 'invalidate_caches', 'override__dir__',
+           'possible_filename']
+
+
+def possible_filename(filename):
+    """
+    Determine if the ``filename`` argument is an allowable type for a filename.
+
+    In Python 3.3 use of non-unicode filenames on system calls such as
+    `os.stat` and others that accept a filename argument was deprecated (and
+    may be removed outright in the future).
+
+    Therefore this returns `True` in all cases except for `bytes` strings in
+    Windows on Python >= 3.3.
+    """
+
+    if isinstance(filename, six.text_type):
+        return True
+    elif isinstance(filename, six.binary_type):
+        return not (sys.platform == 'win32' and
+                    sys.version_info[:2] >= (3, 3))
+
+    return False
 
 
 def _patched_getmodule(object, _filename=None):

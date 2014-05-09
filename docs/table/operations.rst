@@ -624,7 +624,9 @@ product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching k
 combination of the left and right tables is represented.  When there is no match in either
 the left or right table, the corresponding column values are designated as missing.
 
-  >>> print join(left, right, join_type='outer')  # doctest: +SKIP
+.. doctest-skip:: win32
+
+  >>> print join(left, right, join_type='outer')
   key  L   R
   --- --- ---
     0  L1  --
@@ -643,7 +645,9 @@ the left or right table, the corresponding column values are designated as missi
    can vary.
 
 An inner join is the same but only returns rows where there is a key match in both the
-left and right tables::
+left and right tables:
+
+.. doctest-skip:: win32
 
   >>> print join(left, right, join_type='inner')  # doctest: +SKIP
   key  L   R

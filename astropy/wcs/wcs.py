@@ -48,6 +48,7 @@ except ImportError:
     _wcs = None
 
 from ..utils import deprecated, deprecated_attribute
+from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
 if _wcs is not None:
@@ -304,7 +305,8 @@ class WCS(WCSBase):
 
             if isinstance(header, (six.text_type, six.binary_type)):
                 try:
-                    is_path = os.path.exists(header)
+                    is_path = (possible_filename(header) and
+                               os.path.exists(header))
                 except (IOError, ValueError):
                     is_path = False
 
