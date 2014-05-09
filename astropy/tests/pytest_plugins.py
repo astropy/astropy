@@ -225,10 +225,14 @@ def pytest_configure(config):
 
                     last_line = lines[-1]
                     match = re.match(
-                        r'\.\.\s+doctest-skip\s*::', last_line)
+                        r'\.\.\s+doctest-skip\s*::(\s+.*)?', last_line)
                     if match:
-                        skip_next = True
-                        continue
+                        marker = match.group(1)
+                        if (marker is None or
+                                (marker.strip() == 'win32' and
+                                 sys.platform == 'win32')):
+                            skip_next = True
+                            continue
 
                     match = re.match(
                         r'\.\.\s+doctest-requires\s*::\s+(.*)',
