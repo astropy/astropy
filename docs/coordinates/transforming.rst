@@ -51,10 +51,10 @@ they start with if you don't specify one::
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' value=J2000.000>
     >>> fk5c
-    <FK5 Coordinate: equinox=J2000.000, ra=37.9545416667 deg, dec=89.2641111111 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=37.9545416667 deg, dec=89.2641111111 deg>
     >>> fk5_2100 = FK5(equinox=Time(2100, format='jyear', scale='utc'))
     >>> fk5c.transform_to(fk5_2100)
-    <FK5 Coordinate: equinox=2100.0, ra=88.3239593382 deg, dec=89.5405669962 deg>
+    <SkyCoord (FK5): equinox=2100.0, ra=88.3239593382 deg, dec=89.5405669962 deg>
 
 You can also specify the equinox when you create a coordinate using a
 `~astropy.time.Time` object::
@@ -63,7 +63,7 @@ You can also specify the equinox when you create a coordinate using a
     ...            equinox=Time('J1970', scale='utc'))
     >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear', scale='utc'))
     >>> fk5c.transform_to(fk5_2000)
-    <FK5 Coordinate: equinox=2000.0, ra=48.0231710002 deg, dec=89.386724854 deg>
+    <SkyCoord (FK5): equinox=2000.0, ra=48.0231710002 deg, dec=89.386724854 deg>
 
 Coordinate systems do not necessarily all support an equinox nor
 precession, as it is a meaningless action for coordinate systems that

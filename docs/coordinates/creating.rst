@@ -34,9 +34,9 @@ angle. For the exact rules for how each string is parsed, see the
 `~astropy.coordinates.Angle` documentation.  Some examples::
 
     >>> ICRS("3h36m29.7888s", "-41d08m15.162342s")
-    <ICRS Coordinate: ra=54.12412 deg, dec=-41.137545095 deg>
+    <SkyCoord (ICRS): ra=54.12412 deg, dec=-41.137545095 deg>
     >>> ICRS("14.12412 hours", "-41:08:15.162342 degrees")
-    <ICRS Coordinate: ra=211.8618 deg, dec=-41.137545095 deg>
+    <SkyCoord (ICRS): ra=211.8618 deg, dec=-41.137545095 deg>
     >>> ICRS("14.12412", "-41:08:15.162342")
     Traceback (most recent call last):
         ...
@@ -49,7 +49,7 @@ same unit rules apply as for scalar angles.::
     <ICRS Coordinate: (ra, dec) in deg
         [(187.70592, 12.39112), (123.45677999999998, 9.87654)]>
     >>> ICRS([187.70592*u.degree, 8.23*u.hourangle], [12.39112*u.degree, 1.2*u.radian])
-    <ICRS Coordinate: (ra, dec) in deg
+    <SkyCoord (ICRS): (ra, dec) in deg
         [(187.70592, 12.39112), (123.44999999999999, 68.75493541569878)]>
     >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654])
     Traceback (most recent call last):

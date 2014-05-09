@@ -26,7 +26,7 @@ include lists of multiple coordinates in one object::
     >>> ICRS(ra=10.68458*u.degree, dec=41.26917*u.degree)
     <ICRS Coordinate: ra=10.68458 deg, dec=41.26917 deg>
     >>> ICRS('00h42m44.3s', '+41d16m9s')
-    <ICRS Coordinate: ra=10.6845833333 deg, dec=41.2691666667 deg>
+    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg>
     >>> ICRS(ra=[10.68458, 83.82208]*u.degree, dec=[41.26917, -5.39111]*u.degree)
     <ICRS Coordinate: (ra, dec) in deg
         [(10.684579999999983, 41.26917), (83.82208000000003, -5.39111)]>
@@ -44,7 +44,7 @@ accessed using aptly named attributes::
     >>> c.ra.hms
     hms_tuple(h=0.0, m=42.0, s=44.29919999999...)
     >>> c.dec
-    <Latitude 41.26917... deg>
+    <Latitude 41.2691... deg>
     >>> c.dec.radian
     0.7202828960652...
 

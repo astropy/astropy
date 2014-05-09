@@ -19,7 +19,7 @@ be valid.::
     <Distance 770.0 kpc>
     >>> c = ICRS('00h42m44.3s', '+41d16m9s', distance=d)
     >>> c
-    <ICRS Coordinate: ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
+    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
 
 Because `~astropy.coordinates.Distance` is a subclass of
 `~astropy.units.Quantity`, in general a `~astropy.units.Quantity` with units
@@ -27,7 +27,7 @@ of length may be provided and it will automatically convert to a
 `~astropy.coordinates.Distance`::
 
     >>> ICRS('00h42m44.3s', '+41d16m9s', distance=770*u.kpc)
-    <ICRS Coordinate: ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
+    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
 
 By default, `~astropy.coordinates.Distance` values must be non-negative. For some cosmologies,
 distance metrics may become zero or negative; negative distance values are supported
@@ -77,7 +77,7 @@ unit sphere::
 This Cartesian representation can also be used to create a new coordinate
 object through a `~astropy.coordinates.CartesianRepresentation` object::
 
-    >>> cart = CartesianRepresentation(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    >>> cart = CartesianRepresentation(x=568.7129*u.kpc, y=107.3009*u.kpc, z=507.8899*u.kpc)
     >>> ICRS(cart)
     <ICRS Coordinate: ra=10.6845796179 deg, dec=41.2691659084 deg, distance=769.99999759 kpc>
 
