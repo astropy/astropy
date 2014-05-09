@@ -1733,8 +1733,8 @@ naxis kwarg.
 
     def printwcs(self):
         print("WCS Keywords\n")
-        print("Number of WCS axes: {!r}".format(self.naxis))
-        sfmt = ': ' +  '{!r}  ' * self.naxis
+        print("Number of WCS axes: {0!r}".format(self.naxis))
+        sfmt = ': ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
 
         s = 'CTYPE ' + sfmt
         print(s.format(*self.wcs.ctype))
@@ -1762,7 +1762,7 @@ naxis kwarg.
                 s += sfmt
                 print(s.format(*self.wcs.cd[i]))
 
-        print('NAXIS    : {!r} {!r}'.format(self._naxis1, self._naxis2))
+        print('NAXIS    : {0!r} {1!r}'.format(self._naxis1, self._naxis2))
 
     def get_axis_types(self):
         """
