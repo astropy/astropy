@@ -108,38 +108,67 @@ of different data types to initialize a table::
 Notice that in the third column the existing column name ``'axis'`` is used.
 
 
-**Use row data instead of column data**
+Row input
+"""""""""
+Row-oriented data can also be used to create a table using the ``rows``
+keyword argument.
+
+** List of data records as list or tuple **
+
+If you have row-oriented input data such as a list of records, you
+need to use the ``rows`` keyword to create a table::
+
+  >>> data_rows = [(1, 2.0, 'x'),
+  ...              (4, 5.0, 'y'),
+  ...              (5, 8.2, 'z')]
+  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
+  >>> print(t)
+   a   b   c 
+  --- --- ---
+    1 2.0   x
+    4 5.0   y
+    5 8.2   z
+
+** List of dict objects **
 
 You can also initialize a table with row values.  This is constructed as a
 list of dict objects.  The keys determine the column names::
 
-  >>> data = [{'a': 5, 'b': 10}, {'a': 15, 'b': 20}]
-  >>> Table(data)
+  >>> data = [{'a': 5, 'b': 10},
+  ...         {'a': 15, 'b': 20}]
+  >>> Table(rows=data)
   <Table rows=2 names=('a','b')>
   array([(5, 10), (15, 20)],
         dtype=[('a', '<i8'), ('b', '<i8')])
 
 Every row must have the same set of keys or a ValueError will be thrown::
 
-  >>> t = Table([{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
+  >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
   Traceback (most recent call last):
     ...
   ValueError: Row 0 has no value for column c
 
-Row input
-"""""""""
+** Single row **
 
-You can make a new table from a single row of an existing table::
+You can also make a new table from a single row of an existing table::
 
   >>> a = [1, 4]
   >>> b = [2.0, 5.0]
   >>> t = Table([a, b], names=('a', 'b'))
-  >>> t2 = Table(t[1])
+  >>> t2 = Table(rows=t[1])
 
 Remember that a |Row| has effectively a zero length compared to the
 newly created |Table| which has a length of one.  This is similar to
 the difference between a scalar ``1`` (length 0) and an array like
 ``np.array([1])`` with length 1.
+
+.. Note::
+
+   In the case of input data as a list of dicts or a single Table row, it is
+   allowed to supply the data as the ``data`` argument since these forms
+   are always unambiguous.  For example ``Table([{'a': 1}, {'a': 2}])`` is
+   accepted.  However, a list of records must always be provided using the
+   ``rows`` keyword, otherwise it will be interpreted as a list of columns.
 
 Dictionary input
 """"""""""""""""
@@ -301,17 +330,6 @@ homogeneous `numpy` array input is interpreted as a list of rows::
 This dichotomy is needed to support flexible list input while retaining the
 natural interpretation of 2-d `numpy` arrays where the first index corresponds
 to data "rows" and the second index corresponds to data "columns".
-
-If you have a Python list which is structured as a list of data rows, use the
-following trick to effectively transpose into a list of columns for
-initializing a |Table| object::
-
-   >>> arr = [[1, 2.0, 'string'],  # list of rows
-   ...        [2, 3.0, 'values']]
-   >>> col_arr = zip(*arr)  # transpose to a list of columns
-   >>> col_arr
-   [(1, 2), (2.0, 3.0), ('string', 'values')]
-   >>> t = Table(col_arr)
 
 Table columns
 """""""""""""
