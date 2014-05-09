@@ -10,11 +10,18 @@ import zipfile
 
 import numpy as np
 
+try:
+    import StringIO
+    HAVE_STRINGIO = True
+except ImportError:
+    HAVE_STRINGIO = False
+
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings
 from . import FitsTestCase
 from .util import ignore_warnings
 from ..convenience import _getext
+from ..diff import FITSDiff
 from ..file import _File
 
 
@@ -710,6 +717,37 @@ class TestFileFunctions(FitsTestCase):
                         assert hdu1.header == hdu2.header
                         if hdu1.data is not None and hdu2.data is not None:
                             assert np.all(hdu1.data == hdu2.data)
+
+    @pytest.mark.skipif('not HAVE_STRINGIO')
+    def test_write_stringio(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2463
+
+        Only test against `StringIO.StringIO` on Python versions that have it.
+        Note: `io.StringIO` is not supported for this purpose as it does not
+        accept a bytes stream.
+        """
+
+        self._test_write_string_bytes_io(StringIO.StringIO())
+
+    def test_write_bytesio(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2463
+
+        Test againt `io.BytesIO`.  `io.StringIO` is not supported.
+        """
+
+        self._test_write_string_bytes_io(io.BytesIO())
+
+    def _test_write_string_bytes_io(self, fileobj):
+        """
+        Implemented for both test_write_stringio and test_write_bytesio.
+        """
+
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul.writeto(fileobj)
+            hdul2 = fits.HDUList.fromstring(fileobj.getvalue())
+            assert FITSDiff(hdul, hdul2).identical
 
     def _make_gzip_file(self, filename='test0.fits.gz'):
         gzfile = self.temp(filename)
