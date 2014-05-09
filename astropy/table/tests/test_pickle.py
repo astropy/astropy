@@ -7,16 +7,18 @@ from ...table import Table, Column, MaskedColumn
 
 
 def test_pickle_column(protocol):
-    c = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})
+    c = Column(data=[1, 2], name='a', format='%05d', description='col a',
+               unit='cm', meta={'a': 1}, hidden=True)
     cs = pickle.dumps(c)
     cp = pickle.loads(cs)
     assert np.all(cp == c)
     assert cp.attrs_equal(c)
+    assert cp.hidden is True
 
 
 def test_pickle_masked_column(protocol):
     c = MaskedColumn(data=[1, 2], name='a', format='%05d', description='col a', unit='cm',
-                     meta={'a': 1})
+                     meta={'a': 1}, hidden=True)
     c.mask[1] = True
     c.fill_value = -99
 
@@ -27,12 +29,13 @@ def test_pickle_masked_column(protocol):
     assert np.all(cp.mask == c.mask)
     assert cp.attrs_equal(c)
     assert cp.fill_value == -99
+    assert cp.hidden is True
 
 
 def test_pickle_table(protocol):
     a = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})
     b = Column(data=[3.0, 4.0], name='b', format='%05d', description='col b', unit='cm',
-               meta={'b': 1})
+               meta={'b': 1}, hidden=True)
     t = Table([a, b], meta={'a': 1})
     ts = pickle.dumps(t)
     tp = pickle.loads(ts)
@@ -41,13 +44,15 @@ def test_pickle_table(protocol):
     assert np.all(tp['b'] == t['b'])
     assert tp['a'].attrs_equal(t['a'])
     assert tp['b'].attrs_equal(t['b'])
+    assert tp['a'].hidden is False
+    assert tp['b'].hidden is True
     assert tp.meta == t.meta
 
 
 def test_pickle_masked_table(protocol):
     a = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})
     b = Column(data=[3.0, 4.0], name='b', format='%05d', description='col b', unit='cm',
-               meta={'b': 1})
+               meta={'b': 1}, hidden=True)
     t = Table([a, b], meta={'a': 1}, masked=True)
     t['a'].mask[1] = True
     t['a'].fill_value = -99
@@ -61,4 +66,6 @@ def test_pickle_masked_table(protocol):
 
     assert tp['a'].attrs_equal(t['a'])
     assert tp['b'].attrs_equal(t['b'])
+    assert tp['a'].hidden is False
+    assert tp['b'].hidden is True
     assert tp.meta == t.meta
