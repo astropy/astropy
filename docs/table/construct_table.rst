@@ -49,8 +49,8 @@ size, columns, or data are not known.
   >>> t.add_row((4, 5.0, 'y'))
 
 
-List input
-""""""""""
+List of columns
+"""""""""""""""
 A typical case is where you have a number of data columns with the same length
 defined in different variables.  These might be Python lists or `numpy` arrays
 or a mix of the two.  These can be used to create a |Table| by putting the column
@@ -108,69 +108,7 @@ of different data types to initialize a table::
 Notice that in the third column the existing column name ``'axis'`` is used.
 
 
-Row input
-"""""""""
-Row-oriented data can also be used to create a table using the ``rows``
-keyword argument.
-
-** List of data records as list or tuple **
-
-If you have row-oriented input data such as a list of records, you
-need to use the ``rows`` keyword to create a table::
-
-  >>> data_rows = [(1, 2.0, 'x'),
-  ...              (4, 5.0, 'y'),
-  ...              (5, 8.2, 'z')]
-  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
-  >>> print(t)
-   a   b   c 
-  --- --- ---
-    1 2.0   x
-    4 5.0   y
-    5 8.2   z
-
-** List of dict objects **
-
-You can also initialize a table with row values.  This is constructed as a
-list of dict objects.  The keys determine the column names::
-
-  >>> data = [{'a': 5, 'b': 10},
-  ...         {'a': 15, 'b': 20}]
-  >>> Table(rows=data)
-  <Table rows=2 names=('a','b')>
-  array([(5, 10), (15, 20)],
-        dtype=[('a', '<i8'), ('b', '<i8')])
-
-Every row must have the same set of keys or a ValueError will be thrown::
-
-  >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
-  Traceback (most recent call last):
-    ...
-  ValueError: Row 0 has no value for column c
-
-** Single row **
-
-You can also make a new table from a single row of an existing table::
-
-  >>> a = [1, 4]
-  >>> b = [2.0, 5.0]
-  >>> t = Table([a, b], names=('a', 'b'))
-  >>> t2 = Table(rows=t[1])
-
-Remember that a |Row| has effectively a zero length compared to the
-newly created |Table| which has a length of one.  This is similar to
-the difference between a scalar ``1`` (length 0) and an array like
-``np.array([1])`` with length 1.
-
-.. Note::
-
-   In the case of input data as a list of dicts or a single Table row, it is
-   allowed to supply the data as the ``data`` argument since these forms
-   are always unambiguous.  For example ``Table([{'a': 1}, {'a': 2}])`` is
-   accepted.  However, a list of records must always be provided using the
-   ``rows`` keyword, otherwise it will be interpreted as a list of columns.
-
-Dictionary input
+Dict of columns
 """"""""""""""""
 A dictionary of column data can be used to initialize a |Table|.
 
@@ -215,6 +153,71 @@ column where each row element is itself a 2-element array.
     ...
   KeyError: 'a_new'
 
+
+Row data
+"""""""""
+Row-oriented data can be used to create a table using the ``rows``
+keyword argument.
+
+**List of data records as list or tuple**
+
+If you have row-oriented input data such as a list of records, you
+need to use the ``rows`` keyword to create a table::
+
+  >>> data_rows = [(1, 2.0, 'x'),
+  ...              (4, 5.0, 'y'),
+  ...              (5, 8.2, 'z')]
+  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
+  >>> print(t)
+   a   b   c 
+  --- --- ---
+    1 2.0   x
+    4 5.0   y
+    5 8.2   z
+
+The data object passed as the ``rows`` argument can be any form which is
+parsable by the ``np.rec.fromrecords()`` function.
+
+**List of dict objects**
+
+You can also initialize a table with row values.  This is constructed as a
+list of dict objects.  The keys determine the column names::
+
+  >>> data = [{'a': 5, 'b': 10},
+  ...         {'a': 15, 'b': 20}]
+  >>> Table(rows=data)
+  <Table rows=2 names=('a','b')>
+  array([(5, 10), (15, 20)],
+        dtype=[('a', '<i8'), ('b', '<i8')])
+
+Every row must have the same set of keys or a ValueError will be thrown::
+
+  >>> t = Table(rows=[{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
+  Traceback (most recent call last):
+    ...
+  ValueError: Row 0 has no value for column c
+
+**Single row**
+
+You can also make a new table from a single row of an existing table::
+
+  >>> a = [1, 4]
+  >>> b = [2.0, 5.0]
+  >>> t = Table([a, b], names=('a', 'b'))
+  >>> t2 = Table(rows=t[1])
+
+Remember that a |Row| has effectively a zero length compared to the
+newly created |Table| which has a length of one.  This is similar to
+the difference between a scalar ``1`` (length 0) and an array like
+``np.array([1])`` with length 1.
+
+.. Note::
+
+   In the case of input data as a list of dicts or a single Table row, it is
+   allowed to supply the data as the ``data`` argument since these forms
+   are always unambiguous.  For example ``Table([{'a': 1}, {'a': 2}])`` is
+   accepted.  However, a list of records must always be provided using the
+   ``rows`` keyword, otherwise it will be interpreted as a list of columns.
 
 NumPy structured array
 """"""""""""""""""""""

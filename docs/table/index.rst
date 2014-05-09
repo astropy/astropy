@@ -47,8 +47,8 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> c = ['x', 'y', 'z']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
 
-If you have row-oriented input data such as a list of records, you
-need to use the ``rows`` keyword to create a table::
+If you have row-oriented input data such as a list of records, use the ``rows``
+keyword::
 
   >>> data_rows = [(1, 2.0, 'x'),
   ...              (4, 5.0, 'y'),
