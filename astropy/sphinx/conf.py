@@ -163,6 +163,10 @@ autosummary_generate = True
 
 automodapi_toctreedirnm = 'api'
 
+# Class documentation should contain *both* the class docstring and
+# the __init__ docstring
+autoclass_content = "both"
+
 
 # -- Options for HTML output -------------------------------------------------
 
