@@ -368,6 +368,8 @@ Bug Fixes
   - ``Quantity.copy`` now behaves identically to ``ndarray.copy``, and thus
     supports the ``order`` argument (for numpy >=1.6). [#2284]
 
+  - Composing base units into identical composite units now works. [#2382]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
