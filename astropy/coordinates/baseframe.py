@@ -133,9 +133,8 @@ class BaseCoordinateFrame(object):
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
-    # This is provided for backward-compatibility with pre-0.4 API, can
-    # be removed in 1.0
-
+    # This __new__ provides for backward-compatibility with pre-0.4 API.
+    # TODO: remove in 1.0
     def __new__(cls, *args, **kwargs):
 
         # Only do backward-compatibility if frame is previously defined one
