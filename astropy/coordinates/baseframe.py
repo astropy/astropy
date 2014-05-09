@@ -149,10 +149,17 @@ class BaseCoordinateFrame(object):
             for arg in args:
                 if (not isinstance(arg, u.Quantity)
                     and not isinstance(arg, BaseRepresentation)):
-                    warnings.warn("Initializing frames using non-Quantity "
-                                  "arguments is now deprecated. Use "
-                                  "SkyCoord or pass Quantity instances "
-                                  "instead.", AstropyDeprecationWarning)
+                    msg = ('Initializing frame classes like "{0}" using string '
+                           'or other non-Quantity arguments is deprecated, and '
+                           'will be removed in the next version of Astropy.  '
+                           'Instead, you probably want to use the SkyCoord '
+                           'class with the "system={1}" keyword, or if you '
+                           'really want to use the low-level frame classes, '
+                           'create it with an Angle or Quantity.')
+
+                    warnings.warn(msg.format(cls.__name__,
+                                             cls.__name__.lower()),
+                                  AstropyDeprecationWarning)
                     use_skycoord = True
                     break
 
