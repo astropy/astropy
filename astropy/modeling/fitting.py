@@ -2,13 +2,14 @@
 
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
-fitting functions. All Fitters take an instance of `~astropy.modeling.FittableModel`
-as input and define a ``__call__`` method which fits the model to the data and changes the
-model's parameters attribute. The idea is to make this extensible and allow
-users to easily add other fitters.
+fitting functions. All Fitters take an instance of
+`~astropy.modeling.FittableModel` as input and define a ``__call__`` method
+which fits the model to the data and changes the model's parameters
+attribute. The idea is to make this extensible and allow users to easily add
+other fitters.
 
-Linear fitting is done using the `numpy.linalg.lstsq` function.
-There are currently two non-linear fitters which use `scipy.optimize.leastsq` and
+Linear fitting is done using the `numpy.linalg.lstsq` function.  There are
+currently two non-linear fitters which use `scipy.optimize.leastsq` and
 `scipy.optimize.slsqp` functions in `scipy.optimize`.
 """
 
@@ -16,14 +17,12 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
-import numbers
 import warnings
 
 from functools import reduce
 
 import numpy as np
 
-from ..logger import log
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
 from .core import _CompositeModel
@@ -32,7 +31,6 @@ from ..extern import six
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
-
 
 
 DEFAULT_MAXITER = 100
@@ -289,9 +287,9 @@ class LinearLSQFitter(Fitter):
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == model_copy.param_dim, (
-                    "Number of data sets (Y array is expected to equal "
-                    "the number of parameter sets")
+                if y.shape[1] != model_copy.param_dim:
+                    raise ValueError("Number of data sets (Y array is expected"
+                                     " to equal the number of parameter sets")
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
@@ -810,10 +808,16 @@ class JointFitter(object):
         return np.ravel(fitted)
 
     def _verify_input(self):
-        assert(len(self.models) > 1)
-        assert(len(self.jointparams.keys()) >= 2)
+        if len(self.models) <= 1:
+            raise TypeError("Expected >1 models, %d is given" %
+                            len(self.models))
+        if len(self.jointparams.keys()) < 2:
+            raise TypeError("At least two parameters are expected, "
+                            "%d is given" % len(self.jointparams.keys()))
         for j in self.jointparams.keys():
-            assert(len(self.jointparams[j]) == len(self.initvals))
+            if len(self.jointparams[j]) != len(self.initvals):
+                raise TypeError("%d parameter(s) provided but %d expected" %
+                                (len(self.jointparams[j]), len(self.initvals)))
 
     def __call__(self, *args):
         """
@@ -823,9 +827,12 @@ class JointFitter(object):
 
         from scipy import optimize
 
-        assert(len(args) == reduce(lambda x, y: x + 1 + y + 1, self.modeldims))
+        if len(args) != reduce(lambda x, y: x + 1 + y + 1, self.modeldims):
+            raise ValueError("Expected %d coordinates in args but %d provided"
+                             % (reduce(lambda x, y: x + 1 + y + 1,
+                                       self.modeldims), len(args)))
         self.fitparams[:], _ = optimize.leastsq(self.errorfunc, self.fitparams,
-                                              args=args)
+                                                args=args)
 
         fparams = self.fitparams[:]
         numjp = len(self.initvals)

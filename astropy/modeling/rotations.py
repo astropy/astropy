@@ -18,7 +18,6 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import math
-import numbers
 
 import numpy as np
 
@@ -178,11 +177,12 @@ class Rotation2D(Model):
 
         x = np.asarray(x)
         y = np.asarray(y)
-        assert x.shape == y.shape
+        if x.shape != y.shape:
+            raise ValueError("Expected input arrays to have the same shape")
         shape = x.shape
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
-        assert inarr.shape[0] == 2 and inarr.ndim == 2, \
-            "Incompatible input shapes"
+        if inarr.shape[0] != 2 or inarr.ndim != 2:
+            raise ValueError("Incompatible input shapes")
         result = np.dot(self._matrix, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:

@@ -11,7 +11,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from .core import (FittableModel, Fittable1DModel, Fittable2DModel,
+from .core import (Fittable1DModel, Fittable2DModel,
                    Model, format_input, ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from ..utils import find_current_module
@@ -20,8 +20,8 @@ from ..extern import six
 __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
     'Box2D', 'Const1D', 'Const2D', 'Disk2D',
-    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
+    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
+    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
     'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
     'custom_model_1d'
 ])
@@ -278,7 +278,8 @@ class Gaussian2D(Fittable2DModel):
         # Compute principle coordinate system transformation
         elif cov_matrix is not None:
             cov_matrix = np.array(cov_matrix)
-            assert cov_matrix.shape == (2, 2), "Covariance matrix must be 2x2"
+            if cov_matrix.shape != (2, 2):
+                raise ValueError("Covariance matrix must be 2x2")
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]

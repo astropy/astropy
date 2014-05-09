@@ -21,7 +21,6 @@ from numpy.testing import utils
 
 from .example_models import models_1D, models_2D
 from .. import fitting, models
-from .. import fitting
 from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
                     Fittable1DModel, Fittable2DModel)
 from ..polynomial import PolynomialModel
@@ -137,7 +136,7 @@ class TestSummedComposite(object):
     def test_inputs_outputs_mismatch(self):
         p2 = models.Polynomial2D(1)
         ch2 = models.Chebyshev2D(1, 1)
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             SummedCompositeModel([p2, ch2])
 
 

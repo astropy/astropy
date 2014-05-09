@@ -290,7 +290,8 @@ class Parameter(object):
     def fixed(self, value):
         """Fix a parameter"""
         if self._model is not None:
-            assert isinstance(value, bool), "Fixed can be True or False"
+            if not isinstance(value, bool):
+                raise TypeError("Fixed can be True or False")
             self._model._constraints['fixed'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'fixed' on Parameter "
@@ -315,8 +316,8 @@ class Parameter(object):
         """Tie a parameter"""
 
         if self._model is not None:
-            assert six.callable(value) or value in (False, None), \
-                    "Tied must be a callable"
+            if not six.callable(value) and value not in (False, None):
+                    raise TypeError("Tied must be a callable")
             self._model._constraints['tied'][self._name] = value
         else:
             raise AttributeError("can't set attribute 'tied' on Parameter "
@@ -340,13 +341,13 @@ class Parameter(object):
         if self._model is not None:
             _min, _max = value
             if _min is not None:
-                assert isinstance(_min, numbers.Number), \
-                        "Min value must be a number"
+                if not isinstance(_min, numbers.Number):
+                        raise TypeError("Min value must be a number")
                 _min = float(_min)
 
             if _max is not None:
-                assert isinstance(_max, numbers.Number), \
-                        "Max value must be a number"
+                if not isinstance(_max, numbers.Number):
+                        raise TypeError("Max value must be a number")
                 _max = float(_max)
 
             bounds = self._model._constraints.setdefault('bounds', {})

@@ -1,21 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module defines base classes for all models.
-The base class of all models is `~astropy.modeling.Model`.
-`~astropy.modeling.FittableModel` is the base class for all fittable models. Fittable
-models can be linear or nonlinear in a regression analysis sense.
+This module defines base classes for all models.  The base class of all
+models is `~astropy.modeling.Model`. `~astropy.modeling.FittableModel` is
+the base class for all fittable models. Fittable models can be linear or
+nonlinear in a regression analysis sense.
 
-All models provide a `__call__` method which performs the transformation in a
-purely mathematical way, i.e. the models are unitless. In addition, when
-possible the transformation is done using multiple parameter sets, `param_sets`.
-The number of parameter sets is stored in an attribute `param_dim`.
+All models provide a `__call__` method which performs the transformation in
+a purely mathematical way, i.e. the models are unitless. In addition, when
+possible the transformation is done using multiple parameter sets,
+`param_sets`.  The number of parameter sets is stored in an attribute
+`param_dim`.
 
 Fittable models also store a flat list of all parameters as an instance of
-`~astropy.modeling.Parameter`. When fitting, this list-like object is modified by a
-subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models, the values of the
-parameters are used as initial guesses by the fitting class. Normally users
-will not have to use the `~astropy.modeling.parameters` module directly.
+`~astropy.modeling.Parameter`. When fitting, this list-like object is
+modified by a subclass of `~astropy.modeling.fitting.Fitter`. When fitting
+nonlinear models, the values of the parameters are used as initial guesses
+by the fitting class. Normally users will not have to use the
+`~astropy.modeling.parameters` module directly.
 
 Input Format For Model Evaluation and Fitting
 
@@ -32,7 +34,8 @@ For example:
   A parameter set is applied to each column.
 
 - A model with N parameter sets works with multidimensional arrays if the
-  shape of the input array is (N, M, P). A parameter set is applied to each plane.
+  shape of the input array is (N, M, P). A parameter set is applied to each
+  plane.
 
 In all these cases the output has the same shape as the input.
 
@@ -95,15 +98,15 @@ def format_input(func):
             if arg.ndim < 2:
                 converted.append(np.array([arg]).T)
             elif arg.ndim == 2:
-                assert arg.shape[-1] == self.param_dim, \
-                    ("Cannot broadcast with shape "
-                     "({0}, {1})".format(arg.shape[0], arg.shape[1]))
+                if arg.shape[-1] != self.param_dim:
+                    raise ValueError("Cannot broadcast with shape ({0}, {1})".
+                                     format(arg.shape[0], arg.shape[1]))
                 converted.append(arg)
             elif arg.ndim > 2:
-                assert arg.shape[0] == self.param_dim, \
-                    ("Cannot broadcast with shape "
-                     "({0}, {1}, {2})".format(arg.shape[0], arg.shape[1],
-                                              arg.shape[2]))
+                if arg.shape[0] != self.param_dim:
+                    raise ValueError("Cannot broadcast with shape ({0}, {1}, "
+                                     "{2})".format(arg.shape[0],
+                                                   arg.shape[1], arg.shape[2]))
                 transposed = True
                 converted.append(arg.T)
 
@@ -115,7 +118,7 @@ def format_input(func):
             else:
                 return result.T
         elif scalar:
-            if self.n_outputs >1:
+            if self.n_outputs > 1:
                 try:
                     result = [np.asscalar(r) for r in result]
                 except TypeError:
@@ -701,7 +704,8 @@ class LabeledInput(dict):
 
     def __init__(self, data, labels):
         dict.__init__(self)
-        assert len(labels) == len(data)
+        if len(labels) != len(data):
+            raise TypeError("Number of labels and data doesn't match")
         self.labels = [l.strip() for l in labels]
         for coord, label in zip(data, labels):
             self[label] = coord
@@ -742,8 +746,8 @@ class LabeledInput(dict):
                 self.update(kw)
         else:
             kw = dict({label: value})
-            assert(label is not None and value is not None), (
-                "Expected label and value to be defined")
+            if label is None or value is None:
+                raise TypeError("Expected label and value to be defined")
             self[label] = value
 
         for key in kw:
@@ -862,17 +866,16 @@ class SerialCompositeModel(_CompositeModel):
             # transform
             n_outputs = transforms[-1].n_outputs
         else:
-            assert n_outputs is not None, "Expected n_inputs and n_outputs"
-            n_inputs = n_inputs
-            n_outputs = n_outputs
+            if n_outputs is None:
+                raise TypeError("Expected n_inputs and n_outputs")
 
         super(SerialCompositeModel, self).__init__(transforms, n_inputs,
                                                    n_outputs)
 
         if transforms and inmap and outmap:
-            assert len(transforms) == len(inmap) == len(outmap), \
-                "Expected sequences of transform, " \
-                "inmap and outmap to have the same length"
+            if not (len(transforms) == len(inmap) == len(outmap)):
+                raise ValueError("Expected sequences of transform, "
+                                 "inmap and outmap to have the same length")
 
         if inmap is None:
             inmap = [None] * len(transforms)
@@ -905,9 +908,9 @@ class SerialCompositeModel(_CompositeModel):
 
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
-                assert self._transforms[0].n_inputs == 1, \
-                    "First transform expects {0} inputs, 1 given".format(
-                        self._transforms[0].n_inputs)
+                if self._transforms[0].n_inputs != 1:
+                    raise TypeError("First transform expects {0} inputs, 1 "
+                                    "given".format(self._transforms[0].n_inputs))
 
                 result = data[0]
                 for tr in self._transforms:
@@ -918,12 +921,12 @@ class SerialCompositeModel(_CompositeModel):
                 # we want to return the entire labeled object because some
                 # parts of it may be used in another transform of which this
                 # one is a component
-                assert self._inmap is not None, \
-                    ("Parameter 'inmap' must be provided when "
-                     "input is a labeled object.")
-                assert self._outmap is not None, \
-                    ("Parameter 'outmap' must be provided when input is a "
-                     "labeled object")
+                if self._inmap is None:
+                    raise TypeError("Parameter 'inmap' must be provided when "
+                                    "input is a labeled object.")
+                if self._outmap is None:
+                    raise TypeError("Parameter 'outmap' must be provided when "
+                                    "input is a labeled object")
 
                 for transform, incoo, outcoo in izip(self._transforms,
                                                      self._inmap,
@@ -939,8 +942,9 @@ class SerialCompositeModel(_CompositeModel):
                         setattr(labeled_input, label, res)
                 return labeled_input
         else:
-            assert self.n_inputs == len(data), \
-                "This transform expects {0} inputs".format(self._n_inputs)
+            if self.n_inputs != len(data):
+                raise TypeError("This transform expects {0} inputs".
+                                format(self._n_inputs))
 
             result = self._transforms[0](*data)
             for transform in self._transforms[1:]:
@@ -972,9 +976,9 @@ class SummedCompositeModel(_CompositeModel):
         n_inputs = self._transforms[0].n_inputs
         n_outputs = n_inputs
         for transform in self._transforms:
-            assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                ("A SummedCompositeModel expects n_inputs = n_outputs for "
-                 "all transforms")
+            if not (transform.n_inputs == transform.n_outputs == n_inputs):
+                raise ValueError("A SummedCompositeModel expects n_inputs = "
+                                 "n_outputs for all transforms")
 
         super(SummedCompositeModel, self).__init__(transforms, n_inputs,
                                                    n_outputs)
@@ -991,12 +995,12 @@ class SummedCompositeModel(_CompositeModel):
                 deltas = sum(tr(x) for tr in self._transforms)
                 return deltas
             else:
-                assert self._inmap is not None, \
-                    ("Parameter 'inmap' must be provided when "
-                     "input is a labeled object.")
-                assert self._outmap is not None, \
-                    ("Parameter 'outmap' must be provided when input is a "
-                     "labeled object")
+                if self._inmap is None:
+                    raise TypeError("Parameter 'inmap' must be provided when "
+                                    "input is a labeled object.")
+                if self._outmap is None:
+                    raise TypeError("Parameter 'outmap' must be provided when "
+                                    "input is a labeled object")
                 labeled_input = data[0].copy()
                 # create a list of inputs to be passed to the transforms
                 inlist = [getattr(labeled_input, label)
@@ -1014,7 +1018,8 @@ class SummedCompositeModel(_CompositeModel):
                 return labeled_input
         else:
             result = self._transforms[0](*data)
-            assert self.n_inputs == self.n_outputs
+            if self.n_inputs != self.n_outputs:
+                raise ValueError("Expected equal number of inputs and outputs")
             for tr in self._transforms[1:]:
                 result += tr(*data)
             return result
