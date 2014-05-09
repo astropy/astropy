@@ -507,16 +507,17 @@ class SkyCoord(object):
         Returns
         -------
         idx : integer array
-            Indecies into ``catalogcoord`` to get the matched points
-            for each ``matchcoord``. Shape matches this coordinate.
+            Indices into ``catalogcoord`` to get the matched points for
+            each of this object's coordinates. Shape matches this
+            object.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the closest match for each
-            ``matchcoord`` and the ``matchcoord``. Shape matches
-            ``matchcoord``.
+            element in this object in ``catalogcoord``. Shape matches
+            this object.
         dist3d : `~astropy.units.Quantity`
-            The 3D distance between the closest match for each
-            ``matchcoord`` and the ``matchcoord``. Shape matches this
-            coordinate.
+            The 3D distance between the closest match for each element
+            in this object in ``catalogcoord``. Shape matches this
+            object.
 
         Notes
         -----
@@ -578,17 +579,17 @@ class SkyCoord(object):
         Returns
         -------
         idx : integer array
-            Indecies into ``catalogcoord`` to get the matched points
-            for each ``matchcoord``. Shape matches this coordinate.
+            Indices into ``catalogcoord`` to get the matched points for
+            each of this object's coordinates. Shape matches this
+            object.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the closest match for each
-            ``matchcoord`` and the ``matchcoord``. Shape matches
-            ``matchcoord``.
+            element in this object in ``catalogcoord``. Shape matches
+            this object.
         dist3d : `~astropy.units.Quantity`
-            The 3D distance between the closest match for each
-            ``matchcoord`` and the ``matchcoord``. Shape matches this
-            coordinate.
-
+            The 3D distance between the closest match for each element
+            in this object in ``catalogcoord``. Shape matches this
+            object.
         Notes
         -----
         This method requires `SciPy <http://www.scipy.org>`_ to be
