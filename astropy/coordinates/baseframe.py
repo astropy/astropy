@@ -254,7 +254,7 @@ class BaseCoordinateFrame(object):
     def data(self):
         """
         The coordinate data for this object.  If this frame has no data, an
-        `AttributeError` will be raised.  Use `had_data` to check if data is
+        `AttributeError` will be raised.  Use `has_data` to check if data is
         present on this frame object.
         """
         if self._data is None:
@@ -282,6 +282,41 @@ class BaseCoordinateFrame(object):
     @property
     def isscalar(self):
         return self.data.isscalar
+
+    @classmethod
+    def lookup_name(cls, transformgraph):
+        """
+        Determines the name used by this frame in the provided
+        transformation graph.
+
+        Parameters
+        ----------
+        transformgraph : `~astropy.coordinates.TransformGraph`
+            The graph to lookup the name of this object on.
+
+        Returns
+        -------
+        name : str
+            The string name of this frame in the ``transformgraph``
+            set of transformations.
+
+        Raises
+        ------
+        ValueError
+            If this frame is not in the ``transformgraph`` graph.
+
+        Notes
+        -----
+        The reason this is a method instead of a property is that
+        different frame classes can have different names on different
+        transform graphs.
+        """
+        for k, v in transformgraph._clsaliases.items():
+            if v == cls:
+                return k
+        else:
+            raise ValueError("Couldn't find the class {0} in the provided "
+                             "transform graph, so can't determine its name")
 
     def realize_frame(self, representation):
         """
