@@ -1672,7 +1672,7 @@ PyWcsprm_sub(
 
   if (py_axes == NULL || py_axes == Py_None) {
     /* leave all variables as is */
-  } else if (PySequence_Check(py_axes)) {
+  } else if (PyList_Check(py_axes) || PyTuple_Check(py_axes)) {
     tmp = PySequence_Size(py_axes);
     if (tmp == -1) {
       goto exit;
