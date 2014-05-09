@@ -8,6 +8,7 @@ from ..extern.six.moves import range as xrange
 import collections
 import sys
 import warnings
+import re
 
 from copy import deepcopy
 from distutils import version
@@ -35,7 +36,10 @@ _NUMPY_VERSION = version.LooseVersion(np.__version__)
 _BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
 
 
-__doctest_skip__ = ['Table.read', 'Table.write']
+__doctest_skip__ = ['Table.read', 'Table.write',
+                    'Table.convert_bytestring_to_unicode',
+                    'Table.convert_unicode_to_bytestring',
+                    ]
 
 
 class TableColumns(OrderedDict):
@@ -1395,6 +1399,81 @@ class Table(object):
             table = None
 
         self._data = table
+
+    def _convert_string_dtype(self, in_kind, out_kind, python3_only):
+        """
+        Convert string-like columns to/from bytestring and unicode (internal only).
+
+        Parameters
+        ----------
+        in_kind : str
+            Input dtype.kind
+        out_kind : str
+            Output dtype.kind
+        python3_only : bool
+            Only do this operation for Python 3
+        """
+        if python3_only and not six.PY3:
+            return
+
+        # If there are no `in_kind` columns then do nothing
+        cols = self.columns.values()
+        if not any(col.dtype.kind == in_kind for col in cols):
+            return
+
+        newcols = []
+        for col in cols:
+            if col.dtype.kind == in_kind:
+                newdtype = re.sub(in_kind, out_kind, col.dtype.str)
+                newcol = col.__class__(col, dtype=newdtype)
+            else:
+                newcol = col
+            newcols.append(newcol)
+
+        self._init_from_cols(newcols)
+
+    def convert_bytestring_to_unicode(self, python3_only=False):
+        """
+        Convert bytestring columns (dtype.kind='S') to unicode (dtype.kind='U') assuming
+        ASCII encoding.
+
+        Internally this changes string columns to represent each character in the string
+        with a 4-byte UCS-4 equivalent, so it is inefficient for memory but allows Python
+        3 scripts to manipulate string arrays with natural syntax.
+
+        The ``python3_only`` parameter is provided as a convenience so that code can
+        be written in a Python 2 / 3 compatible way::
+
+          >>> t = Table.read('my_data.fits')
+          >>> t.convert_bytestring_to_unicode(python3_only=True)
+
+        Parameters
+        ----------
+        python3_only : bool
+            Only do this operation for Python 3
+        """
+        self._convert_string_dtype('S', 'U', python3_only)
+
+    def convert_unicode_to_bytestring(self, python3_only=False):
+        """
+        Convert ASCII-only unicode columns (dtype.kind='U') to bytestring (dtype.kind='S').
+
+        When exporting a unicode string array to a file in Python 3, it may be desirable
+        to encode unicode columns as bytestrings.  This routine takes advantage of numpy
+        automated conversion which works for strings that are pure ASCII.
+
+        The ``python3_only`` parameter is provided as a convenience so that code can
+        be written in a Python 2 / 3 compatible way::
+
+          >>> t.convert_unicode_to_bytestring(python3_only=True)
+          >>> t.write('my_data.fits')
+
+        Parameters
+        ----------
+        python3_only : bool
+            Only do this operation for Python 3
+        """
+        self._convert_string_dtype('S', 'U', python3_only)
 
     def keep_columns(self, names):
         '''
