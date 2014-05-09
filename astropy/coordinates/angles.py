@@ -518,8 +518,13 @@ class Latitude(Angle):
     ------
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
+    `TypeError`
+        If the angle parameter is an instance of :class:`~astropy.coordinates.Longitude`.
     """
     def __new__(cls, angle, unit=None, **kwargs):
+        # Forbid creating a Lat from a Long.
+        if isinstance(angle, Longitude):
+            raise TypeError("A Latitude angle cannot be created from a Longitude angle")
         self = super(Latitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
         return self
@@ -541,6 +546,9 @@ class Latitude(Angle):
                              'got {0}'.format(angles.to(u.degree)))
 
     def __setitem__(self, item, value):
+        # Forbid assigning a Long to a Lat.
+        if isinstance(value, Longitude):
+            raise TypeError("A Longitude angle cannot be assigned to a Latitude angle")
         # first check bounds
         self._validate_angles(value)
         super(Latitude, self).__setitem__(item, value)
@@ -603,16 +611,24 @@ class Longitude(Angle):
     ------
     `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
+    `TypeError`
+        If the angle parameter is an instance of :class:`~astropy.coordinates.Latitude`.
     """
 
     _wrap_angle = None
 
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+        # Forbid creating a Long from a Lat.
+        if isinstance(angle, Latitude):
+            raise TypeError("A Longitude angle cannot be created from a Latitude angle")
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self.wrap_angle = wrap_angle
         return self
 
     def __setitem__(self, item, value):
+        # Forbid assigning a Lat to a Long.
+        if isinstance(value, Latitude):
+            raise TypeError("A Latitude angle cannot be assigned to a Longitude angle")
         super(Longitude, self).__setitem__(item, value)
         self._wrap_internal()
 
