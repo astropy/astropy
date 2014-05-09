@@ -47,6 +47,14 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> c = ['x', 'y', 'z']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
 
+If you have row-oriented input data such as a list of records, use the ``rows``
+keyword::
+
+  >>> data_rows = [(1, 2.0, 'x'),
+  ...              (4, 5.0, 'y'),
+  ...              (5, 8.2, 'z')]
+  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'), meta={'name': 'first table'})
+
 There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 

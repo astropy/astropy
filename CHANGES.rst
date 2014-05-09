@@ -125,6 +125,9 @@ New Features
 
 - ``astropy.table``
 
+  - Allow row-oriented data input using a new ``rows`` keyword argument.
+    [#850]
+
   - Allow subclassing of `Table` and the component classes `Row`, `Column`,
     `MaskedColumn`, `TableColumns`, and `TableFormatter`. [#2287]
 

@@ -262,7 +262,8 @@ class Table(object):
         Metadata associated with the table.
     copy : bool, optional
         Copy the input data (default=True).
-
+    rows : numpy ndarray, list of lists, optional
+        Row-oriented data for table instead of ``data`` argument
     """
 
     meta = MetaData()
@@ -276,7 +277,7 @@ class Table(object):
     TableFormatter = TableFormatter
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, dtypes=None):
+                 meta=None, copy=True, dtypes=None, rows=None):
 
         if dtypes is not None:
             dtype = dtypes
@@ -294,6 +295,22 @@ class Table(object):
         if not copy and dtype is not None:
             raise ValueError('Cannot specify dtype when copy=False')
 
+        # Row-oriented input, e.g. list of lists or list of tuples, list of
+        # dict, Row instance.  Set data to something that the subsequent code
+        # will parse correctly.
+        is_list_of_dict = False
+        if rows is not None:
+            if data is not None:
+                raise ValueError('Cannot supply both `data` and `rows` values')
+            if all(isinstance(row, dict) for row in rows):
+                is_list_of_dict = True  # Avoid doing the all(...) test twice.
+                data = rows
+            elif isinstance(rows, self.Row):
+                data = rows
+            else:
+                rec_data = np.rec.fromrecords(rows)
+                data = [rec_data[name] for name in rec_data.dtype.names]
+
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
 
@@ -304,7 +321,7 @@ class Table(object):
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
-            if data and all(isinstance(row, dict) for row in data):
+            if data and (is_list_of_dict or all(isinstance(row, dict) for row in data)):
                 n_cols = len(data[0])
             else:
                 n_cols = len(data)
