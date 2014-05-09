@@ -59,6 +59,9 @@ Bug Fixes
 
   - Several other bug fixes ported from PyFITS v3.2.3 [#2368]
 
+  - Fixed a crash on Python 2.x when writing a FITS file directly to a
+    ``StringIO.StringIO`` object. [#2463]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
