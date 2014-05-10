@@ -289,7 +289,7 @@ class Time(object):
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
-        If format is None and the input is a string-type or object array then
+        If format is `None` and the input is a string-type or object array then
         guess available formats and stop when one matches.
         """
 
@@ -328,10 +328,10 @@ class Time(object):
         method is called.
 
         .. note::
-            "Now" is determined using the `datetime.utcnow` function, so
-            its accuracy and precision is determined by that function.
-            Generally that means it is set by the accuracy of your
-            system clock.
+            "Now" is determined using the `~datetime.datetime.utcnow`
+            function, so its accuracy and precision is determined by that
+            function.  Generally that means it is set by the accuracy of
+            your system clock.
 
         Returns
         -------
@@ -429,7 +429,7 @@ class Time(object):
     def in_subfmt(self):
         """
         Unix wildcard pattern to select subformats for parsing string input
-        times
+        times.
         """
         return self._in_subfmt
 
@@ -442,7 +442,7 @@ class Time(object):
     @property
     def out_subfmt(self):
         """
-        Unix wildcard pattern to select subformats for outputting times
+        Unix wildcard pattern to select subformats for outputting times.
         """
         return self._out_subfmt
 
@@ -465,14 +465,14 @@ class Time(object):
     @property
     def jd1(self):
         """
-        First of the two doubles that internally store time value(s) in JD
+        First of the two doubles that internally store time value(s) in JD.
         """
         return self._shaped_like_input(self._time.jd1)
 
     @property
     def jd2(self):
         """
-        Second of the two doubles that internally store time value(s) in JD
+        Second of the two doubles that internally store time value(s) in JD.
         """
         return self._shaped_like_input(self._time.jd2)
 
@@ -489,7 +489,7 @@ class Time(object):
     @property
     @deprecated("0.3", name="vals", alternative="value")
     def vals(self):
-        """Time values in current format as a numpy array"""
+        """Time values in current format as a numpy array."""
         return self.value
 
     @property
@@ -503,25 +503,26 @@ class Time(object):
         return self.location.latitude
 
     def sidereal_time(self, kind, longitude=None, model=None):
-        """Calculate sidereal time
+        """Calculate sidereal time.
 
         Parameters
         ---------------
         kind : str
-            'mean' or 'apparent', i.e., accounting for precession only, or
-            also for nutation.
-        longitude : `~astropy.units.Quantity`, `str`, or None; optional
-            The longitude on the Earth at which to compute the sidereal time.
-            Can be given as a `~astropy.units.Quantity` with angular units (or
-            an `~astro.coordinates.Angle` or `~astropy.coordinates.Longitude`),
-            or as a name of an observatory (currently, only 'greenwich' is
-            supported, equivalent to 0 deg).
-            If None (default), the `lon` attribute of the Time object is used.
-        model : str or None; optional
+            ``'mean'`` or ``'apparent'``, i.e., accounting for precession
+            only, or also for nutation.
+        longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
+           The longitude on the Earth at which to compute the sidereal time.
+            Can be given as a `~astropy.units.Quantity` with angular units
+            (or an `~astropy.coordinates.Angle` or
+            `~astropy.coordinates.Longitude`), or as a name of an
+            observatory (currently, only ``'greenwich'`` is supported,
+            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
+            the Time object is used.
+        model : str or `None`; optional
             Precession (and nutation) model to use.  The available ones are:
             - {0}: {1}
             - {2}: {3}
-            If None (default), the last (most recent) one from the appropriate
+            If `None` (default), the last (most recent) one from the appropriate
             list above is used.
 
         Returns
@@ -567,7 +568,7 @@ class Time(object):
         'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
     def _erfa_sidereal_time(self, model):
-        """Caculate a sidereal time using a IAU precession/nutation model"""
+        """Caculate a sidereal time using a IAU precession/nutation model."""
 
         from ..coordinates import Longitude
 
@@ -614,13 +615,13 @@ class Time(object):
         object will be set accordingly, otherwise it will be unchanged from the
         original.
 
-        If ``copy`` is set to True then a full copy of the internal time arrays
+        If ``copy`` is set to `True` then a full copy of the internal time arrays
         will be made.  By default the replica will use a reference to the
         original arrays when possible to save memory.  The internal time arrays
         are normally not changeable by the user so in most cases it should not
-        be necessary to set ``copy`` to True.
+        be necessary to set ``copy`` to `True`.
 
-        The convenience method copy() is available in which ``copy`` is True
+        The convenience method copy() is available in which ``copy`` is `True`
         by default.
 
         Parameters
@@ -785,25 +786,26 @@ class Time(object):
 
         Parameters
         ----------
-        iers_table : `~astropy.utils.iers.IERS` table, optional
-            Table containing UT1-UTC differences from IERS Bulletins A and/or B
-            If None, use default version (see `~astropy.utils.iers`)
+        iers_table : ``astropy.utils.iers.IERS`` table, optional
+            Table containing UT1-UTC differences from IERS Bulletins A
+            and/or B.  If `None`, use default version (see
+            ``astropy.utils.iers``)
         return_status : bool
-            Whether to return status values.  If `False` (default),
-            iers raises `IndexError` if any time is out of the range covered
-            by the IERS table.
+            Whether to return status values.  If `False` (default), iers
+            raises `~.exceptions.IndexError` if any time is out of the range
+            covered by the IERS table.
 
         Returns
         -------
         ut1_utc: float or float array
             UT1-UTC, interpolated in IERS Table
         status: int or int array
-            Status values (if `return_status`=`True`)::
-            `~astropy.utils.iers.FROM_IERS_B`
-            `~astropy.utils.iers.FROM_IERS_A`
-            `~astropy.utils.iers.FROM_IERS_A_PREDICTION`
-            `~astropy.utils.iers.TIME_BEFORE_IERS_RANGE`
-            `~astropy.utils.iers.TIME_BEYOND_IERS_RANGE`
+            Status values (if ``return_status=`True```)::
+            ``astropy.utils.iers.FROM_IERS_B``
+            ``astropy.utils.iers.FROM_IERS_A``
+            ``astropy.utils.iers.FROM_IERS_A_PREDICTION``
+            ``astropy.utils.iers.TIME_BEFORE_IERS_RANGE``
+            ``astropy.utils.iers.TIME_BEYOND_IERS_RANGE``
 
         Notes
         -----
@@ -821,7 +823,7 @@ class Time(object):
             array([ True, False], dtype=bool)
 
         To use an updated IERS A bulletin to calculate UT1-UTC
-        (see also `~astropy.utils.iers`)::
+        (see also ``astropy.utils.iers``)::
 
             >>> from astropy.utils.iers import IERS_A, IERS_A_URL
             >>> from astropy.utils.data import download_file
@@ -1061,8 +1063,8 @@ class Time(object):
 
     def __eq__(self, other):
         """
-        If other is an incompatible object for comparison, return False.
-        Otherwise, return True if the time difference between self and
+        If other is an incompatible object for comparison, return `False`.
+        Otherwise, return `True` if the time difference between self and
         other is zero.
         """
         try:
@@ -1073,8 +1075,8 @@ class Time(object):
 
     def __ne__(self, other):
         """
-        If other is an incompatible object for comparison, return True.
-        Otherwise, return False if the time difference between self and
+        If other is an incompatible object for comparison, return `True`.
+        Otherwise, return `False` if the time difference between self and
         other is zero.
         """
         try:
@@ -1114,10 +1116,10 @@ class TimeDelta(Time):
         Make a copy of the input values
     """
     SCALES = TIME_DELTA_SCALES
-    """List of time delta scales"""
+    """List of time delta scales."""
 
     FORMATS = TIME_DELTA_FORMATS
-    """Dict of time delta formats"""
+    """Dict of time delta formats."""
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         if isinstance(val, self.__class__):
@@ -1403,7 +1405,7 @@ class TimeFormat(object):
         the class default.
 
         Otherwise just make sure that scale is in the allowed list of
-        scales.  Provide a different error message if None (no value) was
+        scales.  Provide a different error message if `None` (no value) was
         supplied.
         """
         if hasattr(self.__class__, 'epoch_scale') and scale is None:
@@ -2027,7 +2029,7 @@ class TimeDeltaFormat(TimeFormat):
 
     def _check_scale(self, scale):
         """
-        Check that the scale is in the allowed list of scales, or is None
+        Check that the scale is in the allowed list of scales, or is `None`
         """
         if scale is not None and scale not in TIME_DELTA_SCALES:
             raise ScaleValueError("Scale value '{0}' not in "
@@ -2078,7 +2080,7 @@ for name, val in list(six.iteritems(locals())):
 
 def _make_1d_array(val, copy=False):
     """
-    Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is True
+    Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is `True`
     then copy input values.
 
     Returns

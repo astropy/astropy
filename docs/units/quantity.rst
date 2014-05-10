@@ -17,7 +17,7 @@ to represent 15 m/s:
     >>> 15 * u.m / u.s
     <Quantity 15.0 m / s>
 
-.. note:: |quantity| objects are converted to float by default.  
+.. note:: |quantity| objects are converted to float by default.
 
 As another example:
 
@@ -272,7 +272,7 @@ To subclass |quantity|, one generally proceeds as one would when subclassing
 (rather than ``__init__``) and uses the
 :meth:`~numpy.ndarray.__array_finalize__` method to update attributes.  For
 details, see the `numpy documentation on subclassing
-<http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`.  For
+<http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
 examples, one can look at |quantity| itself, where, e.g.,
 :meth:`~astropy.units.Quantity.__array_finalize__` is used to pass on the
 ``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed as

@@ -18,13 +18,13 @@ New Features
 
 - ``astropy.coordinates``
 
-  - Updated ``Angle.dms`` and ``Angle.hms`` to return ``namedtuple``s instead
+  - Updated ``Angle.dms`` and ``Angle.hms`` to return ``namedtuple`` -s instead
     of regular tuples, and added ``Angle.signed_dms`` attribute that gives the
     absolute value of the ``d``, ``m``, and ``s`` along with the sign.  [#1988]
 
-  - By default, `Distance` objects are now required to be positive. To
-    allow negative values, set ``allow_negative=True`` in the `Distance`
-    constructor when creating a `Distance` instance.
+  - By default, ``Distance`` objects are now required to be positive. To
+    allow negative values, set ``allow_negative=True`` in the ``Distance``
+    constructor when creating a ``Distance`` instance.
 
 - ``astropy.cosmology``
 
@@ -116,10 +116,10 @@ New Features
     inteded user-facing API location rather than the actual file where
     the implementation is found. [#1826]
 
-  - The `automodsumm` extension configuration was changed to generate
-    documentation of class `__call__` member functions. [#1817, #2135]
+  - The ``automodsumm`` extension configuration was changed to generate
+    documentation of class ``__call__`` member functions. [#1817, #2135]
 
-  - `automodapi` and `automodsumm` now have an ``:allowed-package-names:``
+  - ``automodapi`` and ``automodsumm`` now have an ``:allowed-package-names:``
     option that make it possible to document functions and classes that
     are in a different namespace.  [#2370]
 
@@ -128,8 +128,8 @@ New Features
   - Allow row-oriented data input using a new ``rows`` keyword argument.
     [#850]
 
-  - Allow subclassing of `Table` and the component classes `Row`, `Column`,
-    `MaskedColumn`, `TableColumns`, and `TableFormatter`. [#2287]
+  - Allow subclassing of ``Table`` and the component classes ``Row``, ``Column``,
+    ``MaskedColumn``, ``TableColumns``, and ``TableFormatter``. [#2287]
 
 - ``astropy.time``
 
@@ -138,12 +138,12 @@ New Features
 
   - The time scale now defaults to UTC if no scale is provided. [#2091]
 
-  - `TimeDelta` objects can have all scales but UTC, as well as, for
+  - ``TimeDelta`` objects can have all scales but UTC, as well as, for
     consistency with time-like quantities, undefined scale (where the
     scale is taken from the object one adds to or subtracts from).
     This allows, e.g., to work consistently in TDB.  [#1932]
 
-  - `Time` now supports ISO format strings that end in "Z". [#2211, #2203]
+  - ``Time`` now supports ISO format strings that end in "Z". [#2211, #2203]
 
 - ``astropy.units``
 
@@ -157,7 +157,7 @@ New Features
 
   - Added ``one`` as a shorthand for ``dimensionless_unscaled``. [#1980]
 
-  - Added `dex` and `dB` units. [#1628]
+  - Added ``dex`` and ``dB`` units. [#1628]
 
   - Added ``temperature()`` equivalencies to support conversion between
     Kelvin, Celsius, and Fahrenheit. [#2209]
@@ -222,13 +222,16 @@ API Changes
 - ``astropy.modeling``
 
   - The method computing the derivative of the model with respect
-    to parameters was renamed from `deriv` to `fit_deriv`. [#1739]
+    to parameters was renamed from ``deriv`` to ``fit_deriv``. [#1739]
 
-  - `ParametricModel` and the associated `Parametric1DModel` and `Parametric2DModel` classes have been renamed
-    `FittableModel`, `Fittable1DModel`, and `Fittable2DModel` respectively.  The base `Model` class has
-    subsumed the functionality of the old `ParametricModel` class so that all models support parameter
-    constraints.  The only distinction of `FittableModel` is that anything which subclasses it is assumed "safe"
-    to use with Astropy fitters. [#2276]
+  - ``ParametricModel`` and the associated ``Parametric1DModel`` and
+    ``Parametric2DModel`` classes have been renamed ``FittableModel``,
+    ``Fittable1DModel``, and ``Fittable2DModel`` respectively.  The base
+    ``Model`` class has subsumed the functionality of the old
+    ``ParametricModel`` class so that all models support parameter
+    constraints.  The only distinction of ``FittableModel`` is that anything
+    which subclasses it is assumed "safe" to use with Astropy
+    fitters. [#2276]
 
 - ``astropy.nddata``
 
@@ -239,8 +242,8 @@ API Changes
   - The default table printing function now shows a table header row for units
     if any columns have the unit attribute set.  [#1282]
 
-  - Before, an unmasked `Table` was automatically converted to a masked
-    table if generated from a masked Table or a `MaskedColumn`.
+  - Before, an unmasked ``Table`` was automatically converted to a masked
+    table if generated from a masked Table or a ``MaskedColumn``.
     Now, this conversion is only done if explicitly requested or if any
     of the input values is actually masked. [#1185]
 
@@ -294,7 +297,7 @@ API Changes
     <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
 
   - ``astropy.wcs.UnitConverter``, which was deprecated in astropy
-    0.2, has been removed.  Use the `astropy.units` module
+    0.2, has been removed.  Use the ``astropy.units`` module
     instead. [#2386]
 
   - The following methods on ``astropy.wcs.WCS``, which were
@@ -663,7 +666,7 @@ Bug Fixes
   - Fixed bug in computation of model derivatives in ``LinearLSQFitter``.
     [#1903]
 
-  - Raise a `NotImplementedError` when fitting composite models. [#1915]
+  - Raise a ``NotImplementedError`` when fitting composite models. [#1915]
 
   - Fixed bug in the computation of the ``Gaussian2D`` model. [#2038]
 
@@ -744,14 +747,14 @@ Bug Fixes
     part of the FITS standard, a warning will be issued when it is encountered.
     [#1911]
 
-  - Pickling unrecognized units will not raise a `AttributeError`. [#2047]
+  - Pickling unrecognized units will not raise a ``AttributeError``. [#2047]
 
-  - `astropy.units` now correctly preserves the precision of
+  - ``astropy.units`` now correctly preserves the precision of
     fractional powers. [#2070]
 
   - If a ``Unit`` or ``Quantity`` is raised to a floating point power
     that is very close to a rational number with a denominator less
-    than or equal to 10, it is converted to a `Fraction` object to
+    than or equal to 10, it is converted to a ``Fraction`` object to
     preserve its precision through complex unit conversion operations.
     [#2070]
 
@@ -792,10 +795,10 @@ Bug Fixes
   - Fix a memory corruption bug when using ``astropy.wcs.Wcs.sub`` with
     ``astropy.wcs.WCSSUB_CELESTIAL``. [#1960]
 
-  - Fixed the `AttributeError` exception that was raised when using
+  - Fixed the ``AttributeError`` exception that was raised when using
     ``astropy.wcs.WCS.footprint_to_file``. [#1912]
 
-  - Fixed a `NameError` exception that was raised when using
+  - Fixed a ``NameError`` exception that was raised when using
     ``astropy.wcs.validate`` or the ``wcslint`` script. [#2053]
 
   - Fixed a bug where named WCSes may be erroneously reported as ``' '`` when
@@ -1180,7 +1183,7 @@ API Changes
       - ``hours`` -> ``hour``
 
     - Multiplication and division of two ``Angle`` objects used to raise
-      `NotImplementedError`.  Now they raise `TypeError`.
+      ``NotImplementedError``.  Now they raise ``TypeError``.
 
   - The ``astropy.coordinates.Angle`` class no longer has a ``bounds``
     attribute so there is no bounds-checking or auto-wrapping at this level.

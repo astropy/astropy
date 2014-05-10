@@ -13,5 +13,5 @@ Other Licenses
 ==============
 
 Full licenses for third-party software astropy is derived from or included
-with Astropy can be found in the `licenses/` directory of the source code
-distribution.
+with Astropy can be found in the ``'licenses/'`` directory of the source
+code distribution.
