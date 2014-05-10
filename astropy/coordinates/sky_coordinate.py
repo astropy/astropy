@@ -1,7 +1,5 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import re
-from copy import deepcopy
 import collections
 
 import numpy as np
@@ -14,17 +12,19 @@ from .. import units as u
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
-from .representation import BaseRepresentation, SphericalRepresentation, \
-                            UnitSphericalRepresentation
+from .representation import (BaseRepresentation, SphericalRepresentation,
+                             UnitSphericalRepresentation)
 
 __all__ = ['SkyCoord']
 
 # Define some convenience mappings.  These are used like module constants
 # but are actually dynamically evaluated.
 
+
 def FRAME_NAMES():
     """Dictionary mapping of frame name: frame class."""
     return frame_transform_graph.get_aliases()
+
 
 def FRAME_CLASSES():
     """Mapping from frame name to class"""
@@ -33,9 +33,11 @@ def FRAME_CLASSES():
     out[None] = out['icrs']
     return out
 
+
 def CLASS_TO_NAME_MAP():
     """Mapping from frame class to name"""
     return dict((cls, name) for name, cls in FRAME_CLASSES().items())
+
 
 def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
@@ -76,17 +78,15 @@ class SkyCoord(object):
     * Additional keywords will be interpreted as attributes of this `SkyCoord`,
       but will only be used by the containing coordinate if it is transformed.
 
-
     Parameters
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         The type of coordinate frame this `SkyCoord` should represent.  If a
-        string, it should be one of the aliases available in `astropy.coordinates.frame_transform_graph`,
-        typically an all-lower-case version of the system name.
+        string, it should be one of the aliases available in
+        `astropy.coordinates.frame_transform_graph`, typically an all-lower-case
+        version of the system name.
     others
         Other parameters depend on the type of frame - see above.
-
-
     """
 
     def __init__(self, *args, **kwargs):
@@ -399,7 +399,7 @@ class SkyCoord(object):
 
         return coord_string
 
-    #high-level convinience methods
+    # High-level convinience methods
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
@@ -540,7 +540,7 @@ class SkyCoord(object):
                 other_coord._kdtree_sky = catalogcoord._kdtree_sky
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
-            # it's a frame
+            # It's a frame
             self_as_other_coord = self.transform_to(catalogcoord).coordobj
             other_coord = catalogcoord
         else:
@@ -551,7 +551,7 @@ class SkyCoord(object):
                                     nthneighbor=nthneighbor,
                                     storekdtree='_kdtree_sky')
 
-        #update the cached KD-Tree - this is a no-op if its already cached
+        # Update the cached KD-Tree - this is a no-op if its already cached
         if catalogcoord is not other_coord:
             catalogcoord._kdtree_sky = other_coord._kdtree_sky
         return res
@@ -611,7 +611,7 @@ class SkyCoord(object):
                 other_coord._kdtree_3d = catalogcoord._kdtree_3d
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
-            # it's a frame
+            # It's a frame
             self_as_other_coord = self.transform_to(catalogcoord).coordobj
             other_coord = catalogcoord
         else:
