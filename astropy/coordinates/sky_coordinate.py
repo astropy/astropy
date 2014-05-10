@@ -530,27 +530,16 @@ class SkyCoord(object):
         """
         from .matching import match_coordinates_sky
 
-        if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.frame).frame
-            other_coord = catalogcoord.frame
-            if hasattr(catalogcoord, '_kdtree_sky'):
-                other_coord._kdtree_sky = catalogcoord._kdtree_sky
-
-        elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
-            # It's a frame
-            self_as_other_coord = self.transform_to(catalogcoord).frame
-            other_coord = catalogcoord
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+                and catalogcoord.has_data):
+            self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        res = match_coordinates_sky(self_as_other_coord, other_coord,
+        res = match_coordinates_sky(self_in_catalog_frame, catalogcoord,
                                     nthneighbor=nthneighbor,
                                     storekdtree='_kdtree_sky')
-
-        # Update the cached KD-Tree - this is a no-op if its already cached
-        if catalogcoord is not other_coord:
-            catalogcoord._kdtree_sky = other_coord._kdtree_sky
         return res
 
     def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
@@ -601,27 +590,17 @@ class SkyCoord(object):
         """
         from .matching import match_coordinates_3d
 
-        if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.frame).frame
-            other_coord = catalogcoord.frame
-            if hasattr(catalogcoord, '_kdtree_3d'):
-                other_coord._kdtree_3d = catalogcoord._kdtree_3d
-
-        elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
-            # It's a frame
-            self_as_other_coord = self.transform_to(catalogcoord).frame
-            other_coord = catalogcoord
+        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+                and catalogcoord.has_data):
+            self_in_catalog_frame = self.transform_to(catalogcoord)
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        res = match_coordinates_3d(self_as_other_coord, other_coord,
+        res = match_coordinates_3d(self_in_catalog_frame, catalogcoord,
                                    nthneighbor=nthneighbor,
                                    storekdtree='_kdtree_3d')
 
-        # Update the cached KD-Tree - this is a no-op if its already cached
-        if catalogcoord is not other_coord:
-            catalogcoord._kdtree_3d = other_coord._kdtree_3d
         return res
 
     # Name resolve
