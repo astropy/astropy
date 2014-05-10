@@ -12,7 +12,7 @@ import sys
 import numpy as np
 
 from .. import log
-from ..utils.console import Getch, color_print
+from ..utils.console import Getch, color_print, terminal_size
 
 if six.PY3:
     def default_format_func(format_, val):
@@ -95,21 +95,7 @@ class TableFormatter(object):
 
         """
         if max_lines is None or max_width is None:
-            try:  # Will likely fail on Windows
-                import termios
-                import fcntl
-                import struct
-                s = struct.pack("HHHH", 0, 0, 0, 0)
-                fd_stdout = sys.stdout.fileno()
-                x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
-                (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
-                if lines > 12:
-                    lines -= 6
-                if width > 10:
-                    width -= 1
-            except:
-                from . import conf
-                lines, width = conf.max_lines, conf.max_width
+            lines, width = terminal_size()
 
         if max_lines is None:
             max_lines = lines

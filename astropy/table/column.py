@@ -337,11 +337,12 @@ class BaseColumn(np.ndarray):
     def pformat(self, max_lines=None, show_name=True, show_unit=False):
         """Return a list of formatted string representation of column values.
 
-        If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot be
-        determined then the default will be determined using the
-        `astropy.table.conf.max_lines` configuration item. If a negative
-        value of `max_lines` is supplied then there is no line limit applied.
+        If no value of `max_lines` is supplied then the height of the
+        screen terminal is used to set `max_lines`.  If the terminal
+        height cannot be determined then the default will be
+        determined using the `astropy.conf.max_lines` configuration
+        item. If a negative value of `max_lines` is supplied then
+        there is no line limit applied.
 
         Parameters
         ----------
@@ -367,11 +368,12 @@ class BaseColumn(np.ndarray):
     def pprint(self, max_lines=None, show_name=True, show_unit=False):
         """Print a formatted string representation of column values.
 
-        If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot be
-        determined then the default will be determined using the
-        `astropy.table.conf.max_lines` configuration item. If a negative
-        value of `max_lines` is supplied then there is no line limit applied.
+        If no value of `max_lines` is supplied then the height of the
+        screen terminal is used to set `max_lines`.  If the terminal
+        height cannot be determined then the default will be
+        determined using the `astropy.conf.max_lines` configuration
+        item. If a negative value of `max_lines` is supplied then
+        there is no line limit applied.
 
         Parameters
         ----------

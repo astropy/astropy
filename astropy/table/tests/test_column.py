@@ -66,7 +66,8 @@ class TestColumn():
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
-        with table.conf.set_temp('max_lines', 7):
+        from ... import conf
+        with conf.set_temp('max_lines', 7):
             c1 = Column(np.arange(2000), name='a', dtype=float,
                         format='%6.2f')
             assert str(c1) == ('   a   \n-------\n   0.00\n'

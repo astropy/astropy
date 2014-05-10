@@ -12,6 +12,7 @@ import re
 import math
 import multiprocessing
 import os
+import struct
 import sys
 import threading
 import time
@@ -67,7 +68,8 @@ from .misc import deprecated, isiterable
 
 __all__ = [
     'isatty', 'color_print', 'human_time', 'human_file_size',
-    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner']
+    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner',
+    'terminal_size']
 
 
 # Only use color by default on Windows if IPython is installed.
@@ -97,6 +99,35 @@ def isatty(file):
     elif hasattr(file, 'isatty'):
         return file.isatty()
     return False
+
+
+def terminal_size(file=stdio.stdout):
+    """
+    Returns a tuple (height, width) containing the height and width of
+    the terminal.
+
+    This function will look for the width in height in multiple areas
+    before falling back on the width and height in astropy's
+    configuration.
+    """
+
+    try:
+        s = struct.pack("HHHH", 0, 0, 0, 0)
+        x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
+        (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
+        if lines > 12:
+            lines -= 6
+        if width > 10:
+            width -= 1
+        return (lines, width)
+    except:
+        try:
+            # see if POSIX standard variables will work
+            return (int(os.environ.get('LINES')),
+                    int(os.environ.get('COLUMNS')))
+        except TypeError:
+            # fall back on configuration variables
+            return conf.max_lines, conf.max_width
 
 
 def _color_text(text, color):
@@ -438,18 +469,7 @@ class ProgressBar(six.Iterator):
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        if self._should_handle_resize:
-            # Don't import numpy at module level since it may not be
-            # available in all contexts that this module is imported
-            import numpy as np
-            data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
-            arr = np.fromstring(data, dtype=np.int16)
-            terminal_width = arr[1]
-        else:
-            try:
-                terminal_width = int(os.environ.get('COLUMNS'))
-            except (TypeError, ValueError):
-                terminal_width = 78
+        terminal_width = terminal_size(self._file)[1]
         self._bar_length = terminal_width - 37
 
     def __enter__(self):

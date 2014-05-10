@@ -640,8 +640,8 @@ class Table(object):
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
         if any(col.unit for col in self.columns.values()):
-            units = ("{0}".format( 
-                    col.unit if col.unit is None else '\''+str(col.unit)+'\'') 
+            units = ("{0}".format(
+                    col.unit if col.unit is None else '\''+str(col.unit)+'\'')
                     for col in self.columns.values())
             s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
                 self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__
@@ -666,14 +666,15 @@ class Table(object):
                show_unit=None):
         """Print a formatted string representation of the table.
 
-        If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot
-        be determined then the default is taken from the configuration item
-        `astropy.table.conf.max_lines`.  If a negative value of `max_lines`
-        is supplied then there is no line limit applied.
+        If no value of `max_lines` is supplied then the height of the
+        screen terminal is used to set `max_lines`.  If the terminal
+        height cannot be determined then the default is taken from the
+        configuration item `astropy.conf.max_lines`.  If a negative
+        value of `max_lines` is supplied then there is no line limit
+        applied.
 
         The same applies for max_width except the configuration item is
-        `astropy.table.conf.max_width`.
+        `astropy.conf.max_width`.
 
         Parameters
         ----------
@@ -690,6 +691,7 @@ class Table(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
+
         """
 
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
@@ -780,14 +782,15 @@ class Table(object):
         """Return a list of lines for the formatted string representation of
         the table.
 
-        If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot
-        be determined then the default is taken from the configuration item
-        `astropy.table.conf.max_lines`.  If a negative value of `max_lines`
-        is supplied then there is no line limit applied.
+        If no value of `max_lines` is supplied then the height of the
+        screen terminal is used to set `max_lines`.  If the terminal
+        height cannot be determined then the default is taken from the
+        configuration item `astropy.conf.max_lines`.  If a negative
+        value of `max_lines` is supplied then there is no line limit
+        applied.
 
         The same applies for max_width except the configuration item  is
-        `astropy.table.conf.max_width`.
+        `astropy.conf.max_width`.
 
         Parameters
         ----------
@@ -817,6 +820,7 @@ class Table(object):
         -------
         lines : list
             Formatted table as a list of strings
+
         """
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
                                                         show_name, show_unit, html,
