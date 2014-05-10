@@ -401,10 +401,10 @@ class BaseCoordinateFrame(object):
             #means use the defaults for this class
             new_frame = new_frame()
 
-        if hasattr(new_frame, '_coord'):
+        if hasattr(new_frame, '_sky_coord_frame'):
             # Input new_frame is not a frame instance or class and is most
             # likely a SkyCoord object.
-            new_frame = new_frame._coord
+            new_frame = new_frame._sky_coord_frame
 
         trans = frame_transform_graph.get_transform(self.__class__,
                                                     new_frame.__class__)

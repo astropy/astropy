@@ -92,7 +92,7 @@ class SkyCoord(object):
     def __init__(self, *args, **kwargs):
         # Parse the args and kwargs to assemble a sanitized and validated
         # kwargs dict for initializing attributes for this object and for
-        # creating the internal self._coords object
+        # creating the internal self._sky_coord_frame object
         args = list(args)  # Make it mutable
         kwargs = self._parse_inputs(args, kwargs)
 
@@ -102,7 +102,7 @@ class SkyCoord(object):
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = FRAME_CLASSES()[self.frame_name]
+        frame_cls = self.frame_cls
         coord_kwargs = {}
         for attr, value in kwargs.items():
             if value is not None and (attr in frame_cls.preferred_attr_names
@@ -110,7 +110,7 @@ class SkyCoord(object):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
-        self._coord = frame_cls(**coord_kwargs)
+        self._sky_coord_frame = frame_cls(**coord_kwargs)
 
     @property
     def frame_name(self):
@@ -118,17 +118,21 @@ class SkyCoord(object):
 
     @property
     def frame_cls(self):
-        return self._coord.__class__
+        try:
+            return self.frame.__class__
+        except AttributeError:
+            # Allow getting the frame class before the frame instance is created.
+            return FRAME_CLASSES()[self.frame_name]
 
     @property
     def frame(self):
-        return self._coord
+        return self._sky_coord_frame
 
     def __len__(self):
-        return len(self._coord)
+        return len(self.frame)
 
     def __nonzero__(self):
-        return self._coord.__nonzero__()
+        return self.frame.__nonzero__()
 
     def _parse_inputs(self, args, kwargs):
         """
@@ -227,7 +231,7 @@ class SkyCoord(object):
             pass
 
         if isinstance(frame, SkyCoord):
-            frame = frame._coord  # Change to underlying coord frame instance
+            frame = frame.frame  # Change to underlying coord frame instance
 
         if isinstance(frame, BaseCoordinateFrame):
             frame_cls = frame.__class__
@@ -260,7 +264,7 @@ class SkyCoord(object):
 
         # Do the transformation, returning a coordinate frame of the desired
         # final type (not generic).
-        new_coord = trans(self._coord, generic_frame)
+        new_coord = trans(self.frame, generic_frame)
 
         # Finally make the new SkyCoord object from the `new_coord` and
         # remaining frame_kwargs that are not frame_attributes in `new_coord`.
@@ -279,21 +283,21 @@ class SkyCoord(object):
 
         # Anything in the set of all possible frame_attr_names is handled
         # here. If the attr is relevant for the current frame then delegate
-        # to self._coord otherwise get it from self._<attr>.
+        # to self.frame otherwise get it from self._<attr>.
         if attr in FRAME_ATTR_NAMES_SET():
-            if attr in self._coord.frame_attr_names:
-                return getattr(self._coord, attr)
+            if attr in self.frame.frame_attr_names:
+                return getattr(self.frame, attr)
             else:
                 return getattr(self, '_' + attr)
 
         # Some attributes might not fall in the above category but still
-        # are available through self._coord.
-        if not attr.startswith('_') and hasattr(self._coord, attr):
-            return getattr(self._coord, attr)
+        # are available through self._sky_coord_frame.
+        if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
+            return getattr(self._sky_coord_frame, attr)
 
         # Try to interpret as a new frame for transforming.
         frame_cls = frame_transform_graph.lookup_name(attr)
-        if frame_cls is not None and self._coord.is_transformable_to(frame_cls):
+        if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
             return self.transform_to(attr)
 
         # Fail
@@ -305,17 +309,17 @@ class SkyCoord(object):
         """
         Override the builtin `dir` behavior to include:
         - Transforms available by aliases
-        - Attribute / methods of the underlying self._coord object
+        - Attribute / methods of the underlying self.frame object
         """
 
         # determine the aliases that this can be transformed to.
         dir_values = set()
         for name, frame_cls in FRAME_CLASSES().items():
-            if self._coord.is_transformable_to(frame_cls):
+            if self.frame.is_transformable_to(frame_cls):
                 dir_values.add(name)
 
-        # Add public attributes of self._coord
-        dir_values.update(set(attr for attr in dir(self._coord) if not attr.startswith('_')))
+        # Add public attributes of self.frame
+        dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
 
         # Add all possible frame_attr_names
         dir_values.update(FRAME_ATTR_NAMES_SET())
@@ -325,8 +329,8 @@ class SkyCoord(object):
     def __repr__(self):
         s = '<{clsnm} ({coonm})'
         s = s.format(clsnm=self.__class__.__name__,
-                     coonm=self._coord.__class__.__name__)
-        crepr = repr(self._coord)
+                     coonm=self.frame.__class__.__name__)
+        crepr = repr(self.frame)
         return s + crepr[crepr.index(':'):]
 
     def to_string(self, style='decimal', **kwargs):
@@ -357,7 +361,7 @@ class SkyCoord(object):
             Keyword args passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
-        sph_coord = self._coord.represent_as(SphericalRepresentation)
+        sph_coord = self.frame.represent_as(SphericalRepresentation)
 
         styles = {'hmsdms': {'lonargs': {'unit': u.hour, 'pad': True},
                              'latargs': {'unit': u.degree, 'pad': True, 'alwayssign': True}},
@@ -419,7 +423,7 @@ class SkyCoord(object):
         from .angle_utilities import angular_separation
 
         if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other._coord)
+            self_in_other_system = self.transform_to(other.frame)
         elif isinstance(other, BaseCoordinateFrame) and other.has_data:
             # it's a frame
             self_in_other_system = self.transform_to(other)

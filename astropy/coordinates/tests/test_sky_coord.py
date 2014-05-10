@@ -225,7 +225,7 @@ def test_attr_inheritance():
     assert allclose(sc2.dec, sc.dec)
     assert allclose(sc2.distance, sc.distance)
 
-    sc2 = SkyCoord(sc._coord)  # Doesn't have equinox there so we get FK4 defaults
+    sc2 = SkyCoord(sc.frame)  # Doesn't have equinox there so we get FK4 defaults
     assert sc2.equinox != sc.equinox
     assert sc2.obstime != sc.obstime
     assert allclose(sc2.ra, sc.ra)
@@ -240,7 +240,7 @@ def test_attr_inheritance():
     assert allclose(sc2.dec, sc.dec)
     assert allclose(sc2.distance, sc.distance)
 
-    sc2 = SkyCoord(sc._coord)  # sc._coord has equinox, obstime
+    sc2 = SkyCoord(sc.frame)  # sc.frame has equinox, obstime
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
     assert allclose(sc2.ra, sc.ra)
@@ -257,8 +257,8 @@ def test_attr_conflicts():
     # OK if attrs both specified but with identical values
     SkyCoord(sc, equinox='J1999', obstime='J2001')
 
-    # OK because sc._coord doesn't have obstime
-    SkyCoord(sc._coord, equinox='J1999', obstime='J2100')
+    # OK because sc.frame doesn't have obstime
+    SkyCoord(sc.frame, equinox='J1999', obstime='J2100')
 
     # Not OK if attrs don't match
     with pytest.raises(ValueError) as err:
@@ -276,16 +276,16 @@ def test_attr_conflicts():
         SkyCoord(sc, equinox='J1999', obstime='J2002')
     assert "Coordinate attribute 'obstime'=" in str(err)
 
-    # Not OK because sc._coord has different attrs
+    # Not OK because sc.frame has different attrs
     with pytest.raises(ValueError) as err:
-        SkyCoord(sc._coord, equinox='J1999', obstime='J2002')
+        SkyCoord(sc.frame, equinox='J1999', obstime='J2002')
     assert "Coordinate attribute 'obstime'=" in str(err)
 
 
 def test_frame_attr_getattr():
     """
     When accessing frame attributes like equinox, the value should come
-    from self._coord when that object has the relevant attribute, otherwise
+    from self.frame when that object has the relevant attribute, otherwise
     from self.
     """
     sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
@@ -293,7 +293,7 @@ def test_frame_attr_getattr():
     assert sc.obstime == 'J2001'
 
     sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
-    assert sc.equinox == Time('J1999')  # Coming from the self._coord object
+    assert sc.equinox == Time('J1999')  # Coming from the self.frame object
     assert sc.obstime == Time('J2001')
 
     sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999')
