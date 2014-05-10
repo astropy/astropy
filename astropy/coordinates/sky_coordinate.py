@@ -129,7 +129,7 @@ class SkyCoord(object):
 
     @property
     def frame_name(self):
-        return self._coord.lookup_name(frame_transform_graph)
+        return frame_transform_graph.lookup_name(self._coord)
 
     def __len__(self):
         return len(self._coord)
