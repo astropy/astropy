@@ -81,7 +81,7 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     # also, if any are None, fill in with defaults
     for attrnm in frame0.frame_attr_names:
         if attrs0.get(attrnm, None) is None:
-            if attrnm =='obstime' and frame0.frame_attr_names[attrnm] is None:
+            if attrnm == 'obstime' and frame0.frame_attr_names[attrnm] is None:
                 attrs0[attrnm] = attrs0['equinox']
             else:
                 attrs0[attrnm] = frame0.frame_attr_names[attrnm]
@@ -97,8 +97,6 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
         assert Time(sc.equinox) == Time(sc_rt.equinox)
     if obstime0:
         assert Time(sc.obstime) == Time(sc_rt.obstime)
-
-
 
 
 def test_coord_init_string():
@@ -169,7 +167,7 @@ def test_coord_init_representation():
         SkyCoord(coord, 'icrs', ra='1d')
     assert "conflicts with keyword argument 'ra'" in str(err)
 
-    coord = CartesianRepresentation(1*u.one, 2*u.one, 3*u.one)
+    coord = CartesianRepresentation(1 * u.one, 2 * u.one, 3 * u.one)
     sc = SkyCoord(coord, 'icrs')
     sc_cart = sc.represent_as(CartesianRepresentation)
     assert allclose(sc_cart.x, 1.0)
@@ -320,31 +318,31 @@ def test_to_string():
 
 
 def test_seps():
-    sc1 = SkyCoord('icrs', 0*u.deg, 1*u.deg)
-    sc2 = SkyCoord('icrs', 0*u.deg, 2*u.deg)
+    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
+    sc2 = SkyCoord('icrs', 0 * u.deg, 2 * u.deg)
 
     sep = sc1.separation(sc2)
 
-    assert (sep - 1*u.deg)/u.deg < 1e-10
+    assert (sep - 1 * u.deg)/u.deg < 1e-10
 
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-    sc3 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
-    sc4 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=2*u.kpc)
+    sc3 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
+    sc4 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
     sep3d = sc3.separation_3d(sc4)
 
-    assert sep3d == 1*u.kpc
+    assert sep3d == 1 * u.kpc
 
 
 def test_repr():
-    sc1 = SkyCoord('icrs', 0*u.deg, 1*u.deg)
-    sc2 = SkyCoord('icrs', 1*u.deg, 1*u.deg, distance=1*u.kpc)
+    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
+    sc2 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
 
     assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
     assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
 
-    sc3 = SkyCoord('icrs', 0.1*u.deg, [1, 2.5]*u.deg)
+    sc3 = SkyCoord('icrs', 0.1 * u.deg, [1, 2.5] * u.deg)
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')
 
@@ -353,9 +351,9 @@ def test_ops():
     """
     Tests miscellaneous operations like `len`
     """
-    sc = SkyCoord('icrs', 0*u.deg, 1*u.deg)
-    sc_arr = SkyCoord('icrs', 0*u.deg, [1, 2]*u.deg)
-    sc_empty = SkyCoord('icrs', []*u.deg, []*u.deg)
+    sc = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
+    sc_arr = SkyCoord('icrs', 0 * u.deg, [1, 2] * u.deg)
+    sc_empty = SkyCoord('icrs', [] * u.deg, [] * u.deg)
 
     assert sc.isscalar
     assert not sc_arr.isscalar
@@ -369,5 +367,3 @@ def test_ops():
     assert bool(sc)
     assert bool(sc_arr)
     assert not bool(sc_empty)
-
-
