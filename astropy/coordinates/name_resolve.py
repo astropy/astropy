@@ -189,4 +189,4 @@ def get_icrs_coordinates(name):
 
     # use SkyCoord for its string-parsing capabilities
     sc = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame='icrs')
-    return sc.coordobj
+    return sc.frame

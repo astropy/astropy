@@ -53,6 +53,8 @@ for rt_frame0 in rt_frames:
                                             equinox0, equinox1,
                                             obstime0, obstime1])
 rt_args = 'frame0,frame1,equinox0,equinox1,obstime0,obstime1'
+
+
 @pytest.mark.parametrize(rt_args, rt_sets)
 def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     """
@@ -79,7 +81,7 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     # also, if any are None, fill in with defaults
     for attrnm in frame0.frame_attr_names:
         if attrs0.get(attrnm, None) is None:
-            if attrnm=='obstime' and frame0.frame_attr_names[attrnm] is None:
+            if attrnm =='obstime' and frame0.frame_attr_names[attrnm] is None:
                 attrs0[attrnm] = attrs0['equinox']
             else:
                 attrs0[attrnm] = frame0.frame_attr_names[attrnm]
@@ -180,31 +182,31 @@ def test_frame_init():
     Different ways of providing the frame.
     """
     sc = SkyCoord(RA, DEC, frame='icrs')
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(RA, DEC, frame=ICRS)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(RA, DEC, 'icrs')
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(RA, DEC, ICRS)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord('icrs', RA, DEC)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(ICRS, RA, DEC)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(sc)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     sc = SkyCoord(C_ICRS)
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     SkyCoord(C_ICRS, frame='icrs')
-    assert sc.frame == 'icrs'
+    assert sc.frame_name == 'icrs'
 
     with pytest.raises(ValueError) as err:
         SkyCoord(C_ICRS, frame='galactic')

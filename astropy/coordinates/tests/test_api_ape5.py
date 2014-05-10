@@ -344,7 +344,7 @@ def test_highlevel_api():
         sc = coords.SkyCoord(coords.FK5(equinox=J2001))  # raises ValueError
 
     # similarly, the low-level object can always be accessed
-    assert repr(sc.coordobj) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
+    assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
 
     # and  the string representation will be inherited from the low-level class.
     assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'

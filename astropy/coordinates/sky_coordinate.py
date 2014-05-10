@@ -97,12 +97,12 @@ class SkyCoord(object):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        self._frame = kwargs['frame']
+        self._frame_name = kwargs['frame']
         for attr in FRAME_ATTR_NAMES_SET():
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = FRAME_CLASSES()[self.frame]
+        frame_cls = FRAME_CLASSES()[self.frame_name]
         coord_kwargs = {}
         for attr, value in kwargs.items():
             if value is not None and (attr in frame_cls.preferred_attr_names
@@ -113,23 +113,16 @@ class SkyCoord(object):
         self._coord = frame_cls(**coord_kwargs)
 
     @property
-    def frame(self):
-        return self._frame
+    def frame_name(self):
+        return self._frame_name  # This can be None so cannot use frame_transform_graph
 
     @property
     def frame_cls(self):
         return self._coord.__class__
 
     @property
-    def coordobj(self):
-        """
-        The low-level coordinate object for this `SkyCoord`
-        """
+    def frame(self):
         return self._coord
-
-    @property
-    def frame_name(self):
-        return frame_transform_graph.lookup_name(self._coord)
 
     def __len__(self):
         return len(self._coord)
@@ -221,7 +214,7 @@ class SkyCoord(object):
         """
         from astropy.coordinates.errors import ConvertError
 
-        if frame is None or self.frame is None:
+        if frame is None or self.frame_name is None:
             raise ValueError('Cannot transform coordinates to/from `frame=None`')
 
         frame_kwargs = {}
@@ -281,7 +274,7 @@ class SkyCoord(object):
         to, based on the alias attr in the master transform graph.
         """
 
-        if self.frame == attr:
+        if self.frame_name == attr:
             return self  # Should this be a deepcopy of self?
 
         # Anything in the set of all possible frame_attr_names is handled
@@ -466,7 +459,7 @@ class SkyCoord(object):
         from . import Distance
 
         if isinstance(other, SkyCoord):
-            self_in_other_system = self.transform_to(other.coordobj)
+            self_in_other_system = self.transform_to(other.frame)
         elif isinstance(other, BaseCoordinateFrame) and other.has_data:
             # it's a frame
             self_in_other_system = self.transform_to(other)
@@ -534,14 +527,14 @@ class SkyCoord(object):
         from .matching import match_coordinates_sky
 
         if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.coordobj).coordobj
-            other_coord = catalogcoord.coordobj
+            self_as_other_coord = self.transform_to(catalogcoord.frame).frame
+            other_coord = catalogcoord.frame
             if hasattr(catalogcoord, '_kdtree_sky'):
                 other_coord._kdtree_sky = catalogcoord._kdtree_sky
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
             # It's a frame
-            self_as_other_coord = self.transform_to(catalogcoord).coordobj
+            self_as_other_coord = self.transform_to(catalogcoord).frame
             other_coord = catalogcoord
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -605,14 +598,14 @@ class SkyCoord(object):
         from .matching import match_coordinates_3d
 
         if isinstance(catalogcoord, SkyCoord):
-            self_as_other_coord = self.transform_to(catalogcoord.frame).coordobj
-            other_coord = catalogcoord.coordobj
+            self_as_other_coord = self.transform_to(catalogcoord.frame).frame
+            other_coord = catalogcoord.frame
             if hasattr(catalogcoord, '_kdtree_3d'):
                 other_coord._kdtree_3d = catalogcoord._kdtree_3d
 
         elif isinstance(catalogcoord, BaseCoordinateFrame) and catalogcoord.has_data:
             # It's a frame
-            self_as_other_coord = self.transform_to(catalogcoord).coordobj
+            self_as_other_coord = self.transform_to(catalogcoord).frame
             other_coord = catalogcoord
         else:
             raise TypeError('Can only get separation to another SkyCoord or a '
@@ -622,7 +615,7 @@ class SkyCoord(object):
                                    nthneighbor=nthneighbor,
                                    storekdtree='_kdtree_3d')
 
-        #update the cached KD-Tree - this is a no-op if its already cached
+        # Update the cached KD-Tree - this is a no-op if its already cached
         if catalogcoord is not other_coord:
             catalogcoord._kdtree_3d = other_coord._kdtree_3d
         return res
@@ -724,7 +717,7 @@ def _get_frame_name(args, kwargs):
         if isinstance(arg, BaseCoordinateFrame):
             coord_frame_name = CLASS_TO_NAME_MAP()[arg.__class__]
         elif isinstance(arg, SkyCoord):
-            coord_frame_name = arg.frame
+            coord_frame_name = arg.frame_name
 
         if coord_frame_name is not None:
             if frame_name is None:
