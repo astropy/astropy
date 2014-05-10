@@ -395,18 +395,27 @@ def test_validate_with_2_wcses():
     assert "WCS key 'A':" in six.text_type(results)
 
 
-def test_all_world2pix_direct(tolerance = 1.e-4, origin = 0, \
-                              random_npts = 250000, mag = 2):
+def test_all_world2pix(fname='data/sip.fits', ext=0,
+                       tolerance=1.e-4, origin=0,
+                       random_npts=250000, mag=2,
+                       adaptive=False):
     """Test all_world2pix, iterative inverse of all_pix2world"""
     from numpy import random
     from datetime import datetime
-    
-    w = wcs.WCS('sip.fits')
-    origin = 0
-    
+    from astropy.io import fits
+    from os import path
+
+    # Open test FITS file:
+    if not path.isfile(fname):
+        raise IOError('File not found.')
+    h = fits.open(fname)
+    w = wcs.WCS(h[ext].header, h)
+    h.close()
+    del h
+
     crpix  = w.wcs.crpix
     ncoord = crpix.shape[0]
-    
+
     # Assume that CRPIX is at the center of the image and that the image
     # has an even number of pixels along each axis:
     naxesi = list( 2 * crpix.astype(dtype = np.int) - origin )
@@ -414,60 +423,64 @@ def test_all_world2pix_direct(tolerance = 1.e-4, origin = 0, \
     # generate image pixel coordinates:
     img_pix = np.dstack([i.flatten() for i in \
                          np.meshgrid(*map(range, naxesi))])[0]
-    
+
     # generage random data
     startstate = random.get_state()
     random.seed(123456789)
     rnd_pix = np.random.rand(random_npts, ncoord)
     random.set_state(startstate)
-    
+
     # Scale random data to cover the entire image (or more, if 'mag' > 1).
     # Assume that CRPIX is at the center of the image and that the image
     # has an even number of pixels along each axis:
     mwidth = 2 * mag * (crpix - origin)
     rnd_pix = crpix - 0.5 * mwidth + (mwidth - 1) * rnd_pix
-    
+
     # test (reference)  pixel coordinates in image coordinate system (CS):
     test_pix  = np.append(img_pix, rnd_pix, axis = 0)
     # test pixel coordinates in sky CS:
     all_world = w.all_pix2world(test_pix, origin)
 
-    runtime_begin = datetime.now()
-    all_pix       = w.all_world2pix(all_world, origin, tolerance=tolerance)
-    runtime_end   = datetime.now()
+    try:
+        runtime_begin = datetime.now()
+        all_pix       = w.all_world2pix(all_world, origin, tolerance=tolerance,
+                                        adaptive=adaptive)
+        runtime_end   = datetime.now()
+    except wcs.wcs.NoConvergence as e:
+        print("")
+
+        ndiv = 0
+        if e.divergent is not None:
+            ndiv = e.divergent.shape[0]
+            print("There are {} diverging points.".format(ndiv))
+            print("Indices of diverging points:\n{}".format(e.divergent))
+        else:
+            print("There are no diverging points.")
+
+        nslow = 0
+        if e.slow_conv is not None:
+            nslow = e.slow_conv.shape[0]
+            print("There are {} poorly converging points.".format(nslow))
+            print("Indices of poorly converging points:\n{}".format(e.slow_conv))
+        else:
+            print("There are no slowly converging points.")
+
+        print("There are {} points that have converged to a solution."
+              .format(e.best_solution.shape[0] - ndiv - nslow))
+        print("Best Solution (all points):\n{}".format(e.best_solution))
+        print("Accuracy:\n{}\n".format(e.accuracy))
+
+        raise e
 
     errors  = np.linalg.norm(all_pix-test_pix, axis=1)
     meanerr = np.mean(errors)
     maxerr  = np.max(errors)
-    print("Finished running 'test_all_world2pix_direct'.{0:s}" \
-          "Mean error = {1:e}  (Max error = {2:e}).{0:s}" \
-          "Run time (astropy.wcs.WCS): {3}{0:s}" \
-          .format(os.linesep, meanerr, maxerr,
-                  runtime_end - runtime_begin))
-    
+    print("\nFinished running 'test_all_world2pix'.\n"
+          "Mean error = {0:e}  (Max error = {1:e})\n"
+          "Run time: {2}\n"
+          .format(meanerr, maxerr, runtime_end - runtime_begin))
+
     assert(maxerr < 2.0 * tolerance)
-
-
-@pytest.mark.skipif(str('not HAS_SCIPY'))
-def test_all_world2pix():
-    """Test all_world2pix, iterative inverse of all_pix2world"""
-    fits = get_pkg_data_filename('data/sip.fits')
-    w = wcs.WCS(fits)
-
-    tolerance = 1e-6
-    with NumpyRNGContext(123456789):
-        world = 0.1 * np.random.randn(100, 2)
-        for i in range(len(w.wcs.crval)):
-            world[:, i] += w.wcs.crval[i]
-        all_pix = w.all_world2pix(world, 0, tolerance=tolerance)
-        wcs_pix = w.wcs_world2pix(world, 0)
-        all_world = w.all_pix2world(all_pix, 0)
-
-        # First, check that the SIP distortion correction at least produces
-        # some different answers from the WCS-only transform.
-        #assert np.any(all_pix != wcs_pix)
-
-        assert_allclose(all_world, world, rtol=0, atol=tolerance)
 
 
 def test_scamp_sip_distortion_parameters():
