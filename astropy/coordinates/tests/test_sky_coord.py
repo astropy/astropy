@@ -367,3 +367,6 @@ def test_ops():
     assert bool(sc)
     assert bool(sc_arr)
     assert not bool(sc_empty)
+
+    assert sc_arr[0].isscalar
+    assert len(sc_arr[:1]) == 1

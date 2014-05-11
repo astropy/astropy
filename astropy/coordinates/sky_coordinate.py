@@ -127,6 +127,19 @@ class SkyCoord(object):
     def __nonzero__(self):
         return self.frame.__nonzero__()
 
+    def __getitem__(self, item):
+        from copy import deepcopy
+
+        self_frame = self._sky_coord_frame
+        try:
+            self._sky_coord_frame = None
+            #copy to get all of the frame attributes that are on this SkyCoord
+            new_skycoord = deepcopy(self)
+            new_skycoord._sky_coord_frame = self_frame[item]
+            return new_skycoord
+        finally:
+            self._sky_coord_frame = self_frame
+
     def _parse_inputs(self, args, kwargs):
         """
         Assemble a validated and sanitized keyword args dict for instantiating a
