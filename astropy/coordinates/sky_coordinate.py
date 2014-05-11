@@ -102,7 +102,8 @@ class SkyCoord(object):
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = self.frame_cls
+        frame_cls = FRAME_CLASSES()[self.frame_name]
+
         coord_kwargs = {}
         for attr, value in kwargs.items():
             if value is not None and (attr in frame_cls.preferred_attr_names
@@ -115,14 +116,6 @@ class SkyCoord(object):
     @property
     def frame_name(self):
         return self._frame_name  # This can be None so cannot use frame_transform_graph
-
-    @property
-    def frame_cls(self):
-        try:
-            return self.frame.__class__
-        except AttributeError:
-            # Allow getting the frame class before the frame instance is created.
-            return FRAME_CLASSES()[self.frame_name]
 
     @property
     def frame(self):
@@ -225,8 +218,7 @@ class SkyCoord(object):
 
         # Frame name (string) or frame class?  Coerce into an instance.
         try:
-            frame_cls = _get_frame_class(frame)
-            frame = frame_cls()
+            frame = _get_frame_class(frame)()
         except:
             pass
 
@@ -234,7 +226,7 @@ class SkyCoord(object):
             frame = frame.frame  # Change to underlying coord frame instance
 
         if isinstance(frame, BaseCoordinateFrame):
-            frame_cls = frame.__class__
+            new_frame_cls = frame.__class__
 
             # Set the keyword args for making a new frame instance for the
             # transform.  If the supplied frame instance has a non-default
@@ -252,10 +244,10 @@ class SkyCoord(object):
             raise ValueError('Transform `frame` must be a frame name, class, or instance')
 
         # Get the composite transform to the new frame
-        trans = frame_transform_graph.get_transform(self.frame_cls, frame_cls)
+        trans = frame_transform_graph.get_transform(self.frame.__class__, new_frame_cls)
         if trans is None:
             raise ConvertError('Cannot transform from {0} to {1}'
-                               .format(self.frame_cls, frame_cls))
+                               .format(self.frame.__class__, new_frame_cls))
 
         # Make a generic frame which will accept all the frame kwargs that
         # are provided and allow for transforming through intermediate frames
