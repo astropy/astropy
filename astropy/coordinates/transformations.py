@@ -358,6 +358,9 @@ class TransformGraph(object):
         else:
             if name is None:
                 name = coordcls.__name__.lower()
+            if name in self._clsaliases:
+                msg = "Coordinate class name {0} already used for class {1}."
+                raise ValueError(msg.format(name, self._clsaliases[name]))
             self._clsaliases[name] = coordcls
 
     def lookup_name(self, name):
@@ -393,7 +396,7 @@ class TransformGraph(object):
                      savelayout='plain', saveformat=None):
         """
         Converts this transform graph to the graphviz_ DOT format.
-        
+
         Optionally saves it (requires `graphviz`_ be installed and on your path).
 
         .. _graphviz: http://www.graphviz.org/
@@ -556,13 +559,13 @@ class TransformGraph(object):
         ::
 
             graph = TransformGraph()
-    
+
             class Frame1(BaseCoordinateFrame):
                ...
-    
+
             class Frame2(BaseCoordinateFrame):
                 ...
-    
+
             @graph.transform(FunctionTransform, Frame1, Frame2)
             def f1_to_f2(f1_obj):
                 ... do something with f1_obj ...
