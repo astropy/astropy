@@ -370,3 +370,5 @@ def test_ops():
 
     assert sc_arr[0].isscalar
     assert len(sc_arr[:1]) == 1
+    with pytest.raises(TypeError):
+        assert sc[0:]  # scalar, so it shouldn't be indexable

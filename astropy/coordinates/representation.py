@@ -75,8 +75,8 @@ class BaseRepresentation(object):
         raise NotImplementedError()
 
     def __getitem__(self, view):
-        return self.__class__(*(getattr(self, component)[view]
-                                for component in self.components))
+        return self.__class__(*[getattr(self, component)[view]
+                                for component in self.components])
 
     def __len__(self):
         if self.isscalar:
