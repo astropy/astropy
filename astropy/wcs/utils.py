@@ -34,25 +34,3 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     newwcs.wcs.ctype[add_before_ind] = 'STOKES'
     newwcs.wcs.cname[add_before_ind] = 'STOKES'
     return newwcs
-
-
-def axis_type_names(wcs):
-    """
-    Extract world names for each coordinate axis
-
-    Parameters
-    ----------
-    wcs : astropy.wcs.WCS
-        The WCS object to extract names from
-
-    Returns
-    -------
-    A tuple of names along each axis
-    """
-    names = list(wcs.wcs.cname)
-    types = wcs.wcs.ctype
-    for i in range(len(names)):
-        if len(names[i]) > 0:
-            continue
-        names[i] = types[i].split('-')[0]
-    return names

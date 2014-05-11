@@ -1983,6 +1983,22 @@ naxis kwarg.
         else:
             return self.slice(item)
 
+    def axis_type_names(self):
+        """
+        Extract world names for each coordinate axis
+
+        Returns
+        -------
+        A list of names along each axis
+        """
+        names = list(self.wcs.cname)
+        types = self.wcs.ctype
+        for i in range(len(names)):
+            if len(names[i]) > 0:
+                continue
+            names[i] = types[i].split('-')[0]
+        return names
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """
