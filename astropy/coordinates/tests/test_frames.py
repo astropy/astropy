@@ -282,5 +282,5 @@ def test_lookup_name():
     from ..builtin_frames import ICRS, FK5, frame_transform_graph
 
     i = ICRS(ra=0*u.deg, dec=1*u.deg)
-    assert i.lookup_name(frame_transform_graph) == 'icrs'
-    assert FK5.lookup_name(frame_transform_graph) == 'fk5'
+    assert i.lookup_names(frame_transform_graph) == ['icrs']
+    assert FK5.lookup_names(frame_transform_graph) == ['fk5']

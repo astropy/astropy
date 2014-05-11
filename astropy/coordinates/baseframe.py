@@ -284,9 +284,9 @@ class BaseCoordinateFrame(object):
         return self.data.isscalar
 
     @classmethod
-    def lookup_name(cls, transformgraph):
+    def lookup_names(cls, transformgraph):
         """
-        Determines the name used by this frame in the provided
+        Determines the name sused by this frame in the provided
         transformation graph.
 
         Parameters
@@ -296,27 +296,23 @@ class BaseCoordinateFrame(object):
 
         Returns
         -------
-        name : str
-            The string name of this frame in the ``transformgraph``
-            set of transformations.
-
-        Raises
-        ------
-        ValueError
-            If this frame is not in the ``transformgraph`` graph.
+        names : list of str
+            The string names of this frame in the ``transformgraph``
+            set of transformations.  If the class does not have a name,
+            this is an empty list
 
         Notes
         -----
         The reason this is a method instead of a property is that
         different frame classes can have different names on different
-        transform graphs.
+        transform graphs.  They can also have multiple names on the
+        same graph (but the converse is not true).
         """
+        names = []
         for k, v in transformgraph._clsaliases.items():
             if v == cls:
-                return k
-        else:
-            raise ValueError("Couldn't find the class {0} in the provided "
-                             "transform graph, so can't determine its name")
+                names.append(k)
+        return names
 
     def realize_frame(self, representation):
         """
