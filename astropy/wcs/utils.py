@@ -21,40 +21,19 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     add_before_ind : int
         Index of the WCS to insert the new Stokes axis in front of.
         To add at the end, do add_before_ind = wcs.wcs.naxis
+        The beginning is at position 0.
 
     Returns
     -------
     A new `~astropy.wcs.WCS` instance with an additional axis
     """
 
-    naxin = wcs.wcs.naxis
-    naxout = naxin+1
-
-    inds = list(range(naxout))
-    inds.pop(add_before_ind)
-    inds = np.array(inds)
-
-    outwcs = WCS(naxis=naxout)
-    for par in wcs_parameters_to_preserve:
-        setattr(outwcs.wcs, par, getattr(wcs.wcs,par))
-
-    pc = np.zeros([naxout,naxout])
-    pc[inds[:,np.newaxis],inds[np.newaxis,:]] = wcs.wcs.get_pc()
-    pc[add_before_ind,add_before_ind] = 1
-
-    def insert_at_index(val, index, lst):
-        """ insert a value at index into a list """
-        return list(lst)[:index] + [val] + list(lst)[index:]
-
-    outwcs.wcs.crpix = insert_at_index(1, add_before_ind, wcs.wcs.crpix)
-    outwcs.wcs.cdelt = insert_at_index(1, add_before_ind, wcs.wcs.get_cdelt())
-    outwcs.wcs.crval = insert_at_index(1, add_before_ind, wcs.wcs.crval)
-    outwcs.wcs.cunit = insert_at_index("", add_before_ind, wcs.wcs.cunit)
-    outwcs.wcs.ctype = insert_at_index("STOKES", add_before_ind, wcs.wcs.ctype)
-    outwcs.wcs.cname = insert_at_index("STOKES", add_before_ind, wcs.wcs.cname)
-    outwcs.wcs.pc = pc
-
-    return outwcs
+    inds = [i+1 for i in range(wcs.wcs.naxis)]
+    inds.insert(add_before_ind, 0)
+    newwcs = wcs.sub(inds)
+    newwcs.wcs.ctype[add_before_ind] = 'STOKES'
+    newwcs.wcs.cname[add_before_ind] = 'STOKES'
+    return newwcs
 
 
 def axis_type_names(wcs):

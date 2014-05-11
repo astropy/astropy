@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ...wcs import WCS
 from .. import utils
+from ...tests.helper import pytest
 import numpy as np
 
 def test_wcs_dropping():
@@ -54,12 +55,15 @@ def test_wcs_swapping():
     swapped = wcs.swapaxes(2,3)
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1,2,4,3]))
 
-def test_add_stokes():
-    wcs = WCS(naxis=3)
+@pytest.mark.parametrize('ndim',(2,3))
+def test_add_stokes(ndim):
+    wcs = WCS(naxis=ndim)
     
-    for ii in range(4):
+    for ii in range(ndim+1):
         outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
-        assert outwcs.wcs.naxis == 4
+        assert outwcs.wcs.naxis == ndim+1
+        assert outwcs.wcs.ctype[ii] == 'STOKES'
+        assert outwcs.wcs.cname[ii] == 'STOKES'
 
 def test_slice():
     mywcs = WCS(naxis=2)
