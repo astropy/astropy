@@ -1,14 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
-import numpy as np
-from .wcs import WCS
-
-wcs_parameters_to_preserve = ['cel_offset','dateavg','dateobs','equinox',
-                              'latpole', 'lonpole', 'mjdavg', 'mjdobs', 'name',
-                              'obsgeo', 'phi0', 'radesys', 'restfrq',
-                              'restwav', 'specsys', 'ssysobs', 'ssyssrc',
-                              'theta0', 'velangl', 'velosys', 'zsource']
-
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """

@@ -108,9 +108,9 @@ def test_slice_fitsorder():
 
 def test_axis_names():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT','STOKES']
+    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT-LSR','STOKES']
     
-    assert mywcs.axis_type_names() == ['RA---TAN','DEC---TAN','VOPT','STOKES']
+    assert mywcs.axis_type_names() == ['RA','DEC','VOPT','STOKES']
 
     mywcs.wcs.cname = ['RA','DEC','VOPT-LSR','STOKES']
 
