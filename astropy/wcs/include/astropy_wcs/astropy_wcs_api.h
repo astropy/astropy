@@ -81,16 +81,17 @@ import_astropy_wcs(void) {
   PyObject *c_api        = NULL;
   int       status       = -1;
 
+  wcs_module = PyImport_ImportModule("astropy.wcs._wcs");
+  if (wcs_module == NULL) goto exit;
+
+  c_api = PyObject_GetAttrString(wcs_module, "_ASTROPY_WCS_API");
+  if (c_api == NULL) goto exit;
+
   #if PY_VERSION_HEX >= 0x03020000
-    AstropyWcs_API = (void **)PyCapsule_Import("astropy.wcs._wcs._ASTROPY_WCS_API", 0);
-    if (AstropyWcs_API == NULL) goto exit;
+    AstropyWcs_API = (void **)PyCapsule_GetPointer(c_api, "_wcs._ASTROPY_WCS_API");
+    if (AstropyWcs_API == NULL)
+        goto exit;
   #else
-    wcs_module = PyImport_ImportModule("astropy.wcs._wcs");
-    if (wcs_module == NULL) goto exit;
-
-    c_api = PyObject_GetAttrString(wcs_module, "_ASTROPY_WCS_API");
-    if (c_api == NULL) goto exit;
-
     if (PyCObject_Check(c_api)) {
       AstropyWcs_API = (void **)PyCObject_AsVoidPtr(c_api);
     } else {
