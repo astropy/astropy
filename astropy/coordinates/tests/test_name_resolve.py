@@ -141,9 +141,12 @@ def test_names():
 @pytest.mark.parametrize(("name", "db_dict"), [('ngc 3642', _cached_ngc3642),
                                                ('castor', _cached_castor)])
 def test_database_specify(name, db_dict):
-    # First check that sesame is up
-    if urllib.request.urlopen(sesame_url.get()).getcode() != 200:
-        pytest.skip("SESAME appears to be down, skipping "
+    # First check that at least some sesame mirror is up
+    for url in sesame_url.get():
+        if urllib.request.urlopen(url).getcode() == 200:
+            break
+    else:
+        pytest.skip("All SESAME mirrors appear to be down, skipping "
                     "test_name_resolve.py:test_database_specify()...")
 
     for db in db_dict.keys():
