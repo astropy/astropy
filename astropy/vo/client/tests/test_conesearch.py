@@ -13,7 +13,7 @@ from .. import conesearch, vos_catalog
 from ..exceptions import VOSError, ConeSearchError
 from ... import conf
 from .... import units as u
-from ....coordinates import ICRS, Longitude, Latitude
+from ....coordinates import ICRS, SkyCoord
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils import data
@@ -82,6 +82,17 @@ class TestConeSearch(object):
             center, radius, pedantic=self.pedantic, verbose=self.verbose)
 
         assert tab_1.array.size > 0
+
+    def test_sky_coord(self):
+        """
+        Check that searching with a SkyCoord works too
+        """
+        sc_cen = SkyCoord(SCS_CENTER)
+        tab = conesearch.conesearch(
+            sc_cen, SCS_RADIUS, catalog_db=self.url,
+            pedantic=self.pedantic, verbose=self.verbose)
+
+        assert tab.array.size > 0
 
     def test_searches(self):
         tab_2 = conesearch.conesearch(
@@ -214,6 +225,10 @@ def test_validate_coord():
     """Valid coordinates should not raise an error."""
     result = conesearch._validate_coord(
         ICRS(6.02233 * u.degree, -72.08144 * u.degree))
+    np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
+
+    result = conesearch._validate_coord(
+        SkyCoord(6.02233 * u.degree, -72.08144 * u.degree, system='icrs'))
     np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
 
     result = conesearch._validate_coord((-0, 0))
