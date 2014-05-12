@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.22 - an implementation of the FITS WCS standard.
+  WCSLIB 4.23 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+  $Id: tab.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -33,6 +33,7 @@
 #include "wcserr.h"
 #include "wcsmath.h"
 #include "wcsprintf.h"
+#include "wcsutil.h"
 #include "tab.h"
 
 const int TABSET = 137;
@@ -407,6 +408,54 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 
   return 0;
 }
+
+/*--------------------------------------------------------------------------*/
+
+int tabcmp(int cmp,
+           const struct tabprm *tab1,
+           const struct tabprm *tab2,
+           int *equal)
+
+{
+  int status = 0;
+  int m, M, N;
+
+  if (tab1  == 0x0) return TABERR_NULL_POINTER;
+  if (tab2  == 0x0) return TABERR_NULL_POINTER;
+  if (equal == 0x0) return TABERR_NULL_POINTER;
+
+  *equal = 0;
+
+  if (tab1->M != tab2->M) {
+    return 0;
+  }
+
+  M = tab1->M;
+
+  if (!wcsutil_intEq(M, tab1->K, tab2->K) ||
+      !wcsutil_intEq(M, tab1->map, tab2->map) ||
+      !wcsutil_Eq(M, tab1->crval, tab2->crval)) {
+    return 0;
+  }
+
+  N = M;
+  for (m = 0; m < M; m++) {
+    if (!wcsutil_Eq(tab1->K[m], tab1->index[m], tab2->index[m])) {
+      return 0;
+    }
+
+    N *= tab1->K[m];
+  }
+
+  if (!wcsutil_Eq(N, tab1->coord, tab2->coord)) {
+    return 0;
+  }
+
+  *equal = 1;
+
+  return 0;
+}
+
 
 /*--------------------------------------------------------------------------*/
 

@@ -284,6 +284,50 @@ relevant column number.
 It should be set to zero for an image header or pixel list.
 """
 
+compare = """
+compare(cmp, other)
+
+Compare two Wcsprm objects for equality.
+
+Parameters
+----------
+
+cmp : int
+    A bit field controlling the strictness of the comparison.  When 0,
+    all fields must be identical.
+
+    The following constants may be or'ed together to loosen the
+    comparison.
+
+    - ``WCSCOMPARE_ANCILLARY``: Ignores ancillary keywords that don't
+      change the WCS transformation, such as ``DATE-OBS`` or
+      ``EQUINOX``.
+
+    - ``WCSCOMPARE_TILING``: Ignore integral differences in
+      ``CRPIXja``.  This is the 'tiling' condition, where two WCSes
+      cover different regions of the same map projection and align on
+      the same map grid.
+
+    - ``WCSCOMPARE_CRPIX``: Ignore any differences at all in
+      ``CRPIXja``.  The two WCSes cover different regions of the same
+      map projection but may not align on the same grid map.
+      Overrides ``WCSCOMPARE_TILING``.
+
+other : Wcsprm
+    The other Wcsprm object to compare to.
+
+Returns
+-------
+equal : bool
+"""
+
+convert = """
+convert(array)
+
+Perform the unit conversion on the elements of the given *array*,
+returning an array of the same shape.
+"""
+
 coord = """
 ``double array[K_M]...[K_2][K_1][M]`` The tabular coordinate array.
 

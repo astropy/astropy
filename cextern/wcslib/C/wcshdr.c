@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.22 - an implementation of the FITS WCS standard.
+  WCSLIB 4.23 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 4.22 2014/04/12 15:03:52 mcalabre Exp $
+  $Id: wcshdr.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -709,14 +709,14 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
       nkeyrec, header, &status);
   }
 
-  if (!undefined(wcs->restfrq)) {
+  if (wcs->restfrq != 0.0) {
     wcsutil_double2str(keyvalue, "%20.12G", wcs->restfrq);
     wcshdo_util(relax, "RESTFRQ", "RFRQ", 0, 0x0, 0, 0, 0, alt,
       colnum, colax, keyvalue, "[Hz] Line rest frequency",
       nkeyrec, header, &status);
   }
 
-  if (!undefined(wcs->restwav)) {
+  if (wcs->restwav != 0.0) {
     wcsutil_double2str(keyvalue, "%20.12G", wcs->restwav);
     wcshdo_util(relax, "RESTWAV", "RWAV", 0, 0x0, 0, 0, 0, alt,
       colnum, colax, keyvalue, "[Hz] Line rest wavelength",
