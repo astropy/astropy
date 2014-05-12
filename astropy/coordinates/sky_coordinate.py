@@ -673,7 +673,7 @@ def _get_frame_name(args, kwargs):
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
-        frame_name = frame_cls._name
+        frame_name = frame_cls.name
     else:
         # Look for the frame in args
         for arg in args:
@@ -682,7 +682,7 @@ def _get_frame_name(args, kwargs):
             except ValueError:
                 pass
             else:
-                frame_name = frame_cls._name
+                frame_name = frame_cls.name
                 args.remove(arg)
                 break
         else:
@@ -695,7 +695,7 @@ def _get_frame_name(args, kwargs):
     for arg in args:
         coord_frame_name = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_name = arg.__class__._name
+            coord_frame_name = arg.__class__.name
         elif isinstance(arg, SkyCoord):
             coord_frame_name = arg.frame_name
 

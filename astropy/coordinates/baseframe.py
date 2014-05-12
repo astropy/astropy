@@ -73,8 +73,8 @@ class FrameMeta(type):
             clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
 
         # now set the name as lower-case class name, if it isn't explicit
-        if '_name' not in clsdct:
-            clsdct['_name'] = name.lower()
+        if 'name' not in clsdct:
+            clsdct['name'] = name.lower()
 
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
@@ -621,7 +621,7 @@ class GenericFrame(BaseCoordinateFrame):
         A dictionary of attributes to be used as the frame attributes for this
         frame.
     """
-    _name = None  # it's not a "real" frame so it doesn't have a name
+    name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
         super(GenericFrame, self).__init__(None)

@@ -50,7 +50,7 @@ class TransformGraph(object):
         if self._cached_names_dct is None:
             self._cached_names_dct = dct = {}
             for c in self._cached_classes:
-                nm = getattr(c, '_name', None)
+                nm = getattr(c, 'name', None)
                 if nm is not None:
                     dct[nm] = c
 
