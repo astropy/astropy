@@ -29,11 +29,6 @@ def FRAME_CLASSES():
     return out
 
 
-def CLASS_TO_NAME_MAP():
-    """Mapping from frame class to name"""
-    return dict((cls, name) for name, cls in FRAME_CLASSES().items())
-
-
 def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
     out = set()
@@ -677,7 +672,7 @@ def _get_frame_name(args, kwargs):
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
-        frame_name = CLASS_TO_NAME_MAP()[frame_cls]
+        frame_name = frame_cls._name
     else:
         # Look for the frame in args
         for arg in args:
@@ -686,7 +681,7 @@ def _get_frame_name(args, kwargs):
             except ValueError:
                 pass
             else:
-                frame_name = CLASS_TO_NAME_MAP()[frame_cls]
+                frame_name = frame_cls._name
                 args.remove(arg)
                 break
         else:
@@ -699,7 +694,7 @@ def _get_frame_name(args, kwargs):
     for arg in args:
         coord_frame_name = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_name = CLASS_TO_NAME_MAP()[arg.__class__]
+            coord_frame_name = arg.__class__._name
         elif isinstance(arg, SkyCoord):
             coord_frame_name = arg.frame_name
 
