@@ -42,9 +42,27 @@ class TransformGraph(object):
 
     def __init__(self):
         self._graph = defaultdict(dict)
-        self._clsaliases = {}
 
         self.invalidate_cache()  # generates cache entries
+
+    @property
+    def _cached_names(self):
+        if self._cached_names_dct is None:
+            self._cached_names_dct = dct = {}
+
+            cls_set = set()
+            for a in self._graph:
+                cls_set.add(a)
+                for b in self._graph[a]:
+                    cls_set.add(b)
+
+            for c in cls_set:
+                nm = getattr(c, '_name', None)
+                if nm is not None:
+                    dct[nm] = c
+
+        return self._cached_names_dct
+
 
     def add_transform(self, fromsys, tosys, transform):
         """
@@ -251,6 +269,7 @@ class TransformGraph(object):
         are added or removed, but will need to be called manually if
         weights on transforms are modified inplace.
         """
+        self._cached_names_dct = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -305,64 +324,6 @@ class TransformGraph(object):
             self._composite_cache[fttuple] = comptrans
         return self._composite_cache[fttuple]
 
-    def add_coord_name(self, name=None, coordcls=None):
-        """
-        Adds an alias for a coordinate.  This is mainly for allowing
-        attribute-style access of coordinate transformations (e.g.,
-        ``coordasgal = coord.galactic``), or otherwise defining alternative
-        names.
-
-        If ``coordcls`` is set to None, this will instead yield a function that
-        accepts a class.  This is intended for use as a decorator::
-
-            #creates the alias "mycoord"
-            @graph.add_coord_name
-            class MyCoord(BaseCoordinateFrame):
-                ...
-
-
-            @graph.add_coord_name('mycoordalias')
-            class MyCoord(BaseCoordinateFrame):
-                ...
-
-        Parameters
-        ----------
-        name : str or None or class
-            The alias for the coordinate class. Should be a valid python
-            identifier. If None, will use an all-lowercase version of the class
-            name. If a class, it will be treated as `coordcls` with name set to
-            `None` (this allows the no-argument decorator usage shown above).
-        coordcls : class or None
-            The class object to be referenced by this name.  If None, this
-            method will return a function suitable for use as a decorator
-            (see above).
-
-        Raises
-        ------
-        ValueError
-            If ``coordcls`` already has a name assigned.
-        """
-        from inspect import isclass
-
-        if isclass(name):
-            # treat the first argument as the `coordcls` in this case - this
-            # allows the function to be a no-argument decorator.
-            coordcls = name
-            self.add_coord_name(None, coordcls)
-            return coordcls
-        elif coordcls is None:
-            def add_coord_name_deco(cc):
-                self.add_coord_name(name, cc)
-                return cc
-            return add_coord_name_deco
-        else:
-            if name is None:
-                name = coordcls.__name__.lower()
-            if name in self._clsaliases:
-                msg = "Coordinate class name {0} already used for class {1}."
-                raise ValueError(msg.format(name, self._clsaliases[name]))
-            self._clsaliases[name] = coordcls
-
     def lookup_name(self, name):
         """
         Tries to locate the coordinate class with the provided alias.
@@ -378,11 +339,12 @@ class TransformGraph(object):
             The coordinate class corresponding to the ``name`` or `None` if
             no such class exists.
         """
-        return self._clsaliases.get(name, None)
 
-    def get_aliases(self):
+        return self._cached_names.get(name, None)
+
+    def get_names(self):
         """
-        Returns all available transform aliases. They will all be
+        Returns all available transform names. They will all be
         valid arguments to `lookup_name`.
 
         Returns
@@ -390,7 +352,7 @@ class TransformGraph(object):
         nms : list
             The aliases for coordinate systems.
         """
-        return list(six.iterkeys(self._clsaliases))
+        return list(six.iterkeys(self._cached_names))
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None):
@@ -439,7 +401,7 @@ class TransformGraph(object):
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._clsaliases)])
+        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._cached_names)])
         for n in nodes:
             if n in invclsaliases:
                 nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))

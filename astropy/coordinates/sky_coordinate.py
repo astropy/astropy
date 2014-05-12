@@ -24,7 +24,7 @@ __all__ = ['SkyCoord']
 def FRAME_CLASSES():
     """Mapping from frame name to class"""
     out = dict((name, frame_transform_graph.lookup_name(name))
-               for name in frame_transform_graph.get_aliases())
+               for name in frame_transform_graph.get_names())
     out[None] = out['icrs']
     return out
 
@@ -645,7 +645,7 @@ def _get_frame_class(frame):
     import inspect
 
     if isinstance(frame, six.string_types):
-        frame_names = frame_transform_graph.get_aliases()
+        frame_names = frame_transform_graph.get_names()
         if frame not in frame_names:
             raise ValueError('Coordinate frame {0} not in allowed values {1}'
                              .format(frame, sorted(frame_names)))

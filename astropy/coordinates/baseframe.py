@@ -72,6 +72,10 @@ class FrameMeta(type):
                     raise ValueError("A non-property exists that's *also* in frame_attr_names")
             clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
 
+        # now set the name as lower-case class name, if it isn't explicit
+        if '_name' not in clsdct:
+            clsdct['_name'] = name.lower()
+
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
     @staticmethod
@@ -282,37 +286,6 @@ class BaseCoordinateFrame(object):
     @property
     def isscalar(self):
         return self.data.isscalar
-
-    @classmethod
-    def lookup_names(cls, transformgraph):
-        """
-        Determines the name sused by this frame in the provided
-        transformation graph.
-
-        Parameters
-        ----------
-        transformgraph : `~astropy.coordinates.TransformGraph`
-            The graph to lookup the name of this object on.
-
-        Returns
-        -------
-        names : list of str
-            The string names of this frame in the ``transformgraph``
-            set of transformations.  If the class does not have a name,
-            this is an empty list
-
-        Notes
-        -----
-        The reason this is a method instead of a property is that
-        different frame classes can have different names on different
-        transform graphs.  They can also have multiple names on the
-        same graph (but the converse is not true).
-        """
-        names = []
-        for k, v in transformgraph._clsaliases.items():
-            if v == cls:
-                names.append(k)
-        return names
 
     def realize_frame(self, representation):
         """
@@ -648,6 +621,7 @@ class GenericFrame(BaseCoordinateFrame):
         A dictionary of attributes to be used as the frame attributes for this
         frame.
     """
+    _name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
         super(GenericFrame, self).__init__(None)
