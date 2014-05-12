@@ -14,7 +14,7 @@ from .async import AsyncBase
 from .exceptions import ConeSearchError, VOSError
 from ... import units as u
 from ...config.configuration import ConfigAlias
-from ...coordinates import ICRS, BaseCoordinateFrame, Longitude, Latitude
+from ...coordinates import ICRS, BaseCoordinateFrame, Longitude, Latitude, SkyCoord
 from ...units import Quantity
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
@@ -85,16 +85,11 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     Parameters
     ----------
-    center : tuple of float or :ref:`astropy-coordinates`
-        Right-ascension and declination for the position of
-        the center of the cone to search:
-
-            - If tuple of float is given, it is assumed to be
-              ``(RA, DEC)`` in the ICRS coordinate system,
-              given in decimal degrees.
-            - If astropy coordinates object is given, it will
-              be converted internally to
-              `~astropy.coordinates.ICRS`.
+    center : `~astropy.coordinates.SkyCoord`, `~astropy.coordinates.BaseCoordinateFrame`, or sequence of length 2
+        Position of the center of the cone to search.  It may be specified as an
+        object from the :ref:`astropy-coordinates` package, or as a length 2
+        sequence.  If a sequence, it is assumed to be ``(RA, DEC)`` in the
+        ICRS coordinate frame, given in decimal degrees.
 
     radius : float or `~astropy.units.quantity.Quantity`
         Radius of the cone to search:
@@ -492,7 +487,9 @@ def _local_conversion(func, x):
 
 def _validate_coord(center):
     """Validate coordinates."""
-    if isinstance(center, BaseCoordinateFrame):
+    if isinstance(center, SkyCoord):
+        icrscoord = center.transform_to(ICRS).frame
+    elif isinstance(center, BaseCoordinateFrame):
         icrscoord = center.transform_to(ICRS)
     else:
         icrscoord = ICRS(Longitude(center[0], unit=u.degree),
