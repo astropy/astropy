@@ -10,7 +10,7 @@ of other coordinates. For example, assuming ``ra1``/``dec1`` and
 
     >>> from astropy.coordinates import ICRS
     >>> from astropy import units as u
-    >>> #assume ra1/dec1 and ra/dec2 are arrays loaded from some file
+    >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
     >>> c = ICRS(ra1, dec1, unit=(u.degree, u.degree))
     >>> catalog = ICRS(ra2, dec2, unit=(u.degree, u.degree))
     >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)
