@@ -26,6 +26,10 @@ New Features
     allow negative values, set ``allow_negative=True`` in the ``Distance``
     constructor when creating a ``Distance`` instance.
 
+  - ``Longitude`` (resp. ``Latitude``) objects cannot be used any more to
+    initialize or set ``Latitude`` (resp. ``Longitude``) objects. An explicit
+    conversion to ``Angle`` is now required. [#2461]
+
 - ``astropy.cosmology``
 
   - Added ``z_at_value`` function to find the redshift at which a cosmology

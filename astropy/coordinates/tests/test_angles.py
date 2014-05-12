@@ -200,6 +200,27 @@ def test_latitude():
     assert type(angle) is Angle
     assert angle == -80 * u.deg
 
+    # Test errors when trying to interoperate with longitudes.
+    with pytest.raises(TypeError) as excinfo:
+        lon = Longitude(10, 'deg')
+        lat = Latitude(lon)
+    assert "A Latitude angle cannot be created from a Longitude angle" in str(excinfo)
+
+    with pytest.raises(TypeError) as excinfo:
+        lon = Longitude(10, 'deg')
+        lat = Latitude([20], 'deg')
+        lat[0] = lon
+    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(excinfo)
+
+    # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
+    lon = Longitude(10,'deg')
+    lat = Latitude(Angle(lon))
+    assert lat.value == 10.0
+    # Check setitem.
+    lon = Longitude(10,'deg')
+    lat = Latitude([20], 'deg')
+    lat[0] = Angle(lon)
+    assert lat.value[0] == 10.0
 
 def test_longitude():
     # Default wrapping at 360d with an array input
@@ -258,6 +279,27 @@ def test_longitude():
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
+    # Test errors when trying to interoperate with latitudes.
+    with pytest.raises(TypeError) as excinfo:
+        lat = Latitude(10, 'deg')
+        lon = Longitude(lat)
+    assert "A Longitude angle cannot be created from a Latitude angle" in str(excinfo)
+
+    with pytest.raises(TypeError) as excinfo:
+        lat = Latitude(10, 'deg')
+        lon = Longitude([20], 'deg')
+        lon[0] = lat
+    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(excinfo)
+
+    # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
+    lat = Latitude(10,'deg')
+    lon = Longitude(Angle(lat))
+    assert lon.value == 10.0
+    # Check setitem.
+    lat = Latitude(10,'deg')
+    lon = Longitude([20], 'deg')
+    lon[0] = Angle(lat)
+    assert lon.value[0] == 10.0
 
 
 def test_wrap_at():
