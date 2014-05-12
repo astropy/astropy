@@ -18,6 +18,14 @@ import warnings
 
 import numpy as np
 
+try:
+    from StringIO import StringIO
+except ImportError:
+    # Use for isinstance test only
+    class StringIO(object):
+        pass
+
+
 from ...extern import six
 from ...extern.six import string_types, integer_types, text_type, next
 from ...extern.six.moves import zip
@@ -589,8 +597,11 @@ def _array_to_file(arr, outfile):
             # StringIO in some versions of Python ask 'if not s' before
             # writing, which fails for Numpy arrays.  Test ahead of time that
             # the array is non-empty, then pass in the array buffer directly
-            if len(a):
-                f.write(a.data)
+            if isinstance(f, StringIO):
+                if len(a):
+                    f.write(a.data)
+            else:
+                f.write(a)
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number
@@ -626,6 +637,9 @@ def _write_string(f, s):
         s = encode_ascii(s)
     elif not binmode and not isinstance(f, text_type):
         s = decode_ascii(s)
+    elif isinstance(f, StringIO) and isinstance(s, np.ndarray):
+        # Workaround for StringIO/ndarray incompatibility
+        s = s.data
     f.write(s)
 
 
