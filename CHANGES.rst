@@ -131,6 +131,8 @@ New Features
   - Allow subclassing of `Table` and the component classes `Row`, `Column`,
     `MaskedColumn`, `TableColumns`, and `TableFormatter`. [#2287]
 
+  - Allow table columns to be hidden from print output. [#2466]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the

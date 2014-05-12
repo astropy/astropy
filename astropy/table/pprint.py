@@ -287,9 +287,10 @@ class TableFormatter(object):
             show_unit = any([col.unit for col in six.itervalues(table.columns)])
 
         for col in six.itervalues(table.columns):
-            lines, n_header = self._pformat_col(col, max_lines, show_name,
-                                                show_unit)
-            cols.append(lines)
+            if not col.hidden:
+                lines, n_header = self._pformat_col(col, max_lines, show_name,
+                                                    show_unit)
+                cols.append(lines)
 
         if not cols:
             return []

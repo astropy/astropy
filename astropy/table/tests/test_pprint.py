@@ -330,6 +330,13 @@ class TestFormat():
         with pytest.raises(ValueError):
             str(t['a'])
 
+    def test_pprint_hidden_col(self, table_type):
+        t = table_type([[1], [2]], names=['a', 'b'])
+        t['a'].hidden = True
+        assert t.pformat() == [' b ',
+                               '---',
+                               '  2']
+
 
 def test_pprint_py3_bytes():
     """
@@ -348,3 +355,5 @@ def test_pprint_nameless_col():
     """
     col = table.Column([1.,2.])
     assert str(col).startswith('None')
+
+

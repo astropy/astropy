@@ -413,3 +413,36 @@ any array::
           [30, 40]],
          [[ 5,  6],
           [50, 60]]])
+
+
+Hiding columns
+''''''''''''''''
+
+Sometimes it is desirable to hide certain columns from the print output, for
+instance if these columns are very wide (and make reading the screen output
+difficult) or if they contain information that is not relevant for the
+particular situation.
+
+This can be done by setting the column ``hidden`` attribute to ``True``.  For
+example::
+
+  >>> t = Table([['jim', 'joe'], [3, 4], [5, 6]], names=['name', 'b', 'c'])
+  >>> print t
+  name  b   c 
+  ---- --- ---
+   jim   3   5
+   joe   4   6
+
+  >>> t['name'].hidden = True
+  >>> print t
+   b   c 
+  --- ---
+    3   5
+    4   6
+
+  >>> t['name'].hidden = False
+  >>> print t
+  name  b   c 
+  ---- --- ---
+   jim   3   5
+   joe   4   6

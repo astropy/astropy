@@ -87,11 +87,13 @@ class BaseColumn(np.ndarray):
     __gt__ = _column_compare(operator.gt)
     __ge__ = _column_compare(operator.ge)
 
+    _attr_names = ('name', 'unit', 'format', 'description', 'meta', 'hidden')
+
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
-                dtypes=None, units=None):
+                dtypes=None, units=None, hidden=None):
 
         if dtypes is not None:
             dtype = dtypes
@@ -106,6 +108,7 @@ class BaseColumn(np.ndarray):
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
+
         elif isinstance(data, BaseColumn) and hasattr(data, '_name'):
             # When unpickling a MaskedColumn, ``data`` will be a bare BaseColumn with none
             # of the expected attributes.  In this case do NOT execute this block which
@@ -121,12 +124,16 @@ class BaseColumn(np.ndarray):
                 meta = deepcopy(data.meta)
             if name is None:
                 name = data.name
+            if hidden is None:
+                hidden = data.hidden
+
         elif isinstance(data, Quantity):
             if unit is None:
                 self_data = np.asarray(data, dtype=dtype)
                 unit = data.unit
             else:
                 self_data = np.asarray(data.to(unit), dtype=dtype)
+
         else:
             self_data = np.asarray(data, dtype=dtype)
 
@@ -137,6 +144,7 @@ class BaseColumn(np.ndarray):
         self.description = description
         self.parent_table = None
         self.meta = meta
+        self.hidden = True if hidden else False
 
         return self
 
@@ -178,8 +186,10 @@ class BaseColumn(np.ndarray):
                 data = data.copy(order)
 
         # Create the new instance with all available kwargs.
-        kwargs = dict(name=self.name, data=data, unit=self.unit, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
+        kwargs = {'data': data}
+        for attr in self._attr_names:
+            kwargs[attr] = deepcopy(getattr(self, attr))
+
         # Use `kwargs.update` instead of `kwargs['fill_value'] =` since some
         # versions of Python 2.6.x will blow up on unicode keyword arguments
         if hasattr(self, 'fill_value'):
@@ -198,7 +208,7 @@ class BaseColumn(np.ndarray):
         state values.
         """
         # Get the Column attributes and meta
-        name, unit, format, description, meta = state[-1]
+        column_attrs = dict(zip(self._attr_names, state[-1]))
         state = state[:-1]
 
         # Using super(type(self), self).__setstate__() gives an infinite recursion.
@@ -207,11 +217,12 @@ class BaseColumn(np.ndarray):
         super_class.__setstate__(self, state)
 
         # Set the Column attributes and meta
-        self._name = name
-        self.unit = unit
-        self.format = format
-        self.description = description
-        self.meta = meta
+        self._name = column_attrs['name']
+        self.unit = column_attrs['unit']
+        self.format = column_attrs['format']
+        self.description = column_attrs['description']
+        self.meta = column_attrs['meta']
+        self.hidden = column_attrs.get('hidden', False)  # Might not be there for pre-0.4.
 
     def __reduce__(self):
         """
@@ -222,7 +233,7 @@ class BaseColumn(np.ndarray):
         reconstruct_func, reconstruct_func_args, state = super_class.__reduce__(self)
 
         # Define Column-specific attrs and meta that gets added to state.
-        column_state = (self.name, self.unit, self.format, self.description, self.meta)
+        column_state = tuple(getattr(self, attr) for attr in self._attr_names)
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
@@ -239,10 +250,9 @@ class BaseColumn(np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'unit', 'format', 'description'):
-            val = getattr(obj, attr, None)
-            setattr(self, attr, val)
-        self.meta = deepcopy(getattr(obj, 'meta', {}))
+        for attr in self._attr_names:
+            val = getattr(obj, attr, {} if attr == 'meta' else None)
+            setattr(self, attr, deepcopy(val))
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -562,6 +572,8 @@ class Column(BaseColumn):
         accepts a single value and returns a string.
     meta : dict-like or None
         Meta-data associated with the column
+    hidden : bool
+        Hide the column when printing a table
 
     Examples
     --------
@@ -619,7 +631,7 @@ class Column(BaseColumn):
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
-                dtypes=None, units=None):
+                dtypes=None, units=None, hidden=None):
 
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
@@ -627,7 +639,7 @@ class Column(BaseColumn):
         self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
                                           shape=shape, length=length, description=description,
                                           unit=unit, format=format, meta=meta,
-                                          dtypes=dtypes, units=units)
+                                          dtypes=dtypes, units=units, hidden=hidden)
         return self
 
     def __repr__(self):
@@ -743,7 +755,7 @@ class MaskedColumn(Column, ma.MaskedArray):
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
-                units=None, dtypes=None):
+                units=None, dtypes=None, hidden=None):
 
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
@@ -760,7 +772,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta,
-                               units=units, dtypes=dtypes)
+                               units=units, dtypes=dtypes, hidden=hidden)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
@@ -849,5 +861,6 @@ class MaskedColumn(Column, ma.MaskedArray):
         # Use parent table definition of Column if available
         column_cls = self.parent_table.Column if (self.parent_table is not None) else Column
         out = column_cls(name=self.name, data=data, unit=self.unit, format=self.format,
-                         description=self.description, meta=deepcopy(self.meta))
+                         description=self.description, meta=deepcopy(self.meta),
+                         hidden=self.hidden)
         return out
