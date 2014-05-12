@@ -49,20 +49,35 @@ class TransformGraph(object):
     def _cached_names(self):
         if self._cached_names_dct is None:
             self._cached_names_dct = dct = {}
-
-            cls_set = set()
-            for a in self._graph:
-                cls_set.add(a)
-                for b in self._graph[a]:
-                    cls_set.add(b)
-
-            for c in cls_set:
+            for c in self._cached_classes:
                 nm = getattr(c, '_name', None)
                 if nm is not None:
                     dct[nm] = c
 
         return self._cached_names_dct
 
+    @property
+    def _cached_classes(self):
+        if self._cached_classes_set is None:
+            self._cached_classes_set = cls_set = set()
+            for a in self._graph:
+                cls_set.add(a)
+                for b in self._graph[a]:
+                    cls_set.add(b)
+
+        return self._cached_classes_set
+
+    def invalidate_cache(self):
+        """
+        Invalidates the cache that stores optimizations for traversing the
+        transform graph.  This is called automatically when transforms
+        are added or removed, but will need to be called manually if
+        weights on transforms are modified inplace.
+        """
+        self._cached_names_dct = None
+        self._cached_classes_set = None
+        self._shortestpaths = {}
+        self._composite_cache = {}
 
     def add_transform(self, fromsys, tosys, transform):
         """
@@ -261,17 +276,6 @@ class TransformGraph(object):
         # cache for later use
         self._shortestpaths[fromsys] = result
         return result[tosys]
-
-    def invalidate_cache(self):
-        """
-        Invalidates the cache that stores optimizations for traversing the
-        transform graph.  This is called automatically when transforms
-        are added or removed, but will need to be called manually if
-        weights on transforms are modified inplace.
-        """
-        self._cached_names_dct = None
-        self._shortestpaths = {}
-        self._composite_cache = {}
 
     def get_transform(self, fromsys, tosys):
         """

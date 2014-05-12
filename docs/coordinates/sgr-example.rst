@@ -26,7 +26,6 @@ The first step is to create a new class, which we'll call
     from astropy.coordinates import frame_transform_graph
     from astropy.coordinates.angles import rotation_matrix
 
-    @frame_transform_graph.add_coord_name
     class Sagittarius(coord.BaseCoordinateFrame):
         """
         A Heliocentric spherical coordinate system defined by the orbit

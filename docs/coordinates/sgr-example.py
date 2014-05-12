@@ -21,7 +21,6 @@ import astropy.units as u
 
 __all__ = ["SgrCoordinates"]
 
-@frame_transform_graph.add_coord_name
 class Sagittarius(coord.BaseCoordinateFrame):
     """
     A Heliocentric spherical coordinate system defined by the orbit
