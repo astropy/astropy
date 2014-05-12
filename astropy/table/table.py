@@ -6,7 +6,6 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import collections
-import sys
 import warnings
 import re
 
@@ -143,8 +142,8 @@ class Row(object):
                 self._data = ma.core.mvoid(self._data,
                                            mask=self._table._mask[index])
         except ValueError as err:
-            # Another bug (or maybe same?) that is fixed in 1.8 prevents accessing
-            # a row in masked array if it has object-type members.
+            # Another bug (or maybe same?) that is fixed in 1.8 prevents
+            # accessing a row in masked array if it has object-type members.
             # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
             # >>> x['a'] = 1
             # >>> x['a'].mask = True
@@ -247,10 +246,10 @@ class Table(object):
     the structure of the table by adding or removing columns, or adding new
     rows of data.  In addition table and column metadata are fully supported.
 
-    `Table` differs from `NDData` by the assumption that the input data
-    consists of columns of homogeneous data, where each column has a unique
-    identifier and may contain additional metadata such as the data
-    unit, format, and description.
+    `Table` differs from `~astropy.nddata.NDData` by the assumption that the
+    input data consists of columns of homogeneous data, where each column
+    has a unique identifier and may contain additional metadata such as the
+    data unit, format, and description.
 
     Parameters
     ----------
@@ -406,9 +405,9 @@ class Table(object):
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled.
 
-        If input ``fill_value`` supplied then that value is used for all masked entries
-        in the table.  Otherwise the individual ``fill_value`` defined for each
-        table column is used.
+        If input ``fill_value`` supplied then that value is used for all
+        masked entries in the table.  Otherwise the individual
+        ``fill_value`` defined for each table column is used.
 
         Returns
         -------
@@ -442,22 +441,24 @@ class Table(object):
 
     def _rebuild_table_column_views(self):
         """
-        Some table manipulations can corrupt the Column views of self._data.  This
-        function will cleanly rebuild the columns and self.columns.  This is a slightly
-        subtle operation, see comments.
+        Some table manipulations can corrupt the Column views of self._data.
+        This function will cleanly rebuild the columns and self.columns.
+        This is a slightly subtle operation, see comments.
         """
         cols = []
         for col in six.itervalues(self.columns):
-            # First make a new column based on the name and the original column.  This
-            # step is needed because the table manipulation may have changed the table
-            # masking so that the original data columns no longer correspond to
-            # self.ColumnClass.  This uses data refs, not copies.
+            # First make a new column based on the name and the original
+            # column.  This step is needed because the table manipulation
+            # may have changed the table masking so that the original data
+            # columns no longer correspond to self.ColumnClass.  This uses
+            # data refs, not copies.
             newcol = self.ColumnClass(name=col.name, data=col)
 
-            # Now use the copy() method to copy the column and its metadata, but at
-            # the same time set the column data to a view of self._data[col.name].
-            # Somewhat confusingly in this case copy() refers to copying the
-            # column attributes, but the data are used by reference.
+            # Now use the copy() method to copy the column and its metadata,
+            # but at the same time set the column data to a view of
+            # self._data[col.name].  Somewhat confusingly in this case
+            # copy() refers to copying the column attributes, but the data
+            # are used by reference.
             newcol = newcol.copy(data=self._data[col.name])
 
             # Make column aware of the parent table
@@ -666,22 +667,22 @@ class Table(object):
                show_unit=None):
         """Print a formatted string representation of the table.
 
-        If no value of `max_lines` is supplied then the height of the
-        screen terminal is used to set `max_lines`.  If the terminal
+        If no value of ``max_lines`` is supplied then the height of the
+        screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default is taken from the
-        configuration item `astropy.conf.max_lines`.  If a negative
-        value of `max_lines` is supplied then there is no line limit
+        configuration item ``astropy.conf.max_lines``.  If a negative
+        value of ``max_lines`` is supplied then there is no line limit
         applied.
 
         The same applies for max_width except the configuration item is
-        `astropy.conf.max_width`.
+        ``astropy.conf.max_width``.
 
         Parameters
         ----------
         max_lines : int
             Maximum number of lines in table output
 
-        max_width : int or None
+        max_width : int or `None`
             Maximum character width of output
 
         show_name : bool
@@ -721,28 +722,29 @@ class Table(object):
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
-            the table in memory).  A negative value of `max_lines` indicates
+            the table in memory).  A negative value of ``max_lines`` indicates
             no row limit
         jsviewer : bool
-            If True, prepends some javascript headers so that the table is
+            If `True`, prepends some javascript headers so that the table is
             rendered as a https://datatables.net data table.  This allows
-            in-browser searching & sorting.  See `JSViewer`
+            in-browser searching & sorting.  See `JSViewer
+            <http://www.jsviewer.com/>`_
         jskwargs : dict
-            Passed to the `JSViewer` init
-        tableid : str or None
+            Passed to the `JSViewer`_ init.
+        tableid : str or `None`
             An html ID tag for the table.  Default is "table{id}", where id is
-            the unique integer id of the table object, id(self)
+            the unique integer id of the table object, id(self).
         browser : str
-            Any legal browser name, e.g. 'firefox','chrome','safari'
-            (for mac, you may need to use
-            'open -a "/Applications/Google Chrome.app" %s'
-            for Chrome).
-            If 'default', will use the system default browser.
+            Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
+            ``'safari'`` (for mac, you may need to use ``'open -a
+            "/Applications/Google Chrome.app" %s'`` for Chrome).  If
+            ``'default'``, will use the system default browser.
 
         Returns
         -------
-        A :py:`tempfile.NamedTemporaryFile` object pointing to the html file on
-        disk.
+        file :
+            A `~tempfile.NamedTemporaryFile` object pointing to the
+            html file on disk.
         """
         import webbrowser
         import tempfile
@@ -752,8 +754,8 @@ class Table(object):
 
         if tableid is None:
             tableid = 'table{id}'.format(id=id(self))
-        linelist = self.pformat(html=True, max_width=np.inf, max_lines=max_lines,
-                                tableid=tableid)
+        linelist = self.pformat(html=True, max_width=np.inf,
+                                max_lines=max_lines, tableid=tableid)
 
         if jsviewer:
             jsv = JSViewer(**jskwargs)
@@ -771,9 +773,9 @@ class Table(object):
         tmp.flush()
 
         if browser == 'default':
-            webbrowser.open("file://"+tmp.name)
+            webbrowser.open("file://" + tmp.name)
         else:
-            webbrowser.get(browser).open("file://"+tmp.name)
+            webbrowser.get(browser).open("file://" + tmp.name)
 
         return tmp
 
@@ -782,22 +784,22 @@ class Table(object):
         """Return a list of lines for the formatted string representation of
         the table.
 
-        If no value of `max_lines` is supplied then the height of the
-        screen terminal is used to set `max_lines`.  If the terminal
+        If no value of ``max_lines`` is supplied then the height of the
+        screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default is taken from the
-        configuration item `astropy.conf.max_lines`.  If a negative
-        value of `max_lines` is supplied then there is no line limit
+        configuration item ``astropy.conf.max_lines``.  If a negative
+        value of ``max_lines`` is supplied then there is no line limit
         applied.
 
-        The same applies for max_width except the configuration item  is
-        `astropy.conf.max_width`.
+        The same applies for ``max_width`` except the configuration item  is
+        ``astropy.conf.max_width``.
 
         Parameters
         ----------
-        max_lines : int or None
+        max_lines : int or `None`
             Maximum number of rows to output
 
-        max_width : int or None
+        max_width : int or `None`
             Maximum character width of output
 
         show_name : bool
@@ -811,7 +813,7 @@ class Table(object):
         html : bool
             Format the output as an HTML table (default=False)
 
-        tableid : str or None
+        tableid : str or `None`
             An ID tag for the table; only used if html is set.  Default is
             "table{id}", where id is the unique integer id of the table object,
             id(self)
@@ -848,7 +850,7 @@ class Table(object):
         max_lines : int
             Maximum number of lines in table output
 
-        max_width : int or None
+        max_width : int or `None`
             Maximum character width of output
 
         show_name : bool
@@ -906,11 +908,13 @@ class Table(object):
             if not isinstance(value, np.ndarray):
                 value = np.asarray(value)
 
-            # Make new column and assign the value.  If the table currently has no rows
-            # (len=0) of the value is already a Column then define new column directly
-            # from value.  In the latter case this allows for propagation of Column
-            # metadata.  Otherwise define a new column with the right length and shape and
-            # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
+            # Make new column and assign the value.  If the table currently
+            # has no rows (len=0) of the value is already a Column then
+            # define new column directly from value.  In the latter case
+            # this allows for propagation of Column metadata.  Otherwise
+            # define a new column with the right length and shape and then
+            # set it from value.  This allows for broadcasting, e.g. t['a']
+            # = 1.
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
                 new_column.name = item
@@ -976,7 +980,7 @@ class Table(object):
         Parameters
         ----------
         masked : bool
-            State of table masking (True or False)
+            State of table masking (`True` or `False`)
         """
         if hasattr(self, '_masked'):
             # The only allowed change is from None to False or True, or False to True
@@ -1078,7 +1082,7 @@ class Table(object):
         ----------
         col : Column
             Column object to add.
-        index : int or None
+        index : int or `None`
             Insert column before this position or at end (default)
 
         Examples
@@ -1133,7 +1137,7 @@ class Table(object):
         ----------
         cols : list of Columns
             Column objects to add.
-        indexes : list of ints or None
+        indexes : list of ints or `None`
             Insert column before this position or at end (default)
 
         Examples
@@ -1333,7 +1337,7 @@ class Table(object):
 
     def remove_columns(self, names):
         '''
-        Remove several columns from the table
+        Remove several columns from the table.
 
         Parameters
         ----------
@@ -1590,7 +1594,7 @@ class Table(object):
         mapping (e.g. dict)
             Keys corresponding to column names.  Missing values will be
             filled with np.zeros for the column dtype.
-        None
+        `None`
             All values filled with np.zeros for the column dtype.
 
         This method requires that the Table object "owns" the underlying array
@@ -1605,7 +1609,7 @@ class Table(object):
 
         Parameters
         ----------
-        vals : tuple, list, dict or None
+        vals : tuple, list, dict or `None`
             Use the specified values in the new row
 
         Examples
@@ -1717,9 +1721,9 @@ class Table(object):
 
     def argsort(self, keys=None, kind=None):
         """
-        Return the indices which would sort the table according to one or more key columns.
-        This simply calls the `numpy.argsort` function on the table with the ``order``
-        parameter set to `keys`.
+        Return the indices which would sort the table according to one or
+        more key columns.  This simply calls the `numpy.argsort` function on
+        the table with the ``order`` parameter set to ``keys``.
 
         Parameters
         ----------
@@ -1731,7 +1735,8 @@ class Table(object):
         Returns
         -------
         index_array : ndarray, int
-            Array of indices that sorts the table by the specified key column(s).
+            Array of indices that sorts the table by the specified key
+            column(s).
         """
         if isinstance(keys, six.string_types):
             keys = [keys]
@@ -1865,13 +1870,13 @@ class Table(object):
 
     def copy(self, copy_data=True):
         '''
-        Return a copy of the table
+        Return a copy of the table.
 
 
         Parameters
         ----------
         copy_data : bool
-            If True (the default), copy the underlying data array.
+            If `True` (the default), copy the underlying data array.
             Otherwise, use the same data array
         '''
         out = self.__class__(self, copy=copy_data)
@@ -1892,25 +1897,29 @@ class Table(object):
         if six.PY3:
             return super(Table, self).__lt__(other)
         elif six.PY2:
-            raise TypeError("unorderable types: Table() < {0}".format(str(type(other))))
+            raise TypeError("unorderable types: Table() < {0}".
+                            format(str(type(other))))
 
     def __gt__(self, other):
         if six.PY3:
             return super(Table, self).__gt__(other)
         elif six.PY2:
-            raise TypeError("unorderable types: Table() > {0}".format(str(type(other))))
+            raise TypeError("unorderable types: Table() > {0}".
+                            format(str(type(other))))
 
     def __le__(self, other):
         if six.PY3:
             return super(Table, self).__le__(other)
         elif six.PY2:
-            raise TypeError("unorderable types: Table() <= {0}".format(str(type(other))))
+            raise TypeError("unorderable types: Table() <= {0}".
+                            format(str(type(other))))
 
     def __ge__(self, other):
         if six.PY3:
             return super(Table, self).__ge__(other)
         else:
-            raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
+            raise TypeError("unorderable types: Table() >= {0}".
+                            format(str(type(other))))
 
     def __eq__(self, other):
 
@@ -1949,9 +1958,10 @@ class Table(object):
         """
         Group this table by the specified ``keys``
 
-        This effectively splits the table into groups which correspond to unique values of
-        the ``keys`` grouping object.  The output is a new `GroupedTable` which contains a
-        copy of this table but sorted by row according to ``keys``.
+        This effectively splits the table into groups which correspond to
+        unique values of the ``keys`` grouping object.  The output is a new
+        `GroupedTable` which contains a copy of this table but sorted by row
+        according to ``keys``.
 
         The ``keys`` input to `group_by` can be specified in different ways:
 
@@ -1961,12 +1971,12 @@ class Table(object):
 
         Parameters
         ----------
-        keys : str, list of str, numpy array, or Table
+        keys : str, list of str, numpy array, or `Table`
             Key grouping object
 
         Returns
         -------
-        out : Table
+        out : `Table`
             New table with groups set
         """
         return groups.table_group_by(self, keys)
