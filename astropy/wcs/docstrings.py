@@ -291,7 +291,7 @@ Has the dimensions::
 
     (K_M, ... K_2, K_1, M)
 
-(see `~astropy.wcs._astropy.wcs.Tabprm.K`) i.e. with the `M` dimension
+(see `~astropy.wcs.Tabprm.K`) i.e. with the `M` dimension
 varying fastest so that the `M` elements of a coordinate vector are
 stored contiguously in memory.
 """
@@ -424,13 +424,13 @@ commonly used non-standard units specifications but this must be done
 as a separate step before invoking `~astropy.wcs.Wcsprm.set`.
 
 For celestial axes, if `~astropy.wcs.Wcsprm.cunit` is not blank,
-`~astropy.wcs.Wcsprm.set` uses `wcsunits` to parse it and scale
+`~astropy.wcs.Wcsprm.set` uses ``wcsunits`` to parse it and scale
 `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`, and
 `~astropy.wcs.Wcsprm.cd` to decimal degrees.  It then resets
 `~astropy.wcs.Wcsprm.cunit` to ``"deg"``.
 
 For spectral axes, if `~astropy.wcs.Wcsprm.cunit` is not blank,
-`~astropy.wcs.Wcsprm.set` uses `wcsunits` to parse it and scale
+`~astropy.wcs.Wcsprm.set` uses ``wcsunits`` to parse it and scale
 `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`, and
 `~astropy.wcs.Wcsprm.cd` to SI units.  It then resets
 `~astropy.wcs.Wcsprm.cunit` accordingly.
@@ -492,7 +492,7 @@ already set.
 Alternatively, if `~astropy.wcs.Wcsprm.mjdobs` is set and
 `~astropy.wcs.Wcsprm.dateobs` isn't, then `~astropy.wcs.Wcsprm.datfix`
 derives `~astropy.wcs.Wcsprm.dateobs` from it.  If both are set but
-disagree by more than half a day then `ValueError` is raised.
+disagree by more than half a day then `~.exceptions.ValueError` is raised.
 
 Returns
 -------
@@ -506,7 +506,7 @@ array.
 
 Array of interpolated indices into the coordinate array such that
 Upsilon_m, as defined in Paper III, is equal to
-(`~astropy.wcs._astropy.wcs.Tabprm.p0` [m] + 1) + delta[m].
+(`~astropy.wcs.Tabprm.p0` [m] + 1) + delta[m].
 """
 
 det2im = """
@@ -527,7 +527,7 @@ dims = """
 ``int array[ndim]`` (read-only)
 
 The dimensions of the tabular array
-`~astropy.wcs._astropy.wcs.Wtbarr.data`.
+`~astropy.wcs.Wtbarr.data`.
 """
 
 DistortionLookupTable = """
@@ -582,7 +582,7 @@ dimensions::
 
     (K_M, ... K_2, 2, M)
 
-(see `~astropy.wcs._astropy.wcs.Tabprm.K`).  The minimum is recorded
+(see `~astropy.wcs.Tabprm.K`).  The minimum is recorded
 in the first element of the compressed K_1 dimension, then the
 maximum.  This array is used by the inverse table lookup function to
 speed up table searches.
@@ -631,7 +631,7 @@ keysel : sequence of flags
 
 Returns
 -------
-wcs_list : list of `~astropy.wcs._astropy.wcs.Wcsprm` objects
+wcs_list : list of `~astropy.wcs.Wcsprm` objects
 """
 
 fix = """
@@ -945,7 +945,7 @@ Array axis number for index vectors.
 map = """
 ``int array[M]`` Association between axes.
 
-A vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` that defines
+A vector of length `~astropy.wcs.Tabprm.M` that defines
 the association between axis *m* in the *M*-dimensional coordinate
 array (1 <= *m* <= *M*) and the indices of the intermediate world
 coordinate and world coordinate arrays.
@@ -1181,7 +1181,7 @@ An undefined value is represented by NaN.
 p0 = """
 ``int array[M]`` Interpolated indices into the coordinate array.
 
-Vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` of interpolated
+Vector of length `~astropy.wcs.Tabprm.M` of interpolated
 indices into the coordinate array such that Upsilon_m, as defined in
 Paper III, is equal to ``(p0[m] + 1) + delta[m]``.
 """
@@ -1478,7 +1478,7 @@ astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
 sense = """
 ``int array[M]`` +1 if monotonically increasing, -1 if decreasing.
 
-A vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` whose elements
+A vector of length `~astropy.wcs.Tabprm.M` whose elements
 indicate whether the corresponding indexing vector is monotonically
 increasing (+1), or decreasing (-1).
 """
@@ -1549,7 +1549,7 @@ InvalidTabularParameters
 set_ps = """
 set_ps(list)
 
-Sets `PSi_ma` keywords for each *i* and *m*.
+Sets ``PSi_ma`` keywords for each *i* and *m*.
 
 Parameters
 ----------
@@ -1572,7 +1572,7 @@ astropy.wcs.Wcsprm.get_ps
 set_pv = """
 set_pv(list)
 
-Sets `PVi_ma` keywords for each *i* and *m*.
+Sets ``PVi_ma`` keywords for each *i* and *m*.
 
 Parameters
 ----------
@@ -1868,13 +1868,13 @@ for example::
       -(WCSSUB_SPECTRAL | WCSSUB_STOKES)])
 
 The last of these specifies all axis types other than spectral or
-Stokes.  Extraction is done in the order specified by `axes`, i.e. a
+Stokes.  Extraction is done in the order specified by ``axes``, i.e. a
 longitude axis (if present) would be extracted first (via ``axes[0]``)
 and not subsequently (via ``axes[3]``).  Likewise for the latitude and
 cubeface axes in this example.
 
 The number of dimensions in the returned object may be less than or
-greater than the length of `axes`.  However, it will never exceed the
+greater than the length of ``axes``.  However, it will never exceed the
 number of axes in the input image.
 """
 
@@ -1929,7 +1929,7 @@ number of respects:
 
     2. Deprecated (e.g. ``CROTAn``) or non-standard usage will be
        translated to standard (this is partially dependent on whether
-       `fix` was applied).
+       ``fix`` was applied).
 
     3. Quantities will be converted to the units used internally,
        basically SI with the addition of degrees.
@@ -2055,7 +2055,7 @@ Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
 `SIP`_ and `Paper IV`_ distortion operations.
 
 To perform all distortion corrections and WCS tranformation, use
-`all_pix2world`.
+``all_pix2world``.
 
 Parameters
 ----------
