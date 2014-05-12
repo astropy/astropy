@@ -737,3 +737,11 @@ def test_sub_segfault():
 def test_bounds_check():
     w = _wcs.Wcsprm()
     w.bounds_check(False)
+
+
+def test_wcs_sub_error_message():
+    # Issue #1587
+    w = _wcs.Wcsprm()
+    with pytest.raises(TypeError) as e:
+        w.sub('latitude')
+    assert str(e).endswith("axes must None, a sequence or an integer")
