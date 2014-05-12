@@ -30,7 +30,7 @@ specific sub-packages, for example::
     >>> from astropy import units as u
     >>> from astropy import coordinates as coord
     >>> coord.SkyCoord(ra=10.68458*u.deg, dec=41.26917*u.deg, frame='icrs')
-    <ICRS SkyCoord: ra=10.68458 deg, dec=41.26917 deg>
+    <SkyCoord (ICRS): ra=10.68458 deg, dec=41.26917 deg>
 
 Finally, in some cases, most of the required functionality is contained in a
 single class (or a few classes). In those cases, the class can be directly

@@ -228,7 +228,7 @@ def test_validate_coord():
     np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
 
     result = conesearch._validate_coord(
-        SkyCoord(6.02233 * u.degree, -72.08144 * u.degree, system='icrs'))
+        SkyCoord(6.02233 * u.degree, -72.08144 * u.degree, frame='icrs'))
     np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
 
     result = conesearch._validate_coord((-0, 0))
