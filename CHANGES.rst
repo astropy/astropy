@@ -4,12 +4,6 @@
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - if ``sep`` argument is specified to be a single character in
@@ -62,8 +56,6 @@ Bug Fixes
   - Fixed a crash on Python 2.x when writing a FITS file directly to a
     ``StringIO.StringIO`` object. [#2463]
 
-- ``astropy.io.misc``
-
 - ``astropy.io.registry``
 
   - Allow readers/writers with the same name to be attached to different
@@ -79,10 +71,6 @@ Bug Fixes
   - Fixed the ``SIP`` and ``InverseSIP`` models both so that they work in the
     first place, and so that they return results consistent with the SIP
     functions in ``astropy.wcs``. [#2177]
-
-- ``astropy.nddata``
-
-- ``astropy.sphinx``
 
 - ``astropy.stats``
 
@@ -134,9 +122,6 @@ Bug Fixes
 
   - ``import astropy; astropy.test()`` now correctly uses the same test
     configuration as ``python setup.py test`` [#1811]
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 0.3.1 (2014-03-04)
