@@ -11,9 +11,14 @@ def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
 
     setup_path = os.path.dirname(__file__)
+    astropy_path = os.path.abspath(
+        os.path.join(setup_path, '..', '..', '..', '..'))
 
     env = os.environ.copy()
-    env['PYTHONPATH'] = str(tmpdir) + ':' + env.get('PYTHONPATH', '')
+    paths = [str(tmpdir), astropy_path]
+    if env.get('PYTHONPATH'):
+        paths.append(env.get('PYTHONPATH'))
+    env['PYTHONPATH'] = ':'.join(paths)
 
     # Build the extension
     subprocess.check_call(
