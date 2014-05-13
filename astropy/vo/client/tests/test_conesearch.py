@@ -232,7 +232,7 @@ def test_validate_coord():
     np.testing.assert_allclose(result, [6.022330000000011, -72.08144])
 
     result = conesearch._validate_coord((-0, 0))
-    np.testing.assert_array_equal(result, [0, 0])
+    np.testing.assert_allclose(result, [0, 0])
 
     result = conesearch._validate_coord((-1, -1))
-    np.testing.assert_array_equal(result, [359, -1])
+    np.testing.assert_allclose(result, [359, -1])
