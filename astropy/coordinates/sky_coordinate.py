@@ -108,8 +108,11 @@ class SkyCoord(object):
     def __len__(self):
         return len(self.frame)
 
-    def __nonzero__(self):
+    def __nonzero__(self):  # Py 2.x
         return self.frame.__nonzero__()
+
+    def __bool__(self):  # Py 3.x
+        return self.frame.__bool__()
 
     def __getitem__(self, item):
         from copy import deepcopy

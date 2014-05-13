@@ -276,7 +276,10 @@ class BaseCoordinateFrame(object):
     def __len__(self):
         return len(self.data)
 
-    def __nonzero__(self):
+    def __nonzero__(self):  # Py 2.x
+        return self.isscalar or len(self) != 0
+
+    def __bool__(self):  # Py 3.x
         return self.isscalar or len(self) != 0
 
     @property

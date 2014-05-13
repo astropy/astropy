@@ -85,7 +85,10 @@ class BaseRepresentation(object):
         else:
             return len(getattr(self, self.components[0]))
 
-    def __nonzero__(self):
+    def __nonzero__(self):  # Py 2.x
+        return self.isscalar or len(self) != 0
+
+    def __bool__(self):  # Py 3.x
         return self.isscalar or len(self) != 0
 
     @property
