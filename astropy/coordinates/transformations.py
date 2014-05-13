@@ -37,19 +37,18 @@ __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
 
 class TransformGraph(object):
     """
-    A graph representing the paths between coordinates.
+    A graph representing the paths between coordinate frames.
     """
 
     def __init__(self):
         self._graph = defaultdict(dict)
-
         self.invalidate_cache()  # generates cache entries
 
     @property
     def _cached_names(self):
         if self._cached_names_dct is None:
             self._cached_names_dct = dct = {}
-            for c in self._cached_classes:
+            for c in self.frame_set:
                 nm = getattr(c, 'name', None)
                 if nm is not None:
                     dct[nm] = c
@@ -57,15 +56,18 @@ class TransformGraph(object):
         return self._cached_names_dct
 
     @property
-    def _cached_classes(self):
-        if self._cached_classes_set is None:
-            self._cached_classes_set = cls_set = set()
+    def frame_set(self):
+        """
+        A `set` of all the frame classes present in this `TransformGraph`.
+        """
+        if self._cached_frame_set is None:
+            self._cached_frame_set = frm_set = set()
             for a in self._graph:
-                cls_set.add(a)
+                frm_set.add(a)
                 for b in self._graph[a]:
-                    cls_set.add(b)
+                    frm_set.add(b)
 
-        return self._cached_classes_set
+        return self._cached_frame_set.copy()
 
     def invalidate_cache(self):
         """
@@ -75,7 +77,7 @@ class TransformGraph(object):
         weights on transforms are modified inplace.
         """
         self._cached_names_dct = None
-        self._cached_classes_set = None
+        self._cached_frame_set = None
         self._shortestpaths = {}
         self._composite_cache = {}
 

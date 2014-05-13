@@ -23,7 +23,7 @@ __all__ = ['SkyCoord']
 def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
     out = set()
-    for frame_cls in frame_transform_graph._cached_classes:
+    for frame_cls in frame_transform_graph.frame_set:
         for attr in frame_cls.frame_attr_names.keys():
             out.add(attr)
     return out
