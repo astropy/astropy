@@ -36,7 +36,7 @@ class TestNonLinearConstraints(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fixed_par(self):
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, fixed={'amplitude': True})
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, self.ny1)
         assert model.amplitude.value == 10
 
@@ -47,7 +47,7 @@ class TestNonLinearConstraints(object):
             mean = 50 * model.stddev
             return mean
         g1 = models.Gaussian1D(10, mean=14.9, stddev=.3, tied={'mean': tied})
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
         model = fitter(g1,self.x, self.ny1)
         utils.assert_allclose(model.mean.value, 50 * model.stddev, rtol=10 ** (-5))
 
@@ -86,7 +86,7 @@ class TestNonLinearConstraints(object):
         n = np.random.randn(100)
         ny = y + n
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
         model = fitter(g1, self.x, ny)
         utils.assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
 
@@ -118,7 +118,7 @@ class TestBounds(object):
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1D(guess_slope, guess_intercept, bounds=bounds)
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
         model = fitter(line_model, self.x, self.y)
         slope = model.slope.value
         intercept = model.intercept.value
@@ -132,7 +132,7 @@ class TestBounds(object):
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1D(guess_slope, guess_intercept, bounds=bounds)
-        fitter = fitting.SLSQPFitter()
+        fitter = fitting.SLSQPLSQFitter()
         model = fitter(line_model, self.x, self.y)
         slope = model.slope.value
         intercept = model.intercept.value
@@ -150,7 +150,7 @@ class TestBounds(object):
         gauss = models.Gaussian2D(amplitude=10., x_mean=5., y_mean=5.,
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
-        gauss_fit = fitting.NonLinearLSQFitter()
+        gauss_fit = fitting.LevMarLSQFitter()
         model = gauss_fit(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
@@ -174,7 +174,7 @@ class TestBounds(object):
         gauss = models.Gaussian2D(amplitude=10., x_mean=5., y_mean=5.,
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
-        gauss_fit = fitting.SLSQPFitter()
+        gauss_fit = fitting.SLSQPLSQFitter()
         model = gauss_fit(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value

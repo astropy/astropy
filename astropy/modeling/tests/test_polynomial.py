@@ -65,7 +65,7 @@ class TestFitting(object):
         self.n2 = rsn.randn(self.x2.size)
         self.n2.shape = self.x2.shape
         self.linear_fitter = fitting.LinearLSQFitter()
-        self.non_linear_fitter = fitting.NonLinearLSQFitter()
+        self.non_linear_fitter = fitting.LevMarLSQFitter()
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_linear_fitter_1D(self, model_class):

@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import os.path
 from .. import models
 from .. import fitting
+from .. fitting import (LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter)
 from . import irafutil
 import numpy as np
 from numpy import linalg
@@ -23,6 +24,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
 class TestPolynomial2D(object):
 
@@ -51,7 +53,7 @@ class TestPolynomial2D(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_polynomial2D_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
-        nlfitter = fitting.NonLinearLSQFitter()
+        nlfitter = fitting.LevMarLSQFitter()
         new_model = nlfitter(self.model, self.x, self.y, self.z)
         utils.assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
@@ -91,7 +93,7 @@ class TestICheb2D(object):
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
-        nlfitter = fitting.NonLinearLSQFitter()
+        nlfitter = fitting.LevMarLSQFitter()
         model = nlfitter(cheb2d, self.x, self.y, z)
         utils.assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8], atol=10**-9)
 
@@ -171,7 +173,6 @@ class TestLinearLSQFitter(object):
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters(object):
-
     """
     Tests non-linear least squares fitting and the SLSQP algorithm
     """
@@ -184,49 +185,47 @@ class TestNonLinearFitters(object):
         rsn = RandomState(1234567890)
         yerror = rsn.normal(0, sigma)
         self.ydata = func(self.initial_values, self.xdata) + yerror
+        self.gauss = models.Gaussian1D(100, 5, stddev=1)
 
     def test_estimated_vs_analytic_deriv(self):
-        g1 = models.Gaussian1D(100, 5, stddev=1)
-        fitter = fitting.NonLinearLSQFitter()
-        model = fitter(g1, self.xdata, self.ydata)
+        """Runs `LevMarLSQFitter` with estimated and analytic derivatives of a `Gaussian1D`."""
+        fitter = fitting.LevMarLSQFitter()
+        model = fitter(self.gauss, self.xdata, self.ydata)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
-        efitter = fitting.NonLinearLSQFitter()
+        efitter = fitting.LevMarLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         utils.assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
-        g1 = models.Gaussian1D(100, 5, stddev=1)
-        fitter = fitting.NonLinearLSQFitter()
-        model = fitter(g1, self.xdata, self.ydata, estimate_jacobian=True)
+        """Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`."""
+        fitter = fitting.LevMarLSQFitter()
+        model = fitter(self.gauss, self.xdata, self.ydata, estimate_jacobian=True)
         func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
         errf = lambda p, x, y: (func(p, x) - y)
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
         utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
-    def test_LSQ_SLSQP(self):
-        g1 = models.Gaussian1D(100, 5, stddev=1)
-        fitter = fitting.NonLinearLSQFitter()
-        fslsqp = fitting.SLSQPFitter()
-        slsqp_model = fslsqp(g1, self.xdata, self.ydata)
-        model = fitter(g1, self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the
-        # negative value of the result. unitl this is understood, for this
-        # test, take np.abs()
-        utils.assert_allclose(model.parameters, np.abs(slsqp_model.parameters),
+    @pytest.mark.parametrize('fitter_class', fitters)
+    def test_fitter_against_LevMar(self, fitter_class):
+        """ Tests results from non-linear fitters against `LevMarLSQFitter`."""
+        levmar = fitting.LevMarLSQFitter()
+        fitter = fitting.SLSQPLSQFitter()
+        new_model = fitter(self.gauss, self.xdata, self.ydata)
+        model = levmar(self.gauss, self.xdata, self.ydata)
+        utils.assert_allclose(model.parameters, new_model.parameters,
                               rtol=10 ** (-4))
 
     def test_LSQ_SLSQP_cons(self):
+        """Runs `LevMarLSQFitter` and `SLSQPLSQFitter` on a model with constraints."""
+
         g1 = models.Gaussian1D(100, 5, stddev=1)
         g1.mean.fixed = True
-        fitter = fitting.NonLinearLSQFitter()
-        fslsqp = fitting.SLSQPFitter()
+        fitter = fitting.LevMarLSQFitter()
+        fslsqp = fitting.SLSQPLSQFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the
-        # negative value of the result. unitl this is understood, for this
-        # test, take np.abs()
-        utils.assert_allclose(model.parameters, np.abs(slsqp_model.parameters),
+        utils.assert_allclose(model.parameters, slsqp_model.parameters,
                               rtol=10 ** (-4))
 
     def test_param_cov(self):
@@ -251,7 +250,7 @@ class TestNonLinearFitters(object):
 
         #now do the non-linear least squares fit
         mod = models.Linear1D(a, b)
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
 
         fmod = fitter(mod, x, y)
 
