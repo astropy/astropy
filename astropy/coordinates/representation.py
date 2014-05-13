@@ -446,7 +446,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         The azimuth and inclination of the point(s), in angular units. The
         inclination should be between 0 and 180 degrees, and the azimuth will
         be wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`.
+        instances of `~astropy.coordinates.Angle`.  If ``copy`` is False, `phi`
+        will be changed inplace if it is not between 0 and 360 degrees.
 
     r : `~astropy.units.Quantity`
         The distance to the point(s). If the distance is a length, it is
@@ -470,7 +471,11 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         theta = Angle(theta, copy=copy)
 
         # Wrap/validate phi/theta
-        phi = phi.wrap_at(360 * u.deg)
+        if copy:
+            phi = phi.wrap_at(360 * u.deg)
+        else:
+            # necessary because the above version of `wrap_at` has to be a copy
+            phi.wrap_at(360 * u.deg, inplace=True)
         if np.any(theta.value < 0.) or np.any(theta.value > 180.):
             raise ValueError('Inclination angle(s) must be within 0 deg <= angle <= 180 deg, '
                              'got {0}'.format(theta.to(u.degree)))
