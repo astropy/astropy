@@ -45,10 +45,10 @@ angle. For the exact rules for how each string is parsed, see the
 It's also possible to create coordinates using lists or `numpy` arrays.  The
 same unit rules apply as for scalar angles.::
 
-    >>> ICRS([187.70592, 123.45678]*u.degree, [12.39112, 9.87654]*u.degree)
+    >>> ICRS([187.70592, 123.45678]*u.degree, [12.39112, 9.87654]*u.degree)  # doctest: +SKIP
     <ICRS Coordinate: (ra, dec) in deg
         [(187.70592, 12.39112), (123.45677999999998, 9.87654)]>
-    >>> ICRS([187.70592*u.degree, 8.23*u.hourangle], [12.39112*u.degree, 1.2*u.radian])
+    >>> ICRS([187.70592*u.degree, 8.23*u.hourangle], [12.39112*u.degree, 1.2*u.radian])  # doctest: +SKIP
     <SkyCoord (ICRS): (ra, dec) in deg
         [(187.70592, 12.39112), (123.44999999999999, 68.75493541569878)]>
     >>> ICRS([187.70592, 123.45678], [12.39112, 9.87654])
