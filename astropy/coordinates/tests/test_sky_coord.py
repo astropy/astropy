@@ -372,3 +372,22 @@ def test_ops():
     assert len(sc_arr[:1]) == 1
     with pytest.raises(TypeError):
         assert sc[0:]  # scalar, so it shouldn't be indexable
+
+
+def test_none_transform():
+    """
+    Ensure that transforming from a SkyCoord with no frame provided always fails
+    """
+    sc = SkyCoord(0 * u.deg, 1 * u.deg)
+    sc_arr = SkyCoord(0 * u.deg, [1, 2] * u.deg)
+
+    with pytest.raises(ValueError):
+        sc.transform_to(ICRS)
+    with pytest.raises(ValueError):
+        sc.transform_to('fk5')
+
+    with pytest.raises(ValueError):
+        sc_arr.transform_to(ICRS)
+    with pytest.raises(ValueError):
+        sc_arr.transform_to('fk5')
+
