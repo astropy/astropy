@@ -7,8 +7,8 @@ from __future__ import division, print_function
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
 # Standard library
-import os, sys
-from collections import OrderedDict
+import os
+import sys
 
 # Third-party
 import numpy as np
@@ -19,7 +19,12 @@ from astropy.coordinates.angles import rotation_matrix
 import astropy.coordinates as coord
 import astropy.units as u
 
-__all__ = ["SgrCoordinates"]
+# this is an OrderedDict for use on py 2.6 where it's not in the stdlib
+from astropy.utils.compat.odict import OrderedDict
+
+
+__all__ = ["Sagittarius"]
+
 
 class Sagittarius(coord.BaseCoordinateFrame):
     """
@@ -61,6 +66,7 @@ C = rotation_matrix(theta, "x", unit=u.radian)
 B = rotation_matrix(psi, "z", unit=u.radian)
 sgr_matrix = np.array(B.dot(C).dot(D))
 
+
 # Galactic to Sgr coordinates
 @frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)
 def galactic_to_sgr(gal_coord, sgr_frame):
@@ -80,12 +86,13 @@ def galactic_to_sgr(gal_coord, sgr_frame):
     Zs = -Zs
 
     # Calculate the angular coordinates lambda,beta
-    Lambda = np.arctan2(Ys,Xs)*u.radian
+    Lambda = np.arctan2(Ys, Xs)*u.radian
     Lambda[Lambda < 0] = Lambda[Lambda < 0] + 2.*np.pi*u.radian
     Beta = np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs))*u.radian
 
     return Sagittarius(Lambda=Lambda, Beta=Beta,
                        distance=gal_coord.distance)
+
 
 # Sgr to Galactic coordinates
 @frame_transform_graph.transform(coord.FunctionTransform, Sagittarius, coord.Galactic)
@@ -103,10 +110,10 @@ def sgr_to_galactic(sgr_coord, gal_frame):
 
     X, Y, Z = sgr_matrix.T.dot(np.array([Xs, Ys, Zs]))
 
-    l = np.arctan2(Y,X)*u.radian
+    l = np.arctan2(Y, X)*u.radian
     b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
-    if l<0:
+    if l < 0:
         l += 2*np.pi*u.radian
 
     return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
