@@ -2,19 +2,17 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from distutils.core import setup, Extension
-
 import os
-import sys
 
 if __name__ == '__main__':
-    sys.path.insert(0, os.getcwd())
-
     from astropy import wcs
+    from astropy import setup_helpers
+    from distutils.core import setup, Extension
 
     wcsapi_test_module = Extension(
         str('wcsapi_test'),
         include_dirs=[
+            setup_helpers.get_numpy_include_path(),
             os.path.join(wcs.get_include(), 'astropy_wcs'),
             os.path.join(wcs.get_include(), 'wcslib')
         ],

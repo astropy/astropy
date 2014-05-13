@@ -10,21 +10,28 @@ import sys
 def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
 
-    setup_path = os.path.join(os.path.dirname(__file__), 'setup.py')
+    setup_path = os.path.dirname(__file__)
+
+    env = os.environ.copy()
+    env['PYTHONPATH'] = str(tmpdir) + ':' + env.get('PYTHONPATH', '')
 
     # Build the extension
-    subprocess.check_call([
-        sys.executable, setup_path,
-        'install', '--install-lib={0}'.format(tmpdir)])
+    subprocess.check_call(
+        [sys.executable, 'setup.py',
+         'install', '--install-lib={0}'.format(tmpdir)],
+        cwd=setup_path,
+        env=env
+    )
 
     code = """
     import sys
-    sys.path.insert(0, "{0}")
     import wcsapi_test
     sys.exit(wcsapi_test.test())
     """
 
-    code = code.strip().replace('\n', '; ').format(str(tmpdir))
+    code = code.strip().replace('\n', '; ')
 
     # Import and run the extension
-    subprocess.check_call([sys.executable, '-c', code])
+    subprocess.check_call(
+        [sys.executable, '-c', code],
+        env=env)
