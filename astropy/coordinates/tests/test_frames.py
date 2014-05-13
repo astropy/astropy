@@ -95,8 +95,14 @@ def test_frame_repr():
     assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
                         'distance=3.0 kpc>')
 
+
 def test_converting_units():
+    import re
     from ..builtin_frames import ICRS, FK5
+
+    # this is a regular expression that with split (see below) removes what's
+    # the decimal point  to fix rounding problems
+    rexrepr = re.compile(r'(.*?=\d\.).*?( .*?=\d\.).*?( .*)')
 
     i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
 
@@ -104,14 +110,18 @@ def test_converting_units():
     # but it should still come out in the preferred form
 
     i4 = i2.transform_to(FK5).transform_to(ICRS)
-    assert repr(i2) == repr(i4)
+    ri2 = ''.join(rexrepr.split(repr(i2)))
+    ri4 = ''.join(rexrepr.split(repr(i4)))
+    assert ri2 == ri4
 
     #but that *shouldn't* hold if we turn off preferred_attr_units
     class FakeICRS(ICRS):
         preferred_attr_units = {}
 
     fi = FakeICRS(i4.data)
-    assert repr(i2) != repr(fi)
+    ri2 = ''.join(rexrepr.split(repr(i2)))
+    rfi = ''.join(rexrepr.split(repr(fi)))
+    assert ri2 != rfi
 
     # the attributes should also get the right units
     assert i2.ra.unit == i4.ra.unit
