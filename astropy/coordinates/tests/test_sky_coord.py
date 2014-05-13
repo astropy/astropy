@@ -111,13 +111,13 @@ def test_coord_init_string():
     assert allclose(sc.ra, 1 * u.deg)
     assert allclose(sc.dec, 2 * u.deg)
 
-    sc = SkyCoord(u'1°2′3″', u'2°3′4″')
-    assert allclose(sc.ra, Angle(u'1°2′3″'))
-    assert allclose(sc.dec, Angle(u'2°3′4″'))
+    sc = SkyCoord('1°2′3″', '2°3′4″')
+    assert allclose(sc.ra, Angle('1°2′3″'))
+    assert allclose(sc.dec, Angle('2°3′4″'))
 
-    sc = SkyCoord(u'1°2′3″ 2°3′4″')
-    assert allclose(sc.ra, Angle(u'1°2′3″'))
-    assert allclose(sc.dec, Angle(u'2°3′4″'))
+    sc = SkyCoord('1°2′3″ 2°3′4″')
+    assert allclose(sc.ra, Angle('1°2′3″'))
+    assert allclose(sc.dec, Angle('2°3′4″'))
 
     with pytest.raises(ValueError) as err:
         SkyCoord('1d 2d 3d')
@@ -131,8 +131,8 @@ def test_coord_init_list():
     sc = SkyCoord([('1d', '2d'),
                    (1 * u.deg, 2 * u.deg),
                    '1d 2d',
-                   (u'1°', u'2°'),
-                   u'1° 2°'], unit='deg')
+                   ('1°', '2°'),
+                   '1° 2°'], unit='deg')
     assert allclose(sc.ra, Angle('1d'))
     assert allclose(sc.dec, Angle('2d'))
 
