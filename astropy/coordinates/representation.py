@@ -115,8 +115,8 @@ class BaseRepresentation(object):
     @property
     def _units(self):
         """Return a dictionary with the units of the coordinate components."""
-        return {component: getattr(self, component).unit
-                for component in self.components}
+        return dict([(component, getattr(self, component).unit)
+                     for component in self.components])
 
     @property
     def _unitstr(self):

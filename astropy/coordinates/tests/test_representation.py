@@ -495,7 +495,11 @@ class TestCartesianRepresentation(object):
             s1 = CartesianRepresentation(x=[1, 2, 3, 4] * u.pc)
 
         # exception text differs on Python 2 and Python 3
-        assert exc.value.args[0].startswith("too many values to unpack")
+        if hasattr(exc.value, 'args'):
+            assert exc.value.args[0].startswith("too many values to unpack")
+        else:
+            #py 2.6 doesn't have `args`
+            assert exc.value == 'too many values to unpack'
 
     def test_init_one_array_yz_fail(self):
 
