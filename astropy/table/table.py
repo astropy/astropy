@@ -873,7 +873,7 @@ class Table(object):
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             return self.columns[item]
-        elif isinstance(item, int):
+        elif isinstance(item, (int, np.int_)):
             return self.Row(self, item)
         elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
                                                      for x in item):
