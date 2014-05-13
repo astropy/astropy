@@ -11,7 +11,7 @@ from ...builtin_frames import Galactic, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
-from ....utils.data import get_pkg_data_fileobj
+from ....utils.data import get_pkg_data_contents
 
 #the number of tests to run
 from . import N_ACCURACY_TESTS
@@ -19,8 +19,8 @@ from . import N_ACCURACY_TESTS
 TOLERANCE = 0.3  # arcseconds
 
 def test_galactic_fk4():
-    with get_pkg_data_fileobj('galactic_fk4.csv') as f:
-        t = Table.read(f, format='ascii')
+    lines = get_pkg_data_contents('galactic_fk4.csv').split('\n')
+    t = Table.read(lines, format='ascii', delimiter=',', guess=False)
 
     if N_ACCURACY_TESTS >= len(t):
         idxs = range(len(t))
@@ -31,7 +31,7 @@ def test_galactic_fk4():
     diffarcsec2 = []
     for i in idxs:
         # Extract row
-        r = t[i]
+        r = t[int(i)]  # int here is to get around a py 3.x astropy.table bug
 
         # Galactic to FK4
         c1 = Galactic(l=r['lon_in']*u.deg, b=r['lat_in']*u.deg)

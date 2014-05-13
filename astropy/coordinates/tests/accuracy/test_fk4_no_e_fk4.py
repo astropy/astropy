@@ -11,7 +11,7 @@ from ...builtin_frames import FK4NoETerms, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
-from ....utils.data import get_pkg_data_fileobj
+from ....utils.data import get_pkg_data_contents
 
 #the number of tests to run
 from . import N_ACCURACY_TESTS
@@ -22,8 +22,8 @@ from . import N_ACCURACY_TESTS
 TOLERANCE = 1.e-5  # arcseconds
 
 def test_fk4_no_e_fk4():
-    with get_pkg_data_fileobj('fk4_no_e_fk4.csv') as f:
-        t = Table.read(f, format='ascii')
+    lines = get_pkg_data_contents('fk4_no_e_fk4.csv').split('\n')
+    t = Table.read(lines, format='ascii', delimiter=',', guess=False)
 
     if N_ACCURACY_TESTS >= len(t):
         idxs = range(len(t))
@@ -34,7 +34,7 @@ def test_fk4_no_e_fk4():
     diffarcsec2 = []
     for i in idxs:
         # Extract row
-        r = t[i]
+        r = t[int(i)]  # int here is to get around a py 3.x astropy.table bug
 
         # FK4 to FK4NoETerms
         c1 = FK4(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
