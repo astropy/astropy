@@ -348,10 +348,24 @@ class NDData(object):
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
+        # Prepare to scale uncertainty if it is needed
+        if operand.uncertainty:
+            operand_uncert_value = operand.uncertainty.array
+
         if self.unit is not None:
             operand_data = operand.unit.to(self.unit, operand.data)
+            if operand.uncertainty:
+                operand_uncert_value = operand.unit.to(self.unit,
+                                                       operand_uncert_value)
         else:
             operand_data = operand.data
+
+        if operand.uncertainty:
+            operand_uncertainty = \
+                operand.uncertainty.__class__(operand_uncert_value, copy=True)
+        else:
+            operand_uncertainty = None
+
         data = operation(self.data, operand_data)
         # Call __class__ in case we are dealing with an inherited type
         result = self.__class__(data, uncertainty=None,
@@ -363,9 +377,10 @@ class NDData(object):
         elif self.uncertainty is None and operand.uncertainty is None:
             result.uncertainty = None
         elif self.uncertainty is None:
-            result.uncertainty = operand.uncertainty
+            result.uncertainty = operand_uncertainty
         elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty
+            result.uncertainty = self.uncertainty.__class__(self.uncertainty,
+                                                            copy=True)
         else:  # both self and operand have uncertainties
             if (conf.warn_unsupported_correlated and
                 (not self.uncertainty.support_correlated or
@@ -373,9 +388,16 @@ class NDData(object):
                 log.info("The uncertainty classes used do not support the "
                          "propagation of correlated errors, so uncertainties"
                          " will be propagated assuming they are uncorrelated")
+            operand_scaled = operand.__class__(operand_data,
+                                               uncertainty=operand_uncertainty,
+                                               unit=operand.unit,
+                                               wcs=operand.wcs,
+                                               mask=operand.mask,
+                                               flags=operand.flags,
+                                               meta=operand.meta)
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
-                result.uncertainty = method(operand, result.data)
+                result.uncertainty = method(operand_scaled, result.data)
             except IncompatibleUncertaintiesException:
                 raise IncompatibleUncertaintiesException(
                     "Cannot propagate uncertainties of type {0:s} with "
@@ -387,11 +409,11 @@ class NDData(object):
         if self.mask is None and operand.mask is None:
             result.mask = None
         elif self.mask is None:
-            result.mask = operand.mask
+            result.mask = operand.mask.copy()
         elif operand.mask is None:
-            result.mask = self.mask
+            result.mask = self.mask.copy()
         else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
+            result.mask = self.mask & operand.mask  # copy implied by operator
 
         return result
 
@@ -462,9 +484,21 @@ class NDData(object):
         if self.unit is None:
             raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)
+        if self.uncertainty is not None:
+            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
+                                              equivalencies=equivalencies)
+            # should work for any uncertainty class
+            uncertainty = self.uncertainty.__class__(uncertainty_values)
+        else:
+            uncertainty = None
+        if self.mask is not None:
+            new_mask = self.mask.copy()
+        else:
+            new_mask = None
         # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(data, uncertainty=self.uncertainty,
-                                mask=self.mask, flags=None, wcs=self.wcs,
+        result = self.__class__(data, uncertainty=uncertainty,
+                                mask=new_mask, flags=None,
+                                wcs=self.wcs,
                                 meta=self.meta, unit=unit)
 
         return result
