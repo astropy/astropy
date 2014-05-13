@@ -966,9 +966,6 @@ struct module_state {
     INITERROR;
 
   import_array();
-#if defined(_MSC_VER)
-  fill_docstrings();
-#endif
 
   if (_setup_api(m)                 ||
       _setup_str_list_proxy_type(m) ||
