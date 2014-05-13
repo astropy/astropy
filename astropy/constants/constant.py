@@ -200,8 +200,8 @@ class EMConstant(Constant):
 
     @property
     def cgs(self):
-        """Overridden for EMConstant to raise a `TypeError` emphasizing that
-        there are multiple EM extensions to CGS.
+        """Overridden for EMConstant to raise a `~.exceptions.TypeError`
+        emphasizing that there are multiple EM extensions to CGS.
         """
 
         raise TypeError("Cannot convert EM constants to cgs because there "

@@ -74,7 +74,7 @@ class EarthLocation(u.Quantity):
         Parameters
         ----------
         x, y, z : `~astropy.units.Quantity` or array-like
-            Cartesian coordinates.  If not quantities, `unit` should be given.
+            Cartesian coordinates.  If not quantities, ``unit`` should be given.
         unit : `~astropy.units.UnitBase` object or None
             Physical unit of the coordinate values.  If ``x``, ``y``, and/or
             ``z`` are quantities, they will be converted to this unit.

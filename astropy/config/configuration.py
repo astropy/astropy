@@ -192,9 +192,9 @@ class ConfigItem(object):
         configuration file)
 
     cfgtype : str or None, optional
-        A type specifier like those used as the *values* of a particular key in
-        a `configspec` file of `configobj`. If None, the type will be inferred
-        from the default value.
+        A type specifier like those used as the *values* of a particular key
+        in a ``configspec`` file of ``configobj``. If None, the type will be
+        inferred from the default value.
 
     module : str or None, optional
         The full module name that this item is associated with. The first
@@ -212,8 +212,8 @@ class ConfigItem(object):
     Raises
     ------
     RuntimeError
-        If `module` is None, but the module this item is created from cannot
-        be determined.
+        If ``module`` is `None`, but the module this item is created from
+        cannot be determined.
     """
 
     # this is used to make validation faster so a Validator object doesn't
@@ -289,7 +289,7 @@ class ConfigItem(object):
         Raises
         ------
         TypeError
-            If the provided `value` is not valid for this `ConfigItem`.
+            If the provided ``value`` is not valid for this `ConfigItem`.
         """
         try:
             value = self._validate_val(value)
@@ -514,9 +514,9 @@ class ConfigAlias(ConfigItem):
         A fully-qualified, dot-separated path to the module in which
         the configuration item is now defined.  If not provided, it is
         the name of the module in which `ConfigAlias` is called.  This
-        string should not contain the `.conf` object.  For example, if
-        the new configuration item is in `astropy.conf.use_unicode`, this
-        value only needs to be `astropy`.
+        string should not contain the ``.conf`` object.  For example, if
+        the new configuration item is in ``astropy.conf.use_unicode``, this
+        value only needs to be ``'astropy'``.
     """
     # REMOVE in astropy 0.5
 
@@ -612,7 +612,7 @@ def get_config(packageormod=None, reload=False):
     -----------
     packageormod : str or None
         The package for which to retrieve the configuration object. If a
-        string, it must be a valid package name, or if None, the package from
+        string, it must be a valid package name, or if `None`, the package from
         which this function is called will be used.
 
     reload : bool, optional
@@ -620,16 +620,16 @@ def get_config(packageormod=None, reload=False):
 
     Returns
     -------
-    cfgobj : `configobj.ConfigObj` or `configobj.Section`
+    cfgobj : ``configobj.ConfigObj`` or ``configobj.Section``
         If the requested package is a base package, this will be the
-        `configobj.ConfigObj` for that package, or if it is a subpackage or
-        module, it will return the relevant `configobj.Section` object.
+        ``configobj.ConfigObj`` for that package, or if it is a subpackage or
+        module, it will return the relevant ``configobj.Section`` object.
 
     Raises
     ------
     RuntimeError
-        If `package` is None, but the package this item is created from cannot
-        be determined.
+        If ``packageormod`` is `None`, but the package this item is created
+        from cannot be determined.
     """
     if packageormod is None:
         packageormod = find_current_module(2)
@@ -693,9 +693,10 @@ def reload_config(packageormod=None):
     package of the requested package/module.
 
     This overwrites any changes that may have been made in `ConfigItem`
-    objects.  This applies for any items that are based on this file, which is
-    determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
-    the 'astropy.config.configuration' module).
+    objects.  This applies for any items that are based on this file, which
+    is determined by the *root* package of ``packageormod``
+    (e.g. ``'astropy.cfg'`` for the ``'astropy.config.configuration'``
+    module).
 
     Parameters
     ----------
@@ -766,7 +767,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         The package to be updated.
     default_cfg_dir_or_fn : str
         The filename or directory name where the default configuration file is.
-        If a directory name, `pkg`.cfg will be used in that directory.
+        If a directory name, ``'pkg.cfg'`` will be used in that directory.
     version : str, optional
         The current version of the given package.  If not provided, it will
         be obtained from ``pkg.__version__``.
@@ -774,7 +775,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     Returns
     -------
     updated : bool
-        If the profile was updated, True, otherwise False.
+        If the profile was updated, `True`, otherwise `False`.
 
     Raises
     ------
@@ -926,8 +927,8 @@ def _save_config(packageormod=None, filename=None):
 
     This overwrites any configuration items that have been changed in
     `ConfigurationItem` objects that are based on the configuration file
-    determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
-    the 'astropy.config.configuration' module).
+    determined by the *root* package of ``packageormod`` (e.g. 'astropy.cfg'
+    for the 'astropy.config.configuration' module).
 
     .. note::
         To save only a single item, use the `ConfigurationItem.save` method -

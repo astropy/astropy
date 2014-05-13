@@ -111,7 +111,7 @@ def get_icrs_coordinates(name):
     `name_resolve.sesame_url`. This will try each one in order until a
     valid response is returned. By default, this list includes the
     main Sesame host and a mirror at vizier.  The configuration item
-    `astropy.utils.data.conf.remote_timeout` controls the number of
+    ``astropy.utils.data.conf.remote_timeout`` controls the number of
     seconds to wait for a response from the server before giving
     up.
 

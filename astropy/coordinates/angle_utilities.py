@@ -617,7 +617,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
 
 def angular_separation(lon1, lat1, lon2, lat2):
     """
-    Angular separation between two points on a sphere
+    Angular separation between two points on a sphere.
 
     Parameters
     ----------

@@ -145,17 +145,17 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        `read` method that on Python 2.x returns `bytes` objects and
+        ``read`` method that on Python 2.x returns `bytes` objects and
         on Python 3.x returns `str` (`unicode`) objects, using
-        `locale.getpreferredencoding()` as an encoding.  This matches
-        the default behavior of the built-in `open` when no `mode`
+        `locale.getpreferredencoding` as an encoding.  This matches
+        the default behavior of the built-in `open` when no ``mode``
         argument is provided.
 
-        When `'binary'`, returns a file-like object where its `read`
+        When ``'binary'``, returns a file-like object where its ``read``
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's `read` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
     cache : bool, optional
@@ -338,7 +338,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
             * The name of a data file included in the source
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
-              `astropy.pkname`, use ``'data/file.dat'`` to get the
+              ``astropy.pkname``, use ``'data/file.dat'`` to get the
               file in ``astropy/pkgname/data/file.dat``.  Double-dots
               can be used to go up a level.  In the same example, use
               ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
@@ -352,17 +352,17 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        `read` method that on Python 2.x returns `bytes` objects and
+        ``read`` method that on Python 2.x returns `bytes` objects and
         on Python 3.x returns `str` (`unicode`) objects, using
-        `locale.getpreferredencoding()` as an encoding.  This matches
-        the default behavior of the built-in `open` when no `mode`
+        `locale.getpreferredencoding` as an encoding.  This matches
+        the default behavior of the built-in `open` when no ``mode``
         argument is provided.
 
-        When `'binary'`, returns a file-like object where its `read`
+        When ``'binary'``, returns a file-like object where its ``read``
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's `read` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
     cache : bool
@@ -377,7 +377,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     -------
     fileobj : file-like
         An object with the contents of the data file available via
-        :func:`read`.  Can be used as part of a ``with`` statement,
+        ``read`` function.  Can be used as part of a ``with`` statement,
         automatically closing itself after the ``with`` block.
 
     Raises
@@ -447,7 +447,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
             * The name of a data file included in the source
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
-              `astropy.pkname`, use ``'data/file.dat'`` to get the
+              ``astropy.pkname``, use ``'data/file.dat'`` to get the
               file in ``astropy/pkgname/data/file.dat``.  Double-dots
               can be used to go up a level.  In the same example, use
               ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
@@ -465,7 +465,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
 
     timeout : float
         Timeout for the requests in seconds (default is the
-        configurable `astropy.utils.data.conf.remote_timeout`, which
+        configurable ``astropy.utils.data.conf.remote_timeout``, which
         is 3s by default)
 
     Raises
@@ -479,7 +479,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
     -------
     filename : str
         A file path on the local file system corresponding to the data
-        requested in `data_name`.
+        requested in ``data_name``.
 
     Examples
     --------
@@ -552,7 +552,7 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
             * The name of a data file included in the source
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
-              `astropy.pkname`, use ``'data/file.dat'`` to get the
+              ``astropy.pkname``, use ``'data/file.dat'`` to get the
               file in ``astropy/pkgname/data/file.dat``.  Double-dots
               can be used to go up a level.  In the same example, use
               ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
@@ -567,17 +567,17 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        `read` method that on Python 2.x returns `bytes` objects and
+        ``read`` method that on Python 2.x returns `bytes` objects and
         on Python 3.x returns `str` (`unicode`) objects, using
-        `locale.getpreferredencoding()` as an encoding.  This matches
-        the default behavior of the built-in `open` when no `mode`
+        `locale.getpreferredencoding` as an encoding.  This matches
+        the default behavior of the built-in `open` when no ``mode``
         argument is provided.
 
-        When `'binary'`, returns a file-like object where its `read`
+        When ``'binary'``, returns a file-like object where its ``read``
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's `read` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
     cache : bool
@@ -623,7 +623,7 @@ def get_pkg_data_filenames(datadir, pattern='*'):
             * The name of a directory included in the source
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
-              `astropy.pkname`, use ``'data'`` to get the
+              ``astropy.pkname``, use ``'data'`` to get the
               files in ``astropy/pkgname/data``.
             * Remote URLs are not currently supported.
 
@@ -675,7 +675,7 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
             * The name of a directory included in the source
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
-              `astropy.pkname`, use ``'data'`` to get the
+              ``astropy.pkname``, use ``'data'`` to get the
               files in ``astropy/pkgname/data``
             * Remote URLs are not currently supported
 
@@ -686,17 +686,17 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
 
     encoding : str, optional
         When `None` (default), returns a file-like object with a
-        `read` method that on Python 2.x returns `bytes` objects and
+        ``read`` method that on Python 2.x returns `bytes` objects and
         on Python 3.x returns `str` (`unicode`) objects, using
-        `locale.getpreferredencoding()` as an encoding.  This matches
-        the default behavior of the built-in `open` when no `mode`
+        `locale.getpreferredencoding` as an encoding.  This matches
+        the default behavior of the built-in `open` when no ``mode``
         argument is provided.
 
-        When `'binary'`, returns a file-like object where its `read`
+        When ``'binary'``, returns a file-like object where its ``read``
         method returns `bytes` objects.
 
         When another string, it is the name of an encoding, and the
-        file-like object's `read` method will return `str` (`unicode`)
+        file-like object's ``read`` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
     Returns
@@ -891,7 +891,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
-        `astropy.utils.data.conf.remote_timeout`.
+        ``astropy.utils.data.conf.remote_timeout``.
 
     Returns
     -------
@@ -1042,7 +1042,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
 
     timeout : float, optional
         Timeout for the requests in seconds (default is the
-        configurable `astropy.utils.data.conf.remote_timeout`).
+        configurable ``astropy.utils.data.conf.remote_timeout``).
 
     Returns
     -------
