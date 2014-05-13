@@ -457,7 +457,8 @@ Other Changes and Additions
 - The developer documentation has been extensively rearranged and
   rewritten. [#1712]
 
-0.3.2 (unreleased)
+
+0.3.2 (2014-05-13)
 ------------------
 
 Bug Fixes
