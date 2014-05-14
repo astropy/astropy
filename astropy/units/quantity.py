@@ -111,10 +111,11 @@ class Quantity(np.ndarray):
 
     Parameters
     ----------
-    value : number, `Quantity` object, or sequence of `Quantity` objects.
-        The numerical value of this quantity in the units given by
-        unit.  If a `Quantity` or sequence of them, creates a new
-        `Quantity` object, converting to `unit` units as needed.
+    value : number, `~numpy.ndarray`, `Quantity` object, or sequence of `Quantity` objects.
+        The numerical value of this quantity in the units given by unit.  If a
+        `Quantity` or sequence of them (or any other valid object with a
+        ``unit`` attribute), creates a new `Quantity` object, converting to
+        `unit` units as needed.
 
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
