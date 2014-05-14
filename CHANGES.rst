@@ -627,6 +627,10 @@ Bug Fixes
     ``wscslib`` already present in the system, the package does not try
     to install ``wcslib`` headers under ``astropy/wcs/include``. [#2536]
 
+  - Fixes an unresolved external symbol error in the
+    `astropy.wcs._wcs` C extension on Microsoft Windows when built
+    with a Microsoft compiler. [#2478]
+
 - Misc
 
   - Running the test suite with ``python setup.py test`` now works if
