@@ -506,7 +506,8 @@ def test_validate_with_2_wcses():
 def test_all_world2pix(fname=None, ext=0,
                        tolerance=1.0e-4, origin=0,
                        random_npts=250000, mag=2,
-                       adaptive=False):
+                       adaptive=False, maxiter=20,
+                       detect_divergence=True):
     """Test all_world2pix, iterative inverse of all_pix2world"""
     from numpy import random
     from datetime import datetime
@@ -516,6 +517,7 @@ def test_all_world2pix(fname=None, ext=0,
     # Open test FITS file:
     if fname is None:
         fname = get_pkg_data_filename('data/sip.fits')
+        ext = 0
     if not path.isfile(fname):
         raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
@@ -556,8 +558,9 @@ def test_all_world2pix(fname=None, ext=0,
         runtime_begin = datetime.now()
         # Apply the inverse iterative process to pixels in world coordinates
         # to recover the pixel coordinates in image space.
-        all_pix = w.all_world2pix(all_world, origin, tolerance=tolerance,
-                                  adaptive=adaptive)
+        all_pix = w.all_world2pix(
+            all_world, origin, tolerance=tolerance, adaptive=adaptive,
+            maxiter=maxiter, detect_divergence=detect_divergence)
         runtime_end = datetime.now()
     except wcs.wcs.NoConvergence as e:
         print("")
