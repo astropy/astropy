@@ -503,8 +503,8 @@ def test_validate_with_2_wcses():
     assert "WCS key 'A':" in six.text_type(results)
 
 
-def test_all_world2pix(fname='data/sip.fits', ext=0,
-                       tolerance=1.e-4, origin=0,
+def test_all_world2pix(fname=None, ext=0,
+                       tolerance=1.0e-4, origin=0,
                        random_npts=250000, mag=2,
                        adaptive=False):
     """Test all_world2pix, iterative inverse of all_pix2world"""
@@ -514,25 +514,28 @@ def test_all_world2pix(fname='data/sip.fits', ext=0,
     from os import path
 
     # Open test FITS file:
+    if fname is None:
+        fname = get_pkg_data_filename('data/sip.fits')
     if not path.isfile(fname):
-        raise IOError('File not found.')
+        raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
+                      .format(fname))
     h = fits.open(fname)
     w = wcs.WCS(h[ext].header, h)
     h.close()
     del h
 
-    crpix  = w.wcs.crpix
+    crpix = w.wcs.crpix
     ncoord = crpix.shape[0]
 
     # Assume that CRPIX is at the center of the image and that the image
     # has an even number of pixels along each axis:
-    naxesi = list( 2 * crpix.astype(dtype = np.int) - origin )
+    naxesi = list(2*crpix.astype(dtype=np.int) - origin)
 
-    # generate image pixel coordinates:
-    img_pix = np.dstack([i.flatten() for i in \
+    # Generate integer indices of pixels (image grid):
+    img_pix = np.dstack([i.flatten() for i in
                          np.meshgrid(*map(range, naxesi))])[0]
 
-    # generage random data
+    # Generage random data (in image coordinates):
     startstate = random.get_state()
     random.seed(123456789)
     rnd_pix = np.random.rand(random_npts, ncoord)
@@ -541,22 +544,23 @@ def test_all_world2pix(fname='data/sip.fits', ext=0,
     # Scale random data to cover the entire image (or more, if 'mag' > 1).
     # Assume that CRPIX is at the center of the image and that the image
     # has an even number of pixels along each axis:
-    mwidth = 2 * mag * (crpix - origin)
-    rnd_pix = crpix - 0.5 * mwidth + (mwidth - 1) * rnd_pix
+    mwidth = 2 * mag * (crpix-origin)
+    rnd_pix = crpix - 0.5*mwidth + (mwidth-1) * rnd_pix
 
-    # test (reference)  pixel coordinates in image coordinate system (CS):
-    test_pix  = np.append(img_pix, rnd_pix, axis = 0)
-    # test pixel coordinates in sky CS:
+    # Reference pixel coordinates in image coordinate system (CS):
+    test_pix = np.append(img_pix, rnd_pix, axis=0)
+    # Reference pixel coordinates in sky CS using forward transformation:
     all_world = w.all_pix2world(test_pix, origin)
 
     try:
         runtime_begin = datetime.now()
-        all_pix       = w.all_world2pix(all_world, origin, tolerance=tolerance,
-                                        adaptive=adaptive)
-        runtime_end   = datetime.now()
+        # Apply the inverse iterative process to pixels in world coordinates
+        # to recover the pixel coordinates in image space.
+        all_pix = w.all_world2pix(all_world, origin, tolerance=tolerance,
+                                  adaptive=adaptive)
+        runtime_end = datetime.now()
     except wcs.wcs.NoConvergence as e:
         print("")
-
         ndiv = 0
         if e.divergent is not None:
             ndiv = e.divergent.shape[0]
@@ -569,7 +573,8 @@ def test_all_world2pix(fname='data/sip.fits', ext=0,
         if e.slow_conv is not None:
             nslow = e.slow_conv.shape[0]
             print("There are {} poorly converging points.".format(nslow))
-            print("Indices of poorly converging points:\n{}".format(e.slow_conv))
+            print("Indices of poorly converging points:\n{}"
+                  .format(e.slow_conv))
         else:
             print("There are no slowly converging points.")
 
@@ -580,15 +585,18 @@ def test_all_world2pix(fname='data/sip.fits', ext=0,
 
         raise e
 
-    errors  = np.linalg.norm(all_pix-test_pix, axis=1)
+    # Compute differences between reference pixel coordinates and
+    # pixel coordinates (in image space) recovered from reference pixels
+    # in world coordinates:
+    errors = np.linalg.norm(all_pix - test_pix, axis=1)
     meanerr = np.mean(errors)
-    maxerr  = np.max(errors)
+    maxerr = np.max(errors)
     print("\nFinished running 'test_all_world2pix'.\n"
           "Mean error = {0:e}  (Max error = {1:e})\n"
           "Run time: {2}\n"
           .format(meanerr, maxerr, runtime_end - runtime_begin))
 
-    assert(maxerr < 2.0 * tolerance)
+    assert(maxerr < 2.0*tolerance)
 
 
 def test_scamp_sip_distortion_parameters():
