@@ -407,7 +407,7 @@ class ProgressBar(six.Iterator):
     """
     A class to display a progress bar in the terminal.
 
-    It is designed to be used either with the `with` statement::
+    It is designed to be used either with the ``with`` statement::
 
         with ProgressBar(len(items)) as bar:
             for item in enumerate(items):
@@ -626,7 +626,7 @@ class ProgressBar(six.Iterator):
         Returns
         -------
         generator :
-            A generator over `items`
+            A generator over ``items``.
         """
         if file is None:
             file = stdio.stdout
@@ -637,7 +637,7 @@ class Spinner(object):
     """
     A class to display a spinner in the terminal.
 
-    It is designed to be used with the `with` statement::
+    It is designed to be used with the ``with`` statement::
 
         with Spinner("Reticulating splines", "green") as s:
             for item in enumerate(items):
@@ -754,7 +754,7 @@ class ProgressBarOrSpinner(object):
     depending on whether the total size of the operation is
     known or not.
 
-    It is designed to be used with the `with` statement::
+    It is designed to be used with the ``with`` statement::
 
         if file.has_length():
             length = file.get_length()
@@ -781,7 +781,7 @@ class ProgressBarOrSpinner(object):
             alongside the `Spinner`.
 
         color : str, optional
-            The color of `msg`, if any.  Must be an ANSI terminal
+            The color of ``msg``, if any.  Must be an ANSI terminal
             color name.  Must be one of: black, red, green, brown,
             blue, magenta, cyan, lightgrey, default, darkgrey,
             lightred, lightgreen, yellow, lightblue, lightmagenta,
@@ -790,7 +790,7 @@ class ProgressBarOrSpinner(object):
         file : writable file-like object, optional
             The file to write the to.  Defaults to `sys.stdout`.  If
             `file` is not a tty (as determined by calling its `isatty`
-            member, if any), only `msg` will be displayed: the
+            member, if any), only ``msg`` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
 
@@ -829,7 +829,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     position in the line.  Useful for displaying the context of error
     messages.
 
-    If the line is more than `width` characters, the line is truncated
+    If the line is more than ``width`` characters, the line is truncated
     accordingly and '…' characters are inserted at the front and/or
     end.
 
@@ -844,8 +844,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         The line of code to display
 
     col : int, optional
-        The character in the line to highlight.  `col` must be less
-        than `len(line)`.
+        The character in the line to highlight.  ``col`` must be less
+        than ``len(line)``.
 
     file : writeable file-like object, optional
         Where to write to.  Defaults to `sys.stdout`.

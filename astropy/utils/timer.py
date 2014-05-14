@@ -249,7 +249,7 @@ class RunTimePredictor(object):
         Returns
         -------
         a : array_like
-            Fitted `~astropy.modeling.FittableModel.parameters`.
+            Fitted `~astropy.modeling.FittableModel` parameters.
 
         Raises
         ------
@@ -318,7 +318,7 @@ class RunTimePredictor(object):
              save_as=''):  # pragma: no cover
         """Plot prediction.
 
-        .. note:: Uses :mod:`matplotlib`.
+        .. note:: Uses `matplotlib <http://matplotlib.sourceforge.net/>`_.
 
         Parameters
         ----------

@@ -94,11 +94,12 @@ def _parse_response(resp_data):
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
     matched = pattr.search(resp_data.decode('utf-8'))
 
-    if matched == None:
+    if matched is None:
         return None, None
     else:
-        ra,dec = matched.groups()
-        return ra,dec
+        ra, dec = matched.groups()
+        return ra, dec
+
 
 def get_icrs_coordinates(name):
     """
@@ -111,7 +112,7 @@ def get_icrs_coordinates(name):
     `name_resolve.sesame_url`. This will try each one in order until a
     valid response is returned. By default, this list includes the
     main Sesame host and a mirror at vizier.  The configuration item
-    ``astropy.utils.data.conf.remote_timeout`` controls the number of
+    `astropy.utils.data.Conf.remote_timeout` controls the number of
     seconds to wait for a response from the server before giving
     up.
 
@@ -176,9 +177,9 @@ def get_icrs_coordinates(name):
         raise NameResolveError("All Sesame queries timed out. Unable to "
                                "retrieve coordinates.")
 
-    ra,dec = _parse_response(resp_data)
+    ra, dec = _parse_response(resp_data)
 
-    if ra == None and dec == None:
+    if ra is None and dec is None:
         if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)
         else:

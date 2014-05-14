@@ -318,7 +318,7 @@ def get_file_contents(name_or_obj, encoding=None, cache=False):
     Returns
     -------
     content
-        The content of the file (as requested by `encoding`).
+        The content of the file (as requested by ``encoding``).
 
     """
     with get_readable_fileobj(name_or_obj, encoding, cache) as f:
@@ -465,7 +465,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
 
     timeout : float
         Timeout for the requests in seconds (default is the
-        configurable ``astropy.utils.data.conf.remote_timeout``, which
+        configurable `astropy.utils.data.Conf.remote_timeout`, which
         is 3s by default)
 
     Raises
@@ -730,7 +730,8 @@ def compute_hash(localfn):
 
     Typically, if you wish to write a test that requires a particular data
     file, you will want to submit that file to the astropy data servers, and
-    use e.g. ``get_pkg_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
+    use
+    e.g. ``get_pkg_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
     but with the hash for your file in place of the hash in the example.
 
     Parameters
@@ -741,7 +742,8 @@ def compute_hash(localfn):
     Returns
     -------
     md5hash : str
-        The hex digest of the MD5 hash for the contents of the `localfn` file.
+        The hex digest of the MD5 hash for the contents of the ``localfn``
+        file.
 
     """
 
@@ -891,7 +893,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     timeout : float, optional
         The timeout, in seconds.  Otherwise, use
-        ``astropy.utils.data.conf.remote_timeout``.
+        `astropy.utils.data.Conf.remote_timeout`.
 
     Returns
     -------
@@ -1042,7 +1044,7 @@ def download_files_in_parallel(urls, cache=False, show_progress=True,
 
     timeout : float, optional
         Timeout for the requests in seconds (default is the
-        configurable ``astropy.utils.data.conf.remote_timeout``).
+        configurable `astropy.utils.data.Conf.remote_timeout`).
 
     Returns
     -------
