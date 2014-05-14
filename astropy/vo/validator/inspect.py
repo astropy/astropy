@@ -93,7 +93,7 @@ class ConeSearchResults(object):
 
         ignore_noncrit : bool
             Exclude warnings in
-            `astropy.vo.validator.conf.noncritical_warnings`.  This is
+            `astropy.vo.validator.Conf.noncritical_warnings`.  This is
             useful to see why a catalog failed validation.
 
         """
@@ -164,7 +164,7 @@ class ConeSearchResults(object):
 def _exclude_noncrit(in_list):
     """
     Exclude any items in input list containing
-    `astropy.vo.validator.conf.noncritical_warnings`.
+    `astropy.vo.validator.Conf.noncritical_warnings`.
 
     Parameters
     ----------

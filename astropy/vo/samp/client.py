@@ -647,7 +647,7 @@ class SAMPClient(object):
         subscriptions : dict, optional
             Dictionary containing the list of MTypes to subscribe to, with the
             same format of the ``subscriptions`` map passed to the
-            :meth:`~astropy.vo.samp.hub_proxySAMPHubProxy.declare_subscriptions`
+            :meth:`~astropy.vo.samp.hub_proxy.SAMPHubProxy.declare_subscriptions`
             method.
         """
         if self._callable:
