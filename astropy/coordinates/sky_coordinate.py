@@ -10,7 +10,7 @@ from ..extern.six.moves import zip
 from ..units import Unit
 from .. import units as u
 
-from .angles import Latitude, Longitude
+from .angles import Angle, Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
@@ -600,6 +600,54 @@ class SkyCoord(object):
 
         return res
 
+    def position_angle(self, other):
+        """
+        Computes the on-sky position angle (East of North) between this
+        `SkyCoord` and another.
+
+        Parameters
+        ----------
+        other : `SkyCoord`
+            The other coordinate to compute the position angle to.  It is
+            treated as the "head" of the vector of the position angle.
+
+        Returns
+        -------
+        pa : `~astropy.coordinates.Angle`
+            The (positive) position angle of the vector pointing from ``self``
+            to ``other``.  If either ``self`` or ``other`` contain arrays, this
+            will be an array following the appropriate `numpy` broadcasting
+            rules.
+
+        Examples
+        --------
+
+        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
+        >>> c2 = SkyCoord(1*u.deg, 0*u.deg)
+        >>> c1.position_angle(c2).degree
+        90.0
+        >>> c3 = SkyCoord(0*u.deg, 1*u.deg)
+        >>> c1.position_angle(c3).degree
+        0.0
+        """
+        if self.frame_name == other.frame_name:
+            other_in_self_frame = other
+        else:
+            other_in_self_frame = other.frame_name.transform_to(self.frame)
+
+        slat = self.represent_as(UnitSphericalRepresentation).lat
+        slon = self.represent_as(UnitSphericalRepresentation).lon
+        olat = other_in_self_frame.represent_as(UnitSphericalRepresentation).lat
+        olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
+
+        deltalon = olon - slon
+        colat = np.cos(olat)
+
+        x = np.sin(olat) * np.cos(slat) - colat * np.sin(slat) * np.cos(deltalon)
+        y = np.sin(deltalon) * colat
+
+        return Angle(np.arctan2(y, x)).wrap_at(360*u.deg)
+
     # Name resolve
     @classmethod
     def from_name(cls, name, frame='icrs'):
@@ -632,6 +680,9 @@ class SkyCoord(object):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
+
+#<----------------Private utility functions below here------------------------->
 
 
 def _get_frame_class(frame):
