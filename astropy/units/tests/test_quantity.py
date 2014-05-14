@@ -1005,7 +1005,7 @@ def test_quantity_from_table():
     # desired.  Instead we revert to standard `Quantity` behavior
     qap = u.Quantity(t['a'], u.pc)
     assert qap.unit == u.pc
-    assert_array_equal(qap.value, t['a'])
+    assert_array_equal(qap.value, t['a'] * 1000)
 
     qbp = u.Quantity(t['b'], u.pc)
     assert qbp.unit == u.pc
