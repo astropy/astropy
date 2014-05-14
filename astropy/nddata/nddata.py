@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from copy import deepcopy
+
 import numpy as np
 
 from ..units import Unit, UnitsError, dimensionless_unscaled
