@@ -12,8 +12,9 @@ from numpy import testing as npt
 from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
-from ..builtin_systems import ICRS, FK5, FK4, FK4NoETerms
-from ..builtin_systems import Galactic
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic
+from .. import representation as r
+from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
 
 
@@ -31,80 +32,63 @@ def test_transform_classes():
     """
     Tests the class-based/OO syntax for creating transforms
     """
-    t.FunctionTransform(TestCoo1, TestCoo2,
-        lambda c: TestCoo2(c.ra.radian, c.dec.radian, unit=(u.radian, u.radian)))
 
-    c1 = TestCoo1(1, 0.5, unit=(u.radian, u.radian))
-    c1._make_cart()
+    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
+    trans1 = t.FunctionTransform(tfun, TestCoo1, TestCoo2,
+                        register_graph=frame_transform_graph)
+
+    c1 = TestCoo1(ra=1*u.radian, dec=0.5*u.radian)
     c2 = c1.transform_to(TestCoo2)
     npt.assert_allclose(c2.ra.radian, 1)
     npt.assert_allclose(c2.dec.radian, 0.5)
 
-    def matfunc(coo):
+
+    def matfunc(coo, fr):
         return [[1, 0, 0],
                 [0, coo.ra.degree, 0],
                 [0, 0, 1]]
-    t.DynamicMatrixTransform(TestCoo1, TestCoo2, matfunc)
+    trans2 = t.DynamicMatrixTransform(matfunc, TestCoo1, TestCoo2)
+    trans2.register(frame_transform_graph)
 
-    c3 = TestCoo1(1, 2, unit=(u.degree, u.degree))
-    c3._make_cart()
+    c3 = TestCoo1(ra=1*u.deg, dec=2*u.deg)
     c4 = c3.transform_to(TestCoo2)
 
     npt.assert_allclose(c4.ra.degree, 1)
     npt.assert_allclose(c4.ra.degree, 1)
+
+    # be sure to unregister the second one - no need for trans1 because it
+    # already got unregistered when trans2 was created.
+    trans2.unregister(frame_transform_graph)
 
 
 def test_transform_decos():
     """
     Tests the decorator syntax for creating transforms
     """
-    c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
+    c1 = TestCoo1(ra=1*u.deg, dec=2*u.deg)
 
-    @t.transform_function(TestCoo1, TestCoo2)
-    def trans(coo1):
-        return TestCoo2(coo1.ra.radian, coo1.dec.radian * 2, unit=(u.radian, u.radian))
+    @frame_transform_graph.transform(t.FunctionTransform, TestCoo1, TestCoo2)
+    def trans(coo1, f):
+        return TestCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
-    c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
     npt.assert_allclose(c2.ra.degree, 1)
     npt.assert_allclose(c2.dec.degree, 4)
 
-    c3 = TestCoo1(x=1, y=1, z=2, unit=u.pc)
+    c3 = TestCoo1(r.CartesianRepresentation(x=1*u.pc, y=1*u.pc, z=2*u.pc))
 
-    @t.static_transform_matrix(TestCoo1, TestCoo2)
+    @frame_transform_graph.transform(t.StaticMatrixTransform, TestCoo1, TestCoo2)
     def matrix():
         return [[2, 0, 0],
                 [0, 1, 0],
                 [0, 0, 1]]
 
-    c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_allclose(c4.x.value, 2)
-    npt.assert_allclose(c4.y.value, 1)
-    npt.assert_allclose(c4.z.value, 2)
+    npt.assert_allclose(c4.cartesian.x.value, 2)
+    npt.assert_allclose(c4.cartesian.y.value, 1)
+    npt.assert_allclose(c4.cartesian.z.value, 2)
 
-
-def test_coo_alias():
-    """
-    Tests the shortname/attribute-style accessing of transforms
-    """
-
-    try:
-        t.coordinate_alias('coo2', TestCoo2)
-
-        t.FunctionTransform(TestCoo1, TestCoo2,
-                            lambda c: TestCoo2(c.ra, c.dec))
-
-        c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
-        assert c1.coo2.ra.degree == c1.ra.degree
-        assert c1.coo2.dec.degree == c1.dec.degree
-    finally:
-        # TODO: For the time being this is the simplest way to restore the
-        # global state changed by this test, but once some version of
-        # https://github.com/astropy/astropy/issues/2347 is implemented this
-        # should be changed
-        del t.master_transform_graph._clsaliases['coo2']
 
 def test_shortest_path():
     class FakeTransform(object):
@@ -191,12 +175,12 @@ def test_sphere_cart():
     assert_allclose(z, z2)
 
 
-m31_sys = [(ICRS, 'icrs'), (FK5, 'fk5'), (FK4, 'fk4'), (Galactic, 'galactic')]
+m31_sys = [ICRS, FK5, FK4, Galactic]
 m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
 m31_dist = Distance(770, u.kpc)
-convert_precision = 1 / 3600.  # 1 arcsec
-roundtrip_precision = 1e-4
-dist_precision = 1e-9
+convert_precision = 1 * u.arcsec
+roundtrip_precision = 1e-4 * u.degree
+dist_precision = 1e-9 * u.kpc
 
 m31_params =[]
 for i in range(len(m31_sys)):
@@ -213,30 +197,25 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
     from ...time import Time
 
-    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=(u.degree, u.degree), distance=m31_dist)
-    coo2 = coo1.transform_to(tosys[0])
-    if tosys[0] is FK4:
-        coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
-        assert fabs(coo2_prec.lonangle.degree - tocoo[0]) < convert_precision  # <1 arcsec
-        assert fabs(coo2_prec.latangle.degree - tocoo[1]) < convert_precision
+    coo1 = fromsys(ra=fromcoo[0]*u.deg, dec=fromcoo[1]*u.deg, distance=m31_dist)
+    coo2 = coo1.transform_to(tosys)
+    if tosys is FK4:
+        coo2_prec = coo2.transform_to(FK4(equinox=Time('B1950', scale='utc')))
+        assert (coo2_prec.spherical.lon - tocoo[0]*u.deg) < convert_precision  # <1 arcsec
+        assert (coo2_prec.spherical.lat - tocoo[1]*u.deg) < convert_precision
     else:
-        assert fabs(coo2.lonangle.degree - tocoo[0]) < convert_precision  # <1 arcsec
-        assert fabs(coo2.latangle.degree - tocoo[1]) < convert_precision
-    assert fabs(coo2.distance.kpc - m31_dist.kpc) < dist_precision
+        assert (coo2.spherical.lon - tocoo[0]*u.deg) < convert_precision  # <1 arcsec
+        assert (coo2.spherical.lat - tocoo[1]*u.deg) < convert_precision
+    assert coo1.distance.unit == u.kpc
+    assert coo2.distance.unit == u.kpc
+    assert m31_dist.unit == u.kpc
+    assert (coo2.distance - m31_dist) < dist_precision
 
-    if fromsys[1] is not None:
-        coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.
-
-        #check round-tripping
-        assert fabs(coo1_2.lonangle.degree - fromcoo[0]) < roundtrip_precision
-        assert fabs(coo1_2.latangle.degree - fromcoo[1]) < roundtrip_precision
-        assert fabs(coo1_2.distance.kpc - m31_dist.kpc) < dist_precision
-
-        if tosys[1] is not None:
-            coo2_2 = getattr(coo1_2, tosys[1])
-            assert fabs(coo2_2.lonangle.degree - coo2.lonangle.degree) < roundtrip_precision
-            assert fabs(coo2_2.latangle.degree - coo2.latangle.degree) < roundtrip_precision
-            assert fabs(coo2_2.distance.kpc - m31_dist.kpc) < dist_precision
+    #check round-tripping
+    coo1_2 = coo2.transform_to(fromsys)
+    assert (coo1_2.spherical.lon - fromcoo[0]*u.deg) < roundtrip_precision
+    assert (coo1_2.spherical.lat - fromcoo[1]*u.deg) < roundtrip_precision
+    assert (coo1_2.distance - m31_dist) < dist_precision
 
 
 def test_precession():
@@ -250,31 +229,15 @@ def test_precession():
     j1975 = Time('J1975', scale='utc')
     b1975 = Time('B1975', scale='utc')
 
-    fk4 = FK4(1, 0.5, unit=(u.radian, u.radian))
+    fk4 = FK4(ra=1*u.radian, dec=0.5*u.radian)
     assert fk4.equinox.byear == b1950.byear
-    fk4_2 = fk4.precess_to(b1975)
+    fk4_2 = fk4.transform_to(FK4(equinox=b1975))
     assert fk4_2.equinox.byear == b1975.byear
 
-    fk5 = FK5(1, 0.5, unit=(u.radian, u.radian))
+    fk5 = FK5(ra=1*u.radian, dec=0.5*u.radian)
     assert fk5.equinox.jyear == j2000.jyear
-    fk5_2 = fk5.precess_to(j1975)
+    fk5_2 = fk5.transform_to(FK4(equinox=j1975))
     assert fk5_2.equinox.jyear == j1975.jyear
-
-
-def test_alias_transform():
-    """
-    Tests the use of aliases to do trasnforms and also transforming from
-    a system to itself.  Also checks that `dir` correctly includes
-    valid transforms
-    """
-    c = ICRS(12.34, 56.78, unit=(u.hour, u.degree))
-    assert isinstance(c.galactic, Galactic)
-    assert isinstance(c.icrs, ICRS)
-
-    d = dir(c)
-    assert 'galactic' in d
-    assert 'fk4' in d
-    assert 'fk5' in d
 
 
 def test_transform_path_pri():
@@ -283,20 +246,20 @@ def test_transform_path_pri():
     making sure the ICRS -> Gal transformation always goes through FK5
     and not FK4.
     """
-    t.master_transform_graph.invalidate_cache()
-    tpath, td = t.master_transform_graph.find_shortest_path(ICRS, Galactic)
+    frame_transform_graph.invalidate_cache()
+    tpath, td = frame_transform_graph.find_shortest_path(ICRS, Galactic)
     assert tpath == [ICRS, FK5, Galactic]
     assert td == 2
 
     #but direct from FK4 to Galactic should still be possible
-    tpath, td = t.master_transform_graph.find_shortest_path(FK4, Galactic)
+    tpath, td = frame_transform_graph.find_shortest_path(FK4, Galactic)
     assert tpath == [FK4, FK4NoETerms, Galactic]
     assert td == 2
 
 
 def test_obstime():
     """
-    Checks to make sure observation time survives transforms, and that it's
+    Checks to make sure observation time is
     accounted for at least in FK4 <-> ICRS transformations
     """
     from ...time import Time
@@ -304,35 +267,13 @@ def test_obstime():
     b1950 = Time('B1950', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
-    fk4_50 = FK4(1, 2, unit=(u.degree, u.degree), obstime=b1950)
-    fk4_75 = FK4(1, 2, unit=(u.degree, u.degree), obstime=j1975)
+    fk4_50 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=b1950)
+    fk4_75 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=j1975)
 
     icrs_50 = fk4_50.transform_to(ICRS)
     icrs_75 = fk4_75.transform_to(ICRS)
 
-    assert icrs_50.obstime == fk4_50.obstime
-    assert icrs_75.obstime == fk4_75.obstime
-
     # now check that the resulting coordinates are *different* - they should be,
     # because the obstime is different
-    assert (icrs_50.ra.degree != icrs_75.ra.degree and
-            icrs_50.dec.degree != icrs_75.dec.degree)
-
-
-def test_composite_static_matrix_transform():
-    """
-    Checks to make sure that CompositeStaticMatrixTransform 
-    correctly combines multiple transformations
-    """
-    half_sqrt_two = 0.5*np.sqrt(2)
-    forwards_45_mat = np.array([[half_sqrt_two, -1*half_sqrt_two, 0],
-                                [half_sqrt_two, half_sqrt_two, 0],
-                                [0, 0, 1]])
-    backwards_45_mat = forwards_45_mat.T
-    id_mat = np.identity(3)
-    
-    id_transform = t.CompositeStaticMatrixTransform(ICRS, ICRS, 
-                                                    [forwards_45_mat, 
-                                                    backwards_45_mat])
-
-    npt.assert_allclose(id_transform.matrix, id_mat)
+    assert icrs_50.ra.degree != icrs_75.ra.degree
+    assert icrs_50.dec.degree != icrs_75.dec.degree

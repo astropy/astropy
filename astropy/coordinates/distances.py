@@ -78,6 +78,7 @@ class Distance(u.Quantity):
     >>> d4 = Distance(z=0.23)
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     >>> d6 = Distance(distmod=24.47)
+    >>> d7 = Distance(Distance(10 * u.Mpc))
     """
 
     _include_easy_conversion_members = True

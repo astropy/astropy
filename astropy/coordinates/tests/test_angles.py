@@ -6,7 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-"""Test initalization of angles not already covered by the API tests"""
+"""Test initalization and other aspects of Angle and subclasses"""
 
 import numpy as np
 from numpy.testing.utils import assert_allclose, assert_array_equal
@@ -14,6 +14,363 @@ from numpy.testing.utils import assert_allclose, assert_array_equal
 from ..angles import Longitude, Latitude, Angle
 from ...tests.helper import pytest
 from ... import units as u
+from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
+
+
+def test_create_angles():
+    """
+    Tests creating and accessing Angle objects
+    """
+
+    ''' The "angle" is a fundamental object. The internal
+    representation is stored in radians, but this is transparent to the user.
+    Units *must* be specified rather than a default value be assumed. This is
+    as much for self-documenting code as anything else.
+
+    Angle objects simply represent a single angular coordinate. More specific
+    angular coordinates (e.g. Longitude, Latitude) are subclasses of Angle.'''
+
+    a1 = Angle(54.12412, unit=u.degree)
+    a2 = Angle("54.12412", unit=u.degree)
+    a3 = Angle("54:07:26.832", unit=u.degree)
+    a4 = Angle("54.12412 deg")
+    a5 = Angle("54.12412 degrees")
+    a6 = Angle("54.12412°") # because we like Unicode
+    a7 = Angle((54, 7, 26.832), unit=u.degree)
+    a8 = Angle("54°07'26.832\"")
+    # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
+    # because of the need to eventually support arrays of coordinates
+    a9 = Angle([54, 7, 26.832], unit=u.degree)
+    assert_allclose(a9.value, [54, 7, 26.832])
+    assert a9.unit is u.degree
+
+    a10 = Angle(3.60827466667, unit=u.hour)
+    a11 = Angle("3:36:29.7888000120", unit=u.hour)
+    a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
+
+    Angle(0.944644098745, unit=u.radian)
+
+    with pytest.raises(u.UnitsError):
+        Angle(54.12412)
+        #raises an exception because this is ambiguous
+
+    with pytest.raises(ValueError):
+        a13 = Angle(12.34, unit="not a unit")
+
+    a14 = Angle("12h43m32") # no trailing 's', but unambiguous
+
+    a15 = Angle("5h4m3s") # single digits, no decimal
+
+    a16 = Angle("1 d")
+    a17 = Angle("1 degree")
+    assert a16.degree == 1
+    assert a17.degree == 1
+
+    #ensure the above angles that should match do
+    assert a1 == a2 == a3 == a4 == a5 == a6 == a7
+    assert_allclose(a1.radian, a2.radian)
+    assert_allclose(a2.degree, a3.degree)
+    assert_allclose(a3.radian, a4.radian)
+    assert_allclose(a4.radian, a5.radian)
+    assert_allclose(a5.radian, a6.radian)
+    assert_allclose(a6.radian, a7.radian)
+    #assert a10 == a11 == a12
+
+    # check for illegal ranges / values
+    with pytest.raises(IllegalSecondError):
+        a = Angle("12 32 99", unit=u.degree)
+
+    with pytest.raises(IllegalMinuteError):
+        a = Angle("12 99 23", unit=u.degree)
+
+    with pytest.raises(IllegalSecondError):
+        a = Angle("12 32 99", unit=u.hour)
+
+    with pytest.raises(IllegalMinuteError):
+        a = Angle("12 99 23", unit=u.hour)
+
+    with pytest.raises(IllegalHourError):
+        a = Angle("99 25 51.0", unit=u.hour)
+
+    with pytest.raises(ValueError):
+        a = Angle("12 25 51.0xxx", unit=u.hour)
+
+    with pytest.raises(ValueError):
+        a = Angle("12h34321m32.2s")
+
+    assert a1 is not None
+
+def test_angle_ops():
+    """
+    Tests operations on Angle objects
+    """
+
+    # Angles can be added and subtracted. Multiplication and division by a
+    # scalar is also permitted. A negative operator is also valid.  All of
+    # these operate in a single dimension. Attempting to multiply or divide two
+    # Angle objects will raise an exception.
+
+    a1 = Angle(3.60827466667, unit=u.hour)
+    a2 = Angle("54:07:26.832", unit=u.degree)
+    a1 + a2  # creates new Angle object
+    a1 - a2
+    -a1
+
+    assert_allclose((a1 * 2).hour, 2 * 3.6082746666700003)
+    assert abs((a1 / 3.123456).hour - 3.60827466667 / 3.123456) < 1e-10
+
+    # commutativity
+    assert (2 * a1).hour == (a1 * 2).hour
+
+    a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
+    assert_allclose(a1.radian, a3.radian)
+    assert a1 is not a3
+
+    a4 = abs(-a1)
+    assert a4.radian == a1.radian
+
+    a5 = Angle(5.0, unit=u.hour)
+    assert a5 > a1
+    assert a5 >= a1
+    assert a1 < a5
+    assert a1 <= a5
+
+
+def test_angle_convert():
+    """
+    Test unit conversion of Angle objects
+    """
+    angle = Angle("54.12412", unit=u.degree)
+
+    assert_allclose(angle.hour, 3.60827466667)
+    assert_allclose(angle.radian, 0.944644098745)
+    assert_allclose(angle.degree, 54.12412)
+
+    assert len(angle.hms) == 3
+    assert isinstance(angle.hms, tuple)
+    assert angle.hms[0] == 3
+    assert angle.hms[1] == 36
+    assert_allclose(angle.hms[2], 29.78879999999947)
+    #also check that the namedtuple attribute-style access works:
+    assert angle.hms.h == 3
+    assert angle.hms.m == 36
+    assert_allclose(angle.hms.s, 29.78879999999947)
+
+    assert len(angle.dms) == 3
+    assert isinstance(angle.dms, tuple)
+    assert angle.dms[0] == 54
+    assert angle.dms[1] == 7
+    assert_allclose(angle.dms[2], 26.831999999992036)
+    #also check that the namedtuple attribute-style access works:
+    assert angle.dms.d == 54
+    assert angle.dms.m == 7
+    assert_allclose(angle.dms.s, 26.831999999992036)
+
+    assert isinstance(angle.dms[0], float)
+    assert isinstance(angle.hms[0], float)
+
+    #now make sure dms and signed_dms work right for negative angles
+    negangle = Angle("-54.12412", unit=u.degree)
+
+    assert negangle.dms.d == -54
+    assert negangle.dms.m == -7
+    assert_allclose(negangle.dms.s, -26.831999999992036)
+    assert negangle.signed_dms.sign == -1
+    assert negangle.signed_dms.d == 54
+    assert negangle.signed_dms.m == 7
+    assert_allclose(negangle.signed_dms.s, 26.831999999992036)
+
+
+def test_angle_formatting():
+    """
+    Tests string formatting for Angle objects
+    """
+
+    '''
+    The string method of Angle has this signature:
+    def string(self, unit=DEGREE, decimal=False, sep=" ", precision=5,
+               pad=False):
+
+    The "decimal" parameter defaults to False since if you need to print the
+    Angle as a decimal, there's no need to use the "format" method (see
+    above).
+    '''
+
+    angle = Angle("54.12412", unit=u.degree)
+
+    #__str__ is the default `format`
+    assert str(angle) == angle.to_string()
+
+    res = 'Angle as HMS: 3h36m29.7888s'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour)) == res
+
+    res = 'Angle as HMS: 3:36:29.7888'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":")) == res
+
+    res = 'Angle as HMS: 3:36:29.79'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":",
+                                      precision=2)) == res
+
+    # Note that you can provide one, two, or three separators passed as a
+    # tuple or list
+
+    res = 'Angle as HMS: 3h36m29.7888s'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour,
+                                                   sep=("h", "m", "s"),
+                                                   precision=4)) == res
+
+    res = 'Angle as HMS: 3-36|29.7888'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=["-", "|"],
+                                                   precision=4)) == res
+
+    res = 'Angle as HMS: 3-36-29.7888'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep="-",
+                                                    precision=4)) == res
+
+    res = 'Angle as HMS: 03h36m29.7888s'
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, precision=4,
+                                                  pad=True)) == res
+
+    # Same as above, in degrees
+
+    angle = Angle("3 36 29.78880", unit=u.degree)
+
+    res = 'Angle as DMS: 3d36m29.7888s'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree)) == res
+
+    res = 'Angle as DMS: 3:36:29.7888'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":")) == res
+
+    res = 'Angle as DMS: 3:36:29.79'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":",
+                                      precision=2)) == res
+
+    # Note that you can provide one, two, or three separators passed as a
+    # tuple or list
+
+    res = 'Angle as DMS: 3d36m29.7888s'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree,
+                                                   sep=("d", "m", "s"),
+                                                   precision=4)) == res
+
+    res = 'Angle as DMS: 3-36|29.7888'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=["-", "|"],
+                                                   precision=4)) == res
+
+    res = 'Angle as DMS: 3-36-29.7888'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep="-",
+                                                    precision=4)) == res
+
+    res = 'Angle as DMS: 03d36m29.7888s'
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, precision=4,
+                                                  pad=True)) == res
+
+    res = 'Angle as rad: 0.0629763rad'
+    assert "Angle as rad: {0}".format(angle.to_string(unit=u.radian)) == res
+
+    res = 'Angle as rad decimal: 0.0629763'
+    assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
+
+
+    # check negative angles
+
+    angle = Angle(-1.23456789, unit=u.degree)
+    angle2 = Angle(-1.23456789, unit=u.hour)
+
+    assert angle.to_string() == '-1d14m04.4444s'
+    assert angle.to_string(pad=True) == '-01d14m04.4444s'
+    assert angle.to_string(unit=u.hour) == '-0h04m56.2963s'
+    assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.4444s'
+    assert angle.to_string(unit=u.radian, decimal=True) == '-0.0215473'
+
+def test_angle_format_roundtripping():
+    """
+    Ensures that the string represtation of an angle can be used to create a
+    new valid Angle.
+    """
+
+    a1 = Angle(0, unit=u.radian)
+    a2 = Angle(10, unit=u.degree)
+    a3 = Angle(0.543, unit=u.degree)
+    a4 = Angle('1d2m3.4s')
+
+    assert Angle(str(a1)).degree == a1.degree
+    assert Angle(str(a2)).degree == a2.degree
+    assert Angle(str(a3)).degree == a3.degree
+    assert Angle(str(a4)).degree == a4.degree
+
+    #also check Longitude/Latitude
+    ra = Longitude('1h2m3.4s')
+    dec = Latitude('1d2m3.4s')
+
+    assert_allclose(Angle(str(ra)).degree, ra.degree)
+    assert_allclose(Angle(str(dec)).degree, dec.degree)
+
+
+def test_radec():
+    """
+    Tests creation/operations of Longitude and Latitude objects
+    """
+
+    '''
+    Longitude and Latitude are objects that are subclassed from Angle. As with Angle, Longitude
+    and Latitude can parse any unambiguous format (tuples, formatted strings, etc.).
+
+    The intention is not to create an Angle subclass for every possible
+    coordinate object (e.g. galactic l, galactic b). However, equatorial Longitude/Latitude
+    are so prevalent in astronomy that it's worth creating ones for these
+    units. They will be noted as "special" in the docs and use of the just the
+    Angle class is to be used for other coordinate systems.
+    '''
+
+    with pytest.raises(u.UnitsError):
+        ra = Longitude("4:08:15.162342")  # error - hours or degrees?
+    with pytest.raises(u.UnitsError):
+        ra = Longitude("-4:08:15.162342")
+
+    # the "smart" initializer allows >24 to automatically do degrees, but the
+    #Angle-based one does not
+    #TODO: adjust in 0.3 for whatever behavior is decided on
+
+    #ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
+    #assert_allclose(ra.degree, 26.570929342)
+    with pytest.raises(u.UnitsError):
+        ra = Longitude("26:34:15.345634")
+
+    #ra = Longitude(68)
+    with pytest.raises(u.UnitsError):
+        ra = Longitude(68)
+
+    with pytest.raises(u.UnitsError):
+        ra = Longitude(12)
+
+    with pytest.raises(ValueError):
+        ra = Longitude("garbage containing a d and no units")
+
+    ra = Longitude("12h43m23s")
+    assert_allclose(ra.hour, 12.7230555556)
+
+    ra = Longitude((56, 14, 52.52), unit=u.degree)      # can accept tuples
+    #TODO: again, fix based on >24 behavior
+    #ra = Longitude((56,14,52.52))
+    with pytest.raises(u.UnitsError):
+        ra = Longitude((56, 14, 52.52))
+    with pytest.raises(u.UnitsError):
+        ra = Longitude((12, 14, 52))  # ambiguous w/o units
+    ra = Longitude((12, 14, 52), unit=u.hour)
+
+    ra = Longitude([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
+
+    # Units can be specified
+    ra = Longitude("4:08:15.162342", unit=u.hour)
+
+    #TODO: this was the "smart" initializer behavior - adjust in 0.3 appropriately
+    ## Where Longitude values are commonly found in hours or degrees, declination is
+    ## nearly always specified in degrees, so this is the default.
+    #dec = Latitude("-41:08:15.162342")
+    with pytest.raises(u.UnitsError):
+        dec = Latitude("-41:08:15.162342")
+    dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
 
 def test_negative_zero_dms():

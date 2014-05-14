@@ -8,7 +8,7 @@ The `~astropy.coordinates.Distance` class is provided to represent a
 line-of-sight distance for a coordinate.  It must include a length unit to
 be valid.::
 
-    >>> from astropy.coordinates import Distance, ICRS
+    >>> from astropy.coordinates import Distance, ICRS, CartesianRepresentation
     >>> from astropy import units as u
     >>> d = Distance(770.)
     Traceback (most recent call last):
@@ -17,17 +17,17 @@ be valid.::
     >>> d = Distance(770., u.kpc)
     >>> d
     <Distance 770.0 kpc>
-    >>> c = ICRS('00h42m44.3s +41d16m9s', distance=d)
+    >>> c = ICRS('00h42m44.3s', '+41d16m9s', distance=d)
     >>> c
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
 
 Because `~astropy.coordinates.Distance` is a subclass of
 `~astropy.units.Quantity`, in general a `~astropy.units.Quantity` with units
 of length may be provided and it will automatically convert to a
 `~astropy.coordinates.Distance`::
 
-    >>> ICRS('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> ICRS('00h42m44.3s', '+41d16m9s', distance=770*u.kpc)
+    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
 
 By default, `~astropy.coordinates.Distance` values must be non-negative. For some cosmologies,
 distance metrics may become zero or negative; negative distance values are supported
@@ -41,28 +41,30 @@ by setting the ``allow_negative`` keyword argument to ``True``::
     >>> d = Distance(-42., u.kpc, allow_negative=True)
 
 If a ``distance`` is present, the coordinate can be converted into Cartesian
-coordinates using the :attr:`~astropy.coordinates.CartesianPoints.x` /
-:attr:`~astropy.coordinates.CartesianPoints.y` /
-:attr:`~astropy.coordinates.CartesianPoints.z` attributes (which are
-`~astropy.units.Quantity` objects)::
+coordinates using the `~astropy.coordinates.CartesianRepresentation` class, or
+the :attr:`~astropy.coordinates.CartesianRepresentation` attribute shorthand::
 
-    >>> c.x
+    >>> cart = c.represent_as(CartesianRepresentation)
+    >>> cart.x
     <Quantity 568.71288821656... kpc>
-    >>> c.y
+    >>> cart.y
     <Quantity 107.30093596881... kpc>
-    >>> c.z
+    >>> cart.z
     <Quantity 507.88990924863... kpc>
+    >>> cart = c.cartesian
+    >>> cart.x
+    <Quantity 568.71288821656... kpc>
 
 If a ``distance`` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
-    >>> c2 = ICRS('00h42m44.3s +41d16m9s')
-    >>> c2.x
+    >>> c2 = ICRS('00h42m44.3s', '+41d16m9s')
+    >>> c2.cartesian.x
     <Quantity 0.73858816651502...>
-    >>> c2.y
+    >>> c2.cartesian.y
     <Quantity 0.13935186489455...>
-    >>> c2.z
+    >>> c2.cartesian.z
     <Quantity 0.65959728473848...>
 
 
@@ -72,42 +74,18 @@ unit sphere::
     systems, but for common celestial coordinate systems it is often
     the Earth center (or for precision work, the Earth/Moon barycenter).
 
-The Cartesian coordinates can also be accessed via the
-`~astropy.coordinates.CartesianPoints` object, which has
-additional capabilities like arithmetic operations::
-
-    >>> cp = c.cartesian
-    >>> cp
-    <CartesianPoints [ 568.71288822, 107.30093597, 507.88990925] kpc>
-    >>> cp.x
-    <Quantity 568.71288821656... kpc>
-    >>> cp.y
-    <Quantity 107.30093596881... kpc>
-    >>> cp.z
-    <Quantity 507.88990924863... kpc>
-    >>> cp.unit
-    Unit("kpc")
-    >>> cp + cp
-    <CartesianPoints [ 1137.42577643,  214.60187194, 1015.7798185 ] kpc>
-    >>> cp - cp
-    <CartesianPoints [ 0., 0., 0.] kpc>
-
 This Cartesian representation can also be used to create a new coordinate
-object, either directly or through a `~astropy.coordinates.CartesianPoints`
-object::
+object through a `~astropy.coordinates.CartesianRepresentation` object::
 
-    >>> from astropy.coordinates import CartesianPoints
-    >>> ICRS(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
-    >>> cp = CartesianPoints(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
-    >>> ICRS(cp)
-    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> cart = CartesianRepresentation(x=568.7129*u.kpc, y=107.3009*u.kpc, z=507.8899*u.kpc)
+    >>> ICRS(cart)
+    <ICRS Coordinate: ra=10.6845796179 deg, dec=41.2691659084 deg, distance=769.99999759 kpc>
 
 Finally, two coordinates with distances can be used to derive a real-space
 distance (i.e., non-projected separation)::
 
-    >>> c1 = ICRS('5h23m34.5s -69d45m22s', distance=Distance(49, u.kpc))
-    >>> c2 = ICRS('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
+    >>> c1 = ICRS('5h23m34.5s', '-69d45m22s', distance=49*u.kpc)
+    >>> c2 = ICRS('0h52m44.8s', '-72d49m43s', distance=61*u.kpc)
     >>> sep3d = c1.separation_3d(c2)
     >>> sep3d
     <Distance 23.056848146957... kpc>

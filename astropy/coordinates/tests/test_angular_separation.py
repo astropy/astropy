@@ -4,7 +4,17 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+"""
+Tests for the projected separation stuff
+"""
+
 import numpy as np
+from numpy import testing as npt
+
+from ...tests.helper import pytest
+from ... import units as u
+from ..builtin_frames import ICRS, FK5, Galactic
+from .. import Angle, Distance
 
 # lon1, lat1, lon2, lat2 in degrees
 coords = [(1, 0, 0, 0),
@@ -25,33 +35,74 @@ correct_seps = [1, 1, 1, 1, 10, 90, 180, 90, 90, 180, 180, 0,
 correctness_margin = 2e-10
 
 
-def test_fk5_seps():
-    """
-    This tests if `separation` works for FK5Coordinate objects.
-
-    This is a regression test for github issue #891
-    """
-    from astropy.coordinates import FK5
-
-    a = FK5(1., 1., unit=('deg', 'deg'))
-    b = FK5(2., 2., unit=('deg', 'deg'))
-    a.separation(b)
-
-
 def test_angsep():
     """
     Tests that the angular separation object also behaves correctly.
     """
-
-    from ...units import Quantity
-    from ..angles import Angle
     from ..angle_utilities import angular_separation
 
     # check it both works with floats in radians, Quantities, or Angles
     for conv in (np.deg2rad,
-                 lambda x: Quantity(x, "deg"),
+                 lambda x: u.Quantity(x, "deg"),
                  lambda x: Angle(x, "deg")):
         for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
             angsep = angular_separation(conv(lon1), conv(lat1),
                                         conv(lon2), conv(lat2))
             assert np.fabs(angsep - conv(corrsep)) < conv(correctness_margin)
+
+
+def test_fk5_seps():
+    """
+    This tests if `separation` works for FK5 objects.
+
+    This is a regression test for github issue #891
+    """
+    a = FK5(1.*u.deg, 1.*u.deg)
+    b = FK5(2.*u.deg, 2.*u.deg)
+    a.separation(b)
+
+
+def test_proj_separations():
+    """
+    Test angular separation functionality
+    """
+    c1 = ICRS(ra=0*u.deg, dec=0*u.deg)
+    c2 = ICRS(ra=0*u.deg, dec=1*u.deg)
+
+    sep = c2.separation(c1)
+    #returns an Angle object
+    assert isinstance(sep, Angle)
+
+    assert sep.degree == 1
+    npt.assert_allclose(sep.arcminute, 60.)
+
+    # these operations have ambiguous interpretations for points on a sphere
+    with pytest.raises(TypeError):
+        c1 + c2
+    with pytest.raises(TypeError):
+        c1 - c2
+
+    ngp = Galactic(l=0*u.degree, b=90*u.degree)
+    ncp = ICRS(ra=0*u.degree, dec=90*u.degree)
+
+    # if there is a defined conversion between the relevant coordinate systems,
+    # it will be automatically performed to get the right angular separation
+    npt.assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+                        ncp.separation(ngp).degree)
+
+    # distance from the north galactic pole to celestial pole
+    npt.assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+                        62.8716627659)
+
+
+def test_3d_separations():
+    """
+    Test 3D separation functionality
+    """
+    c1 = ICRS(ra=1*u.deg, dec=1*u.deg, distance=9*u.kpc)
+    c2 = ICRS(ra=1*u.deg, dec=1*u.deg, distance=10*u.kpc)
+
+    sep3d = c2.separation_3d(c1)
+
+    assert isinstance(sep3d, Distance)
+    npt.assert_allclose(sep3d - 1*u.kpc, 0, atol=1e-12)

@@ -106,7 +106,7 @@ Angles will also behave correctly for appropriate arithmetic operations::
 
     >>> from astropy.coordinates import ICRS
     >>> ICRS(Angle(1, u.radian), Angle(0.5, u.radian))
-    <ICRS RA=57.29578 deg, Dec=28.64789 deg>
+    <ICRS Coordinate: ra=57.2957795131 deg, dec=28.6478897565 deg>
 
 
 Wrapping and bounds

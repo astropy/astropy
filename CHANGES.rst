@@ -18,6 +18,12 @@ New Features
 
 - ``astropy.coordinates``
 
+  - The coordinates package has undergone major changes to implement
+    `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_ .
+    These include backwards-incompatible changes, as the underlying framework
+    has changed substantially. See the APE5 text and the package documentation
+    for more details. [#2422]
+
   - Updated ``Angle.dms`` and ``Angle.hms`` to return ``namedtuple`` -s instead
     of regular tuples, and added ``Angle.signed_dms`` attribute that gives the
     absolute value of the ``d``, ``m``, and ``s`` along with the sign.  [#1988]
@@ -29,6 +35,9 @@ New Features
   - ``Longitude`` (resp. ``Latitude``) objects cannot be used any more to
     initialize or set ``Latitude`` (resp. ``Longitude``) objects. An explicit
     conversion to ``Angle`` is now required. [#2461]
+
+  - The deprecated functions for pre-0.3 coordinate object names like
+    `ICRSCoordinates` have been removed. [#2422]
 
 - ``astropy.cosmology``
 

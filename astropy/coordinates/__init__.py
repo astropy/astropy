@@ -10,13 +10,14 @@ from __future__ import (absolute_import, division, print_function,
 
 from .errors import *
 from .angles import *
-from .coordsystems import *
+from .baseframe import *
 from .distances import *
 from .earth import *
 from .transformations import *
-from .builtin_systems import *
+from .builtin_frames import *
 from .name_resolve import *
 from .matching import *
-from .old_builtin_systems_names import *  # TODO: remove this in next version, along with module file
+from .representation import *
+from .sky_coordinate import *
 
-__doc__ += builtin_systems._transform_graph_docs
+__doc__ += builtin_frames._transform_graph_docs

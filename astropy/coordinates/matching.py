@@ -9,10 +9,12 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ..extern import six
+from .representation import UnitSphericalRepresentation
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky']
 
-def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=True):
+
+def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_kdtree_3d'):
     """
     Finds the nearest 3-dimensional matches of a coordinate or coordinates in
     a set of catalog coordinates.
@@ -23,9 +25,9 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
 
     Parameters
     ----------
-    matchcoord : `~astropy.coordinates.SphericalCoordinatesBase`
+    matchcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The coordinate(s) to match to the catalog.
-    catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
+    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The base catalog in which to search for matches. Typically this will
         be a coordinate object that is an array (i.e.,
         ``catalogcoord.isscalar == False``)
@@ -36,10 +38,10 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
         against *itself* (``1`` is inappropriate because each point will find
         itself as the closest match).
     storekdtree : bool or str, optional
-        If True or a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord``.  This dramatically speeds up subsequent calls
-        with the same catalog. If a str, it specifies the attribute name for
-        ``catalogcoord`` that should store the KD-tree.
+        If a string, will store the KD-Tree used for the computation
+        in the ``catalogcoord``, as an attribute in ``catalogcoord`` with the
+        provided name.  This dramatically speeds up subsequent calls with the
+        same catalog. If False, the KD-Tree is discarded after use.
 
     Returns
     -------
@@ -55,7 +57,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed 
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
     """
     from warnings import warn
@@ -69,7 +71,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
              'python implementation')
         KDTree = spatial.KDTree
 
-    if storekdtree is True:
+    if storekdtree is True:  # backwards compatibility for pre v0.4
         storekdtree = '_kdtree'
 
     # figure out where any cached KDTree might be
@@ -88,33 +90,33 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
 
     if kdt is None:
         #need to build the cartesian KD-tree for the catalog
-        cart = catalogcoord.cartesian
-        flatxyz = cart.reshape((3, np.prod(cart.shape) // 3))
+        cartxyz = catalogcoord.cartesian.xyz
+        flatxyz = cartxyz.reshape((3, np.prod(cartxyz.shape) // 3))
         kdt = KDTree(flatxyz.value.T)
 
     #make sure coordinate systems match
-    matchcoord = matchcoord.transform_to(catalogcoord.__class__)
+    matchcoord = matchcoord.transform_to(catalogcoord)
 
     #make sure units match
-    catunit = catalogcoord.cartesian.unit
-    cart = matchcoord.cartesian.to(catunit)
+    catunit = catalogcoord.cartesian.x.unit
+    matchxyz = matchcoord.cartesian.xyz.to(catunit)
 
-    flatxyz = cart.reshape((3, np.prod(cart.shape) // 3))
-    dist, idx = kdt.query(flatxyz.T, nthneighbor)
+    matchflatxyz = matchxyz.reshape((3, np.prod(matchxyz.shape) // 3))
+    dist, idx = kdt.query(matchflatxyz.T, nthneighbor)
 
     if nthneighbor > 1:  # query gives 1D arrays if k=1, 2D arrays otherwise
         dist = dist[:, -1]
         idx = idx[:, -1]
 
     if storekdtree:
-        #cache the kdtree
+        #cache the kdtree in `catalogcoord`
         setattr(catalogcoord, storekdtree, kdt)
 
     sep2d = catalogcoord[idx].separation(matchcoord)
-    return idx.reshape(cart.shape[1:]), sep2d, dist.reshape(cart.shape[1:]) * catunit
+    return idx.reshape(matchxyz.shape[1:]), sep2d, dist.reshape(matchxyz.shape[1:]) * catunit
 
 
-def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=True):
+def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_kdtree_sky'):
     """
     Finds the nearest on-sky matches of a coordinate or coordinates in
     a set of catalog coordinates.
@@ -125,9 +127,9 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
 
     Parameters
     ----------
-    matchcoord : `~astropy.coordinates.SphericalCoordinatesBase`
+    matchcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The coordinate(s) to match to the catalog.
-    catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
+    catalogcoord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The base catalog in which to search for matches. Typically this will
         be a coordinate object that is an array (i.e.,
         ``catalogcoord.isscalar == False``)
@@ -138,10 +140,10 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
         against *itself* (``1`` is inappropriate because each point will find
         itself as the closest match).
     storekdtree : bool or str, optional
-        If True or a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord``.  This dramatically speeds up subsequent calls
-        with the same catalog. If a str, it specifies the attribute name for
-        ``catalogcoord`` that should store the KD-tree.
+        If a string, will store the KD-Tree used for the computation
+        in the ``catalogcoord``, as an attrbute in ``catalogcoord`` with the
+        provided name.  This dramatically speeds up subsequent calls with the
+        same catalog. If False, the KD-Tree is discarded after use.
 
     Returns
     -------
@@ -149,27 +151,39 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
         Indecies into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the closest match for each 
+        The on-sky separation between the closest match for each
         ``matchcoord`` and the ``matchcoord``. Shape matches ``matchcoord``.
     dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
-        the ``matchcoord``. Shape matches ``matchcoord``.
+        the ``matchcoord``. Shape matches ``matchcoord``.  If either
+        `matchcoord` or `catalogcoord` don't have a distance, this is the 3D
+        distance on the unit sphere, rather than a true distance.
 
     Notes
     -----
-    This function requires `SciPy <http://www.scipy.org>`_ to be installed 
+    This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
     """
-    dcoo = matchcoord._distance
-    cpcoo = matchcoord._cartpoint
-    dcat = catalogcoord._distance
-    cpcat = catalogcoord._cartpoint
-    try:
-        matchcoord._distance = matchcoord._cartpoint = None
-        catalogcoord._distance = catalogcoord._cartpoint = None
-        return match_coordinates_3d(matchcoord, catalogcoord, nthneighbor, storekdtree)
-    finally:
-        matchcoord._distance = dcoo
-        matchcoord._cartpoint = cpcoo
-        catalogcoord._distance = dcat
-        catalogcoord._cartpoint = cpcat
+
+    # send to catalog frame
+    newmatch = matchcoord.transform_to(catalogcoord)
+
+    #strip out distance info
+    match_urepr = newmatch.data.represent_as(UnitSphericalRepresentation)
+    newmatch_u = newmatch.realize_frame(match_urepr)
+
+    cat_urepr = catalogcoord.data.represent_as(UnitSphericalRepresentation)
+    newcat_u = catalogcoord.realize_frame(cat_urepr)
+
+    idx, sep2d, sep3d = match_coordinates_3d(newmatch_u, newcat_u, nthneighbor, storekdtree)
+    # sep3d is *wrong* above, because the distance information was removed,
+    # unless one of the catalogs doesn't have a real distance
+    if not (isinstance(catalogcoord.data, UnitSphericalRepresentation) or
+            isinstance(newmatch.data, UnitSphericalRepresentation)):
+        sep3d = catalogcoord[idx].separation_3d(newmatch)
+
+    #update the kdtree on the actual passed-in coordinate
+    if storekdtree:
+        setattr(catalogcoord, storekdtree, getattr(newcat_u, storekdtree))
+
+    return idx, sep2d, sep3d

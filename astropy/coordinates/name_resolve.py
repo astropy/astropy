@@ -20,7 +20,7 @@ from .. import config as _config
 from ..extern import six
 from ..extern.six.moves import urllib
 from .. import units as u
-from .builtin_systems import ICRS
+from .sky_coordinate import SkyCoord
 from ..utils import data
 from ..utils import state
 
@@ -122,8 +122,8 @@ def get_icrs_coordinates(name):
 
     Returns
     -------
-    coord : SphericalCoordinatesBase
-        An `ICRS` instance for the object name specified.
+    coord : `astropy.coordinates.ICRS` object
+        The object's coordinates in the ICRS frame.
 
     """
     from .. import conf
@@ -187,4 +187,6 @@ def get_icrs_coordinates(name):
 
         raise NameResolveError(err)
 
-    return ICRS(ra, dec, unit=(u.degree, u.degree))
+    # Return SkyCoord object
+    sc = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame='icrs')
+    return sc

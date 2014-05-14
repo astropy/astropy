@@ -5,8 +5,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 """
-This includes tests for distances/cartesian points that are *not* in the API
-tests.  Right now that's just regression tests.
+This includes tests for the Distance class and related calculations
 """
 
 import numpy as np
@@ -14,24 +13,138 @@ from numpy import testing as npt
 
 from ...tests.helper import pytest
 from ... import units as u
-from .. import Longitude, Latitude, ICRS, Distance, CartesianPoints
+from .. import Longitude, Latitude, Distance, CartesianRepresentation
+from ..builtin_frames import ICRS, Galactic
+
+try:
+    import scipy  # pylint: disable=W0611
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
+
+def test_distances():
+    """
+    Tests functionality for Coordinate class distances and cartesian
+    transformations.
+    """
+
+    '''
+    Distances can also be specified, and allow for a full 3D definition of a
+    coordinate.
+    '''
+
+    #try all the different ways to initialize a Distance
+    distance = Distance(12, u.parsec)
+    Distance(40, unit=u.au)
+    Distance(value=5, unit=u.kpc)
+
+    # need to provide a unit
+    with pytest.raises(u.UnitsError):
+        Distance(12)
+
+    # standard units are pre-defined
+    npt.assert_allclose(distance.lyr, 39.138765325702551)
+    npt.assert_allclose(distance.km, 370281309776063.0)
+
+    # Coordinate objects can be assigned a distance object, giving them a full
+    # 3D position
+    c = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree,
+                 distance=Distance(12, u.parsec))
+
+    #or initialize distances via redshifts - this is actually tested in the
+    #function below that checks for scipy. This is kept here as an example
+    #c.distance = Distance(z=0.2)  # uses current cosmology
+    #with whatever your preferred cosmology may be
+    #c.distance = Distance(z=0.2, cosmology=WMAP5)
+
+
+    # Coordinate objects can be initialized with a distance using special
+    # syntax
+    c1 = Galactic(l=158.558650*u.deg, b=-43.350066*u.deg, distance=12 * u.kpc)
+
+    # Coordinate objects can be instantiated with cartesian coordinates
+    # Internally they will immediately be converted to two angles + a distance
+    cart = CartesianRepresentation(x=2 * u.pc, y=4 * u.pc, z=8 * u.pc)
+    c2 = Galactic(cart)
+
+    sep12 = c1.separation_3d(c2)
+    # returns a *3d* distance between the c1 and c2 coordinates
+    # not that this does *not*
+    assert isinstance(sep12, Distance)
+    npt.assert_allclose(sep12.pc, 12005.784163916317, 10)
+
+    '''
+    All spherical coordinate systems with distances can be converted to
+    cartesian coordinates.
+    '''
+
+    cartrep2 = c2.cartesian
+    assert isinstance(cartrep2.x, u.Quantity)
+    npt.assert_allclose(cartrep2.x.value, 2)
+    npt.assert_allclose(cartrep2.y.value, 4)
+    npt.assert_allclose(cartrep2.z.value, 8)
+
+    # with no distance, the unit sphere is assumed when converting to cartesian
+    c3 = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree, distance=None)
+    unitcart = c3.cartesian
+    npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 +
+                          unitcart.z**2)**0.5).value, 1.0)
+
+    # TODO: choose between these when CartesianRepresentation gets a definite
+    # decision on whether or not it gets __add__
+    #
+    # CartesianPoints objects can be added and subtracted, which are
+    # vector/elementwise they can also be given as arguments to a coordinate
+    # system
+    #csum = ICRS(c1.cartesian + c2.cartesian)
+    csumrep = CartesianRepresentation(c1.cartesian.xyz + c2.cartesian.xyz)
+    csum = ICRS(csumrep)
+
+    npt.assert_allclose(csumrep.x.value, -8.12016610185)
+    npt.assert_allclose(csumrep.y.value, 3.19380597435)
+    npt.assert_allclose(csumrep.z.value, -8.2294483707)
+    npt.assert_allclose(csum.ra.degree, 158.529401774)
+    npt.assert_allclose(csum.dec.degree, -43.3235825777)
+    npt.assert_allclose(csum.distance.kpc, 11.9942200501)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+def test_distances_scipy():
+    """
+    The distance-related tests that require scipy due to the cosmology
+    module needing scipy integration routines
+    """
+    from ...cosmology import WMAP5
+
+    #try different ways to initialize a Distance
+    d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
+    npt.assert_allclose(d4.z, 0.23, rtol=1e-8)
+
+    d5 = Distance(z=0.23, cosmology=WMAP5)
+    npt.assert_allclose(d5.compute_z(WMAP5), 0.23, rtol=1e-8)
+
+    d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
+    npt.assert_allclose(d6.value, 3.5417046898762366e+22)
 
 
 def test_distance_change():
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRS(ra, dec)
+    c1 = ICRS(ra, dec, Distance(1, unit=u.kpc))
 
-    c.distance = Distance(1, unit=u.kpc)
-
-    oldx = c.x.value
+    oldx = c1.cartesian.x.value
     assert (oldx - 0.35284083171901953) < 1e-10
 
-    #now x should increase when the distance increases
-    c.distance = Distance(2, unit=u.kpc)
+    #first make sure distances are immutible
+    with pytest.raises(AttributeError):
+        c1.distance = Distance(2, unit=u.kpc)
 
-    assert c.x.value == oldx * 2
+    #now x should increase with a bigger distance increases
+    c2 = ICRS(ra, dec, Distance(2, unit=u.kpc))
+    assert c2.cartesian.x.value == oldx * 2
 
 
 def test_distance_is_quantity():
@@ -80,138 +193,30 @@ def test_distmod():
 
 def test_distance_in_coordinates():
     """
-    test that distances can be created from quantities and that CartesianPoints
-    can be built from them sucessfully
+    test that distances can be created from quantities and that cartesian
+    representations come out right
     """
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRS(ra, dec)
+    coo = ICRS(ra, dec, distance=2*u.kpc)
 
-    c.distance = 2 * u.kpc  # auto-converts
+    cart = coo.cartesian
 
-    #make sure cartesian stuff now works
-    # do the internal method first, because the properties will fail with
-    # unhelpful errors because __getattr_ is overridden by coordinates
-    c._make_cart()
-
-    # c.x, c.y, c.z and such are in test_api
-    #make sure repr still works
-
-    repr(c)
-
-    assert isinstance(c.cartesian, CartesianPoints)
-
-
-def test_creating_cartesian_single():
-    """
-    test building cartesian points with the single-argument constructor
-    """
-
-    CartesianPoints(np.ones((3, 10)), unit=u.kpc)
-
-    #allow dimensionless, too
-    CartesianPoints(np.ones((3, 10)), unit=u.dimensionless_unscaled)
-
-    with pytest.raises(u.UnitsError):
-        CartesianPoints(np.ones((3, 10)))
-
-    with pytest.raises(ValueError):
-        CartesianPoints(np.ones((2, 10)), unit=u.kpc)
-
-    #quantity version
-    c = CartesianPoints(np.ones((3, 10)) * u.kpc)
-    assert c.unit == u.kpc
-
-    c = CartesianPoints(np.ones((3, 10)) * u.kpc, unit=u.Mpc)
-    assert c.unit == u.Mpc
-
-
-def test_creating_cartesian_triple():
-    """
-    test building cartesian points with the ``x``,``y``,``z`` constructor
-    """
-
-    #make sure scalars are scalars
-    c = CartesianPoints(1, 2, 3, unit=u.kpc)
-
-    CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
-
-    with pytest.raises(ValueError):
-        #shapes must match
-        CartesianPoints(np.ones(8), np.ones(12), np.ones(9), unit=u.kpc)
-
-    #if one is a quantity, use that unit
-    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10) * u.kpc)
-    assert c.unit == u.kpc
-
-    #convert when needed
-    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10) * u.kpc,
-                        unit=u.Mpc)
-    assert c.unit == u.Mpc
-    # conversion of kpc to Mpc should give much smaller difference,
-    # but do this for round-off
-    assert c[2][0].value < .1
-
-    with pytest.raises(u.UnitsError):
-        CartesianPoints(np.ones(10) * u.Mpc, np.ones(10), np.ones(10) * u.kpc)
-
-
-def test_cartesian_operations():
-    """
-    more tests of CartesianPoints beyond those in test_api
-    """
-
-    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
-
-    c2 = c + c
-    assert c2.y[2].value == 2
-    assert c2.unit == c.unit
-
-    c3 = c - c
-    assert c3[1, 2].value == 0
-
-    r, lat, lon = c.to_spherical()
-
-    assert r.unit == c.unit
-    assert isinstance(lat, Latitude)
-    assert isinstance(lon, Longitude)
-
-    c4 = c * 3
-    assert c4.unit == c.unit
-
-    #always preserve the CartesianPoint's units
-    c5 = 3 * u.pc + c
-    assert c5.unit == c.unit
-
-
-def test_cartesian_view():
-    """
-    test that the cartesian subclass properly deals with new views
-    """
-
-    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
-
-    c2 = CartesianPoints(c, copy=False)
-    asarr = c.view(np.ndarray)
-    assert np.all(asarr == 1)
-
-    asarr.ravel()[0] = 2
-    assert not np.all(asarr == 1)
-    assert not c.x[0] == 2
+    assert isinstance(cart.xyz, u.Quantity)
 
 
 def test_negative_distance():
     """ Test optional kwarg allow_negative """
 
     with pytest.raises(ValueError):
-        d = Distance([-2, 3.1], u.kpc)
+        Distance([-2, 3.1], u.kpc)
 
     with pytest.raises(ValueError):
-        d = Distance([-2, -3.1], u.kpc)
+        Distance([-2, -3.1], u.kpc)
 
     with pytest.raises(ValueError):
-        d = Distance(-2, u.kpc)
+        Distance(-2, u.kpc)
 
     d = Distance(-2, u.kpc, allow_negative=True)
     assert d.value == -2

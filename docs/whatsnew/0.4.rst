@@ -45,3 +45,9 @@ Deprecation and backward-incompatible changes
 - The functional interface for `astropy.cosmology` (e.g.
   ``cosmology.H(0.5)`` is now deprecated in favor of the objected-oriented
   approach (`WMAP9.H(0.5)`). [#2343]
+
+- The `coordinates` package has undergone large changes for implementing the
+  `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_ plan
+  for the package.  Pre-v0.4 coordinates may no longer work, and should be
+  adapted to the new framework.  From this point on, major changes to the
+  coordinates classes are not expected.  [#2422]
