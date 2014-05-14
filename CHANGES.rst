@@ -390,6 +390,9 @@ Bug Fixes
   - Change construction of result of arithmetic and unit conversion to allow
     subclasses to require the presence of attribute like unit. [#2300]
 
+  - Raise an error if an attempt is made to initialize ``NDData`` or
+    ``StdDevUncertainty`` with a ``Quantity``. [#2380]
+
   - Scale uncertainties to correct units in arithmetic operations and unit
     conversion. [#2393]
 
