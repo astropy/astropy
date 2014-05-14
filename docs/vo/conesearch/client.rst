@@ -1,7 +1,7 @@
 .. doctest-skip-all
 
 Using ``astropy.vo.client``
-=========================
+===========================
 
 This subpackage contains modules supporting VO client-side operations.
 
