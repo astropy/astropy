@@ -24,6 +24,8 @@ New Features
     has changed substantially. See the APE5 text and the package documentation
     for more details. [#2422]
 
+  - A `position_angle` method has been added to the new ``SkyCoord``. [#2487]
+
   - Updated ``Angle.dms`` and ``Angle.hms`` to return ``namedtuple`` -s instead
     of regular tuples, and added ``Angle.signed_dms`` attribute that gives the
     absolute value of the ``d``, ``m``, and ``s`` along with the sign.  [#1988]
