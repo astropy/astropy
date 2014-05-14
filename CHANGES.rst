@@ -254,6 +254,10 @@ API Changes
 
 - ``astropy.nddata``
 
+  - The ``mask`` and ``flag`` attributes of ``astropy.nddata.NDData`` can now
+    be set with any array-like object instead of requiring that they be set
+    with a ``numpy.ndarray``. [#2419]
+
 - ``astropy.stats``
 
 - ``astropy.table``
