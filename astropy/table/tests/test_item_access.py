@@ -223,6 +223,15 @@ class TestTableItems(BaseTestItems):
         assert len(t2) == 0
         assert isinstance(t2, table_data.Table)
 
+    def test_np_integers(self, table_data):
+        """
+        Select rows using numpy integers.  This is a regression test for a
+        py 3.3 failure mode
+        """
+        t = table_data.Table(table_data.COLS)
+        idxs = np.random.randint(len(t), size=2)
+        item = t[idxs[1]]
+
     def test_select_bad_column(self, table_data):
         """Select column name that does not exist"""
         self.t = table_data.Table(table_data.COLS)

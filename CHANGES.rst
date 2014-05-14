@@ -135,6 +135,9 @@ New Features
   - Allow subclassing of ``Table`` and the component classes ``Row``, ``Column``,
     ``MaskedColumn``, ``TableColumns``, and ``TableFormatter``. [#2287]
 
+  - Fix to allow numpy integer types as valid indices into tables in
+    Python 3.x [#2477]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the
