@@ -82,7 +82,8 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     for attrnm in frame0.frame_attr_names:
         if attrs0.get(attrnm, None) is None:
             if attrnm == 'obstime' and frame0.frame_attr_names[attrnm] is None:
-                attrs0[attrnm] = attrs0['equinox']
+                if 'equinox' in attrs0:
+                    attrs0[attrnm] = attrs0['equinox']
             else:
                 attrs0[attrnm] = frame0.frame_attr_names[attrnm]
     sc_rt = sc2.transform_to(frame0(**attrs0))
