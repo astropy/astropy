@@ -457,6 +457,17 @@ Other Changes and Additions
 - The developer documentation has been extensively rearranged and
   rewritten. [#1712]
 
+0.3.3
+-----
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.wcs``
+
+  - Fixes an unresolved external symbol error in the
+    `astropy.wcs._wcs` C extension on Microsoft Windows when built
+    with a Microsoft compiler. [#2478]
 
 0.3.2 (2014-05-13)
 ------------------
