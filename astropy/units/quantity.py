@@ -201,8 +201,11 @@ class Quantity(np.ndarray):
         else:
             if unit is None:
                 # if the value has a `unit` attribute, try to use that
-                if hasattr(value, 'unit') and isinstance(value.unit, UnitBase):
-                    unit = value.unit
+                if hasattr(value, 'unit'):
+                    try:
+                        unit = Unit(value.unit)
+                    except TypeError:
+                        unit = dimensionless_unscaled
                 else:
                     unit = dimensionless_unscaled
 
