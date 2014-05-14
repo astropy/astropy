@@ -626,9 +626,9 @@ class SkyCoord(object):
         >>> c2 = SkyCoord(1*u.deg, 0*u.deg)
         >>> c1.position_angle(c2).degree
         90.0
-        >>> c3 = SkyCoord(0*u.deg, 1*u.deg)
+        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
         >>> c1.position_angle(c3).degree
-        0.0
+        44.9956...
         """
         from . import angle_utilities
 
