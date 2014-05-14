@@ -135,7 +135,7 @@ New Features
   - Allow subclassing of ``Table`` and the component classes ``Row``, ``Column``,
     ``MaskedColumn``, ``TableColumns``, and ``TableFormatter``. [#2287]
 
-  - Fix to allow numpy integer types as valid indecies into tables in
+  - Fix to allow numpy integer types as valid indices into tables in
     Python 3.x [#2477]
 
 - ``astropy.time``
