@@ -617,7 +617,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
 
 def angular_separation(lon1, lat1, lon2, lat2):
     """
-    Angular separation between two points on a sphere
+    Angular separation between two points on a sphere.
 
     Parameters
     ----------
@@ -653,3 +653,32 @@ def angular_separation(lon1, lat1, lon2, lat2):
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
     return np.arctan2(np.sqrt(num1 ** 2 + num2 ** 2), denominator)
+
+
+def position_angle(lon1, lat1, lon2, lat2):
+    """
+    Position Angle (East of North) between two points on a sphere.
+
+    Parameters
+    ----------
+    lon1, lat1, lon2, lat2 : `Angle`, `~astropy.units.Quantity` or float
+        Longitude and latitude of the two points. Quantities should be in
+        angular units; floats in radians.
+
+    Returns
+    -------
+    pa : `~astropy.coordinates.Angle`
+        The (positive) position angle of the vector pointing from position 1 to
+        position 2.  If any of the angles are arrays, this will contain an array
+        following the appropriate `numpy` broadcasting rules.
+
+    """
+    from .angles import Angle
+
+    deltalon = lon2 - lon1
+    colat = np.cos(lat2)
+
+    x = np.sin(lat2) * np.cos(lat1) - colat * np.sin(lat1) * np.cos(deltalon)
+    y = np.sin(deltalon) * colat
+
+    return Angle(np.arctan2(y, x)).wrap_at(360*u.deg)

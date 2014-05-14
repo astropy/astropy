@@ -10,7 +10,7 @@ from ..extern.six.moves import zip
 from ..units import Unit
 from .. import units as u
 
-from .angles import Angle, Latitude, Longitude
+from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
@@ -630,23 +630,19 @@ class SkyCoord(object):
         >>> c1.position_angle(c3).degree
         0.0
         """
+        from . import angle_utilities
+
         if self.frame_name == other.frame_name:
             other_in_self_frame = other
         else:
-            other_in_self_frame = other.frame_name.transform_to(self.frame)
+            other_in_self_frame = other.frame.transform_to(self.frame)
 
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
         olat = other_in_self_frame.represent_as(UnitSphericalRepresentation).lat
         olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
 
-        deltalon = olon - slon
-        colat = np.cos(olat)
-
-        x = np.sin(olat) * np.cos(slat) - colat * np.sin(slat) * np.cos(deltalon)
-        y = np.sin(deltalon) * colat
-
-        return Angle(np.arctan2(y, x)).wrap_at(360*u.deg)
+        return angle_utilities.position_angle(slon, slat, olon, olat)
 
     # Name resolve
     @classmethod

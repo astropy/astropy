@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 import functools
 
 import numpy as np
+from numpy import testing as npt
 
 from ... import units as u
 from ...tests.helper import pytest
@@ -392,23 +393,29 @@ def test_none_transform():
     with pytest.raises(ValueError):
         sc_arr.transform_to('fk5')
 
+
 def test_position_angle():
     c1 = SkyCoord(0*u.deg, 0*u.deg)
 
     c2 = SkyCoord(1*u.deg, 0*u.deg)
-    assert c1.position_angle(c2) == 90.0 * u.deg
+    npt.assert_allclose(c1.position_angle(c2) - 90.0 * u.deg, 0)
 
     c3 = SkyCoord(1*u.deg, 0.1*u.deg)
-    assert  c1.position_angle(c3) < 90*u.deg
+    assert c1.position_angle(c3) < 90*u.deg
 
     c4 = SkyCoord(0*u.deg, 1*u.deg)
-    assert c1.position_angle(c4) == 0.0 * u.deg
+    npt.assert_allclose(c1.position_angle(c4), 0)
 
     carr1 = SkyCoord(0*u.deg, [0, 1, 2]*u.deg)
-    carr2 = SkyCoord([-1, -2, -3] *u.deg, [0.1, 1.1, 2.1]*u.deg)
+    carr2 = SkyCoord([-1, -2, -3]*u.deg, [0.1, 1.1, 2.1]*u.deg)
 
     res = carr1.position_angle(carr2)
     assert res.shape == (3,)
     assert np.all(res < 360*u.degree)
     assert np.all(res > 270*u.degree)
 
+    cicrs = SkyCoord(0*u.deg, 0*u.deg, frame='icrs')
+    cfk5 = SkyCoord(1*u.deg, 0*u.deg, frame='fk5')
+    # because of the frame transform, it's just a *bit* more than 90 degrees
+    assert cicrs.position_angle(cfk5) > 90.0 * u.deg
+    assert cicrs.position_angle(cfk5) < 91.0 * u.deg
