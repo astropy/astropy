@@ -200,7 +200,11 @@ class Quantity(np.ndarray):
 
         else:
             if unit is None:
-                unit = dimensionless_unscaled
+                # if the value has a `unit` attribute, try to use that
+                if hasattr(value, 'unit') and isinstance(value.unit, UnitBase):
+                    unit = value.unit
+                else:
+                    unit = dimensionless_unscaled
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
                          subok=False, ndmin=ndmin)

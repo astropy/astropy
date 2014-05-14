@@ -981,3 +981,32 @@ def test_quantity_tuple_power():
 
 def test_inherit_docstrings():
     assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__
+
+def test_quantity_from_table():
+    """
+    Checks that units from tables are respected when converted to a Quantity.
+    This also generically checks the use of *anything* with a `unit` attribute
+    passed into Quantity
+    """
+    from... table import Table
+
+    t = Table(data=[np.arange(5), np.arange(5)], names=['a', 'b'])
+    t['a'].unit = u.kpc
+
+    qa = u.Quantity(t['a'])
+    assert qa.unit == u.kpc
+    assert_array_equal(qa.value, t['a'])
+
+    qb = u.Quantity(t['b'])
+    assert qb.unit == u.dimensionless_unscaled
+    assert_array_equal(qb.value, t['b'])
+
+    # This does *not* auto-convert, because it's not necessarily obvious that's
+    # desired.  Instead we revert to standard `Quantity` behavior
+    qap = u.Quantity(t['a'], u.pc)
+    assert qap.unit == u.pc
+    assert_array_equal(qap.value, t['a'])
+
+    qbp = u.Quantity(t['b'], u.pc)
+    assert qbp.unit == u.pc
+    assert_array_equal(qbp.value, t['b'])
