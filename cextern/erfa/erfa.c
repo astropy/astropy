@@ -55,7 +55,7 @@ void eraA2af(int ndp, double angle, char *sign, int idmsf[4])
 **     case where angle is very nearly 2pi and rounds up to 360 degrees,
 **     by testing for idmsf[0]=360 and setting idmsf[0-3] to zero.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -119,9 +119,9 @@ void eraA2tf(int ndp, double angle, char *sign, int ihmsf[4])
 **  3) The absolute value of angle may exceed 2pi.  In cases where it
 **     does not, it is up to the caller to test for and handle the
 **     case where angle is very nearly 2pi and rounds up to 24 hours,
-**     by testing for ihmsf[0]=24 and setting ihmsf(0-3) to zero.
+**     by testing for ihmsf[0]=24 and setting ihmsf[0-3] to zero.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -129,6 +129,80 @@ void eraA2tf(int ndp, double angle, char *sign, int ihmsf[4])
    eraD2tf(ndp, angle/ERFA_D2PI, sign, ihmsf);
 
    return;
+
+}
+
+void eraAb(double pnat[3], double v[3], double s, double bm1,
+           double ppr[3])
+/*
+**  - - - - - -
+**   e r a A b
+**  - - - - - -
+**
+**  Apply aberration to transform natural direction into proper
+**  direction.
+**
+**  Given:
+**    pnat    double[3]   natural direction to the source (unit vector)
+**    v       double[3]   observer barycentric velocity in units of c
+**    s       double      distance between the Sun and the observer (au)
+**    bm1     double      sqrt(1-|v|^2): reciprocal of Lorenz factor
+**
+**  Returned:
+**    ppr     double[3]   proper direction to source (unit vector)
+**
+**  Notes:
+**
+**  1) The algorithm is based on Expr. (7.40) in the Explanatory
+**     Supplement (Urban & Seidelmann 2013), but with the following
+**     changes:
+**
+**     o  Rigorous rather than approximate normalization is applied.
+**
+**     o  The gravitational potential term from Expr. (7) in
+**        Klioner (2003) is added, taking into account only the Sun's
+**        contribution.  This has a maximum effect of about
+**        0.4 microarcsecond.
+**
+**  2) In almost all cases, the maximum accuracy will be limited by the
+**     supplied velocity.  For example, if the ERFA eraEpv00 function is
+**     used, errors of up to 5 microarcseconds could occur.
+**
+**  References:
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013).
+**
+**     Klioner, Sergei A., "A practical relativistic model for micro-
+**     arcsecond astrometry in space", Astr. J. 125, 1580-1597 (2003).
+**
+**  Called:
+**     eraPdp       scalar product of two p-vectors
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int i;
+   double pdv, w1, w2, r2, w, p[3], r;
+
+
+   pdv = eraPdp(pnat, v);
+   w1 = 1.0 + pdv/(1.0 + bm1);
+   w2 = ERFA_SRS/s;
+   r2 = 0.0;
+   for (i = 0; i < 3; i++) {
+      w = pnat[i]*bm1 + w1*v[i] + w2*(v[i] - pdv*pnat[i]);
+      p[i] = w;
+      r2 = r2 + w*w;
+   }
+   r = sqrt(r2);
+   for (i = 0; i < 3; i++) {
+      ppr[i] = p[i]/r;
+   }
+
+/* Finished. */
 
 }
 
@@ -165,7 +239,7 @@ int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
 **  3)  If there are multiple errors, the status value reflects only the
 **      first, the smallest taking precedence.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -198,7 +272,7 @@ double eraAnp(double a)
 **  Returned (function value):
 **              double     angle in range 0-2pi
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -226,7 +300,7 @@ double eraAnpm(double a)
 **  Returned (function value):
 **              double     angle in range +/-pi
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -237,6 +311,3653 @@ double eraAnpm(double a)
    if (fabs(w) >= ERFA_DPI) w -= ERFA_DSIGN(ERFA_D2PI, a);
 
    return w;
+
+}
+
+void eraApcg(double date1, double date2,
+             double ebpv[2][3], double ehp[3],
+             eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p c g
+**  - - - - - - - -
+**
+**  For a geocentric observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and GCRS coordinates.
+**  The Earth ephemeris is supplied by the caller.
+**
+**  The parameters produced by this function are required in the
+**  parallax, light deflection and aberration parts of the astrometric
+**  transformation chain.
+**
+**  Given:
+**     date1  double       TDB as a 2-part...
+**     date2  double       ...Julian Date (Note 1)
+**     ebpv   double[2][3] Earth barycentric pos/vel (au, au/day)
+**     ehp    double[3]    Earth heliocentric position (au)
+**
+**  Returned:
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  4) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraApcs      astrometry parameters, ICRS-GCRS, space observer
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Geocentric observer */
+   double pv[2][3] = { { 0.0, 0.0, 0.0 },
+                       { 0.0, 0.0, 0.0 } };
+
+
+/* Compute the star-independent astrometry parameters. */
+   eraApcs(date1, date2, pv, ebpv, ehp, astrom);
+
+/* Finished. */
+
+}
+
+void eraApcg13(double date1, double date2, eraASTROM *astrom)
+/*
+**  - - - - - - - - - -
+**   e r a A p c g 1 3
+**  - - - - - - - - - -
+**
+**  For a geocentric observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and GCRS coordinates.
+**  The caller supplies the date, and ERFA models are used to predict
+**  the Earth ephemeris.
+**
+**  The parameters produced by this function are required in the
+**  parallax, light deflection and aberration parts of the astrometric
+**  transformation chain.
+**
+**  Given:
+**     date1  double     TDB as a 2-part...
+**     date2  double     ...Julian Date (Note 1)
+**
+**  Returned:
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) In cases where the caller wishes to supply his own Earth
+**     ephemeris, the function eraApcg can be used instead of the present
+**     function.
+**
+**  4) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  5) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraEpv00     Earth position and velocity
+**     eraApcg      astrometry parameters, ICRS-GCRS, geocenter
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double ehpv[2][3], ebpv[2][3];
+
+
+/* Earth barycentric & heliocentric position/velocity (au, au/d). */
+   (void) eraEpv00(date1, date2, ehpv, ebpv);
+
+/* Compute the star-independent astrometry parameters. */
+   eraApcg(date1, date2, ebpv, ehpv[0], astrom);
+
+/* Finished. */
+
+}
+
+void eraApci(double date1, double date2,
+             double ebpv[2][3], double ehp[3],
+             double x, double y, double s,
+             eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p c i
+**  - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and geocentric CIRS
+**  coordinates.  The Earth ephemeris and CIP/CIO are supplied by the
+**  caller.
+**
+**  The parameters produced by this function are required in the
+**  parallax, light deflection, aberration, and bias-precession-nutation
+**  parts of the astrometric transformation chain.
+**
+**  Given:
+**     date1  double       TDB as a 2-part...
+**     date2  double       ...Julian Date (Note 1)
+**     ebpv   double[2][3] Earth barycentric position/velocity (au, au/day)
+**     ehp    double[3]    Earth heliocentric position (au)
+**     x,y    double       CIP X,Y (components of unit vector)
+**     s      double       the CIO locator s (radians)
+**
+**  Returned:
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) In cases where the caller does not wish to provide the Earth
+**     ephemeris and CIP/CIO, the function eraApci13 can be used instead
+**     of the present function.  This computes the required quantities
+**     using other ERFA functions.
+**
+**  4) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  5) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraApcg      astrometry parameters, ICRS-GCRS, geocenter
+**     eraC2ixys    celestial-to-intermediate matrix, given X,Y and s
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+
+/* Star-independent astrometry parameters for geocenter. */
+   eraApcg(date1, date2, ebpv, ehp, astrom);
+
+/* CIO based BPN matrix. */
+   eraC2ixys(x, y, s, astrom->bpn);
+
+/* Finished. */
+
+}
+
+void eraApci13(double date1, double date2,
+               eraASTROM *astrom, double *eo)
+/*
+**  - - - - - - - - - -
+**   e r a A p c i 1 3
+**  - - - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and geocentric CIRS
+**  coordinates.  The caller supplies the date, and ERFA models are used
+**  to predict the Earth ephemeris and CIP/CIO.
+**
+**  The parameters produced by this function are required in the
+**  parallax, light deflection, aberration, and bias-precession-nutation
+**  parts of the astrometric transformation chain.
+**
+**  Given:
+**     date1  double      TDB as a 2-part...
+**     date2  double      ...Julian Date (Note 1)
+**
+**  Returned:
+**     astrom eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**     eo     double*     equation of the origins (ERA-GST)
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) In cases where the caller wishes to supply his own Earth
+**     ephemeris and CIP/CIO, the function eraApci can be used instead
+**     of the present function.
+**
+**  4) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  5) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraEpv00     Earth position and velocity
+**     eraPnm06a    classical NPB matrix, IAU 2006/2000A
+**     eraBpn2xy    extract CIP X,Y coordinates from NPB matrix
+**     eraS06       the CIO locator s, given X,Y, IAU 2006
+**     eraApci      astrometry parameters, ICRS-CIRS
+**     eraEors      equation of the origins, given NPB matrix and s
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double ehpv[2][3], ebpv[2][3], r[3][3], x, y, s;
+
+
+/* Earth barycentric & heliocentric position/velocity (au, au/d). */
+   (void) eraEpv00(date1, date2, ehpv, ebpv);
+
+/* Form the equinox based BPN matrix, IAU 2006/2000A. */
+   eraPnm06a(date1, date2, r);
+
+/* Extract CIP X,Y. */
+   eraBpn2xy(r, &x, &y);
+
+/* Obtain CIO locator s. */
+   s = eraS06(date1, date2, x, y);
+
+/* Compute the star-independent astrometry parameters. */
+   eraApci(date1, date2, ebpv, ehpv[0], x, y, s, astrom);
+
+/* Equation of the origins. */
+   *eo = eraEors(r, s);
+
+/* Finished. */
+
+}
+
+void eraApco(double date1, double date2,
+             double ebpv[2][3], double ehp[3],
+             double x, double y, double s, double theta,
+             double elong, double phi, double hm,
+             double xp, double yp, double sp,
+             double refa, double refb,
+             eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p c o
+**  - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and observed
+**  coordinates.  The caller supplies the Earth ephemeris, the Earth
+**  rotation information and the refraction constants as well as the
+**  site coordinates.
+**
+**  Given:
+**     date1  double       TDB as a 2-part...
+**     date2  double       ...Julian Date (Note 1)
+**     ebpv   double[2][3] Earth barycentric PV (au, au/day, Note 2)
+**     ehp    double[3]    Earth heliocentric P (au, Note 2)
+**     x,y    double       CIP X,Y (components of unit vector)
+**     s      double       the CIO locator s (radians)
+**     theta  double       Earth rotation angle (radians)
+**     elong  double       longitude (radians, east +ve, Note 3)
+**     phi    double       latitude (geodetic, radians, Note 3)
+**     hm     double       height above ellipsoid (m, geodetic, Note 3)
+**     xp,yp  double       polar motion coordinates (radians, Note 4)
+**     sp     double       the TIO locator s' (radians, Note 4)
+**     refa   double       refraction constant A (radians, Note 5)
+**     refb   double       refraction constant B (radians, Note 5)
+**
+**  Returned:
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) The vectors eb, eh, and all the astrom vectors, are with respect
+**     to BCRS axes.
+**
+**  3) The geographical coordinates are with respect to the ERFA_WGS84
+**     reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN
+**     CONVENTION:  the longitude required by the present function is
+**     right-handed, i.e. east-positive, in accordance with geographical
+**     convention.
+**
+**  4) xp and yp are the coordinates (in radians) of the Celestial
+**     Intermediate Pole with respect to the International Terrestrial
+**     Reference System (see IERS Conventions), measured along the
+**     meridians 0 and 90 deg west respectively.  sp is the TIO locator
+**     s', in radians, which positions the Terrestrial Intermediate
+**     Origin on the equator.  For many applications, xp, yp and
+**     (especially) sp can be set to zero.
+**
+**     Internally, the polar motion is stored in a form rotated onto the
+**     local meridian.
+**
+**  5) The refraction constants refa and refb are for use in a
+**     dZ = A*tan(Z)+B*tan^3(Z) model, where Z is the observed
+**     (i.e. refracted) zenith distance and dZ is the amount of
+**     refraction.
+**
+**  6) It is advisable to take great care with units, as even unlikely
+**     values of the input parameters are accepted and processed in
+**     accordance with the models used.
+**
+**  7) In cases where the caller does not wish to provide the Earth
+**     Ephemeris, the Earth rotation information and refraction
+**     constants, the function eraApco13 can be used instead of the
+**     present function.  This starts from UTC and weather readings etc.
+**     and computes suitable values using other ERFA functions.
+**
+**  8) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  9) The context structure astrom produced by this function is used by
+**     eraAtioq, eraAtoiq, eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraAper      astrometry parameters: update ERA
+**     eraC2ixys    celestial-to-intermediate matrix, given X,Y and s
+**     eraPvtob     position/velocity of terrestrial station
+**     eraTrxpv     product of transpose of r-matrix and pv-vector
+**     eraApcs      astrometry parameters, ICRS-GCRS, space observer
+**     eraCr        copy r-matrix
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double sl, cl, r[3][3], pvc[2][3], pv[2][3];
+
+
+/* Longitude with adjustment for TIO locator s'. */
+   astrom->along = elong + sp;
+
+/* Polar motion, rotated onto the local meridian. */
+   sl = sin(astrom->along);
+   cl = cos(astrom->along);
+   astrom->xpl = xp*cl - yp*sl;
+   astrom->ypl = xp*sl + yp*cl;
+
+/* Functions of latitude. */
+   astrom->sphi = sin(phi);
+   astrom->cphi = cos(phi);
+
+/* Refraction constants. */
+   astrom->refa = refa;
+   astrom->refb = refb;
+
+/* Local Earth rotation angle. */
+   eraAper(theta, astrom);
+
+/* Disable the (redundant) diurnal aberration step. */
+   astrom->diurab = 0.0;
+
+/* CIO based BPN matrix. */
+   eraC2ixys(x, y, s, r);
+
+/* Observer's geocentric position and velocity (m, m/s, CIRS). */
+   eraPvtob(elong, phi, hm, xp, yp, sp, theta, pvc);
+
+/* Rotate into GCRS. */
+   eraTrxpv(r, pvc, pv);
+
+/* ICRS <-> GCRS parameters. */
+   eraApcs(date1, date2, pv, ebpv, ehp, astrom);
+
+/* Store the CIO based BPN matrix. */
+   eraCr(r, astrom->bpn );
+
+/* Finished. */
+
+}
+
+int eraApco13(double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              eraASTROM *astrom, double *eo)
+/*
+**  - - - - - - - - - -
+**   e r a A p c o 1 3
+**  - - - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between ICRS and observed
+**  coordinates.  The caller supplies UTC, site coordinates, ambient air
+**  conditions and observing wavelength, and ERFA models are used to
+**  obtain the Earth ephemeris, CIP/CIO and refraction constants.
+**
+**  The parameters produced by this function are required in the
+**  parallax, light deflection, aberration, and bias-precession-nutation
+**  parts of the ICRS/CIRS transformations.
+**
+**  Given:
+**     utc1   double     UTC as a 2-part...
+**     utc2   double     ...quasi Julian Date (Notes 1,2)
+**     dut1   double     UT1-UTC (seconds, Note 3)
+**     elong  double     longitude (radians, east +ve, Note 4)
+**     phi    double     latitude (geodetic, radians, Note 4)
+**     hm     double     height above ellipsoid (m, geodetic, Notes 4,6)
+**     xp,yp  double     polar motion coordinates (radians, Note 5)
+**     phpa   double     pressure at the observer (hPa = mB, Note 6)
+**     tc     double     ambient temperature at the observer (deg C)
+**     rh     double     relative humidity at the observer (range 0-1)
+**     wl     double     wavelength (micrometers, Note 7)
+**
+**  Returned:
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**     eo     double*    equation of the origins (ERA-GST)
+**
+**  Returned (function value):
+**            int        status: +1 = dubious year (Note 2)
+**                                0 = OK
+**                               -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  2)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the
+**      future to be trusted.  See eraDat for further details.
+**
+**  3)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  4)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  5)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many
+**      applications, xp and yp can be set to zero.
+**
+**      Internally, the polar motion is stored in a form rotated onto
+**      the local meridian.
+**
+**  6)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB), is
+**      available, an adequate estimate of hm can be obtained from the
+**      expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to
+**      the pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  7)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  8)  It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  9)  In cases where the caller wishes to supply his own Earth
+**      ephemeris, Earth rotation information and refraction constants,
+**      the function eraApco can be used instead of the present function.
+**
+**  10) This is one of several functions that inserts into the astrom
+**      structure star-independent parameters needed for the chain of
+**      astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**      The various functions support different classes of observer and
+**      portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**      Those with names ending in "13" use contemporary ERFA models to
+**      compute the various ephemerides.  The others accept ephemerides
+**      supplied by the caller.
+**
+**      The transformation from ICRS to GCRS covers space motion,
+**      parallax, light deflection, and aberration.  From GCRS to CIRS
+**      comprises frame bias and precession-nutation.  From CIRS to
+**      observed takes account of Earth rotation, polar motion, diurnal
+**      aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**      transformation), and atmospheric refraction.
+**
+**  11) The context structure astrom produced by this function is used
+**      by eraAtioq, eraAtoiq, eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraUtctai    UTC to TAI
+**     eraTaitt     TAI to TT
+**     eraUtcut1    UTC to UT1
+**     eraEpv00     Earth position and velocity
+**     eraPnm06a    classical NPB matrix, IAU 2006/2000A
+**     eraBpn2xy    extract CIP X,Y coordinates from NPB matrix
+**     eraS06       the CIO locator s, given X,Y, IAU 2006
+**     eraEra00     Earth rotation angle, IAU 2000
+**     eraSp00      the TIO locator s', IERS 2000
+**     eraRefco     refraction constants for given ambient conditions
+**     eraApco      astrometry parameters, ICRS-observed
+**     eraEors      equation of the origins, given NPB matrix and s
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   double tai1, tai2, tt1, tt2, ut11, ut12, ehpv[2][3], ebpv[2][3],
+          r[3][3], x, y, s, theta, sp, refa, refb;
+
+
+/* UTC to other time scales. */
+   j = eraUtctai(utc1, utc2, &tai1, &tai2);
+   if ( j < 0 ) return -1;
+   j = eraTaitt(tai1, tai2, &tt1, &tt2);
+   j = eraUtcut1(utc1, utc2, dut1, &ut11, &ut12);
+   if ( j < 0 ) return -1;
+
+/* Earth barycentric & heliocentric position/velocity (au, au/d). */
+   (void) eraEpv00(tt1, tt2, ehpv, ebpv);
+
+/* Form the equinox based BPN matrix, IAU 2006/2000A. */
+   eraPnm06a(tt1, tt2, r);
+
+/* Extract CIP X,Y. */
+   eraBpn2xy(r, &x, &y);
+
+/* Obtain CIO locator s. */
+   s = eraS06(tt1, tt2, x, y);
+
+/* Earth rotation angle. */
+   theta = eraEra00(ut11, ut12);
+
+/* TIO locator s'. */
+   sp = eraSp00(tt1, tt2);
+
+/* Refraction constants A and B. */
+   eraRefco(phpa, tc, rh, wl, &refa, &refb);
+
+/* Compute the star-independent astrometry parameters. */
+   eraApco(tt1, tt2, ebpv, ehpv[0], x, y, s, theta,
+           elong, phi, hm, xp, yp, sp, refa, refb, astrom);
+
+/* Equation of the origins. */
+   *eo = eraEors(r, s);
+
+/* Return any warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+void eraApcs(double date1, double date2, double pv[2][3],
+             double ebpv[2][3], double ehp[3],
+             eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p c s
+**  - - - - - - - -
+**
+**  For an observer whose geocentric position and velocity are known,
+**  prepare star-independent astrometry parameters for transformations
+**  between ICRS and GCRS.  The Earth ephemeris is supplied by the
+**  caller.
+**
+**  The parameters produced by this function are required in the space
+**  motion, parallax, light deflection and aberration parts of the
+**  astrometric transformation chain.
+**
+**  Given:
+**     date1  double       TDB as a 2-part...
+**     date2  double       ...Julian Date (Note 1)
+**     pv     double[2][3] observer's geocentric pos/vel (m, m/s)
+**     ebpv   double[2][3] Earth barycentric PV (au, au/day)
+**     ehp    double[3]    Earth heliocentric P (au)
+**
+**  Returned:
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) Providing separate arguments for (i) the observer's geocentric
+**     position and velocity and (ii) the Earth ephemeris is done for
+**     convenience in the geocentric, terrestrial and Earth orbit cases.
+**     For deep space applications it maybe more convenient to specify
+**     zero geocentric position and velocity and to supply the
+**     observer's position and velocity information directly instead of
+**     with respect to the Earth.  However, note the different units:
+**     m and m/s for the geocentric vectors, au and au/day for the
+**     heliocentric and barycentric vectors.
+**
+**  4) In cases where the caller does not wish to provide the Earth
+**     ephemeris, the function eraApcs13 can be used instead of the
+**     present function.  This computes the Earth ephemeris using the
+**     ERFA function eraEpv00.
+**
+**  5) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  6) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraCp        copy p-vector
+**     eraPm        modulus of p-vector
+**     eraPn        decompose p-vector into modulus and direction
+**     eraIr        initialize r-matrix to identity
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* au/d to m/s */
+   const double AUDMS = ERFA_DAU/ERFA_DAYSEC;
+
+/* Light time for 1 AU (day) */
+   const double CR = ERFA_AULT/ERFA_DAYSEC;
+
+   int i;
+   double dp, dv, pb[3], vb[3], ph[3], v2, w;
+
+
+/* Time since reference epoch, years (for proper motion calculation). */
+   astrom->pmt = ( (date1 - ERFA_DJ00) + date2 ) / ERFA_DJY;
+
+/* Adjust Earth ephemeris to observer. */
+   for (i = 0; i < 3; i++) {
+      dp = pv[0][i] / ERFA_DAU;
+      dv = pv[1][i] / AUDMS;
+      pb[i] = ebpv[0][i] + dp;
+      vb[i] = ebpv[1][i] + dv;
+      ph[i] = ehp[i] + dp;
+   }
+
+/* Barycentric position of observer (au). */
+   eraCp(pb, astrom->eb);
+
+/* Heliocentric direction and distance (unit vector and au). */
+   eraPn(ph, &astrom->em, astrom->eh);
+
+/* Barycentric vel. in units of c, and reciprocal of Lorenz factor. */
+   v2 = 0.0;
+   for (i = 0; i < 3; i++) {
+      w = vb[i] * CR;
+      astrom->v[i] = w;
+      v2 += w*w;
+   }
+   astrom->bm1 = sqrt(1.0 - v2);
+
+/* Reset the NPB matrix. */
+   eraIr(astrom->bpn);
+
+/* Finished. */
+
+}
+
+void eraApcs13(double date1, double date2, double pv[2][3],
+               eraASTROM *astrom)
+/*
+**  - - - - - - - - - -
+**   e r a A p c s 1 3
+**  - - - - - - - - - -
+**
+**  For an observer whose geocentric position and velocity are known,
+**  prepare star-independent astrometry parameters for transformations
+**  between ICRS and GCRS.  The Earth ephemeris is from ERFA models.
+**
+**  The parameters produced by this function are required in the space
+**  motion, parallax, light deflection and aberration parts of the
+**  astrometric transformation chain.
+**
+**  Given:
+**     date1  double       TDB as a 2-part...
+**     date2  double       ...Julian Date (Note 1)
+**     pv     double[2][3] observer's geocentric pos/vel (Note 3)
+**
+**  Returned:
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       unchanged
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) All the vectors are with respect to BCRS axes.
+**
+**  3) The observer's position and velocity pv are geocentric but with
+**     respect to BCRS axes, and in units of m and m/s.  No assumptions
+**     are made about proximity to the Earth, and the function can be
+**     used for deep space applications as well as Earth orbit and
+**     terrestrial.
+**
+**  4) In cases where the caller wishes to supply his own Earth
+**     ephemeris, the function eraApcs can be used instead of the present
+**     function.
+**
+**  5) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  6) The context structure astrom produced by this function is used by
+**     eraAtciq* and eraAticq*.
+**
+**  Called:
+**     eraEpv00     Earth position and velocity
+**     eraApcs      astrometry parameters, ICRS-GCRS, space observer
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double ehpv[2][3], ebpv[2][3];
+
+
+/* Earth barycentric & heliocentric position/velocity (au, au/d). */
+   (void) eraEpv00(date1, date2, ehpv, ebpv);
+
+/* Compute the star-independent astrometry parameters. */
+   eraApcs(date1, date2, pv, ebpv, ehpv[0], astrom);
+
+/* Finished. */
+
+}
+
+void eraAper(double theta, eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p e r
+**  - - - - - - - -
+**
+**  In the star-independent astrometry parameters, update only the
+**  Earth rotation angle, supplied by the caller explicitly.
+**
+**  Given:
+**     theta   double      Earth rotation angle (radians, Note 2)
+**     astrom  eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       not used
+**      eb     double[3]    not used
+**      eh     double[3]    not used
+**      em     double       not used
+**      v      double[3]    not used
+**      bm1    double       not used
+**      bpn    double[3][3] not used
+**      along  double       longitude + s' (radians)
+**      xpl    double       not used
+**      ypl    double       not used
+**      sphi   double       not used
+**      cphi   double       not used
+**      diurab double       not used
+**      eral   double       not used
+**      refa   double       not used
+**      refb   double       not used
+**
+**  Returned:
+**     astrom  eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       unchanged
+**      eb     double[3]    unchanged
+**      eh     double[3]    unchanged
+**      em     double       unchanged
+**      v      double[3]    unchanged
+**      bm1    double       unchanged
+**      bpn    double[3][3] unchanged
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) This function exists to enable sidereal-tracking applications to
+**     avoid wasteful recomputation of the bulk of the astrometry
+**     parameters:  only the Earth rotation is updated.
+**
+**  2) For targets expressed as equinox based positions, such as
+**     classical geocentric apparent (RA,Dec), the supplied theta can be
+**     Greenwich apparent sidereal time rather than Earth rotation
+**     angle.
+**
+**  3) The function eraAper13 can be used instead of the present
+**     function, and starts from UT1 rather than ERA itself.
+**
+**  4) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   astrom->eral = theta + astrom->along;
+
+/* Finished. */
+
+}
+
+void eraAper13(double ut11, double ut12, eraASTROM *astrom)
+/*
+**  - - - - - - - - - -
+**   e r a A p e r 1 3
+**  - - - - - - - - - -
+**
+**  In the star-independent astrometry parameters, update only the
+**  Earth rotation angle.  The caller provides UT1, (n.b. not UTC).
+**
+**  Given:
+**     ut11    double      UT1 as a 2-part...
+**     ut12    double      ...Julian Date (Note 1)
+**     astrom  eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       not used
+**      eb     double[3]    not used
+**      eh     double[3]    not used
+**      em     double       not used
+**      v      double[3]    not used
+**      bm1    double       not used
+**      bpn    double[3][3] not used
+**      along  double       longitude + s' (radians)
+**      xpl    double       not used
+**      ypl    double       not used
+**      sphi   double       not used
+**      cphi   double       not used
+**      diurab double       not used
+**      eral   double       not used
+**      refa   double       not used
+**      refb   double       not used
+**
+**  Returned:
+**     astrom  eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       unchanged
+**      eb     double[3]    unchanged
+**      eh     double[3]    unchanged
+**      em     double       unchanged
+**      v      double[3]    unchanged
+**      bm1    double       unchanged
+**      bpn    double[3][3] unchanged
+**      along  double       unchanged
+**      xpl    double       unchanged
+**      ypl    double       unchanged
+**      sphi   double       unchanged
+**      cphi   double       unchanged
+**      diurab double       unchanged
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       unchanged
+**      refb   double       unchanged
+**
+**  Notes:
+**
+**  1) The UT1 date (n.b. not UTC) ut11+ut12 is a Julian Date,
+**     apportioned in any convenient way between the arguments ut11 and
+**     ut12.  For example, JD(UT1)=2450123.7 could be expressed in any
+**     of these ways, among others:
+**
+**            ut11           ut12
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 and MJD methods are good compromises
+**     between resolution and convenience.  The date & time method is
+**     best matched to the algorithm used:  maximum precision is
+**     delivered when the ut11 argument is for 0hrs UT1 on the day in
+**     question and the ut12 argument lies in the range 0 to 1, or vice
+**     versa.
+**
+**  2) If the caller wishes to provide the Earth rotation angle itself,
+**     the function eraAper can be used instead.  One use of this
+**     technique is to substitute Greenwich apparent sidereal time and
+**     thereby to support equinox based transformations directly.
+**
+**  3) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  Called:
+**     eraAper      astrometry parameters: update ERA
+**     eraEra00     Earth rotation angle, IAU 2000
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   eraAper(eraEra00(ut11,ut12), astrom);
+
+/* Finished. */
+
+}
+
+void eraApio(double sp, double theta,
+             double elong, double phi, double hm, double xp, double yp,
+             double refa, double refb,
+             eraASTROM *astrom)
+/*
+**  - - - - - - - -
+**   e r a A p i o
+**  - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between CIRS and observed
+**  coordinates.  The caller supplies the Earth orientation information
+**  and the refraction constants as well as the site coordinates.
+**
+**  Given:
+**     sp     double      the TIO locator s' (radians, Note 1)
+**     theta  double      Earth rotation angle (radians)
+**     elong  double      longitude (radians, east +ve, Note 2)
+**     phi    double      geodetic latitude (radians, Note 2)
+**     hm     double      height above ellipsoid (m, geodetic Note 2)
+**     xp,yp  double      polar motion coordinates (radians, Note 3)
+**     refa   double      refraction constant A (radians, Note 4)
+**     refb   double      refraction constant B (radians, Note 4)
+**
+**  Returned:
+**     astrom eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       unchanged
+**      eb     double[3]    unchanged
+**      eh     double[3]    unchanged
+**      em     double       unchanged
+**      v      double[3]    unchanged
+**      bm1    double       unchanged
+**      bpn    double[3][3] unchanged
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Notes:
+**
+**  1) sp, the TIO locator s', is a tiny quantity needed only by the
+**     most precise applications.  It can either be set to zero or
+**     predicted using the ERFA function eraSp00.
+**
+**  2) The geographical coordinates are with respect to the ERFA_WGS84
+**     reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**     longitude required by the present function is east-positive
+**     (i.e. right-handed), in accordance with geographical convention.
+**
+**  3) The polar motion xp,yp can be obtained from IERS bulletins.  The
+**     values are the coordinates (in radians) of the Celestial
+**     Intermediate Pole with respect to the International Terrestrial
+**     Reference System (see IERS Conventions 2003), measured along the
+**     meridians 0 and 90 deg west respectively.  For many applications,
+**     xp and yp can be set to zero.
+**
+**     Internally, the polar motion is stored in a form rotated onto the
+**     local meridian.
+**
+**  4) The refraction constants refa and refb are for use in a
+**     dZ = A*tan(Z)+B*tan^3(Z) model, where Z is the observed
+**     (i.e. refracted) zenith distance and dZ is the amount of
+**     refraction.
+**
+**  5) It is advisable to take great care with units, as even unlikely
+**     values of the input parameters are accepted and processed in
+**     accordance with the models used.
+**
+**  6) In cases where the caller does not wish to provide the Earth
+**     rotation information and refraction constants, the function
+**     eraApio13 can be used instead of the present function.  This
+**     starts from UTC and weather readings etc. and computes suitable
+**     values using other ERFA functions.
+**
+**  7) This is one of several functions that inserts into the astrom
+**     structure star-independent parameters needed for the chain of
+**     astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**     The various functions support different classes of observer and
+**     portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**     Those with names ending in "13" use contemporary ERFA models to
+**     compute the various ephemerides.  The others accept ephemerides
+**     supplied by the caller.
+**
+**     The transformation from ICRS to GCRS covers space motion,
+**     parallax, light deflection, and aberration.  From GCRS to CIRS
+**     comprises frame bias and precession-nutation.  From CIRS to
+**     observed takes account of Earth rotation, polar motion, diurnal
+**     aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**     transformation), and atmospheric refraction.
+**
+**  8) The context structure astrom produced by this function is used by
+**     eraAtioq and eraAtoiq.
+**
+**  Called:
+**     eraPvtob     position/velocity of terrestrial station
+**     eraAper      astrometry parameters: update ERA
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double sl, cl, pv[2][3];
+
+
+/* Longitude with adjustment for TIO locator s'. */
+   astrom->along = elong + sp;
+
+/* Polar motion, rotated onto the local meridian. */
+   sl = sin(astrom->along);
+   cl = cos(astrom->along);
+   astrom->xpl = xp*cl - yp*sl;
+   astrom->ypl = xp*sl + yp*cl;
+
+/* Functions of latitude. */
+   astrom->sphi = sin(phi);
+   astrom->cphi = cos(phi);
+
+/* Observer's geocentric position and velocity (m, m/s, CIRS). */
+   eraPvtob(elong, phi, hm, xp, yp, sp, theta, pv);
+
+/* Magnitude of diurnal aberration vector. */
+   astrom->diurab = sqrt(pv[1][0]*pv[1][0]+pv[1][1]*pv[1][1]) / ERFA_CMPS;
+
+/* Refraction constants. */
+   astrom->refa = refa;
+   astrom->refb = refb;
+
+/* Local Earth rotation angle. */
+   eraAper(theta, astrom);
+
+/* Finished. */
+
+}
+
+int eraApio13(double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              eraASTROM *astrom)
+/*
+**  - - - - - - - - - -
+**   e r a A p i o 1 3
+**  - - - - - - - - - -
+**
+**  For a terrestrial observer, prepare star-independent astrometry
+**  parameters for transformations between CIRS and observed
+**  coordinates.  The caller supplies UTC, site coordinates, ambient air
+**  conditions and observing wavelength.
+**
+**  Given:
+**     utc1   double      UTC as a 2-part...
+**     utc2   double      ...quasi Julian Date (Notes 1,2)
+**     dut1   double      UT1-UTC (seconds)
+**     elong  double      longitude (radians, east +ve, Note 3)
+**     phi    double      geodetic latitude (radians, Note 3)
+**     hm     double      height above ellipsoid (m, geodetic Notes 4,6)
+**     xp,yp  double      polar motion coordinates (radians, Note 5)
+**     phpa   double      pressure at the observer (hPa = mB, Note 6)
+**     tc     double      ambient temperature at the observer (deg C)
+**     rh     double      relative humidity at the observer (range 0-1)
+**     wl     double      wavelength (micrometers, Note 7)
+**
+**  Returned:
+**     astrom eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       unchanged
+**      eb     double[3]    unchanged
+**      eh     double[3]    unchanged
+**      em     double       unchanged
+**      v      double[3]    unchanged
+**      bm1    double       unchanged
+**      bpn    double[3][3] unchanged
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned (function value):
+**            int         status: +1 = dubious year (Note 2)
+**                                 0 = OK
+**                                -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  2)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the future
+**      to be trusted.  See eraDat for further details.
+**
+**  3)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  4)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  5)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many applications,
+**      xp and yp can be set to zero.
+**
+**      Internally, the polar motion is stored in a form rotated onto
+**      the local meridian.
+**
+**  6)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB), is
+**      available, an adequate estimate of hm can be obtained from the
+**      expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to the
+**      pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  7)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  8)  It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  9)  In cases where the caller wishes to supply his own Earth
+**      rotation information and refraction constants, the function
+**      eraApc can be used instead of the present function.
+**
+**  10) This is one of several functions that inserts into the astrom
+**      structure star-independent parameters needed for the chain of
+**      astrometric transformations ICRS <-> GCRS <-> CIRS <-> observed.
+**
+**      The various functions support different classes of observer and
+**      portions of the transformation chain:
+**
+**          functions         observer        transformation
+**
+**       eraApcg eraApcg13    geocentric      ICRS <-> GCRS
+**       eraApci eraApci13    terrestrial     ICRS <-> CIRS
+**       eraApco eraApco13    terrestrial     ICRS <-> observed
+**       eraApcs eraApcs13    space           ICRS <-> GCRS
+**       eraAper eraAper13    terrestrial     update Earth rotation
+**       eraApio eraApio13    terrestrial     CIRS <-> observed
+**
+**      Those with names ending in "13" use contemporary ERFA models to
+**      compute the various ephemerides.  The others accept ephemerides
+**      supplied by the caller.
+**
+**      The transformation from ICRS to GCRS covers space motion,
+**      parallax, light deflection, and aberration.  From GCRS to CIRS
+**      comprises frame bias and precession-nutation.  From CIRS to
+**      observed takes account of Earth rotation, polar motion, diurnal
+**      aberration and parallax (unless subsumed into the ICRS <-> GCRS
+**      transformation), and atmospheric refraction.
+**
+**  11) The context structure astrom produced by this function is used
+**      by eraAtioq and eraAtoiq.
+**
+**  Called:
+**     eraUtctai    UTC to TAI
+**     eraTaitt     TAI to TT
+**     eraUtcut1    UTC to UT1
+**     eraSp00      the TIO locator s', IERS 2000
+**     eraEra00     Earth rotation angle, IAU 2000
+**     eraRefco     refraction constants for given ambient conditions
+**     eraApio      astrometry parameters, CIRS-observed
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   double tai1, tai2, tt1, tt2, ut11, ut12, sp, theta, refa, refb;
+
+
+/* UTC to other time scales. */
+   j = eraUtctai(utc1, utc2, &tai1, &tai2);
+   if ( j < 0 ) return -1;
+   j = eraTaitt(tai1, tai2, &tt1, &tt2);
+   j = eraUtcut1(utc1, utc2, dut1, &ut11, &ut12);
+   if ( j < 0 ) return -1;
+
+/* TIO locator s'. */
+   sp = eraSp00(tt1, tt2);
+
+/* Earth rotation angle. */
+   theta = eraEra00(ut11, ut12);
+
+/* Refraction constants A and B. */
+   eraRefco(phpa, tc, rh, wl, &refa, &refb);
+
+/* CIRS <-> observed astrometry parameters. */
+   eraApio(sp, theta, elong, phi, hm, xp, yp, refa, refb, astrom);
+
+/* Return any warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+void eraAtci13(double rc, double dc,
+               double pr, double pd, double px, double rv,
+               double date1, double date2,
+               double *ri, double *di, double *eo)
+/*
+**  - - - - - - - - - -
+**   e r a A t c i 1 3
+**  - - - - - - - - - -
+**
+**  Transform ICRS star data, epoch J2000.0, to CIRS.
+**
+**  Given:
+**     rc     double   ICRS right ascension at J2000.0 (radians, Note 1)
+**     dc     double   ICRS declination at J2000.0 (radians, Note 1)
+**     pr     double   RA proper motion (radians/year; Note 2)
+**     pd     double   Dec proper motion (radians/year)
+**     px     double   parallax (arcsec)
+**     rv     double   radial velocity (km/s, +ve if receding)
+**     date1  double   TDB as a 2-part...
+**     date2  double   ...Julian Date (Note 3)
+**
+**  Returned:
+**     ri,di  double*  CIRS geocentric RA,Dec (radians)
+**     eo     double*  equation of the origins (ERA-GST, Note 5)
+**
+**  Notes:
+**
+**  1) Star data for an epoch other than J2000.0 (for example from the
+**     Hipparcos catalog, which has an epoch of J1991.25) will require a
+**     preliminary call to eraPmsafe before use.
+**
+**  2) The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.
+**
+**  3) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.8g could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.8g           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  4) The available accuracy is better than 1 milliarcsecond, limited
+**     mainly by the precession-nutation model that is used, namely
+**     IAU 2000A/2006.  Very close to solar system bodies, additional
+**     errors of up to several milliarcseconds can occur because of
+**     unmodeled light deflection;  however, the Sun's contribution is
+**     taken into account, to first order.  The accuracy limitations of
+**     the ERFA function eraEpv00 (used to compute Earth position and
+**     velocity) can contribute aberration errors of up to
+**     5 microarcseconds.  Light deflection at the Sun's limb is
+**     uncertain at the 0.4 mas level.
+**
+**  5) Should the transformation to (equinox based) apparent place be
+**     required rather than (CIO based) intermediate place, subtract the
+**     equation of the origins from the returned right ascension:
+**     RA = RI - EO. (The eraAnp function can then be applied, as
+**     required, to keep the result in the conventional 0-2pi range.)
+**
+**  Called:
+**     eraApci13    astrometry parameters, ICRS-CIRS, 2013
+**     eraAtciq     quick ICRS to CIRS
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Star-independent astrometry parameters */
+   eraASTROM astrom;
+
+
+/* The transformation parameters. */
+   eraApci13(date1, date2, &astrom, eo);
+
+/* ICRS (epoch J2000.0) to CIRS. */
+   eraAtciq(rc, dc, pr, pd, px, rv, &astrom, ri, di);
+
+/* Finished. */
+
+}
+
+void eraAtciq(double rc, double dc,
+              double pr, double pd, double px, double rv,
+              eraASTROM *astrom, double *ri, double *di)
+/*
+**  - - - - - - - - -
+**   e r a A t c i q
+**  - - - - - - - - -
+**
+**  Quick ICRS, epoch J2000.0, to CIRS transformation, given precomputed
+**  star-independent astrometry parameters.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are to be transformed for one date.  The
+**  star-independent parameters can be obtained by calling one of the
+**  functions eraApci[13], eraApcg[13], eraApco[13] or eraApcs[13].
+**
+**  If the parallax and proper motions are zero the eraAtciqz function
+**  can be used instead.
+**
+**  Given:
+**     rc,dc  double     ICRS RA,Dec at J2000.0 (radians)
+**     pr     double     RA proper motion (radians/year; Note 3)
+**     pd     double     Dec proper motion (radians/year)
+**     px     double     parallax (arcsec)
+**     rv     double     radial velocity (km/s, +ve if receding)
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned:
+**     ri,di   double    CIRS RA,Dec (radians)
+**
+**  Notes:
+**
+**  1) All the vectors are with respect to BCRS axes.
+**
+**  2) Star data for an epoch other than J2000.0 (for example from the
+**     Hipparcos catalog, which has an epoch of J1991.25) will require a
+**     preliminary call to eraPmsafe before use.
+**
+**  3) The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.
+**
+**  Called:
+**     eraPmpx      proper motion and parallax
+**     eraLdsun     light deflection by the Sun
+**     eraAb        stellar aberration
+**     eraRxp       product of r-matrix and pv-vector
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range 0 to 2pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double pco[3], pnat[3], ppr[3], pi[3], w;
+
+
+/* Proper motion and parallax, giving BCRS coordinate direction. */
+   eraPmpx(rc, dc, pr, pd, px, rv, astrom->pmt, astrom->eb, pco);
+
+/* Light deflection by the Sun, giving BCRS natural direction. */
+   eraLdsun(pco, astrom->eh, astrom->em, pnat);
+
+/* Aberration, giving GCRS proper direction. */
+   eraAb(pnat, astrom->v, astrom->em, astrom->bm1, ppr);
+
+/* Bias-precession-nutation, giving CIRS proper direction. */
+   eraRxp(astrom->bpn, ppr, pi);
+
+/* CIRS RA,Dec. */
+   eraC2s(pi, &w, di);
+   *ri = eraAnp(w);
+
+/* Finished. */
+
+}
+
+void eraAtciqn(double rc, double dc, double pr, double pd,
+               double px, double rv, eraASTROM *astrom,
+               int n, eraLDBODY b[], double *ri, double *di)
+/*
+**  - - - - - - - - - -
+**   e r a A t c i q n
+**  - - - - - - - - - -
+**
+**  Quick ICRS, epoch J2000.0, to CIRS transformation, given precomputed
+**  star-independent astrometry parameters plus a list of light-
+**  deflecting bodies.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are to be transformed for one date.  The
+**  star-independent parameters can be obtained by calling one of the
+**  functions eraApci[13], eraApcg[13], eraApco[13] or eraApcs[13].
+**
+**
+**  If the only light-deflecting body to be taken into account is the
+**  Sun, the eraAtciq function can be used instead.  If in addition the
+**  parallax and proper motions are zero, the eraAtciqz function can be
+**  used.
+**
+**  Given:
+**     rc,dc  double       ICRS RA,Dec at J2000.0 (radians)
+**     pr     double       RA proper motion (radians/year; Note 3)
+**     pd     double       Dec proper motion (radians/year)
+**     px     double       parallax (arcsec)
+**     rv     double       radial velocity (km/s, +ve if receding)
+**     astrom eraASTROM*   star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**      n     int           number of bodies (Note 3)
+**      b     eraLDBODY[n] data for each of the n bodies (Notes 3,4):
+**       bm    double        mass of the body (solar masses, Note 5)
+**       dl    double        deflection limiter (Note 6)
+**       pv    [2][3]        barycentric PV of the body (au, au/day)
+**
+**  Returned:
+**     ri,di   double    CIRS RA,Dec (radians)
+**
+**  Notes:
+**
+**  1) Star data for an epoch other than J2000.0 (for example from the
+**     Hipparcos catalog, which has an epoch of J1991.25) will require a
+**     preliminary call to eraPmsafe before use.
+**
+**  2) The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.
+**
+**  3) The struct b contains n entries, one for each body to be
+**     considered.  If n = 0, no gravitational light deflection will be
+**     applied, not even for the Sun.
+**
+**  4) The struct b should include an entry for the Sun as well as for
+**     any planet or other body to be taken into account.  The entries
+**     should be in the order in which the light passes the body.
+**
+**  5) In the entry in the b struct for body i, the mass parameter
+**     b[i].bm can, as required, be adjusted in order to allow for such
+**     effects as quadrupole field.
+**
+**  6) The deflection limiter parameter b[i].dl is phi^2/2, where phi is
+**     the angular separation (in radians) between star and body at
+**     which limiting is applied.  As phi shrinks below the chosen
+**     threshold, the deflection is artificially reduced, reaching zero
+**     for phi = 0.   Example values suitable for a terrestrial
+**     observer, together with masses, are as follows:
+**
+**        body i     b[i].bm        b[i].dl
+**
+**        Sun        1.0            6e-6
+**        Jupiter    0.00095435     3e-9
+**        Saturn     0.00028574     3e-10
+**
+**  7) For efficiency, validation of the contents of the b array is
+**     omitted.  The supplied masses must be greater than zero, the
+**     position and velocity vectors must be right, and the deflection
+**     limiter greater than zero.
+**
+**  Called:
+**     eraPmpx      proper motion and parallax
+**     eraLdn       light deflection by n bodies
+**     eraAb        stellar aberration
+**     eraRxp       product of r-matrix and pv-vector
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range 0 to 2pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double pco[3], pnat[3], ppr[3], pi[3], w;
+
+
+/* Proper motion and parallax, giving BCRS coordinate direction. */
+   eraPmpx(rc, dc, pr, pd, px, rv, astrom->pmt, astrom->eb, pco);
+
+/* Light deflection, giving BCRS natural direction. */
+   eraLdn(n, b, astrom->eb, pco, pnat);
+
+/* Aberration, giving GCRS proper direction. */
+   eraAb(pnat, astrom->v, astrom->em, astrom->bm1, ppr);
+
+/* Bias-precession-nutation, giving CIRS proper direction. */
+   eraRxp(astrom->bpn, ppr, pi);
+
+/* CIRS RA,Dec. */
+   eraC2s(pi, &w, di);
+   *ri = eraAnp(w);
+
+/* Finished. */
+
+}
+
+void eraAtciqz(double rc, double dc, eraASTROM *astrom,
+               double *ri, double *di)
+/*
+**  - - - - - - - - - -
+**   e r a A t c i q z
+**  - - - - - - - - - -
+**
+**  Quick ICRS to CIRS transformation, given precomputed star-
+**  independent astrometry parameters, and assuming zero parallax and
+**  proper motion.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are to be transformed for one date.  The
+**  star-independent parameters can be obtained by calling one of the
+**  functions eraApci[13], eraApcg[13], eraApco[13] or eraApcs[13].
+**
+**  The corresponding function for the case of non-zero parallax and
+**  proper motion is eraAtciq.
+**
+**  Given:
+**     rc,dc  double     ICRS astrometric RA,Dec (radians)
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned:
+**     ri,di  double     CIRS RA,Dec (radians)
+**
+**  Note:
+**
+**     All the vectors are with respect to BCRS axes.
+**
+**  References:
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013).
+**
+**     Klioner, Sergei A., "A practical relativistic model for micro-
+**     arcsecond astrometry in space", Astr. J. 125, 1580-1597 (2003).
+**
+**  Called:
+**     eraS2c       spherical coordinates to unit vector
+**     eraLdsun     light deflection due to Sun
+**     eraAb        stellar aberration
+**     eraRxp       product of r-matrix and p-vector
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range +/- pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   double pco[3], pnat[3], ppr[3], pi[3], w;
+
+
+/* BCRS coordinate direction (unit vector). */
+   eraS2c(rc, dc, pco);
+
+/* Light deflection by the Sun, giving BCRS natural direction. */
+   eraLdsun(pco, astrom->eh, astrom->em, pnat);
+
+/* Aberration, giving GCRS proper direction. */
+   eraAb(pnat, astrom->v, astrom->em, astrom->bm1, ppr);
+
+/* Bias-precession-nutation, giving CIRS proper direction. */
+   eraRxp(astrom->bpn, ppr, pi);
+
+/* CIRS RA,Dec. */
+   eraC2s(pi, &w, di);
+   *ri = eraAnp(w);
+
+/* Finished. */
+
+}
+
+int eraAtco13(double rc, double dc,
+              double pr, double pd, double px, double rv,
+              double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              double *aob, double *zob, double *hob,
+              double *dob, double *rob, double *eo)
+/*
+**  - - - - - - - - - -
+**   e r a A t c o 1 3
+**  - - - - - - - - - -
+**
+**  ICRS RA,Dec to observed place.  The caller supplies UTC, site
+**  coordinates, ambient air conditions and observing wavelength.
+**
+**  ERFA models are used for the Earth ephemeris, bias-precession-
+**  nutation, Earth orientation and refraction.
+**
+**  Given:
+**     rc,dc  double   ICRS right ascension at J2000.0 (radians, Note 1)
+**     pr     double   RA proper motion (radians/year; Note 2)
+**     pd     double   Dec proper motion (radians/year)
+**     px     double   parallax (arcsec)
+**     rv     double   radial velocity (km/s, +ve if receding)
+**     utc1   double   UTC as a 2-part...
+**     utc2   double   ...quasi Julian Date (Notes 3-4)
+**     dut1   double   UT1-UTC (seconds, Note 5)
+**     elong  double   longitude (radians, east +ve, Note 6)
+**     phi    double   latitude (geodetic, radians, Note 6)
+**     hm     double   height above ellipsoid (m, geodetic, Notes 6,8)
+**     xp,yp  double   polar motion coordinates (radians, Note 7)
+**     phpa   double   pressure at the observer (hPa = mB, Note 8)
+**     tc     double   ambient temperature at the observer (deg C)
+**     rh     double   relative humidity at the observer (range 0-1)
+**     wl     double   wavelength (micrometers, Note 9)
+**
+**  Returned:
+**     aob    double*  observed azimuth (radians: N=0,E=90)
+**     zob    double*  observed zenith distance (radians)
+**     hob    double*  observed hour angle (radians)
+**     dob    double*  observed declination (radians)
+**     rob    double*  observed right ascension (CIO-based, radians)
+**     eo     double*  equation of the origins (ERA-GST)
+**
+**  Returned (function value):
+**            int      status: +1 = dubious year (Note 4)
+**                              0 = OK
+**                             -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  Star data for an epoch other than J2000.0 (for example from the
+**      Hipparcos catalog, which has an epoch of J1991.25) will require
+**      a preliminary call to eraPmsafe before use.
+**
+**  2)  The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.
+**
+**  3)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  4)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the
+**      future to be trusted.  See eraDat for further details.
+**
+**  5)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  6)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  7)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many
+**      applications, xp and yp can be set to zero.
+**
+**  8)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB),
+**      is available, an adequate estimate of hm can be obtained from
+**      the expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to
+**      the pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  9)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  10) The accuracy of the result is limited by the corrections for
+**      refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**      Providing the meteorological parameters are known accurately and
+**      there are no gross local effects, the predicted observed
+**      coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**      (radio) for a zenith distance of less than 70 degrees, better
+**      than 30 arcsec (optical or radio) at 85 degrees and better
+**      than 20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**      Without refraction, the complementary functions eraAtco13 and
+**      eraAtoc13 are self-consistent to better than 1 microarcsecond
+**      all over the celestial sphere.  With refraction included,
+**      consistency falls off at high zenith distances, but is still
+**      better than 0.05 arcsec at 85 degrees.
+**
+**  11) "Observed" Az,ZD means the position that would be seen by a
+**      perfect geodetically aligned theodolite.  (Zenith distance is
+**      used rather than altitude in order to reflect the fact that no
+**      allowance is made for depression of the horizon.)  This is
+**      related to the observed HA,Dec via the standard rotation, using
+**      the geodetic latitude (corrected for polar motion), while the
+**      observed HA and RA are related simply through the Earth rotation
+**      angle and the site longitude.  "Observed" RA,Dec or HA,Dec thus
+**      means the position that would be seen by a perfect equatorial
+**      with its polar axis aligned to the Earth's axis of rotation.
+**
+**  12) It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  Called:
+**     eraApco13    astrometry parameters, ICRS-observed, 2013
+**     eraAtciq     quick ICRS to CIRS
+**     eraAtioq     quick ICRS to observed
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   eraASTROM astrom;
+   double ri, di;
+
+
+/* Star-independent astrometry parameters. */
+   j = eraApco13(utc1, utc2, dut1, elong, phi, hm, xp, yp,
+                 phpa, tc, rh, wl, &astrom, eo);
+
+/* Abort if bad UTC. */
+   if ( j < 0 ) return j;
+
+/* Transform ICRS to CIRS. */
+   eraAtciq(rc, dc, pr, pd, px, rv, &astrom, &ri, &di);
+
+/* Transform CIRS to observed. */
+   eraAtioq(ri, di, &astrom, aob, zob, hob, dob, rob);
+
+/* Return OK/warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+void eraAtic13(double ri, double di, double date1, double date2,
+               double *rc, double *dc, double *eo)
+/*
+**  - - - - - - - - - -
+**   e r a A t i c 1 3
+**  - - - - - - - - - -
+**
+**  Transform star RA,Dec from geocentric CIRS to ICRS astrometric.
+**
+**  Given:
+**     ri,di  double  CIRS geocentric RA,Dec (radians)
+**     date1  double  TDB as a 2-part...
+**     date2  double  ...Julian Date (Note 1)
+**
+**  Returned:
+**     rc,dc  double  ICRS astrometric RA,Dec (radians)
+**     eo     double  equation of the origins (ERA-GST, Note 4)
+**
+**  Notes:
+**
+**  1) The TDB date date1+date2 is a Julian Date, apportioned in any
+**     convenient way between the two arguments.  For example,
+**     JD(TDB)=2450123.7 could be expressed in any of these ways, among
+**     others:
+**
+**            date1          date2
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.  For most
+**     applications of this function the choice will not be at all
+**     critical.
+**
+**     TT can be used instead of TDB without any significant impact on
+**     accuracy.
+**
+**  2) Iterative techniques are used for the aberration and light
+**     deflection corrections so that the functions eraAtic13 (or
+**     eraAticq) and eraAtci13 (or eraAtciq) are accurate inverses;
+**     even at the edge of the Sun's disk the discrepancy is only about
+**     1 nanoarcsecond.
+**
+**  3) The available accuracy is better than 1 milliarcsecond, limited
+**     mainly by the precession-nutation model that is used, namely
+**     IAU 2000A/2006.  Very close to solar system bodies, additional
+**     errors of up to several milliarcseconds can occur because of
+**     unmodeled light deflection;  however, the Sun's contribution is
+**     taken into account, to first order.  The accuracy limitations of
+**     the ERFA function eraEpv00 (used to compute Earth position and
+**     velocity) can contribute aberration errors of up to
+**     5 microarcseconds.  Light deflection at the Sun's limb is
+**     uncertain at the 0.4 mas level.
+**
+**  4) Should the transformation to (equinox based) J2000.0 mean place
+**     be required rather than (CIO based) ICRS coordinates, subtract the
+**     equation of the origins from the returned right ascension:
+**     RA = RI - EO.  (The eraAnp function can then be applied, as
+**     required, to keep the result in the conventional 0-2pi range.)
+**
+**  Called:
+**     eraApci13    astrometry parameters, ICRS-CIRS, 2013
+**     eraAticq     quick CIRS to ICRS astrometric
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Star-independent astrometry parameters */
+   eraASTROM astrom;
+
+
+/* Star-independent astrometry parameters. */
+   eraApci13(date1, date2, &astrom, eo);
+
+/* CIRS to ICRS astrometric. */
+   eraAticq(ri, di, &astrom, rc, dc);
+
+/* Finished. */
+
+}
+
+void eraAticq(double ri, double di, eraASTROM *astrom,
+              double *rc, double *dc)
+/*
+**  - - - - - - - - -
+**   e r a A t i c q
+**  - - - - - - - - -
+**
+**  Quick CIRS RA,Dec to ICRS astrometric place, given the star-
+**  independent astrometry parameters.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are all to be transformed for one date.
+**  The star-independent astrometry parameters can be obtained by
+**  calling one of the functions eraApci[13], eraApcg[13], eraApco[13]
+**  or eraApcs[13].
+**
+**  Given:
+**     ri,di  double     CIRS RA,Dec (radians)
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned:
+**     rc,dc  double     ICRS astrometric RA,Dec (radians)
+**
+**  Notes:
+**
+**  1) Only the Sun is taken into account in the light deflection
+**     correction.
+**
+**  2) Iterative techniques are used for the aberration and light
+**     deflection corrections so that the functions eraAtic13 (or
+**     eraAticq) and eraAtci13 (or eraAtciq) are accurate inverses;
+**     even at the edge of the Sun's disk the discrepancy is only about
+**     1 nanoarcsecond.
+**
+**  Called:
+**     eraS2c       spherical coordinates to unit vector
+**     eraTrxp      product of transpose of r-matrix and p-vector
+**     eraZp        zero p-vector
+**     eraAb        stellar aberration
+**     eraLdsun     light deflection by the Sun
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range +/- pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j, i;
+   double pi[3], ppr[3], pnat[3], pco[3], w, d[3], before[3], r2, r,
+          after[3];
+
+
+/* CIRS RA,Dec to Cartesian. */
+   eraS2c(ri, di, pi);
+
+/* Bias-precession-nutation, giving GCRS proper direction. */
+   eraTrxp(astrom->bpn, pi, ppr);
+
+/* Aberration, giving GCRS natural direction. */
+   eraZp(d);
+   for (j = 0; j < 2; j++) {
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         w = ppr[i] - d[i];
+         before[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         before[i] /= r;
+      }
+      eraAb(before, astrom->v, astrom->em, astrom->bm1, after);
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         d[i] = after[i] - before[i];
+         w = ppr[i] - d[i];
+         pnat[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         pnat[i] /= r;
+      }
+   }
+
+/* Light deflection by the Sun, giving BCRS coordinate direction. */
+   eraZp(d);
+   for (j = 0; j < 5; j++) {
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         w = pnat[i] - d[i];
+         before[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         before[i] /= r;
+      }
+      eraLdsun(before, astrom->eh, astrom->em, after);
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         d[i] = after[i] - before[i];
+         w = pnat[i] - d[i];
+         pco[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         pco[i] /= r;
+      }
+   }
+
+/* ICRS astrometric RA,Dec. */
+   eraC2s(pco, &w, dc);
+   *rc = eraAnp(w);
+
+/* Finished. */
+
+}
+
+void eraAticqn(double ri, double di, eraASTROM *astrom,
+               int n, eraLDBODY b[], double *rc, double *dc)
+/*
+**  - - - - - - - - -
+**   e r a A t i c q n
+**  - - - - - - - - -
+**
+**  Quick CIRS to ICRS astrometric place transformation, given the star-
+**  independent astrometry parameters plus a list of light-deflecting
+**  bodies.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are all to be transformed for one date.
+**  The star-independent astrometry parameters can be obtained by
+**  calling one of the functions eraApci[13], eraApcg[13], eraApco[13]
+**  or eraApcs[13].
+*
+*  If the only light-deflecting body to be taken into account is the
+*  Sun, the eraAticq function can be used instead.
+**
+**  Given:
+**     ri,di  double      CIRS RA,Dec (radians)
+**     astrom eraASTROM*  star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**      n     int           number of bodies (Note 3)
+**      b     eraLDBODY[n] data for each of the n bodies (Notes 3,4):
+**       bm    double       mass of the body (solar masses, Note 5)
+**       dl    double       deflection limiter (Note 6)
+**       pv    [2][3]       barycentric PV of the body (au, au/day)
+**
+**  Returned:
+**     rc,dc  double     ICRS astrometric RA,Dec (radians)
+**
+**  Notes:
+**
+**  1) Iterative techniques are used for the aberration and light
+**     deflection corrections so that the functions eraAticqn and
+**     eraAtciqn are accurate inverses; even at the edge of the Sun's
+**     disk the discrepancy is only about 1 nanoarcsecond.
+**
+**  2) If the only light-deflecting body to be taken into account is the
+**     Sun, the eraAticq function can be used instead.
+**
+**  3) The struct b contains n entries, one for each body to be
+**     considered.  If n = 0, no gravitational light deflection will be
+**     applied, not even for the Sun.
+**
+**  4) The struct b should include an entry for the Sun as well as for
+**     any planet or other body to be taken into account.  The entries
+**     should be in the order in which the light passes the body.
+**
+**  5) In the entry in the b struct for body i, the mass parameter
+**     b[i].bm can, as required, be adjusted in order to allow for such
+**     effects as quadrupole field.
+**
+**  6) The deflection limiter parameter b[i].dl is phi^2/2, where phi is
+**     the angular separation (in radians) between star and body at
+**     which limiting is applied.  As phi shrinks below the chosen
+**     threshold, the deflection is artificially reduced, reaching zero
+**     for phi = 0.   Example values suitable for a terrestrial
+**     observer, together with masses, are as follows:
+**
+**        body i     b[i].bm        b[i].dl
+**
+**        Sun        1.0            6e-6
+**        Jupiter    0.00095435     3e-9
+**        Saturn     0.00028574     3e-10
+**
+**  7) For efficiency, validation of the contents of the b array is
+**     omitted.  The supplied masses must be greater than zero, the
+**     position and velocity vectors must be right, and the deflection
+**     limiter greater than zero.
+**
+**  Called:
+**     eraS2c       spherical coordinates to unit vector
+**     eraTrxp      product of transpose of r-matrix and p-vector
+**     eraZp        zero p-vector
+**     eraAb        stellar aberration
+**     eraLdn       light deflection by n bodies
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range +/- pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j, i;
+   double pi[3], ppr[3], pnat[3], pco[3], w, d[3], before[3], r2, r,
+          after[3];
+
+
+/* CIRS RA,Dec to Cartesian. */
+   eraS2c(ri, di, pi);
+
+/* Bias-precession-nutation, giving GCRS proper direction. */
+   eraTrxp(astrom->bpn, pi, ppr);
+
+/* Aberration, giving GCRS natural direction. */
+   eraZp(d);
+   for (j = 0; j < 2; j++) {
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         w = ppr[i] - d[i];
+         before[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         before[i] /= r;
+      }
+      eraAb(before, astrom->v, astrom->em, astrom->bm1, after);
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         d[i] = after[i] - before[i];
+         w = ppr[i] - d[i];
+         pnat[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         pnat[i] /= r;
+      }
+   }
+
+/* Light deflection, giving BCRS coordinate direction. */
+   eraZp(d);
+   for (j = 0; j < 5; j++) {
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         w = pnat[i] - d[i];
+         before[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         before[i] /= r;
+      }
+      eraLdn(n, b, astrom->eb, before, after);
+      r2 = 0.0;
+      for (i = 0; i < 3; i++) {
+         d[i] = after[i] - before[i];
+         w = pnat[i] - d[i];
+         pco[i] = w;
+         r2 += w*w;
+      }
+      r = sqrt(r2);
+      for (i = 0; i < 3; i++) {
+         pco[i] /= r;
+      }
+   }
+
+/* ICRS astrometric RA,Dec. */
+   eraC2s(pco, &w, dc);
+   *rc = eraAnp(w);
+
+/* Finished. */
+
+}
+
+int eraAtio13(double ri, double di,
+              double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              double *aob, double *zob, double *hob,
+              double *dob, double *rob)
+/*
+**  - - - - - - - - - -
+**   e r a A t i o 1 3
+**  - - - - - - - - - -
+**
+**  CIRS RA,Dec to observed place.  The caller supplies UTC, site
+**  coordinates, ambient air conditions and observing wavelength.
+**
+**  Given:
+**     ri     double   CIRS right ascension (CIO-based, radians)
+**     di     double   CIRS declination (radians)
+**     utc1   double   UTC as a 2-part...
+**     utc2   double   ...quasi Julian Date (Notes 1,2)
+**     dut1   double   UT1-UTC (seconds, Note 3)
+**     elong  double   longitude (radians, east +ve, Note 4)
+**     phi    double   geodetic latitude (radians, Note 4)
+**     hm     double   height above ellipsoid (m, geodetic Notes 4,6)
+**     xp,yp  double   polar motion coordinates (radians, Note 5)
+**     phpa   double   pressure at the observer (hPa = mB, Note 6)
+**     tc     double   ambient temperature at the observer (deg C)
+**     rh     double   relative humidity at the observer (range 0-1)
+**     wl     double   wavelength (micrometers, Note 7)
+**
+**  Returned:
+**     aob    double*  observed azimuth (radians: N=0,E=90)
+**     zob    double*  observed zenith distance (radians)
+**     hob    double*  observed hour angle (radians)
+**     dob    double*  observed declination (radians)
+**     rob    double*  observed right ascension (CIO-based, radians)
+**
+**  Returned (function value):
+**            int      status: +1 = dubious year (Note 2)
+**                              0 = OK
+**                             -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  2)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the
+**      future to be trusted.  See eraDat for further details.
+**
+**  3)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  4)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  5)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many
+**      applications, xp and yp can be set to zero.
+**
+**  6)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB), is
+**      available, an adequate estimate of hm can be obtained from the
+**      expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to
+**      the pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  7)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  8)  "Observed" Az,ZD means the position that would be seen by a
+**      perfect geodetically aligned theodolite.  (Zenith distance is
+**      used rather than altitude in order to reflect the fact that no
+**      allowance is made for depression of the horizon.)  This is
+**      related to the observed HA,Dec via the standard rotation, using
+**      the geodetic latitude (corrected for polar motion), while the
+**      observed HA and RA are related simply through the Earth rotation
+**      angle and the site longitude.  "Observed" RA,Dec or HA,Dec thus
+**      means the position that would be seen by a perfect equatorial
+**      with its polar axis aligned to the Earth's axis of rotation.
+**
+**  9)  The accuracy of the result is limited by the corrections for
+**      refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**      Providing the meteorological parameters are known accurately and
+**      there are no gross local effects, the predicted astrometric
+**      coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**      (radio) for a zenith distance of less than 70 degrees, better
+**      than 30 arcsec (optical or radio) at 85 degrees and better
+**      than 20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**  10) The complementary functions eraAtio13 and eraAtoi13 are self-
+**      consistent to better than 1 microarcsecond all over the
+**      celestial sphere.
+**
+**  11) It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  Called:
+**     eraApio13    astrometry parameters, CIRS-observed, 2013
+**     eraAtioq     quick ICRS to observed
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   eraASTROM astrom;
+
+
+/* Star-independent astrometry parameters for CIRS->observed. */
+   j = eraApio13(utc1, utc2, dut1, elong, phi, hm, xp, yp,
+                 phpa, tc, rh, wl, &astrom);
+
+/* Abort if bad UTC. */
+   if ( j < 0 ) return j;
+
+/* Transform CIRS to observed. */
+   eraAtioq(ri, di, &astrom, aob, zob, hob, dob, rob);
+
+/* Return OK/warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+void eraAtioq(double ri, double di, eraASTROM *astrom,
+              double *aob, double *zob,
+              double *hob, double *dob, double *rob)
+/*
+**  - - - - - - - - -
+**   e r a A t i o q
+**  - - - - - - - - -
+**
+**  Quick CIRS to observed place transformation.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are all to be transformed for one date.
+**  The star-independent astrometry parameters can be obtained by
+**  calling eraApio[13] or eraApco[13].
+**
+**  Given:
+**     ri     double     CIRS right ascension
+**     di     double     CIRS declination
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned:
+**     aob    double*    observed azimuth (radians: N=0,E=90)
+**     zob    double*    observed zenith distance (radians)
+**     hob    double*    observed hour angle (radians)
+**     dob    double*    observed declination (radians)
+**     rob    double*    observed right ascension (CIO-based, radians)
+**
+**  Notes:
+**
+**  1) This function returns zenith distance rather than altitude in
+**     order to reflect the fact that no allowance is made for
+**     depression of the horizon.
+**
+**  2) The accuracy of the result is limited by the corrections for
+**     refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**     Providing the meteorological parameters are known accurately and
+**     there are no gross local effects, the predicted observed
+**     coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**     (radio) for a zenith distance of less than 70 degrees, better
+**     than 30 arcsec (optical or radio) at 85 degrees and better
+**     than 20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**     Without refraction, the complementary functions eraAtioq and
+**     eraAtoiq are self-consistent to better than 1 microarcsecond all
+**     over the celestial sphere.  With refraction included, consistency
+**     falls off at high zenith distances, but is still better than
+**     0.05 arcsec at 85 degrees.
+**
+**  3) It is advisable to take great care with units, as even unlikely
+**     values of the input parameters are accepted and processed in
+**     accordance with the models used.
+**
+**  4) The CIRS RA,Dec is obtained from a star catalog mean place by
+**     allowing for space motion, parallax, the Sun's gravitational lens
+**     effect, annual aberration and precession-nutation.  For star
+**     positions in the ICRS, these effects can be applied by means of
+**     the eraAtci13 (etc.) functions.  Starting from classical "mean
+**     place" systems, additional transformations will be needed first.
+**
+**  5) "Observed" Az,El means the position that would be seen by a
+**     perfect geodetically aligned theodolite.  This is obtained from
+**     the CIRS RA,Dec by allowing for Earth orientation and diurnal
+**     aberration, rotating from equator to horizon coordinates, and
+**     then adjusting for refraction.  The HA,Dec is obtained by
+**     rotating back into equatorial coordinates, and is the position
+**     that would be seen by a perfect equatorial with its polar axis
+**     aligned to the Earth's axis of rotation.  Finally, the RA is
+**     obtained by subtracting the HA from the local ERA.
+**
+**  6) The star-independent CIRS-to-observed-place parameters in ASTROM
+**     may be computed with eraApio[13] or eraApco[13].  If nothing has
+**     changed significantly except the time, eraAper[13] may be used to
+**     perform the requisite adjustment to the astrom structure.
+**
+**  Called:
+**     eraS2c       spherical coordinates to unit vector
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range 0 to 2pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Minimum cos(alt) and sin(alt) for refraction purposes */
+   const double CELMIN = 1e-6;
+   const double SELMIN = 0.05;
+
+   double v[3], x, y, z, xhd, yhd, zhd, f, xhdt, yhdt, zhdt,
+          xaet, yaet, zaet, azobs, r, tz, w, del, cosdel,
+          xaeo, yaeo, zaeo, zdobs, hmobs, dcobs, raobs;
+
+/*--------------------------------------------------------------------*/
+
+/* CIRS RA,Dec to Cartesian -HA,Dec. */
+   eraS2c(ri-astrom->eral, di, v);
+   x = v[0];
+   y = v[1];
+   z = v[2];
+
+/* Polar motion. */
+   xhd = x + astrom->xpl*z;
+   yhd = y - astrom->ypl*z;
+   zhd = z - astrom->xpl*x + astrom->ypl*y;
+
+/* Diurnal aberration. */
+   f = ( 1.0 - astrom->diurab*yhd );
+   xhdt = f * xhd;
+   yhdt = f * ( yhd + astrom->diurab );
+   zhdt = f * zhd;
+
+/* Cartesian -HA,Dec to Cartesian Az,El (S=0,E=90). */
+   xaet = astrom->sphi*xhdt - astrom->cphi*zhdt;
+   yaet = yhdt;
+   zaet = astrom->cphi*xhdt + astrom->sphi*zhdt;
+
+/* Azimuth (N=0,E=90). */
+   azobs = ( xaet != 0.0 || yaet != 0.0 ) ? atan2(yaet,-xaet) : 0.0;
+
+/* ---------- */
+/* Refraction */
+/* ---------- */
+
+/* Cosine and sine of altitude, with precautions. */
+   r = sqrt(xaet*xaet + yaet*yaet);
+   r = r > CELMIN ? r : CELMIN;
+   z = zaet > SELMIN ? zaet : SELMIN;
+
+/* A*tan(z)+B*tan^3(z) model, with Newton-Raphson correction. */
+   tz = r/z;
+   w = astrom->refb*tz*tz;
+   del = ( astrom->refa + w ) * tz /
+         ( 1.0 + ( astrom->refa + 3.0*w ) / ( z*z ) );
+
+/* Apply the change, giving observed vector. */
+   cosdel = 1.0 - del*del/2.0;
+   f = cosdel - del*z/r;
+   xaeo = xaet*f;
+   yaeo = yaet*f;
+   zaeo = cosdel*zaet + del*r;
+
+/* Observed ZD. */
+   zdobs = atan2(sqrt(xaeo*xaeo+yaeo*yaeo), zaeo);
+
+/* Az/El vector to HA,Dec vector (both right-handed). */
+   v[0] = astrom->sphi*xaeo + astrom->cphi*zaeo;
+   v[1] = yaeo;
+   v[2] = - astrom->cphi*xaeo + astrom->sphi*zaeo;
+
+/* To spherical -HA,Dec. */
+   eraC2s ( v, &hmobs, &dcobs );
+
+/* Right ascension (with respect to CIO). */
+   raobs = astrom->eral + hmobs;
+
+/* Return the results. */
+   *aob = eraAnp(azobs);
+   *zob = zdobs;
+   *hob = -hmobs;
+   *dob = dcobs;
+   *rob = eraAnp(raobs);
+
+/* Finished. */
+
+}
+
+int eraAtoc13(const char *type, double ob1, double ob2,
+              double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              double *rc, double *dc)
+/*
+**  - - - - - - - - - -
+**   e r a A t o c 1 3
+**  - - - - - - - - - -
+**
+**  Observed place at a groundbased site to to ICRS astrometric RA,Dec.
+**  The caller supplies UTC, site coordinates, ambient air conditions
+**  and observing wavelength.
+**
+**  Given:
+**     type   char[]   type of coordinates - "R", "H" or "A" (Notes 1,2)
+**     ob1    double   observed Az, HA or RA (radians; Az is N=0,E=90)
+**     ob2    double   observed ZD or Dec (radians)
+**     utc1   double   UTC as a 2-part...
+**     utc2   double   ...quasi Julian Date (Notes 3,4)
+**     dut1   double   UT1-UTC (seconds, Note 5)
+**     elong  double   longitude (radians, east +ve, Note 6)
+**     phi    double   geodetic latitude (radians, Note 6)
+**     hm     double   height above ellipsoid (m, geodetic Notes 6,8)
+**     xp,yp  double   polar motion coordinates (radians, Note 7)
+**     phpa   double   pressure at the observer (hPa = mB, Note 8)
+**     tc     double   ambient temperature at the observer (deg C)
+**     rh     double   relative humidity at the observer (range 0-1)
+**     wl     double   wavelength (micrometers, Note 9)
+**
+**  Returned:
+**     rc,dc  double   ICRS astrometric RA,Dec (radians)
+**
+**  Returned (function value):
+**            int      status: +1 = dubious year (Note 4)
+**                              0 = OK
+**                             -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  "Observed" Az,ZD means the position that would be seen by a
+**      perfect geodetically aligned theodolite.  (Zenith distance is
+**      used rather than altitude in order to reflect the fact that no
+**      allowance is made for depression of the horizon.)  This is
+**      related to the observed HA,Dec via the standard rotation, using
+**      the geodetic latitude (corrected for polar motion), while the
+**      observed HA and RA are related simply through the Earth rotation
+**      angle and the site longitude.  "Observed" RA,Dec or HA,Dec thus
+**      means the position that would be seen by a perfect equatorial
+**      with its polar axis aligned to the Earth's axis of rotation.
+**
+**  2)  Only the first character of the type argument is significant.
+**      "R" or "r" indicates that ob1 and ob2 are the observed right
+**      ascension and declination;  "H" or "h" indicates that they are
+**      hour angle (west +ve) and declination;  anything else ("A" or
+**      "a" is recommended) indicates that ob1 and ob2 are azimuth
+**      (north zero, east 90 deg) and zenith distance.
+**
+**  3)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  4)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the
+**      future to be trusted.  See eraDat for further details.
+**
+**  5)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  6)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  7)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many
+**      applications, xp and yp can be set to zero.
+**
+**  8)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB), is
+**      available, an adequate estimate of hm can be obtained from the
+**      expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to
+**      the pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  9)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  10) The accuracy of the result is limited by the corrections for
+**      refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**      Providing the meteorological parameters are known accurately and
+**      there are no gross local effects, the predicted astrometric
+**      coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**      (radio) for a zenith distance of less than 70 degrees, better
+**      than 30 arcsec (optical or radio) at 85 degrees and better
+**      than 20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**      Without refraction, the complementary functions eraAtco13 and
+**      eraAtoc13 are self-consistent to better than 1 microarcsecond
+**      all over the celestial sphere.  With refraction included,
+**      consistency falls off at high zenith distances, but is still
+**      better than 0.05 arcsec at 85 degrees.
+**
+**  11) It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  Called:
+**     eraApco13    astrometry parameters, ICRS-observed
+**     eraAtoiq     quick observed to CIRS
+**     eraAticq     quick CIRS to ICRS
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   eraASTROM astrom;
+   double eo, ri, di;
+
+
+/* Star-independent astrometry parameters. */
+   j = eraApco13(utc1, utc2, dut1, elong, phi, hm, xp, yp,
+                 phpa, tc, rh, wl, &astrom, &eo);
+
+/* Abort if bad UTC. */
+   if ( j < 0 ) return j;
+
+/* Transform observed to CIRS. */
+   eraAtoiq(type, ob1, ob2, &astrom, &ri, &di);
+
+/* Transform CIRS to ICRS. */
+   eraAticq(ri, di, &astrom, rc, dc);
+
+/* Return OK/warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+int eraAtoi13(const char *type, double ob1, double ob2,
+              double utc1, double utc2, double dut1,
+              double elong, double phi, double hm, double xp, double yp,
+              double phpa, double tc, double rh, double wl,
+              double *ri, double *di)
+/*
+**  - - - - - - - - - -
+**   e r a A t o i 1 3
+**  - - - - - - - - - -
+**
+**  Observed place to CIRS.  The caller supplies UTC, site coordinates,
+**  ambient air conditions and observing wavelength.
+**
+**  Given:
+**     type   char[]   type of coordinates - "R", "H" or "A" (Notes 1,2)
+**     ob1    double   observed Az, HA or RA (radians; Az is N=0,E=90)
+**     ob2    double   observed ZD or Dec (radians)
+**     utc1   double   UTC as a 2-part...
+**     utc2   double   ...quasi Julian Date (Notes 3,4)
+**     dut1   double   UT1-UTC (seconds, Note 5)
+**     elong  double   longitude (radians, east +ve, Note 6)
+**     phi    double   geodetic latitude (radians, Note 6)
+**     hm     double   height above the ellipsoid (meters, Notes 6,8)
+**     xp,yp  double   polar motion coordinates (radians, Note 7)
+**     phpa   double   pressure at the observer (hPa = mB, Note 8)
+**     tc     double   ambient temperature at the observer (deg C)
+**     rh     double   relative humidity at the observer (range 0-1)
+**     wl     double   wavelength (micrometers, Note 9)
+**
+**  Returned:
+**     ri     double*  CIRS right ascension (CIO-based, radians)
+**     di     double*  CIRS declination (radians)
+**
+**  Returned (function value):
+**            int      status: +1 = dubious year (Note 2)
+**                              0 = OK
+**                             -1 = unacceptable date
+**
+**  Notes:
+**
+**  1)  "Observed" Az,ZD means the position that would be seen by a
+**      perfect geodetically aligned theodolite.  (Zenith distance is
+**      used rather than altitude in order to reflect the fact that no
+**      allowance is made for depression of the horizon.)  This is
+**      related to the observed HA,Dec via the standard rotation, using
+**      the geodetic latitude (corrected for polar motion), while the
+**      observed HA and RA are related simply through the Earth rotation
+**      angle and the site longitude.  "Observed" RA,Dec or HA,Dec thus
+**      means the position that would be seen by a perfect equatorial
+**      with its polar axis aligned to the Earth's axis of rotation.
+**
+**  2)  Only the first character of the type argument is significant.
+**      "R" or "r" indicates that ob1 and ob2 are the observed right
+**      ascension and declination;  "H" or "h" indicates that they are
+**      hour angle (west +ve) and declination;  anything else ("A" or
+**      "a" is recommended) indicates that ob1 and ob2 are azimuth
+**      (north zero, east 90 deg) and zenith distance.
+**
+**  3)  utc1+utc2 is quasi Julian Date (see Note 2), apportioned in any
+**      convenient way between the two arguments, for example where utc1
+**      is the Julian Day Number and utc2 is the fraction of a day.
+**
+**      However, JD cannot unambiguously represent UTC during a leap
+**      second unless special measures are taken.  The convention in the
+**      present function is that the JD day represents UTC days whether
+**      the length is 86399, 86400 or 86401 SI seconds.
+**
+**      Applications should use the function eraDtf2d to convert from
+**      calendar date and time of day into 2-part quasi Julian Date, as
+**      it implements the leap-second-ambiguity convention just
+**      described.
+**
+**  4)  The warning status "dubious year" flags UTCs that predate the
+**      introduction of the time scale or that are too far in the
+**      future to be trusted.  See eraDat for further details.
+**
+**  5)  UT1-UTC is tabulated in IERS bulletins.  It increases by exactly
+**      one second at the end of each positive UTC leap second,
+**      introduced in order to keep UT1-UTC within +/- 0.9s.  n.b. This
+**      practice is under review, and in the future UT1-UTC may grow
+**      essentially without limit.
+**
+**  6)  The geographical coordinates are with respect to the ERFA_WGS84
+**      reference ellipsoid.  TAKE CARE WITH THE LONGITUDE SIGN:  the
+**      longitude required by the present function is east-positive
+**      (i.e. right-handed), in accordance with geographical convention.
+**
+**  7)  The polar motion xp,yp can be obtained from IERS bulletins.  The
+**      values are the coordinates (in radians) of the Celestial
+**      Intermediate Pole with respect to the International Terrestrial
+**      Reference System (see IERS Conventions 2003), measured along the
+**      meridians 0 and 90 deg west respectively.  For many
+**      applications, xp and yp can be set to zero.
+**
+**  8)  If hm, the height above the ellipsoid of the observing station
+**      in meters, is not known but phpa, the pressure in hPa (=mB), is
+**      available, an adequate estimate of hm can be obtained from the
+**      expression
+**
+**            hm = -29.3 * tsl * log ( phpa / 1013.25 );
+**
+**      where tsl is the approximate sea-level air temperature in K
+**      (See Astrophysical Quantities, C.W.Allen, 3rd edition, section
+**      52).  Similarly, if the pressure phpa is not known, it can be
+**      estimated from the height of the observing station, hm, as
+**      follows:
+**
+**            phpa = 1013.25 * exp ( -hm / ( 29.3 * tsl ) );
+**
+**      Note, however, that the refraction is nearly proportional to
+**      the pressure and that an accurate phpa value is important for
+**      precise work.
+**
+**  9)  The argument wl specifies the observing wavelength in
+**      micrometers.  The transition from optical to radio is assumed to
+**      occur at 100 micrometers (about 3000 GHz).
+**
+**  10) The accuracy of the result is limited by the corrections for
+**      refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**      Providing the meteorological parameters are known accurately and
+**      there are no gross local effects, the predicted astrometric
+**      coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**      (radio) for a zenith distance of less than 70 degrees, better
+**      than 30 arcsec (optical or radio) at 85 degrees and better
+**      than 20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**      Without refraction, the complementary functions eraAtio13 and
+**      eraAtoi13 are self-consistent to better than 1 microarcsecond
+**      all over the celestial sphere.  With refraction included,
+**      consistency falls off at high zenith distances, but is still
+**      better than 0.05 arcsec at 85 degrees.
+**
+**  12) It is advisable to take great care with units, as even unlikely
+**      values of the input parameters are accepted and processed in
+**      accordance with the models used.
+**
+**  Called:
+**     eraApio13    astrometry parameters, CIRS-observed, 2013
+**     eraAtoiq     quick observed to CIRS
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int j;
+   eraASTROM astrom;
+
+
+/* Star-independent astrometry parameters for CIRS->observed. */
+   j = eraApio13(utc1, utc2, dut1, elong, phi, hm, xp, yp,
+                 phpa, tc, rh, wl, &astrom);
+
+/* Abort if bad UTC. */
+   if ( j < 0 ) return j;
+
+/* Transform observed to CIRS. */
+   eraAtoiq(type, ob1, ob2, &astrom, ri, di);
+
+/* Return OK/warning status. */
+   return j;
+
+/* Finished. */
+
+}
+
+void eraAtoiq(const char *type,
+              double ob1, double ob2, eraASTROM *astrom,
+              double *ri, double *di)
+/*
+**  - - - - - - - - -
+**   e r a A t o i q
+**  - - - - - - - - -
+**
+**  Quick observed place to CIRS, given the star-independent astrometry
+**  parameters.
+**
+**  Use of this function is appropriate when efficiency is important and
+**  where many star positions are all to be transformed for one date.
+**  The star-independent astrometry parameters can be obtained by
+**  calling eraApio[13] or eraApco[13].
+**
+**  Given:
+**     type   char[]     type of coordinates: "R", "H" or "A" (Note 1)
+**     ob1    double     observed Az, HA or RA (radians; Az is N=0,E=90)
+**     ob2    double     observed ZD or Dec (radians)
+**     astrom eraASTROM* star-independent astrometry parameters:
+**      pmt    double       PM time interval (SSB, Julian years)
+**      eb     double[3]    SSB to observer (vector, au)
+**      eh     double[3]    Sun to observer (unit vector)
+**      em     double       distance from Sun to observer (au)
+**      v      double[3]    barycentric observer velocity (vector, c)
+**      bm1    double       sqrt(1-|v|^2): reciprocal of Lorenz factor
+**      bpn    double[3][3] bias-precession-nutation matrix
+**      along  double       longitude + s' (radians)
+**      xpl    double       polar motion xp wrt local meridian (radians)
+**      ypl    double       polar motion yp wrt local meridian (radians)
+**      sphi   double       sine of geodetic latitude
+**      cphi   double       cosine of geodetic latitude
+**      diurab double       magnitude of diurnal aberration vector
+**      eral   double       "local" Earth rotation angle (radians)
+**      refa   double       refraction constant A (radians)
+**      refb   double       refraction constant B (radians)
+**
+**  Returned:
+**     ri     double*    CIRS right ascension (CIO-based, radians)
+**     di     double*    CIRS declination (radians)
+**
+**  Notes:
+**
+**  1) "Observed" Az,El means the position that would be seen by a
+**     perfect geodetically aligned theodolite.  This is related to
+**     the observed HA,Dec via the standard rotation, using the geodetic
+**     latitude (corrected for polar motion), while the observed HA and
+**     RA are related simply through the Earth rotation angle and the
+**     site longitude.  "Observed" RA,Dec or HA,Dec thus means the
+**     position that would be seen by a perfect equatorial with its
+**     polar axis aligned to the Earth's axis of rotation.  By removing
+**     from the observed place the effects of atmospheric refraction and
+**     diurnal aberration, the CIRS RA,Dec is obtained.
+**
+**  2) Only the first character of the type argument is significant.
+**     "R" or "r" indicates that ob1 and ob2 are the observed right
+**     ascension and declination;  "H" or "h" indicates that they are
+**     hour angle (west +ve) and declination;  anything else ("A" or
+**     "a" is recommended) indicates that ob1 and ob2 are azimuth (north
+**     zero, east 90 deg) and zenith distance.  (Zenith distance is used
+**     rather than altitude in order to reflect the fact that no
+**     allowance is made for depression of the horizon.)
+**
+**  3) The accuracy of the result is limited by the corrections for
+**     refraction, which use a simple A*tan(z) + B*tan^3(z) model.
+**     Providing the meteorological parameters are known accurately and
+**     there are no gross local effects, the predicted observed
+**     coordinates should be within 0.05 arcsec (optical) or 1 arcsec
+**     (radio) for a zenith distance of less than 70 degrees, better
+**     than 30 arcsec (optical or radio) at 85 degrees and better than
+**     20 arcmin (optical) or 30 arcmin (radio) at the horizon.
+**
+**     Without refraction, the complementary functions eraAtioq and
+**     eraAtoiq are self-consistent to better than 1 microarcsecond all
+**     over the celestial sphere.  With refraction included, consistency
+**     falls off at high zenith distances, but is still better than
+**     0.05 arcsec at 85 degrees.
+**
+**  4) It is advisable to take great care with units, as even unlikely
+**     values of the input parameters are accepted and processed in
+**     accordance with the models used.
+**
+**  Called:
+**     eraS2c       spherical coordinates to unit vector
+**     eraC2s       p-vector to spherical
+**     eraAnp       normalize angle into range 0 to 2pi
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int c;
+   double c1, c2, sphi, cphi, ce, xaeo, yaeo, zaeo, v[3],
+          xmhdo, ymhdo, zmhdo, az, sz, zdo, refa, refb, tz, dref,
+          zdt, xaet, yaet, zaet, xmhda, ymhda, zmhda,
+          f, xhd, yhd, zhd, xpl, ypl, w, hma;
+
+
+/* Coordinate type. */
+   c = (int) type[0];
+
+/* Coordinates. */
+   c1 = ob1;
+   c2 = ob2;
+
+/* Sin, cos of latitude. */
+   sphi = astrom->sphi;
+   cphi = astrom->cphi;
+
+/* Standardize coordinate type. */
+   if ( c == 'r' || c == 'R' ) {
+      c = 'R';
+   } else if ( c == 'h' || c == 'H' ) {
+      c = 'H';
+   } else {
+      c = 'A';
+   }
+
+/* If Az,ZD, convert to Cartesian (S=0,E=90). */
+   if ( c == 'A' ) {
+      ce = sin(c2);
+      xaeo = - cos(c1) * ce;
+      yaeo = sin(c1) * ce;
+      zaeo = cos(c2);
+
+   } else {
+
+   /* If RA,Dec, convert to HA,Dec. */
+      if ( c == 'R' ) c1 = astrom->eral - c1;
+
+   /* To Cartesian -HA,Dec. */
+      eraS2c ( -c1, c2, v );
+      xmhdo = v[0];
+      ymhdo = v[1];
+      zmhdo = v[2];
+
+   /* To Cartesian Az,El (S=0,E=90). */
+      xaeo = sphi*xmhdo - cphi*zmhdo;
+      yaeo = ymhdo;
+      zaeo = cphi*xmhdo + sphi*zmhdo;
+   }
+
+/* Azimuth (S=0,E=90). */
+   az = ( xaeo != 0.0 || yaeo != 0.0 ) ? atan2(yaeo,xaeo) : 0.0;
+
+/* Sine of observed ZD, and observed ZD. */
+   sz = sqrt ( xaeo*xaeo + yaeo*yaeo );
+   zdo = atan2 ( sz, zaeo );
+
+/*
+** Refraction
+** ----------
+*/
+
+/* Fast algorithm using two constant model. */
+   refa = astrom->refa;
+   refb = astrom->refb;
+   tz = sz / zaeo;
+   dref = ( refa + refb*tz*tz ) * tz;
+   zdt = zdo + dref;
+
+/* To Cartesian Az,ZD. */
+   ce = sin(zdt);
+   xaet = cos(az) * ce;
+   yaet = sin(az) * ce;
+   zaet = cos(zdt);
+
+/* Cartesian Az,ZD to Cartesian -HA,Dec. */
+   xmhda = sphi*xaet + cphi*zaet;
+   ymhda = yaet;
+   zmhda = - cphi*xaet + sphi*zaet;
+
+/* Diurnal aberration. */
+   f = ( 1.0 + astrom->diurab*ymhda );
+   xhd = f * xmhda;
+   yhd = f * ( ymhda - astrom->diurab );
+   zhd = f * zmhda;
+
+/* Polar motion. */
+   xpl = astrom->xpl;
+   ypl = astrom->ypl;
+   w = xpl*xhd - ypl*yhd + zhd;
+   v[0] = xhd - xpl*w;
+   v[1] = yhd + ypl*w;
+   v[2] = w - ( xpl*xpl + ypl*ypl ) * zhd;
+
+/* To spherical -HA,Dec. */
+   eraC2s(v, &hma, di);
+
+/* Right ascension. */
+   *ri = eraAnp(astrom->eral + hma);
+
+/* Finished. */
 
 }
 
@@ -281,7 +4002,7 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 **     2002.  The MHB2000 code itself was obtained on 9th September 2002
 **     from ftp://maia.usno.navy.mil/conv2000/chapter5/IAU2000A.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -372,16 +4093,15 @@ void eraBp00(double date1, double date2,
 **     n.b. The celestial ephemeris origin (CEO) was renamed "celestial
 **          intermediate origin" (CIO) by IAU 2006 Resolution 2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* J2000.0 obliquity (Lieske et al. 1977) */
    const double EPS0 = 84381.448 * ERFA_DAS2R;
 
-   double t, dpsibi, depsbi;
-   double dra0, psia77, oma77, chia, dpsipr, depspr, psia, oma,
-          rbw[3][3];
+   double t, dpsibi, depsbi, dra0, psia77, oma77, chia,
+          dpsipr, depspr, psia, oma, rbw[3][3];
 
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
@@ -396,23 +4116,23 @@ void eraBp00(double date1, double date2,
    chia   = (  10.5526 + (-2.38064 + (-0.001125) * t) * t) * t * ERFA_DAS2R;
 
 /* Apply IAU 2000 precession corrections. */
-   eraPr00(date1, date2, &dpsipr,  &depspr);
+   eraPr00(date1, date2, &dpsipr, &depspr);
    psia = psia77 + dpsipr;
    oma  = oma77  + depspr;
 
 /* Frame bias matrix: GCRS to J2000.0. */
    eraIr(rbw);
    eraRz(dra0, rbw);
-   eraRy(dpsibi * sin(EPS0), rbw);
+   eraRy(dpsibi*sin(EPS0), rbw);
    eraRx(-depsbi, rbw);
    eraCr(rbw, rb);
 
 /* Precession matrix: J2000.0 to mean of date. */
    eraIr(rp);
-   eraRx(EPS0,  rp);
+   eraRx(EPS0, rp);
    eraRz(-psia, rp);
-   eraRx(-oma,  rp);
-   eraRz(chia,  rp);
+   eraRx(-oma, rp);
+   eraRz(chia, rp);
 
 /* Bias-precession matrix: GCRS to mean of date. */
    eraRxr(rp, rbw, rbp);
@@ -468,12 +4188,16 @@ void eraBp06(double date1, double date2,
 **  4) The matrix rbp transforms vectors from GCRS to mean of date by
 **     applying frame bias then precession.  It is the product rp x rb.
 **
+**  5) It is permissible to re-use the same array in the returned
+**     arguments.  The arrays are filled in the order given.
+**
 **  Called:
 **     eraPfw06     bias-precession F-W angles, IAU 2006
 **     eraFw2m      F-W angles to r-matrix
 **     eraPmat06    PB matrix, IAU 2006
 **     eraTr        transpose r-matrix
 **     eraRxr       product of two r-matrices
+**     eraCr        copy r-matrix
 **
 **  References:
 **
@@ -481,23 +4205,26 @@ void eraBp06(double date1, double date2,
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-   double gamb, phib, psib, epsa, rbt[3][3];
+   double gamb, phib, psib, epsa, rbpw[3][3], rbt[3][3];
 
 
 /* B matrix. */
    eraPfw06(ERFA_DJM0, ERFA_DJM00, &gamb, &phib, &psib, &epsa);
    eraFw2m(gamb, phib, psib, epsa, rb);
 
-/* PxB matrix. */
-   eraPmat06(date1, date2, rbp);
+/* PxB matrix (temporary). */
+   eraPmat06(date1, date2, rbpw);
 
 /* P matrix. */
    eraTr(rb, rbt);
-   eraRxr(rbp, rbt, rp);
+   eraRxr(rbpw, rbt, rp);
+
+/* PxB matrix. */
+   eraCr(rbpw, rbp);
 
    return;
 
@@ -537,7 +4264,7 @@ void eraBpn2xy(double rbpn[3][3], double *x, double *y)
 **     n.b. The celestial ephemeris origin (CEO) was renamed "celestial
 **          intermediate origin" (CIO) by IAU 2006 Resolution 2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -617,7 +4344,7 @@ void eraC2i00a(double date1, double date2, double rc2i[3][3])
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -702,7 +4429,7 @@ void eraC2i00b(double date1, double date2, double rc2i[3][3])
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -722,7 +4449,7 @@ void eraC2i00b(double date1, double date2, double rc2i[3][3])
 void eraC2i06a(double date1, double date2, double rc2i[3][3])
 /*
 **  - - - - - - - - - -
-**   e r a _ c 2 i 0 6 a
+**   e r a C 2 i 0 6 a
 **  - - - - - - - - - -
 **
 **  Form the celestial-to-intermediate matrix for a given date using the
@@ -770,15 +4497,15 @@ void eraC2i06a(double date1, double date2, double rc2i[3][3])
 **  Called:
 **     eraPnm06a    classical NPB matrix, IAU 2006/2000A
 **     eraBpn2xy    extract CIP X,Y coordinates from NPB matrix
-**     eraS06       the CIO locator s, Given X,Y, IAU 2006
-**     eraC2ixys    celestial-to-intermediate matrix, Given X,Y and s
+**     eraS06       the CIO locator s, given X,Y, IAU 2006
+**     eraC2ixys    celestial-to-intermediate matrix, given X,Y and s
 **
 **  References:
 **
 **     McCarthy, D. D., Petit, G. (eds.), 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -872,7 +4599,7 @@ void eraC2ibpn(double date1, double date2, double rbpn[3][3],
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -954,7 +4681,7 @@ void eraC2ixy(double date1, double date2, double x, double y,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 
@@ -1013,7 +4740,7 @@ void eraC2ixys(double x, double y, double s, double rc2i[3][3])
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1058,7 +4785,7 @@ void eraC2s(double p[3], double *theta, double *phi)
 **
 **  3) At either pole, zero theta is returned.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1151,7 +4878,7 @@ void eraC2t00a(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1250,7 +4977,7 @@ void eraC2t00b(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1345,7 +5072,7 @@ void eraC2t06a(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1384,7 +5111,7 @@ void eraC2tcio(double rc2i[3][3], double era, double rpom[3][3],
 **
 **  Given:
 **     rc2i     double[3][3]    celestial-to-intermediate matrix
-**     era      double          Earth rotation angle
+**     era      double          Earth rotation angle (radians)
 **     rpom     double[3][3]    polar-motion matrix
 **
 **  Returned:
@@ -1423,7 +5150,7 @@ void eraC2tcio(double rc2i[3][3], double era, double rpom[3][3],
 **     McCarthy, D. D., Petit, G. (eds.), 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1451,12 +5178,12 @@ void eraC2teqx(double rbpn[3][3], double gst, double rpom[3][3],
 **  Sidereal Time and the polar motion matrix).
 **
 **  Given:
-**     rbpn     double[3][3]    celestial-to-true matrix
-**     gst      double          Greenwich (apparent) Sidereal Time
-**     rpom     double[3][3]    polar-motion matrix
+**     rbpn   double[3][3]  celestial-to-true matrix
+**     gst    double        Greenwich (apparent) Sidereal Time (radians)
+**     rpom   double[3][3]  polar-motion matrix
 **
 **  Returned:
-**     rc2t     double[3][3]    celestial-to-terrestrial matrix (Note 2)
+**     rc2t   double[3][3]  celestial-to-terrestrial matrix (Note 2)
 **
 **  Notes:
 **
@@ -1491,7 +5218,7 @@ void eraC2teqx(double rbpn[3][3], double gst, double rpom[3][3],
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1590,7 +5317,7 @@ void eraC2tpe(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1699,7 +5426,7 @@ void eraC2txy(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1768,7 +5495,7 @@ int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1799,7 +5526,7 @@ int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
 /* Return result. */
    my = (im - 14) / 12;
    iypmy = (long) (iy + my);
-   *djm0 = 2400000.5;
+   *djm0 = ERFA_DJM0;
    *djm = (double)((1461L * (iypmy + 4800L)) / 4L
                  + (367L * (long) (im - 2 - 12 * my)) / 12L
                  - (3L * ((iypmy + 4900L) / 100L)) / 4L
@@ -1824,7 +5551,7 @@ void eraCp(double p[3], double c[3])
 **  Returned:
 **     c        double[3]     copy
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1853,7 +5580,7 @@ void eraCpv(double pv[2][3], double c[2][3])
 **  Called:
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1881,7 +5608,7 @@ void eraCr(double r[3][3], double c[3][3])
 **  Called:
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -1947,10 +5674,13 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 **  4) JD cannot unambiguously represent UTC during a leap second unless
 **     special measures are taken.  The ERFA internal convention is that
 **     the quasi-JD day represents UTC days whether the length is 86399,
-**     86400 or 86401 SI seconds.
+**     86400 or 86401 SI seconds.  In the 1960-1972 era there were
+**     smaller jumps (in either direction) each time the linear UTC(TAI)
+**     expression was changed, and these "mini-leaps" are also included
+**     in the ERFA convention.
 **
 **  5) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
+**     introduction of the time scale or that are too far in the future
 **     to be trusted.  See eraDat for further details.
 **
 **  6) For calendar conventions and limitations, see eraCal2jd.
@@ -1960,14 +5690,14 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 **     eraD2tf      decompose days to hms
 **     eraDat       delta(AT) = TAI-UTC
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int leap;
    char s;
    int iy1, im1, id1, js, iy2, im2, id2, ihmsf1[4], i;
-   double a1, b1, fd, dat1, w, dat2, ddt;
+   double a1, b1, fd, dat0, dat12, w, dat24, dleap;
 
 
 /* The two-part JD. */
@@ -1976,58 +5706,85 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 
 /* Provisional calendar date. */
    js = eraJd2cal(a1, b1, &iy1, &im1, &id1, &fd);
-   if ( js ) return js < 0 ? -1 : js;
+   if ( js ) return -1;
 
 /* Is this a leap second day? */
    leap = 0;
    if ( ! strcmp(scale,"UTC") ) {
 
-   /* TAI-UTC today. */
-      js = eraDat(iy1, im1, id1, fd, &dat1);
+   /* TAI-UTC at 0h today. */
+      js = eraDat(iy1, im1, id1, 0.0, &dat0);
       if ( js < 0 ) return -1;
 
-   /* TAI-UTC tomorrow (at noon, to avoid rounding effects). */
+   /* TAI-UTC at 12h today (to detect drift). */
+      js = eraDat(iy1, im1, id1, 0.5, &dat12);
+      if ( js < 0 ) return -1;
+
+   /* TAI-UTC at 0h tomorrow (to detect jumps). */
       js = eraJd2cal(a1+1.5, b1-fd, &iy2, &im2, &id2, &w);
-      js = eraDat(iy2, im2, id2, 0.0, &dat2);
+      if ( js ) return -1;
+      js = eraDat(iy2, im2, id2, 0.0, &dat24);
       if ( js < 0 ) return -1;
 
-   /* The change in TAI-UTC (seconds). */
-      ddt = dat2 - dat1;
+   /* Any sudden change in TAI-UTC (seconds). */
+      dleap = dat24 - (2.0*dat12 - dat0);
 
    /* If leap second day, scale the fraction of a day into SI. */
-      leap = fabs(ddt) > 0.5;
-      if (leap) fd += fd * ddt/ERFA_DAYSEC;
+      leap = (dleap != 0.0);
+      if (leap) fd += fd * dleap/ERFA_DAYSEC;
    }
 
 /* Provisional time of day. */
    eraD2tf ( ndp, fd, &s, ihmsf1 );
 
-/* Is this a leap second day? */
-   if ( ! leap ) {
+/* Has the (rounded) time gone past 24h? */
+   if ( ihmsf1[0] > 23 ) {
 
-   /* No.  Has the time rounded up to 24h? */
-      if ( ihmsf1[0] > 23 ) {
+   /* Yes.  We probably need tomorrow's calendar date. */
+      js = eraJd2cal(a1+1.5, b1-fd, &iy2, &im2, &id2, &w);
+      if ( js ) return -1;
 
-      /* Yes.  We will need tomorrow's calendar date. */
-         js = eraJd2cal(a1+1.5, b1-fd, &iy2, &im2, &id2, &w);
+   /* Is today a leap second day? */
+      if ( ! leap ) {
 
-      /* Use 0h tomorrow. */
+      /* No.  Use 0h tomorrow. */
          iy1 = iy2;
          im1 = im2;
          id1 = id2;
-         for ( i = 0; i < 4; i++ ) {
-            ihmsf1[i] = 0;
+         ihmsf1[0] = 0;
+         ihmsf1[1] = 0;
+         ihmsf1[2] = 0;
+
+      } else {
+
+      /* Yes.  Are we past the leap second itself? */
+         if ( ihmsf1[2] > 0 ) {
+
+         /* Yes.  Use tomorrow but allow for the leap second. */
+            iy1 = iy2;
+            im1 = im2;
+            id1 = id2;
+            ihmsf1[0] = 0;
+            ihmsf1[1] = 0;
+            ihmsf1[2] = 0;
+
+         } else {
+
+         /* No.  Use 23 59 60... today. */
+            ihmsf1[0] = 23;
+            ihmsf1[1] = 59;
+            ihmsf1[2] = 60;
          }
-      }
-   } else {
 
-   /* This is a leap second day.  Has the time reached or passed 24h? */
-      if ( ihmsf1[0] > 23 ) {
-
-      /* Yes.  Use 23 59 60... */
-         ihmsf1[0] = 23;
-         ihmsf1[1] = 59;
-         ihmsf1[2] = 60;
+      /* If rounding to 10s or coarser always go up to new day. */
+         if ( ndp < 0 && ihmsf1[2] == 60 ) {
+            iy1 = iy2;
+            im1 = im2;
+            id1 = id2;
+            ihmsf1[0] = 0;
+            ihmsf1[1] = 0;
+            ihmsf1[2] = 0;
+         }
       }
    }
 
@@ -2040,7 +5797,7 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
    }
 
 /* Status. */
-   return js < 0 ? -1 : js;
+   return js;
 
 }
 
@@ -2092,7 +5849,7 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
 **     case where days is very nearly 1.0 and rounds up to 24 hours,
 **     by testing for ihmsf[0]=24 and setting ihmsf[0-3] to zero.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -2171,8 +5928,8 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **     :     of statements that initialize the    :
 **     :     array "changes".                     :
 **     :                                          :
-**     :  2) The parameter IYV must be set to     :
-**     :     the current year.                    :
+**     :  2) The constant IYV must be set to the  :
+**     :     current year.                        :
 **     :                                          :
 **     :  3) The "Latest leap second" comment     :
 **     :     below must be set to the new leap    :
@@ -2217,13 +5974,13 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **     Because leap seconds cannot, in principle, be predicted in
 **     advance, a reliable check for dates beyond the valid range is
 **     impossible.  To guard against gross errors, a year five or more
-**     after the release year of the present function (see parameter
+**     after the release year of the present function (see the constant
 **     IYV) is considered dubious.  In this case a warning status is
 **     returned but the result is computed in the normal way.
 **
-**     For both too-early and too-late years, the warning status is
-**     j=+1.  This is distinct from the error status j=-1, which
-**     signifies a year so early that JD could not be computed.
+**     For both too-early and too-late years, the warning status is +1.
+**     This is distinct from the error status -1, which signifies a year
+**     so early that JD could not be computed.
 **
 **  2) If the specified date is for a day which ends with a leap second,
 **     the UTC-TAI value returned is for the period leading up to the
@@ -2239,14 +5996,14 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **  4) The fraction of day is used only for dates before the
 **     introduction of leap seconds, the first of which occurred at the
 **     end of 1971.  It is tested for validity (0 to 1 is the valid
-**     range) even if not used;  if invalid, zero is used and status
-**     j=-4 is returned.  For many applications, setting fd to zero is
+**     range) even if not used;  if invalid, zero is used and status -4
+**     is returned.  For many applications, setting fd to zero is
 **     acceptable;  the resulting error is always less than 3 ms (and
 **     occurs only pre-1972).
 **
 **  5) The status value returned in the case where there are multiple
 **     errors refers to the first error detected.  For example, if the
-**     month and day are 13 and 32 respectively, j=-2 (bad month)
+**     month and day are 13 and 32 respectively, status -2 (bad month)
 **     will be returned.
 **
 **  6) In cases where a valid result is not available, zero is returned.
@@ -2260,14 +6017,14 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **     the 1992 Explanatory Supplement.
 **
 **  Called:
-**     eraCal2jd    Gregorian calendar to Julian Day number
+**     eraCal2jd    Gregorian calendar to JD
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Release year for this version of eraDat */
-#define IYV (2012)
+   enum { IYV = 2013};
 
 /* Reference dates (MJD) and drift rates (s/day), pre leap seconds */
    static const double drift[][2] = {
@@ -2288,7 +6045,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
    };
 
 /* Number of Delta(AT) expressions before leap seconds were introduced */
-#define NERA1 ((int) (sizeof drift / sizeof (double) / 2))
+   enum { NERA1 = (int) (sizeof drift / sizeof (double) / 2) };
 
 /* Dates and Delta(AT)s */
    static const struct {
@@ -2372,7 +6129,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
    }
 
 /* Get the Delta(AT). */
-   da = changes[i].delat;
+   da = changes[(i < 0) ? 0 : i].delat;
 
 /* If pre-1972, adjust for drift. */
    if (i < NERA1) da += (djm + fd - drift[i][0]) * drift[i][1];
@@ -2542,7 +6299,7 @@ double eraDtdb(double date1, double date2,
 **     Simon, J.L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G. & Laskar, J., Astron.Astrophys., 282, 663-683 (1994).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -3592,7 +7349,10 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 **  4) JD cannot unambiguously represent UTC during a leap second unless
 **     special measures are taken.  The ERFA internal convention is that
 **     the quasi-JD day represents UTC days whether the length is 86399,
-**     86400 or 86401 SI seconds.
+**     86400 or 86401 SI seconds.  In the 1960-1972 era there were
+**     smaller jumps (in either direction) each time the linear UTC(TAI)
+**     expression was changed, and these "mini-leaps" are also included
+**     in the ERFA convention.
 **
 **  5) The warning status "time is after end of day" usually means that
 **     the sec argument is greater than 60.0.  However, in a day ending
@@ -3600,7 +7360,7 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 **     of a negative leap second).
 **
 **  6) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
+**     introduction of the time scale or that are too far in the future
 **     to be trusted.  See eraDat for further details.
 **
 **  7) Only in the case of continuous and regular time scales (TAI, TT,
@@ -3615,12 +7375,12 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 **     eraDat       delta(AT) = TAI-UTC
 **     eraJd2cal    JD to Gregorian calendar
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int js, iy2, im2, id2;
-   double dj, w, day, seclim, dat1, dat2, ddt, time;
+   double dj, w, day, seclim, dat0, dat12, dat24, dleap, time;
 
 
 /* Today's Julian Day Number. */
@@ -3630,29 +7390,33 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 
 /* Day length and final minute length in seconds (provisional). */
    day = ERFA_DAYSEC;
-   seclim = 60;
+   seclim = 60.0;
 
 /* Deal with the UTC leap second case. */
    if ( ! strcmp(scale,"UTC") ) {
 
-   /* TAI-UTC today. */
-      js = eraDat(iy, im, id, 0.0, &dat1);
+   /* TAI-UTC at 0h today. */
+      js = eraDat(iy, im, id, 0.0, &dat0);
       if ( js < 0 ) return js;
 
-   /* TAI-UTC tomorrow. */
-      js = eraJd2cal ( dj, 1.0, &iy2, &im2, &id2, &w);
+   /* TAI-UTC at 12h today (to detect drift). */
+      js = eraDat(iy, im, id, 0.5, &dat12);
+      if ( js < 0 ) return js;
+
+   /* TAI-UTC at 0h tomorrow (to detect jumps). */
+      js = eraJd2cal ( dj, 1.5, &iy2, &im2, &id2, &w);
       if ( js ) return js;
-      js = eraDat(iy2, im2, id2, 0.0, &dat2);
+      js = eraDat(iy2, im2, id2, 0.0, &dat24);
       if ( js < 0 ) return js;
 
-   /* The change in TAI-UTC (seconds). */
-      ddt = dat2 - dat1;
+   /* Any sudden change in TAI-UTC between today and tomorrow. */
+      dleap = dat24 - (2.0*dat12 - dat0);
 
    /* If leap second day, correct the day and final minute lengths. */
-      if ( fabs(ddt) > 0.5 ) {
-         day += ddt;
-         if ( ihr == 23 && imn == 59 ) seclim += ddt;
-      }
+      day += dleap;
+      if ( ihr == 23 && imn == 59 ) seclim += dleap;
+
+   /* End of UTC-specific actions. */
    }
 
 /* Validate the time. */
@@ -3745,7 +7509,7 @@ double eraEe00(double date1, double date2, double epsa, double dpsi)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -3817,7 +7581,7 @@ double eraEe00a(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -3904,7 +7668,7 @@ double eraEe00b(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -3977,7 +7741,7 @@ double eraEe06a(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4086,7 +7850,7 @@ double eraEect00(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4278,7 +8042,7 @@ int eraEform ( int n, double *a, double *f )
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     p220.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4361,7 +8125,7 @@ double eraEo06a(double date1, double date2)
 **     eraPnm06a    classical NPB matrix, IAU 2006/2000A
 **     eraBpn2xy    extract CIP X,Y coordinates from NPB matrix
 **     eraS06       the CIO locator s, given X,Y, IAU 2006
-**     eraEors      equation of the origins, Given NPB matrix and s
+**     eraEors      equation of the origins, given NPB matrix and s
 **
 **  References:
 **
@@ -4369,7 +8133,7 @@ double eraEo06a(double date1, double date2)
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4425,7 +8189,7 @@ double eraEors(double rnpb[3][3], double s)
 **
 **     Wallace, P. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4465,26 +8229,21 @@ double eraEpb(double dj1, double dj2)
 **     The Julian Date is supplied in two pieces, in the usual ERFA
 **     manner, which is designed to preserve time resolution.  The
 **     Julian Date is available as a single number by adding dj1 and
-**     dj2.  The maximum resolution is achieved if dj1 is 2451545D0
+**     dj2.  The maximum resolution is achieved if dj1 is 2451545.0
 **     (J2000.0).
 **
 **  Reference:
 **
-**     Lieske,J.H., 1979. Astron.Astrophys.,73,282.
+**     Lieske, J.H., 1979. Astron.Astrophys., 73, 282.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-/* J2000.0 minus B1900.0 (2415019.81352) in Julian days */
-   static const double D1900 = 36524.68648;
+/* J2000.0-B1900.0 (2415019.81352) in days */
+   const double D1900 = 36524.68648;
 
-   double epb;
-
-
-   epb = 1900.0 + ((dj1 - ERFA_DJ00) + (dj2 + D1900)) / ERFA_DTY;
-
-   return epb;
+   return 1900.0 + ((dj1 - ERFA_DJ00) + (dj2 + D1900)) / ERFA_DTY;
 
 }
 
@@ -4497,7 +8256,7 @@ void eraEpb2jd(double epb, double *djm0, double *djm)
 **  Besselian Epoch to Julian Date.
 **
 **  Given:
-**     epb      double    Besselian Epoch (e.g. 1957.3D0)
+**     epb      double    Besselian Epoch (e.g. 1957.3)
 **
 **  Returned:
 **     djm0     double    MJD zero-point: always 2400000.5
@@ -4514,11 +8273,11 @@ void eraEpb2jd(double epb, double *djm0, double *djm)
 **
 **     Lieske, J.H., 1979, Astron.Astrophys. 73, 282.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-   *djm0 = 2400000.5;
+   *djm0 = ERFA_DJM0;
    *djm  =   15019.81352 + (epb - 1900.0) * ERFA_DTY;
 
    return;
@@ -4544,14 +8303,14 @@ double eraEpj(double dj1, double dj2)
 **     The Julian Date is supplied in two pieces, in the usual ERFA
 **     manner, which is designed to preserve time resolution.  The
 **     Julian Date is available as a single number by adding dj1 and
-**     dj2.  The maximum resolution is achieved if dj1 is 2451545D0
+**     dj2.  The maximum resolution is achieved if dj1 is 2451545.0
 **     (J2000.0).
 **
 **  Reference:
 **
 **     Lieske, J.H., 1979, Astron.Astrophys. 73, 282.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -4573,7 +8332,7 @@ void eraEpj2jd(double epj, double *djm0, double *djm)
 **  Julian Epoch to Julian Date.
 **
 **  Given:
-**     epj      double    Julian Epoch (e.g. 1996.8D0)
+**     epj      double    Julian Epoch (e.g. 1996.8)
 **
 **  Returned:
 **     djm0     double    MJD zero-point: always 2400000.5
@@ -4590,12 +8349,12 @@ void eraEpj2jd(double epj, double *djm0, double *djm)
 **
 **     Lieske, J.H., 1979, Astron.Astrophys. 73, 282.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-   *djm0 = 2400000.5;
-   *djm  =   51544.5 + (epj - 2000.0) * 365.25;
+   *djm0 = ERFA_DJM0;
+   *djm  = ERFA_DJM00 + (epj - 2000.0) * 365.25;
 
    return;
 
@@ -4695,7 +8454,7 @@ int eraEpv00(double date1, double date2,
 **  5) It is permissible to use the same array for pvh and pvb, which
 **     will receive the barycentric values.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7176,6 +10935,7 @@ double eraEqeq94(double date1, double date2)
 **        Greenwich apparent ST = GMST + equation of the equinoxes
 **
 **  Called:
+**     eraAnpm      normalize angle into range +/- pi
 **     eraNut80     nutation, IAU 1980
 **     eraObl80     mean obliquity, IAU 1980
 **
@@ -7186,7 +10946,7 @@ double eraEqeq94(double date1, double date2)
 **     Capitaine, N. & Gontier, A.-M., 1993, Astron. Astrophys., 275,
 **     645-650.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7267,7 +11027,7 @@ double eraEra00(double dj1, double dj2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7326,7 +11086,7 @@ double eraFad03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7378,7 +11138,7 @@ double eraFae03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7424,7 +11184,7 @@ double eraFaf03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7478,7 +11238,7 @@ double eraFaju03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7523,7 +11283,7 @@ double eraFal03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7572,7 +11332,7 @@ double eraFalp03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7624,7 +11384,7 @@ double eraFama03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7672,7 +11432,7 @@ double eraFame03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7717,7 +11477,7 @@ double eraFane03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7762,7 +11522,7 @@ double eraFaom03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7816,7 +11576,7 @@ double eraFapa03(double t)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7864,7 +11624,7 @@ double eraFasa03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7909,7 +11669,7 @@ double eraFaur03(double t)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J. 1994, Astron.Astrophys. 282, 663-683
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -7957,7 +11717,7 @@ double eraFave03(double t)
 **     Souchay, J., Loysel, B., Kinoshita, H., Folgueira, M. 1999,
 **     Astron.Astrophys.Supp.Ser. 135, 111
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8024,7 +11784,7 @@ void eraFk52h(double r5, double d5,
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8096,7 +11856,7 @@ void eraFk5hip(double r5h[3][3], double s5h[3])
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8201,7 +11961,7 @@ void eraFk5hz(double r5, double d5, double date1, double date2,
 **
 **     F.Mignard & M.Froeschle, 2000, Astron.Astrophys. 354, 732-739.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8303,7 +12063,7 @@ void eraFw2m(double gamb, double phib, double psi, double eps,
 **
 **     Hilton, J. et al., 2006, Celest.Mech.Dyn.Astron. 94, 351
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8334,7 +12094,7 @@ void eraFw2xy(double gamb, double phib, double psi, double eps,
 **     eps      double    F-W angle epsilon (radians)
 **
 **  Returned:
-**     x,y      double    CIP X,Y ("radians")
+**     x,y      double    CIP unit vector X,Y
 **
 **  Notes:
 **
@@ -8357,7 +12117,8 @@ void eraFw2xy(double gamb, double phib, double psi, double eps,
 **
 **        NxPxB = R_1(-epsA).R_3(-psi).R_1(phib).R_3(gamb)
 **
-**     X,Y are elements (3,1) and (3,2) of the matrix.
+**     The returned values x,y are elements [2][0] and [2][1] of the
+**     matrix.  Near J2000.0, they are essentially angles in radians.
 **
 **  Called:
 **     eraFw2m      F-W angles to r-matrix
@@ -8367,7 +12128,7 @@ void eraFw2xy(double gamb, double phib, double psi, double eps,
 **
 **     Hilton, J. et al., 2006, Celest.Mech.Dyn.Astron. 94, 351
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8399,7 +12160,7 @@ int eraGc2gd ( int n, double xyz[3],
 **     xyz     double[3]  geocentric vector (Note 2)
 **
 **  Returned:
-**     elong   double     longitude (radians, east +ve)
+**     elong   double     longitude (radians, east +ve, Note 3)
 **     phi     double     latitude (geodetic, radians, Note 3)
 **     height  double     height above ellipsoid (geodetic, Notes 2,3)
 **
@@ -8427,7 +12188,7 @@ int eraGc2gd ( int n, double xyz[3],
 **
 **  3) An error status -1 means that the identifier n is illegal.  An
 **     error status -2 is theoretically impossible.  In all error cases,
-**     phi and height are both set to -1e9.
+**     all three results are set to -1e9.
 **
 **  4) The inverse transformation is performed in the function eraGd2gc.
 **
@@ -8435,7 +12196,7 @@ int eraGc2gd ( int n, double xyz[3],
 **     eraEform     Earth reference ellipsoids
 **     eraGc2gde    geocentric to geodetic transformation, general
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8454,6 +12215,7 @@ int eraGc2gd ( int n, double xyz[3],
 
 /* Deal with any errors. */
    if ( j < 0 ) {
+      *elong = -1e9;
       *phi = -1e9;
       *height = -1e9;
    }
@@ -8519,7 +12281,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
 **     coordinates accelerated by Halley's method", J.Geodesy (2006)
 **     79: 689-693
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8662,7 +12424,7 @@ int eraGd2gc ( int n, double elong, double phi, double height,
 **     eraGd2gce    geodetic to geocentric transformation, general
 **     eraZp        zero p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8742,7 +12504,7 @@ int eraGd2gce ( double a, double f, double elong, double phi,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 4.22, p202.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8838,7 +12600,7 @@ double eraGmst00(double uta, double utb, double tta, double ttb)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8919,7 +12681,7 @@ double eraGmst06(double uta, double utb, double tta, double ttb)
 **     Capitaine, N., Wallace, P.T. & Chapront, J., 2005,
 **     Astron.Astrophys. 432, 355
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -8966,10 +12728,10 @@ double eraGmst82(double dj1, double dj2)
 **
 **             dj1            dj2
 **
-**         2450123.7D0        0D0        (JD method)
-**          2451545D0      -1421.3D0     (J2000 method)
-**         2400000.5D0     50123.2D0     (MJD method)
-**         2450123.5D0       0.2D0       (date & time method)
+**         2450123.7          0          (JD method)
+**          2451545        -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5         0.2         (date & time method)
 **
 **     The JD method is the most natural and convenient to use in
 **     cases where the loss of several decimal digits of resolution
@@ -9003,7 +12765,7 @@ double eraGmst82(double dj1, double dj2)
 **
 **     Aoki et al., Astron. Astrophys. 105, 359-361 (1982).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9109,7 +12871,7 @@ double eraGst00a(double uta, double utb, double tta, double ttb)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9201,7 +12963,7 @@ double eraGst00b(double uta, double utb)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9280,7 +13042,7 @@ double eraGst06(double uta, double utb, double tta, double ttb,
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9362,7 +13124,7 @@ double eraGst06a(double uta, double utb, double tta, double ttb)
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9441,7 +13203,7 @@ double eraGst94(double uta, double utb)
 **
 **     IAU Resolution C7, Recommendation 3 (1994)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9511,7 +13273,7 @@ void eraH2fk5(double rh, double dh,
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9624,7 +13386,7 @@ void eraHfk5z(double rh, double dh, double date1, double date2,
 **
 **     F.Mignard & M.Froeschle, 2000, Astron.Astrophys. 354, 732-739.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9682,7 +13444,7 @@ void eraIr(double r[3][3])
 **  Returned:
 **     r       double[3][3]    r-matrix
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9726,7 +13488,7 @@ int eraJd2cal(double dj1, double dj2,
 **  Notes:
 **
 **  1) The earliest valid date is -68569.5 (-4900 March 1).  The
-**     largest value accepted is 10^9.
+**     largest value accepted is 1e9.
 **
 **  2) The Julian Date is apportioned in any convenient way between
 **     the arguments dj1 and dj2.  For example, JD=2450123.7 could
@@ -9750,13 +13512,13 @@ int eraJd2cal(double dj1, double dj2,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Minimum and maximum allowed JD */
-   static const double djmin = -68569.5;
-   static const double djmax = 1e9;
+   const double DJMIN = -68569.5;
+   const double DJMAX = 1e9;
 
    long jd, l, n, i, k;
    double dj, d1, d2, f1, f2, f, d;
@@ -9764,7 +13526,7 @@ int eraJd2cal(double dj1, double dj2,
 
 /* Verify date is acceptable. */
    dj = dj1 + dj2;
-   if (dj < djmin || dj > djmax) return -1;
+   if (dj < DJMIN || dj > DJMAX) return -1;
 
 /* Copy the date, big then small, and re-align to midnight. */
    if (dj1 >= dj2) {
@@ -9856,7 +13618,7 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 12.92 (p604).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -9905,6 +13667,266 @@ int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 
 /* Return the status. */
    return j;
+
+}
+
+void eraLd(double bm, double p[3], double q[3], double e[3],
+           double em, double dlim, double p1[3])
+/*
+**  - - - - - -
+**   e r a L d
+**  - - - - - -
+**
+**  Apply light deflection by a solar-system body, as part of
+**  transforming coordinate direction into natural direction.
+**
+**  Given:
+**     bm     double     mass of the gravitating body (solar masses)
+**     p      double[3]  direction from observer to source (unit vector)
+**     q      double[3]  direction from body to source (unit vector)
+**     e      double[3]  direction from body to observer (unit vector)
+**     em     double     distance from body to observer (au)
+**     dlim   double     deflection limiter (Note 4)
+**
+**  Returned:
+**     p1     double[3]  observer to deflected source (unit vector)
+**
+**  Notes:
+**
+**  1) The algorithm is based on Expr. (70) in Klioner (2003) and
+**     Expr. (7.63) in the Explanatory Supplement (Urban & Seidelmann
+**     2013), with some rearrangement to minimize the effects of machine
+**     precision.
+**
+**  2) The mass parameter bm can, as required, be adjusted in order to
+**     allow for such effects as quadrupole field.
+**
+**  3) The barycentric position of the deflecting body should ideally
+**     correspond to the time of closest approach of the light ray to
+**     the body.
+**
+**  4) The deflection limiter parameter dlim is phi^2/2, where phi is
+**     the angular separation (in radians) between source and body at
+**     which limiting is applied.  As phi shrinks below the chosen
+**     threshold, the deflection is artificially reduced, reaching zero
+**     for phi = 0.
+**
+**  5) The returned vector p1 is not normalized, but the consequential
+**     departure from unit magnitude is always negligible.
+**
+**  6) The arguments p and p1 can be the same array.
+**
+**  7) To accumulate total light deflection taking into account the
+**     contributions from several bodies, call the present function for
+**     each body in succession, in decreasing order of distance from the
+**     observer.
+**
+**  8) For efficiency, validation is omitted.  The supplied vectors must
+**     be of unit magnitude, and the deflection limiter non-zero and
+**     positive.
+**
+**  References:
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013).
+**
+**     Klioner, Sergei A., "A practical relativistic model for micro-
+**     arcsecond astrometry in space", Astr. J. 125, 1580-1597 (2003).
+**
+**  Called:
+**     eraPdp       scalar product of two p-vectors
+**     eraPxp       vector product of two p-vectors
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int i;
+   double qpe[3], qdqpe, w, eq[3], peq[3];
+
+
+/* q . (q + e). */
+   for (i = 0; i < 3; i++) {
+      qpe[i] = q[i] + e[i];
+   }
+   qdqpe = eraPdp(q, qpe);
+
+/* 2 x G x bm / ( em x c^2 x ( q . (q + e) ) ). */
+   w = bm * ERFA_SRS / em / ERFA_GMAX(qdqpe,dlim);
+
+/* p x (e x q). */
+   eraPxp(e, q, eq);
+   eraPxp(p, eq, peq);
+
+/* Apply the deflection. */
+   for (i = 0; i < 3; i++) {
+      p1[i] = p[i] + w*peq[i];
+   }
+
+/* Finished. */
+
+}
+
+void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
+            double sn[3])
+/*+
+**  - - - - - - -
+**   e r a L d n
+**  - - - - - - -
+**
+**  For a star, apply light deflection by multiple solar-system bodies,
+**  as part of transforming coordinate direction into natural direction.
+**
+**  Given:
+**     n    int           number of bodies (note 1)
+**     b    eraLDBODY[n]  data for each of the n bodies (Notes 1,2):
+**      bm   double         mass of the body (solar masses, Note 3)
+**      dl   double         deflection limiter (Note 4)
+**      pv   [2][3]         barycentric PV of the body (au, au/day)
+**     ob   double[3]     barycentric position of the observer (au)
+**     sc   double[3]     observer to star coord direction (unit vector)
+**
+**  Returned:
+**     sn    double[3]      observer to deflected star (unit vector)
+**
+**  1) The array b contains n entries, one for each body to be
+**     considered.  If n = 0, no gravitational light deflection will be
+**     applied, not even for the Sun.
+**
+**  2) The array b should include an entry for the Sun as well as for
+**     any planet or other body to be taken into account.  The entries
+**     should be in the order in which the light passes the body.
+**
+**  3) In the entry in the b array for body i, the mass parameter
+**     b[i].bm can, as required, be adjusted in order to allow for such
+**     effects as quadrupole field.
+**
+**  4) The deflection limiter parameter b[i].dl is phi^2/2, where phi is
+**     the angular separation (in radians) between star and body at
+**     which limiting is applied.  As phi shrinks below the chosen
+**     threshold, the deflection is artificially reduced, reaching zero
+**     for phi = 0.   Example values suitable for a terrestrial
+**     observer, together with masses, are as follows:
+**
+**        body i     b[i].bm        b[i].dl
+**
+**        Sun        1.0            6e-6
+**        Jupiter    0.00095435     3e-9
+**        Saturn     0.00028574     3e-10
+**
+**  5) For cases where the starlight passes the body before reaching the
+**     observer, the body is placed back along its barycentric track by
+**     the light time from that point to the observer.  For cases where
+**     the body is "behind" the observer no such shift is applied.  If
+**     a different treatment is preferred, the user has the option of
+**     instead using the eraLd function.  Similarly, eraLd can be used
+**     for cases where the source is nearby, not a star.
+**
+**  6) The returned vector sn is not normalized, but the consequential
+**     departure from unit magnitude is always negligible.
+**
+**  7) The arguments sc and sn can be the same array.
+**
+**  8) For efficiency, validation is omitted.  The supplied masses must
+**     be greater than zero, the position and velocity vectors must be
+**     right, and the deflection limiter greater than zero.
+**
+**  Reference:
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013), Section 7.2.4.
+**
+**  Called:
+**     eraCp        copy p-vector
+**     eraPdp       scalar product of two p-vectors
+**     eraPmp       p-vector minus p-vector
+**     eraPpsp      p-vector plus scaled p-vector
+**     eraPn        decompose p-vector into modulus and direction
+**     eraLd        light deflection by a solar-system body
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Light time for 1 AU (days) */
+   const double CR = ERFA_AULT/ERFA_DAYSEC;
+
+   int i;
+   double  v[3], dt, ev[3], em, e[3];
+
+
+/* Star direction prior to deflection. */
+   eraCp(sc, sn);
+
+/* Body by body. */
+   for ( i = 0; i < n; i++ ) {
+
+   /* Body to observer vector at epoch of observation (au). */
+      eraPmp ( ob, b[i].pv[0], v );
+
+   /* Minus the time since the light passed the body (days). */
+      dt = eraPdp(sn,v) * CR;
+
+   /* Neutralize if the star is "behind" the observer. */
+      dt = ERFA_GMIN(dt, 0.0);
+
+   /* Backtrack the body to the time the light was passing the body. */
+      eraPpsp(v, -dt, b[i].pv[1], ev);
+
+   /* Body to observer vector as magnitude and direction. */
+      eraPn(ev, &em, e);
+
+   /* Apply light deflection for this body. */
+      eraLd ( b[i].bm, sn, sn, e, em, b[i].dl, sn );
+
+   /* Next body. */
+   }
+
+/* Finished. */
+
+}
+
+void eraLdsun(double p[3], double e[3], double em, double p1[3])
+/*
+**  - - - - - - - - -
+**   e r a L d s u n
+**  - - - - - - - - -
+**
+**  Light deflection by the Sun.
+**
+**  Given:
+**     p      double[3]  direction from observer to source (unit vector)
+**     e      double[3]  direction from Sun to observer (unit vector)
+**     em     double     distance from Sun to observer (au)
+**
+**  Returned:
+**     p1     double[3]  observer to deflected source (unit vector)
+**
+**  Notes:
+**
+**  1) The source is presumed to be sufficiently distant that its
+**     directions seen from the Sun and the observer are essentially
+**     the same.
+**
+**  2) The deflection is restrained when the angle between the star and
+**     the center of the Sun is less than about 9 arcsec, falling to
+**     zero for zero separation. (The chosen threshold is within the
+**     solar limb for all solar-system applications.)
+**
+**  3) The arguments p and p1 can be the same array.
+**
+**  Called:
+**     eraLd        light deflection by a solar-system body
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   eraLd(1.0, p, p, e, em, 1e-9, p1);
+
+/* Finished. */
 
 }
 
@@ -9960,7 +13982,7 @@ void eraNum00a(double date1, double date2, double rmatn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222-3 (p114).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -10027,7 +14049,7 @@ void eraNum00b(double date1, double date2, double rmatn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222-3 (p114).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -10093,7 +14115,7 @@ void eraNum06a(double date1, double date2, double rmatn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222-3 (p114).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -10154,7 +14176,7 @@ void eraNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222-3 (p114).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -10316,7 +14338,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 **     Wallace, P.T., "Software for Implementing the IAU 2000
 **     Resolutions", in IERS Workshop 5.1 (2002)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -12277,7 +16299,7 @@ void eraNut00b(double date1, double date2, double *dpsi, double *deps)
 **     Simon, J.-L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
 **     Francou, G., Laskar, J., Astron.Astrophys. 282, 663-683 (1994)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -12554,7 +16576,7 @@ void eraNut06a(double date1, double date2, double *dpsi, double *deps)
 **     Wallace, P.T., "Software for Implementing the IAU 2000
 **     Resolutions", in IERS Workshop 5.1 (2002)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -12626,7 +16648,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.222 (p111).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -12894,7 +16916,7 @@ void eraNutm80(double date1, double date2, double rmatn[3][3])
 **     eraObl80     mean obliquity, IAU 1980
 **     eraNumat     form nutation matrix
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -12954,7 +16976,7 @@ double eraObl06(double date1, double date2)
 **
 **     Hilton, J. et al., 2006, Celest.Mech.Dyn.Astron. 94, 351
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13020,7 +17042,7 @@ double eraObl80(double date1, double date2)
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Expression 3.222-1 (p114).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13160,7 +17182,7 @@ void eraP06e(double date1, double date2,
 **  Called:
 **     eraObl06     mean obliquity, IAU 2006
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13325,7 +17347,7 @@ void eraP2pv(double p[3], double pv[2][3])
 **     eraCp        copy p-vector
 **     eraZp        zero p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13362,7 +17384,7 @@ void eraP2s(double p[3], double *theta, double *phi, double *r)
 **     eraC2s       p-vector to spherical
 **     eraPm        modulus of p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13410,7 +17432,7 @@ double eraPap(double a[3], double b[3])
 **     eraPmp       p-vector minus p-vector
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13484,7 +17506,7 @@ double eraPas(double al, double ap, double bl, double bp)
 **
 **  2) Zero is returned if the two points are coincident.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13563,7 +17585,7 @@ void eraPb06(double date1, double date2,
 **     eraPmat06    PB matrix, IAU 2006
 **     eraRz        rotate around Z-axis
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13605,7 +17627,7 @@ double eraPdp(double a[3], double b[3])
 **  Returned (function value):
 **            double        a . b
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13693,7 +17715,7 @@ void eraPfw06(double date1, double date2,
 **  Called:
 **     eraObl06     mean obliquity, IAU 2006
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -13888,7 +17910,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
 **              Chapront-Touze, M., Francou, G., and Laskar, J.,
 **              Astron. Astrophys. 282, 663 (1994).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14205,18 +18227,11 @@ double eraPm(double p[3])
 **  Returned (function value):
 **            double        modulus
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
-   double w;
-
-
-   w  = sqrt( p[0] * p[0]
-            + p[1] * p[1]
-            + p[2] * p[2] );
-
-   return w;
+   return sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
 
 }
 
@@ -14270,7 +18285,7 @@ void eraPmat00(double date1, double date2, double rbp[3][3])
 **     24th General Assembly, Manchester, UK.  Resolutions B1.3, B1.6.
 **     (2000)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14335,7 +18350,7 @@ void eraPmat06(double date1, double date2, double rbp[3][3])
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14418,7 +18433,7 @@ void eraPmat76(double date1, double date2, double rmatp[3][3])
 **
 **     Kaplan,G.H., 1981. USNO circular no. 163, pA2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14458,7 +18473,7 @@ void eraPmp(double a[3], double b[3], double amb[3])
 **     It is permissible to re-use the same array for any of the
 **     arguments.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14467,6 +18482,239 @@ void eraPmp(double a[3], double b[3], double amb[3])
    amb[2] = a[2] - b[2];
 
    return;
+
+}
+
+void eraPmpx(double rc, double dc, double pr, double pd,
+             double px, double rv, double pmt, double pob[3],
+             double pco[3])
+/*
+**  - - - - - - - -
+**   e r a P m p x
+**  - - - - - - - -
+**
+**  Proper motion and parallax.
+**
+**  Given:
+**     rc,dc  double     ICRS RA,Dec at catalog epoch (radians)
+**     pr     double     RA proper motion (radians/year; Note 1)
+**     pd     double     Dec proper motion (radians/year)
+**     px     double     parallax (arcsec)
+**     rv     double     radial velocity (km/s, +ve if receding)
+**     pmt    double     proper motion time interval (SSB, Julian years)
+**     pob    double[3]  SSB to observer vector (au)
+**
+**  Returned:
+**     pco    double[3]  coordinate direction (BCRS unit vector)
+**
+**  Notes:
+**
+**  1) The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.
+**
+**  2) The proper motion time interval is for when the starlight
+**     reaches the solar system barycenter.
+**
+**  3) To avoid the need for iteration, the Roemer effect (i.e. the
+**     small annual modulation of the proper motion coming from the
+**     changing light time) is applied approximately, using the
+**     direction of the star at the catalog epoch.
+**
+**  References:
+**
+**     1984 Astronomical Almanac, pp B39-B41.
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013), Section 7.2.
+**
+**  Called:
+**     eraPdp       scalar product of two p-vectors
+**     eraPn        decompose p-vector into modulus and direction
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Km/s to au/year */
+   const double VF = ERFA_DAYSEC*ERFA_DJM/ERFA_DAU;
+
+/* Light time for 1 au, Julian years */
+   const double AULTY = ERFA_AULT/ERFA_DAYSEC/ERFA_DJY;
+
+   int i;
+   double sr, cr, sd, cd, x, y, z, p[3], dt, pxr, w, pdz, pm[3];
+
+
+/* Spherical coordinates to unit vector (and useful functions). */
+   sr = sin(rc);
+   cr = cos(rc);
+   sd = sin(dc);
+   cd = cos(dc);
+   p[0] = x = cr*cd;
+   p[1] = y = sr*cd;
+   p[2] = z = sd;
+
+/* Proper motion time interval (y) including Roemer effect. */
+   dt = pmt + eraPdp(p,pob)*AULTY;
+
+/* Space motion (radians per year). */
+   pxr = px * ERFA_DAS2R;
+   w = VF * rv * pxr;
+   pdz = pd * z;
+   pm[0] = - pr*y - pdz*cr + w*x;
+   pm[1] =   pr*x - pdz*sr + w*y;
+   pm[2] =   pd*cd + w*z;
+
+/* Coordinate direction of star (unit vector, BCRS). */
+   for (i = 0; i < 3; i++) {
+      p[i] += dt*pm[i] - pxr*pob[i];
+   }
+   eraPn(p, &w, pco);
+
+/* Finished. */
+
+}
+
+int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
+              double px1, double rv1,
+              double ep1a, double ep1b, double ep2a, double ep2b,
+              double *ra2, double *dec2, double *pmr2, double *pmd2,
+              double *px2, double *rv2)
+/*
+**  - - - - - - - - - -
+**   e r a P m s a f e
+**  - - - - - - - - - -
+**
+**  Star proper motion:  update star catalog data for space motion, with
+**  special handling to handle the zero parallax case.
+**
+**  Given:
+**     ra1    double      right ascension (radians), before
+**     dec1   double      declination (radians), before
+**     pmr1   double      RA proper motion (radians/year), before
+**     pmd1   double      Dec proper motion (radians/year), before
+**     px1    double      parallax (arcseconds), before
+**     rv1    double      radial velocity (km/s, +ve = receding), before
+**     ep1a   double      "before" epoch, part A (Note 1)
+**     ep1b   double      "before" epoch, part B (Note 1)
+**     ep2a   double      "after" epoch, part A (Note 1)
+**     ep2b   double      "after" epoch, part B (Note 1)
+**
+**  Returned:
+**     ra2    double      right ascension (radians), after
+**     dec2   double      declination (radians), after
+**     pmr2   double      RA proper motion (radians/year), after
+**     pmd2   double      Dec proper motion (radians/year), after
+**     px2    double      parallax (arcseconds), after
+**     rv2    double      radial velocity (km/s, +ve = receding), after
+**
+**  Returned (function value):
+**            int         status:
+**                         -1 = system error (should not occur)
+**                          0 = no warnings or errors
+**                          1 = distance overridden (Note 6)
+**                          2 = excessive velocity (Note 7)
+**                          4 = solution didn't converge (Note 8)
+**                       else = binary logical OR of the above warnings
+**
+**  Notes:
+**
+**  1) The starting and ending TDB epochs ep1a+ep1b and ep2a+ep2b are
+**     Julian Dates, apportioned in any convenient way between the two
+**     parts (A and B).  For example, JD(TDB)=2450123.7 could be
+**     expressed in any of these ways, among others:
+**
+**            epNa            epNb
+**
+**         2450123.7           0.0       (JD method)
+**         2451545.0       -1421.3       (J2000 method)
+**         2400000.5       50123.2       (MJD method)
+**         2450123.5           0.2       (date & time method)
+**
+**     The JD method is the most natural and convenient to use in cases
+**     where the loss of several decimal digits of resolution is
+**     acceptable.  The J2000 method is best matched to the way the
+**     argument is handled internally and will deliver the optimum
+**     resolution.  The MJD method and the date & time methods are both
+**     good compromises between resolution and convenience.
+**
+**  2) In accordance with normal star-catalog conventions, the object's
+**     right ascension and declination are freed from the effects of
+**     secular aberration.  The frame, which is aligned to the catalog
+**     equator and equinox, is Lorentzian and centered on the SSB.
+**
+**     The proper motions are the rate of change of the right ascension
+**     and declination at the catalog epoch and are in radians per TDB
+**     Julian year.
+**
+**     The parallax and radial velocity are in the same frame.
+**
+**  3) Care is needed with units.  The star coordinates are in radians
+**     and the proper motions in radians per Julian year, but the
+**     parallax is in arcseconds.
+**
+**  4) The RA proper motion is in terms of coordinate angle, not true
+**     angle.  If the catalog uses arcseconds for both RA and Dec proper
+**     motions, the RA proper motion will need to be divided by cos(Dec)
+**     before use.
+**
+**  5) Straight-line motion at constant speed, in the inertial frame, is
+**     assumed.
+**
+**  6) An extremely small (or zero or negative) parallax is overridden
+**     to ensure that the object is at a finite but very large distance,
+**     but not so large that the proper motion is equivalent to a large
+**     but safe speed (about 0.1c using the chosen constant).  A warning
+**     status of 1 is added to the status if this action has been taken.
+**
+**  7) If the space velocity is a significant fraction of c (see the
+**     constant VMAX in the function eraStarpv), it is arbitrarily set
+**     to zero.  When this action occurs, 2 is added to the status.
+**
+**  8) The relativistic adjustment carried out in the eraStarpv function
+**     involves an iterative calculation.  If the process fails to
+**     converge within a set number of iterations, 4 is added to the
+**     status.
+**
+**  Called:
+**     eraSeps      angle between two points
+**     eraStarpm    update star catalog data for space motion
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+
+/* Minimum allowed parallax (arcsec) */
+   const double PXMIN = 5e-7;
+
+/* Factor giving maximum allowed transverse speed of about 1% c */
+   const double F = 326.0;
+
+   int jpx, j;
+   double pm, px1a;
+
+
+/* Proper motion in one year (radians). */
+   pm = eraSeps(ra1, dec1, ra1+pmr1, dec1+pmd1);
+
+/* Override the parallax to reduce the chances of a warning status. */
+   jpx = 0;
+   px1a = px1;
+   pm *= F;
+   if (px1a < pm) {jpx = 1; px1a = pm;}
+   if (px1a < PXMIN) {jpx = 1; px1a = PXMIN;}
+
+/* Carry out the transformation using the modified parallax. */
+   j = eraStarpm(ra1, dec1, pmr1, pmd1, px1a, rv1,
+                 ep1a, ep1b, ep2a, ep2b,
+                 ra2, dec2, pmr2, pmd2, px2, rv2);
+
+/* Revise and return the status. */
+   if (! j%2) j += jpx;
+   return j;
+
+/* Finished. */
 
 }
 
@@ -14498,7 +18746,7 @@ void eraPn(double p[3], double *r, double u[3])
 **     eraZp        zero p-vector
 **     eraSxp       multiply p-vector by scalar
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14620,7 +18868,7 @@ void eraPn00(double date1, double date2, double dpsi, double deps,
 **     n.b. The celestial ephemeris origin (CEO) was renamed "celestial
 **          intermediate origin" (CIO) by IAU 2006 Resolution 2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14722,8 +18970,9 @@ void eraPn00a(double date1, double date2,
 **      equinox of date.  It is the product rn x rbp, applying frame
 **      bias, precession and nutation in that order.
 **
-**  9)  The X,Y,Z coordinates of the IAU 2000B Celestial Intermediate
-**      Pole are elements (3,1-3) of the matrix rbpn.
+**  9)  The X,Y,Z coordinates of the IAU 2000A Celestial Intermediate
+**      Pole are elements (3,1-3) of the GCRS-to-true matrix,
+**      i.e. rbpn[2][0-2].
 **
 **  10) It is permissible to re-use the same array in the returned
 **      arguments.  The arrays are filled in the order given.
@@ -14742,7 +18991,7 @@ void eraPn00a(double date1, double date2,
 **     n.b. The celestial ephemeris origin (CEO) was renamed "celestial
 **          intermediate origin" (CIO) by IAU 2006 Resolution 2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14831,7 +19080,8 @@ void eraPn00b(double date1, double date2,
 **      bias, precession and nutation in that order.
 **
 **  9)  The X,Y,Z coordinates of the IAU 2000B Celestial Intermediate
-**      Pole are elements (3,1-3) of the matrix rbpn.
+**      Pole are elements (3,1-3) of the GCRS-to-true matrix,
+**      i.e. rbpn[2][0-2].
 **
 **  10) It is permissible to re-use the same array in the returned
 **      arguments.  The arrays are filled in the stated order.
@@ -14850,7 +19100,7 @@ void eraPn00b(double date1, double date2,
 **     n.b. The celestial ephemeris origin (CEO) was renamed "celestial
 **          intermediate origin" (CIO) by IAU 2006 Resolution 2.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -14938,8 +19188,8 @@ void eraPn06(double date1, double date2, double dpsi, double deps,
 **      equinox of date.  It is the product rn x rbp, applying frame
 **      bias, precession and nutation in that order.
 **
-**  9)  The X,Y,Z coordinates of the IAU 2000B Celestial Intermediate
-**      Pole are elements (3,1-3) of the matrix rbpn.
+**  9)  The X,Y,Z coordinates of the Celestial Intermediate Pole are
+**      elements (3,1-3) of the GCRS-to-true matrix, i.e. rbpn[2][0-2].
 **
 **  10) It is permissible to re-use the same array in the returned
 **      arguments.  The arrays are filled in the stated order.
@@ -14957,7 +19207,7 @@ void eraPn06(double date1, double date2, double dpsi, double deps,
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15068,7 +19318,8 @@ void eraPn06a(double date1, double date2,
 **      precession and nutation in that order.
 **
 **  9)  The X,Y,Z coordinates of the IAU 2006/2000A Celestial
-**      Intermediate Pole are elements (1,1-3) of the matrix rbpn.
+**      Intermediate Pole are elements (3,1-3) of the GCRS-to-true
+**      matrix, i.e. rbpn[2][0-2].
 **
 **  10) It is permissible to re-use the same array in the returned
 **      arguments.  The arrays are filled in the stated order.
@@ -15081,7 +19332,7 @@ void eraPn06a(double date1, double date2,
 **
 **     Capitaine, N. & Wallace, P.T., 2006, Astron.Astrophys. 450, 855
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15148,7 +19399,7 @@ void eraPnm00a(double date1, double date2, double rbpn[3][3])
 **     24th General Assembly, Manchester, UK.  Resolutions B1.3, B1.6.
 **     (2000)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15215,7 +19466,7 @@ void eraPnm00b(double date1, double date2, double rbpn[3][3])
 **     24th General Assembly, Manchester, UK.  Resolutions B1.3, B1.6.
 **     (2000)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15279,7 +19530,7 @@ void eraPnm06a(double date1, double date2, double rnpb[3][3])
 **
 **     Capitaine, N. & Wallace, P.T., 2006, Astron.Astrophys. 450, 855.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15351,7 +19602,7 @@ void eraPnm80(double date1, double date2, double rmatpn[3][3])
 **     P. Kenneth Seidelmann (ed), University Science Books (1992),
 **     Section 3.3 (p145).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15417,7 +19668,7 @@ void eraPom00(double xp, double yp, double sp, double rpom[3][3])
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15451,7 +19702,7 @@ void eraPpp(double a[3], double b[3], double apb[3])
 **     It is permissible to re-use the same array for any of the
 **     arguments.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15486,7 +19737,7 @@ void eraPpsp(double a[3], double s, double b[3], double apsb[3])
 **     eraSxp       multiply p-vector by scalar
 **     eraPpp       p-vector plus p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15569,7 +19820,7 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
 **     Wallace, P.T., "Software for Implementing the IAU 2000
 **     Resolutions", in IERS Workshop 5.1 (2002).
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15591,7 +19842,7 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
 
 }
 
-void eraPrec76(double ep01, double ep02, double ep11, double ep12,
+void eraPrec76(double date01, double date02, double date11, double date12,
                double *zeta, double *z, double *theta)
 /*
 **  - - - - - - - - - -
@@ -15601,26 +19852,26 @@ void eraPrec76(double ep01, double ep02, double ep11, double ep12,
 **  IAU 1976 precession model.
 **
 **  This function forms the three Euler angles which implement general
-**  precession between two epochs, using the IAU 1976 model (as for
-**  the FK5 catalog).
+**  precession between two dates, using the IAU 1976 model (as for the
+**  FK5 catalog).
 **
 **  Given:
-**     ep01,ep02   double    TDB starting epoch (Note 1)
-**     ep11,ep12   double    TDB ending epoch (Note 1)
+**     date01,date02   double    TDB starting date (Note 1)
+**     date11,date12   double    TDB ending date (Note 1)
 **
 **  Returned:
-**     zeta        double    1st rotation: radians cw around z
-**     z           double    3rd rotation: radians cw around z
-**     theta       double    2nd rotation: radians ccw around y
+**     zeta            double    1st rotation: radians cw around z
+**     z               double    3rd rotation: radians cw around z
+**     theta           double    2nd rotation: radians ccw around y
 **
 **  Notes:
 **
-**  1) The epochs ep01+ep02 and ep11+ep12 are Julian Dates, apportioned
-**     in any convenient way between the arguments epn1 and epn2.  For
-**     example, JD(TDB)=2450123.7 could be expressed in any of these
-**     ways, among others:
+**  1) The dates date01+date02 and date11+date12 are Julian Dates,
+**     apportioned in any convenient way between the arguments daten1
+**     and daten2.  For example, JD(TDB)=2450123.7 could be expressed in
+**     any of these ways, among others:
 **
-**             epn1          epn2
+**           daten1        daten2
 **
 **         2450123.7           0.0       (JD method)
 **         2451545.0       -1421.3       (J2000 method)
@@ -15633,7 +19884,7 @@ void eraPrec76(double ep01, double ep02, double ep11, double ep12,
 **     argument is handled internally and will deliver the optimum
 **     optimum resolution.  The MJD method and the date & time methods
 **     are both good compromises between resolution and convenience.
-**     The two epochs may be expressed using different methods, but at
+**     The two dates may be expressed using different methods, but at
 **     the risk of losing some resolution.
 **
 **  2) The accumulated precession angles zeta, z, theta are expressed
@@ -15657,18 +19908,18 @@ void eraPrec76(double ep01, double ep02, double ep11, double ep12,
 **     Lieske, J.H., 1979, Astron.Astrophys. 73, 282, equations
 **     (6) & (7), p283.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double t0, t, tas2r, w;
 
 
-/* Interval between fundamental epoch J2000.0 and start epoch (JC). */
-   t0 = ((ep01 - ERFA_DJ00) + ep02) / ERFA_DJC;
+/* Interval between fundamental epoch J2000.0 and start date (JC). */
+   t0 = ((date01 - ERFA_DJ00) + date02) / ERFA_DJC;
 
 /* Interval over which precession required (JC). */
-   t = ((ep11 - ep01) + (ep12 - ep02)) / ERFA_DJC;
+   t = ((date11 - date01) + (date12 - date02)) / ERFA_DJC;
 
 /* Euler angles. */
    tas2r = t * ERFA_DAS2R;
@@ -15702,7 +19953,7 @@ void eraPv2p(double pv[2][3], double p[3])
 **  Called:
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15746,7 +19997,7 @@ void eraPv2s(double pv[2][3],
 **  2) If the position is a pole, theta, td and pd are indeterminate.
 **     In such cases zeroes are returned for all three.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15827,7 +20078,7 @@ void eraPvdpv(double a[2][3], double b[2][3], double adb[2])
 **  Called:
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15868,7 +20119,7 @@ void eraPvm(double pv[2][3], double *r, double *s)
 **  Called:
 **     eraPm        modulus of p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15904,7 +20155,7 @@ void eraPvmpv(double a[2][3], double b[2][3], double amb[2][3])
 **  Called:
 **     eraPmp       p-vector minus p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -15937,7 +20188,7 @@ void eraPvppv(double a[2][3], double b[2][3], double apb[2][3])
 **  Called:
 **     eraPpp       p-vector plus p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16041,7 +20292,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16101,6 +20352,105 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 
 }
 
+void eraPvtob(double elong, double phi, double hm,
+              double xp, double yp, double sp, double theta,
+              double pv[2][3])
+/*
+**  - - - - - - - - -
+**   e r a P v t o b
+**  - - - - - - - - -
+**
+**  Position and velocity of a terrestrial observing station.
+**
+**  Given:
+**     elong   double       longitude (radians, east +ve, Note 1)
+**     phi     double       latitude (geodetic, radians, Note 1)
+**     hm      double       height above ref. ellipsoid (geodetic, m)
+**     xp,yp   double       coordinates of the pole (radians, Note 2)
+**     sp      double       the TIO locator s' (radians, Note 2)
+**     theta   double       Earth rotation angle (radians, Note 3)
+**
+**  Returned:
+**     pv      double[2][3] position/velocity vector (m, m/s, CIRS)
+**
+**  Notes:
+**
+**  1) The terrestrial coordinates are with respect to the ERFA_WGS84
+**     reference ellipsoid.
+**
+**  2) xp and yp are the coordinates (in radians) of the Celestial
+**     Intermediate Pole with respect to the International Terrestrial
+**     Reference System (see IERS Conventions), measured along the
+**     meridians 0 and 90 deg west respectively.  sp is the TIO locator
+**     s', in radians, which positions the Terrestrial Intermediate
+**     Origin on the equator.  For many applications, xp, yp and
+**     (especially) sp can be set to zero.
+**
+**  3) If theta is Greenwich apparent sidereal time instead of Earth
+**     rotation angle, the result is with respect to the true equator
+**     and equinox of date, i.e. with the x-axis at the equinox rather
+**     than the celestial intermediate origin.
+**
+**  4) The velocity units are meters per UT1 second, not per SI second.
+**     This is unlikely to have any practical consequences in the modern
+**     era.
+**
+**  5) No validation is performed on the arguments.  Error cases that
+**     could lead to arithmetic exceptions are trapped by the eraGd2gc
+**     function, and the result set to zeros.
+**
+**  References:
+**
+**     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
+**     IERS Technical Note No. 32, BKG (2004)
+**
+**     Urban, S. & Seidelmann, P. K. (eds), Explanatory Supplement to
+**     the Astronomical Almanac, 3rd ed., University Science Books
+**     (2013), Section 7.4.3.3.
+**
+**  Called:
+**     eraGd2gc     geodetic to geocentric transformation
+**     eraPom00     polar motion matrix
+**     eraTrxp      product of transpose of r-matrix and p-vector
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+/* Earth rotation rate in radians per UT1 second */
+   const double OM = 1.00273781191135448 * ERFA_D2PI / ERFA_DAYSEC;
+
+   double xyzm[3], rpm[3][3], xyz[3], x, y, z, s, c;
+
+
+/* Geodetic to geocentric transformation (ERFA_WGS84). */
+   (void) eraGd2gc(1, elong, phi, hm, xyzm);
+
+/* Polar motion and TIO position. */
+   eraPom00(xp, yp, sp, rpm);
+   eraTrxp(rpm, xyzm, xyz);
+   x = xyz[0];
+   y = xyz[1];
+   z = xyz[2];
+
+/* Functions of ERA. */
+   s = sin(theta);
+   c = cos(theta);
+
+/* Position. */
+   pv[0][0] = c*x - s*y;
+   pv[0][1] = s*x + c*y;
+   pv[0][2] = z;
+
+/* Velocity. */
+   pv[1][0] = OM * ( -s*x - c*y );
+   pv[1][1] = OM * (  c*x - s*y );
+   pv[1][2] = 0.0;
+
+/* Finished. */
+
+}
+
 void eraPvu(double dt, double pv[2][3], double upv[2][3])
 /*
 **  - - - - - - -
@@ -16129,7 +20479,7 @@ void eraPvu(double dt, double pv[2][3], double upv[2][3])
 **     eraPpsp      p-vector plus scaled p-vector
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16162,7 +20512,7 @@ void eraPvup(double dt, double pv[2][3], double p[3])
 **
 **  2) The time units of dt must match those of the velocity.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16204,7 +20554,7 @@ void eraPvxpv(double a[2][3], double b[2][3], double axb[2][3])
 **     eraPxp       vector product of two p-vectors
 **     eraPpp       p-vector plus p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16246,7 +20596,7 @@ void eraPxp(double a[3], double b[3], double axb[3])
 **     It is permissible to re-use the same array for any of the
 **     arguments.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16264,6 +20614,205 @@ void eraPxp(double a[3], double b[3], double axb[3])
    axb[2] = xa*yb - ya*xb;
 
    return;
+
+}
+
+void eraRefco(double phpa, double tc, double rh, double wl,
+              double *refa, double *refb)
+/*
+**  - - - - - - - - -
+**   e r a R e f c o
+**  - - - - - - - - -
+**
+**  Determine the constants A and B in the atmospheric refraction model
+**  dZ = A tan Z + B tan^3 Z.
+**
+**  Z is the "observed" zenith distance (i.e. affected by refraction)
+**  and dZ is what to add to Z to give the "topocentric" (i.e. in vacuo)
+**  zenith distance.
+**
+**  Given:
+**    phpa   double    pressure at the observer (hPa = millibar)
+**    tc     double    ambient temperature at the observer (deg C)
+**    rh     double    relative humidity at the observer (range 0-1)
+**    wl     double    wavelength (micrometers)
+**
+**  Returned:
+**    refa   double*   tan Z coefficient (radians)
+**    refb   double*   tan^3 Z coefficient (radians)
+**
+**  Notes:
+**
+**  1) The model balances speed and accuracy to give good results in
+**     applications where performance at low altitudes is not paramount.
+**     Performance is maintained across a range of conditions, and
+**     applies to both optical/IR and radio.
+**
+**  2) The model omits the effects of (i) height above sea level (apart
+**     from the reduced pressure itself), (ii) latitude (i.e. the
+**     flattening of the Earth), (iii) variations in tropospheric lapse
+**     rate and (iv) dispersive effects in the radio.
+**
+**     The model was tested using the following range of conditions:
+**
+**       lapse rates 0.0055, 0.0065, 0.0075 deg/meter
+**       latitudes 0, 25, 50, 75 degrees
+**       heights 0, 2500, 5000 meters ASL
+**       pressures mean for height -10% to +5% in steps of 5%
+**       temperatures -10 deg to +20 deg with respect to 280 deg at SL
+**       relative humidity 0, 0.5, 1
+**       wavelengths 0.4, 0.6, ... 2 micron, + radio
+**       zenith distances 15, 45, 75 degrees
+**
+**     The accuracy with respect to raytracing through a model
+**     atmosphere was as follows:
+**
+**                            worst         RMS
+**
+**       optical/IR           62 mas       8 mas
+**       radio               319 mas      49 mas
+**
+**     For this particular set of conditions:
+**
+**       lapse rate 0.0065 K/meter
+**       latitude 50 degrees
+**       sea level
+**       pressure 1005 mb
+**       temperature 280.15 K
+**       humidity 80%
+**       wavelength 5740 Angstroms
+**
+**     the results were as follows:
+**
+**       ZD       raytrace     eraRefco   Saastamoinen
+**
+**       10         10.27        10.27        10.27
+**       20         21.19        21.20        21.19
+**       30         33.61        33.61        33.60
+**       40         48.82        48.83        48.81
+**       45         58.16        58.18        58.16
+**       50         69.28        69.30        69.27
+**       55         82.97        82.99        82.95
+**       60        100.51       100.54       100.50
+**       65        124.23       124.26       124.20
+**       70        158.63       158.68       158.61
+**       72        177.32       177.37       177.31
+**       74        200.35       200.38       200.32
+**       76        229.45       229.43       229.42
+**       78        267.44       267.29       267.41
+**       80        319.13       318.55       319.10
+**
+**      deg        arcsec       arcsec       arcsec
+**
+**     The values for Saastamoinen's formula (which includes terms
+**     up to tan^5) are taken from Hohenkerk and Sinclair (1985).
+**
+**  3) A wl value in the range 0-100 selects the optical/IR case and is
+**     wavelength in micrometers.  Any value outside this range selects
+**     the radio case.
+**
+**  4) Outlandish input parameters are silently limited to
+**     mathematically safe values.  Zero pressure is permissible, and
+**     causes zeroes to be returned.
+**
+**  5) The algorithm draws on several sources, as follows:
+**
+**     a) The formula for the saturation vapour pressure of water as
+**        a function of temperature and temperature is taken from
+**        Equations (A4.5-A4.7) of Gill (1982).
+**
+**     b) The formula for the water vapour pressure, given the
+**        saturation pressure and the relative humidity, is from
+**        Crane (1976), Equation (2.5.5).
+**
+**     c) The refractivity of air is a function of temperature,
+**        total pressure, water-vapour pressure and, in the case
+**        of optical/IR, wavelength.  The formulae for the two cases are
+**        developed from Hohenkerk & Sinclair (1985) and Rueger (2002).
+**
+**     d) The formula for beta, the ratio of the scale height of the
+**        atmosphere to the geocentric distance of the observer, is
+**        an adaption of Equation (9) from Stone (1996).  The
+**        adaptations, arrived at empirically, consist of (i) a small
+**        adjustment to the coefficient and (ii) a humidity term for the
+**        radio case only.
+**
+**     e) The formulae for the refraction constants as a function of
+**        n-1 and beta are from Green (1987), Equation (4.31).
+**
+**  References:
+**
+**     Crane, R.K., Meeks, M.L. (ed), "Refraction Effects in the Neutral
+**     Atmosphere", Methods of Experimental Physics: Astrophysics 12B,
+**     Academic Press, 1976.
+**
+**     Gill, Adrian E., "Atmosphere-Ocean Dynamics", Academic Press,
+**     1982.
+**
+**     Green, R.M., "Spherical Astronomy", Cambridge University Press,
+**     1987.
+**
+**     Hohenkerk, C.Y., & Sinclair, A.T., NAO Technical Note No. 63,
+**     1985.
+**
+**     Rueger, J.M., "Refractive Index Formulae for Electronic Distance
+**     Measurement with Radio and Millimetre Waves", in Unisurv Report
+**     S-68, School of Surveying and Spatial Information Systems,
+**     University of New South Wales, Sydney, Australia, 2002.
+**
+**     Stone, Ronald C., P.A.S.P. 108, 1051-1058, 1996.
+**
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Derived, with permission, from the SOFA library.  See notes at end of file.
+*/
+{
+   int optic;
+   double p, t, r, w, ps, pw, tk, wlsq, gamma, beta;
+
+
+/* Decide whether optical/IR or radio case:  switch at 100 microns. */
+   optic = ( wl <= 100.0 );
+
+/* Restrict parameters to safe values. */
+   t = ERFA_GMAX ( tc, -150.0 );
+   t = ERFA_GMIN ( t, 200.0 );
+   p = ERFA_GMAX ( phpa, 0.0 );
+   p = ERFA_GMIN ( p, 10000.0 );
+   r = ERFA_GMAX ( rh, 0.0 );
+   r = ERFA_GMIN ( r, 1.0 );
+   w = ERFA_GMAX ( wl, 0.1 );
+   w = ERFA_GMIN ( w, 1e6 );
+
+/* Water vapour pressure at the observer. */
+   if ( p > 0.0 ) {
+      ps = pow ( 10.0, ( 0.7859 + 0.03477*t ) /
+                          ( 1.0 + 0.00412*t ) ) *
+                 ( 1.0 + p * ( 4.5e-6 + 6e-10*t*t )  );
+      pw = r * ps / ( 1.0 - (1.0-r)*ps/p );
+   } else {
+      pw = 0.0;
+   }
+
+/* Refractive index minus 1 at the observer. */
+   tk = t + 273.15;
+   if ( optic ) {
+      wlsq = w * w;
+      gamma = ( ( 77.53484e-6 +
+                 ( 4.39108e-7 + 3.666e-9/wlsq ) / wlsq ) * p
+                    - 11.2684e-6*pw ) / tk;
+   } else {
+      gamma = ( 77.6890e-6*p - ( 6.3938e-6 - 0.375463/tk ) * pw ) / tk;
+   }
+
+/* Formula for beta from Stone, with empirical adjustments. */
+   beta = 4.4474e-6 * tk;
+   if ( ! optic ) beta -= 0.0074 * pw * beta;
+
+/* Refraction constants from Green. */
+   *refa = gamma * ( 1.0 - beta );
+   *refb = - gamma * ( beta - gamma / 2.0 );
+
+/* Finished. */
 
 }
 
@@ -16296,7 +20845,7 @@ void eraRm2v(double r[3][3], double w[3])
 **  3) The reference frame rotates clockwise as seen looking along
 **     the rotation vector from the origin.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16350,7 +20899,7 @@ void eraRv2m(double w[3], double r[3][3])
 **  3) The reference frame rotates clockwise as seen looking along the
 **     rotation vector from the origin.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16416,7 +20965,7 @@ void eraRx(double phi, double r[3][3])
 **         (                               )
 **         (  0   - sin(phi)   + cos(phi)  )
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16465,7 +21014,7 @@ void eraRxp(double r[3][3], double p[3], double rp[3])
 **  Called:
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16510,7 +21059,7 @@ void eraRxpv(double r[3][3], double pv[2][3], double rpv[2][3])
 **  Called:
 **     eraRxp       product of r-matrix and p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16543,7 +21092,7 @@ void eraRxr(double a[3][3], double b[3][3], double atb[3][3])
 **  Called:
 **     eraCr        copy r-matrix
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16594,7 +21143,7 @@ void eraRy(double theta, double r[3][3])
 **         (                                        )
 **         (  + sin(theta)     0      + cos(theta)  )
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16650,7 +21199,7 @@ void eraRz(double psi, double r[3][3])
 **         (                                 )
 **         (       0            0         1  )
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -16754,7 +21303,7 @@ double eraS00(double date1, double date2, double x, double y)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17047,9 +21596,9 @@ double eraS00a(double date1, double date2)
 **     instead the IAU 2000B truncated model.
 **
 **  Called:
-**     eraPnm00a     classical NPB matrix, IAU 2000A
-**     eraBnp2xy     extract CIP X,Y from the BPN matrix
-**     eraS00        the CIO locator s, given X,Y, IAU 2000A
+**     eraPnm00a    classical NPB matrix, IAU 2000A
+**     eraBnp2xy    extract CIP X,Y from the BPN matrix
+**     eraS00       the CIO locator s, given X,Y, IAU 2000A
 **
 **  References:
 **
@@ -17064,7 +21613,7 @@ double eraS00a(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17136,9 +21685,9 @@ double eraS00b(double date1, double date2)
 **     accuracy and at some cost in speed.
 **
 **  Called:
-**     eraPnm00b     classical NPB matrix, IAU 2000B
-**     eraBnp2xy     extract CIP X,Y from the BPN matrix
-**     eraS00        the CIO locator s, given X,Y, IAU 2000A
+**     eraPnm00b    classical NPB matrix, IAU 2000B
+**     eraBnp2xy    extract CIP X,Y from the BPN matrix
+**     eraS00       the CIO locator s, given X,Y, IAU 2000A
 **
 **  References:
 **
@@ -17153,7 +21702,7 @@ double eraS00b(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17246,7 +21795,7 @@ double eraS06(double date1, double date2, double x, double y)
 **     McCarthy, D.D., Petit, G. (eds.) 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17558,7 +22107,7 @@ double eraS06a(double date1, double date2)
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17593,7 +22142,7 @@ void eraS2c(double theta, double phi, double c[3])
 **  Returned:
 **     c        double[3]    direction cosines
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17629,7 +22178,7 @@ void eraS2p(double theta, double phi, double r, double p[3])
 **     eraS2c       spherical coordinates to unit vector
 **     eraSxp       multiply p-vector by scalar
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17664,7 +22213,7 @@ void eraS2pv(double theta, double phi, double r,
 **  Returned:
 **     pv       double[2][3]    pv-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17714,7 +22263,7 @@ void eraS2xpv(double s1, double s2, double pv[2][3], double spv[2][3])
 **  Called:
 **     eraSxp       multiply p-vector by scalar
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17755,7 +22304,7 @@ double eraSepp(double a[3], double b[3])
 **     eraPm        modulus of p-vector
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17797,7 +22346,7 @@ double eraSeps(double al, double ap, double bl, double bp)
 **     eraS2c       spherical coordinates to unit vector
 **     eraSepp      angular separation between two p-vectors
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17862,7 +22411,7 @@ double eraSp00(double date1, double date2)
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -17971,7 +22520,7 @@ int eraStarpm(double ra1, double dec1,
 **     this way, the status, initially zero, has 1 added to it.
 **
 **  7) If the space velocity is a significant fraction of c (see the
-**     constant VMAX in the function eraStarpv),  it is arbitrarily set
+**     constant VMAX in the function eraStarpv), it is arbitrarily set
 **     to zero.  When this action occurs, 2 is added to the status.
 **
 **  8) The relativistic adjustment carried out in the eraStarpv function
@@ -17985,7 +22534,7 @@ int eraStarpm(double ra1, double dec1,
 **     eraPdp       scalar product of two p-vectors
 **     eraPvstar    space motion pv-vector to star catalog data
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18143,7 +22692,7 @@ int eraStarpv(double ra, double dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18258,7 +22807,7 @@ void eraSxp(double s, double p[3], double sp[3])
 **  Note:
 **     It is permissible for p and sp to be the same array.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18286,12 +22835,12 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3])
 **     spv     double[2][3]    s * pv
 **
 **  Note:
-**     It is permissible for pv and psv to be the same array
+**     It is permissible for pv and spv to be the same array
 **
 **  Called:
 **     eraS2xpv     multiply pv-vector by two scalars
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18334,7 +22883,7 @@ int eraTaitt(double tai1, double tai2, double *tt1, double *tt2)
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18392,7 +22941,7 @@ int eraTaiut1(double tai1, double tai2, double dta,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18446,20 +22995,21 @@ int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
 **  2) JD cannot unambiguously represent UTC during a leap second unless
 **     special measures are taken.  The convention in the present
 **     function is that the JD day represents UTC days whether the
-**     length is 86399, 86400 or 86401 SI seconds.
+**     length is 86399, 86400 or 86401 SI seconds.  In the 1960-1972 era
+**     there were smaller jumps (in either direction) each time the
+**     linear UTC(TAI) expression was changed, and these "mini-leaps"
+**     are also included in the ERFA convention.
 **
 **  3) The function eraD2dtf can be used to transform the UTC quasi-JD
 **     into calendar date and clock time, including UTC leap second
 **     handling.
 **
 **  4) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
+**     introduction of the time scale or that are too far in the future
 **     to be trusted.  See eraDat for further details.
 **
 **  Called:
-**     eraJd2cal    JD to Gregorian calendar
-**     eraDat       delta(AT) = TAI-UTC
-**     eraCal2jd    Gregorian calendar to JD
+**     eraUtctai    UTC to TAI
 **
 **  References:
 **
@@ -18469,13 +23019,13 @@ int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int big1;
-   int i, iy, im, id, js;
-   double a1, a2, d1, dats1, d2, fd, ddats, dats2, datd, as1, as2, da;
+   int i, j;
+   double a1, a2, u1, u2, g1, g2;
 
 
 /* Put the two parts of the TAI into big-first order. */
@@ -18488,57 +23038,33 @@ int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
       a2 = tai1;
    }
 
-/* See if the TAI can possibly be in a leap-second day. */
-   d1 = a1;
-   dats1 = 0.0;
-   for ( i = -1; i <= 3; i++ ) {
-      d2 = a2 + (double) i;
-      if ( eraJd2cal(d1, d2, &iy, &im, &id, &fd) ) return -1;
-      js = eraDat(iy, im, id, 0.0, &dats2);
-      if ( js < 0 ) return -1;
-      if ( i == -1 ) dats1 = dats2;
-      ddats = dats2 - dats1;
-      datd = dats1 / ERFA_DAYSEC;
-      if ( fabs(ddats) >= 0.5 ) {
+/* Initial guess for UTC. */
+   u1 = a1;
+   u2 = a2;
 
-      /* Yes.  Get TAI for the start of the UTC day that */
-      /* ends in a leap. */
-         if ( eraCal2jd(iy, im, id, &d1, &d2) ) return -1;
-         as1 = d1;
-         as2 = d2 - 1.0 + datd;
+/* Iterate (though in most cases just once is enough). */
+   for ( i = 0; i < 3; i++ ) {
 
-      /* Is the TAI after this point? */
-         da = a1 - as1;
-         da = da + ( a2 - as2 );
-         if ( da > 0 ) {
+   /* Guessed UTC to TAI. */
+      j = eraUtctai(u1, u2, &g1, &g2);
+      if ( j < 0 ) return j;
 
-         /* Yes:  fraction of the current UTC day that has elapsed. */
-            fd = da * ERFA_DAYSEC / ( ERFA_DAYSEC + ddats );
-
-         /* Ramp TAI-UTC to bring about ERFA's JD(UTC) convention. */
-            datd += ddats * ( fd <= 1.0 ? fd : 1.0 ) / ERFA_DAYSEC;
-         }
-
-      /* Done. */
-         break;
-      }
-      dats1 = dats2;
+   /* Adjust guessed UTC. */
+      u2 += a1 - g1;
+      u2 += a2 - g2;
    }
-
-/* Subtract the (possibly adjusted) TAI-UTC from TAI to give UTC. */
-   a2 -= datd;
 
 /* Return the UTC result, preserving the TAI order. */
    if ( big1 ) {
-      *utc1 = a1;
-      *utc2 = a2;
+      *utc1 = u1;
+      *utc2 = u2;
    } else {
-      *utc1 = a2;
-      *utc2 = a1;
+      *utc1 = u2;
+      *utc2 = u1;
    }
 
 /* Status. */
-   return js;
+   return j;
 
 }
 
@@ -18589,7 +23115,7 @@ int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 **
 **     IAU 2006 Resolution B3
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18652,7 +23178,7 @@ int eraTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
 **
 **     IAU 2000 Resolution B1.9
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18722,7 +23248,7 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 **
 **     IAU 2006 Resolution B3
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18803,7 +23329,7 @@ int eraTdbtt(double tdb1, double tdb2, double dtr,
 **
 **     IAU 2006 Resolution 3
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18858,7 +23384,7 @@ int eraTf2a(char s, int ihour, int imin, double sec, double *rad)
 **  3)  If there are multiple errors, the status value reflects only the
 **      first, the smallest taking precedence.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18910,7 +23436,7 @@ int eraTf2d(char s, int ihour, int imin, double sec, double *days)
 **  3)  If there are multiple errors, the status value reflects only the
 **      first, the smallest taking precedence.
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18949,7 +23475,7 @@ void eraTr(double r[3][3], double rt[3][3])
 **  Called:
 **     eraCr        copy r-matrix
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -18990,7 +23516,7 @@ void eraTrxp(double r[3][3], double p[3], double trp[3])
 **     eraTr        transpose r-matrix
 **     eraRxp       product of r-matrix and p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19029,7 +23555,7 @@ void eraTrxpv(double r[3][3], double pv[2][3], double trpv[2][3])
 **     eraTr        transpose r-matrix
 **     eraRxpv      product of r-matrix and pv-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19079,7 +23605,7 @@ int eraTttai(double tt1, double tt2, double *tai1, double *tai2)
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19134,7 +23660,7 @@ int eraTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
 **
 **     IAU 2000 Resolution B1.9
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19205,7 +23731,7 @@ int eraTttdb(double tt1, double tt2, double dtr,
 **
 **     IAU 2006 Resolution 3
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19261,7 +23787,7 @@ int eraTtut1(double tt1, double tt2, double dt,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19318,7 +23844,7 @@ int eraUt1tai(double ut11, double ut12, double dta,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19374,7 +23900,7 @@ int eraUt1tt(double ut11, double ut12, double dt,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19442,7 +23968,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
 **     handling.
 **
 **  5) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
+**     introduction of the time scale or that are too far in the future
 **     to be trusted.  See eraDat for further details.
 **
 **  Called:
@@ -19458,7 +23984,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19564,11 +24090,14 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 **  2) JD cannot unambiguously represent UTC during a leap second unless
 **     special measures are taken.  The convention in the present
 **     function is that the JD day represents UTC days whether the
-**     length is 86399, 86400 or 86401 SI seconds.
+**     length is 86399, 86400 or 86401 SI seconds.  In the 1960-1972 era
+**     there were smaller jumps (in either direction) each time the
+**     linear UTC(TAI) expression was changed, and these "mini-leaps"
+**     are also included in the ERFA convention.
 **
 **  3) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
-**     to be trusted.  See eraDat  for further details.
+**     introduction of the time scale or that are too far in the future
+**     to be trusted.  See eraDat for further details.
 **
 **  4) The function eraDtf2d converts from calendar date and time of day
 **     into 2-part Julian Date, and in the case of UTC implements the
@@ -19590,13 +24119,13 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int big1;
-   int iy, im, id, js, iyt, imt, idt;
-   double u1, u2, fd, dats, fdt, datst, ddat, z1, z2, a2;
+   int iy, im, id, j, iyt, imt, idt;
+   double u1, u2, fd, dat0, dat12, w, dat24, dlod, dleap, z1, z2, a2;
 
 
 /* Put the two parts of the UTC into big-first order. */
@@ -19609,19 +24138,31 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
       u2 = utc1;
    }
 
-/* Get TAI-UTC now. */
-   if ( eraJd2cal(u1, u2, &iy, &im, &id, &fd) ) return -1;
-   js = eraDat(iy, im, id, fd, &dats);
-   if ( js < 0 ) return -1;
+/* Get TAI-UTC at 0h today. */
+   j = eraJd2cal(u1, u2, &iy, &im, &id, &fd);
+   if ( j ) return j;
+   j = eraDat(iy, im, id, 0.0, &dat0);
+   if ( j < 0 ) return j;
 
-/* Get TAI-UTC tomorrow. */
-   if ( eraJd2cal(u1+1.5, u2-fd, &iyt, &imt, &idt, &fdt) ) return -1;
-   js = eraDat(iyt, imt, idt, fdt, &datst);
-   if ( js < 0 ) return -1;
+/* Get TAI-UTC at 12h today (to detect drift). */
+   j = eraDat(iy, im, id, 0.5, &dat12);
+   if ( j < 0 ) return j;
 
-/* If today ends in a leap second, scale the fraction into SI days. */
-   ddat = datst - dats;
-   if ( fabs(ddat) > 0.5 ) fd += fd * ddat / ERFA_DAYSEC;
+/* Get TAI-UTC at 0h tomorrow (to detect jumps). */
+   j = eraJd2cal(u1+1.5, u2-fd, &iyt, &imt, &idt, &w);
+   if ( j ) return j;
+   j = eraDat(iyt, imt, idt, 0.0, &dat24);
+   if ( j < 0 ) return j;
+
+/* Separate TAI-UTC change into per-day (DLOD) and any jump (DLEAP). */
+   dlod = 2.0 * (dat12 - dat0);
+   dleap = dat24 - (dat0 + dlod);
+
+/* Remove any scaling applied to spread leap into preceding day. */
+   fd *= (ERFA_DAYSEC+dleap)/ERFA_DAYSEC;
+
+/* Scale from (pre-1972) UTC seconds to SI seconds. */
+   fd *= (ERFA_DAYSEC+dlod)/ERFA_DAYSEC;
 
 /* Today's calendar date to 2-part JD. */
    if ( eraCal2jd(iy, im, id, &z1, &z2) ) return -1;
@@ -19629,7 +24170,7 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 /* Assemble the TAI result, preserving the UTC split and order. */
    a2 = z1 - u1;
    a2 += z2;
-   a2 += fd + dats / ERFA_DAYSEC;
+   a2 += fd + dat0/ERFA_DAYSEC;
    if ( big1 ) {
       *tai1 = u1;
       *tai2 = a2;
@@ -19639,7 +24180,7 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
    }
 
 /* Status. */
-   return js;
+   return j;
 
 }
 
@@ -19661,7 +24202,7 @@ int eraUtcut1(double utc1, double utc2, double dut1,
 **     ut11,ut12  double   UT1 as a 2-part Julian Date (Note 6)
 **
 **  Returned (function value):
-**                int      status: +1 = dubious year (Note 7)
+**                int      status: +1 = dubious year (Note 3)
 **                                  0 = OK
 **                                 -1 = unacceptable date
 **
@@ -19677,24 +24218,20 @@ int eraUtcut1(double utc1, double utc2, double dut1,
 **     length is 86399, 86400 or 86401 SI seconds.
 **
 **  3) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
-**     to be trusted.  See eraDat  for further details.
+**     introduction of the time scale or that are too far in the future
+**     to be trusted.  See eraDat for further details.
 **
-**  4) The function eraDtf2d  converts from calendar date and time of
+**  4) The function eraDtf2d converts from calendar date and time of
 **     day into 2-part Julian Date, and in the case of UTC implements
 **     the leap-second-ambiguity convention described above.
 **
 **  5) Delta UT1 can be obtained from tabulations provided by the
-**     International Earth Rotation and Reference Systems Service.  It
-**     It is the caller's responsibility to supply a DUT argument
+**     International Earth Rotation and Reference Systems Service.
+**     It is the caller's responsibility to supply a dut1 argument
 **     containing the UT1-UTC value that matches the given UTC.
 **
 **  6) The returned ut11,ut12 are such that their sum is the UT1 Julian
 **     Date.
-**
-**  7) The warning status "dubious year" flags UTCs that predate the
-**     introduction of the time scale and that are too far in the future
-**     to be trusted.  See eraDat for further details.
 **
 **  References:
 **
@@ -19710,7 +24247,7 @@ int eraUtcut1(double utc1, double utc2, double dut1,
 **     eraUtctai    UTC to TAI
 **     eraTaiut1    TAI to UT1
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -19825,13 +24362,13 @@ void eraXy06(double date1, double date2, double *x, double *y)
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 
 /* Maximum power of T in the polynomials for X and Y */
-#define MAXPT (5)
+   enum { MAXPT = 5 };
 
 /* Polynomial coefficients (arcsec, X then Y). */
    static const double xyp[2][MAXPT+1] = {
@@ -22503,7 +27040,7 @@ void eraXys00a(double date1, double date2,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -22582,7 +27119,7 @@ void eraXys00b(double date1, double date2,
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -22661,14 +27198,14 @@ void eraXys06a(double date1, double date2,
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double rbpn[3][3];
 
 
-/* Form the bias-precession-nutation matrix, IAU 2000A. */
+/* Form the bias-precession-nutation matrix, IAU 2006/2000A. */
    eraPnm06a(date1, date2, rbpn);
 
 /* Extract X,Y. */
@@ -22692,7 +27229,7 @@ void eraZp(double p[3])
 **  Returned:
 **     p        double[3]      p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -22718,7 +27255,7 @@ void eraZpv(double pv[2][3])
 **  Called:
 **     eraZp        zero p-vector
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -22740,7 +27277,7 @@ void eraZr(double r[3][3])
 **  Returned:
 **     r        double[3][3]    r-matrix
 **
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -22761,7 +27298,7 @@ void eraZr(double r[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013, NumFOCUS Foundation.
+**  Copyright (C) 2013-2014, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
