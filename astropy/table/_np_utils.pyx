@@ -12,7 +12,7 @@ from numpy.lib.recfunctions import drop_fields
 cimport cython
 cimport numpy as np
 DTYPE = np.int
-ctypedef np.int_t DTYPE_t
+ctypedef np.intp_t DTYPE_t
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
