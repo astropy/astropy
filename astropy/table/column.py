@@ -61,7 +61,7 @@ def _check_column_new_args(func):
 
 def _auto_names(n_cols):
     from . import conf
-    return [conf.auto_colname.format(i) for i in range(n_cols)]
+    return [str(conf.auto_colname).format(i) for i in range(n_cols)]
 
 
 def _column_compare(op):
