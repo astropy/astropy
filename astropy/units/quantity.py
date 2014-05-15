@@ -77,9 +77,9 @@ class QuantityIterator(object):
 
     Notes
     -----
-    `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.
-    It is not exported by the `units` module.  Instead of instantiating a
-    `QuantityIterator` directly, use `Quantity.flat`.
+    `QuantityIterator` is inspired by `~numpy.ma.core.MaskedIterator`.  It
+    is not exported by the `~astropy.units` module.  Instead of
+    instantiating a `QuantityIterator` directly, use `Quantity.flat`.
     """
     def __init__(self, q):
         self._quantity = q
@@ -119,7 +119,7 @@ class Quantity(np.ndarray):
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
         Must be an `~astropy.units.UnitBase` object or a string parseable by
-        the `units` package.
+        the :mod:`~astropy.units` package.
 
     dtype : ~numpy.dtype, optional
         The dtype of the resulting Numpy array or scalar that will
@@ -129,9 +129,9 @@ class Quantity(np.ndarray):
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy will
-        only be made if `__array__` returns a copy, if value is a nested
+        only be made if ``__array__`` returns a copy, if value is a nested
         sequence, or if a copy is needed to satisfy an explicitly given
-        `dtype`.  (The `False` option is intended mostly for internal use,
+        ``dtype``.  (The `False` option is intended mostly for internal use,
         to speed up initialization where a copy is known to have been made.
         Use with care.)
 
@@ -462,10 +462,11 @@ class Quantity(np.ndarray):
         """
         Create a Quantity view of obj, and set the unit
 
-        By default, return a view of `obj` of the same class as `self` and with
-        the unit passed on, or that of `self`.  Subclasses can override the
-        type of class used with ``__quantity_subclass__``, and can ensure other
-        properties of `self` are copied using `__array_finalize__`.
+        By default, return a view of ``obj`` of the same class as ``self``
+        and with the unit passed on, or that of ``self``.  Subclasses can
+        override the type of class used with ``__quantity_subclass__``, and
+        can ensure other properties of ``self`` are copied using
+        `__array_finalize__`.
 
         Parameters
         ----------
@@ -473,7 +474,7 @@ class Quantity(np.ndarray):
             The array to create a view of.  If obj is a numpy or python scalar,
             it will be converted to an array scalar.
 
-        unit : UnitBase, or anything convertible to a Unit, or None
+        unit : `UnitBase`, or anything convertible to a `Unit`, or `None`
             The unit of the resulting object.  It is used to select a
             subclass, and explicitly assigned to the view if not `None`.
             If `None` (default), the unit is set by `__array_finalize__`
@@ -520,19 +521,21 @@ class Quantity(np.ndarray):
         self.__dict__.update(own_state)
 
     def to(self, unit, equivalencies=[]):
-        """ Returns a new `Quantity` object with the specified units.
+        """
+        Returns a new `~astropy.units.Quantity` object with the specified
+        units.
 
         Parameters
         ----------
         unit : `~astropy.units.UnitBase` instance, str
             An object that represents the unit to convert to. Must be
             an `~astropy.units.UnitBase` object or a string parseable
-            by the `units` package.
+            by the `~astropy.units` package.
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
-            If not provided or `[]`, class default equivalencies will be used
+            If not provided or ``[]``, class default equivalencies will be used
             (none for `~astropy.units.Quantity`, but may be set for subclasses)
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.
@@ -918,7 +921,7 @@ class Quantity(np.ndarray):
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
-            This will raises a `UnitsError` if it's not possible
+            This will raises a `~astropy.units.UnitsError` if it's not possible
             to do so.
 
         Returns
@@ -945,7 +948,7 @@ class Quantity(np.ndarray):
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
-            This will raises a `UnitsError` if it's not possible
+            This will raises a `~astropy.units.UnitsError` if it's not possible
             to do so.
 
         Returns
@@ -1030,9 +1033,10 @@ class Quantity(np.ndarray):
     def flat(self):
         """A 1-D iterator over the Quantity array.
 
-        This returns a `QuantityIterator` instance, which behaves the same as
-        the `~np.flatiter` instance returned by `~np.ndarray.flat`, and is
-        similar to, but not a subclass of, Python's built-in iterator object.
+        This returns a ``QuantityIterator`` instance, which behaves the same
+        as the `~numpy.flatiter` instance returned by `~numpy.ndarray.flat`,
+        and is similar to, but not a subclass of, Python's built-in iterator
+        object.
         """
         return QuantityIterator(self)
 

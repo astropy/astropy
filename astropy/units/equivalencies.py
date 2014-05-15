@@ -90,8 +90,8 @@ def spectral_density(wav, factor=None):
 
     Parameters
     ----------
-    wav : Quantity
-        Quantity associated with values being converted
+    wav : `~astropy.units.Quantity`
+        `~astropy.units.Quantity` associated with values being converted
         (e.g., wavelength or frequency).
 
     Notes
@@ -106,7 +106,7 @@ def spectral_density(wav, factor=None):
     if isinstance(wav, UnitBase):
         if factor is None:
             raise ValueError(
-                'If ``wav`` is specified as a unit, ``factor`` should be set')
+                'If `wav` is specified as a unit, `factor` should be set')
         wav = factor * wav   # Convert to Quantity
 
     c_Aps = _si.c.to(si.AA / si.s).value  # Angstrom/s
@@ -191,7 +191,7 @@ def doppler_radio(rest):
 
     Parameters
     ----------
-    rest : Quantity
+    rest : `~astropy.units.Quantity`
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency, wave number).
 
@@ -256,7 +256,7 @@ def doppler_optical(rest):
 
     Parameters
     ----------
-    rest : Quantity
+    rest : `~astropy.units.Quantity`
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency, wave number).
 
@@ -322,7 +322,7 @@ def doppler_relativistic(rest):
 
     Parameters
     ----------
-    rest : Quantity
+    rest : `~astropy.units.Quantity`
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency, wave number).
 
@@ -421,9 +421,9 @@ def brightness_temperature(beam_area, disp):
     ----------
     beam_area : Beam Area equivalent
         Beam area in angular units, i.e. steradian equivalent
-    disp : `Quantity` with spectral units
-        The observed `spectral` equivalent `Unit` (e.g., frequency or
-        wavelength)
+    disp : `~astropy.units.Quantity` with spectral units
+        The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
+        frequency or wavelength)
 
     Examples
     --------
