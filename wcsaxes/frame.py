@@ -83,9 +83,6 @@ class RectangularFrame(OrderedDict):
         for axis in 'brtl':
             self[axis] = Spine(parent_axes, transform)
 
-        self._update_cache = None
-        self._sample_cache = {}
-
     @property
     def origin(self):
         ymin, ymax = self.parent_axes.get_ylim()
@@ -106,11 +103,6 @@ class RectangularFrame(OrderedDict):
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        if self._update_cache == [xmin, xmax, ymin, ymax]:
-            return
-        self._update_cache = [xmin, xmax, ymin, ymax]
-        self._sample_cache = {}
-
         self['b'].data = np.array(([xmin, xmax], [ymin, ymin])).transpose()
         self['r'].data = np.array(([xmax, xmax], [ymin, ymax])).transpose()
         self['t'].data = np.array(([xmax, xmin], [ymax, ymax])).transpose()
@@ -119,8 +111,6 @@ class RectangularFrame(OrderedDict):
     def sample(self, n_samples):
 
         self.update()
-        if n_samples in self._sample_cache:
-            return self._sample_cache[n_samples]
 
         spines = OrderedDict()
 
