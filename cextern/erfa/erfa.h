@@ -1,3 +1,5 @@
+//Derived from erfa version 1.1.0
+
 #ifndef ERFAHDEF
 #define ERFAHDEF
 
