@@ -173,7 +173,12 @@ class Ipac(fixedwidth.FixedWidth):
         # keep data_str_vals because they take some time to make
         data_str_vals = self.data.str_vals()
         for i, col in enumerate(table.columns.values()):
-            col.width = max([len(vals[i]) for vals in data_str_vals])
+            # FIXME: In Python 3.4, use max([], default=0).
+            # See: https://docs.python.org/3/library/functions.html#max
+            if data_str_vals:
+                col.width = max([len(vals[i]) for vals in data_str_vals])
+            else:
+                col.width = 0
 
         widths = [max(col.width, col.headwidth) for col in table.columns.values()]
         # then write table
