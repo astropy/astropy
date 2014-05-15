@@ -727,6 +727,8 @@ def _get_units(args, kwargs):
             # Allow for input like `unit='deg'`
             if len(units) == 1:
                 units = (units[0], units[0])
+        elif isinstance(units, Unit):
+            units = (units, units)
 
         try:
             lon_unit, lat_unit = [Unit(x) for x in units]

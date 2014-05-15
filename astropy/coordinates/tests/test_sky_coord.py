@@ -125,6 +125,38 @@ def test_coord_init_string():
     assert "Cannot parse longitude and latitude" in str(err)
 
 
+def test_coord_init_unit():
+    """
+    Test variations of the unit keyword.
+    """
+    for unit in ('deg', 'deg,deg', ' deg , deg ', u.deg, (u.deg, u.deg),
+                 np.array(['deg', 'deg'])):
+        sc = SkyCoord(1, 2, unit=unit)
+        assert allclose(sc.ra, Angle(1 * u.deg))
+        assert allclose(sc.dec, Angle(2 * u.deg))
+
+    for unit in ('hourangle', 'hourangle,hourangle', ' hourangle , hourangle ',
+                 u.hourangle, [u.hourangle, u.hourangle]):
+        sc = SkyCoord(1, 2, unit=unit)
+        assert allclose(sc.ra, Angle(15 * u.deg))
+        assert allclose(sc.dec, Angle(30 * u.deg))
+
+    for unit in ('hourangle,deg', (u.hourangle, u.deg)):
+        sc = SkyCoord(1, 2, unit=unit)
+        assert allclose(sc.ra, Angle(15 * u.deg))
+        assert allclose(sc.dec, Angle(2 * u.deg))
+
+    for unit in ('deg,deg,deg', [u.deg, u.deg, u.deg], None):
+        with pytest.raises(ValueError) as err:
+            SkyCoord(1, 2, unit=unit)
+        assert 'Unit keyword must have one unit value or two unit values' in str(err)
+
+    for unit in ('m', (u.m, u.deg), ''):
+        with pytest.raises(u.UnitsError) as err:
+            SkyCoord(1, 2, unit=unit)
+        assert 'is not convertible to an angle' in str(err)
+
+
 def test_coord_init_list():
     """
     Spherical or Cartesian representation input coordinates.
