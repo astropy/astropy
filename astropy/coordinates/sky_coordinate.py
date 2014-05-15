@@ -97,10 +97,6 @@ class SkyCoord(object):
         self._sky_coord_frame = frame_cls(**coord_kwargs)
 
     @property
-    def frame_name(self):
-        return self.frame.name  # This can be None so cannot use frame_transform_graph
-
-    @property
     def frame(self):
         return self._sky_coord_frame
 
@@ -273,7 +269,7 @@ class SkyCoord(object):
         to, based on the alias attr in the master transform graph.
         """
 
-        if self.frame_name == attr:
+        if self.frame.name == attr:
             return self  # Should this be a deepcopy of self?
 
         # Anything in the set of all possible frame_attr_names is handled
@@ -632,7 +628,7 @@ class SkyCoord(object):
         """
         from . import angle_utilities
 
-        if self.frame_name == other.frame_name:
+        if self.frame.name == other.frame.name:
             other_in_self_frame = other
         else:
             other_in_self_frame = other.frame.transform_to(self.frame)
@@ -745,7 +741,7 @@ def _get_frame_name(args, kwargs):
         if isinstance(arg, BaseCoordinateFrame):
             coord_frame_name = arg.__class__.name
         elif isinstance(arg, SkyCoord):
-            coord_frame_name = arg.frame_name
+            coord_frame_name = arg.frame.name
 
         if coord_frame_name is not None:
             if frame_name is None:
