@@ -381,6 +381,10 @@ def test_repr():
                          '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')
 
 
+    sc_noframe = SkyCoord(0 * u.deg, 1 * u.deg)
+    assert repr(sc_noframe) == '<SkyCoord (No Frame): ra=0.0 deg, dec=1.0 deg>'
+
+
 def test_ops():
     """
     Tests miscellaneous operations like `len`
