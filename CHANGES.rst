@@ -446,6 +446,8 @@ Bug Fixes
   - Running the test suite with ``python setup.py test`` now works if
     the path to the source contains spaces. [#2488]
 
+  - The version of ERFA included with Astropy is now v1.1.0 [#2497]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
