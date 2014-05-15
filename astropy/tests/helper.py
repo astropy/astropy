@@ -121,7 +121,7 @@ class TestRunner(object):
                 "'python setup.py test --coverage' instead.",
                 AstropyWarning)
 
-        all_args = ''
+        all_args = []
 
         if package is None:
             package_path = self.base_path
@@ -146,7 +146,7 @@ class TestRunner(object):
             base, ext = os.path.splitext(test_path)
             if ext == '.py':
                 test_path = os.path.abspath(test_path)
-                all_args += test_path
+                all_args.append(test_path)
             elif ext == '.rst':
                 if docs_path is None:
                     # This shouldn't happen from "python setup.py test"
@@ -157,34 +157,35 @@ class TestRunner(object):
                     # the astropy tree, we need to forcibly load the
                     # astropy py.test plugins, and then turn on the
                     # doctest_rst plugin.
-                    all_args += ' -p astropy.tests.pytest_plugins --doctest-rst '
+                    all_args.extend(['-p', 'astropy.tests.pytest_plugins', '--doctest-rst'])
                     test_path = os.path.join(docs_path, '..', test_path)
-                    all_args += test_path
+                    all_args.append(test_path)
             else:
                 raise ValueError("Test file path must be to a .py or .rst file")
         else:
-            all_args = package_path
+            all_args.append(package_path)
             if docs_path is not None and not skip_docs:
-                all_args += ' ' + docs_path + ' --doctest-rst '
+                all_args.extend([docs_path, '--doctest-rst'])
 
         # add any additional args entered by the user
         if args is not None:
-            all_args += ' {0}'.format(args)
+            all_args.extend(
+                shlex.split(args, posix=not sys.platform.startswith('win')))
 
         # add verbosity flag
         if verbose:
-            all_args += ' -v'
+            all_args.append('-v')
 
         # turn on pastebin output
         if pastebin is not None:
             if pastebin in ['failed', 'all']:
-                all_args += ' --pastebin={0}'.format(pastebin)
+                all_args.append('--pastebin={0}'.format(pastebin))
             else:
                 raise ValueError("pastebin should be 'failed' or 'all'")
 
         # run @remote_data tests
         if remote_data:
-            all_args += ' --remote-data'
+            all_args.append('--remote-data')
 
         if pep8:
             try:
@@ -193,11 +194,11 @@ class TestRunner(object):
                 raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
                                   'http://pypi.python.org/pypi/pytest-pep8')
             else:
-                all_args += ' --pep8 -k pep8'
+                all_args.extend(['--pep8', '-k', 'pep8'])
 
         # activate post-mortem PDB for failing tests
         if pdb:
-            all_args += ' --pdb'
+            all_args.append('--pdb')
 
         # check for opened files after each test
         if open_files:
@@ -211,7 +212,7 @@ class TestRunner(object):
                     "open file detection requested, but could not "
                     "successfully run the 'lsof' command")
 
-            all_args += ' --open-files'
+            all_args.append('--open-files')
 
             print("Checking for unclosed files")
 
@@ -231,13 +232,10 @@ class TestRunner(object):
 
             if parallel < 0:
                 parallel = multiprocessing.cpu_count()
-            all_args += ' -n {0}'.format(parallel)
+            all_args.extend(['-n', parallel])
 
         if sys.version_info < (2, 7, 3):
-            all_args = all_args.encode('utf-8')
-
-        all_args = shlex.split(
-            all_args, posix=not sys.platform.startswith('win'))
+            all_args = [x.encode('utf-8') for x in all_args]
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
