@@ -733,8 +733,8 @@ def _get_units(args, kwargs):
         try:
             lon_unit, lat_unit = [Unit(x) for x in units]
         except:
-            raise ValueError('Unit keyword must have two unit values as tuple or '
-                             'comma-separated string')
+            raise ValueError('Unit keyword must have one unit value or two unit values as '
+                             'tuple or comma-separated string')
 
     return lon_unit, lat_unit
 
