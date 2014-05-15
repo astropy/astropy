@@ -441,6 +441,10 @@ Bug Fixes
     rather than getting obscure errors once the ``astropy.wcs`` is used.
     [#2061]
 
+- Misc
+
+  - Running the test suite with ``python setup.py test`` now works if
+    the path to the source contains spaces. [#2488]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
