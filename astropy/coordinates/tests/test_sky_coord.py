@@ -106,20 +106,20 @@ def test_coord_init_string():
     Spherical or Cartesian represenation input coordinates.
     """
     sc = SkyCoord('1d 2d')
-    assert allclose(sc.ra, 1 * u.deg)
-    assert allclose(sc.dec, 2 * u.deg)
+    assert allclose(sc.ra.to(u.deg), 1 * u.deg)
+    assert allclose(sc.dec.to(u.deg), 2 * u.deg)
 
     sc = SkyCoord('1d', '2d')
-    assert allclose(sc.ra, 1 * u.deg)
-    assert allclose(sc.dec, 2 * u.deg)
+    assert allclose(sc.ra.to(u.deg), 1 * u.deg)
+    assert allclose(sc.dec.to(u.deg), 2 * u.deg)
 
     sc = SkyCoord('1°2′3″', '2°3′4″')
-    assert allclose(sc.ra, Angle('1°2′3″'))
-    assert allclose(sc.dec, Angle('2°3′4″'))
+    assert allclose(sc.ra.to(u.deg), Angle('1°2′3″'))
+    assert allclose(sc.dec.to(u.deg), Angle('2°3′4″'))
 
     sc = SkyCoord('1°2′3″ 2°3′4″')
-    assert allclose(sc.ra, Angle('1°2′3″'))
-    assert allclose(sc.dec, Angle('2°3′4″'))
+    assert allclose(sc.ra.to(u.deg), Angle('1°2′3″'))
+    assert allclose(sc.dec.to(u.deg), Angle('2°3′4″'))
 
     with pytest.raises(ValueError) as err:
         SkyCoord('1d 2d 3d')
@@ -133,19 +133,19 @@ def test_coord_init_unit():
     for unit in ('deg', 'deg,deg', ' deg , deg ', u.deg, (u.deg, u.deg),
                  np.array(['deg', 'deg'])):
         sc = SkyCoord(1, 2, unit=unit)
-        assert allclose(sc.ra, Angle(1 * u.deg))
-        assert allclose(sc.dec, Angle(2 * u.deg))
+        assert allclose(sc.ra.to(u.deg), Angle(1 * u.deg))
+        assert allclose(sc.dec.to(u.deg), Angle(2 * u.deg))
 
     for unit in ('hourangle', 'hourangle,hourangle', ' hourangle , hourangle ',
                  u.hourangle, [u.hourangle, u.hourangle]):
         sc = SkyCoord(1, 2, unit=unit)
-        assert allclose(sc.ra, Angle(15 * u.deg))
-        assert allclose(sc.dec, Angle(30 * u.deg))
+        assert allclose(sc.ra.to(u.deg), Angle(15 * u.deg))
+        assert allclose(sc.dec.to(u.deg), Angle(30 * u.deg))
 
     for unit in ('hourangle,deg', (u.hourangle, u.deg)):
         sc = SkyCoord(1, 2, unit=unit)
-        assert allclose(sc.ra, Angle(15 * u.deg))
-        assert allclose(sc.dec, Angle(2 * u.deg))
+        assert allclose(sc.ra.to(u.deg), Angle(15 * u.deg))
+        assert allclose(sc.dec.to(u.deg), Angle(2 * u.deg))
 
     for unit in ('deg,deg,deg', [u.deg, u.deg, u.deg], None):
         with pytest.raises(ValueError) as err:
@@ -167,8 +167,8 @@ def test_coord_init_list():
                    '1d 2d',
                    ('1°', '2°'),
                    '1° 2°'], unit='deg')
-    assert allclose(sc.ra, Angle('1d'))
-    assert allclose(sc.dec, Angle('2d'))
+    assert allclose(sc.ra.to(u.deg), Angle('1d'))
+    assert allclose(sc.dec.to(u.deg), Angle('2d'))
 
     with pytest.raises(ValueError) as err:
         SkyCoord(['1d 2d 3d'])
@@ -179,8 +179,8 @@ def test_coord_init_list():
     assert "Cannot parse longitude and latitude" in str(err)
 
     sc = SkyCoord([1 * u.deg, 1 * u.deg], [2 * u.deg, 2 * u.deg])
-    assert allclose(sc.ra, Angle('1d'))
-    assert allclose(sc.dec, Angle('2d'))
+    assert allclose(sc.ra.to(u.deg), Angle('1d'))
+    assert allclose(sc.dec.to(u.deg), Angle('2d'))
 
     with pytest.raises(ValueError) as err:
         SkyCoord([1 * u.deg, 2 * u.deg])  # this list is taken as RA w/ missing dec
@@ -382,7 +382,7 @@ def test_repr():
 
 
     sc_noframe = SkyCoord(0 * u.deg, 1 * u.deg)
-    assert repr(sc_noframe) == '<SkyCoord (No Frame): ra=0.0 deg, dec=1.0 deg>'
+    assert repr(sc_noframe) == '<SkyCoord (NoFrame): ra=0.0 deg, dec=1.0 deg>'
 
 
 def test_ops():
