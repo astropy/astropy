@@ -232,7 +232,7 @@ class TestRunner(object):
 
             if parallel < 0:
                 parallel = multiprocessing.cpu_count()
-            all_args.extend(['-n', parallel])
+            all_args.extend(['-n', six.text_type(parallel)])
 
         if sys.version_info < (2, 7, 3):
             all_args = [x.encode('utf-8') for x in all_args]
