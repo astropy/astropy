@@ -324,9 +324,13 @@ class SkyCoord(object):
         return dir_values
 
     def __repr__(self):
-        s = '<{clsnm} ({coonm})'
-        s = s.format(clsnm=self.__class__.__name__,
-                     coonm=self.frame.__class__.__name__)
+        clsnm = self.__class__.__name__
+        if self.frame_name is None:
+            coonm = 'No Frame'
+        else:
+            coonm = self.frame.__class__.__name__
+
+        s = '<{clsnm} ({coonm})'.format(**locals())
         crepr = repr(self.frame)
         return s + crepr[crepr.index(':'):]
 
