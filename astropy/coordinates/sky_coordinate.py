@@ -600,6 +600,50 @@ class SkyCoord(object):
 
         return res
 
+    def position_angle(self, other):
+        """
+        Computes the on-sky position angle (East of North) between this
+        `SkyCoord` and another.
+
+        Parameters
+        ----------
+        other : `SkyCoord`
+            The other coordinate to compute the position angle to.  It is
+            treated as the "head" of the vector of the position angle.
+
+        Returns
+        -------
+        pa : `~astropy.coordinates.Angle`
+            The (positive) position angle of the vector pointing from ``self``
+            to ``other``.  If either ``self`` or ``other`` contain arrays, this
+            will be an array following the appropriate `numpy` broadcasting
+            rules.
+
+        Examples
+        --------
+
+        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
+        >>> c2 = SkyCoord(1*u.deg, 0*u.deg)
+        >>> c1.position_angle(c2).degree
+        90.0
+        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
+        >>> c1.position_angle(c3).degree
+        44.9956...
+        """
+        from . import angle_utilities
+
+        if self.frame_name == other.frame_name:
+            other_in_self_frame = other
+        else:
+            other_in_self_frame = other.frame.transform_to(self.frame)
+
+        slat = self.represent_as(UnitSphericalRepresentation).lat
+        slon = self.represent_as(UnitSphericalRepresentation).lon
+        olat = other_in_self_frame.represent_as(UnitSphericalRepresentation).lat
+        olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
+
+        return angle_utilities.position_angle(slon, slat, olon, olat)
+
     # Name resolve
     @classmethod
     def from_name(cls, name, frame='icrs'):
@@ -632,6 +676,9 @@ class SkyCoord(object):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
+
+#<----------------Private utility functions below here------------------------->
 
 
 def _get_frame_class(frame):
