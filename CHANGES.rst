@@ -298,7 +298,7 @@ API Changes
     deprecated in astropy 0.2, has been removed.  Use
     ``astropy.units.UnitError`` instead [#2386]
 
-  - Initializing a ``Quantity`` with a valid number/array with a ``units``
+  - Initializing a ``Quantity`` with a valid number/array with a ``unit``
     attribute now interprets that attribute as the units of the input
     value. This makes it possible to initialize a ``Quantity`` from an
     `~astropy.table.Table` column and have it correctly pick up the units
