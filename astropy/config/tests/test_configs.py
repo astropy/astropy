@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ...tests.helper import catch_warnings
+from ...extern import six
 
 import io
 
@@ -69,7 +71,7 @@ def test_configitem_types():
     assert isinstance(ci3(), bool)
 
     ci4 = ConfigurationItem('tstnm4', 'astring')
-    assert isinstance(ci4(), str)
+    assert isinstance(ci4(), six.text_type)
 
     with pytest.raises(TypeError):
         ci1.set(34.3)
@@ -87,7 +89,7 @@ def test_configitem_options(tmpdir):
     cio = ConfigurationItem('tstnmo', ['op1', 'op2', 'op3'])
     sec = get_config(cio.module)
 
-    assert isinstance(cio(), str)
+    assert isinstance(cio(), six.text_type)
     assert cio() == 'op1'
     assert sec['tstnmo'] == 'op1'
 
@@ -101,9 +103,9 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'w') as fd:
+    with io.open(f.strpath, 'w', encoding='utf-8') as fd:
         apycfg.write(fd)
-    with io.open(f.strpath, 'rU') as fd:
+    with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert 'tstnmo = op2' in lns
@@ -262,3 +264,14 @@ class TestAliasRead(object):
 
         configuration._override_config_file = None
         conf.reload()
+
+
+def test_configitem_unicode(tmpdir):
+    from ..configuration import ConfigurationItem, get_config
+
+    cio = ConfigurationItem('астрономия', 'ასტრონომიის')
+    sec = get_config(cio.module)
+
+    assert isinstance(cio(), six.text_type)
+    assert cio() == 'ასტრონომიის'
+    assert sec['астрономия'] == 'ასტრონომიის'

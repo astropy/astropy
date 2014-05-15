@@ -242,7 +242,7 @@ class ConfigItem(object):
             if (isiterable(defaultvalue) and not
                     isinstance(defaultvalue, six.string_types)):
                 # it is an options list
-                dvstr = [str(v) for v in defaultvalue]
+                dvstr = [six.text_type(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
             elif isinstance(defaultvalue, bool):
@@ -253,7 +253,7 @@ class ConfigItem(object):
                 cfgtype = 'float'
             elif isinstance(defaultvalue, six.string_types):
                 cfgtype = 'string'
-                defaultvalue = str(defaultvalue)
+                defaultvalue = six.text_type(defaultvalue)
 
         self.cfgtype = cfgtype
 
@@ -722,7 +722,7 @@ def is_unedited_config_file(filename):
       Astropy 0.4, when APE3 was implemented and the config file
       contained commented-out values by default.
     """
-    with open(filename, 'rb') as fd:
+    with io.open(filename, 'rb') as fd:
         content = fd.read()
 
     # First determine if the config file has any effective content
@@ -818,11 +818,11 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                 'Requested default configuration file {0} is '
                 'not a file.'.format(default_cfgfn))
 
-        with open(default_cfgfn, 'r') as fr:
+        with io.open(default_cfgfn, 'rb') as fr:
             content = fr.read()
 
         if needs_template:
-            with open(template_path, 'w') as fw:
+            with io.open(template_path, 'wb') as fw:
                 fw.write(content)
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
@@ -837,7 +837,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                     ConfigurationChangedWarning)
 
         if doupdate:
-            with open(cfgfn, 'w') as fw:
+            with io.open(cfgfn, 'wb') as fw:
                 fw.write(content)
             return True
 
@@ -949,7 +949,7 @@ def _save_config(packageormod=None, filename=None):
     while sec.parent is not sec:
         sec = sec.parent
     if filename is not None:
-        with open(filename, 'w') as f:
+        with io.open(filename, 'w', encoding='utf-8') as f:
             sec.write(outfile=f)
     else:
         sec.write()
