@@ -6,6 +6,12 @@ from __future__ import (absolute_import, division, print_function,
 """
 This is the APE5 coordinates API document re-written to work as a series of test
 functions.
+
+Note that new tests for coordinates functionality should generally *not* be
+added to this file - instead, add them to other appropriate test modules  in
+this package, like ``test_sky_coord.py``, ``test_frames.py``, or
+``test_representation.py``.  This file is instead meant mainly to keep track of
+deviations from the original APE5 plan.
 """
 
 import numpy as np
