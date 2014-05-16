@@ -334,7 +334,7 @@ class NoFrame(BaseCoordinateFrame):
     # the preferred_attr_names here are necessary for the SkyCoord initializer
     preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                         ('distance', 'distance')])
-
+    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
     frame_attr_names = {}
 
 
