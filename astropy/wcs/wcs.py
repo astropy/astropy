@@ -1670,10 +1670,10 @@ naxis kwarg.
                     slow_conv=ind, divergent=None)
             else:
                 raise NoConvergence("'WCS.all_world2pix' failed to "
-                    "converge to the requested accuracy.{0:s}"
-                    "After {1:d} iterations, the solution is diverging "
+                    "converge to the requested accuracy.\n"
+                    "After {0:d} iterations, the solution is diverging "
                     "at least for one input point."
-                    .format(os.linesep, k), best_solution=pix,
+                    .format(k), best_solution=pix,
                     accuracy=np.abs(dpix), niter=k,
                     slow_conv=ind, divergent=inddiv)
 
