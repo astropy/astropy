@@ -847,14 +847,23 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
         lats = []
 
         for coord in coords:
-            # Each row must be either a 2-element iterable or a string that splits
-            # into two elements.
+            # Each row must be either a 2-element iterable or a string that
+            # splits into six or two elements.
             if isinstance(coord, six.string_types):
                 coord = coord.split()
             try:
                 lon, lat = coord
             except:
-                raise ValueError('Cannot parse longitude and latitude from first argument')
+                try:
+                    if len(coord) == 6:
+                        lon = " ".join(coord[0:3])
+                        lat = " ".join(coord[3:])
+                    else:
+                        raise ValueError('Cannot parse longitude and latitude '
+                                         'from first argument')
+                except:
+                    raise ValueError('Cannot parse longitude and latitude '
+                                     'from first argument')
 
             lons.append(lon)
             lats.append(lat)
