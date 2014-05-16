@@ -23,7 +23,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcserr.c,v 4.23.1.1 2014/05/13 05:53:49 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <stdarg.h>

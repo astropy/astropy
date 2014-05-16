@@ -759,3 +759,12 @@ def test_compare():
 
     assert not w.compare(w2)
     assert w.compare(w2, _wcs.WCSCOMPARE_ANCILLARY)
+
+    w = _wcs.Wcsprm(header)
+    w2 = _wcs.Wcsprm(header)
+
+    w.cdelt[0] = np.float32(0.00416666666666666666666666)
+    w2.cdelt[0] = np.float64(0.00416666666666666666666666)
+
+    assert not w.compare(w2)
+    assert w.compare(w2, tolerance=1e-6)

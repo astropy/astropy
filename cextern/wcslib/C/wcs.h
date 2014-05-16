@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcs.h,v 4.23.1.2 2014/05/22 10:53:09 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * WCSLIB 4.23 - C routines that implement the FITS World Coordinate System
@@ -333,6 +333,11 @@
 *                           CRPIXja.  The two WCSes cover different regions
 *                           of the same map projection but may not align on
 *                           the same grid map.  Overrides WCSCOMPARE_TILING.
+*
+*   tol       double    Tolerance for comparison of floating-point values.
+*                       For example, for tol == 1e-6, all floating-point
+*                       values in the structs must be equal to the first 6
+*                       decimal places.  A value of 0 implies exact equality.
 *
 *   wcs1      const struct wcsprm*
 *                       The first wcsprm struct to compare.
@@ -1568,8 +1573,8 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs);
 int wcssub(int alloc, const struct wcsprm *wcssrc, int *nsub, int axes[],
            struct wcsprm *wcsdst);
 
-int wcscompare(int cmp, const struct wcsprm *wcs1, const struct wcsprm *wcs2,
-               int *equal);
+int wcscompare(int cmp, double tol, const struct wcsprm *wcs1,
+               const struct wcsprm *wcs2, int *equal);
 
 int wcsfree(struct wcsprm *wcs);
 

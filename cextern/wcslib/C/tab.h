@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: tab.h,v 4.23.1.2 2014/05/22 10:52:33 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * WCSLIB 4.23 - C routines that implement tabular coordinate systems as
@@ -192,6 +192,11 @@
 *                       comparison.  At present, this value must always be 0,
 *                       indicating a strict comparison.  In the future, other
 *                       options may be added.
+*
+*   tol       double    Tolerance for comparison of floating-point values.
+*                       For example, for tol == 1e-6, all floating-point
+*                       values in the structs must be equal to the first 6
+*                       decimal places.  A value of 0 implies exact equality.
 *
 *   tab1      const struct tabprm*
 *                       The first tabprm struct to compare.
@@ -576,8 +581,8 @@ int tabmem(struct tabprm *tab);
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst);
 
-int tabcmp(int cmp, const struct tabprm *tab1, const struct tabprm *tab2,
-           int *equal);
+int tabcmp(int cmp, double tol, const struct tabprm *tab1,
+           const struct tabprm *tab2, int *equal);
 
 int tabfree(struct tabprm *tab);
 

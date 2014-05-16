@@ -287,7 +287,7 @@ It should be set to zero for an image header or pixel list.
 """
 
 compare = """
-compare(other, cmp=0)
+compare(other, cmp=0, tolerance=0.0)
 
 Compare two Wcsprm objects for equality.
 
@@ -317,6 +317,12 @@ cmp : int, optional
       ``CRPIXja``.  The two WCSes cover different regions of the same
       map projection but may not align on the same grid map.
       Overrides ``WCSCOMPARE_TILING``.
+
+tolerance : float, optional
+    The amount of tolerance required.  For example, for a value of
+    1e-6, all floating-point values in the objects must be equal to
+    the first 6 decimal places.  The default value of 0.0 implies
+    exact equality.
 
 Returns
 -------

@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: tab.c,v 4.23.1.2 2014/05/22 10:51:36 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -412,6 +412,7 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 /*--------------------------------------------------------------------------*/
 
 int tabcmp(int cmp,
+           double tol,
            const struct tabprm *tab1,
            const struct tabprm *tab2,
            int *equal)
@@ -434,20 +435,20 @@ int tabcmp(int cmp,
 
   if (!wcsutil_intEq(M, tab1->K, tab2->K) ||
       !wcsutil_intEq(M, tab1->map, tab2->map) ||
-      !wcsutil_Eq(M, tab1->crval, tab2->crval)) {
+      !wcsutil_Eq(M, tol, tab1->crval, tab2->crval)) {
     return 0;
   }
 
   N = M;
   for (m = 0; m < M; m++) {
-    if (!wcsutil_Eq(tab1->K[m], tab1->index[m], tab2->index[m])) {
+    if (!wcsutil_Eq(tab1->K[m], tol, tab1->index[m], tab2->index[m])) {
       return 0;
     }
 
     N *= tab1->K[m];
   }
 
-  if (!wcsutil_Eq(N, tab1->coord, tab2->coord)) {
+  if (!wcsutil_Eq(N, tol, tab1->coord, tab2->coord)) {
     return 0;
   }
 

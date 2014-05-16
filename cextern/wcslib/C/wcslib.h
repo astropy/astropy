@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcslib.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcslib.h,v 4.23.1.1 2014/05/13 05:53:49 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * WCSLIB 4.23 - C routines that implement the FITS World Coordinate System

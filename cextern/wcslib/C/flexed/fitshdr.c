@@ -10105,7 +10105,7 @@ char *fitshdrtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: fitshdr.c,v 4.23.1.1 2014/05/13 05:53:50 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner

@@ -22,15 +22,17 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcsutil.c,v 4.23.1.2 2014/05/22 10:56:16 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <ctype.h>
 #include <locale.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "wcsutil.h"
+#include "wcsmath.h"
 
 /*--------------------------------------------------------------------------*/
 
@@ -94,7 +96,7 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
 
 /*--------------------------------------------------------------------------*/
 
-int wcsutil_Eq(int nelem, const double *arr1, const double *arr2)
+int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
 
 {
   int i;
@@ -105,8 +107,21 @@ int wcsutil_Eq(int nelem, const double *arr1, const double *arr2)
   if (arr1 == 0x0 && arr2 == 0x0) return 1;
   if (arr1 == 0x0 || arr2 == 0x0) return 0;
 
-  for (i = 0; i < nelem; i++, arr1++, arr2++) {
-    if (*arr1 != *arr2) return 0;
+  if (tol == 0.0) {
+    /* Handled separately for speed of execution. */
+    for (i = 0; i < nelem; i++, arr1++, arr2++) {
+      if (*arr1 != *arr2) return 0;
+    }
+
+  } else {
+    for (i = 0; i < nelem; i++, arr1++, arr2++) {
+      /* Undefined values must match exactly. */
+      if (*arr1 == UNDEFINED && *arr2 != UNDEFINED) return 0;
+      if (*arr1 != UNDEFINED && *arr2 == UNDEFINED) return 0;
+
+      /* Otherwise, compare within the specified tolerance. */
+      if (fabs(*arr1 - *arr2) > 0.5*tol) return 0;
+    }
   }
 
   return 1;
