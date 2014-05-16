@@ -263,12 +263,12 @@ table,th,td{border:1px solid black;  </style>
 test_defs_no_data = [
     dict(kwargs=dict(Writer=ascii.Ipac),
          out="""\
-\ This is an example of a valid comment.
-\ The 2nd data line is used to verify the exact column parsing
-\ (unclear if this is a valid for the IPAC format)
-\catalog='sao'
-\date='Wed Sp 20 09:48:36 1995'
-\mykeyword='Another way for defining keyvalue string'
+\\ This is an example of a valid comment.
+\\ The 2nd data line is used to verify the exact column parsing
+\\ (unclear if this is a valid for the IPAC format)
+\\catalog='sao'
+\\date='Wed Sp 20 09:48:36 1995'
+\\mykeyword='Another way for defining keyvalue string'
 |    ra|   dec| sai|    v2|sptype|
 |double|double|long|double|  char|
 |  unit|  unit|unit|  unit|  ergs|
