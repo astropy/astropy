@@ -851,19 +851,14 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
             # splits into six or two elements.
             if isinstance(coord, six.string_types):
                 coord = coord.split()
+                if len(coord) == 6:
+                    coord = (' '.join(coord[:3]), ' '.join(coord[3:]))
+
             try:
                 lon, lat = coord
             except:
-                try:
-                    if len(coord) == 6:
-                        lon = " ".join(coord[0:3])
-                        lat = " ".join(coord[3:])
-                    else:
-                        raise ValueError('Cannot parse longitude and latitude '
-                                         'from first argument')
-                except:
-                    raise ValueError('Cannot parse longitude and latitude '
-                                     'from first argument')
+                raise ValueError('Cannot parse longitude and latitude '
+                                 'from first argument')
 
             lons.append(lon)
             lats.append(lat)
