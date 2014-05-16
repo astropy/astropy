@@ -34,8 +34,9 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     standard deviations discrepant.
 
     .. note::
-        `scipy.stats.sigmaclip` provides a subset of the functionality in this
-        function.
+        `scipy.stats.sigmaclip
+        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        provides a subset of the functionality in this function.
 
     Parameters
     ----------
@@ -44,10 +45,10 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     sig : float
         The number of standard deviations (*not* variances) to use as the
         clipping limit.
-    iters : int or None
-        The number of iterations to perform clipping for, or None to clip until
-        convergence is achieved (i.e. continue until the last iteration clips
-        nothing).
+    iters : int or `None`
+        The number of iterations to perform clipping for, or `None` to clip
+        until convergence is achieved (i.e. continue until the last
+        iteration clips nothing).
     cenfunc : callable
         The technique to compute the center for the clipping. Must be a
         callable that takes in a masked array and outputs the central value.
@@ -56,19 +57,19 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         The technique to compute the standard deviation about the center. Must
         be a callable that takes in a masked array and outputs a width
         estimator.  Defaults to the standard deviation (numpy.var).
-    axis : int or None
-        If not None, clip along the given axis.  For this case, axis=int will
+    axis : int or `None`
+        If not `None`, clip along the given axis.  For this case, axis=int will
         be passed on to cenfunc and varfunc, which are expected to return an
         array with the axis dimension removed (like the numpy functions).
-        If None, clip over all values.  Defaults to None.
+        If `None`, clip over all values.  Defaults to `None`.
     copy : bool
-        If True, the data array will be copied.  If False, the masked array
-        data will contain the same array as `data`.  Defaults to True.
+        If `True`, the data array will be copied.  If `False`, the masked array
+        data will contain the same array as ``data``.  Defaults to `True`.
 
     Returns
     -------
     filtered_data : `numpy.ma.MaskedArray`
-        A masked array with the same shape as `data` input, where the points
+        A masked array with the same shape as ``data`` input, where the points
         rejected by the algorithm have been masked.
 
     Notes
@@ -153,7 +154,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     return filtered_data
 
 
-#TODO Note scipy dependency
+# TODO Note scipy dependency
 def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
@@ -161,26 +162,27 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     Parameters
     ----------
     k : int or numpy.ndarray
-        Number of successes (0 <= `k` <= `n`).
+        Number of successes (0 <= ``k`` <= ``n``).
     n : int or numpy.ndarray
-        Number of trials (`n` > 0).  If both k and n are arrays,
+        Number of trials (``n`` > 0).  If both ``k`` and ``n`` are arrays,
         they must have the same shape.
     conf : float in [0, 1], optional
         Desired probability content of interval. Default is 0.68269,
         corresponding to 1 sigma in a 1-dimensional Gaussian distribution.
     interval : {'wilson', 'jeffreys', 'flat', 'wald'}, optional
-        Formula used for confidence interval. See notes for details.
-        The 'wilson' and 'jeffreys' intervals generally give similar
+        Formula used for confidence interval. See notes for details.  The
+        ``'wilson'`` and ``'jeffreys'`` intervals generally give similar
         results, while 'flat' is somewhat different, especially for small
-        values of `n`.  'wilson' should be somewhat faster than 'flat' or
-        'jeffreys'.  The 'wald' interval is generally not recommended.
-        It is provided for comparison purposes.  Default is 'wilson'.
+        values of ``n``.  ``'wilson'`` should be somewhat faster than
+        ``'flat'`` or ``'jeffreys'``.  The 'wald' interval is generally not
+        recommended.  It is provided for comparison purposes.  Default is
+        ``'wilson'``.
 
     Returns
     -------
     conf_interval : numpy.ndarray
-        `conf_interval[0]` and `conf_interval[1]` correspond to the lower
-        and upper limits, respectively, for each element in `k`, `n`.
+        ``conf_interval[0]`` and ``conf_interval[1]`` correspond to the lower
+        and upper limits, respectively, for each element in ``k``, ``n``.
 
     Notes
     -----
@@ -378,16 +380,16 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     return conf_interval
 
 
-#TODO Note scipy dependency (needed in binom_conf_interval)
+# TODO Note scipy dependency (needed in binom_conf_interval)
 def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
                             interval='wilson'):
     """Binomial proportion and confidence interval in bins of a continuous
-    variable `x`.
+    variable ``x``.
 
-    Given a set of datapoint pairs where the `x` values are
-    continuously distributed and the `success` values are binomial
+    Given a set of datapoint pairs where the ``x`` values are
+    continuously distributed and the ``success`` values are binomial
     ("success / failure" or "true / false"), place the pairs into
-    bins according to `x` value and calculate the binomial proportion
+    bins according to ``x`` value and calculate the binomial proportion
     (fraction of successes) and confidence interval in each bin.
 
     Parameters
@@ -395,8 +397,8 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     x : list_like
         Values.
     success : list_like (bool)
-        Success (True) or failure (False) corresponding to each value
-        in `x`.  Must be same length as `x`.
+        Success (`True`) or failure (`False`) corresponding to each value
+        in ``x``.  Must be same length as ``x``.
     bins : int or sequence of scalars, optional
         If bins is an int, it defines the number of equal-width bins
         in the given range (10, by default). If bins is a sequence, it
@@ -490,13 +492,13 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.show()
 
     The above example uses the Wilson confidence interval to calculate
-    the uncertainty `perr` in each bin (see the definition of various
+    the uncertainty ``perr`` in each bin (see the definition of various
     confidence intervals in `binom_conf_interval`). A commonly used
     alternative is the Wald interval. However, the Wald interval can
     give nonsensical uncertainties when the efficiency is near 0 or 1,
     and is therefore **not** recommended. As an illustration, the
     following example shows the same data as above but uses the Wald
-    interval rather than the Wilson interval to calculate `perr`:
+    interval rather than the Wilson interval to calculate ``perr``:
 
     >>> bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20,
     ...                                                 interval='wald')
@@ -600,11 +602,11 @@ def median_absolute_deviation(a, axis=None):
     a = np.array(a, copy=False)
     a_median = np.median(a, axis=axis)
 
-    #re-broadcast the output median array to subtract it
+    # re-broadcast the output median array to subtract it
     if axis is not None:
         a_median = np.expand_dims(a_median, axis=axis)
 
-    #calculated the median average deviation
+    # calculated the median average deviation
     return np.median(np.abs(a - a_median), axis=axis)
 
 
@@ -669,13 +671,13 @@ def biweight_location(a, c=6.0, M=None):
     if M is None:
         M = np.median(a)
 
-    #set up the difference
+    # set up the difference
     d = a - M
 
-    #set up the weighting
+    # set up the weighting
     u = d / c / median_absolute_deviation(a)
 
-    #now remove the outlier points
+    # now remove the outlier points
     mask = np.abs(u) < 1
 
     u = (1 - u**2)**2
@@ -742,13 +744,13 @@ def biweight_midvariance(a, c=9.0, M=None):
     if M is None:
         M = np.median(a)
 
-    #set up the difference
+    # set up the difference
     d = a - M
 
-    #set up the weighting
+    # set up the weighting
     u = d / c / median_absolute_deviation(a)
 
-    #now remove the outlier points
+    # now remove the outlier points
     mask = np.abs(u) < 1
 
     u = u**2
@@ -818,11 +820,11 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     bootnum : int
         Number of bootstrap resamples
     samples : int
-        Number of samples in each resample. The default None sets samples to
+        Number of samples in each resample. The default `None` sets samples to
         the number of datapoints
     bootfunc : function
         Function to reduce the resampled data. Each bootstrap resample will
-        be put through this function and the results returned. If None, the
+        be put through this function and the results returned. If `None`, the
         bootstrapped data will be returned
 
     Returns
@@ -834,7 +836,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     if samples is None:
         samples = data.shape[0]
 
-    #make sure the input is sane
+    # make sure the input is sane
     assert samples > 0, "samples cannot be less than one"
     assert bootnum > 0, "bootnum cannot be less than one"
 

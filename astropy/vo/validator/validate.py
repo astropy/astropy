@@ -77,10 +77,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     url_list : list of string, optional
         Only check these access URLs against
-        `astropy.vo.validator.conf.conesearch_master_list` and ignore
+        `astropy.vo.validator.Conf.conesearch_master_list` and ignore
         the others, which will not appear in output files.  By
         default, check those in
-        `astropy.vo.validator.conf.conesearch_urls`.  If `None`, check
+        `astropy.vo.validator.Conf.conesearch_urls`.  If `None`, check
         everything.
 
     Raises

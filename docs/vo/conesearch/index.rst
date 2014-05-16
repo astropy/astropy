@@ -30,7 +30,7 @@ catalogs below:
 This subset undergoes daily validations hosted by STScI using
 :ref:`vo-sec-validator-validate`. Those that pass without critical
 warnings or exceptions are used by :ref:`vo-sec-client-scs` by
-default. They are controlled by `astropy.vo.conf.conesearch_dbname`:
+default. They are controlled by `astropy.vo.Conf.conesearch_dbname`:
 
 #. ``'conesearch_good'``
    Default. Passed validation without critical warnings and exceptions.
