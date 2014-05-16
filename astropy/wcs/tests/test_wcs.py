@@ -563,34 +563,49 @@ def test_all_world2pix(fname=None, ext=0,
             maxiter=maxiter, detect_divergence=detect_divergence)
         runtime_end = datetime.now()
     except wcs.wcs.NoConvergence as e:
-        print("")
+        runtime_end = datetime.now()
         ndiv = 0
         if e.divergent is not None:
             ndiv = e.divergent.shape[0]
-            print("There are {} diverging points.".format(ndiv))
-            print("Indices of diverging points:\n{}".format(e.divergent))
+            print("There are {} diverging solutions.".format(ndiv))
+            print("Indices of diverging solutions:\n{}"
+                  .format(e.divergent))
+            print("Diverging solutions:\n{}\n"
+                  .format(e.best_solution[e.divergent]))
+            print("Mean radius of the diverging solutions: {}"
+                  .format(np.mean(
+                      np.linalg.norm(e.best_solution[e.divergent], axis=1))))
+            print("Mean accuracy of the diverging solutions: {}\n"
+                  .format(np.mean(
+                      np.linalg.norm(e.accuracy[e.divergent], axis=1))))
         else:
-            print("There are no diverging points.")
+            print("There are no diverging solutions.")
 
         nslow = 0
         if e.slow_conv is not None:
             nslow = e.slow_conv.shape[0]
-            print("There are {} poorly converging points.".format(nslow))
-            print("Indices of poorly converging points:\n{}"
+            print("There are {} slowly converging solutions."
+                  .format(nslow))
+            print("Indices of slowly converging solutions:\n{}"
                   .format(e.slow_conv))
+            print("Slowly converging solutions:\n{}\n"
+                  .format(e.best_solution[e.slow_conv]))
         else:
-            print("There are no slowly converging points.")
+            print("There are no slowly converging solutions.\n")
 
-        print("There are {} points that have converged to a solution."
+        print("There are {} converged solutions."
               .format(e.best_solution.shape[0] - ndiv - nslow))
-        print("Best Solution (all points):\n{}".format(e.best_solution))
+        print("Best solutions (all points):\n{}"
+              .format(e.best_solution))
         print("Accuracy:\n{}\n".format(e.accuracy))
-
+        print("\nFinished running 'test_all_world2pix' with errors.\n"
+              "ERROR: {}\nRun time: {}\n"
+              .format(e.args[0], runtime_end - runtime_begin))
         raise e
 
     # Compute differences between reference pixel coordinates and
-    # pixel coordinates (in image space) recovered from reference pixels
-    # in world coordinates:
+    # pixel coordinates (in image space) recovered from reference
+    # pixels in world coordinates:
     errors = np.linalg.norm(all_pix - test_pix, axis=1)
     meanerr = np.mean(errors)
     maxerr = np.max(errors)
