@@ -218,7 +218,7 @@ class WCS(WCSBase):
         specified columns.  If `None`, there is no restriction.
 
     fix : bool, optional
-        When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix` on
+        When `True` (default), call `~astropy.wcs.Wcsprm.fix` on
         the resulting object to fix any non-standard uses in the
         header.  `FITSFixedWarning` Warnings will be emitted if any
         changes were made.
@@ -227,7 +227,7 @@ class WCS(WCSBase):
         Specify which potentially unsafe translations of non-standard
         unit strings to perform.  By default, performs none.  See
         `WCS.fix` for more information about this parameter.  Only
-        effective when `fix` is `True`.
+        effective when ``fix`` is `True`.
 
     Raises
     ------
@@ -247,15 +247,14 @@ class WCS(WCSBase):
     Notes
     -----
 
-    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
-       (the transformations handled by WCSLIB).  However, the Paper IV
-       lookup table and SIP distortions must be two dimensional.
-       Therefore, if you try to create a WCS object where the core WCS
-       has a different number of dimensions than 2 and that object
-       also contains a Paper IV lookup table or SIP distortion, a
-       `ValueError` exception will be raised.  To avoid this, consider
-       using the *naxis* kwarg to select two dimensions from the core
-       WCS.
+    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS (the
+       transformations handled by WCSLIB).  However, the Paper IV lookup
+       table and SIP distortions must be two dimensional.  Therefore, if you
+       try to create a WCS object where the core WCS has a different number
+       of dimensions than 2 and that object also contains a Paper IV lookup
+       table or SIP distortion, a `~.exceptions.ValueError` exception will
+       be raised.  To avoid this, consider using the *naxis* kwarg to select
+       two dimensions from the core WCS.
 
     2. The number of coordinate axes in the transformation is not
        determined directly from the ``NAXIS`` keyword but instead from
@@ -274,7 +273,7 @@ class WCS(WCSBase):
        coordinate representation, then no coordinate description is
        constructed for it.
 
-       The number of axes, which is set as the `naxis` member, may
+       The number of axes, which is set as the ``naxis`` member, may
        differ for different coordinate representations of the same
        image.
 
@@ -1130,7 +1129,7 @@ naxis kwarg.
         Notes
         -----
         The order of the axes for the result is determined by the
-        `CTYPEia` keywords in the FITS header, therefore it may not
+        ``CTYPEia`` keywords in the FITS header, therefore it may not
         always be of the form (*ra*, *dec*).  The
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
@@ -1224,7 +1223,7 @@ naxis kwarg.
         Notes
         -----
         The order of the axes for the result is determined by the
-        `CTYPEia` keywords in the FITS header, therefore it may not
+        ``CTYPEia`` keywords in the FITS header, therefore it may not
         always be of the form (*ra*, *dec*).  The
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
@@ -1292,7 +1291,7 @@ naxis kwarg.
         Notes
         -----
         The order of the axes for the input world array is determined by
-        the `CTYPEia` keywords in the FITS header, therefore it may
+        the ``CTYPEia`` keywords in the FITS header, therefore it may
         not always be of the form (*ra*, *dec*).  The
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
@@ -1355,7 +1354,7 @@ naxis kwarg.
         Notes
         -----
         The order of the axes for the input world array is determined by
-        the `CTYPEia` keywords in the FITS header, therefore it may
+        the ``CTYPEia`` keywords in the FITS header, therefore it may
         not always be of the form (*ra*, *dec*).  The
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
@@ -1636,7 +1635,7 @@ naxis kwarg.
 
           2. Deprecated (e.g. ``CROTAn``) or non-standard usage will
              be translated to standard (this is partially dependent on
-             whether `fix` was applied).
+             whether ``fix`` was applied).
 
           3. Quantities will be converted to the units used internally,
              basically SI with the addition of degrees.
@@ -1745,7 +1744,7 @@ naxis kwarg.
         print(s.format(*self.wcs.crval))
 
         s = 'CRPIX ' + sfmt
-        print(s.format(*self.wcs.crpix))        
+        print(s.format(*self.wcs.crpix))
 
         if hasattr(self.wcs, 'pc'):
             for i in range(self.naxis):
@@ -1768,7 +1767,7 @@ naxis kwarg.
 
     def get_axis_types(self):
         """
-        Similar to `self.wcsprm.axis_types <_wcs.Wcsprm.axis_types>`
+        Similar to `self.wcsprm.axis_types <astropy.wcs.Wcsprm.axis_types>`
         but provides the information in a more Python-friendly format.
 
         Returns
@@ -1937,7 +1936,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
         'pixel'.
 
     fix : bool, optional
-        When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix` on
+        When `True` (default), call `~astropy.wcs.Wcsprm.fix` on
         the resulting objects to fix any non-standard uses in the
         header.  `FITSFixedWarning` warnings will be emitted if any
         changes were made.
@@ -1946,7 +1945,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
         Specify which potentially unsafe translations of non-standard
         unit strings to perform.  By default, performs none.  See
         `WCS.fix` for more information about this parameter.  Only
-        effective when `fix` is `True`.
+        effective when ``fix`` is `True`.
 
     Returns
     -------

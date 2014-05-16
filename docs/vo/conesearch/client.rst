@@ -1,7 +1,7 @@
 .. doctest-skip-all
 
-Using `astropy.vo.client`
-=========================
+Using ``astropy.vo.client``
+===========================
 
 This subpackage contains modules supporting VO client-side operations.
 
@@ -239,11 +239,11 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-* `astropy.io.votable.conf.pedantic`
-  Set strictness of VO table parser (``False`` is recommended).
-* `astropy.utils.data.conf.remote_timeout`
+* `astropy.io.votable.Conf.pedantic`
+  Set strictness of VO table parser (`False` is recommended).
+* `astropy.utils.data.Conf.remote_timeout`
   Timeout for remote service access.
-* `astropy.vo.client.conf.vos_baseurl`
+* `astropy.vo.Conf.vos_baseurl`
   URL (or path) where VO Service database is stored.
 
 Examples
@@ -349,7 +349,7 @@ Simple Cone Search
 
 Available databases are generated on the server-side hosted by STScI
 using :ref:`vo-sec-validator-validate`. The database used is
-controlled by `astropy.vo.conf.conesearch_dbname`, which can be
+controlled by `astropy.vo.Conf.conesearch_dbname`, which can be
 changed in :ref:`vo-sec-scs-config` below. Here are the available
 options:
 
@@ -392,7 +392,7 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-* `astropy.vo.conf.conesearch_dbname`
+* `astropy.vo.Conf.conesearch_dbname`
   Cone Search database name to query.
 
 Also depends on
@@ -546,7 +546,7 @@ array([ 15852.5028,  15854.0616,  15856.3116, ...,  27510.2316,
 Perform the same Cone Search as above but asynchronously using
 `~astropy.vo.client.conesearch.AsyncConeSearch`.  Queries to
 individual Cone Search services are still governed by
-`astropy.utils.data.conf.remote_timeout`. Cone Search is forced to run
+`astropy.utils.data.Conf.remote_timeout`. Cone Search is forced to run
 in silent mode asynchronously, but warnings are still controlled by
 :py:mod:`warnings`:
 
@@ -560,7 +560,7 @@ True
 False
 
 Get search results after a 30-second wait (not to be confused with
-`astropy.utils.data.conf.remote_timeout` that governs individual Cone
+`astropy.utils.data.Conf.remote_timeout` that governs individual Cone
 Search queries). If search is still not done after 30 seconds,
 ``TimeoutError`` is raised. Otherwise, Cone Search result is returned
 and can be manipulated as above. If no ``timeout`` keyword given, it

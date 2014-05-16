@@ -615,7 +615,7 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
     ----------
     dbname : str
         Prefix of JSON file to download from
-        `astropy.vo.conf.vos_baseurl`.
+        `astropy.vo.Conf.vos_baseurl`.
 
     cache : bool
         Use caching for VO Service database. Access to actual VO
@@ -792,13 +792,13 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         use to most control:
 
             - `None`: A database of ``service_type`` catalogs is
-              downloaded from `astropy.vo.conf.vos_baseurl`.  The
+              downloaded from `astropy.vo.Conf.vos_baseurl`.  The
               first catalog in the database to successfully return a
               result is used.
 
             - *catalog name*: A name in the database of
               ``service_type`` catalogs at
-              `astropy.vo.conf.vos_baseurl` is used.  For a list of
+              `astropy.vo.Conf.vos_baseurl` is used.  For a list of
               acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
@@ -814,7 +814,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
         :py:mod:`warnings` module.  When not provided, uses the
-        configuration setting `astropy.io.votable.conf.pedantic`, which
+        configuration setting `astropy.io.votable.Conf.pedantic`, which
         defaults to `False`.
 
     verbose : bool

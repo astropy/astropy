@@ -62,9 +62,9 @@ class AsyncConeSearch(AsyncBase):
     False
 
     Get search results after a 30-second wait (not to be
-    confused with `astropy.utils.data.conf.remote_timeout` that
+    confused with `astropy.utils.data.Conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
-    done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
+    done after 30 seconds, `~.exceptions.TimeoutError` is raised. Otherwise,
     Cone Search result is returned and can be manipulated as in
     :ref:`Simple Cone Search Examples <vo-sec-scs-examples>`.
     If no ``timeout`` keyword given, it waits until completion:
@@ -122,22 +122,23 @@ def conesearch(center, radius, verb=1, **kwargs):
         use to most control:
 
             - `None`: A database of
-              `astropy.vo.conf.conesearch_dbname` catalogs is
-              downloaded from `astropy.vo.conf.vos_baseurl`.  The
+              `astropy.vo.Conf.conesearch_dbname` catalogs is
+              downloaded from `astropy.vo.Conf.vos_baseurl`.  The
               first catalog in the database to successfully return a
               result is used.
 
             - *catalog name*: A name in the database of
-              `astropy.vo.conf.conesearch_dbname` catalogs at
-              `astropy.vo.conf.vos_baseurl` is used.  For a list of
+              `astropy.vo.Conf.conesearch_dbname` catalogs at
+              `astropy.vo.Conf.vos_baseurl` is used.  For a list of
               acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
-              `astropy.vo.conf.conesearch.conesearch_dbname`.  Must
+              `astropy.vo.Conf.conesearch_dbname`.  Must
               end in either '?' or '&'.
 
-            - `VOSCatalog` object: A specific catalog manually downloaded and
-              selected from the database (see :ref:`vo-sec-client-vos`).
+            - `~astropy.vo.client.vos_catalog.VOSCatalog` object: A specific
+              catalog manually downloaded and selected from the database
+              (see :ref:`vo-sec-client-vos`).
 
             - Any of the above 3 options combined in a list, in which case
               they are tried in order.
@@ -146,7 +147,7 @@ def conesearch(center, radius, verb=1, **kwargs):
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
         :py:mod:`warnings` module.  When not provided, uses the
-        configuration setting `astropy.io.votable.conf.pedantic`,
+        configuration setting `astropy.io.votable.Conf.pedantic`,
         which defaults to `False`.
 
     verbose : bool
@@ -217,9 +218,9 @@ class AsyncSearchAll(AsyncBase):
     False
 
     Get a dictionary of all search results after a 30-second wait (not
-    to be confused with `astropy.utils.data.conf.remote_timeout` that
+    to be confused with `astropy.utils.data.Conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
-    done after 30 seconds, ``TimeoutError`` is raised. Otherwise, a
+    done after 30 seconds, `~.exceptions.TimeoutError` is raised. Otherwise, a
     dictionary is returned and can be manipulated as in :ref:`Simple
     Cone Search Examples <vo-sec-scs-examples>`.  If no ``timeout``
     keyword given, it waits until completion:
@@ -246,7 +247,7 @@ def search_all(*args, **kwargs):
 
     Parameters
     ----------
-    args, kwargs
+    args, kwargs :
         Arguments and keywords accepted by :func:`conesearch`.
 
     Returns
@@ -342,7 +343,7 @@ def predict_search(url, *args, **kwargs):
         #. Fitted slope is negative.
         #. Any of the estimated results is negative.
         #. Estimated run time exceeds
-           `astropy.utils.data.conf.remote_timeout`.
+           `astropy.utils.data.Conf.remote_timeout`.
 
     .. note::
 
@@ -350,7 +351,7 @@ def predict_search(url, *args, **kwargs):
         But unlike :func:`conesearch_timer`, timer info is suppressed.
 
         If ``plot=True``, plot will be displayed.
-        Plotting uses :mod:`matplotlib`.
+        Plotting uses `matplotlib <http://matplotlib.sourceforge.net/>`_.
 
         The predicted results are just *rough* estimates.
 
@@ -476,7 +477,8 @@ def conesearch_timer(*args, **kwargs):
 
 
 def _local_conversion(func, x):
-    """Try ``func(x)`` and replace ``ValueError`` with ``ConeSearchError``."""
+    """Try ``func(x)`` and replace `~.exceptions.ValueError` with
+    ``ConeSearchError``."""
     try:
         y = func(x)
     except ValueError as e:  # pragma: no cover
