@@ -735,16 +735,16 @@ PyWcsprm_compare(
     PyObject* args,
     PyObject* kwds) {
 
-  int cmp;
+  int cmp = 0;
   PyWcsprm *other;
   int equal;
   int status;
 
-  const char* keywords[] = {"cmp", "other", NULL};
+  const char* keywords[] = {"other", "cmp", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "iO!:compare", (char **)keywords,
-          &cmp, &PyWcsprmType, &other)) {
+          args, kwds, "O!|i:compare", (char **)keywords,
+          &PyWcsprmType, &other, &cmp)) {
     return NULL;
   }
 
