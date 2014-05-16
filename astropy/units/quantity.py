@@ -111,10 +111,11 @@ class Quantity(np.ndarray):
 
     Parameters
     ----------
-    value : number, `Quantity` object, or sequence of `Quantity` objects.
-        The numerical value of this quantity in the units given by
-        unit.  If a `Quantity` or sequence of them, creates a new
-        `Quantity` object, converting to `unit` units as needed.
+    value : number, `~numpy.ndarray`, `Quantity` object, or sequence of `Quantity` objects.
+        The numerical value of this quantity in the units given by unit.  If a
+        `Quantity` or sequence of them (or any other valid object with a
+        ``unit`` attribute), creates a new `Quantity` object, converting to
+        `unit` units as needed.
 
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
@@ -190,6 +191,8 @@ class Quantity(np.ndarray):
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
 
+        rescale_value = None
+
         # Maybe list/tuple of Quantity? short-circuit array for speed
         if(not isinstance(value, np.ndarray) and isiterable(value) and
            all(isinstance(v, Quantity) for v in value)):
@@ -199,7 +202,22 @@ class Quantity(np.ndarray):
             copy = False  # copy already made
 
         else:
-            if unit is None:
+            # if the value has a `unit` attribute, treat it like a quantity by
+            # rescaling the value appropriately
+            if hasattr(value, 'unit'):
+                    try:
+                        value_unit = Unit(value.unit)
+                    except TypeError:
+                        if unit is None:
+                            unit = dimensionless_unscaled
+                    else:
+                        if unit is None:
+                            unit = value_unit
+                        else:
+                            rescale_value = value_unit.to(unit)
+
+            #if it has no unit, default to dimensionless_unscaled
+            elif unit is None:
                 unit = dimensionless_unscaled
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
@@ -216,6 +234,9 @@ class Quantity(np.ndarray):
         # by default, cast any integer, boolean, etc., to float
         if dtype is None and not np.can_cast(np.float32, value.dtype):
             value = value.astype(np.float)
+
+        if rescale_value is not None:
+            value *= rescale_value
 
         value = value.view(cls)
         value._unit = unit

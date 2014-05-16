@@ -455,3 +455,23 @@ def test_position_angle():
     # because of the frame transform, it's just a *bit* more than 90 degrees
     assert cicrs.position_angle(cfk5) > 90.0 * u.deg
     assert cicrs.position_angle(cfk5) < 91.0 * u.deg
+
+
+def test_table_to_coord():
+    """
+    Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`
+    initializer is the intermediary that translate the table columns into
+    something coordinates understands.
+
+    (Regression test for #1762 )
+    """
+    from ...table import Table, Column
+
+    t = Table()
+    t.add_column(Column(data=[1, 2, 3], name='ra', unit=u.deg))
+    t.add_column(Column(data=[4, 5, 6], name='dec', unit=u.deg))
+
+    c = SkyCoord(t['ra'], t['dec'])
+
+    assert allclose(c.ra.to(u.deg), [1, 2, 3])
+    assert allclose(c.dec.to(u.deg), [4, 5, 6])
