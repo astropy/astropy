@@ -517,7 +517,7 @@ class Card(_Verify):
                     # also displayed
                     warnings.warn(
                         'Keyword name %r is greater than 8 characters or '
-                        'or contains spaces; a HIERARCH card will be created.' %
+                        'contains spaces; a HIERARCH card will be created.' %
                         keyword, VerifyWarning)
             else:
                 raise ValueError('Illegal keyword name: %r.' % keyword)
