@@ -214,31 +214,31 @@ def test_frame_init():
     Different ways of providing the frame.
     """
     sc = SkyCoord(RA, DEC, frame='icrs')
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(RA, DEC, frame=ICRS)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(RA, DEC, 'icrs')
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(RA, DEC, ICRS)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord('icrs', RA, DEC)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(ICRS, RA, DEC)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(sc)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(C_ICRS)
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     SkyCoord(C_ICRS, frame='icrs')
-    assert sc.frame_name == 'icrs'
+    assert sc.frame.name == 'icrs'
 
     with pytest.raises(ValueError) as err:
         SkyCoord(C_ICRS, frame='galactic')
@@ -379,6 +379,10 @@ def test_repr():
     sc3 = SkyCoord('icrs', 0.1 * u.deg, [1, 2.5] * u.deg)
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')
+
+
+    sc_noframe = SkyCoord(0 * u.deg, 1 * u.deg)
+    assert repr(sc_noframe) == '<SkyCoord (NoFrame): ra=0.0 deg, dec=1.0 deg>'
 
 
 def test_ops():

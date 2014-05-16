@@ -320,6 +320,24 @@ class AltAz(BaseCoordinateFrame):
     frame_attr_names = {}
 
 
+class NoFrame(BaseCoordinateFrame):
+    """
+    A "Fake" frame that is not meant to be transformed to/from.  Acts like a
+    standard equatorial coordinate system with no extra attributes.
+
+    Used primarily internally in `SkyCoord`, which is why it is not in the
+    public API.
+
+    """
+
+    preferred_representation = SphericalRepresentation
+    # the preferred_attr_names here are necessary for the SkyCoord initializer
+    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
+                                        ('distance', 'distance')])
+    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
+    frame_attr_names = {}
+
+
 #<--------------------------------transformations------------------------------>
 # Transformations are defined here instead of in the classes themselves, because
 # we need references to the various objects to give to the decorators.

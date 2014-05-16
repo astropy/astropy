@@ -12,7 +12,7 @@ from .. import units as u
 
 from .angles import Latitude, Longitude
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
-from .builtin_frames import ICRS
+from .builtin_frames import NoFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -79,14 +79,13 @@ class SkyCoord(object):
         kwargs = self._parse_inputs(args, kwargs)
 
         # Set internal versions of object state attributes
-        self._frame_name = kwargs['frame']
         for attr in FRAME_ATTR_NAMES_SET():
             setattr(self, '_' + attr, kwargs[attr])
 
         # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = frame_transform_graph.lookup_name(self.frame_name)
+        frame_cls = frame_transform_graph.lookup_name(kwargs['frame'])
         if frame_cls is None:
-            frame_cls = ICRS
+            frame_cls = NoFrame
 
         coord_kwargs = {}
         for attr, value in kwargs.items():
@@ -96,10 +95,6 @@ class SkyCoord(object):
 
         # Finally make the internal coordinate object.
         self._sky_coord_frame = frame_cls(**coord_kwargs)
-
-    @property
-    def frame_name(self):
-        return self._frame_name  # This can be None so cannot use frame_transform_graph
 
     @property
     def frame(self):
@@ -139,7 +134,7 @@ class SkyCoord(object):
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
         if frame is None:
-            frame = ICRS
+            frame = NoFrame
         for attr in FRAME_ATTR_NAMES_SET():
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
@@ -169,7 +164,7 @@ class SkyCoord(object):
                 # Must be longitude, latitude.
                 frame_cls = frame_transform_graph.lookup_name(frame)
                 if frame_cls is None:
-                    frame_cls = ICRS
+                    frame_cls = NoFrame
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                           frame_cls.preferred_attr_names.items())
                 coord_kwargs = {}
@@ -214,7 +209,7 @@ class SkyCoord(object):
         """
         from astropy.coordinates.errors import ConvertError
 
-        if frame is None or self.frame_name is None:
+        if frame is None or isinstance(self.frame, NoFrame):
             raise ValueError('Cannot transform to/from this SkyCoord because '
                              'the frame was not specified at creation.')
 
@@ -274,7 +269,7 @@ class SkyCoord(object):
         to, based on the alias attr in the master transform graph.
         """
 
-        if self.frame_name == attr:
+        if self.frame.name == attr:
             return self  # Should this be a deepcopy of self?
 
         # Anything in the set of all possible frame_attr_names is handled
@@ -324,9 +319,10 @@ class SkyCoord(object):
         return dir_values
 
     def __repr__(self):
-        s = '<{clsnm} ({coonm})'
-        s = s.format(clsnm=self.__class__.__name__,
-                     coonm=self.frame.__class__.__name__)
+        clsnm = self.__class__.__name__
+        coonm = self.frame.__class__.__name__
+
+        s = '<{clsnm} ({coonm})'.format(**locals())
         crepr = repr(self.frame)
         return s + crepr[crepr.index(':'):]
 
@@ -632,7 +628,7 @@ class SkyCoord(object):
         """
         from . import angle_utilities
 
-        if self.frame_name == other.frame_name:
+        if self.frame.name == other.frame.name:
             other_in_self_frame = other
         else:
             other_in_self_frame = other.frame.transform_to(self.frame)
@@ -745,7 +741,7 @@ def _get_frame_name(args, kwargs):
         if isinstance(arg, BaseCoordinateFrame):
             coord_frame_name = arg.__class__.name
         elif isinstance(arg, SkyCoord):
-            coord_frame_name = arg.frame_name
+            coord_frame_name = arg.frame.name
 
         if coord_frame_name is not None:
             if frame_name is None:
@@ -802,7 +798,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
     frame_cls = frame_transform_graph.lookup_name(frame)
     if frame_cls is None:
-        frame_cls = ICRS
+        frame_cls = NoFrame
     attr_name_for_type = dict((attr_type, name) for name, attr_type in
                               frame_cls.preferred_attr_names.items())
 
@@ -888,7 +884,7 @@ def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
     valid_kwargs = {}
     frame_cls = frame_transform_graph.lookup_name(frame)
     if frame_cls is None:
-        frame_cls = ICRS
+        frame_cls = NoFrame
     for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
                                       (Latitude, 'lat', lat_unit),
                                       (None, 'distance', None)):
