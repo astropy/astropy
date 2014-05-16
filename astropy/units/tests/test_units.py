@@ -623,3 +623,9 @@ def test_sqrt_mag():
     sqrt_mag = u.mag ** 0.5
     assert hasattr(sqrt_mag.decompose().scale, 'imag')
     assert (sqrt_mag.decompose())**2 == u.mag
+
+
+def test_composite_compose():
+    # Issue #2382
+    composite_unit = u.s.compose(units=[u.Unit("s")])[0]
+    u.s.compose(units=[composite_unit])

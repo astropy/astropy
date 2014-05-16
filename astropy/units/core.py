@@ -654,11 +654,10 @@ class UnitBase(object):
         from .quantity import Quantity
         return m * Quantity(1, self)
 
-    if six.PY3:
-        def __hash__(self):
-            # Since this class defines __eq__, it will become unhashable
-            # on Python 3.x, so we need to define our own hash.
-            return id(self)
+    def __hash__(self):
+        # This must match the hash used in CompositeUnit for a unit
+        # with only one base and no scale or power.
+        return hash((str(self.scale), self.name, str('1')))
 
     def __eq__(self, other):
         if self is other:
@@ -1839,6 +1838,9 @@ class Unit(NamedUnit):
 
     def is_unity(self):
         return self._represents.is_unity()
+
+    def __hash__(self):
+        return hash(self.name) + hash(self._represents)
 
 
 class PrefixUnit(Unit):
