@@ -189,3 +189,16 @@ def test_progress_bar_as_generator():
     for x in console.ProgressBar(50):
         sum += x
     assert sum == 1225
+
+@pytest.mark.parametrize("seconds,string",
+       [(864088,"01w03d"),
+       (187213,"02d04h"),
+       (3905,"01h05m"),
+       (64,"01m04s"),
+       (15,"   15s")]
+)
+def test_human_time(seconds, string):
+    human_time = console.human_time(seconds)
+    print(human_time)
+    assert human_time == string
+
