@@ -52,6 +52,9 @@ New Features
   - The functional interface is now deprecated in favor of the more-explicit
     use of methods on cosmology objects. [#2343]
 
+  - Updated documentation to reflect the removal of the functional
+    interface. [#2507]
+
 - ``astropy.io.ascii``
 
   - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a
