@@ -505,7 +505,7 @@ Bug Fixes
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
 
-  - Be more carful about converting to floating point internally [#1815, #1818]
+  - Be more careful about converting to floating point internally [#1815, #1818]
 
 - ``astropy.io.ascii``
 
