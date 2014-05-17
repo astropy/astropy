@@ -256,6 +256,9 @@ class TestRunner(object):
         from ..table import Table
 
         try:
+            # need to convert to `str` because pytest does a check
+            # isinstance(..., str) that fails if you pass in unicode in py2.x
+            all_args = [str(arg) for arg in all_args]
             result = pytest.main(args=all_args, plugins=plugins)
         finally:
             shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
