@@ -116,7 +116,7 @@ else:
 WCSHDO_SIP = 0x10000
 
 
-__doctest_skip__ = ['all_world2pix']
+__doctest_skip__ = ['WCS.all_world2pix']
 
 
 def _parse_keysel(keysel):
