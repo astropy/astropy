@@ -1,6 +1,8 @@
 Using and Designing Coordinate Frames
 -------------------------------------
 
+.. todo:: rewrite
+
 The key concept is that a
 registry of all the transformations is used to determine which
 coordinates can convert to others.  When you ask for a transformation,

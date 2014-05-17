@@ -159,16 +159,52 @@ object::
     coordinates manually.
 
 
+Overview of `astropy.coordinates` concepts
+==========================================
+
+.. note ::
+    The `~astropy.coordinates` package from v0.4 onward builds from
+    previous versions of  the package, and more detailed information and
+    justification of the design is available in `APE (Astropy Proposal for Enhancement) 5 <https://github.com/astropy/astropy- APEs/blob/master/APE5.rst>`_.
+
+Here we provide an overview of the package and associated framework.
+This background information is not necessary for simply using
+`~astropy.coordinates`, particularly if you use the |skycoord| high-
+level class, but it is helpful for more advanced usage, particularly
+creating your own frame, transformations, or representations. Another
+useful piece of background infromation are some
+:ref:`astropy-coordinates-definitions as they are used in
+`~astropy.coordinates`.
+
+`~astropy.coordinates` is built on a three-tired system of objects:
+representations, frames, and a high-level class.  Representations
+classes are a particular way of storing a three-dimensional data point
+(or points), such as Cartesian coordinates or spherical polar
+coordinates. Frames are particular reference frames like FK5 or ICRS,
+which may store their data in different representations, but have well-
+defined transformations between each other. These transformations are
+all stored in the `astropy.coordinates.frame_transform_graph`, and new
+transformations can be created by users. Finally, the high-level class
+(|skycoord|) uses the frame classes, but provides a more accessible
+interface to these objects as well as various convenience methods and
+more string-parsing capabilities.
+
+Separating these concepts makes it easier to extend the functionality of
+`~astropy.coordinates`.  It allows representations, frames, and
+transformations to be defined or extended separately, while still
+preserving the high-level capabilities and simplicity of the |skyccord|
+class.
+
+
 Using `astropy.coordinates`
 ===========================
 
-More details of using `astropy.coordinates` are provided in the following
-sections:
+More detailed information on using the package is provided on separate pages,
+listed below.
 
 .. toctree::
    :maxdepth: 1
 
-   overview
    angles
    skycoord
    transforming
@@ -177,6 +213,7 @@ sections:
    representations
    frames
    sgr-example
+   definitions
 
 
 In addition, another resource for the capabilities of this package is the

@@ -3,8 +3,9 @@ Formatting Coordinate Strings
 
 .. todo: @taldcroft should change this to start with a discussion of SkyCoord's capabilities
 
-Getting a string representation of a coordinate is best approached by
-treating the components (e.g., RA and Dec) separately.  For example::
+Getting a string representation of a coordinate is most powerfuly
+approached by treating the components (e.g., RA and Dec) separately.
+For example::
 
   >>> from astropy.coordinates import ICRS
   >>> from astropy import units as u
