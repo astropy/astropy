@@ -2,26 +2,19 @@ Transforming Between Systems
 ----------------------------
 
 `astropy.coordinates` supports a rich system for transforming
-coordinates from one system to another.  The key concept is that a
-registry of all the transformations is used to determine which
-coordinates can convert to others.  When you ask for a transformation,
-the registry (or "transformation graph") is searched for the shortest
-path from your starting coordinate to your target, and it applies all
-of the transformations in that path in series.  This allows only the
-simplest transformations to be defined, and the package will
-automatically determine how to combine those transformations to get
-from one system to another.
+coordinates from one system to another.  While common astronomy frames
+are  built into Astropy, the transformation infrastructure is dynamic.
+This means it allows users to define new coordinate frames and their
+transformations.  The topic of writing your own coordinate frame or
+transforms is detailed in :ref :`astropy-coordinates-design`, and this
+section is focused on how to *use* transformations.
 
-TODO: may update below to show SkyCoordinate?
 
-As described above, there are two ways of transforming coordinates.
-Coordinates that have an alias (created with
-`~astropy.coordinates.coordinate_alias`) can be converted by simply
-using attribute style access to any other coordinate system::
+
 
     >>> import astropy.units as u
-    >>> from astropy.coordinates import Galactic, ICRS, FK5
-    >>> gc = Galactic(l=0*u.degree, b=45*u.degree)
+    >>> from astropy.coordinates import SkyCoord
+    >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
     >>> gc.transform_to(FK5)
     <FK5 Coordinate: equinox=J2000.000, ra=229.27250215 deg, dec=-1.12841764184 deg>
     >>> ic = ICRS(ra=0*u.degree, dec=45*u.degree)

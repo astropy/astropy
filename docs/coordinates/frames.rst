@@ -1,5 +1,20 @@
-Creating Coordinate Objects
----------------------------
+Using and Designing Coordinate Frames
+-------------------------------------
+
+The key concept is that a
+registry of all the transformations is used to determine which
+coordinates can convert to others.  When you ask for a transformation,
+the registry (or "transformation graph") is searched for the shortest
+path from your starting coordinate to your target, and it applies all
+of the transformations in that path in series.  This allows only the
+simplest transformations to be defined, and the package will
+automatically determine how to combine those transformations to get
+from one system to another.
+
+TODO: need a better explanation here...
+
+Using Frame Objects
+-------------------
 
 TODO: We might want to first introduce SkyCoordinate with many of the
 same example as below.
@@ -65,3 +80,44 @@ same unit rules apply as for scalar angles.::
 TODO: update for SkyCoordinate?
 One final way to create coordinates is to copy them from an already
 existing coordinate object::
+
+
+.. _astropy-coordinates-design
+
+Defining a New Frame
+====================
+
+New coordinate systems can easily be added by users by subclassing
+the `~astropy.coordinates.BaseCoordinateFrame` object.  Detailed
+instructions for subclassing are in the docstrings for that class.
+See the built-in frame classes (e.g., `~astropy.coordinates.ICRS`) for
+examples of how to subclass the base class.
+
+To define transformations to and from this coordinate, the easiest method is
+to define a function that accepts an object in one coordinate system and
+returns the other. For example, to transform from ICRS to FK5 coordinates,
+the transformation operator is a precession matrix. We just need to define
+functions that compute the necessary matrices to transform from ICRS to FK5
+and vice versa, then decorate the functions to register these transformations
+with the global transform graph::
+
+    @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
+    def icrs_to_fk5(icrscoord, fk5frame):
+        ...
+
+    @frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
+    def fk5_to_icrs(fk5coord, icrsframe):
+        ...
+
+If the transformation to your coordinate frame of interest is not
+representable by a matrix operation, you can also specify a function to
+do the actual transformation, and pass the `FunctionTransform` class to
+the transform graph decorator instead::
+
+    @frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
+    def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
+        ...
+
+
+Defining Transformations
+========================

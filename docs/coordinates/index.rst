@@ -173,10 +173,9 @@ sections:
    skycoord
    transforming
    formatting
-   distances
    matchsep
-   creatingframes
-   designing
+   representations
+   frames
    sgr-example
 
 

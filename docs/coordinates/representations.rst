@@ -1,5 +1,29 @@
-Distances and Cartesian Representations
----------------------------------------
+.. _astropy-coordinates-representations:
+
+Using and Designing Coordinate Representations
+----------------------------------------------
+
+As described in :ref:`astropy-coordinates-overview`, the actual
+coordinate  data in `~astropy.coordinates` is represented via
+"Representation classes"...
+
+.. todo:: @astrofrog writes this
+
+* describe creating/using representation objects. Emphasize that they
+  are mostly used inside frame classes
+* describe how to get other representations, esp. cartesian, and at least a brief
+  mention of how things work with/without `distance`
+* brief discussion of how users can create their own for use
+
+
+
+
+The text below is the old ``distances.rst`` - that's not necessarily
+relevant because a lot of it isn't that important, but some of it can be
+rolled into the above.  Use as needed then remove when done
+
+REMOVE THIS AFTER ABOVE SECTION IS WRITTEN
+==========================================
 
 Coordinates can also have line-of-sight distances.  If these are provided, a
 coordinate object becomes a full-fledged point in three-dimensional space.
