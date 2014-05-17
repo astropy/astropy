@@ -171,11 +171,10 @@ sections:
    overview
    angles
    skycoord
-   formatting
    transforming
+   formatting
    distances
-   separations
-   matching
+   matchsep
    creatingframes
    designing
    sgr-example
