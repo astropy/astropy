@@ -3,7 +3,7 @@
 Using and Designing Coordinate Frames
 -------------------------------------
 
-.. todo:: rewrite for APE5
+.. todo:: rewrite for APE5: @eteq
 
 The key concept is that a
 registry of all the transformations is used to determine which

@@ -159,6 +159,8 @@ object::
     coordinates manually.
 
 
+.. _astropy-coordinates-overview:
+
 Overview of `astropy.coordinates` concepts
 ==========================================
 
@@ -173,7 +175,7 @@ This background information is not necessary for simply using
 level class, but it is helpful for more advanced usage, particularly
 creating your own frame, transformations, or representations. Another
 useful piece of background infromation are some
-:ref:`astropy-coordinates-definitions as they are used in
+:ref:`astropy-coordinates-definitions` as they are used in
 `~astropy.coordinates`.
 
 `~astropy.coordinates` is built on a three-tired system of objects:
@@ -192,7 +194,7 @@ more string-parsing capabilities.
 Separating these concepts makes it easier to extend the functionality of
 `~astropy.coordinates`.  It allows representations, frames, and
 transformations to be defined or extended separately, while still
-preserving the high-level capabilities and simplicity of the |skyccord|
+preserving the high-level capabilities and simplicity of the |skycoord|
 class.
 
 

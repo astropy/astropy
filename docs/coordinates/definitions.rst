@@ -1,4 +1,4 @@
-.._astropy-coordinates-definitions
+.. _astropy-coordinates-definitions:
 
 Important Definitions
 ---------------------

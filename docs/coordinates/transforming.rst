@@ -1,3 +1,7 @@
+.. include:: references.txt
+
+.. _astropy-coordinates-transforming:
+
 Transforming Between Systems
 ----------------------------
 

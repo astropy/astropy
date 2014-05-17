@@ -4,7 +4,7 @@ Example: Defining a new spherical coordinate system
 ---------------------------------------------------
 
 This document describes in detail how to subclass and define a custom
-spherical coordinate system, as mentioned in :doc:`designing` and the
+spherical coordinate system, as mentioned in :doc:`frames` and the
 docstring for `~astropy.coordinates.BaseCoordinateFrame`. In this
 example, we will define a coordinate system defined by the plane of orbit of
 the Sagittarius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et
