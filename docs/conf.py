@@ -171,7 +171,48 @@ github_issues_url = 'https://github.com/astropy/astropy/issues/'
 nitpicky = False
 nitpick_ignore = []
 
+# Numpy docstring variables
+nitpick_ignore.extend([('py:obj', six.u('dtype')),
+                       ('py:obj', six.u('a')),
+                       ('py:obj', six.u('a.size == 1')),
+                       ('py:obj', six.u('n')),
+                       ('py:obj', six.u('ndarray')),
+                       ('py:obj', six.u('args'))])
+
+# VOTable base classes that aren't in the public API
+nitpick_ignore.extend([('py:class', six.u('astropy.io.votable.tree.Element')),
+                       ('py:class', six.u('astropy.io.votable.tree.SimpleElement')),
+                       ('py:class', six.u('astropy.io.votable.tree.SimpleElementWithContent')),
+                       ('py:class', six.u('astropy.io.votable.tree._DescriptionProperty')),
+                       ('py:class', six.u('astropy.io.votable.tree._IDProperty')),
+                       ('py:class', six.u('astropy.io.votable.tree._NameProperty')),
+                       ('py:class', six.u('astropy.io.votable.tree._UcdProperty')),
+                       ('py:class', six.u('astropy.io.votable.tree._UtypeProperty')),
+                       ('py:class', six.u('astropy.io.votable.tree._XtypeProperty'))])
+
+# Modeling base classes that aren't in the public API
+nitpick_ignore.extend([('py:class', six.u('astropy.modeling.projections.Zenithal')),
+                       ('py:class', six.u('astropy.modeling.projections.Cylindrical')),
+                       ('py:class', six.u('astropy.modeling.core._CompositeModel')),
+                       ('py:class', six.u('astropy.modeling.polynomial.PolynomialBase')),
+                       ('py:class', six.u('astropy.modeling.rotations.EulerAngleRotation'))])
+
+# FITS base classes that aren't in the public API
+nitpick_ignore.extend([('py:class', six.u('astropy.io.fits.diff._BaseDiff')),
+                       ('py:class', six.u('astropy.io.fits.verify._Verify')),
+                       ('py:class', six.u('astropy.io.fits.hdu.image._ImageBaseHDU')),
+                       ('py:class', six.u('astropy.io.fits.hdu.table._TableLikeHDU')),
+                       ('py:class', six.u('astropy.io.fits.hdu.base.ExtensionHDU'))])
+
+# Table base classes that aren't in the public API
+nitpick_ignore.extend([('py:class', six.u('astropy.table.column.BaseColumn'))])
+
+# Time base classes that aren't in the public API
+nitpick_ignore.extend([('py:class', six.u('astropy.time.core.TimeUnique'))])
+
+
+
 if six.PY2:
-    nitpick_ignore.append((six.u('py:class'), six.u('object')))
-    nitpick_ignore.append(('py:obj', six.u('bytes')))
-    nitpick_ignore.append(('py:obj', six.u('bases')))
+    nitpick_ignore.extend([(six.u('py:class'), six.u('object')),
+                           ('py:obj', six.u('bytes')),
+                           ('py:obj', six.u('bases'))])

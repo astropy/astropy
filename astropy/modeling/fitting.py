@@ -248,7 +248,7 @@ class LinearLSQFitter(Fitter):
 
         Parameters
         ----------
-        model : `FittableModel`
+        model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
             input coordinates
@@ -260,12 +260,12 @@ class LinearLSQFitter(Fitter):
             weights
         rcond :  float, optional
             Cut-off ratio for small singular values of `a`.
-            Singular values are set to zero if they are smaller than `rcond`
+            Singular values are set to zero if they are smaller than ``rcond``
             times the largest singular value of `a`.
 
         Returns
         -------
-        model_copy : `FittableModel`
+        model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if not model.fittable:
@@ -386,14 +386,14 @@ class NonLinearLSQFitter(Fitter):
 
     Notes
     -----
-    The `fit_info` dictionary contains the values returned by
+    The ``fit_info`` dictionary contains the values returned by
     `scipy.optimize.leastsq` for the most recent fit, including the values
-    inside  the `infodict` dictionary. See the `scipy.optimize.leastsq`
-    documentation for details on the meaning of these values. Note that the `x`
+    inside  the ``infodict`` dictionary. See the `scipy.optimize.leastsq`
+    documentation for details on the meaning of these values. Note that the ``x``
     return value is *not* included (as it is instead the parameter values of the
     returned model).
 
-    Additionally, one additional element of `fit_info` is computed whenever a
+    Additionally, one additional element of ``fit_info`` is computed whenever a
     model is fit, with the key 'param_cov'. The corresponding value is the
     covariance matrix of the parameters as a 2D numpy array.  The order of the
     matrix elements matches the order of the parameters in the fitted model
@@ -474,7 +474,7 @@ class NonLinearLSQFitter(Fitter):
 
         Parameters
         ----------
-        model : `FittableModel`
+        model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
            input coordinates
@@ -499,7 +499,7 @@ class NonLinearLSQFitter(Fitter):
 
         Returns
         -------
-        model_copy : `FittableModel`
+        model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
@@ -645,7 +645,7 @@ class SLSQPFitter(Fitter):
 
         Parameters
         ----------
-        model : `FittableModel`
+        model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
             input coordinates
@@ -666,7 +666,7 @@ class SLSQPFitter(Fitter):
 
         Returns
         -------
-        model_copy : `FittableModel`
+        model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):

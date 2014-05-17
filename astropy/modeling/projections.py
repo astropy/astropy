@@ -517,7 +517,7 @@ class AffineTransformation2D(Model):
         """
         Inverse transformation.
 
-        Raises `InputParameterError` if the transformation cannot be inverted.
+        Raises `~astropy.modeling.InputParameterError` if the transformation cannot be inverted.
         """
 
         det = np.linalg.det(self.matrix.value)
