@@ -19,6 +19,7 @@ from .representation import (BaseRepresentation, SphericalRepresentation,
 
 __all__ = ['SkyCoord']
 
+
 # Define a convenience mapping.  This is used like a module constants
 # but is actually dynamically evaluated.
 def FRAME_ATTR_NAMES_SET():
@@ -113,7 +114,7 @@ class SkyCoord(object):
     def __getitem__(self, item):
         self_frame = self._sky_coord_frame
         try:
-            #first turn `self` into a mockup of the thing we want - we can copy
+            # First turn `self` into a mockup of the thing we want - we can copy
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
             return SkyCoord(self)
@@ -673,8 +674,7 @@ class SkyCoord(object):
         else:
             return icrs_sky_coord.transform_to(frame)
 
-
-#<----------------Private utility functions below here------------------------->
+# <----------------Private utility functions below here------------------------->
 
 
 def _get_frame_class(frame):
