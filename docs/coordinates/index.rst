@@ -186,8 +186,8 @@ this document.  You can see it by either looking at it directly if you
 downloaded a copy of the astropy source code, or typing the following in an
 IPython session::
 
-    In [1]: from astropy.coordinates.tests import test_api
-    In [2]: test_api??
+    In [1]: from astropy.coordinates.tests import test_api_ape5
+    In [2]: test_api_ape5??
 
 
 See Also
