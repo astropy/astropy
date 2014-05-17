@@ -33,11 +33,9 @@ The :meth:`astropy.coordinates.BaseCoordinateFrame.separation_3d` or
 :meth:`astropy.coordinates.SkyCoord.separation_3d` methods can similarly
 be used to get 3D distance between two coordinates, rather than on-sky::
 
-
-
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', distance=70*u.kpc, frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', distance=80*u.kpc, frame='icrs')
     >>> sep = c1.separation_3d(c2)
     >>> sep
-    <Distance 28.743988157814098 kpc>
+    <Distance 28.743988... kpc>

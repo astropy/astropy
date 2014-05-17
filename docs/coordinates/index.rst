@@ -168,13 +168,15 @@ sections:
 .. toctree::
    :maxdepth: 1
 
+   overview
    angles
-   creating
+   skycoord
    formatting
-   separations
-   distances
    transforming
+   distances
+   separations
    matching
+   creatingframes
    designing
    sgr-example
 
