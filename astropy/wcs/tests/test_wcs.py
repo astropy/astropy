@@ -423,7 +423,7 @@ def test_all_world2pix(fname=None, ext=0,
 
     # Assume that CRPIX is at the center of the image and that the image
     # has an even number of pixels along each axis:
-    naxesi = list(2*crpix.astype(dtype=np.int) - origin)
+    naxesi = list(2*crpix.astype(np.int) - origin)
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
