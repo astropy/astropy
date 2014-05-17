@@ -27,6 +27,7 @@
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
+from astropy.extern import six
 
 import astropy
 
@@ -166,3 +167,11 @@ edit_on_github_source_root = ""
 edit_on_github_doc_root = "docs"
 
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
+
+nitpicky = False
+nitpick_ignore = []
+
+if six.PY2:
+    nitpick_ignore.append((six.u('py:class'), six.u('object')))
+    nitpick_ignore.append(('py:obj', six.u('bytes')))
+    nitpick_ignore.append(('py:obj', six.u('bases')))
