@@ -2,10 +2,12 @@ Separations
 -----------
 
 The on-sky separation is easily computed with the
-:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` method,
+:meth:`astropy.coordinates.BaseCoordinateFrame.separation` or
+:meth:`astropy.coordinates.SkyCoord.separation` methods,
 which computes the great-circle distance (*not* the small-angle
 approximation)::
 
+    >>> from astropy import units as u
     >>> from astropy.coordinates import ICRS
     >>> c1 = ICRS('5h23m34.5s', '-69d45m22s')
     >>> c2 = ICRS('0h52m44.8s', '-72d49m43s')
@@ -26,3 +28,16 @@ units::
     1244.76710626244...
     >>> sep.arcsecond
     74686.0263757469...
+
+The :meth:`astropy.coordinates.BaseCoordinateFrame.separation_3d` or
+:meth:`astropy.coordinates.SkyCoord.separation_3d` methods can similarly
+be used to get 3D distance between two coordinates, rather than on-sky::
+
+
+
+    >>> from astropy.coordinates import SkyCoord
+    >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', distance=70*u.kpc, frame='icrs')
+    >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', distance=80*u.kpc, frame='icrs')
+    >>> sep = c1.separation_3d(c2)
+    >>> sep
+    <Distance 28.743988157814098 kpc>
