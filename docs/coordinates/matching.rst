@@ -1,5 +1,7 @@
 .. doctest-skip-all
 
+.. _astropy-coordinates-matching:
+
 Matching Catalogs/Finding Nearest Coordinates
 ---------------------------------------------
 

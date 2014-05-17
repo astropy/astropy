@@ -1,0 +1,2 @@
+.. |skycoord| replace:: `~astropy.coordinates.SkyCoord`
+.. |quantity| replace:: `~astropy.units.Quantity`
