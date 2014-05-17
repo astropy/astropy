@@ -44,6 +44,8 @@ press the tab key.
 
 All of these methods also accept an array of redshifts as input:
 
+.. doctest-requires:: scipy
+
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])
   <Quantity [ 1916.06... , 3363.07..., 4451.74...] Mpc>
