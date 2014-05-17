@@ -498,9 +498,9 @@ def test_all_world2pix(fname=None, ext=0,
     # Compute differences between reference pixel coordinates and
     # pixel coordinates (in image space) recovered from reference
     # pixels in world coordinates:
-    errors = np.linalg.norm(all_pix - test_pix, axis=1)
+    errors = np.sqrt(np.sum(np.power(all_pix - test_pix, 2), axis=1))
     meanerr = np.mean(errors)
-    maxerr = np.max(errors)
+    maxerr = np.amax(errors)
     print("\nFinished running 'test_all_world2pix'.\n"
           "Mean error = {0:e}  (Max error = {1:e})\n"
           "Run time: {2}\n"
