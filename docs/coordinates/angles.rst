@@ -1,13 +1,12 @@
-.. |Angle| replace:: `~astropy.coordinates.Angle`
-.. |Longitude| replace:: `~astropy.coordinates.Longitude`
-.. |Latitude| replace:: `~astropy.coordinates.Latitude`
+.. include:: references.txt
 
 Working with Angles
 -------------------
 
-The angular components of a coordinate are represented by objects of the
-|Angle| class. These objects can be instantiated on their own wherever a
-representation of an angle is needed.
+The angular components of the various coordinate objects are represented
+by objects of the |Angle| class. While most likely to be encountered in
+the context of coordinate objects, |Angle| objects can also be used on
+their own wherever a representation of an angle is needed.
 
 Creation
 ^^^^^^^^
