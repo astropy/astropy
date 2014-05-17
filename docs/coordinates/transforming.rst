@@ -9,61 +9,63 @@ transformations.  The topic of writing your own coordinate frame or
 transforms is detailed in :ref :`astropy-coordinates-design`, and this
 section is focused on how to *use* transformations.
 
-.. todo:: update for APE5
+The simplest for of transformation is simply::
 
 
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
     >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
+    >>> gc.fk5
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
+
+While this appears to be simple attribute-style access, it is actually
+just syntactic sugar for the
+:meth:`~astropy.coordinates.SkyCoord.transform_to` method, which can
+accept either frame names, or `~astropy.coordinates.BaseCoordinateFrame`
+classes::
+
+    >>> from astropy.coordinates import FK5
+    >>> gc.transform_to('fk5')
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
     >>> gc.transform_to(FK5)
-    <FK5 Coordinate: equinox=J2000.000, ra=229.27250215 deg, dec=-1.12841764184 deg>
-    >>> ic = ICRS(ra=0*u.degree, dec=45*u.degree)
-    >>> ic.transform_to(FK5)
-    <FK5 Coordinate: equinox=J2000.000, ra=1.18888896168e-05 deg, dec=45.0000025278 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
 
-While this appears to be simple attribute-style access, it is actually just
-syntactic sugar for the
-:meth:`~astropy.coordinates.Base.transform_to` method::
-
-.. >>> from astropy.coordinates import FK5
-.. >>> gc.transform_to(FK5)
-.. <FK5 RA=229.27250 deg, Dec=-1.12842 deg>
-.. >>> ic.transform_to(FK5)
-.. <FK5 RA=0.00001 deg, Dec=45.00000 deg>
 
 The full list of supported coordinate systems and transformations is
-in the `astropy.coordinates` API documentation below.
+in the `astropy.coordinates` API documentation.
 
-Additionally, some coordinate systems support precessing the
-coordinate to produce a new coordinate in the same system but at a
-different equinox.  Note that these systems have a default equinox
-they start with if you don't specify one::
+Additionally, some coordinate frames support "self transformations",
+meaning the *type* of frame doesn't change, but the frame attributes do.
+Any example is precessing a coordinate from one equinox to another in an
+equatorial system. This is done by passing `transform_to` a frame class
+with the relevant attributes, as shown below. Note that these systems
+have a default equinox they start with if you don't specify one::
 
-    >>> from astropy.time import Time
     >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s')
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' value=J2000.000>
     >>> fk5c
-    <SkyCoord (FK5): equinox=J2000.000, ra=37.9545416667 deg, dec=89.2641111111 deg>
-    >>> fk5_2100 = FK5(equinox=Time(2100, format='jyear', scale='utc'))
-    >>> fk5c.transform_to(fk5_2100)
-    <SkyCoord (FK5): equinox=2100.0, ra=88.3239593382 deg, dec=89.5405669962 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=37.9545416... deg, dec=89.2641... deg>
+    >>> fk5_2005 = FK5(equinox='J2005')  # internally the string becomes an astropy.time.Time object
+    >>> fk5c.transform_to(fk5_2005)
+    <SkyCoord (FK5): equinox=J2005.000, ra=39.3931763... deg, dec=89.2858... deg>
 
-You can also specify the equinox when you create a coordinate using a
+You can also specify the equinox when you create a coordinate using an
 `~astropy.time.Time` object::
 
+    >>> from astropy.time import Time
     >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s',
     ...            equinox=Time('J1970', scale='utc'))
     >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear', scale='utc'))
     >>> fk5c.transform_to(fk5_2000)
     <SkyCoord (FK5): equinox=2000.0, ra=48.0231710002 deg, dec=89.386724854 deg>
 
-Coordinate systems do not necessarily all support an equinox nor
-precession, as it is a meaningless action for coordinate systems that
-do not depend on a particular equinox.
-
-Furthermore, coordinates typically have an ``obstime`` attribute,
-intended to record the time of the observation.  Some systems
-(especially FK4) require this information due to being non-inertial
-frames (i.e., they rotate over time due to motions of the defining
-stars).
+The same lower-level frame classes also have a
+:meth:`~astropy.coordinates.BaseCoordinateFrame.transform_to` method
+that works the same as above, but they do not support attribute-style
+access. They are also subtly different in that they only use frame
+attributes present in the initial or final frame, while |skycoord|
+objects use  any frame attributes they have for all transformation
+steps.  So |skycoord| can always transform from one frame to another and
+back again without change, while low-level classes may lose information
+and hence often do not round-trip.
