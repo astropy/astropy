@@ -3,119 +3,126 @@
 Using and Designing Coordinate Representations
 ----------------------------------------------
 
-As described in :ref:`astropy-coordinates-overview`, the actual
-coordinate  data in `~astropy.coordinates` is represented via
-"Representation classes"...
+As described in :ref:`astropy-coordinates-overview`, the actual coordinate
+data in `~astropy.coordinates` inside frames is represented via
+"Representation classes". These can be used to store 3-d coordinates in
+various representations, such as cartesian, spherical polar, cylindrical, and
+so on. The built-in representation classes are:
 
-.. todo:: @astrofrog writes this
+* `~astropy.coordinates.CartesianRepresentation`: cartesian
+  coordinates ``x``, ``y``, and ``z``
+* `~astropy.coordinates.SphericalRepresentation`: spherical
+  polar coordinates represented by a longitude (``lon``), a latitude
+  (``lat``), and a distance (``distance``). The latitude is a value ranging
+  from -90 to 90 degrees.
+* `~astropy.coordinates.UnitSphericalRepresentation`:
+  spherical polar coordinates on a unit sphere, represented by a longitude
+  (``lon``) and latitude (``lat``)
+* `~astropy.coordinates.PhysicsSphericalRepresentation`:
+  spherical polar coordinates, represented by an inclination (``theta``) and
+  azimuthal angle (``phi``), and radius ``r``. The inclination goes from 0 to
+  180 degrees, and is related to the latitude in the
+  `~astropy.coordinates.SphericalRepresentation` by
+  ``theta = 90 deg - lat``.
+* `~astropy.coordinates.CylindricalRepresentation`:
+  cylindrical polar coordinates, represented by a cylindrical radius
+  (``rho``), azimuthal angle (``phi``), and height (``z``).
 
-* describe creating/using representation objects. Emphasize that they
-  are mostly used inside frame classes
-* describe how to get other representations, esp. cartesian, and at least a brief
-  mention of how things work with/without `distance`
-* brief discussion of how users can create their own for use
+Instantiating and converting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Representation classes should be instantiated with `~astropy.units.Quantity`
+objects:
 
-
-
-The text below is the old ``distances.rst`` - that's not necessarily
-relevant because a lot of it isn't that important, but some of it can be
-rolled into the above.  Use as needed then remove when done
-
-REMOVE THIS AFTER ABOVE SECTION IS WRITTEN
-==========================================
-
-Coordinates can also have line-of-sight distances.  If these are provided, a
-coordinate object becomes a full-fledged point in three-dimensional space.
-
-The `~astropy.coordinates.Distance` class is provided to represent a
-line-of-sight distance for a coordinate.  It must include a length unit to
-be valid.::
-
-    >>> from astropy.coordinates import Distance, ICRS, CartesianRepresentation
     >>> from astropy import units as u
-    >>> d = Distance(770.)
-    Traceback (most recent call last):
-    ...
-    UnitsError: No unit was provided for Distance
-    >>> d = Distance(770., u.kpc)
-    >>> d
-    <Distance 770.0 kpc>
-    >>> c = ICRS('00h42m44.3s', '+41d16m9s', distance=d)
-    >>> c
-    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
+    >>> from astropy.coordinates.representation import CartesianRepresentation
+    >>> car = CartesianRepresentation(3 * u.kpc, 5 * u.kpc, 4 * u.kpc)
+    >>> car
+    <CartesianRepresentation x=3.0 kpc, y=5.0 kpc, z=4.0 kpc>
 
-Because `~astropy.coordinates.Distance` is a subclass of
-`~astropy.units.Quantity`, in general a `~astropy.units.Quantity` with units
-of length may be provided and it will automatically convert to a
-`~astropy.coordinates.Distance`::
+Representations can be converted to other representations using the
+``represent_as`` method::
 
-    >>> ICRS('00h42m44.3s', '+41d16m9s', distance=770*u.kpc)
-    <SkyCoord (ICRS): ra=10.6845833333 deg, dec=41.2691666667 deg, distance=770.0 kpc>
+    >>> from astropy.coordinates.representation import SphericalRepresentation, CylindricalRepresentation
+    >>> sph = car.represent_as(SphericalRepresentation)
+    >>> sph
+    <SphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad, distance=7.07106781187 kpc>
+    >>> cyl = car.represent_as(CylindricalRepresentation)
+    >>> cyl
+    <CylindricalRepresentation rho=5.83095189485 kpc, phi=1.03037682652 rad, z=4.0 kpc>
 
-By default, `~astropy.coordinates.Distance` values must be non-negative. For some cosmologies,
-distance metrics may become zero or negative; negative distance values are supported
-by setting the ``allow_negative`` keyword argument to ``True``::
+All representations can be converted to each other without loss of
+information, with the exception of
+`~astropy.coordinates.UnitSphericalRepresentation`. This class
+is used to store the longitude and latitude of points but does not contain
+any distance to the points, and assumes that they are located on a unit and
+dimensionless sphere::
 
-    >>> d = Distance(-42., u.kpc)
-    Traceback (most recent call last):
-    ...
-    ValueError: Distance must be >= 0. Set the kwarg 'allow_negative=True' to
-    allow negative values.
-    >>> d = Distance(-42., u.kpc, allow_negative=True)
+    >>> from astropy.coordinates.representation import UnitSphericalRepresentation
+    >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
+    >>> sph_unit
+    <UnitSphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad>
 
-If a ``distance`` is present, the coordinate can be converted into Cartesian
-coordinates using the `~astropy.coordinates.CartesianRepresentation` class, or
-the :attr:`~astropy.coordinates.CartesianRepresentation` attribute shorthand::
+Converting back to cartesian, the absolute scaling information has been
+removed, and the points are still located on a unit sphere:
 
-    >>> cart = c.represent_as(CartesianRepresentation)
-    >>> cart.x
-    <Quantity 568.71288821656... kpc>
-    >>> cart.y
-    <Quantity 107.30093596881... kpc>
-    >>> cart.z
-    <Quantity 507.88990924863... kpc>
-    >>> cart = c.cartesian
-    >>> cart.x
-    <Quantity 568.71288821656... kpc>
+    >>> sph_unit = c.represent_as(UnitSphericalRepresentation)
+    >>> sph_unit.represent_as(CartesianRepresentation)
+    <CartesianRepresentation x=0.424264068712 , y=0.707106781187 , z=0.565685424949 >
 
-If a ``distance`` is not present, the Cartesian coordinates are still
-available, but the point is interpreted as lying on the (dimensionless)
-unit sphere::
+Array values
+^^^^^^^^^^^^
 
-    >>> c2 = ICRS('00h42m44.3s', '+41d16m9s')
-    >>> c2.cartesian.x
-    <Quantity 0.73858816651502...>
-    >>> c2.cartesian.y
-    <Quantity 0.13935186489455...>
-    >>> c2.cartesian.z
-    <Quantity 0.65959728473848...>
+Array `~astropy.units.Quantity` objects can also be passed to
+representations::
 
+  >>> x = np.random.random(100)
+  >>> y = np.random.random(100)
+  >>> z = np.random.random(100)
+  >>> car_array = CartesianRepresentation(x * u.m, y * u.m, z * u.m)
+  >>> car_array
+  <CartesianRepresentation (x, y, z) in m
+      [(0.7093178096722875, 0.7788407268253749, 0.38429719423939623),
+       (0.8434446789489138, 0.4543837868963039, 0.9579319360271565),
+       ...
+       (0.017984107510863323, 0.8587892718748261, 0.49163383463637955),
+       (0.020733247493708196, 0.33551661975140423, 0.279998327062161)]>
 
-.. note::
+Creating your own representations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    The location of the origin is different for different coordinate
-    systems, but for common celestial coordinate systems it is often
-    the Earth center (or for precision work, the Earth/Moon barycenter).
+To create your own representation class, your class should:
 
-This Cartesian representation can also be used to create a new coordinate
-object through a `~astropy.coordinates.CartesianRepresentation` object::
+* Your class should inherit from the ``BaseRepresentation`` class.
+* Define ``__init__``
+* Define a ``from_cartesian`` class method which should take a
+  `~astropy.coordinates.CartesianRepresentation` object and
+  return an instance of your class.
+* Define a ``to_cartesian`` method which should return a
+  `~astropy.coordinates.CartesianRepresentation` object
+* Define a ``components`` property that returns a list of the names of the
+  coordinate components (such as ``x``, ``lon``, and so on).
 
-    >>> cart = CartesianRepresentation(x=568.7129*u.kpc, y=107.3009*u.kpc, z=507.8899*u.kpc)
-    >>> ICRS(cart)
-    <ICRS Coordinate: ra=10.6845796179 deg, dec=41.2691659084 deg, distance=769.99999759 kpc>
+In pseudo-code, this means that your class will look like::
 
-Finally, two coordinates with distances can be used to derive a real-space
-distance (i.e., non-projected separation)::
+    class MyRepresentation(BaseRepresentation):
 
-    >>> c1 = ICRS('5h23m34.5s', '-69d45m22s', distance=49*u.kpc)
-    >>> c2 = ICRS('0h52m44.8s', '-72d49m43s', distance=61*u.kpc)
-    >>> sep3d = c1.separation_3d(c2)
-    >>> sep3d
-    <Distance 23.056848146957... kpc>
-    >>> sep3d.kpc
-    23.056848146957...
-    >>> sep3d.Mpc
-    0.023056848146957...
-    >>> sep3d.au
-    4755816315.663...
+        def __init__(self, ...):
+            ...
+
+        @classmethod
+        def from_cartesian(self, cartesian):
+            ...
+            return MyRepresentation(...)
+
+        def to_cartesian(self):
+            ...
+            return CartesianRepresentation(...)
+
+        @property
+        def components(self):
+            return [...]
+
+Once you do this, you will then automatically be able to call
+``represent_as`` to convert other representations to/from your representation
+class.
