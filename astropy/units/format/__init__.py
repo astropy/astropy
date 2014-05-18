@@ -20,7 +20,7 @@ from .unicode_format import Unicode
 from .vounit import VOUnit
 
 __all__ = [
-    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
+    'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
     'Unscaled', 'VOUnit', 'get_format']
 
 FORMATS = [

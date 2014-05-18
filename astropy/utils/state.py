@@ -19,7 +19,7 @@ class ScienceState(object):
     affect science results.  Subclasses will generally override
     `validate` to convert from any of the acceptable inputs (such as
     strings) to the appropriate internal objects, and set an initial
-    value to the `_value` member so it has a default.
+    value to the ``_value`` member so it has a default.
 
     Examples
     --------
@@ -95,10 +95,10 @@ class ScienceStateAlias(ConfigItem):
     science_state : ScienceState subclass
         The science state class that now manages this information.
 
-    cfgtype : str or None, optional
-        A type specifier like those used as the *values* of a particular key in
-        a `configspec` file of `configobj`. If None, the type will be inferred
-        from the default value.
+    cfgtype : str or `None`, optional
+        A type specifier like those used as the *values* of a particular key
+        in a ``configspec`` file of ``configobj``. If `None`, the type will
+        be inferred from the default value.
 
     module : str, optional
         The module containing the old configuration item.

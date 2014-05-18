@@ -40,9 +40,9 @@ __doctest_skip__ = ['find_current_module']
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.
 
-    This function has two modes, determined by the `finddiff` option. it
+    This function has two modes, determined by the ``finddiff`` option. it
     will either simply go the requested number of frames up the call
-    stack (if `finddiff` is False), or it will go up the call stack until
+    stack (if ``finddiff`` is False), or it will go up the call stack until
     it reaches a module that is *not* in a specified set.
 
     Parameters
@@ -51,13 +51,13 @@ def find_current_module(depth=1, finddiff=False):
         Specifies how far back to go in the call stack (0-indexed, so that
         passing in 0 gives back `astropy.utils.misc`).
     finddiff : bool or list
-        If False, the returned `mod` will just be `depth` frames up from
+        If False, the returned ``mod`` will just be ``depth`` frames up from
         the current frame. Otherwise, the function will start at a frame
-        `depth` up from current, and continue up the call stack to the
+        ``depth`` up from current, and continue up the call stack to the
         first module that is *different* from those in the provided list.
-        In this case, `finddiff` can be a list of modules or modules
+        In this case, ``finddiff`` can be a list of modules or modules
         names. Alternatively, it can be True, which will use the module
-        `depth` call stack frames up as the module the returned module
+        ``depth`` call stack frames up as the module the returned module
         most be different from.
 
     Returns
@@ -70,12 +70,12 @@ def find_current_module(depth=1, finddiff=False):
     Raises
     ------
     ValueError
-        If `finddiff` is a list with an invalid entry.
+        If ``finddiff`` is a list with an invalid entry.
 
     Examples
     --------
     The examples below assume that there are two modules in a package named
-    `pkg`. ``mod1.py``::
+    ``pkg``. ``mod1.py``::
 
         def find1():
             from astropy.utils import find_current_module
@@ -155,7 +155,7 @@ def find_mod_objs(modname, onlylocals=False):
 
     .. note::
         The returned list *not* include subpackages or modules of
-        `modname`,nor does it include private attributes (those that
+        ``modname``, nor does it include private attributes (those that
         beginwith '_' or are not in `__all__`).
 
     Parameters
@@ -163,21 +163,22 @@ def find_mod_objs(modname, onlylocals=False):
     modname : str
         The name of the module to search.
     onlylocals : bool or list of str
-        If True, only attributes that are either members of `modname` OR one of
-        its modules or subpackages will be included. If it is a list of strings,
-        those specify the possible packages that will be considered "local".
+        If `True`, only attributes that are either members of ``modname`` OR
+        one of its modules or subpackages will be included. If it is a list
+        of strings, those specify the possible packages that will be
+        considered "local".
 
     Returns
     -------
     localnames : list of str
         A list of the names of the attributes as they are named in the
-        module `modname` .
+        module ``modname`` .
     fqnames : list of str
         A list of the full qualified names of the attributes (e.g.,
         ``astropy.utils.misc.find_mod_objs``). For attributes that are
         simple variables, this is based on the local name, but for
         functions or classes it can be different if they are actually
-        defined elsewhere and just referenced in `modname`.
+        defined elsewhere and just referenced in ``modname``.
     objs : list of objects
         A list of the actual attributes themselves (in the same order as
         the other arguments)
@@ -343,10 +344,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     message : str, optional
         Override the default deprecation message.  The format
-        specifier `%(func)s` may be used for the name of the function,
-        and `%(alternative)s` may be used in the deprecation message
+        specifier ``func`` may be used for the name of the function,
+        and ``alternative`` may be used in the deprecation message
         to insert the name of an alternative to the deprecated
-        function.  `%(obj_type)` may be used to insert a friendly name
+        function. ``obj_type`` may be used to insert a friendly name
         for the type of object being deprecated.
 
     name : str, optional
@@ -537,7 +538,7 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     property that will warn when the given attribute name is accessed.
     To prevent the warning (i.e. for internal code), use the private
     name for the attribute by prepending an underscore
-    (i.e. `self._name`).
+    (i.e. ``self._name``).
 
     Parameters
     ----------
@@ -550,8 +551,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
     message : str, optional
         Override the default deprecation message.  The format
-        specifier `%(name)s` may be used for the name of the attribute,
-        and `%(alternative)s` may be used in the deprecation message
+        specifier ``name`` may be used for the name of the attribute,
+        and ``alternative`` may be used in the deprecation message
         to insert the name of an alternative to the deprecated
         function.
 
@@ -630,12 +631,12 @@ def format_exception(msg, *args, **kwargs):
     also used to format the message.
 
     .. note::
-        This uses `sys.exc_info` to gather up the information needed to
-        fill in the formatting arguments. Python 2.x and 3.x have slightly
-        different behavior regarding `sys.exc_info` (the latter will not carry
-        it outside a handled exception), so it's not wise to use this outside of
-        an `except` clause - if it is, this will substitute '<unkown>' for the 4
-        formatting arguments.
+        This uses `sys.exc_info` to gather up the information needed to fill
+        in the formatting arguments. Python 2.x and 3.x have slightly
+        different behavior regarding `sys.exc_info` (the latter will not
+        carry it outside a handled exception), so it's not wise to use this
+        outside of an ``except`` clause - if it is, this will substitute
+        '<unkown>' for the 4 formatting arguments.
     """
 
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
@@ -700,9 +701,9 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     optionally open that page in a web browser.
 
     .. note::
-        You must be connected to the internet for this to function even
-        if `openinbrowser` is False, unless you provide a local version of
-        the documentation to `version` (e.g., ``file:///path/to/docs``).
+        You must be connected to the internet for this to function even if
+        ``openinbrowser`` is `False`, unless you provide a local version of
+        the documentation to ``version`` (e.g., ``file:///path/to/docs``).
 
     Parameters
     ----------
@@ -716,7 +717,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         latest if you are on aren't on a release, otherwise, the version you
         are on.
     openinbrowser : bool
-        If True, the `webbrowser` package will be used to open the doc
+        If `True`, the `webbrowser` package will be used to open the doc
         page in a new web browser window.
     timeout : number, optional
         The number of seconds to wait before timing-out the query to
@@ -866,7 +867,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     """
     A wrapper for `os.walk` that skips hidden files and directories.
 
-    This function does not have the parameter `topdown` from
+    This function does not have the parameter ``topdown`` from
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 

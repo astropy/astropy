@@ -144,7 +144,7 @@ def get_xml_iterator(source, _debug_python_based_parser=False):
     Returns an iterator over the elements of an XML file.
 
     The iterator doesn't ever build a tree, so it is much more memory
-    and time efficient than the alternative in `cElementTree`.
+    and time efficient than the alternative in ``cElementTree``.
 
     Parameters
     ----------

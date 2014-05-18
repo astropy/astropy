@@ -150,7 +150,7 @@ class XMLWriter:
     @contextlib.contextmanager
     def tag(self, tag, attrib={}, **extra):
         """
-        A convenience method for use with the `with` statement::
+        A convenience method for use with the ``with`` statement::
 
             with writer.tag('foo'):
                 writer.element('bar')
@@ -230,7 +230,7 @@ class XMLWriter:
     def element(self, tag, text=None, wrap=False, attrib={}, **extra):
         """
         Adds an entire element.  This is the same as calling `start`,
-        `data`, and `end` in sequence. The `text` argument
+        `data`, and `end` in sequence. The ``text`` argument
         can be omitted.
         """
         self.start(tag, attrib, **extra)
@@ -273,7 +273,7 @@ class XMLWriter:
         -------
         attrs : dict
             Maps attribute names to the values retrieved from
-            `obj.attr`.  If any of the attributes is `None`, it will
+            ``obj.attr``.  If any of the attributes is `None`, it will
             not appear in the output dictionary.
         """
         d = {}

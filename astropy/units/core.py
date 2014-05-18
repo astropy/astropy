@@ -226,7 +226,8 @@ class _UnitRegistry(object):
         Parameters
         ----------
         equivalencies : list of equivalent pairs
-            E.g., as returned by `astropy.units.angles_dimensionless`.
+            E.g., as returned by
+            `~astropy.units.equivalencies.dimensionless_angles`.
         """
         self._reset_equivalencies()
         return self.add_enabled_equivalencies(equivalencies)
@@ -244,7 +245,8 @@ class _UnitRegistry(object):
         Parameters
         ----------
         equivalencies : list of equivalent pairs
-            E.g., as returned by `astropy.units.angles_dimensionless`.
+            E.g., as returned by
+            `~astropy.units.equivalencies.dimensionless_angles`.
         """
         # pre-normalize list to help catch mistakes
         equivalencies = _normalize_equivalencies(equivalencies)
@@ -386,7 +388,8 @@ def set_enabled_equivalencies(equivalencies):
     Parameters
     ----------
     equivalencies : list of equivalent pairs
-        E.g., as returned by `astropy.units.angles_dimensionless`.
+        E.g., as returned by
+        `~astropy.units.equivalencies.dimensionless_angles`.
 
     Examples
     --------
@@ -420,7 +423,8 @@ def add_enabled_equivalencies(equivalencies):
     Parameters
     ----------
     equivalencies : list of equivalent pairs
-        E.g., as returned by `astropy.units.angles_dimensionless`.
+        E.g., as returned by
+        `~astropy.units.equivalencies.dimensionless_angles`.
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
@@ -560,7 +564,7 @@ class UnitBase(object):
 
         Parameters
         ----------
-        format : `astropy.format.Base` instance or str
+        format : `astropy.units.format.Base` instance or str
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
@@ -694,7 +698,7 @@ class UnitBase(object):
 
     def is_equivalent(self, other, equivalencies=[]):
         """
-        Returns `True` if this unit is equivalent to `other`.
+        Returns `True` if this unit is equivalent to ``other``.
 
         Parameters
         ----------
@@ -724,7 +728,7 @@ class UnitBase(object):
         return self._is_equivalent(other, equivalencies)
 
     def _is_equivalent(self, other, equivalencies=[]):
-        """Returns True if this unit is equivalent to `other`.
+        """Returns `True` if this unit is equivalent to `other`.
         See `is_equivalent`, except that a proper Unit object should be
         given (i.e., no string) and that the equivalency list should be
         normalized using `_normalize_equivalencies`.
@@ -810,7 +814,7 @@ class UnitBase(object):
 
     def get_converter(self, other, equivalencies=[]):
         """
-        Return the conversion function to convert values from `self`
+        Return the conversion function to convert values from ``self``
         to the specified unit.
 
         Parameters
@@ -1320,8 +1324,8 @@ class UnitBase(object):
         Returns
         -------
         units : list of `UnitBase`
-            A list of unit objects that match `u`.  A subclass of
-            `list` (`EquivalentUnitsList`) is returned that
+            A list of unit objects that match ``u``.  A subclass of
+            `list` (``EquivalentUnitsList``) is returned that
             pretty-prints the list of units when output.
         """
         results = self.compose(
@@ -1751,7 +1755,7 @@ class Unit(NamedUnit):
       string is in, by default ``"generic"``.  For a description of
       the available formats, see `astropy.units.format`.
 
-      The optional `parse_strict` keyword controls what happens when an
+      The optional ``parse_strict`` keyword controls what happens when an
       unrecognized unit string is passed in.  It may be one of the following:
 
          - ``'raise'``: (default) raise a ValueError exception.
@@ -1847,7 +1851,7 @@ class PrefixUnit(Unit):
     """
     A unit that is simply a SI-prefixed version of another unit.
 
-    For example, `mm` is a `PrefixUnit` of ``.001 * m``.
+    For example, ``mm`` is a `PrefixUnit` of ``.001 * m``.
 
     The constructor is the same as for `Unit`.
     """
@@ -1859,7 +1863,7 @@ class CompositeUnit(UnitBase):
     units.
 
     Direct use of this class is not recommended. Instead use the
-    factory function `Unit(...)` and arithmetic operators to compose
+    factory function `Unit` and arithmetic operators to compose
     units.
 
     Parameters
@@ -2129,8 +2133,8 @@ def def_unit(s, represents=None, register=None, doc=None,
 
     prefixes : bool or list, optional
         When `True`, generate all of the SI prefixed versions of the
-        unit as well.  For example, for a given unit `m`, will
-        generate `mm`, `cm`, `km`, etc.  When a list, it is a list of
+        unit as well.  For example, for a given unit ``m``, will
+        generate ``mm``, ``cm``, ``km``, etc.  When a list, it is a list of
         prefix definitions of the form:
 
             (short_names, long_tables, factor)
@@ -2141,9 +2145,9 @@ def def_unit(s, represents=None, register=None, doc=None,
 
     exclude_prefixes : list of str, optional
         If any of the SI prefixes need to be excluded, they may be
-        listed here.  For example, `Pa` can be interpreted either as
+        listed here.  For example, ``Pa`` can be interpreted either as
         "petaannum" or "Pascal".  Therefore, when defining the
-        prefixes for `a`, `exclude_prefixes` should be set to
+        prefixes for ``a``, ``exclude_prefixes`` should be set to
         ``["P"]``.
 
     namespace : dict, optional

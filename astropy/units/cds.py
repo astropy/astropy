@@ -178,7 +178,8 @@ __doc__ += _generate_unit_summary(globals())
 def enable():
     """
     Enable CDS units so they appear in results of
-    `Unit.find_equivalent_units` and `Unit.compose`.
+    `~astropy.units.UnitBase.find_equivalent_units` and
+    `~astropy.units.UnitBase.compose`.
 
     This may be used with the ``with`` statement to enable CDS
     units only temporarily.

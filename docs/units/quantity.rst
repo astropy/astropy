@@ -258,10 +258,10 @@ that only dimensionless quantities are converted to Numpy arrays:
     >>> np.array([1, 2, 3] * u.m)
     array([ 1., 2., 3.])
 
-Similarly, while most numpy functions work properly, a few have
-:ref:`known issues <quantity_issues>`, either ignoring the unit (e.g.,
-``np.dot``) or not reinitializing it properly (e.g., ``np.hstack``).  This
-propagates to more complex functions such as ``np.linalg.norm`` and
+Similarly, while most numpy functions work properly, a few have :ref:`known
+issues <quantity_issues>`, either ignoring the unit (e.g., ``np.dot``) or
+not reinitializing it properly (e.g., ``np.hstack``).  This propagates to
+more complex functions such as ``np.linalg.norm`` and
 ``scipy.integrate.odeint``.
 
 Subclassing Quantity
@@ -269,20 +269,20 @@ Subclassing Quantity
 
 To subclass |quantity|, one generally proceeds as one would when subclassing
 :class:`~numpy.ndarray`, i.e., one typically needs to override ``__new__``
-(rather than ``__init__``) and uses the
-:meth:`~numpy.ndarray.__array_finalize__` method to update attributes.  For
-details, see the `numpy documentation on subclassing
+(rather than ``__init__``) and uses the ``numpy.ndarray.__array_finalize__``
+method to update attributes.  For details, see the `numpy documentation on
+subclassing
 <http://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
-examples, one can look at |quantity| itself, where, e.g.,
-:meth:`~astropy.units.Quantity.__array_finalize__` is used to pass on the
-``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed as
-angles in :meth:`~astropy.coordinates.Angle.__new__` and at
-:class:`~astropy.coordinates.Longitude`, where
-:meth:`_astropy.coordinates.Longitude.__array_finalize__` is used to pass on
-the angle at which longitudes wrap.
+examples, one can look at |quantity| itself, where, e.g., the
+``astropy.units.Quantity.__array_finalize__`` method is used to pass on the
+``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed
+as angles in the ``astropy.coordinates.Angle.__new__`` method and at
+:class:`~astropy.coordinates.Longitude`, where the
+``astropy.coordinates.Longitude.__array_finalize__`` method is used to pass
+on the angle at which longitudes wrap.
 
 Another method that is meant to be overridden by subclasses, one specific to
-|quantity|, is :meth:`~astropy.units.Quantity.__quantity_subclass__`.  This is
+|quantity|, is ``astropy.units.Quantity.__quantity_subclass__``.  This is
 called to decide which type of subclass to return, based on the unit of the
 quantity that is to be created.  It is used, e.g., in
 :class:`~astropy.coordinates.Angle` to return a |quantity| if a calculation

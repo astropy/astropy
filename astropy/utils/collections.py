@@ -8,7 +8,7 @@ class HomogeneousList(list):
     """
     A subclass of list that contains only elements of a given type or
     types.  If an item that is not of the specified type is added to
-    the list, a `TypeError` is raised.
+    the list, a `~.exceptions.TypeError` is raised.
     """
     def __init__(self, types, values=[]):
         """

@@ -83,15 +83,16 @@ def decompose_to_known_units(unit, func):
 
     Parameters
     ----------
-    unit : `astropy.units.UnitBase` instance
+    unit : `~astropy.units.UnitBase` instance
 
     func : callable
-        This function will be called to determine if a given unit is "known".
-        If the unit is not known, this function should raise a `ValueError`.
+        This function will be called to determine if a given unit is
+        "known".  If the unit is not known, this function should raise a
+        `~.exceptions.ValueError`.
 
     Returns
     -------
-    unit : `astropy.units.UnitBase` instance
+    unit : `~astropy.units.UnitBase` instance
         A flattened unit.
     """
     from .. import core
