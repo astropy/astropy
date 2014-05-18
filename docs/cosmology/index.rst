@@ -36,11 +36,11 @@ Here WMAP9 is a built-in object describing a cosmology with the
 parameters from the 9-year WMAP results. Several other built-in
 cosmologies are also available, see `Built-in Cosmologies`_. The
 available methods of the cosmology object are listed in the methods
-summary for the `~astropy.cosmology.FLRW` class documentation. If
-you're using IPython you can also use tab completion to print a list
-of the available methods. To do this, after importing the cosmology as
-in the above example, type ``cosmo.`` at the IPython prompt and then
-press the tab key.
+summary for the `~astropy.cosmology.FLRW` class. If you're using
+IPython you can also use tab completion to print a list of the
+available methods. To do this, after importing the cosmology as in the
+above example, type ``cosmo.`` at the IPython prompt and then press
+the tab key.
 
 All of these methods also accept an array of redshifts as input:
 
@@ -60,9 +60,9 @@ classes:
                 Neff=3.04, m_nu=[ 0.  0.  0.] eV)
 
 The cosmology subpackage makes use of `~astropy.units`, so in many
-cases returns values with units attached -- consult the documentation
-for that subpackage for more details, but, briefly, to access the
-floating point (or array) values:
+cases returns values with units attached.  Consult the documentation
+for that subpackage for more details, but briefly, to access the
+floating point or array values:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> H0 = cosmo.H(0)
@@ -150,7 +150,7 @@ that they are unitless and so are not `~astropy.units.Quantity`
 objects.
 
 Cosmological instances have an optional ``name`` attribute which can be
-using to describe the cosmology:
+used to describe the cosmology:
 
   >>> from astropy.cosmology import FlatwCDM
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
@@ -158,18 +158,19 @@ using to describe the cosmology:
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
            w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
 
-This is also an example of a model with a different model for dark
-energy, a flat Universe with a constant dark energy equation of state,
-but not necessarily a cosmological constant.  A variety of additional
-dark energy models are also supported -- see `Specifying a dark energy model`_.
+This is also an example with a different model for dark energy, a flat
+Universe with a constant dark energy equation of state, but not
+necessarily a cosmological constant.  A variety of additional dark
+energy models are also supported -- see `Specifying a dark energy
+model`_.
 
 A important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
 ``Om``, you need to make a new instance of the class.
 
 
-Finding the Redshift at Given Value of a Cosmological Quantity
---------------------------------------------------------------
+Finding the Redshift at a Given Value of a Cosmological Quantity
+----------------------------------------------------------------
 
 If you know a cosmological quantity and you want to know the
 redshift which it corresponds to, you can use ``z_at_value``:
