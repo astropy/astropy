@@ -506,10 +506,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
-            if (interpolate_nan or ignore_edge_zeros):
-                warnings.warn("Kernel is not normalized, therefore "
-                              "ignore_edge_zeros and interpolate_nan will be "
-                              "ignored.", AstropyUserWarning)
+            if interpolate_nan and not kernel_is_normalized:
+                raise ValueError("The meaning of NaN interpolation with a non-"
+                                 "normalized kernel is ambiguous.  Either interpolate"
+                                 "with a normalized kernel, averaging across the NaN"
+                                 "values, or set the NaNs to zero prior to convolution")
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
@@ -618,11 +619,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
             bigimwt = np.ones(newshape, dtype=complex_dtype)
+
         bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
         wtfft = fftn(bigimwt)
-        # I think this one HAS to be normalized (i.e., the weights can't be
-        # computed with a non-normalized kernel)
-        wtfftmult = wtfft * kernfft / kernel.sum()
+
+        # You can only get to this point if kernel_is_normalized
+        wtfftmult = wtfft * kernfft
         wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
