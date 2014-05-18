@@ -1,41 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import numpy as np
-
-from ...tests.helper import pytest
 from ...extern.six.moves import cPickle
 from ... import convolution as conv
+from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
 
-
-def check_pickling_recovery(original, testfile):
-    # Try to pickle an object. If successful, make sure 
-    # the object's attributes survived pickling and unpickling.
-    original_dict = original.__dict__
-    with open(testfile, 'w') as f:
-        cPickle.dump(original, f)
-
-    with open(testfile, 'r') as f:
-        unpickled = cPickle.load(f)
-    unpickled_dict = unpickled.__dict__
-    
-    for original_key in original_dict:
-        assert unpickled_dict.has_key(original_key),\
-          "Did not pickle {}".format(original_key)
-    
-
-@pytest.mark.parametrize("name,args,kwargs", 
+@pytest.mark.parametrize("name,args,kwargs,xfail", 
                          [(conv.CustomKernel, [], 
-                           {'array':np.random.rand(15)}),
+                           {'array':np.random.rand(15)},
+                           False),
                           (conv.Gaussian1DKernel, [1.0],
-                           {'x_size':5}),
+                           {'x_size':5},
+                           False),
                           (conv.Gaussian2DKernel, [1.0],
-                           {'x_size':5, 'y_size':5}),
+                           {'x_size':5, 'y_size':5},
+                           False),
                          ])
-def test_simple_object(tmpdir, name, args, kwargs):
+def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects
-    testfile = str(tmpdir.join('testfile'))
-
     original = name(*args, **kwargs)
-    check_pickling_recovery(original, testfile)
-    
+    check_pickling_recovery(original, pickle_protocol, xfail=xfail)

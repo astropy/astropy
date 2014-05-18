@@ -3,29 +3,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
 from ...extern.six.moves import cPickle
 from ... import cosmology as cosm
 
+originals = [cosm.FLRW]
+xfails = [False]
 
-def check_pickling_recovery(original, testfile):
-    # Try to pickle an object. If successful, make sure 
-    # the object's attributes survived pickling and unpickling.
-    original_dict = original.__dict__
-    with open(testfile, 'w') as f:
-        cPickle.dump(original, f)
-
-    with open(testfile, 'r') as f:
-        unpickled = cPickle.load(f)
-    unpickled_dict = unpickled.__dict__
-    
-    for original_key in original_dict:
-        assert unpickled_dict.has_key(original_key),\
-          "Did not pickle {}".format(original_key)
-    
-
-def test_flrw(tmpdir):
-    testfile = str(tmpdir.join('testfile'))
-
-    original = cosm.FLRW
-    check_pickling_recovery(original, testfile)
+@pytest.mark.parametrize("original,xfail",
+                         zip(originals, xfails))
+def test_flrw(pickle_protocol, original, xfail):
+    check_pickling_recovery(original, pickle_protocol, xfail=xfail)
