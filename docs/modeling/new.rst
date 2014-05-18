@@ -12,7 +12,7 @@ if a linear fitting algorithm is to be used and optional if a non-linear fitter 
 Custom 1D models
 ----------------
 
-For 1D models, the `~astropy.modeling.models.custom_model_1d`
+For 1D models, the ``~astropy.modeling.models.custom_model_1d``
 decorator is provided to make it very easy to define new models. The following
 example demonstrates how to set up a model consisting of two Gaussians:
 

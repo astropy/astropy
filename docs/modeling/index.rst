@@ -44,7 +44,7 @@ Using Models
 ------------
 
 The `astropy.modeling` package defines a number of models that live inside
-`astropy.modeling.models` and behave like parametrized functions::
+``astropy.modeling.models`` and behave like parametrized functions::
 
     >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
@@ -88,8 +88,8 @@ Simple 1D model fitting
 -----------------------
 
 In this section, we look at a simple example of fitting a Gaussian to a
-simulated dataset. We use the `~astropy.modeling.models.Gaussian1D`
-and `~astropy.modeling.models.Trapezoid1D` models and the
+simulated dataset. We use the ``~astropy.modeling.models.Gaussian1D``
+and ``~astropy.modeling.models.Trapezoid1D`` models and the
 `~astropy.modeling.fitting.NonLinearLSQFitter` fitter to fit the data:
 
 .. plot::
@@ -168,7 +168,7 @@ weighting of datapoints, fixing or linking parameters, and placing lower or
 upper limits on parameters. For more information on these, take a look at the
 :doc:`fitting` documentation.
 
-Using `modeling`
+Using ``modeling``
 ================
 
 .. toctree::

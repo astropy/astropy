@@ -246,7 +246,7 @@ argument and return a single scalar value.  Common function examples are
 `numpy.sum`, `numpy.mean`, and `numpy.std`.
 
 For the example grouped table ``obs_by_name`` from above we compute the group means with
-the `~astropy.table.groups.TableGroups.aggregate` method::
+the ``~astropy.table.groups.TableGroups.aggregate`` method::
 
   >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SKIP
   WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
@@ -260,7 +260,7 @@ the `~astropy.table.groups.TableGroups.aggregate` method::
 It seems the magnitude values were successfully averaged, but what
 about the WARNING?  Since the ``obs_date`` column is a string-type
 array, the `numpy.mean` function failed and raised an exception.
-Any time this happens then `~astropy.table.groups.TableGroups.aggregate`
+Any time this happens then ``~astropy.table.groups.TableGroups.aggregate``
 will issue a warning and then
 drop that column from the output result.  Note that the ``name``
 column is one of the ``keys`` used to determine the grouping so
@@ -301,7 +301,7 @@ Filtering
 ~~~~~~~~~~
 
 Table groups can be filtered by means of the
-`~astropy.table.groups.TableGroups.filter` method.  This is done by
+``~astropy.table.groups.TableGroups.filter`` method.  This is done by
 supplying a function which is called for each group.  The function
 which is passed to this method must accept two arguments:
 
@@ -349,7 +349,7 @@ As can be seen only the groups with ``a == -2`` and ``a == 0`` have all positive
 in the non-key columns, so those are the ones that are selected.
 
 Likewise a grouped column can be filtered with the
-`~astropy.table.groups.ColumnGroups.filter`, method but in this case the filtering
+``~astropy.table.groups.ColumnGroups.filter``, method but in this case the filtering
 function takes only a single argument which is the column group.  It still must return
 either `True` or `False`.  For example::
 
