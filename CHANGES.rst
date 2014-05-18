@@ -361,14 +361,35 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+  - Indexing ``NDData`` in a way that results in a single element returns that
+    element. [#2170]
+
   - Change construction of result of arithmetic and unit conversion to allow
     subclasses to require the presence of attribute like unit. [#2300]
 
   - Scale uncertainties to correct units in arithmetic operations and unit
     conversion. [#2393]
 
-  - Ensure uncertainty and mask members are copied in arithemetic and
+  - Ensure uncertainty and mask members are copied in arithmetic and
     convert_unit_to. [#2394]
+
+  - Copy all attributes of input object if ``astropy.nddata.NDData`` is
+    initialized with an ``NDData`` object. [#2406]
+
+  - Copy ``flags`` to new object in ``convert_unit_to``. [#2409]
+
+  - Result of ``NDData`` arithmetic makes a copy of any WCS instead of using
+    a reference. [#2410]
+
+  - Fix unit handling for multiplication/division and use
+    ``astropy.units.Quantity`` for units arithmetic. [#2413]
+
+  - A masked ``NDData`` is now converted to a masked array when used in an
+    operation or ufunc with a numpy array. [#2414]
+
+  - An unmasked ``NDData`` now uses an internal representation of its mask
+    state that ``numpy.ma`` expects so that an ``NDData`` behaves as an
+    unmasked array. [#2417]
 
 - ``astropy.stats``
 
