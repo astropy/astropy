@@ -119,6 +119,49 @@ class TestConvolve1D(object):
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
     @pytest.mark.parametrize(option_names, options)
+    def test_halfity_3(self, boundary, interpolate_nan, normalize_kernel,
+                       ignore_edge_zeros):
+        '''
+        Test that the different modes are producing the correct results using
+        a uniform, non-unity kernel with three elements
+        '''
+
+        x = np.array([1., 0., 3.], dtype='float64')
+
+        y = np.array([0.5, 0.5, 0.5], dtype='float64')
+
+        z = convolve_fft(x, y, boundary=boundary,
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
+
+        answer_dict = {
+            'sum': np.array([0.5, 2.0, 1.5], dtype='float64'),
+            'sum_zeros': np.array([0.5, 2., 1.5], dtype='float64'),
+            'sum_nozeros': np.array([0.5, 2., 1.5], dtype='float64'),
+            'average': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
+            'sum_wrap': np.array([2., 2., 2.], dtype='float64'),
+            'average_wrap': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
+            'average_zeros': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
+            'average_nozeros': np.array([0.5, 4 / 3., 1.5], dtype='float64'),
+        }
+
+        if normalize_kernel:
+            answer_key = 'average'
+        else:
+            answer_key = 'sum'
+
+        if boundary == 'wrap':
+            answer_key += '_wrap'
+        elif ignore_edge_zeros:
+            answer_key += '_nozeros'
+        else:
+            # average = average_zeros; sum = sum_zeros
+            answer_key += '_zeros'
+
+        assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
+
+    @pytest.mark.parametrize(option_names, options)
     def test_unity_3_withnan(self, boundary, interpolate_nan, normalize_kernel,
                              ignore_edge_zeros):
         '''
