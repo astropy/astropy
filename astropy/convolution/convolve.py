@@ -259,7 +259,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  complex_dtype=np.complex, mask=None):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
-    shape = array.shape.  Assumes kernel is centered.
+    ``shape = array.shape``.  Assumes kernel is centered.
+
+    `convolve_fft` is very similar to `convolve` in that it replaces ``NaN``
+    values in the original image with interpolated values using the kernel as
+    an interpolation function.  However, it also includes many additional
+    options specific to the implementation.
 
     `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
 
@@ -278,25 +283,38 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     Parameters
     ----------
-    array : `numpy.ndarray` or `~astropy.nddata.NDData`
-          Array to be convolved with ``kernel``. If `~astropy.nddata.NDData`,
-          the ``mask`` of the `~astropy.nddata.NDData` will be used as the
-          ``mask`` argument.
-    kernel : `numpy.ndarray`
-          Will be normalized if ``normalize_kernel`` is set.  Assumed to be
-          centered (i.e., shifts may result if your kernel is asymmetric).
-          If a masked array, the masked values will be replaced by ``fill_value``.
+    array : `numpy.ndarray`
+        Array to be convolved with `kernel`.  It can be of any
+        dimensionality, though only 1, 2, and 3d arrays have been tested.
+    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
+        The convolution kernel. The number of dimensions should match those
+        for the array.  The dimensions *do not* have to be odd in all directions,
+        unlike in the non-fft `convolve` function.  The kernel will be
+        normalized if `normalize_kernel` is set.  It is assumed to be centered
+        (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
-
             * 'fill': set values outside the array boundary to fill_value
               (default)
             * 'wrap': periodic boundary
+        The `None` and 'extend' parameters are not supported for FFT-based
+        convolution
+    fill_value : float, optional
+        The value to use outside the array when using boundary='fill'
+    normalize_kernel : function or boolean, optional
+        If specified, this is the function to divide kernel by to normalize it.
+        e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
+        ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
+        ``normalize_kernel = np.sum``.
 
+
+    Other Parameters
+    ----------------
     interpolate_nan : bool, optional
         The convolution will be re-weighted assuming ``NaN`` values are meant to be
         ignored, not treated as zero.  If this is off, all ``NaN`` values will be
-        treated as zero.
+        treated as zero.  ``interpolate_nan=True`` is equivalent to the non-fft
+        convolve approach
     ignore_edge_zeros : bool, optional
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
@@ -332,9 +350,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         ``boundary='fill'``, but it can be overridden with a boolean option.
         ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
     crop : bool, optional
-        Default on.  Return an image of the size of the largest input image.
-        If the images are asymmetric in opposite directions, will return the
-        largest image in both directions.
+        Default on.  Return an image of the size of the larger of the input
+        image and the kernel.
+        If the image and kernel are asymmetric in opposite directions, will
+        return the largest image in both directions.
         For example, if an input image has shape [100,3] but a kernel with shape
         [6,6] is used, the output will be [100,6].
     return_fft : bool, optional
@@ -343,8 +362,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     fftn, ifftn : functions, optional
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
-        ``fftn=scipy.fftpack.fftn``
-    complex_dtype : np.complex, optional
+        ``fft=```scipy.fftpack.fftn`
+    complex_dtype : `numpy.complex`, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
     quiet : bool, optional
