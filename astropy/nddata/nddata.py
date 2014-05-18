@@ -398,8 +398,8 @@ class NDData(object):
         # If neither self nor operand had units then should return a result
         # that has no unit. A check that the result_unit is dimensionless
         # should not be necessary, but also does no harm.
-        if (self.unit is None and operand.unit is None):
-            if (result_unit == dimensionless_unscaled):
+        if self.unit is None and operand.unit is None:
+            if result_unit is dimensionless_unscaled:
                 result_unit = None
             else:
                 raise ValueError("arithmetic result was not unitless even "

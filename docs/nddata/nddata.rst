@@ -12,14 +12,18 @@ n-dimensional Numpy array::
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
 
-Note that the data in ``ndd`` is a reference to the original ``array``, so changing the data in ``ndd`` will change the corresponding data in ``array`` in most circumstances.
+Note that the data in ``ndd`` is a reference to the original ``array``, so
+changing the data in ``ndd`` will change the corresponding data in ``array``
+in most circumstances.
 
-An `~astropy.nddata.NDData` object can also be instantiated by passing it an `~astropy.nddata.NDData` object:
+An `~astropy.nddata.NDData` object can also be instantiated by passing it an
+`~astropy.nddata.NDData` object:
 
     >>> ndd1 = NDData(array)
     >>> ndd2 = NDData(ndd1)
 
-As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so changes to one will affect the other.
+As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so
+changes to one will affect the other.
 
 This object has a few attributes in common with Numpy:
 
@@ -90,10 +94,10 @@ deviation uncertainties on the pixel values, you can do::
 Arithmetic
 ----------
 
-Provided that the world coordinate system (WCS) and shape match, and that the units are consisten, two
-:class:`~astropy.nddata.NDData` instances can be added, subtracted, multiplied or divided
-from each other, with uncertainty propagation, creating a new
-:class:`~astropy.nddata.NDData` object::
+Provided that the world coordinate system (WCS) and shape match, and that the
+units are consisten, two :class:`~astropy.nddata.NDData` instances can be
+added, subtracted, multiplied or divided from each other, with uncertainty
+propagation, creating a new :class:`~astropy.nddata.NDData` object::
 
     ndd3 = ndd1.add(ndd2)
     ndd4 = ndd1.subtract(ndd2)
@@ -103,15 +107,16 @@ from each other, with uncertainty propagation, creating a new
 The purpose of the :meth:`~astropy.nddata.nddata.NDData.add`,
 :meth:`~astropy.nddata.nddata.NDData.subtract`,
 :meth:`~astropy.nddata.nddata.NDData.multiply` and
-:meth:`~astropy.nddata.nddata.NDData.divide` methods is to allow the combination
-of two data objects that have common WCS and shape and units consistent with the
-operation performed, with consistent behavior for masks, and with a framework to
-propagate uncertainties. Currently any flags on the operands are dropped so that
-the result of the operation always has no flags. These methods are intended for
-use by sub-classes and functions that deal with more complex combinations.
+:meth:`~astropy.nddata.nddata.NDData.divide` methods is to allow the
+combination of two data objects that have common WCS and shape and units
+consistent with the operation performed, with consistent behavior for masks,
+and with a framework to propagate uncertainties. Currently any flags on the
+operands are dropped so that the result of the operation always has no flags.
+These methods are intended for use by sub-classes and functions that deal with
+more complex combinations.
 
-.. warning:: Uncertainty propagation is still experimental, and does not take into
-             account correlated uncertainties.
+.. warning:: Uncertainty propagation is still experimental, and does not take
+             into account correlated uncertainties.
 
 Meta-data
 ---------
