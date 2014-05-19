@@ -462,11 +462,6 @@ class LevMarLSQFitter(object):
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
 
-        Currently the only fitter that uses a derivative is the
-        `NonLinearLSQFitter`. This wrapper may need to be revised when other
-        fitters using function derivative are added or when the statistic is
-        separated from the fitting routines.
-
         `scipy.optimize.leastsq` expects the function derivative to have the
         above signature (parlist, (argtuple)). In order to accomodate model
         constraints, instead of using p directly, we set the parameter list in
