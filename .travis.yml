@@ -23,7 +23,7 @@ matrix:
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - python: 2.7
-          env: SETUP_CMD='build_sphinx -w -n' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true
+          env: SETUP_CMD='build_sphinx -w' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true
           # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
 
         # Try all python versions with the latest numpy
