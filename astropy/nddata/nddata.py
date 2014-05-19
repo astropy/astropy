@@ -3,9 +3,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from copy import deepcopy
+
 import numpy as np
 
-from ..units import Unit
+from ..units import Unit, UnitsError, dimensionless_unscaled
 from .. import log
 
 from .flag_collection import FlagCollection
@@ -113,6 +115,12 @@ class NDData(object):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=False)
+            self.uncertainty = data.uncertainty
+            self.mask = data.mask
+            self.flags = data.flags
+            self.wcs = data.wcs
+            self.meta = data.meta
+            self.unit = data.unit
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -169,7 +177,10 @@ class NDData(object):
 
     @property
     def mask(self):
-        return self._mask
+        if self._mask is np.ma.nomask:
+            return None
+        else:
+            return self._mask
 
     @mask.setter
     def mask(self, value):
@@ -185,7 +196,8 @@ class NDData(object):
             else:
                 raise TypeError("mask must be a Numpy array")
         else:
-            self._mask = value
+            # internal representation should be one numpy understands
+            self._mask = np.ma.nomask
 
     @property
     def flags(self):
@@ -271,7 +283,16 @@ class NDData(object):
         if self.mask is not None:
             return np.ma.masked_array(self.data, self.mask)
         else:
-            return self.data
+            return np.array(self.data)
+
+    def __array_prepare__(self, array, context=None):
+        """
+        This ensures that a masked array is returned if self is masked.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(array, self.mask)
+        else:
+            return array
 
     def __getitem__(self, item):
 
@@ -284,12 +305,18 @@ class NDData(object):
 
         if self.mask is not None:
             new_mask = self.mask[item]
+            # mask setter expects an array, always
+            if new_mask.shape == ():
+                new_mask = np.array(new_mask)
         else:
             new_mask = None
 
         if self.flags is not None:
             if isinstance(self.flags, np.ndarray):
                 new_flags = self.flags[item]
+                # flags setter expects an array, always
+                if new_flags.shape == ():
+                    new_flags = np.array(new_flags)
             elif isinstance(self.flags, FlagCollection):
                 raise NotImplementedError('Slicing complex Flags is currently not implemented')
         else:
@@ -340,32 +367,95 @@ class NDData(object):
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if not (self.unit is None and operand.unit is None):
-            if (self.unit is None or operand.unit is None
-                    or not self.unit.is_equivalent(operand.unit)):
-                raise ValueError("operand units do not match")
+        # get a sensible placeholder if .unit is None
+        self_unit = self.unit or dimensionless_unscaled
+        operand_unit = operand.unit or dimensionless_unscaled
+
+        # This check could be rolled into the calculation of the result
+        # but checking now avoids a potentially expensive calculation that
+        # would fail anyway.
+        try:
+            # Quantity is designed to work with numpy ufuncs, but plain
+            # Unit is not, so convert units to quantities
+            result_unit = operation(1 * self_unit, 1 * operand_unit).unit
+        except UnitsError:
+            # current API raises ValueError in this case, not UnitError
+            raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
-        if self.unit is not None:
-            operand_data = operand.unit.to(self.unit, operand.data)
-        else:
-            operand_data = operand.data
-        data = operation(self.data, operand_data)
+        # Instead of manually scaling the operand data just let Quantity
+        # handle it.
+        # Order of the arguments is important here if the operation is
+        # addition or subtraction and the units of the operands are different
+        # but compatible. NDData follows the convention that Quantity follows
+        # in that case, with the units of the first operand (i.e. self)
+        # determining the units of the result.
+        data = operation(self.data * self_unit, operand.data * operand_unit)
+
+        result_unit = data.unit
+        # If neither self nor operand had units then should return a result
+        # that has no unit. A check that the result_unit is dimensionless
+        # should not be necessary, but also does no harm.
+        if self.unit is None and operand.unit is None:
+            if result_unit is dimensionless_unscaled:
+                result_unit = None
+            else:
+                raise ValueError("arithmetic result was not unitless even "
+                                 "though operands were unitless")
+        data = data.value
+        new_wcs = deepcopy(self.wcs)
+
         # Call __class__ in case we are dealing with an inherited type
         result = self.__class__(data, uncertainty=None,
-                                mask=None, flags=None, wcs=self.wcs,
-                                meta=None, unit=self.unit)
+                                mask=None, flags=None, wcs=new_wcs,
+                                meta=None, unit=result_unit)
+
+        # Prepare to scale uncertainty if it is needed
+        if operand.uncertainty:
+            operand_uncert_value = operand.uncertainty.array
+
+        # By this point the arithmetic has succeeded, so the input units were
+        # consistent with each other given the operation.
+        #
+        # If the operation is addition or subtraction then need to ensure that
+        # the uncertainty of the operand is the same units as the result
+        # (which will be the same as self.unit).
+
+        # The data ought to also be scaled in this case -- for addition of
+        # a StdDevUncertainty this isn't really necessary but other
+        # uncertainties when added/subtracted may depend on both the operand
+        # uncertainty and the operand data.
+
+        # Since the .unit.to methods create a copy, avoid the conversion
+        # unless it is necessary.
+        if (operation in [np.add, np.subtract] and
+                self.unit != operand.unit):
+            operand_data = operand.unit.to(self.unit, operand.data)
+            if operand.uncertainty:
+                operand_uncert_value = operand.unit.to(self.unit,
+                                                       operand_uncert_value)
+        else:
+            operand_data = operand.data
+
+        if operand.uncertainty:
+            # Create a copy here in case this is returned as the uncertainty
+            # of the result.
+            operand_uncertainty = \
+                operand.uncertainty.__class__(operand_uncert_value, copy=True)
+        else:
+            operand_uncertainty = None
 
         if propagate_uncertainties is None:
             result.uncertainty = None
         elif self.uncertainty is None and operand.uncertainty is None:
             result.uncertainty = None
         elif self.uncertainty is None:
-            result.uncertainty = operand.uncertainty
+            result.uncertainty = operand_uncertainty
         elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty
+            result.uncertainty = self.uncertainty.__class__(self.uncertainty,
+                                                            copy=True)
         else:  # both self and operand have uncertainties
             if (conf.warn_unsupported_correlated and
                 (not self.uncertainty.support_correlated or
@@ -373,9 +463,16 @@ class NDData(object):
                 log.info("The uncertainty classes used do not support the "
                          "propagation of correlated errors, so uncertainties"
                          " will be propagated assuming they are uncorrelated")
+            operand_scaled = operand.__class__(operand_data,
+                                               uncertainty=operand_uncertainty,
+                                               unit=operand.unit,
+                                               wcs=operand.wcs,
+                                               mask=operand.mask,
+                                               flags=operand.flags,
+                                               meta=operand.meta)
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
-                result.uncertainty = method(operand, result.data)
+                result.uncertainty = method(operand_scaled, result.data)
             except IncompatibleUncertaintiesException:
                 raise IncompatibleUncertaintiesException(
                     "Cannot propagate uncertainties of type {0:s} with "
@@ -387,11 +484,11 @@ class NDData(object):
         if self.mask is None and operand.mask is None:
             result.mask = None
         elif self.mask is None:
-            result.mask = operand.mask
+            result.mask = operand.mask.copy()
         elif operand.mask is None:
-            result.mask = self.mask
+            result.mask = self.mask.copy()
         else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
+            result.mask = self.mask & operand.mask  # copy implied by operator
 
         return result
 
@@ -462,9 +559,21 @@ class NDData(object):
         if self.unit is None:
             raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)
+        if self.uncertainty is not None:
+            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
+                                              equivalencies=equivalencies)
+            # should work for any uncertainty class
+            uncertainty = self.uncertainty.__class__(uncertainty_values)
+        else:
+            uncertainty = None
+        if self.mask is not None:
+            new_mask = self.mask.copy()
+        else:
+            new_mask = None
         # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(data, uncertainty=self.uncertainty,
-                                mask=self.mask, flags=None, wcs=self.wcs,
+        result = self.__class__(data, uncertainty=uncertainty,
+                                mask=new_mask, flags=self.flags,
+                                wcs=self.wcs,
                                 meta=self.meta, unit=unit)
 
         return result
