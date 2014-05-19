@@ -13,4 +13,6 @@ xfails = [False]
 @pytest.mark.parametrize("original,xfail",
                          zip(originals, xfails))
 def test_flrw(pickle_protocol, original, xfail):
-    check_pickling_recovery(original, pickle_protocol, xfail=xfail)
+    if xfail:
+        pytest.xfail()
+    check_pickling_recovery(original, pickle_protocol)

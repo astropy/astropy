@@ -589,13 +589,11 @@ def generic_recursive_equality_test(a, b, class_history):
                                                 new_class_history)
 
 
-def check_pickling_recovery(original, protocol, xfail=False):
+def check_pickling_recovery(original, protocol):
     """ 
     Try to pickle an object. If successful, make sure 
     the object's attributes survived pickling and unpickling.
     """
-    if xfail:
-        pytest.xfail()
     f = pickle.dumps(original, protocol=protocol)
     unpickled = pickle.loads(f)
     class_history = [original.__class__]

@@ -18,5 +18,7 @@ from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
                          ])
 def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects
+    if xfail:
+        pytest.xfail()
     original = name(*args, **kwargs)
-    check_pickling_recovery(original, pickle_protocol, xfail=xfail)
+    check_pickling_recovery(original, pickle_protocol)
