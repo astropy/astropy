@@ -395,6 +395,9 @@ class astropy_test(Command, object):
         if self.docs_path is None:
             if os.path.exists('docs'):
                 self.docs_path = os.path.abspath('docs')
+        else:
+            self.docs_path = os.path.abspath(self.docs_path)
+
 
         # Copy the build to a temporary directory for the purposes of testing
         # - this avoids creating pyc and __pycache__ directories inside the
