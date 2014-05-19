@@ -9,7 +9,7 @@ to fit, the ``__call__`` method takes an instance of
 model with its parameters determined by the optimizer.
 
 Optimization algorithms, called "optimizers" are implemented in
-`~astropy.modeling.optimizersy` and statistic functions are in
+`~astropy.modeling.optimizers` and statistic functions are in
 `~astropy.modeling.statistic`. The goal is to provide an easy to extend
 framework and allow users to easily create new fitters by combining statistics
 with optimizers.
