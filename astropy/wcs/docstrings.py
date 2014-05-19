@@ -285,7 +285,7 @@ It should be set to zero for an image header or pixel list.
 """
 
 compare = """
-compare(cmp, other)
+compare(other, cmp=0)
 
 Compare two Wcsprm objects for equality.
 
