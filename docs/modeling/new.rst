@@ -20,7 +20,7 @@ example demonstrates how to set up a model consisting of two Gaussians:
 
     import numpy as np
     from astropy.modeling.models import custom_model_1d
-    from astropy.modeling.fitting import NonLinearLSQFitter
+    from astropy.modeling.fitting import LevMarLSQFitter
 
     # Define model
     @custom_model_1d
@@ -38,7 +38,7 @@ example demonstrates how to set up a model consisting of two Gaussians:
 
     # Fit model to data
     m_init = sum_of_gaussians()
-    fit = NonLinearLSQFitter()
+    fit = LevMarLSQFitter()
     m = fit(m_init, x, y)
 
     # Plot the data and the best fit

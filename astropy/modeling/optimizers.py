@@ -2,8 +2,8 @@
 
 """
 Optimization algorithms used in `~astropy.modeling.fitting.py`.
-
 """
+
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 import warnings
@@ -181,8 +181,7 @@ class Simplex(Optimization):
     Uses `scipy.optimize.fmin`.
 
     .. [1] Nelder, J.A. and Mead, R. (1965), "A simplex method for function
-    minimization", The Computer Journal, 7, pp. 308-313
-
+           minimization", The Computer Journal, 7, pp. 308-313
     """
 
     supported_constraints = ['bounds', 'fixed', 'tied']

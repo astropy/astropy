@@ -80,7 +80,7 @@ class TestFitting(object):
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_non_linear_fitter_1D(self, model_class):
-        """ Test fitting with NonLinearLSQFitter"""
+        """ Test fitting with non-linear LevMarLSQFitter"""
         parameters = linear1d[model_class]['parameters']
         kwargs = linear1d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
@@ -100,7 +100,7 @@ class TestFitting(object):
 
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
-        """ Test fitting with NonLinearLSQFitter"""
+        """ Test fitting with non-linear LevMarLSQFitter"""
         parameters = linear2d[model_class]['parameters']
         kwargs = linear2d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
