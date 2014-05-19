@@ -39,8 +39,18 @@ def missing_reference_handler(app, env, node, contnode):
         reftarget = node['reftarget']
         suffix = ''
         if reftarget not in mapping:
-            if reftype in ('obj', 'meth') and '.' in reftarget:
+            if '.' in reftarget:
                 front, suffix = reftarget.rsplit('.', 1)
+            else:
+                suffix = reftarget
+
+            if suffix.startswith('_') and not suffix.startswith('__'):
+                # If this is a reference to a hidden class or method,
+                # we can't link to it, but we don't want to have a
+                # nitpick warning.
+                return node[0].deepcopy()
+
+            if reftype in ('obj', 'meth') and '.' in reftarget:
                 if front in mapping:
                     reftarget = front
                     suffix = '.' + suffix
