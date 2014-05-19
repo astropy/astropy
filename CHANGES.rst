@@ -52,6 +52,9 @@ New Features
   - The functional interface is now deprecated in favor of the more-explicit
     use of methods on cosmology objects. [#2343]
 
+  - Updated documentation to reflect the removal of the functional
+    interface. [#2507]
+
 - ``astropy.io.ascii``
 
   - The ``astropy.io.ascii`` output formats ``latex`` and ``aastex`` accept a
@@ -515,7 +518,7 @@ Bug Fixes
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
 
-  - Be more carful about converting to floating point internally [#1815, #1818]
+  - Be more careful about converting to floating point internally [#1815, #1818]
 
 - ``astropy.io.ascii``
 
