@@ -234,7 +234,7 @@ class TestRunner(object):
                 parallel = multiprocessing.cpu_count()
             all_args.extend(['-n', six.text_type(parallel)])
 
-        if sys.version_info < (2, 7, 3):
+        if six.PY2:
             all_args = [x.encode('utf-8') for x in all_args]
 
         # override the config locations to not make a new directory nor use
