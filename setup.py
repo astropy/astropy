@@ -5,7 +5,7 @@ import glob
 import os
 import sys
 
-import setuptools_bootstrap
+import ah_bootstrap
 from setuptools import setup
 
 #A dirty hack to get around some early import/configurations ambiguities
@@ -15,13 +15,12 @@ else:
     import __builtin__ as builtins
 builtins._ASTROPY_SETUP_ = True
 
-from distutils.dist import Distribution
-
 import astropy
-from astropy.setup_helpers import (register_commands, adjust_compiler,
-                                   get_package_info, get_debug_option,
-                                   is_distutils_display_option)
-from astropy.version_helpers import get_git_devstr, generate_version_py
+from astropy_helpers.setup_helpers import (
+    register_commands, adjust_compiler, get_package_info, get_debug_option,
+    is_distutils_display_option)
+from astropy_helpers.git_helpers import get_git_devstr
+from astropy_helpers.version_helpers import generate_version_py
 
 NAME = 'astropy'
 
@@ -46,7 +45,7 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 adjust_compiler(NAME)
 
 # Freeze build information in version.py
-generate_version_py(NAME, VERSION, RELEASE, get_debug_option())
+generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
@@ -55,7 +54,7 @@ scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
 # details.
-package_info = get_package_info(NAME)
+package_info = get_package_info()
 
 # Add the project-global data
 package_info['package_data']['astropy'] = ['data/*']

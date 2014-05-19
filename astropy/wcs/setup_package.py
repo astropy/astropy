@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
@@ -11,7 +12,7 @@ import os.path
 import shutil
 import sys
 
-from astropy import setup_helpers
+from astropy_helpers import setup_helpers
 from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))

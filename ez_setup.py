@@ -20,6 +20,7 @@ import tempfile
 import tarfile
 import optparse
 import subprocess
+import platform
 
 from distutils import log
 
@@ -28,12 +29,21 @@ try:
 except ImportError:
     USER_SITE = None
 
-DEFAULT_VERSION = "0.9.8"
+DEFAULT_VERSION = "1.4.2"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
 def _python_cmd(*args):
     args = (sys.executable,) + args
     return subprocess.call(args) == 0
+
+def _check_call_py24(cmd, *args, **kwargs):
+    res = subprocess.call(cmd, *args, **kwargs)
+    class CalledProcessError(Exception):
+        pass
+    if not res == 0:
+        msg = "Command '%s' return non-zero exit status %d" % (cmd, res)
+        raise CalledProcessError(msg)
+vars(subprocess).setdefault('check_call', _check_call_py24)
 
 def _install(tarball, install_args=()):
     # extracting the tarball
@@ -141,9 +151,123 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         return _do_download(version, download_base, to_dir,
                             download_delay)
 
+def _clean_check(cmd, target):
+    """
+    Run the command to download target. If the command fails, clean up before
+    re-raising the error.
+    """
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        if os.access(target, os.F_OK):
+            os.unlink(target)
+        raise
+
+def download_file_powershell(url, target):
+    """
+    Download the file at url to target using Powershell (which will validate
+    trust). Raise an exception if the command cannot complete.
+    """
+    target = os.path.abspath(target)
+    cmd = [
+        'powershell',
+        '-Command',
+        "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
+    ]
+    _clean_check(cmd, target)
+
+def has_powershell():
+    if platform.system() != 'Windows':
+        return False
+    cmd = ['powershell', '-Command', 'echo test']
+    devnull = open(os.path.devnull, 'wb')
+    try:
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
+    finally:
+        devnull.close()
+    return True
+
+download_file_powershell.viable = has_powershell
+
+def download_file_curl(url, target):
+    cmd = ['curl', url, '--silent', '--output', target]
+    _clean_check(cmd, target)
+
+def has_curl():
+    cmd = ['curl', '--version']
+    devnull = open(os.path.devnull, 'wb')
+    try:
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
+    finally:
+        devnull.close()
+    return True
+
+download_file_curl.viable = has_curl
+
+def download_file_wget(url, target):
+    cmd = ['wget', url, '--quiet', '--output-document', target]
+    _clean_check(cmd, target)
+
+def has_wget():
+    cmd = ['wget', '--version']
+    devnull = open(os.path.devnull, 'wb')
+    try:
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
+    finally:
+        devnull.close()
+    return True
+
+download_file_wget.viable = has_wget
+
+def download_file_insecure(url, target):
+    """
+    Use Python to download the file, even though it cannot authenticate the
+    connection.
+    """
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
+    src = dst = None
+    try:
+        src = urlopen(url)
+        # Read/write all in one block, so we don't create a corrupt file
+        # if the download is interrupted.
+        data = src.read()
+        dst = open(target, "wb")
+        dst.write(data)
+    finally:
+        if src:
+            src.close()
+        if dst:
+            dst.close()
+
+download_file_insecure.viable = lambda: True
+
+def get_best_downloader():
+    downloaders = [
+        download_file_powershell,
+        download_file_curl,
+        download_file_wget,
+        download_file_insecure,
+    ]
+
+    for dl in downloaders:
+        if dl.viable():
+            return dl
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                        to_dir=os.curdir, delay=15):
+                        to_dir=os.curdir, delay=15,
+                        downloader_factory=get_best_downloader):
     """Download setuptools from a specified location and return its filename
 
     `version` should be a valid setuptools version number that is available
@@ -151,31 +275,19 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     with a '/'). `to_dir` is the directory where the egg will be downloaded.
     `delay` is the number of seconds to pause before an actual download
     attempt.
+
+    ``downloader_factory`` should be a function taking no arguments and
+    returning a function for downloading a URL to a target.
     """
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
-    try:
-        from urllib.request import urlopen
-    except ImportError:
-        from urllib2 import urlopen
     tgz_name = "setuptools-%s.tar.gz" % version
     url = download_base + tgz_name
     saveto = os.path.join(to_dir, tgz_name)
-    src = dst = None
     if not os.path.exists(saveto):  # Avoid repeated downloads
-        try:
-            log.warn("Downloading %s", url)
-            src = urlopen(url)
-            # Read/write all in one block, so we don't create a corrupt file
-            # if the download is interrupted.
-            data = src.read()
-            dst = open(saveto, "wb")
-            dst.write(data)
-        finally:
-            if src:
-                src.close()
-            if dst:
-                dst.close()
+        log.warn("Downloading %s", url)
+        downloader = downloader_factory()
+        downloader(url, saveto)
     return os.path.realpath(saveto)
 
 
@@ -250,6 +362,11 @@ def _parse_args():
         '--download-base', dest='download_base', metavar="URL",
         default=DEFAULT_URL,
         help='alternative URL from where to download the setuptools package')
+    parser.add_option(
+        '--insecure', dest='downloader_factory', action='store_const',
+        const=lambda: download_file_insecure, default=get_best_downloader,
+        help='Use internal, non-validating downloader'
+    )
     options, args = parser.parse_args()
     # positional arguments are ignored
     return options
@@ -257,7 +374,8 @@ def _parse_args():
 def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
-    tarball = download_setuptools(download_base=options.download_base)
+    tarball = download_setuptools(download_base=options.download_base,
+        downloader_factory=options.downloader_factory)
     return _install(tarball, _build_install_args(options))
 
 if __name__ == '__main__':

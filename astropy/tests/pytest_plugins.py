@@ -151,7 +151,12 @@ def pytest_configure(config):
             if self.fspath.basename == "conftest.py":
                 module = self.config._conftest.importconftest(self.fspath)
             else:
-                module = self.fspath.pyimport()
+                try:
+                    module = self.fspath.pyimport()
+                    # Just ignore searching modules that can't be imported when
+                    # collecting doctests
+                except ImportError:
+                    raise StopIteration
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
