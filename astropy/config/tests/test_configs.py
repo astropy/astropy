@@ -11,6 +11,7 @@ import io
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
+from ...utils.exceptions import AstropyDeprecationWarning
 
 
 def test_paths():
@@ -275,3 +276,20 @@ def test_configitem_unicode(tmpdir):
     assert isinstance(cio(), six.text_type)
     assert cio() == 'ასტრონომიის'
     assert sec['астрономия'] == 'ასტრონომიის'
+
+
+def test_warning_move_to_top_level():
+    # Check that the warning about deprecation config items in the
+    # file works.  See #2514
+    from ... import conf
+
+    configuration._override_config_file = get_pkg_data_filename('data/deprecated.cfg')
+
+    try:
+        with catch_warnings(AstropyDeprecationWarning) as w:
+            conf.reload()
+            conf.max_lines
+        assert len(w) == 1
+    finally:
+        configuration._override_config_file = None
+        conf.reload()
