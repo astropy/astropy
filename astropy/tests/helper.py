@@ -328,10 +328,11 @@ class astropy_test(Command, object):
          "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
          "If nothing is specified, all default tests are run."),
         ('test-path=', 't',
-         'Specify a test location by path.  If a relative path to a '
-         '.py file, it is relative to the built package.  If a relative '
-         'path to a .rst file, it is relative to the docs directory '
-         '(see --docs-path).  May also be an absolute path.'),
+         'Specify a test location by path.  If a relative path to a  .py file, '
+         'it is relative to the built package, so e.g., a  leading "astropy/" '
+         'is necessary.  If a relative  path to a .rst file, it is relative to '
+         'the directory *below* the --docs-path directory, so a leading '
+         '"docs/" is usually necessary.  May also be an absolute path.'),
         ('verbose-results', 'V',
          'Turn on verbose output from pytest.'),
         ('plugins=', 'p',
