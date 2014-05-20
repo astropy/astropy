@@ -536,6 +536,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             return SphericalRepresentation(lon=self.phi,
                                            lat=90 * u.deg - self.theta,
                                            distance=self.r)
+        elif other_class is UnitSphericalRepresentation:
+            return UnitSphericalRepresentation(lon=self.phi,
+                                               lat=90 * u.deg - self.theta)
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 
