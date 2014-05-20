@@ -281,11 +281,11 @@ def test_transform_api():
     # `ic_trans` does not have an `equinox`, so now when we transform back to FK5,
     # it's a *different* RA and Dec
     fk5_trans = ic_trans.transform_to(FK5)
-    assert fk5_2.ra != fk5_trans.ra
+    assert not np.allclose(fk5_2.ra, fk5_trans.ra, rtol=0, atol=1e-10)
 
     # But if you explicitly give the right equinox, all is fine
     fk5_trans_2 = fk5_2.transform_to(FK5(equinox=J2001))
-    assert fk5_2.ra == fk5_trans_2.ra
+    npt.assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10)
 
     # Trying to tansforming a frame with no data is of course an error:
     with raises(ValueError):
