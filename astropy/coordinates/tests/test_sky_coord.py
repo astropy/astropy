@@ -125,6 +125,11 @@ def test_coord_init_string():
         SkyCoord('1d 2d 3d')
     assert "Cannot parse longitude and latitude" in str(err)
 
+    sc1 = SkyCoord('8 00 00 +5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc1, SkyCoord)
+    assert allclose(sc1.ra, Angle(120 * u.deg))
+    assert allclose(sc1.dec, Angle(5 * u.deg))
+
 
 def test_coord_init_unit():
     """
