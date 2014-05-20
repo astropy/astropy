@@ -218,7 +218,7 @@ We'll summarize the verification with a "life-cycle" example::
 
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
     >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
-    >>> '.' in the keyword), if using the update() method - doesn't work!
+    >>> # '.' in the keyword), if using the update() method - doesn't work!
     >>> h['P.I.'] = 'Hubble'
     ValueError: Illegal keyword name 'P.I.'
     >>> # Have to do it the hard way (so a user will not do this by accident)
@@ -236,11 +236,11 @@ We'll summarize the verification with a "life-cycle" example::
     ......
       raise VerifyError
     VerifyError
-    # Must set the output_verify argument to 'ignore', to force writing a
-    # non-standard FITS file
+    >>> # Must set the output_verify argument to 'ignore', to force writing a
+    >>> # non-standard FITS file
     >>> h.writeto('pi.fits', output_verify='ignore')
-    # Now reading a non-standard FITS file
-    # astropy.io.fits is magnanimous in reading non-standard FITS files
+    >>> # Now reading a non-standard FITS file
+    >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
     >>> hdus = fits.open('pi.fits')
     >>> hdus[0].header
     SIMPLE =            T / conforms to FITS standard
@@ -252,8 +252,8 @@ We'll summarize the verification with a "life-cycle" example::
     >>> # complain
     >>> hdus[0].header['p.i.']
     'Hubble'
-    # But if you want to make sure if there is anything wrong/non-standard,
-    # use the verify() method
+    >>> # But if you want to make sure if there is anything wrong/non-standard,
+    >>> # use the verify() method
     >>> hdus.verify()
     Output verification result:
     HDU 0:
