@@ -514,6 +514,9 @@ Other Changes and Additions
 
 - The developer documentation has been extensively rearranged and
   rewritten. [#1712]
+  
+- The ``human_time`` function in ``astropy.utils`` now returns strings
+  without zero padding. [#2420]
 
 
 0.3.2 (2014-05-13)
