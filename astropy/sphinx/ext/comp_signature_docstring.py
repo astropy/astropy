@@ -9,10 +9,24 @@ Private members that are not be referenced in the sphinx API docs, will not be
 checked. Usually (unless sphinx is instructed otherwise), this also means that
 special functions (such as ``__getattr__``) will not be included in this check.
 
-For every methods and function checked the 
+For every method and function checked the parameters in the calling signature
+and in the docstring are compared. 
+The docstring is parsed for every field list whose title contains the string
+`'Parameters'` (such as "Parameters" or "Other Parameters" which are common
+with numpydoc.
+
+In order to pass the test, the following conditions are tested::
+
+- The signature matches the documented arguments in full.
+- If the signature contains `*args` and/or `**kwargs`, all named signature
+  arguments must match the documented arguments in full. Further entries in the
+  docstring are allowed.
+- Private arguments (starting with `_`) in the signature are ignored and should
+  not appear in the documentation.
+
+Example
+-------
 sudo python setup.py build_sphinx -b signaturedocstring
-
-
 """
 from __future__ import print_function
 
@@ -50,55 +64,34 @@ class MatchSignatureDocstringBuilder(Builder):
     def get_target_uri(self, docname, typ=None):
         return ''
 
+
     def write_doc(self, docname, doctree):
         print('')
         for node in doctree.traverse(addnodes.desc):
             if node['desctype'] in ['function', 'method','class']:
-                # print ''
-                # print node
                 docstring = []
                 signature = []
                 for subnode in node.children[0].traverse(addnodes.desc_parameterlist):
                     signature = [str(t.astext().split('=')[0]) for t 
                                  in subnode.traverse(docutils.nodes.Text)]
-                for fields in node.children[1].traverse(docutils.nodes.field):
-                    if fields.children[0].astext() == 'Parameters':
-                        docstring = [str(f.astext()) for f 
-                                 in fields.traverse(docutils.nodes.strong)]
-                    # All methods are listed within a class and then again as
-                    # methods. Thus, classes have several field lists, but
-                    # only the first one is for __init__ and needs to be checked here.
-                    break
-                # Remove *args and **kwargs from the signature
-                signature_required = [s for s in signature if (s[0]!='*')]
+                for c in node.children[1].children:
+                    # If node is a class, if contains info on all
+                    # methods, but at a lower level of hirachy.
+                    if isinstance(c, docutils.nodes.field_list):
+                        for fields in c.traverse(docutils.nodes.field):
+                            if 'Parameters'in fields.children[0].astext():
+                                docstring.extend([str(f.astext()) for f 
+                                                  in fields.traverse(docutils.nodes.strong)])
+                # Remove *args, **kwargs and private keywords from the signature
+                signature_required = [s for s in signature if (s[0] not in '*_')]
                 n_pars = len(signature)
                 n_pars_named = len(signature_required)
-                # split docstring where several params are described on one line
-                temp = []
-                for x in docstring:
-                    temp.extend(x.split(','))
-                docstring = [x.strip() for x in temp]
 
-                # print(signature)
-                # print(signature_required)
-                # print(docstring)
-                # print(n_pars, n_pars_named)
-                # print(((n_pars_named == n_pars) and (signature == docstring)))
-                # print(((n_pars_named < n_pars) and
-                #      (signature_required == docstring[:n_pars_named])))
-                # print(not(
-                #     # no *args or **kwargs
-                #     ((n_pars_named == n_pars) and (signature == docstring))
-                #     or
-                #     # *args or **kswargs
-                #     ((n_pars_named < n_pars) and
-                #      (signature_required == docstring[:n_pars_named]))
-                #     ))
                 if not(
-                    # no *args or **kwargs
+                    # no *args or **kwargs or other special values
                     ((n_pars_named == n_pars) and (signature == docstring))
                     or
-                    # *args or **kswargs
+                    # *args or **kwargs
                     ((n_pars_named < n_pars) and
                      (signature_required == docstring[:n_pars_named]))
                     ):
@@ -114,4 +107,5 @@ class MatchSignatureDocstringBuilder(Builder):
                     # Set status code for error.
                     self.app.statuscode = 1
         return
+
 
