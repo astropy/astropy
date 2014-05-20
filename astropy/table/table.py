@@ -409,6 +409,12 @@ class Table(object):
         masked entries in the table.  Otherwise the individual
         ``fill_value`` defined for each table column is used.
 
+        Parameters
+        ----------
+        fill_value : str
+            If supplied, this ``fill_value`` is used for all masked entries
+            in the entire table.
+
         Returns
         -------
         filled_table : Table
@@ -1611,6 +1617,8 @@ class Table(object):
         ----------
         vals : tuple, list, dict or `None`
             Use the specified values in the new row
+        mask : tuple, list, dict or `None`
+            Use the specified mask values in the new row
 
         Examples
         --------

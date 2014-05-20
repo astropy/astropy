@@ -150,18 +150,20 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     Parameters
     ----------
+    table : `table.Table`
+        Data table that is to be written to file.
     output : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
+    path : str
+        The path to which to write the table inside the HDF5 file.
+        This should be relative to the input file or group.
     compression : bool or str or int
         Whether to compress the table inside the HDF5 file. If set to `True`,
         ``'gzip'`` compression is used. If a string is specified, it should be
         one of ``'gzip'``, ``'szip'``, or ``'lzf'``. If an integer is
         specified (in the range 0-9), ``'gzip'`` compression is used, and the
         integer denotes the compression level.
-    path : str
-        The path to which to write the table inside the HDF5 file.
-        This should be relative to the input file or group.
     append : bool
         Whether to append the table to an existing HDF5 file.
     overwrite : bool

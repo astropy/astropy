@@ -212,8 +212,8 @@ class Angle(u.Quantity):
 
         Parameters
         ----------
-        units : `~astropy.units.UnitBase`, optional
-            Specifies the units.  Must be an angular unit.  If not
+        unit : `~astropy.units.UnitBase`, optional
+            Specifies the unit.  Must be an angular unit.  If not
             provided, the unit used to initialize the angle will be
             used.
 

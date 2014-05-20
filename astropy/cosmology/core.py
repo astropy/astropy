@@ -2222,10 +2222,6 @@ class w0wzCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    Ok0 : float
-        Omega curvature: equivalent curvature density in units of the critical
-        density at z=0.
-
     w0 : float
         Dark energy equation of state at z=0. This is pressure/density for dark
         energy in units where c=1. A cosmological constant has w0=-1.0.

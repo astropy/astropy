@@ -829,6 +829,11 @@ class PrimaryHDU(_ImageBaseHDU):
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read.
 
+        ignore_blank : bool, optional
+            If `True`, the BLANK header keyword will be ignored if present.
+            Otherwise, pixels equal to this value will be replaced with
+            NaNs.
+
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
             central value and ``BSCALE == 1`` as unsigned integer
@@ -841,11 +846,6 @@ class PrimaryHDU(_ImageBaseHDU):
             original BSCALE/BZERO values.  This could lead to loss of accuracy
             if scaling back to integer values after performing floating point
             operations on the data.
-
-        ignore_blank : bool, optional
-            If `True`, the BLANK header keyword will be ignored if present.
-            Otherwise, pixels equal to this value will be replaced with
-            NaNs.
         """
 
         super(PrimaryHDU, self).__init__(

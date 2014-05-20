@@ -1299,13 +1299,10 @@ class UnitBase(object):
                               include_prefix_units=False):
         """
         Return a list of all the units that are the same type as the
-        specified unit.
+        unit that this method is called on.
 
         Parameters
         ----------
-        u : Unit instance or string
-            The `Unit` to find similar units to.
-
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
@@ -2110,7 +2107,7 @@ def def_unit(s, represents=None, register=None, doc=None,
 
     Parameters
     ----------
-    names : str or list of str
+    s : str or list of str
         The name of the unit.  If a list, the first element is the
         canonical (short) name, and the rest of the elements are
         aliases.

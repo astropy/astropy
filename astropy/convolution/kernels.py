@@ -473,7 +473,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     Parameters
     ----------
-    width : number
+    radius : number
         Width of the filter kernel, defined as the width of the constant part, 
         before it begins to slope down.
     slope : number

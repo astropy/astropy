@@ -463,7 +463,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
         Whether to display a progress bar if the file is downloaded
         from a remote server.  Default is `True`.
 
-    timeout : float
+    remote_timeout : float
         Timeout for the requests in seconds (default is the
         configurable `astropy.utils.data.Conf.remote_timeout`, which
         is 3s by default)

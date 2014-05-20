@@ -432,7 +432,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to the header
         of the HDU when written to the file.
 
-    verify: bool, optional
+    verify : bool, optional
         When `True`, the existing FITS file will be read in to verify it for
         correctness before appending.  When `False`, content is simply appended
         to the end of the file.  Setting ``verify`` to `False` can be much

@@ -264,7 +264,7 @@ class LinearLSQFitter(Fitter):
             times the largest singular value of `a`.
 
         Returns
-        ------
+        -------
         model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """
@@ -498,7 +498,7 @@ class NonLinearLSQFitter(Fitter):
             If True, the Jacobian will be estimated in any case.
 
         Returns
-        ------
+        -------
         model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """
@@ -665,7 +665,7 @@ class SLSQPFitter(Fitter):
             the step size for finite-difference derivative estimates
 
         Returns
-        ------
+        -------
         model_copy : `FittableModel`
             a copy of the input model with parameters set by the fitter
         """

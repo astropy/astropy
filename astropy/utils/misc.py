@@ -723,6 +723,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         The number of seconds to wait before timing-out the query to
         the astropy documentation.  If not given, the default python
         stdlib timeout will be used.
+
     Returns
     -------
     url : str

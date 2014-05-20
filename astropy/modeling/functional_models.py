@@ -368,7 +368,7 @@ class Shift(Model):
 
     offsets = Parameter()
 
-    def __init__(self, offsets, param_dim=1):
+    def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
         else:
@@ -408,7 +408,7 @@ class Scale(Model):
 
     factors = Parameter()
 
-    def __init__(self, factors, param_dim=1):
+    def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
         else:

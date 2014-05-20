@@ -1591,7 +1591,7 @@ InvalidTabularParameters
 """
 
 set_ps = """
-set_ps(list)
+set_ps(ps)
 
 Sets ``PSi_ma`` keywords for each *i* and *m*.
 
@@ -1614,7 +1614,7 @@ astropy.wcs.Wcsprm.get_ps
 """
 
 set_pv = """
-set_pv(list)
+set_pv(pv)
 
 Sets ``PVi_ma`` keywords for each *i* and *m*.
 

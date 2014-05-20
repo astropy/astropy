@@ -1504,7 +1504,7 @@ class Header(object):
 
         Parameters
         ----------
-        value : str
+        keyword : str
             The keyword of which to remove the first instance in the header
 
         """

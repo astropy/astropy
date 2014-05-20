@@ -835,6 +835,10 @@ class SerialCompositeModel(_CompositeModel):
         labels in an input instance of LabeledInput
         if None, the number of output coordinates is exactly what
         the transforms expect
+    n_inputs : int
+        dimension of input space (e.g. 2 for a spatial model)
+    n_outputs : int
+        dimension of output
 
     Notes
     -----

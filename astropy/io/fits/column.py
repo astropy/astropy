@@ -1115,7 +1115,7 @@ class ColDefs(object):
         attrib : str
             The attribute name
 
-        value : object
+        new_value : object
             The new value for the attribute
         """
 

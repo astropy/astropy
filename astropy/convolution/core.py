@@ -190,10 +190,14 @@ class Kernel1D(Kernel):
 
     Parameters
     ----------
-    width : number
-        Width of the filter kernel.
+    model : `~astropy.modeling.FittableModel`
+        Model to be evaluated.
     x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
+    array : ndarray
+        Kernel array.
+    width : number
+        Width of the filter kernel.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -210,7 +214,6 @@ class Kernel1D(Kernel):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
     """
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
@@ -244,12 +247,14 @@ class Kernel2D(Kernel):
 
     Parameters
     ----------
-    width : number
-        Width of the filter kernel.
+    model : `~astropy.modeling.FittableModel`
+        Model to be evaluated.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
+    array : ndarray
+        Kernel array.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -264,6 +269,8 @@ class Kernel2D(Kernel):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
+    width : number
+        Width of the filter kernel.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
     """
@@ -313,7 +320,7 @@ def kernel_arithmetics(kernel, value, operation):
     ----------
     kernel : `astropy.convolution.Kernel`
         Kernel instance
-    values : kernel, float or int
+    value : kernel, float or int
         Value to operate with
     operation : {'add', 'sub', 'mul'}
         One of the following operations:

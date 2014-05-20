@@ -39,12 +39,6 @@ def timefunc(num_tries=1, verbose=True):
     verbose : bool, optional
         Extra log information.
 
-    function
-        Function to time.
-
-    args, kwargs
-        Arguments to the function.
-
     Returns
     -------
     tt : float
