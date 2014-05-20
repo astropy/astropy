@@ -11,10 +11,10 @@ from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
                            False),
                           (conv.Gaussian1DKernel, [1.0],
                            {'x_size':5},
-                           False),
+                           True),
                           (conv.Gaussian2DKernel, [1.0],
                            {'x_size':5, 'y_size':5},
-                           False),
+                           True),
                          ])
 def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects
