@@ -31,44 +31,73 @@ def FRAME_ATTR_NAMES_SET():
 
 
 class SkyCoord(object):
-    """
-    A high-level celestial coordinate object.  This class represents celestial
-    coordinates of various different types of coordinate systems using a single
-    class.
+    """High-level object providing a flexible interface for celestial coordinate
+    representation, manipulation, and transformation between systems.
 
+    The `SkyCoord` class accepts a wide variety of inputs for initialization.
+    At a minimum these must provide one or more celestial coordinate values
+    with unambiguous units.  Typically one also specifies the coordinate
+    frame, though this is not required.  The general pattern is::
 
-    The actual frames/coordinate-systems available are the systems that are
-    registered in the  `astropy.coordinates.frame_transform_graph` - E.g.,
-    `~astropy.coordinates.ICRS`. see the documentation for specific frame classes
-    to see the exact attributes available and how they are interpreted.
+      SkyCoord(COORD, [FRAME], keyword_args ...)
+      SkyCoord(LON, LAT, [FRAME], keyword_args ...)
+      SkyCoord(LON, LAT, frame=FRAME, unit=UNIT, keyword_args ...)
+      SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
 
-    Because it supports different kinds of frames, `SkyCoord` can be initialized
-    in a variety of ways:
+    The examples below illustrate common ways of initializing a `SkyCoord`
+    object.  For a complete description of the allowed syntax see the
+    full coordinates documentation.  First some imports::
 
-    * A single positional argument that is an
-      `~astropy.coordinates.BaseCoordinateFrame` object.
-    * A positional argument that is a string or list of strings of a form like
-      "1h12m43.2s +1d12m43s", and a `frame` keyword (see Parameters section
-      below)
-    * A positional argument that is a string or list of strings of a form like
-      "1:12:43.2s +1:12:43", a `unit` argument that is a 2-tuple (e.g.,
-      ``(u.deg, u.deg)`` and a `frame` keyword (see Parameters section below)
-    * A `frame` keyword (see Parameters section below), and keywords appropriate
-      for that frame (matching the frame class' initializer).
-    * A `~astropy.coordinates.BaseRepresentation` instance and a `frame` keyword
-      (see Parameters section below).
-    * Additional keywords will be interpreted as attributes of this `SkyCoord`,
-      but will only be used by the containing coordinate if it is transformed.
+      >>> from astropy.coordinates import SkyCoord  # High-level coordinates
+      >>> from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
+      >>> from astropy.coordinates import Angle, Latitude, Longitude  # Angles
+      >>> import astropy.units as u
+
+    The coordinate values and frame specification can now be provided using
+    positional and keyword arguments::
+
+      >>> sc = SkyCoord(10, 20, unit="deg")  # No frame (no transform to other frames)
+      >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
+
+      >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
+      >>> sc = SkyCoord(coords, FK4, unit=(u.deg. u.hourangle), obstime="J1992.21")
+
+      >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
+      >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+
+      >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
+      >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
+      >>> sc = SkyCoord(ra, dec, frame='icrs')
+      >>> sc = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+
+      >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
+      >>> sc = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
+
+    As shown, the ``FRAME`` can be a `~astropy.coordinates.BaseCoordinateFrame`
+    class or the corresponding string alias.  The frame classes that are built in
+    to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, `Galactic`, and `AltAz`.
+    The string aliases are simply lower-case versions of the class name, and
+    allow for creating a `SkyCoord` object and transforming frames without
+    explicitly importing the frame classes.
 
     Parameters
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
-        The type of coordinate frame this `SkyCoord` should represent.  If a
-        string, it should be one of the aliases available in
-        `astropy.coordinates.frame_transform_graph`, typically an all-lower-case
-        version of the system name.
-    others
-        Other parameters depend on the type of frame - see above.
+        Type of coordinate frame this `SkyCoord` should represent.
+    unit : `~astropy.units.Unit`, string, or 2-tuple of `Unit` or string, optional
+        Units for supplied `LON` and `LAT` values, respectively.  If only one unit
+        is supplied then it applies to both `LON` and `LAT`.
+    ra, dec: valid `~astropy.coordinates.Angle` initializer, optional
+        RA and Dec for frames where this is preferred representation, including
+        `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
+    l, b: valid `~astropy.coordinates.Angle` initializer, optional
+        Galactic `l` and `b` for the `Galactic` frame.
+    obstime: valid `~astropy.time.Time` initializer, optional
+        Time of observation
+    equinox: valid `~astropy.time.Time` initializer, optional
+        Coordinate frame equinox
+    **keyword_args
+        Other keyword arguments as applicable for user-defined coordinate frames.
     """
 
     def __init__(self, *args, **kwargs):
