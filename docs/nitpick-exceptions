@@ -12,6 +12,16 @@ py:class astropy.modeling.rotations.EulerAngleRotation
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 
+# Pending on python docs links issue #11975
+py:obj list.append
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove
+
 # astropy.table
 py:class astropy.table.column.BaseColumn
 
