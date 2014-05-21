@@ -356,9 +356,10 @@ def test_to_string():
         assert with_kwargs == wrap('+01h02m03.000s +01d02m03.000s')
 
 
-def test_seps():
-    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc2 = SkyCoord('icrs', 0 * u.deg, 2 * u.deg)
+@pytest.mark.parametrize('frame', (None, 'icrs', 'fk5'))
+def test_seps(frame):
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame=frame)
+    sc2 = SkyCoord(0 * u.deg, 2 * u.deg, frame=frame)
 
     sep = sc1.separation(sc2)
 
@@ -367,8 +368,8 @@ def test_seps():
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-    sc3 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
-    sc4 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
+    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc, frame=frame)
+    sc4 = SkyCoord(1 * u.deg, 1 * u.deg, distance=2 * u.kpc, frame=frame)
     sep3d = sc3.separation_3d(sc4)
 
     assert sep3d == 1 * u.kpc
@@ -419,7 +420,8 @@ def test_ops():
 
 def test_none_transform():
     """
-    Ensure that transforming from a SkyCoord with no frame provided always fails
+    Ensure that transforming from a SkyCoord with no frame provided always fails,
+    but that transforming from NoFrame to NoFrame works.
     """
     sc = SkyCoord(0 * u.deg, 1 * u.deg)
     sc_arr = SkyCoord(0 * u.deg, [1, 2] * u.deg)
@@ -433,6 +435,9 @@ def test_none_transform():
         sc_arr.transform_to(ICRS)
     with pytest.raises(ValueError):
         sc_arr.transform_to('fk5')
+
+    assert sc.transform_to(None).frame.name == 'noframe'
+    assert sc_arr.transform_to(None).frame.name == 'noframe'
 
 
 def test_position_angle():

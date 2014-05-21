@@ -209,9 +209,8 @@ class SkyCoord(object):
         """
         from astropy.coordinates.errors import ConvertError
 
-        if frame is None or isinstance(self.frame, NoFrame):
-            raise ValueError('Cannot transform to/from this SkyCoord because '
-                             'the frame was not specified at creation.')
+        if frame is None:
+            frame = NoFrame
 
         frame_kwargs = {}
 
@@ -241,6 +240,14 @@ class SkyCoord(object):
                     frame_kwargs[attr] = self_val
         else:
             raise ValueError('Transform `frame` must be a frame name, class, or instance')
+
+        if issubclass(new_frame_cls, NoFrame) or isinstance(self.frame, NoFrame):
+            # Allow the null transform NoFrame => NoFrame
+            if issubclass(new_frame_cls, NoFrame) and isinstance(self.frame, NoFrame):
+                return self.__class__(self)
+            else:
+                raise ValueError('Cannot transform to/from this SkyCoord because '
+                                 'the frame was not specified at creation.')
 
         # Get the composite transform to the new frame
         trans = frame_transform_graph.get_transform(self.frame.__class__, new_frame_cls)
