@@ -51,13 +51,6 @@ else:
         IPythonIOStream = None
         stdio = sys
 
-try:
-    import IPython  # pylint: disable=W0611
-    # This is just to set a flag that IPython is installed at all
-    _HAVE_IPYTHON = True
-except ImportError:
-    _HAVE_IPYTHON = False
-
 from ..config import ConfigAlias
 from ..extern import six
 from ..extern.six.moves import range
