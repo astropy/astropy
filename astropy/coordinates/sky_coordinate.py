@@ -60,7 +60,7 @@ class SkyCoord(object):
       >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-      >>> sc = SkyCoord(coords, FK4, unit=(u.deg. u.hourangle), obstime="J1992.21")
+      >>> sc = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
 
       >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
       >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
