@@ -629,11 +629,9 @@ class UnitBase(object):
         from .quantity import Quantity
         return m / Quantity(1, self)
 
-    def __truediv__(self, m):
-        return self.__div__(m)
+    __truediv__ = __div__
 
-    def __rtruediv__(self, m):
-        return self.__rdiv__(m)
+    __rtruediv__ = __rdiv__
 
     def __mul__(self, m):
         if isinstance(m, (bytes, six.text_type)):
@@ -942,12 +940,6 @@ class UnitBase(object):
 
     def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0,
                  cached_results=None):
-        def make_key(unit):
-            parts = ([str(unit.scale)] +
-                     [x.name for x in unit.bases] +
-                     [str(x) for x in unit.powers])
-            return tuple(parts)
-
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -957,7 +949,7 @@ class UnitBase(object):
             return True
 
         unit = self.decompose()
-        key = make_key(unit)
+        key = hash(unit)
 
         cached = cached_results.get(key)
         if cached is not None:
@@ -1053,13 +1045,12 @@ class UnitBase(object):
                 cached_results[key] = subresults
                 return subresults
 
-        for base in self.bases:
-            if base not in namespace:
-                result = UnitsError(
-                    "Cannot represent unit {0} in terms of the given "
-                    "units".format(self))
-                cached_results[key] = result
-                raise result
+        if not is_final_result(self):
+            result = UnitsError(
+                "Cannot represent unit {0} in terms of the given "
+                "units".format(self))
+            cached_results[key] = result
+            raise result
 
         cached_results[key] = [self]
         return [self]
@@ -1104,14 +1095,45 @@ class UnitBase(object):
         # Pre-normalize the equivalencies list
         equivalencies = self._normalize_equivalencies(equivalencies)
 
+        # The namespace of units to compose into should be filtered to
+        # only include units with bases in common with self, otherwise
+        # they can't possibly provide useful results.  Having too many
+        # destination units greatly increases the search space.
+
+        def has_bases_in_common(a, b):
+            if len(a.bases) == 0 and len(b.bases) == 0:
+                return True
+            for ab in a.bases:
+                for bb in b.bases:
+                    if ab == bb:
+                        return True
+            return False
+
+        def has_bases_in_common_with_equiv(unit, other):
+            if has_bases_in_common(unit, other):
+                return True
+            for funit, tunit, a, b in equivalencies:
+                if tunit is not None:
+                    if unit._is_equivalent(funit):
+                        if has_bases_in_common(tunit.decompose(), other):
+                            return True
+                    elif unit._is_equivalent(tunit):
+                        if has_bases_in_common(funit.decompose(), other):
+                            return True
+            return False
+
         def filter_units(units):
             filtered_namespace = set()
             for tunit in units:
                 if (isinstance(tunit, UnitBase) and
                     (include_prefix_units or
-                     not isinstance(tunit, PrefixUnit))):
+                     not isinstance(tunit, PrefixUnit)) and
+                    has_bases_in_common_with_equiv(
+                        decomposed, tunit.decompose())):
                     filtered_namespace.add(tunit)
             return filtered_namespace
+
+        decomposed = self.decompose()
 
         if units is None:
             units = filter_units(self._get_units_with_same_physical_type(
@@ -1124,9 +1146,6 @@ class UnitBase(object):
             units = filter_units(six.itervalues(vars(units)))
         else:
             units = filter_units(_flatten_units_collection(units))
-
-        if not len(units):
-            raise UnitsError("No units to compose into.")
 
         def sort_results(results):
             if not len(results):
@@ -1208,7 +1227,9 @@ class UnitBase(object):
         """
 
         from . import si
-        return self.to_system(si)[0]
+        if not hasattr(self, '_si'):
+            self._si = self.to_system(si)[0]
+        return self._si
 
     @property
     def cgs(self):
@@ -1216,7 +1237,9 @@ class UnitBase(object):
         Returns a copy of the current `Unit` instance with CGS units.
         """
         from . import cgs
-        return self.to_system(cgs)[0]
+        if not hasattr(self, '_cgs'):
+            self._cgs = self.to_system(cgs)[0]
+        return self._cgs
 
     @property
     def physical_type(self):
@@ -1899,6 +1922,7 @@ class CompositeUnit(UnitBase):
         self._powers = powers
         self._decomposed_cache = None
         self._expand_and_gather(decompose=decompose, bases=decompose_bases)
+        self._hash = None
 
     def __repr__(self):
         if len(self._bases):
@@ -1911,10 +1935,12 @@ class CompositeUnit(UnitBase):
                 return 'Unit(dimensionless)'
 
     def __hash__(self):
-        parts = ([str(self._scale)] +
-                 [x.name for x in self._bases] +
-                 [str(x) for x in self._powers])
-        return hash(tuple(parts))
+        if self._hash is None:
+            parts = ([str(self._scale)] +
+                     [x.name for x in self._bases] +
+                     [str(x) for x in self._powers])
+            self._hash = hash(tuple(parts))
+        return self._hash
 
     @property
     def scale(self):
