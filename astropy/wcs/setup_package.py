@@ -309,10 +309,11 @@ def get_package_data():
         'wcsmath.h',
         'wcsprintf.h',
         ]
-    for header in wcslib_headers:
-        shutil.copy(join('cextern', 'wcslib', 'C', header),
+    if not setup_helpers.use_system_library('wcslib'):
+        for header in wcslib_headers:
+            shutil.copy(join('cextern', 'wcslib', 'C', header),
                     join('astropy', 'wcs', 'include', 'wcslib', header))
-        api_files.append(join('include', 'wcslib', header))
+            api_files.append(join('include', 'wcslib', header))
 
     return {
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
