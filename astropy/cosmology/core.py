@@ -253,7 +253,7 @@ class FLRW(Cosmology):
             return "{0}(".format(self.__class__.__name__)
         else:
             return "{0}(name=\"{1}\", ".format(self.__class__.__name__,
-                                                   self.name)
+                                               self.name)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
@@ -1537,6 +1537,7 @@ class FlatLambdaCDM(LambdaCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
+
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy equation of state
     and curvature.
@@ -1844,6 +1845,7 @@ class FlatwCDM(wCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu)
 
+
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
 
@@ -1983,6 +1985,7 @@ class w0waCDM(FLRW):
                              self._Ode0, self._w0, self._wa,
                              self._Tcmb0, self._Neff, self.m_nu)
 
+
 class Flatw0waCDM(w0waCDM):
     """FLRW cosmology with a CPL dark energy equation of state and no curvature.
 
@@ -2052,6 +2055,7 @@ class Flatw0waCDM(w0waCDM):
                  "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu)
+
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -2210,6 +2214,7 @@ class wpwaCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._wp, self._wa, self._zp,
                              self._Tcmb0, self._Neff, self.m_nu)
+
 
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy equation of state
