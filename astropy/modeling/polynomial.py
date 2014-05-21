@@ -1125,19 +1125,17 @@ class SIP(Model):
         SIP polynomial order for first axis
     a_coeff : dict
         SIP coefficients for first axis
-    coeff_prefix : str: 'a', 'b', 'A' or 'B'
-        SIP coefficient preffix
     b_order : int
         SIP order for second axis
     b_coeff : dict
         SIP coefficients for the second axis
-    a_inv_order : int
+    ap_order : int
         order for the inverse transformation (AP coefficients)
-    a_inv_coeff : dict
+    ap_coeff : dict
         coefficients for the inverse transform
-    b_inv_order : int
+    bp_order : int
         order for the inverse transformation (BP coefficients)
-    b_inv_coeff : dict
+    bp_coeff : dict
         coefficients for the inverse transform
     param_dim : int
         number of parameter sets
@@ -1199,6 +1197,23 @@ class SIP(Model):
 
 
 class InverseSIP(Model):
+    """
+    Inverse Simple Imaging Polynomial
+
+    Parameters
+    ----------
+    ap_order : int
+        order for the inverse transformation (AP coefficients)
+    ap_coeff : dict
+        coefficients for the inverse transform
+    bp_order : int
+        order for the inverse transformation (BP coefficients)
+    bp_coeff : dict
+        coefficients for the inverse transform
+    param_dim : int
+        number of parameter sets
+
+    """
 
     n_inputs = 2
     n_outputs = 2
