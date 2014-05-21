@@ -643,10 +643,13 @@ class Longitude(Angle):
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = self.wrap_angle.to(self.unit).value
+        wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
-        wrapped = np.mod(self_angle - wrap_angle, a360) + (wrap_angle - a360)
-        value = u.Quantity(wrapped, self.unit)
-        super(Longitude, self).__setitem__((), value)
+        # Do the wrapping, but only if any angles need to be wrapped
+        if np.any(self_angle < wrap_angle_floor) or np.any(self_angle >= wrap_angle):
+            wrapped = np.mod(self_angle - wrap_angle, a360) + wrap_angle_floor
+            value = u.Quantity(wrapped, self.unit)
+            super(Longitude, self).__setitem__((), value)
 
     @property
     def wrap_angle(self):
