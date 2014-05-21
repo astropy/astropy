@@ -161,7 +161,7 @@ def test_sip_irac():
     utils.assert_allclose(invsip(*foc[0]) + foc[0] - rel_pix, newpix - pix)
 
 
-def test_sip_n_coeff():
+def test_sip_no_coeff():
     sip = SIP([10,12], 2, 2)
     utils.assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
     utils.assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
