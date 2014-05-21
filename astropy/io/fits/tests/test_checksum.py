@@ -42,7 +42,7 @@ class TestChecksumFunctions(FitsTestCase):
         hdul.close()
 
     def test_image_create(self):
-        n = np.arange(100)
+        n = np.arange(100, dtype=np.int64)
         hdu = fits.PrimaryHDU(n)
         hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
@@ -57,7 +57,7 @@ class TestChecksumFunctions(FitsTestCase):
                 assert hdul[0].header['DATASUM'] == '4950'
 
     def test_nonstandard_checksum(self):
-        hdu = fits.PrimaryHDU(np.arange(10.0 ** 6))
+        hdu = fits.PrimaryHDU(np.arange(10.0 ** 6, dtype=np.float64))
         hdu.writeto(self.temp('tmp.fits'), clobber=True,
                     checksum='nonstandard')
         del hdu

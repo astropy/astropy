@@ -368,6 +368,8 @@ Bug Fixes
   - Use NaN for missing values in FITS when using Table.write for float
     columns. Earlier the default fill value was close to 1e20.[#2186]
 
+  - Fixes for checksums on 32-bit platforms.  Results may be different
+    if writing or checking checksums in "nonstandard" mode.  [#2484]
 
 - ``astropy.io.misc``
 
