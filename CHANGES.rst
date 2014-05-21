@@ -183,6 +183,9 @@ New Features
   - Added ``temperature()`` equivalencies to support conversion between
     Kelvin, Celsius, and Fahrenheit. [#2209]
 
+  - The runtime of ``astropy.units.Unit.compose`` is greatly improved
+    (by a factor of 2 in most cases) [#2544]
+
 - ``astropy.utils``
 
   - ``timer.RunTimePredictor`` now uses ``astropy.modeling`` in its
@@ -514,7 +517,7 @@ Other Changes and Additions
 
 - The developer documentation has been extensively rearranged and
   rewritten. [#1712]
-  
+
 - The ``human_time`` function in ``astropy.utils`` now returns strings
   without zero padding. [#2420]
 
