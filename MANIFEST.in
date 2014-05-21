@@ -7,6 +7,8 @@ include setup.cfg
 include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map
 
+include astropy/astropy.cfg
+
 # We have to explicitly include the following modules, otherwise only the
 # Python 2 versions are included when making a source distribution in Python
 # 2, and similarly for Python 3:
