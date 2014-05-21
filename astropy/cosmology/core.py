@@ -36,9 +36,21 @@ __doctest_requires__ = {'*': ['scipy.integrate']}
 # Mpc in km
 Mpc_km = (1 * u.Mpc).to(u.km)
 
+# Some conversion constants -- useful to compute them once here
+#  and reuse in the initialization rather than have every object do them
+#  Note that the call to const.G.cgs.value is actually extremely expensive,
+#   so it is very useful to preload that one.  In fact, we skip using
+#   units for that as well, which is suprisingly expensive, because
+#   the conversion from G in mks to G in cgs is a rather trivial one.
+#   This assumes that constants will always return mks by default --
+#   if this is made faster for simple cases like this, it should
+#   be changed to just using const.G.cgs.value
+H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
+sec_to_Gyr = u.s.to(u.Gyr)
+critdens_const = 3. / (8. * pi * const.G.value * 1000)  # cgs const in critdens
+
 arcsec_in_radians = 1 / 3600. * pi / 180
 arcmin_in_radians = 1 / 60. * pi / 180
-
 
 # Radiation parameter over c^2 in cgs
 a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
@@ -132,14 +144,14 @@ class FLRW(Cosmology):
         self._h = self._H0.value / 100.
         # Hubble distance
         self._hubble_distance = (const.c / self._H0).to(u.Mpc)
-        # H0 in s^-1
-        H0_s = self._H0.to(1.0 / u.s)
-        # Hubble time
-        self._hubble_time = (1. / H0_s).to(u.Gyr)
+        # H0 in s^-1; don't use units for speed
+        H0_s = self._H0.value * H0units_to_invs
+        # Hubble time; again, avoiding units package for speed
+        self._hubble_time = u.Quantity(sec_to_Gyr / H0_s, u.Gyr)
 
         # critical density at z=0 (grams per cubic cm)
-        self._critical_density0 = (3. * H0_s ** 2 /
-                                   (8. * pi * const.G.cgs)).cgs
+        cd0value = critdens_const * H0_s ** 2
+        self._critical_density0 = u.Quantity(cd0value, u.g / u.cm ** 3)
 
         # Load up neutrino masses.
         self._nneutrinos = int(floor(self._Neff))  # In Py2.x, floor is floating
