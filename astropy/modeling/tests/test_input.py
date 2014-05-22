@@ -16,7 +16,6 @@ from ..core import Model, Fittable1DModel
 from ..parameters import Parameter
 from ...tests.helper import pytest
 
-
 try:
     from scipy import optimize  # pylint: disable=W0611
     HAS_SCIPY = True
@@ -654,15 +653,9 @@ class TestInputFormatter(Model):
     n_inputs = 2
     n_outputs = 2
 
-    def __init__(self):
-        super(TestInputFormatter, self).__init__()
-
     @staticmethod
     def evaluate(x, y):
         return x, y
-
-    def __call__(self, x, y):
-        return super(TestInputFormatter, self).__call__(x, y)
 
 
 def test_format_input_scalars():
@@ -677,9 +670,9 @@ def test_format_input_arrays():
     assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
 
 
+
 def test_format_input_arrays_transposed():
     model = TestInputFormatter()
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)
-

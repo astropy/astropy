@@ -37,7 +37,7 @@ class TestParModel(Model):
 
 class MockModel(FittableModel):
     @staticmethod
-    def evaluate():
+    def evaluate(x):
         pass
 
 

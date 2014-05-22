@@ -569,10 +569,9 @@ class AffineTransformation2D(Model):
         default=[0.0, 0.0])
 
     def __init__(self, matrix=matrix.default,
-                 translation=translation.default):
-        super(AffineTransformation2D, self).__init__(matrix, translation)
-        self._augmented_matrix = self._create_augmented_matrix(
-            self.matrix.value, self.translation.value)
+                 translation=translation.default, **kwargs):
+        super(AffineTransformation2D, self).__init__(matrix, translation,
+                                                     **kwargs)
 
     def inverse(self):
         """
@@ -595,7 +594,7 @@ class AffineTransformation2D(Model):
 
     # TODO: This needs the be reworked somehow to support evaluate as a
     # static/classmethod
-    def evaluate(self, x, y, angle):
+    def evaluate(self, x, y, matrix, translation):
         """
         Apply the transformation to a set of 2D Cartesian coordinates given as
         two lists--one for the x coordinates and one for a y coordinates--or a
@@ -616,7 +615,8 @@ class AffineTransformation2D(Model):
         if inarr.shape[0] != 3 or inarr.ndim != 2:
             raise ValueError("Incompatible input shapes")
 
-        result = np.dot(self._augmented_matrix, inarr)
+        augmented_matrix = self._create_augmented_matrix(matrix, translation)
+        result = np.dot(augmented_matrix, inarr)
 
         x, y = result[0], result[1]
 

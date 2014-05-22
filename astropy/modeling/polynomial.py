@@ -312,24 +312,13 @@ class OrthoPolynomialBase(PolynomialBase):
 
         raise NotImplementedError("Subclasses should implement this")
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
+    def evaluate(self, x, y, *coeffs):
+        invcoeff = self.invlex_coeff()
+        return self.imhorner(x, y, invcoeff)
 
-    def __call__(self, x, y, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x : scalar, list or array
-        y : scalar, lis or array
-        """
-
-        inputs, format_info = self._prepare_inputs(
-            x, y, model_set_axis=model_set_axis)
+    def prepare_inputs(self, x, y, **kwargs):
+        inputs, format_info = \
+                super(OrthoPolynomialBase, self).prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
 
@@ -339,11 +328,8 @@ class OrthoPolynomialBase(PolynomialBase):
             x = poly_map_domain(x, self.x_domain, self.x_window)
         if self.y_domain is not None:
             y = poly_map_domain(y, self.y_domain, self.y_window)
-        invcoeff = self.invlex_coeff()
 
-        result = self.imhorner(x, y, invcoeff)
-
-        return self._prepare_outputs(format_info, result)
+        return (x, y), format_info
 
 
 class Chebyshev1D(PolynomialModel):
@@ -372,27 +358,6 @@ class Chebyshev1D(PolynomialModel):
             degree, n_models=n_models, model_set_axis=model_set_axis,
             **params)
 
-    def clenshaw(self, x, coeff):
-        """Evaluates the polynomial using Clenshaw's algorithm."""
-
-        if isinstance(x, tuple) or isinstance(x, list):
-            x = np.asarray(x)
-        if len(coeff) == 1:
-            c0 = coeff[0]
-            c1 = 0
-        elif len(coeff) == 2:
-            c0 = coeff[0]
-            c1 = coeff[1]
-        else:
-            x2 = 2 * x
-            c0 = coeff[-2]
-            c1 = coeff[-1]
-            for i in range(3, len(coeff) + 1):
-                tmp = c0
-                c0 = coeff[-i] - c1
-                c1 = tmp + c1 * x2
-        return c0 + c1 * x
-
     def fit_deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
@@ -419,11 +384,20 @@ class Chebyshev1D(PolynomialModel):
             v[i] = v[i - 1] * x2 - v[i - 2]
         return np.rollaxis(v, 0, v.ndim)
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
+    def prepare_inputs(self, x, **kwargs):
+        inputs, format_info = \
+                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
+
+        x = inputs[0]
+
+        if self.domain is not None:
+            x = poly_map_domain(x, self.domain, self.window)
+
+        return (x,), format_info
+
+    @classmethod
+    def evaluate(x, *coeffs):
+        return cls.clenshaw(x, coeffs)
 
     def __call__(self, x, model_set_axis=None):
         """
@@ -438,6 +412,26 @@ class Chebyshev1D(PolynomialModel):
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
         return self.clenshaw(x, self.param_sets)
+
+    @staticmethod
+    def clenshaw(x, coeffs):
+        """Evaluates the polynomial using Clenshaw's algorithm."""
+
+        if len(coeffs) == 1:
+            c0 = coeffs[0]
+            c1 = 0
+        elif len(coeffs) == 2:
+            c0 = coeffs[0]
+            c1 = coeffs[1]
+        else:
+            x2 = 2 * x
+            c0 = coeffs[-2]
+            c1 = coeffs[-1]
+            for i in range(3, len(coeffs) + 1):
+                tmp = c0
+                c0 = coeffs[-i] - c1
+                c1 = tmp + c1 * x2
+        return c0 + c1 * x
 
 
 class Legendre1D(PolynomialModel):
@@ -466,31 +460,20 @@ class Legendre1D(PolynomialModel):
             degree, n_models=n_models, model_set_axis=model_set_axis,
             **params)
 
-    def clenshaw(self, x, coeff):
-        if isinstance(x, tuple) or isinstance(x, list):
-            x = np.asarray(x)
-        if len(coeff) == 1:
-            c0 = coeff[0]
-            c1 = 0
-        elif len(coeff) == 2:
-            c0 = coeff[0]
-            c1 = coeff[1]
-        else:
-            nd = len(coeff)
-            c0 = coeff[-2]
-            c1 = coeff[-1]
-            for i in range(3, len(coeff) + 1):
-                tmp = c0
-                nd = nd - 1
-                c0 = coeff[-i] - (c1 * (nd - 1)) / nd
-                c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
-        return c0 + c1 * x
+    def prepare_inputs(self, x, **kwargs):
+        inputs, format_info = \
+                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
+        x = inputs[0]
+
+        if self.domain is not None:
+            x = poly_map_domain(x, self.domain, self.window)
+
+        return (x,), format_info
+
+    @classmethod
+    def evaluate(cls, x, *coeffs):
+        return cls.clenshaw(x, coeffs)
 
     def fit_deriv(self, x, *params):
         """
@@ -517,19 +500,24 @@ class Legendre1D(PolynomialModel):
             v[i] = (v[i - 1] * x * (2 * i - 1) - v[i - 2] * (i - 1)) / i
         return np.rollaxis(v, 0, v.ndim)
 
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x : scalar, list or array
-            input
-        """
-
-        if self.domain is not None:
-            x = poly_map_domain(x, self.domain, self.window)
-        return self.clenshaw(x, self.param_sets)
+    @staticmethod
+    def clenshaw(x, coeffs):
+        if len(coeffs) == 1:
+            c0 = coeffs[0]
+            c1 = 0
+        elif len(coeffs) == 2:
+            c0 = coeffs[0]
+            c1 = coeffs[1]
+        else:
+            nd = len(coeffs)
+            c0 = coeffs[-2]
+            c1 = coeffs[-1]
+            for i in range(3, len(coeffs) + 1):
+                tmp = c0
+                nd = nd - 1
+                c0 = coeffs[-i] - (c1 * (nd - 1)) / nd
+                c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
+        return c0 + c1 * x
 
 
 class Polynomial1D(PolynomialModel):
@@ -558,6 +546,21 @@ class Polynomial1D(PolynomialModel):
             degree, n_models=n_models, model_set_axis=model_set_axis,
             **params)
 
+    def prepare_inputs(self, x, **kwargs):
+        inputs, format_info = \
+                super(Polynomial1D, self).prepare_inputs(x, **kwargs)
+
+        x = inputs[0]
+
+        if self.domain is not None:
+            x = poly_map_domain(x, self.domain, self.window)
+
+        return (x,), format_info
+
+    @classmethod
+    def evaluate(cls, x, *coeffs):
+        return cls.horner(x, coeffs)
+
     def fit_deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
@@ -582,34 +585,12 @@ class Polynomial1D(PolynomialModel):
             v[i] = v[i - 1] * x
         return np.rollaxis(v, 0, v.ndim)
 
-    def horner(self, x, coef):
-        c0 = coef[-1] + x * 0
-        for i in range(2, len(coef) + 1):
-            c0 = coef[-i] + c0 * x
-        return c0
-
     @staticmethod
-    def evaluate(x, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
-
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x : scalar, list or array
-            input
-        """
-
-        inputs, format_info = self._prepare_inputs(x,
-                model_set_axis=model_set_axis)
-
-        result = self.horner(inputs[0], self.param_sets)
-
-        return self._prepare_outputs(format_info, result)
+    def horner(x, coeffs):
+        c0 = coeffs[-1] + x * 0
+        for i in range(2, len(coeffs) + 1):
+            c0 = coeffs[-i] + c0 * x
+        return c0
 
 
 class Polynomial2D(PolynomialModel):
@@ -655,34 +636,25 @@ class Polynomial2D(PolynomialModel):
         self.x_window = x_window
         self.y_window = y_window
 
-    def mhorner(self, x, y, coeff):
-        """
-        Multivariate Horner's scheme
+    def prepare_inputs(self, x, y, **kwargs):
+        inputs, format_info = \
+                super(Polynomial2D, self).prepare_inputs(x, y, **kwargs)
 
-        Parameters
-        --------------
-        x, y : array
-        coeff : array of coefficients in inverse lexical order
-        """
-        alpha = np.array(self._invlex())
-        r0 = coeff[0]
-        r1 = r0 * 0.0
-        r2 = r0 * 0.0
-        karr = np.diff(alpha, axis=0)
-        for n in range(len(karr)):
-            if karr[n, 1] != 0:
-                r2 = y * (r0 + r1 + r2)
-                r1 = coeff[0] * 0.
-            else:
-                r1 = x * (r0 + r1)
-            r0 = coeff[n + 1]
-        return r0 + r1 + r2
+        x, y = inputs
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
+        if x.shape != y.shape:
+            raise ValueError("Expected input arrays to have the same shape")
+
+        if self.x_domain is not None:
+            x = poly_map_domain(x, self.x_domain, self.x_window)
+        if self.y_domain is not None:
+            y = poly_map_domain(y, self.y_domain, self.y_window)
+
+        return (x, y), format_info
+
+    def evaluate(self, x, y, *coeffs):
+        invcoeff = self.invlex_coeff(coeffs)
+        return self.multivariate_horner(x, y, invcoeff)
 
     def fit_deriv(self, x, y, *params):
         """
@@ -725,40 +697,40 @@ class Polynomial2D(PolynomialModel):
             v = np.hstack([designx, designy])
         return v
 
-    def invlex_coeff(self):
-        coeff = []
+    def invlex_coeff(self, coeffs):
+        invlex_coeffs = []
         lencoeff = range(self.degree + 1)
         for i in lencoeff:
             for j in lencoeff:
                 if i + j <= self.degree:
                     name = 'c{0}_{1}'.format(j, i)
-                    coeff.append(getattr(self, name))
-        return np.array(coeff[::-1])
+                    coeff = coeffs[self.param_names.index(name)]
+                    invlex_coeffs.append(coeff)
+        return np.array(invlex_coeffs[::-1])
 
-    def __call__(self, x, y, model_set_axis=None):
+    def multivariate_horner(self, x, y, coeffs):
         """
-        Transforms data using this model.
+        Multivariate Horner's scheme
 
         Parameters
         --------------
-        x : scalar, list or array
-            input
-        y : scalar, list or array
-            input
+        x, y : array
+        coeff : array of coefficients in inverse lexical order
         """
 
-        inputs, format_info = self._prepare_inputs(
-            x, y, model_set_axis=model_set_axis)
-
-        x, y = inputs
-
-        invcoeff = self.invlex_coeff()
-        if x.shape != y.shape:
-            raise ValueError("Expected input arrays to have the same shape")
-
-        result = self.mhorner(x, y, invcoeff)
-
-        return self._prepare_outputs(format_info, result)
+        alpha = np.array(self._invlex())
+        r0 = coeffs[0]
+        r1 = r0 * 0.0
+        r2 = r0 * 0.0
+        karr = np.diff(alpha, axis=0)
+        for n in range(len(karr)):
+            if karr[n, 1] != 0:
+                r2 = y * (r0 + r1 + r2)
+                r1 = coeffs[0] * 0.
+            else:
+                r1 = x * (r0 + r1)
+            r0 = coeffs[n + 1]
+        return r0 + r1 + r2
 
 
 class Chebyshev2D(OrthoPolynomialBase):
@@ -817,12 +789,6 @@ class Chebyshev2D(OrthoPolynomialBase):
         for n in range(x_terms + 2, x_terms + y_terms):
             kfunc[n] = 2 * y * kfunc[n - 1] - kfunc[n - 2]
         return kfunc
-
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
 
     def fit_deriv(self, x, y, *params):
         """
@@ -940,12 +906,6 @@ class Legendre2D(OrthoPolynomialBase):
                                   (n - 1) * kfunc[n + x_terms - 2]) / (n)
         return kfunc
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
-
     def fit_deriv(self, x, y, *params):
         """
         Derivatives with repect to the coefficients.
@@ -1025,6 +985,12 @@ class _SIP1D(PolynomialBase):
             [('Order', self.order),
              ('Coeff. Prefix', self.coeff_prefix)])
 
+    def evaluate(self, x, y, *coeffs):
+        # TODO: Rewrite this so that it uses a simpler method of determining
+        # the matrix based on the number of given coefficients.
+        mcoef = self._coeff_matrix(self.coeff_prefix, coeffs)
+        return self._eval_sip(x, y, mcoef)
+
     def get_num_coeff(self, ndim):
         """
         Return the number of coefficients in one param set
@@ -1050,19 +1016,19 @@ class _SIP1D(PolynomialBase):
                     names.append('{0}_{1}_{2}'.format(coeff_prefix, i, j))
         return names
 
-    def _coef_matrix(self, coeff_prefix):
+    def _coeff_matrix(self, coeff_prefix, coeffs):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
             attr = '{0}_{1}_{2}'.format(coeff_prefix, i, 0)
-            mat[i, 0] = getattr(self, attr).value
+            mat[i, 0] = coeffs[self.param_names.index(attr)]
         for i in range(2, self.order + 1):
             attr = '{0}_{1}_{2}'.format(coeff_prefix, 0, i)
-            mat[0, i] = getattr(self, attr).value
+            mat[0, i] = coeffs[self.param_names.index(attr)]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
                     attr = '{0}_{1}_{2}'.format(coeff_prefix, i, j)
-                    mat[i, j] = getattr(self, attr).value
+                    mat[i, j] = coeffs[self.param_names.index(attr)]
         return mat
 
     def _eval_sip(self, x, y, coef):
@@ -1078,16 +1044,6 @@ class _SIP1D(PolynomialBase):
                 if i + j > 1 and i + j < self.order + 1:
                     result = result + coef[i, j] * x ** i * y ** j
         return result
-
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
-
-    def __call__(self, x, y):
-        mcoef = self._coef_matrix(self.coeff_prefix)
-        return self._eval_sip(x, y, mcoef)
 
 
 class SIP(Model):
@@ -1161,12 +1117,6 @@ class SIP(Model):
 
         return '\n'.join(parts)
 
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
-
     def inverse(self):
         if (self._ap_order is not None and self._bp_order is not None):
             return InverseSIP(self._ap_order, self._bp_order,
@@ -1174,11 +1124,11 @@ class SIP(Model):
         else:
             raise NotImplementedError("SIP inverse coefficients are not available.")
 
-    def __call__(self, x, y):
-        u = self.shift_a(x)
-        v = self.shift_b(y)
-        f = self.sip1d_a(u, v)
-        g = self.sip1d_b(u, v)
+    def evaluate(self, x, y):
+        u = self.shift_a.evaluate(x, *self.shift_a.param_sets)
+        v = self.shift_b.evaluate(y, *self.shift_b.param_sets)
+        f = self.sip1d_a.evaluate(u, v, *self.sip1d_a.param_sets)
+        g = self.sip1d_b.evaluate(u, v, *self.sip1d_b.param_sets)
         return f, g
 
 
@@ -1229,11 +1179,6 @@ class InverseSIP(Model):
         super(InverseSIP, self).__init__(n_models=n_models,
                                          model_set_axis=model_set_axis)
 
-    def __call__(self, x, y):
-        x1 = self.sip1d_ap(x, y)
-        y1 = self.sip1d_bp(x, y)
-        return x1, y1
-
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
             [self.sip1d_ap, self.sip1d_bp])
@@ -1245,3 +1190,8 @@ class InverseSIP(Model):
             parts.append('')
 
         return '\n'.join(parts)
+
+    def evaluate(self, x, y):
+        x1 = self.sip1d_ap.evaluate(x, y, *self.sip1d_ap.param_sets)
+        y1 = self.sip1d_bp.evaluate(x, y, *self.sip1d_bp.param_sets)
+        return x1, y1

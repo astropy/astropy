@@ -233,9 +233,15 @@ class Model(object):
     def __len__(self):
         return self._n_models
 
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
-        """Evaluate the model on some input variables."""
+    def __call__(self, *inputs, **kwargs):
+        inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+
+        outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
+
+        if self.n_outputs == 1:
+            outputs = (outputs,)
+
+        return self.prepare_outputs(format_info, *outputs, **kwargs)
 
     @property
     @deprecated('0.4', alternative='len(model)')
@@ -251,7 +257,9 @@ class Model(object):
         """
         Return parameters as a pset.
 
-        This is an array where each column represents one parameter set.
+        This is a list with one item per parameter set, which is an array of
+        that parameter's values across all parameter sets, with the last axis
+        associated with the parameter set.
         """
 
         values = [getattr(self, name).value for name in self.param_names]
@@ -357,53 +365,12 @@ class Model(object):
 
         raise NotImplementedError("Subclasses should implement this")
 
-    def add_model(self, model, mode):
-        """
-        Create a CompositeModel by chaining the current model with the new one
-        using the specified mode.
+    def evaluate(self, *args, **kwargs):
+        """Evaluate the model on some input variables."""
 
-        Parameters
-        ----------
-        model : an instance of a subclass of Model
-        mode :  string
-               'parallel', 'serial', 'p' or 's'
-               a flag indicating whether to combine the models
-               in series or in parallel
+        raise NotImplementedError("Subclasses should implement this")
 
-        Returns
-        -------
-        model : CompositeModel
-            an instance of CompositeModel
-        """
-
-        if mode in ['parallel', 'p']:
-            return SummedCompositeModel([self, model])
-        elif mode in ['serial', 's']:
-            return SerialCompositeModel([self, model])
-        else:
-            raise InputParameterError("Unrecognized mode {0}".format(mode))
-
-    def copy(self):
-        """
-        Return a copy of this model.
-
-        Uses a deep copy so that all model attributes, including parameter
-        values, are copied as well.
-        """
-
-        return copy.deepcopy(self)
-
-    def __call__(self, *inputs, **kwargs):
-        inputs, format_info = self._prepare_inputs(*inputs, **kwargs)
-
-        outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
-
-        if self.n_outputs == 1:
-            outputs = (outputs,)
-
-        return self._prepare_outputs(format_info, *outputs, **kwargs)
-
-    def _prepare_inputs(self, *inputs, **kwargs):
+    def prepare_inputs(self, *inputs, **kwargs):
         """
         This method is used in `Model.__call__` to ensure that all the inputs
         to the model can be broadcast into compatible shapes (if one or both of
@@ -447,11 +414,47 @@ class Model(object):
             return _prepare_inputs_model_set(self, params, inputs, n_models,
                                              model_set_axis, **kwargs)
 
-    def _prepare_outputs(self, format_info, *outputs, **kwargs):
+    def prepare_outputs(self, format_info, *outputs, **kwargs):
         if len(self) == 1:
             return _prepare_outputs_single_model(self, outputs, format_info)
         else:
             return _prepare_outputs_model_set(self, outputs, format_info)
+
+    def add_model(self, model, mode):
+        """
+        Create a CompositeModel by chaining the current model with the new one
+        using the specified mode.
+
+        Parameters
+        ----------
+        model : an instance of a subclass of Model
+        mode :  string
+               'parallel', 'serial', 'p' or 's'
+               a flag indicating whether to combine the models
+               in series or in parallel
+
+        Returns
+        -------
+        model : CompositeModel
+            an instance of CompositeModel
+        """
+
+        if mode in ['parallel', 'p']:
+            return SummedCompositeModel([self, model])
+        elif mode in ['serial', 's']:
+            return SerialCompositeModel([self, model])
+        else:
+            raise InputParameterError("Unrecognized mode {0}".format(mode))
+
+    def copy(self):
+        """
+        Return a copy of this model.
+
+        Uses a deep copy so that all model attributes, including parameter
+        values, are copied as well.
+        """
+
+        return copy.deepcopy(self)
 
     def _initialize_constraints(self, kwargs):
         """

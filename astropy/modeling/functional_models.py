@@ -425,6 +425,7 @@ class Redshift(Fittable1DModel):
     @staticmethod
     def evaluate(x, z):
         """One dimensional Redshift model function"""
+
         return (1 + z) * x
 
     @staticmethod
