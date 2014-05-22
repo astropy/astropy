@@ -219,7 +219,7 @@ listed below.
 
 
 In addition, another resource for the capabilities of this package is the
-``'astropy.coordinates.tests.test_api_ape5'`` testing file. It showcases most of
+``astropy.coordinates.tests.test_api_ape5`` testing file. It showcases most of
 the major capabilities of the package, and hence is a useful supplement to
 this document.  You can see it by either looking at it directly if you
 downloaded a copy of the astropy source code, or typing the following in an
