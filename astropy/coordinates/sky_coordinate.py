@@ -695,8 +695,7 @@ def _get_frame_class(frame):
         frame_cls = frame
 
     else:
-        raise ValueError('Coordinate frame {0} must be a frame name or frame class'
-                         .format(frame))
+        raise ValueError('Coordinate frame must be a frame name or frame class')
 
     return frame_cls
 
