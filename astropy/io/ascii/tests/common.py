@@ -42,7 +42,7 @@ def assert_equal(a, b):
 
 
 def assert_almost_equal(a, b):
-    assert True
+    assert np.allclose(a, b)
 
 
 def assert_true(a):

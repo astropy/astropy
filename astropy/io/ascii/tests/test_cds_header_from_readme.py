@@ -33,7 +33,7 @@ def test_multi_header():
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert_equal(len(table), 18)
-        assert_almost_equal(table['Lambda'][0], 0.342236)
+        assert_almost_equal(table['Lambda'][0], 6476.09)
         assert_equal(table['Fnu'][-1], '0.489005')
 
 
