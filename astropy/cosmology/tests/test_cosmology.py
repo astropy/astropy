@@ -54,6 +54,8 @@ def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04)
     assert np.allclose(cosmo.Om0, 0.27)
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    # This next test will fail if astropy.const starts returning non-mks
+    #  units by default; see the comment at the top of core.py
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
     assert np.allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
     assert np.allclose(cosmo.Ok0, 0.0)
@@ -411,6 +413,7 @@ def test_tcmb():
     assert np.allclose(cosmo.Tcmb(z).value,
                        [2.5, 5.0, 7.5, 10.0, 25.0], rtol=1e-6)
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_tnu():
     cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
@@ -555,6 +558,7 @@ def test_comoving_volume():
     assert np.allclose(c_closed.comoving_volume(redshifts).value,
                        wright_closed, rtol=1e-2)
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_differential_comoving_volume():
     from scipy.integrate import quad
@@ -563,7 +567,8 @@ def test_differential_comoving_volume():
     c_open = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
     c_closed = core.LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
 
-    # test that integration of differential_comoving_volume() yields same as comoving_volume()
+    # test that integration of differential_comoving_volume()
+    #  yields same as comoving_volume()
     redshifts = np.array([0.5, 1, 2, 3, 5, 9])
     wright_flat = np.array([29.123, 159.529, 630.427, 1178.531, 2181.485,
                             3654.802]) * 1e9  # convert to Mpc**3
@@ -586,6 +591,7 @@ def test_differential_comoving_volume():
     assert np.allclose(np.array([4.0 * np.pi * quad(ctemp, 0, redshift)[0]
                                  for redshift in redshifts]),
                        wright_closed, rtol=1e-2)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_open_closed_icosmo():
@@ -724,7 +730,8 @@ def test_integral():
     assert np.allclose(cosmo.comoving_distance(3),
                        cosmo.comoving_distance(3.0), rtol=1e-7)
     assert np.allclose(cosmo.comoving_distance([1, 2, 3, 5]),
-                       cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]), rtol=1e-7)
+                       cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]),
+                       rtol=1e-7)
     assert np.allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
     assert np.allclose(cosmo.efunc([1, 2, 6]),
                        cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
@@ -864,6 +871,8 @@ def test_neg_distmod():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_critical_density():
     # WMAP7 but with Omega_relativisitic = 0
+    # These tests will fail if astropy.const starts returning non-mks
+    #  units by default; see the comment at the top of core.py
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert np.allclose(tcos.critical_density0.value,
                        9.31000324385361e-30)
@@ -1040,18 +1049,10 @@ def test_z_at_value():
 
     # test behaviour when the solution is outside z limits (should
     # raise a CosmologyError)
-    try:
+    with pytest.raises(core.CosmologyError):
         z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
-    except core.CosmologyError:
-        pass
-    else:
-        raise RuntimeError('Test did not raise expected CosmologyError')
-    try:
+    with pytest.raises(core.CosmologyError):
         z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
-    except core.CosmologyError:
-        pass
-    else:
-        raise RuntimeError('Test did not raise expected CosmologyError')
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

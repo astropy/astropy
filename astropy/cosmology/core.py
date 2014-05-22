@@ -31,30 +31,22 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
-# Constants
-
-# Mpc in km
-Mpc_km = (1 * u.Mpc).to(u.km)
-
 # Some conversion constants -- useful to compute them once here
 #  and reuse in the initialization rather than have every object do them
-#  Note that the call to const.G.cgs.value is actually extremely expensive,
-#   so it is very useful to preload that one.  In fact, we skip using
-#   units for that as well, which is suprisingly expensive, because
-#   the conversion from G in mks to G in cgs is a rather trivial one.
-#   This assumes that constants will always return mks by default --
-#   if this is made faster for simple cases like this, it should
-#   be changed to just using const.G.cgs.value
+# Note that the call to cgs is actually extremely expensive,
+#  so we actually skip using the units package directly, and
+#  hardwire the conversion from mks to cgs. This assumes that constants
+#  will always return mks by default -- if this is made faster for simple
+#  cases like this, it should be changed back.
+# Note that the unit tests should catch it if this happens
 H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
 sec_to_Gyr = u.s.to(u.Gyr)
-critdens_const = 3. / (8. * pi * const.G.value * 1000)  # cgs const in critdens
-
-arcsec_in_radians = 1 / 3600. * pi / 180
-arcmin_in_radians = 1 / 60. * pi / 180
-
-# Radiation parameter over c^2 in cgs
-a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
-
+# const in critical density in cgs units (g cm^-3)
+critdens_const = 3. / (8. * pi * const.G.value * 1000)
+arcsec_in_radians = pi / (3600. * 180)
+arcmin_in_radians = pi / (60. * 180)
+# Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
+a_B_c2 = 4e-3 * const.sigma_sb.value / const.c.value ** 3
 # Boltzmann constant in eV / K
 kB_evK = const.k_B.to(u.eV / u.K)
 
@@ -153,8 +145,8 @@ class FLRW(Cosmology):
         cd0value = critdens_const * H0_s ** 2
         self._critical_density0 = u.Quantity(cd0value, u.g / u.cm ** 3)
 
-        # Load up neutrino masses.
-        self._nneutrinos = int(floor(self._Neff))  # In Py2.x, floor is floating
+        # Load up neutrino masses.  Note: in Py2.x, floor is floating
+        self._nneutrinos = int(floor(self._Neff))
 
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
@@ -2374,12 +2366,14 @@ for key in parameters.available:
                               Neff=par['Neff'],
                               m_nu=u.Quantity(par['m_nu'], u.eV),
                               name=key)
-        cosmo.__doc__ = "%s instance of FlatLambdaCDM cosmology\n\n(from %s)" % (key, par['reference'])
+        docstr = "%s instance of FlatLambdaCDM cosmology\n\n(from %s)"
+        cosmo.__doc__ = docstr % (key, par['reference'])
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
                           m_nu=u.Quantity(par['m_nu'], u.eV), name=key)
-        cosmo.__doc__ = "%s instance of LambdaCDM cosmology\n\n(from %s)" % (key, par['reference'])
+        docstr = "%s instance of LambdaCDM cosmology\n\n(from %s)"
+        cosmo.__doc__ = docstr % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
 # don't leave these variables floating around in the namespace
