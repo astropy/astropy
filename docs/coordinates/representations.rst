@@ -3,7 +3,7 @@
 Using and Designing Coordinate Representations
 ----------------------------------------------
 
-As described in :ref:`astropy-coordinates-overview`, the actual coordinate
+As described in the :ref:`astropy-coordinates-overview`, the actual coordinate
 data in `astropy.coordinates` frames is represented via
 "Representation classes". These can be used to store 3-d coordinates in
 various representations, such as cartesian, spherical polar, cylindrical, and
