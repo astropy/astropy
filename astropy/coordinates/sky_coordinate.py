@@ -11,6 +11,7 @@ from ..units import Unit
 from .. import units as u
 
 from .angles import Latitude, Longitude
+from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .builtin_frames import NoFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
@@ -453,7 +454,6 @@ class SkyCoord(object):
         ValueError
             If this or the other coordinate do not have distances.
         """
-        from . import Distance
 
         if isinstance(other, SkyCoord):
             self_in_other_system = self.transform_to(other.frame)
@@ -890,12 +890,15 @@ def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
         frame_cls = NoFrame
     for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
                                       (Latitude, 'lat', lat_unit),
-                                      (None, 'distance', None)):
+                                      (Distance, 'distance', None)):
         attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                   frame_cls.preferred_attr_names.items())
         name = attr_name_for_type[attr_type]
-        if name in kwargs:
-            value = kwargs.pop(name)
-            valid_kwargs[name] = attr_cls(value, unit=unit) if attr_cls else value
+        value = kwargs.pop(name, None)
+        if value is not None:
+            attr_cls_kwargs = {}
+            if unit is not None:
+                attr_cls_kwargs['unit'] = unit
+            valid_kwargs[name] = attr_cls(value, **attr_cls_kwargs)
 
     return valid_kwargs
