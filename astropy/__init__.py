@@ -117,7 +117,7 @@ def _get_test_runner():
 
 
 def test(package=None, test_path=None, args=None, plugins=None,
-         verbose=False, pastebin=None, remote_data=False, pep8=False,
+         verbose=False, pastebin=None, remote_data=False, slow=False, pep8=False,
          pdb=False, open_files=False, parallel=0, docs_path=None,
          skip_docs=False):
     """
@@ -157,6 +157,11 @@ def test(package=None, test_path=None, args=None, plugins=None,
         tests use online data and are not run by default. Set to True to
         run these tests.
 
+    slow : bool, optional
+        Controls whether to run tests marked with @slow. These
+        tests are slow and are not run by default. Set to True to
+        run these tests.
+
     pep8 : bool, optional
         Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
         tests. Same as specifying `--pep8 -k pep8` in `args`.
@@ -191,7 +196,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
     return test_runner.run_tests(
         package=package, test_path=test_path, args=args,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
-        remote_data=remote_data, pep8=pep8, pdb=pdb,
+        remote_data=remote_data, slow=slow, pep8=pep8, pdb=pdb,
         open_files=open_files, parallel=parallel, docs_path=docs_path,
         skip_docs=skip_docs)
 

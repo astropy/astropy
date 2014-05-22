@@ -36,6 +36,10 @@ from .disable_internet import turn_off_internet, turn_on_internet
 def pytest_addoption(parser):
     parser.addoption("--remote-data", action="store_true",
                      help="run tests with online data")
+
+    parser.addoption("--slow", action="store_true",
+                     help="run slow tests")
+
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")
 
@@ -469,6 +473,9 @@ def pytest_runtest_setup(item):
             not item.config.getvalue("remote_data")):
         pytest.skip("need --remote-data option to run")
 
+    if ('slow' in item.keywords and
+            not item.config.getvalue("slow")):
+        pytest.skip("need --slow option to run")
 
 if SUPPORTS_OPEN_FILE_DETECTION:
     def pytest_runtest_teardown(item, nextitem):
@@ -558,7 +565,7 @@ def pytest_report_header(config):
     except:
         s += "h5py: not available\n"
 
-    special_opts = ["remote_data", "pep8"]
+    special_opts = ["remote_data", "slow", "pep8"]
     opts = []
     for op in special_opts:
         if getattr(config.option, op, None):

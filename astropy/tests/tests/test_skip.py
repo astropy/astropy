@@ -4,7 +4,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..helper import remote_data
+from ..helper import remote_data, slow
 from ..helper import pytest
 
 
@@ -22,4 +22,20 @@ def test_skip_remote_data(pytestconfig):
 
     # astropy.test() has remote_data=True, so pass
     elif getattr(pytestconfig.option, 'remotedata'):
+        assert True
+
+@slow
+def test_skip_slow(pytestconfig):
+    # this test was called from the command line and it should behave as if
+    # astropy.test() has slow=True
+    if not hasattr(pytestconfig.option, 'slow'):
+        assert True
+
+    # astropy.test() has slow=False but we still got here somehow,
+    # so fail with a helpful message
+    elif not getattr(pytestconfig.option, 'slow'):
+        pytest.fail('@slow was not skipped with slow=False')
+
+    # astropy.test() has slow=True, so pass
+    elif getattr(pytestconfig.option, 'slow'):
         assert True

@@ -102,13 +102,15 @@ _rewrite._write_pyc = _write_pyc_wrapper
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
 
+# pytest marker to mark tests that are slow
+slow = pytest.mark.slow
 
 class TestRunner(object):
     def __init__(self, base_path):
         self.base_path = base_path
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data=False, pep8=False,
+                  verbose=False, pastebin=None, remote_data=False, slow=False, pep8=False,
                   pdb=False, coverage=False, open_files=False, parallel=0,
                   docs_path=None, skip_docs=False):
         """
@@ -186,6 +188,10 @@ class TestRunner(object):
         # run @remote_data tests
         if remote_data:
             all_args.append('--remote-data')
+
+        # run @slow tests
+        if slow:
+            all_args += ' --slow'
 
         if pep8:
             try:
@@ -341,6 +347,7 @@ class astropy_test(Command, object):
         ('args=', 'a',
          'Additional arguments to be passed to pytest.'),
         ('remote-data', 'R', 'Run tests that download remote data.'),
+        ('slow', 'S', 'Run slow tests.'),
         ('pep8', '8',
          'Enable PEP8 checking and disable regular tests. '
          'Requires the pytest-pep8 plugin.'),
@@ -373,6 +380,7 @@ class astropy_test(Command, object):
         self.pastebin = None
         self.args = None
         self.remote_data = False
+        self.slow = False
         self.pep8 = False
         self.pdb = False
         self.coverage = False
@@ -467,6 +475,7 @@ class astropy_test(Command, object):
                    'verbose={1.verbose_results!r}, '
                    'pastebin={1.pastebin!r}, '
                    'remote_data={1.remote_data!r}, '
+                   'slow={1.slow!r}, '
                    'pep8={1.pep8!r}, '
                    'pdb={1.pdb!r}, '
                    'open_files={1.open_files!r}, '
