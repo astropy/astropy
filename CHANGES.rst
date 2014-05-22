@@ -520,6 +520,17 @@ Other Changes and Additions
 - The ``human_time`` function in ``astropy.utils`` now returns strings
   without zero padding. [#2420]
 
+0.3.3
+-----
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.wcs``
+
+  - Fixes an unresolved external symbol error in the
+    `astropy.wcs._wcs` C extension on Microsoft Windows when built
+    with a Microsoft compiler. [#2478]
 
 0.3.2 (2014-05-13)
 ------------------
