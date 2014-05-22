@@ -168,7 +168,7 @@ edit_on_github_doc_root = "docs"
 
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
 
-# Enable nitpicky mode - which ensures that all references in the docs 
+# Enable nitpicky mode - which ensures that all references in the docs
 # resolve.
 
 nitpicky = True
@@ -184,4 +184,9 @@ for line in open('nitpick-exceptions'):
 if six.PY2:
     nitpick_ignore.extend([(six.u('py:class'), six.u('object')),
                            ('py:obj', six.u('bytes')),
-                           ('py:obj', six.u('bases'))])
+                           ('py:obj', six.u('bases')),
+                           ('py:obj', six.u('urllib.request.urlopen')),
+                           ('py:class', six.u('concurrent.futures.Future')),
+                           ('py:class', six.u('concurrent.futures.ThreadPoolExecutor')),
+                           ('py:obj', six.u('exceptions.TimeoutError')),
+                           ('py:obj', six.u('queue.Queue'))])
