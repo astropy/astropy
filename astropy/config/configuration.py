@@ -386,6 +386,12 @@ class ConfigItem(object):
         TypeError
             If the configuration value as stored is not this item's type.
         """
+        def section_name(section):
+            if section == '':
+                return 'at the top-level'
+            else:
+                return 'in section [{0}]'.format(section)
+
         options = []
         sec = get_config(self.module)
         if self.name in sec:
@@ -394,13 +400,21 @@ class ConfigItem(object):
         for alias in self.aliases:
             module, name = alias.rsplit('.', 1)
             sec = get_config(module)
-            filename, module = module.split('.', 1)
+            if '.' in module:
+                filename, module = module.split('.', 1)
+            else:
+                filename = module
+                module = ''
             if name in sec:
+                if '.' in self.module:
+                    new_module = module.split('.', 1)[1]
+                else:
+                    new_module = ''
                 warn(
-                    "Config parameter '{0}' in section [{1}] of the file '{2}' "
-                    "is deprecated. Use '{3}' in section [{4}] instead.".format(
-                        name, module, get_config_filename(filename),
-                        self.name, self.module.split('.', 1)[1]),
+                    "Config parameter '{0}' {1} of the file '{2}' "
+                    "is deprecated. Use '{3}' {4} instead.".format(
+                        name, section_name(module), get_config_filename(filename),
+                        self.name, section_name(new_module)),
                     AstropyDeprecationWarning)
                 options.append((sec[name], module, name))
 
@@ -411,11 +425,12 @@ class ConfigItem(object):
         if len(options) > 1:
             filename, sec = self.module.split('.', 1)
             warn(
-                "Config parameter '{0}' in section [{1}] of the file '{2}' is "
+                "Config parameter '{0}' {1} of the file '{2}' is "
                 "given by more than one alias ({3}). Using the first.".format(
-                    self.name, sec, get_config_filename(filename),
+                    self.name, section_name(sec), get_config_filename(filename),
                     ', '.join([
-                        '.'.join(x[1:3]) for x in options if x[1] is not None])))
+                        '.'.join(x[1:3]) for x in options if x[1] is not None])),
+                AstropyDeprecationWarning)
 
         val = options[0][0]
 
