@@ -10,7 +10,7 @@ other fitters.
 
 Linear fitting is done using the `numpy.linalg.lstsq` function.  There are
 currently two non-linear fitters which use `scipy.optimize.leastsq` and
-`scipy.optimize.slsqp` functions in `scipy.optimize`.
+`scipy.optimize.fmin_slsqp` functions in `scipy.optimize`.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
@@ -89,22 +89,22 @@ class Fitter(object):
 
     def _validate_constraints(self, model):
         message = '{0} cannot handle {{0}} constraints.'.format(
-                self.__class__.__name__)
+            self.__class__.__name__)
 
         if (any(model.fixed.values()) and
                 'fixed' not in self.supported_constraints):
             raise UnsupportedConstraintError(
-                    message.format('fixed parameter'))
+                message.format('fixed parameter'))
 
         if (any(model.tied.values()) and
                 'tied' not in self.supported_constraints):
             raise UnsupportedConstraintError(
-                    message.format('tied parameter'))
+                message.format('tied parameter'))
 
         if (any([tuple(b) != (None, None) for b in model.bounds.values()]) and
                 'bounds' not in self.supported_constraints):
             raise UnsupportedConstraintError(
-                    message.format('bound parameter'))
+                message.format('bound parameter'))
 
         if model.eqcons and 'eqcons' not in self.supported_constraints:
             raise UnsupportedConstraintError(message.format('equality'))
@@ -134,7 +134,7 @@ class Fitter(object):
         if any(model.fixed.values()) or any(model.tied.values()):
             model.parameters[_fit_param_indices] = fps
             for idx, name in enumerate(model.param_names):
-                if model.tied[name] != False:
+                if model.tied[name] is not False:
                     value = model.tied[name](model)
                     slice_ = model._param_metrics[name][0]
                     model.parameters[slice_] = value
@@ -259,9 +259,9 @@ class LinearLSQFitter(Fitter):
         weights : array (optional)
             weights
         rcond :  float, optional
-            Cut-off ratio for small singular values of `a`.
+            Cut-off ratio for small singular values of ``a``.
             Singular values are set to zero if they are smaller than ``rcond``
-            times the largest singular value of `a`.
+            times the largest singular value of ``a``.
 
         Returns
         -------
@@ -376,7 +376,8 @@ class NonLinearLSQFitter(Fitter):
     Attributes
     ----------
     fit_info : dict
-        The `scipy.optimize.leastsq` result for the most recent fit (see notes).
+        The `scipy.optimize.leastsq` result for the most recent fit (see
+        notes).
 
 
     Raises
@@ -388,10 +389,10 @@ class NonLinearLSQFitter(Fitter):
     -----
     The ``fit_info`` dictionary contains the values returned by
     `scipy.optimize.leastsq` for the most recent fit, including the values
-    inside  the ``infodict`` dictionary. See the `scipy.optimize.leastsq`
-    documentation for details on the meaning of these values. Note that the ``x``
-    return value is *not* included (as it is instead the parameter values of the
-    returned model).
+    inside the ``infodict`` dictionary. See the `scipy.optimize.leastsq`
+    documentation for details on the meaning of these values. Note that the
+    ``x`` return value is *not* included (as it is instead the parameter
+    values of the returned model).
 
     Additionally, one additional element of ``fit_info`` is computed whenever a
     model is fit, with the key 'param_cov'. The corresponding value is the
@@ -439,9 +440,9 @@ class NonLinearLSQFitter(Fitter):
         self._fitter_to_model_params(model, fps)
         meas = args[-1]
         if self._weights is None:
-            return np.ravel(model(*args[1 : -1]) - meas)
+            return np.ravel(model(*args[1:-1]) - meas)
         else:
-            return np.ravel(self._weights * (model(*args[1 : -1]) - meas))
+            return np.ravel(self._weights * (model(*args[1:-1]) - meas))
 
     # @property
     # def covar(self):
@@ -503,7 +504,8 @@ class NonLinearLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
-            raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
+            raise NotImplementedError("Fitting of composite models is not "
+                                      "implemented in astropy v.0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of FittableModel")
         self._validate_constraints(model)
@@ -534,7 +536,7 @@ class NonLinearLSQFitter(Fitter):
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
 
-        #now try to compute the true covariance matrix
+        # now try to compute the true covariance matrix
         if (len(y) > len(init_values)) and cov_x is not None:
             sum_sqrs = np.sum(self.errorfunc(fitparams, *farg)**2)
             dof = len(y) - len(init_values)
@@ -570,7 +572,8 @@ class NonLinearLSQFitter(Fitter):
             pars = [getattr(model, name) for name in model.param_names]
             fixed = [par.fixed for par in pars]
             tied = [par.tied for par in pars]
-            tied = list(np.where([par.tied != False for par in pars], True, tied))
+            tied = list(np.where([par.tied is not False for par in pars],
+                                 True, tied))
             fix_and_tie = np.logical_or(fixed, tied)
             ind = np.logical_not(fix_and_tie)
 
@@ -619,7 +622,7 @@ class SLSQPFitter(Fitter):
 
     def errorfunc(self, fps, *args):
         """
-        Compute the sum of the squared residuals
+        Compute the sum of the squared residuals.
 
         Parameters
         ----------
@@ -670,7 +673,8 @@ class SLSQPFitter(Fitter):
             a copy of the input model with parameters set by the fitter
         """
         if isinstance(model, _CompositeModel):
-            raise NotImplementedError("Fitting of composite models is not implemented in astropy v.0.3.")
+            raise NotImplementedError("Fitting of composite models is not "
+                                      "implemented in astropy v.0.3.")
         if not model.fittable:
             raise ValueError("Model must be a subclass of FittableModel")
         if model.linear:
@@ -691,7 +695,7 @@ class SLSQPFitter(Fitter):
 
         p0, param_indices = self._model_to_fit_params(model_copy)
         pars = [getattr(model_copy, name) for name in model_copy.param_names]
-        bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
+        bounds = [par.bounds for par in pars if par.fixed is not True and par.tied == False]
 
         bounds = np.asarray(bounds)
         for i in bounds:
@@ -704,10 +708,10 @@ class SLSQPFitter(Fitter):
         eqcons = np.array(model_copy.eqcons)
         ineqcons = np.array(model_copy.ineqcons)
         fitparams, final_func_val, numiter, exit_mode, mess = \
-            optimize.fmin_slsqp(
-            self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
-            bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
-            acc=1.E-6, epsilon=DEFAULT_EPS)
+            optimize.fmin_slsqp(self.errorfunc, p0, args=farg, disp=verblevel,
+                                full_output=1, bounds=bounds, eqcons=eqcons,
+                                ieqcons=ineqcons, iter=maxiter, acc=1.E-6,
+                                epsilon=DEFAULT_EPS)
 
         self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info['final_func_val'] = final_func_val

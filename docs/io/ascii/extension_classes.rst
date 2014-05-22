@@ -11,7 +11,7 @@ are fairly general and include a number of configurable attributes.  Others
 such as :class:`~astropy.io.ascii.Cds` or :class:`~astropy.io.ascii.Daophot` are specialized to read certain
 well-defined but idiosyncratic formats.
 
-* :class:`~astropy.io.ascii.AASTex`: AASTeX `deluxetable` used for AAS journals
+* :class:`~astropy.io.ascii.AASTex`: AASTeX `deluxetable <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ used for AAS journals
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
 * :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
 * :class:`~astropy.io.ascii.CommentedHeader`: column names given in a line that begins with the comment character
@@ -20,7 +20,7 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.FixedWidthNoHeader`: table with fixed-width columns and no header
 * :class:`~astropy.io.ascii.FixedWidthTwoLine`: table with fixed-width columns and a two-line header
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-* :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the `tabular` environment
+* :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.NoHeader`: basic table with no header where columns are auto-named
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_

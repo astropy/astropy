@@ -1188,7 +1188,7 @@ class UnitBase(object):
             ones include `astropy.units.si` and `astropy.units.cgs`.
 
             To use your own module it must contain unit objects and a
-            sequence member named `bases` containing the base units of
+            sequence member named ``bases`` containing the base units of
             the system.
 
         Returns
@@ -1890,7 +1890,7 @@ class CompositeUnit(UnitBase):
         A sequence of units this unit is composed of.
 
     powers : sequence of numbers
-        A sequence of powers (in parallel with `bases`) for each
+        A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
     def __init__(self, scale, bases, powers, decompose=False,

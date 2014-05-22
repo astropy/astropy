@@ -1356,9 +1356,10 @@ def custom_model_1d(func, func_fit_deriv=None):
     func : function
         Function which defines the model.  It should take one positional
         argument (the independent variable in the model), and any number of
-        keyword arguments (the parameters).  It must return the value
-        of the model (typically as an array, but can also be a scalar for
-        scalar inputs).  This corresponds to the :meth:`~astropy.modeling.FittableModel.eval` method.
+        keyword arguments (the parameters).  It must return the value of the
+        model (typically as an array, but can also be a scalar for scalar
+        inputs).  This corresponds to the
+        ``astropy.modeling.FittableModel.eval`` method.
     func_fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should

@@ -911,7 +911,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             The data in the HDU.
 
         header : Header instance
-            The header to be used (as a template).  If `header` is
+            The header to be used (as a template).  If ``header`` is
             `None`, a minimal header will be provided.
 
         name : str, optional

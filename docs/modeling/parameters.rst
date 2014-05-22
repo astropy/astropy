@@ -21,11 +21,10 @@ shape ``(len(param_names), param_dim)``, where
 Typically the array is of type float but can become an object array in some
 cases. `~astropy.modeling.Model.param_sets` is used for model evaluation.
 
-In addition, fittable models maintain an attribute,
-`~astropy.modeling.FittableModel.parameters`, which is a flattened 1D
-array of parameter values. It serves as the primary storage of the raw values
-of fittable models' parameters, and is used directly by fitters as an efficient
-means of reading and updating a model's parameters.
+In addition, fittable models maintain an attribute, ``parameters``, which is
+a flattened 1D array of parameter values. It serves as the primary storage
+of the raw values of fittable models' parameters, and is used directly by
+fitters as an efficient means of reading and updating a model's parameters.
 
 
 Parameter examples
@@ -40,8 +39,7 @@ Parameter examples
     >>> p1.parameters
     array([ 0.,  0.,  0.,  0.,  0.])
 
-- Coefficients can be set using the
-  `~astropy.modeling.FittableModel.parameters` attribute::
+- Coefficients can be set using the ``parameters`` attribute::
 
     >>> p1.parameters = [0, 1, 2, 3, 4]
     >>> p1.parameters
@@ -54,7 +52,7 @@ Parameter examples
     >>> coeff = dict((name, [idx, idx + 10])
     ...              for idx, name in enumerate(ch2.param_names))
     >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, **coeff)
-    INFO: Inferred 2 dimensions when creating a Chebyshev2D model. Resetting param_dim to 2 [astropy.modeling.polynomial] 
+    INFO: Inferred 2 dimensions when creating a Chebyshev2D model. Resetting param_dim to 2 [astropy.modeling.polynomial]
     >>> ch2.param_sets
     array([[  0.,  10.],
            [  1.,  11.],
