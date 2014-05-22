@@ -285,16 +285,19 @@ It should be set to zero for an image header or pixel list.
 """
 
 compare = """
-compare(cmp, other)
+compare(other, cmp=0)
 
 Compare two Wcsprm objects for equality.
 
 Parameters
 ----------
 
-cmp : int
+other : Wcsprm
+    The other Wcsprm object to compare to.
+
+cmp : int, optional
     A bit field controlling the strictness of the comparison.  When 0,
-    all fields must be identical.
+    (the default), all fields must be identical.
 
     The following constants may be or'ed together to loosen the
     comparison.
@@ -312,9 +315,6 @@ cmp : int
       ``CRPIXja``.  The two WCSes cover different regions of the same
       map projection but may not align on the same grid map.
       Overrides ``WCSCOMPARE_TILING``.
-
-other : Wcsprm
-    The other Wcsprm object to compare to.
 
 Returns
 -------

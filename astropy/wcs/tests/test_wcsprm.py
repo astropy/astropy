@@ -757,5 +757,5 @@ def test_compare():
     w.equinox = 42
     assert w == w2
 
-    assert not w.compare(0, w2)
-    assert w.compare(_wcs.WCSCOMPARE_ANCILLARY, w2)
+    assert not w.compare(w2)
+    assert w.compare(w2, _wcs.WCSCOMPARE_ANCILLARY)
