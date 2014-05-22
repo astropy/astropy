@@ -18,7 +18,7 @@ import warnings
 import numpy as np
 
 from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings
+from ..utils.misc import isiterable, InheritDocstrings, lazyproperty
 from .utils import is_effectively_unity, sanitize_scale, validate_power
 from . import format as unit_format
 
@@ -1220,26 +1220,22 @@ class UnitBase(object):
         composed = sorted(composed, key=score, reverse=True)
         return composed
 
-    @property
+    @lazyproperty
     def si(self):
         """
         Returns a copy of the current `Unit` instance in SI units.
         """
 
         from . import si
-        if not hasattr(self, '_si'):
-            self._si = self.to_system(si)[0]
-        return self._si
+        return self.to_system(si)[0]
 
-    @property
+    @lazyproperty
     def cgs(self):
         """
         Returns a copy of the current `Unit` instance with CGS units.
         """
         from . import cgs
-        if not hasattr(self, '_cgs'):
-            self._cgs = self.to_system(cgs)[0]
-        return self._cgs
+        return self.to_system(cgs)[0]
 
     @property
     def physical_type(self):
