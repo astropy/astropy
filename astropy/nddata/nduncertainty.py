@@ -151,14 +151,14 @@ class StdDevUncertainty(NDUncertainty):
     support_correlated = False
 
     def __init__(self, array=None, copy=True):
+        self._unit = None
         if array is None:
             self.array = None
         elif isinstance(array, StdDevUncertainty):
             self.array = np.array(array.array, copy=copy, subok=True)
         elif isinstance(array, Quantity):
-            raise ValueError("Quantity and NDData have not been "
-                             "integrated yet. Try initializing uncertainty "
-                             "using the Quantity's value as the data.")
+            self.array = np.array(array.value, copy=copy, subok=True)
+            self._unit = array.unit
         else:
             self.array = np.array(array, copy=copy, subok=True)
 

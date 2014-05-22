@@ -146,11 +146,6 @@ class NDData(object):
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
         else:
-            if isinstance(data, Quantity):
-                raise ValueError("Quantity and NDData have not been "
-                                 "integrated yet. Try initializing using the "
-                                 "Quantity's value as the NDData data and "
-                                 "its unit as the NDData unit.")
             if hasattr(data, 'mask'):
                 self.data = np.array(data.data, subok=True, copy=False)
 
@@ -162,15 +157,29 @@ class NDData(object):
                              "mask will be ignored.")
                 else:
                     self.mask = data.mask
+            elif isinstance(data, Quantity):
+                self.data = np.array(data.value, subok=True, copy=False)
+                self.mask = mask
             else:
                 self.data = np.array(data, subok=True, copy=False)
                 self.mask = mask
 
-            self.uncertainty = uncertainty
             self.flags = flags
             self.wcs = wcs
             self.meta = meta
-            self.unit = unit
+            if isinstance(data, Quantity):
+                if unit is not None:
+                    raise ValueError("Cannot use the unit argument when data "
+                                     "is a Quantity")
+                else:
+                    self.unit = data.unit
+            else:
+                self.unit = unit
+            # This must come after self's unit has been set so that the unit
+            # of the uncertainty, if any, can be converted to the unit of the
+            # unit of self.
+            self.uncertainty = uncertainty
+
 
     def __str__(self):
         return str(self.data)
@@ -234,6 +243,20 @@ class NDData(object):
     def uncertainty(self, value):
         if value is not None:
             if isinstance(value, NDUncertainty):
+                class_name = self.__class__.__name__
+                if self.unit and value._unit:
+                    try:
+                        scaling = (1 * value._unit).to(self.unit)
+                    except UnitsError:
+                        raise UnitsError('Cannot convert unit of uncertainty '
+                                         'to unit of '
+                                         '{0} object.'.format(class_name))
+                    value.array *= scaling
+                elif not self.unit and value._unit:
+                    # Raise an error if uncertainty has unit and data does not
+                    raise ValueError("Cannot assign an uncertainty with unit "
+                                     "to {0} without "
+                                     "a unit".format(class_name))
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
             else:
