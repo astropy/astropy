@@ -120,7 +120,7 @@ definitions of the input tables::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
-    # the column attribute is the column definitions
+    >>> # the column attribute is the column definitions
     >>> t = t1[1].columns + t2[1].columns
     >>> hdu = fits.new_table(t)
     >>> hdu.writeto('newtable.fits')
@@ -161,20 +161,20 @@ the first table::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
-    # one way to find the number of records
+    >>> # one way to find the number of records
     >>> nrows1 = t1[1].data.shape[0]
-    # another way to find the number of records
+    >>> # another way to find the number of records
     >>> nrows2 = t2[1].header['naxis2']
-    # total number of rows in the table to be generated
+    >>> # total number of rows in the table to be generated
     >>> nrows = nrows1 + nrows2
     >>> hdu = fits.new_table(t1[1].columns, nrows=nrows)
-    # first case, append by the order of fields
+    >>> # first case, append by the order of fields
     >>> for i in range(len(t1[1].columns)):
     ... hdu.data.field(i)[nrows1:]=t2[1].data.field(i)
-    # or, second case, append by the field names
+    >>> # or, second case, append by the field names
     >>> for name in t1[1].columns.names:
     ... hdu.data.field(name)[nrows1:]=t2[1].data.field(name)
-    # write the new table to a FITS file
+    >>> # write the new table to a FITS file
     >>> hdu.writeto('newtable.fits')
 
 

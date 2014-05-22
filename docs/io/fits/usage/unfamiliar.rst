@@ -72,8 +72,7 @@ The other difference is the need to specify the table type when using either
 
 The default value for tbtype is ``BinTableHDU``.
 
-     >>>
-     # Define the columns
+     >>> # Define the columns
      >>> import numpy as np
      >>> from astropy.io import fits
      >>> a1 = np.array(['abcd', 'def'])
@@ -82,10 +81,10 @@ The default value for tbtype is ``BinTableHDU``.
      >>> c2 = fits.Column(name='def', format='E', array=r1,
      ...                  bscale=2.3, bzero=0.6)
      >>> c3 = fits.Column(name='t1', format='I', array=[91, 92, 93])
-     # Create the table
+     >>> # Create the table
      >>> x = fits.ColDefs([c1, c2, c3], tbtype='TableHDU')
      >>> hdu = fits.new_table(x, tbtype='TableHDU')
-     # Or, simply,
+     >>> # Or, simply,
      >>> hdu = fits.new_table([c1, c2, c3], tbtype='TableHDU')
      >>> hdu.writeto('ascii.fits')
      >>> hdu.data
@@ -151,17 +150,17 @@ is regular and the other variable length array.
                                          [11, 12, 13]],
     ...                                 dtype=np.object))
     >>> c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
-    # the rest is the same as a regular table.
-    # Create the table HDU
+    >>> # the rest is the same as a regular table.
+    >>> # Create the table HDU
     >>> tbhdu = fits.new_table([c1, c2])
     >>> print tbhdu.data
     FITS_rec([(array([45, 56]), array([11,  3], dtype=int16)),
               (array([11, 12, 13]), array([12,  4], dtype=int16))],
              dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
-    # write to a FITS file
+    >>> # write to a FITS file
     >>> tbhdu.writeto('var_table.fits')
     >>> hdu = fits.open('var_table.fits')
-    # Note that heap info is taken care of (PCOUNT) when written to FITS file.
+    >>> # Note: heap info is taken care of (PCOUNT) when written to FITS file.
     >>> hdu[1].header
     XTENSION= 'BINTABLE'       / binary table extension
     BITPIX  =                8 / array data type
@@ -266,14 +265,13 @@ name:
 Note that the parameter name 'date' appears twice. This is a feature in the
 random access group, and it means to add the values together. Thus:
 
-    >>>
-    # Duplicate group parameter name 'date' for 5th and 6th parameters
+    >>> # Duplicate group parameter name 'date' for 5th and 6th parameters
     >>> print f[0].data.par(4)[99]
     2445728.0
     >>> print f[0].data.par(5)[99]
     0.10
-    # When accessed by name, it adds the values together if the name is shared
-    # by more than one parameter
+    >>> # When accessed by name, it adds the values together if the name is 
+    >>> # shared by more than one parameter
     >>> print f[0].data.par('date')[99]
     2445728.10
 
@@ -282,11 +280,10 @@ data item (a group). So there are two possible ways to get a group parameter
 for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method):
 
-    >>>
-    # Access group parameter by selecting the row (group) number last
+    >>> # Access group parameter by selecting the row (group) number last
     >>> print f[0].data.par(0)[99]
     -8.1987486677035799e-06
-    # Access group parameter by selecting the row (group) number first
+    >>> # Access group parameter by selecting the row (group) number first
     >>> print f[0].data[99].par(0)
     -8.1987486677035799e-06
 
@@ -296,15 +293,12 @@ value directly (if accessing the row/group number last) or use the
 method :meth:``~GroupData.setpar`` is also needed for updating by name if the
 parameter is shared by more than one parameters:
 
-    >>>
-    # Update group parameter when selecting the row (group) number last
+    >>> # Update group parameter when selecting the row (group) number last
     >>> f[0].data.par(0)[99] = 99.
-    >>>
-    # Update group parameter when selecting the row (group) number first
+    >>> # Update group parameter when selecting the row (group) number first
     >>> f[0].data[99].setpar(0, 99.) # or setpar('uu--', 99.)
-    >>>
-    # Update group parameter by name when the name is shared by more than
-    # one parameters, the new value must be a tuple of constants or sequences
+    >>> # Update group parameter by name when the name is shared by more than
+    >>> # one parameters, the new value must be a tuple of constants or sequences
     >>> f[0].data[99].setpar('date', (2445729., 0.3))
     >>> f[0].data[:3].setpar('date', (2445729., [0.11, 0.22, 0.33]))
     >>> f[0].data[:3].par('date')
@@ -332,21 +326,20 @@ To create a random access group HDU from scratch, use :meth:`GroupData` to
 encapsulate the data into the group data structure, and use :meth:`GroupsHDU`
 to create the HDU itself:
 
-    >>>
-    # Create the image arrays. The first dimension is the number of groups.
+    >>> # Create the image arrays. The first dimension is the number of groups.
     >>> imdata = numpy.arange(100.0, shape=(10, 1, 1, 2, 5))
-    # Next, create the group parameter data, we'll have two parameters.
-    # Note that the size of each parameter's data is also the number of groups.
-    # A parameter's data can also be a numeric constant.
+    >>> # Next, create the group parameter data, we'll have two parameters.
+    >>> # Note that the size of each parameter's data is also the number of groups.
+    >>> # A parameter's data can also be a numeric constant.
     >>> pdata1 = numpy.arange(10) + 0.1
     >>> pdata2 = 42
-    # Create the group data object, put parameter names and parameter data
-    # in lists assigned to their corresponding arguments.
-    # If the data type (bitpix) is not specified, the data type of the image
-    # will be used.
+    >>> # Create the group data object, put parameter names and parameter data
+    >>> # in lists assigned to their corresponding arguments.
+    >>> # If the data type (bitpix) is not specified, the data type of the image
+    >>> # will be used.
     >>> x = fits.GroupData(imdata, parnames=['abc', 'xyz'],
     ...                    pardata=[pdata1, pdata2], bitpix=-32)
-    # Now, create the GroupsHDU and write to a FITS file.
+    >>> # Now, create the GroupsHDU and write to a FITS file.
     >>> hdu = fits.GroupsHDU(x)
     >>> hdu.writeto('test_group.fits')
     >>> hdu.header
@@ -511,7 +504,6 @@ other image HDU.
 
     >>> hdu = fits.CompImageHDU(imageData, imageHeader)
     >>> hdu.writeto('compressed_image.fits')
-    >>>
 
 The API documentation for the :class:`CompImageHDU` initializer method
 describes the possible options for constructing a :class:`CompImageHDU` object.
