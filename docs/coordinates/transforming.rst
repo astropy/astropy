@@ -20,7 +20,7 @@ The simplest for of transformation is simply::
     >>> from astropy.coordinates import SkyCoord
     >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
     >>> gc.fk5
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
 
 While this appears to be simple attribute-style access, it is actually
 just syntactic sugar for the
@@ -30,9 +30,9 @@ classes::
 
     >>> from astropy.coordinates import FK5
     >>> gc.transform_to('fk5')
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
     >>> gc.transform_to(FK5)
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.12841764... deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
 
 
 The full list of supported coordinate systems and transformations is
@@ -62,7 +62,7 @@ You can also specify the equinox when you create a coordinate using an
     ...            equinox=Time('J1970', scale='utc'))
     >>> fk5_2000 = FK5(equinox=Time(2000, format='jyear', scale='utc'))
     >>> fk5c.transform_to(fk5_2000)
-    <SkyCoord (FK5): equinox=2000.0, ra=48.0231710002 deg, dec=89.386724854 deg>
+    <SkyCoord (FK5): equinox=2000.0, ra=48.02317... deg, dec=89.38672... deg>
 
 The same lower-level frame classes also have a
 :meth:`~astropy.coordinates.BaseCoordinateFrame.transform_to` method

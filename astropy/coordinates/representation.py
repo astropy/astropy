@@ -312,6 +312,8 @@ class SphericalRepresentation(BaseRepresentation):
             return PhysicsSphericalRepresentation(phi=self.lon,
                                                   theta=90 * u.deg - self.lat,
                                                   r=self.distance)
+        elif other_class is UnitSphericalRepresentation:
+            return UnitSphericalRepresentation(lon=self.lon, lat=self.lat)
         else:
             return super(SphericalRepresentation, self).represent_as(other_class)
 
@@ -436,6 +438,17 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def components(self):
         return 'lon', 'lat'
 
+    def represent_as(self, other_class):
+        # Take a short cut if the other clsss is a spherical representation
+        if other_class is PhysicsSphericalRepresentation:
+            return PhysicsSphericalRepresentation(phi=self.lon,
+                                                  theta=90 * u.deg - self.lat,
+                                                  r=1.0)
+        elif other_class is SphericalRepresentation:
+            return SphericalRepresentation(lon=self.lon, lat=self.lat, distance=1.0)
+        else:
+            return super(UnitSphericalRepresentation, self).represent_as(other_class)
+
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """
@@ -523,6 +536,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             return SphericalRepresentation(lon=self.phi,
                                            lat=90 * u.deg - self.theta,
                                            distance=self.r)
+        elif other_class is UnitSphericalRepresentation:
+            return UnitSphericalRepresentation(lon=self.phi,
+                                               lat=90 * u.deg - self.theta)
         else:
             return super(PhysicsSphericalRepresentation, self).represent_as(other_class)
 

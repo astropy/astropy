@@ -375,16 +375,17 @@ def test_seps():
 
 
 def test_repr():
+    # Repr tests must use exact floating point vals because Python 2.6
+    # outputs values like 0.1 as 0.1000000000001.  No workaround found.
     sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
     sc2 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
 
     assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
     assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
 
-    sc3 = SkyCoord('icrs', 0.1 * u.deg, [1, 2.5] * u.deg)
+    sc3 = SkyCoord('icrs', 0.25 * u.deg, [1, 2.5] * u.deg)
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
-                         '    [(0.10000000000002274, 1.0), (0.10000000000002274, 2.5)]>')
-
+                         '    [(0.25, 1.0), (0.25, 2.5)]>')
 
     sc_noframe = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_noframe) == '<SkyCoord (NoFrame): ra=0.0 deg, dec=1.0 deg>'

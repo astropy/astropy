@@ -104,7 +104,8 @@ def test_converting_units():
     # the decimal point  to fix rounding problems
     rexrepr = re.compile(r'(.*?=\d\.).*?( .*?=\d\.).*?( .*)')
 
-    i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
+    # Use values that aren't subject to rounding down to X.9999...
+    i2 = ICRS(ra=1.1*u.deg, dec=2.1*u.deg)
 
     #converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
@@ -113,6 +114,7 @@ def test_converting_units():
     ri2 = ''.join(rexrepr.split(repr(i2)))
     ri4 = ''.join(rexrepr.split(repr(i4)))
     assert ri2 == ri4
+    assert i2.data.lon.unit != i4.data.lon.unit  # Internal repr changed
 
     #but that *shouldn't* hold if we turn off preferred_attr_units
     class FakeICRS(ICRS):
@@ -121,6 +123,7 @@ def test_converting_units():
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
     rfi = ''.join(rexrepr.split(repr(fi)))
+    rfi = re.sub('FakeICRS', 'ICRS', rfi)  # Force frame name to match
     assert ri2 != rfi
 
     # the attributes should also get the right units

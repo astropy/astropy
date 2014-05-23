@@ -37,17 +37,17 @@ using aptly named attributes::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
     >>> c.ra
-    <Longitude 10.68457999999999 deg>
+    <Longitude 10.68458 deg>
     >>> c.ra.hour
     0.712305333...
     >>> c.ra.hms
-    hms_tuple(h=0.0, m=42.0, s=44.29919...)
+    hms_tuple(h=0.0, m=42.0, s=44.299...)
     >>> c.dec
     <Latitude 41.2691... deg>
     >>> c.dec.degree
     41.2691...
     >>> c.dec.radian
-    0.7202828960652...
+    0.720282896065...
 
 Coordinates can easily be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
@@ -115,7 +115,7 @@ separation between two coordinates (and catalog matching, detailed in
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='icrs')
     >>> c1.separation(c2)
-    <Angle 1.404539727811313 deg>
+    <Angle 1.4045397278... deg>
 
 
 Distance from the origin (which is system-dependent, but often the Earth
@@ -126,11 +126,11 @@ conversion to the Cartesian representation of this location::
     >>> from astropy.coordinates import Distance
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, distance=770*u.kpc)
     >>> c.cartesian.x
-    <Quantity 568.712865423523... kpc>
+    <Quantity 568.712865423... kpc>
     >>> c.cartesian.y
-    <Quantity 107.300897404202... kpc>
+    <Quantity 107.300897404... kpc>
     >>> c.cartesian.z
-    <Quantity 507.889942918757... kpc>
+    <Quantity 507.889942918... kpc>
 
 With distances assigned, |skycoord| convinience methods are more powerful, as
 they can make use of the 3d information. For example::
@@ -138,7 +138,7 @@ they can make use of the 3d information. For example::
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree,distance=11.5*u.pc, frame='icrs')
     >>> c1.separation_3d(c2)
-    <Distance 1.5228602415117989 pc>
+    <Distance 1.522860241... pc>
 
 
 Finally, the `astropy.coordinates` subpackage also provides a quick way to get
@@ -149,7 +149,7 @@ uses  `Sesame
 object::
 
     >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA
-    <SkyCoord (ICRS): ra=83.82208... deg, dec=-5.391... deg>
+    <SkyCoord (ICRS): ra=83.8220... deg, dec=-5.391... deg>
 
 .. note::
 
