@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. _astropy-coordinates-separations-matching:
+
 Separations, Catalog Matching, and Related Functionality
 --------------------------------------------------------
 

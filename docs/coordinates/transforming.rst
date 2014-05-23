@@ -57,12 +57,13 @@ which forms the basis for all `astropy` coordinate frames.
 `~astropy.coordinates.Galactic`     ``galactic``
 ================================== ================
 
-Additionally, some coordinate frames support "self transformations",
-meaning the *type* of frame doesn't change, but the frame attributes do.
-Any example is precessing a coordinate from one equinox to another in an
-equatorial system. This is done by passing `transform_to` a frame class
-with the relevant attributes, as shown below. Note that these systems
-use a default equinox if you don't specify one::
+Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
+`~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
+"self transformations", meaning the *type* of frame doesn't change, but the
+frame attributes do.  Any example is precessing a coordinate from one equinox
+to another in an equatorial system. This is done by passing `transform_to` a
+frame class with the relevant attributes, as shown below. Note that these
+systems use a default equinox if you don't specify one::
 
     >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s')
     >>> fk5c.equinox

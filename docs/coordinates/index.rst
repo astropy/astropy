@@ -192,7 +192,7 @@ useful piece of background infromation are some
 :ref:`astropy-coordinates-definitions` as they are used in
 `~astropy.coordinates`.
 
-`~astropy.coordinates` is built on a three-tired system of objects:
+`~astropy.coordinates` is built on a three-tiered system of objects:
 representations, frames, and a high-level class.  Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar

@@ -9,7 +9,7 @@ The |SkyCoord| class provides a simple and flexible user interface for
 celestial coordinate representation, manipulation, and transformation between
 coordinate frames.  This is a high-level class that serves as a wrapper
 around the low-level coordinate frame classes like `~astropy.coordinates.ICRS`
-and `~astropy.coordinates.FK5` which actually do most of the heavy lifting.
+and `~astropy.coordinates.FK5` which do most of the heavy lifting.
 
 The key distinctions between |SkyCoord| and the low-level classes (which are
 derived from `~astropy.coordinates.BaseCoordinateFrame`) are as follows:
@@ -35,7 +35,7 @@ derived from `~astropy.coordinates.BaseCoordinateFrame`) are as follows:
 Creating SkyCoord objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `SkyCoord` class accepts a wide variety of inputs for initialization.
+The |SkyCoord| class accepts a wide variety of inputs for initialization.
 At a minimum these must provide one or more celestial coordinate values
 with unambiguous units.  Typically one also specifies the coordinate
 frame, though this is not required.
@@ -44,12 +44,13 @@ Common patterns are shown below.  In this description the values in upper
 case like ``COORD`` or ``FRAME`` represent inputs which are described in detail
 in the `Initialization Syntax`_ section.  Elements in square brackets like
 ``[unit=UNIT]`` are optional.
+::
 
   SkyCoord(COORD, [FRAME], keyword_args ...)
   SkyCoord(LON, LAT, [frame=FRAME], [unit=UNIT], keyword_args ...)
   SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
 
-The examples below illustrate common ways of initializing a `SkyCoord`
+The examples below illustrate common ways of initializing a |SkyCoord|
 object.  For a complete description of the allowed syntax see the
 full coordinates documentation.  First some imports::
 
@@ -57,6 +58,7 @@ full coordinates documentation.  First some imports::
   >>> from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
   >>> from astropy.coordinates import Angle, Latitude, Longitude  # Angles
   >>> import astropy.units as u
+  >>> import numpy as np
 
 The coordinate values and frame specification can now be provided using
 positional and keyword arguments.  First we show positional arguments for
@@ -65,7 +67,7 @@ RA and Dec::
   >>> SkyCoord(10, 20, unit="deg")  # No frame (no transform to other frames)
   <SkyCoord (NoFrame): ra=10.0 deg, dec=20.0 deg>
 
-  >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")
+  >>> SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")
   <SkyCoord (ICRS): (ra, dec) in deg
       [(1.0, -30.0), (2.0, 45.0), (3.0, 8.0)]>
 
@@ -111,7 +113,7 @@ with a different ``equinox`` would raise an exception.
 Initialization Syntax
 """""""""""""""""""""""
 
-The syntax for |SkyCoord| is shown below::
+The syntax for |SkyCoord| is given below::
 
   SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
   SkyCoord(LON, LAT, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
@@ -159,6 +161,10 @@ to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
 `~astropy.coordinates.Galactic`, and `~astropy.coordinates.AltAz`.
 The string aliases are simply lower-case versions of the class name.
 
+If the frame is not supplied then you will see a special ``NoFrame``
+identifer.  This indicates that the frame is unspecified and operations
+that require comparing coordinates (even within that object) are not allowed.
+
 **unit=UNIT**
 
 The unit specifier can be one of the following:
@@ -195,14 +201,199 @@ The following keywords can be specified for any frame:
 *equinox*: valid `~astropy.time.Time` initializer, optional
     Coordinate frame equinox
 
+If custom user-defined frames are included in the transform graph and they
+have additional frame attributes, then those attributes can also be
+set via corresponding keyword args in the |SkyCoord| initialization.
+
+Array operations
+^^^^^^^^^^^^^^^^^
+
+It is possible to store arrays of coordinates in a |SkyCoord| object, and
+manipulations done in this way will be orders of magnitude faster than
+looping over a list of individual |SkyCoord| objects::
+
+  >>> ra = np.random.uniform(0, 360, size=1000) * u.deg
+  >>> dec = np.random.uniform(-90, 90, size=1000) * u.deg
+
+  >>> sc_list = [SkyCoord(r, d, 'icrs') for r, d in zip(ra, dec)]
+  >>> timeit sc_gal_list = [c.galactic for c in sc_list]  # doctest: +SKIP
+  1 loops, best of 3: 7.66 s per loop
+
+  >>> sc = SkyCoord(ra, dec, 'icrs')
+  >>> timeit sc_gal = sc.galactic  # doctest: +SKIP
+  100 loops, best of 3: 8.92 ms per loop
+
+In addition to vectorized transformations, you can do the usual array
+slicing, dicing, and selection::
+
+  >>> north_mask = sc.dec > 0
+  >>> sc_north = sc[north_mask]
+  >>> len(sc_north)  # doctest: +SKIP
+  504
+  >>> sc[2:4]  # doctest: +SKIP
+  <SkyCoord (ICRS): (ra, dec) in deg
+      [(304.304015..., 6.900282...),
+       (322.560148..., 34.872244...)]>
+  >>> sc[2]  # doctest: +SKIP
+  <SkyCoord (ICRS): ra=304.304015... deg, dec=6.900282... deg>
+
+
+Attributes 
+^^^^^^^^^^^
+
+The |SkyCoord| object has a number of useful attributes which come in handy.
+By digging through these we'll learn a little bit about |SkyCoord| and how it
+works.
+
+To begin (if you don't know already) one of the most important tools for
+learning about attributes and methods of objects is "TAB-discovery".  From
+within IPython you can type an object name, the period, and then the <TAB> key
+to see what's available.  This can often be faster than reading the
+documentation::
+
+  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
+  >>> sc.<TAB>  # doctest: +SKIP
+  sc.cartesian                 sc.has_data                  sc.preferred_representation
+  sc.data                      sc.icrs                      sc.ra
+  sc.dec                       sc.is_frame_attr_default     sc.realize_frame
+  sc.distance                  sc.is_transformable_to       sc.represent_as
+  sc.equinox                   sc.isscalar                  sc.separation
+  sc.fk4                       sc.match_to_catalog_3d       sc.separation_3d
+  sc.fk4noeterms               sc.match_to_catalog_sky      sc.shape
+  sc.fk5                       sc.name                      sc.spherical
+  sc.frame                     sc.obstime                   sc.time_attr_names
+  sc.frame_attr_names          sc.position_angle            sc.to_string
+  sc.from_name                 sc.preferred_attr_names      sc.transform_to
+  sc.galactic                  sc.preferred_attr_units      
+
+Here we see a bunch of stuff there but much of it should be recognizable or
+easily guessed.  The most obvious may be the longitude and latitude attributes
+which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
+
+  >>> sc.ra
+  <Longitude 1.0 deg>
+  >>> sc.dec
+  <Latitude 2.0 deg>
+
+Next notice that all the built-in frame names ``icrs``, ``galactic``, ``fk5``
+``fk4``, and ``fk4noeterms`` are there.  Through the magic of Python
+properties, accessing these attributes calls the object
+`~astropy.coordinate.Skycoord.transform_to` method appropriately and returns a
+new |SkyCoord| object in the requested frame::
+
+  >>> sc_gal = sc.galactic
+  >>> sc_gal
+  <SkyCoord (Galactic): l=99.637943... deg, b=-58.709605... deg>
+
+Other attributes you should recognize are ``distance``, ``equinox``,
+``obstime``, ``shape``.  
+
+Digger deeper
+"""""""""""""""
+*[Casual users can skip this section]*
+
+After transforming to Galactic the longitude and latitude values are now
+labeled ``l`` and ``b``, following the normal convention for Galactic
+coordinates.  How does the object know what to call its values?  The answer
+lies in some less-obvious attributes::
+
+  >>> sc_gal.preferred_attr_names
+  OrderedDict([(u'l', u'lon'), (u'b', u'lat'), (u'distance', u'distance')])
+
+  >>> sc_gal.preferred_attr_units
+  {u'b': Unit("deg"), u'l': Unit("deg")}
+
+  >>> sc_gal.preferred_representation
+  <class 'astropy.coordinates.representation.SphericalRepresentation'>
+
+Together these tell the object that ``l`` and ``b`` are the longitude and
+latitude, and that they should both be displayed in units of degrees as
+a spherical-type coordinate (and not, e.g. a cartesian coordinate).
+
+Further trickery is happening here because many of these attributes are
+actually owned by the underlying coordinate ``frame`` object which does much of
+the real work.  This is the middle layer in the three-tiered system of objects:
+representation (spherical, cartesian, etc.), frame (aka low-level frame class),
+and |SkyCoord| (aka high-level class)::
+
+  >>> sc.frame
+  <ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>
+
+  >>> sc.preferred_attr_units is sc.frame.preferred_attr_units
+  True
+
+  >>> sc.frame.<TAB>  # doctest: +SKIP
+  sc.frame.cartesian                 sc.frame.preferred_attr_units
+  sc.frame.data                      sc.frame.preferred_representation
+  sc.frame.dec                       sc.frame.ra
+  sc.frame.distance                  sc.frame.realize_frame
+  sc.frame.frame_attr_names          sc.frame.represent_as
+  sc.frame.has_data                  sc.frame.separation
+  sc.frame.is_frame_attr_default     sc.frame.separation_3d
+  sc.frame.is_transformable_to       sc.frame.shape
+  sc.frame.isscalar                  sc.frame.spherical
+  sc.frame.name                      sc.frame.time_attr_names
+  sc.frame.preferred_attr_names      sc.frame.transform_to
+
+  >>> sc.frame.name
+  'icrs'
+
+The |SkyCoord| object exposes the ``frame`` object attributes as its own.  Though
+it might seem a tad confusing at first, this a good thing because it makes
+|SkyCoord| objects and `~astropy.coordinates.BaseCoordinateFrame` objects
+behave very similarly and most routines can accept either one as input without
+much bother (duck typing!).
+
+The lowest layer in the stack is the abstract
+`~astropy.coordinates.UnitSphericalRepresentation` object:
+
+  >>> sc_gal.frame.data
+  <UnitSphericalRepresentation lon=99.637943... deg, lat=-58.709605... deg>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
 
-* mention transformation, but refer mostly to :ref:`astropy-coordinates-transforming`,
+The topic of transformations is covered in detail in the section on
+:ref:`astropy-coordinates-transforming`.
+
+For completeness here we will give some simple examples.  Once you've defined
+your coordinates and the reference frame, you can transform from that frame to
+another frame.  You can do this a few different ways: if you just want the
+default version of that frame, you can use attribute-style access (as mentioned
+previously).  For more control, you can use the
+`~astropy.coordinates.SkyCoord.transform_to` method, which accepts a frame
+name, frame class, frame instance, or |SkyCoord|::
+
+  >>> from astropy.coordinates import FK5
+  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg')
+  >>> sc.galactic
+  <SkyCoord (Galactic): l=99.637943... deg, b=-58.709605... deg>
+
+  >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)
+  <SkyCoord (FK5): equinox=J2000.000, ra=1.00000655... deg, dec=2.00000243... deg>
+
+  >>> sc.transform_to(FK5(equinox='J1975'))  # Transform to FK5 with a different equinox
+  <SkyCoord (FK5): equinox=J1975.000, ra=0.679672... deg, dec=1.860830... deg>
+
+Transforming to a |SkyCoord| instance is an easy way of ensuring that two
+coordinates are in the exact same reference frame::
+
+  >>> sc2 = SkyCoord(3, 4, 'fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
+  >>> sc.transform_to(sc2)
+  <SkyCoord (FK4): equinox=B1960.000, obstime=J1978.123, ra=0.487263... deg, dec=1.777316... deg>
 
 Convenience methods
 ^^^^^^^^^^^^^^^^^^^^
 
-* matching/separation convinience methods (:ref:`astropy-coordinates-matching`)
+A number of convenience methods are available, and you are encouraged to read
+the available docstrings below:
+
+- `~astropy.coordinates.SkyCoord.match_to_catalog_sky`,
+- `~astropy.coordinates.SkyCoord.match_to_catalog_3d`,
+- `~astropy.coordinates.SkyCoord.position_angle`,
+- `~astropy.coordinates.SkyCoord.separation`,
+- `~astropy.coordinates.SkyCoord.separation_3d`
+
+Addition information and examples can be found in the section on
+:ref:`astropy-coordinates-separations-matching`.
 
