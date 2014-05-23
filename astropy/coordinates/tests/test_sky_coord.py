@@ -192,6 +192,22 @@ def test_coord_init_list():
     assert "Cannot parse longitude and latitude" in str(err)
 
 
+def test_coord_init_array():
+    """
+    Input in the form of a list array or numpy array
+    """
+    for a in (['1 2', '3 4'],
+              [['1', '2'], ['3', '4']],
+              [[1, 2], [3, 4]]):
+        sc = SkyCoord(a, unit='deg')
+        assert allclose(sc.ra - [1, 3] * u.deg, 0)
+        assert allclose(sc.dec - [2, 4] * u.deg, 0)
+
+        sc = SkyCoord(np.array(a), unit='deg')
+        assert allclose(sc.ra - [1, 3] * u.deg, 0)
+        assert allclose(sc.dec - [2, 4] * u.deg, 0)
+
+
 def test_coord_init_representation():
     """
     Spherical or Cartesian represenation input coordinates.
