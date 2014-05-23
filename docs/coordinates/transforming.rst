@@ -38,7 +38,7 @@ As a convenience it is also possible to use a |SkyCoord| object as the frame in
 :meth:`~astropy.coordinates.SkyCoord.transform_to`.  This allows easily putting one
 coordinate object into the frame of another::
 
-    >>> sc = SkyCoord(1, 2, unit='deg', frame=FK5, equinox='J1980.0')
+    >>> sc = SkyCoord(ra=1.0, dec=2.0, unit='deg', frame=FK5, equinox='J1980.0')
     >>> gc.transform_to(sc)
     <SkyCoord (FK5): equinox=J1980.000, ra=229.01468... deg, dec=-1.055578... deg>
 
