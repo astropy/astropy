@@ -839,7 +839,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
         valid_kwargs[attr_name_for_type['lat']] = sph_coords.lat
         valid_kwargs[attr_name_for_type['distance']] = sph_coords.distance
 
-    elif isinstance(coords, collections.Sequence):
+    elif isinstance(coords, (collections.Sequence, np.ndarray)):
         # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
         # SkyCoord(ra, dec) or SkyCoord([(ra, dec)])
         lons = []
