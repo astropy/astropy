@@ -5,6 +5,7 @@ python:
     - 2.7
     - 3.2
     - 3.3
+    - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
     global:
@@ -36,6 +37,8 @@ matrix:
         - python: 3.2
           env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
         - python: 3.3
+          env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
+        - python: 3.4
           env: SETUP_CMD='test' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
