@@ -76,11 +76,11 @@ separations.
 
 String inputs in common formats are acceptable, and the frame can be supplied
 as either a class type like `~astropy.coordinates.FK4` or the lower-case
-version of the name as a string, e.g. `"fk4"`.
+version of the name as a string, e.g. `"fk4"`::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
   >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
-  >>> sc = SkyCoord(coords, FK4, unit='hourangle,deg', obstime="J1992.21")
+  >>> sc = SkyCoord(coords, 'fk4', unit='hourangle,deg', obstime="J1992.21")
 
   >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", Galactic)  # Units from strings
   >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
@@ -109,42 +109,82 @@ coordinate above were created with
 with a different ``equinox`` would raise an exception.
 
 Initialization Syntax
-^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
+
 The syntax for |SkyCoord| is shown below::
 
-  SkyCoord(COORD, [FRAME | frame=FRAME], keyword_args ...)
-  SkyCoord(LON, LAT, [FRAME | frame=FRAME], keyword_args ...)
-  SkyCoord([FRAME | frame=FRAME], <lon_name>=LON, <lat_name>=LAT, keyword_args ...)
-
-**COORD**
-
-Coordinate values.
+  SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
+  SkyCoord(LON, LAT, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
+  SkyCoord([FRAME | frame=FRAME], <lon_name>=LON, <lat_name>=LAT, [unit=UNIT],
+           keyword_args ...)
 
 **LON**, **LAT**
 
-Longitude and latitude values.
+Longitude and latitude values can be specified as separate positional
+arguments.  The following options are available:
+
+- Single angle value:
+
+  - |Quantity| object
+  - Plain numeric value with `unit` keyword specifying the unit
+  - Angle string which is formatted for :ref:`angle-creation` of
+    |Longitude| or |Latitude| objects
+
+- List or |Quantity| array or numpy array of angle values
+- |Angle|, |Longitude|, or |Latitude| object, which can be scalar or
+  array-valued
+
+**COORD**
+
+A coordinate is an object that supplies one or more longitude and latitude
+pairs in one of the following ways:
+
+- Single coordinate string with a LON and LAT value separated by a space.  The
+  respective values can be any string which is formatted for
+  :ref:`angle-creation` of |Longitude| or |Latitude| objects, respectively.
+- List or numpy array of coordinate strings
+- List of (LON, LAT) tuples, where each LON and LAT are scalars (not arrays)
+- ``N x 2`` numpy or |Quantity| array of values where the first column is
+  longitude and the second column is latitude, e.g.
+  ``[[270, -30], [355, +85]] * u.deg``
+- Coordinate frame object, e.g. ``FK4(1*u.deg, 2*u.deg, obstime='J2012.2')``
+- |SkyCoord| object (which just makes a copy of the object)
 
 **FRAME**
 
-This can be a `~astropy.coordinates.BaseCoordinateFrame`
+This can be a `~astropy.coordinates.BaseCoordinateFrame` frame
 class or the corresponding string alias.  The frame classes that are built in
 to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
 `~astropy.coordinates.FK4`, `~astropy.coordinates.FK4NoETerms`,
 `~astropy.coordinates.Galactic`, and `~astropy.coordinates.AltAz`.
 The string aliases are simply lower-case versions of the class name.
 
-**keyword_args**
+**unit=UNIT**
 
-*unit* : `~astropy.units.Unit`, string, or 2-tuple of `Unit` or string, optional
-    Units for supplied `LON` and `LAT` values, respectively.  If only one unit
-    is supplied then it applies to both `LON` and `LAT`.
+The unit specifier can be one of the following:
 
-*ra*, *dec*: valid `~astropy.coordinates.Angle` initializer, optional
+- `~astropy.units.Unit` object which is an angular unit that is equivalent to
+  ``Unit('radian')``
+- Single string with a valid angular unit name
+- 2-tuple of `~astropy.units.Unit` objects or string unit names specifying the
+  LON and LAT unit respectively, e.g. ``('hourangle', 'degree')``
+- Single string with two unit names separated by a comma, e.g. ``'hourangle,degree'``
+
+If only a single unit is provided then it applies to both LON and LAT.
+
+**Other keyword arguments**
+
+In lieu of positional arguments to specify the longitude and latitude, the
+frame-specific names can be used as keyword arguments:
+
+*ra*, *dec*: **LON**, **LAT** values, optional
     RA and Dec for frames where this is preferred representation, including
     `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
 
-*l*, *b*: valid `~astropy.coordinates.Angle` initializer, optional
+*l*, *b*:  **LON**, **LAT** values, optional
     Galactic `l` and `b` for the `Galactic` frame.
+
+The following keywords can be specified for any frame:
 
 *distance*: valid `~astropy.coordinates.Distance` initializer, optional
     Distance from reference from center to source.
@@ -156,6 +196,13 @@ The string aliases are simply lower-case versions of the class name.
     Coordinate frame equinox
 
 
+Transformations
+^^^^^^^^^^^^^^^^^
+
 * mention transformation, but refer mostly to :ref:`astropy-coordinates-transforming`,
-  and matching/separation convinience methods (:ref:`astropy-coordinates-matching`)
-* anything else important
+
+Convenience methods
+^^^^^^^^^^^^^^^^^^^^
+
+* matching/separation convinience methods (:ref:`astropy-coordinates-matching`)
+
