@@ -1,4 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+##############################################################################
+# Note: this file exists only for backward-compatibility purposes - the      #
+#       contents have been moved to the separate astropy-helpers package, so #
+#       any new development or bug fixes should be done there. This file     #
+#       should be removed in Astropy 1.0.                                    #
+##############################################################################
+
 """
 This module contains a number of utilities for use during
 setup/build/packaging that are useful to astropy as a whole.

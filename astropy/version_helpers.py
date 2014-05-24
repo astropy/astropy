@@ -1,5 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+##############################################################################
+# Note: this file exists only for backward-compatibility purposes - the      #
+#       contents have been moved to the separate astropy-helpers package, so #
+#       any new development or bug fixes should be done there. This file     #
+#       should be removed in Astropy 1.0.                                    #
+##############################################################################
+
 """
 Utilities for generating the version string for Astropy (or an affiliated
 package) and the version.py module, which contains version info for the
