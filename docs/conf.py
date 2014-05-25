@@ -182,11 +182,4 @@ for line in open('nitpick-exceptions'):
     nitpick_ignore.append((dtype, six.u(target)))
 
 if six.PY2:
-    nitpick_ignore.extend([(six.u('py:class'), six.u('object')),
-                           ('py:obj', six.u('bytes')),
-                           ('py:obj', six.u('bases')),
-                           ('py:obj', six.u('urllib.request.urlopen')),
-                           ('py:class', six.u('concurrent.futures.Future')),
-                           ('py:class', six.u('concurrent.futures.ThreadPoolExecutor')),
-                           ('py:obj', six.u('exceptions.TimeoutError')),
-                           ('py:obj', six.u('queue.Queue'))])
+    nitpick_ignore.extend([('py:obj', six.u('bases'))])
