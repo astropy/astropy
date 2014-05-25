@@ -515,10 +515,11 @@ def assert_follows_unicode_guidelines(
 
 ##############################################################################
 # Note: the following class exists only for backward-compatibility purposes. #
-#       It has been moved to the separate astropy-helpers package, so any    #
-#       new development or bug fixes should be done there. This class should #
-#       be removed in Astropy 1.0.                                           #
+#       It has been moved to the separate astropy-helpers package, located   #
+#       at https://github.com/astropy/astropy-helpers. Any new development   #
+#       or bug fixes should be done there                                    #
 ##############################################################################
+
 
 class astropy_test(Command, object):
     user_options = [

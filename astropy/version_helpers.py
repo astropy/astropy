@@ -2,9 +2,9 @@
 
 ##############################################################################
 # Note: this file exists only for backward-compatibility purposes - the      #
-#       contents have been moved to the separate astropy-helpers package, so #
-#       any new development or bug fixes should be done there. This file     #
-#       should be removed in Astropy 1.0.                                    #
+#       contents have been moved to the separate astropy-helpers package,    #
+#       located at https://github.com/astropy/astropy-helpers. Any new       #
+#       development or bug fixes should be done there.                       #
 ##############################################################################
 
 """
