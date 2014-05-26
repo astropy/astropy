@@ -11,8 +11,8 @@ coordinate frames.  This is a high-level class that serves as a wrapper
 around the low-level coordinate frame classes like `~astropy.coordinates.ICRS`
 and `~astropy.coordinates.FK5` which do most of the heavy lifting.
 
-The key distinctions between |SkyCoord| and the low-level classes (which are
-derived from `~astropy.coordinates.BaseCoordinateFrame`) are as follows:
+The key distinctions between |SkyCoord| and the low-level classes
+(:doc:`frames`) are as follows:
 
 - The |SkyCoord| object can maintain the union of frame attributes for all
   built-in and user-defined coordinate frames in the
@@ -151,6 +151,9 @@ pairs in one of the following ways:
   ``[[270, -30], [355, +85]] * u.deg``
 - Coordinate frame object, e.g. ``FK4(1*u.deg, 2*u.deg, obstime='J2012.2')``
 - |SkyCoord| object (which just makes a copy of the object)
+- `~astropy.coordinates.BaseRepresentation` subclass object like
+  `~astropy.coordinates.SphericalRepresentation`  or
+  `~astropy.coordinates.CartesianRepresentation`.
 
 **FRAME**
 
@@ -309,6 +312,25 @@ lies in some less-obvious attributes::
 Together these tell the object that ``l`` and ``b`` are the longitude and
 latitude, and that they should both be displayed in units of degrees as
 a spherical-type coordinate (and not, e.g. a cartesian coordinate).
+Furthermore the frame's ``preferred_attr_names`` attribute defines
+the coordinate keyword arguments that |SkyCoord| will accept.
+
+Another important attribute is ``frame_attr_names``, which defines the
+additional attributes that are required to fully define the frame::
+
+  >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
+  >>> sc_fk4.frame_attr_names
+  {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
+   u'obstime': None}
+
+The key values correspond to the defaults if no explicit value is provide by
+the user.  This example shows that the `~astropy.coordinates.FK4` frame has two
+attributes ``equinox`` and ``obstime`` that are required to fully define the
+frame.  These are actually a reference to the class attribute of the same
+name::
+
+  >>> FK4.frame_attr_names is sc_fk4.frame_attr_names
+  True
 
 Further trickery is happening here because many of these attributes are
 actually owned by the underlying coordinate ``frame`` object which does much of

@@ -91,10 +91,11 @@ class SkyCoord(object):
         Units for supplied `LON` and `LAT` values, respectively.  If only one unit
         is supplied then it applies to both `LON` and `LAT`.
     ra, dec: valid `~astropy.coordinates.Angle` initializer, optional
-        RA and Dec for frames where this is preferred representation, including
-        `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
+        RA and Dec for frames where `ra` and `dec` are keys in the frame's
+        ``preferred_attr_names``, including `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
     l, b: valid `~astropy.coordinates.Angle` initializer, optional
-        Galactic `l` and `b` for the `Galactic` frame.
+        Galactic `l` and `b` for for frames where `l` and `b` are keys in the frame's
+        ``preferred_attr_names``, including the `Galactic` frame.
     obstime: valid `~astropy.time.Time` initializer, optional
         Time of observation
     equinox: valid `~astropy.time.Time` initializer, optional
