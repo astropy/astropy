@@ -438,6 +438,8 @@ Bug Fixes
 
   - Composing base units into identical composite units now works. [#2382]
 
+  - Creating and composing/decomposing units is now substantially faster [#2544]
+ 
 - ``astropy.utils``
 
 - ``astropy.vo``
