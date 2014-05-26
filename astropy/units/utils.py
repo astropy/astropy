@@ -171,7 +171,7 @@ def validate_power(p, support_tuples=False):
             AstropyDeprecationWarning)
         p = Fraction(p[0], p[1])
 
-    if isinstance(p, numbers.Rational) or isinstance(p, Fraction):
+    if isinstance(p, (numbers.Rational, Fraction)):
         # If the fractional power can be represented *exactly* as a
         # floating point number, we convert it to a float, to make the
         # math much faster, otherwise, we retain it as a
