@@ -82,7 +82,7 @@ separations.
 
 String inputs in common formats are acceptable, and the frame can be supplied
 as either a class type like `~astropy.coordinates.FK4` or the lower-case
-version of the name as a string, e.g. `"fk4"`::
+version of the name as a string, e.g. ``"fk4"``::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
   >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
@@ -132,7 +132,7 @@ as separate positional arguments.  The following options are available:
 - Single angle value:
 
   - |Quantity| object
-  - Plain numeric value with `unit` keyword specifying the unit
+  - Plain numeric value with ``unit`` keyword specifying the unit
   - Angle string which is formatted for :ref:`angle-creation` of
     |Longitude| or |Latitude| objects
 
@@ -198,10 +198,11 @@ frame-specific names can be used as keyword arguments:
 
 *ra*, *dec*: **LON**, **LAT** values, optional
     RA and Dec for frames where this is preferred representation, including
-    `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
+    `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
+    `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`.
 
 *l*, *b*:  **LON**, **LAT** values, optional
-    Galactic `l` and `b` for the `Galactic` frame.
+    Galactic ``l`` and ``b`` for the `~astropy.coordinates.Galactic` frame.
 
 The following keywords can be specified for any frame:
 
@@ -291,7 +292,7 @@ which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
 Next notice that all the built-in frame names ``icrs``, ``galactic``, ``fk5``
 ``fk4``, and ``fk4noeterms`` are there.  Through the magic of Python
 properties, accessing these attributes calls the object
-`~astropy.coordinate.Skycoord.transform_to` method appropriately and returns a
+`~astropy.coordinate.SkyCoord.transform_to` method appropriately and returns a
 new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic

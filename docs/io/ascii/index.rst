@@ -20,7 +20,7 @@ The following shows a few of the ASCII formats that are available, while the sec
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-* :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the `tabular` environment
+* :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 
@@ -148,8 +148,8 @@ functionality.
 ========================= ===== ============================================================================================
 
 
-Using `io.ascii`
-================
+Using `astropy.io.ascii`
+========================
 
 The details of using `astropy.io.ascii` are provided in the following sections:
 

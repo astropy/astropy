@@ -304,7 +304,7 @@ class BaseCoordinateFrame(object):
         -------
         frameobj : same as this frame
             A new object with the same frame attributes as this one, but
-            with the `representation` as the data.
+            with the ``representation`` as the data.
         """
         frattrs = dict([(nm, getattr(self, nm)) for nm in self.frame_attr_names
                         if nm not in self._attr_names_with_defaults])
@@ -322,7 +322,7 @@ class BaseCoordinateFrame(object):
 
         Returns
         -------
-        newrep : whatever `new_representation` is
+        newrep : whatever ``new_representation`` is
             A new representation object of this frame's `data`.
 
         Raises
@@ -413,8 +413,8 @@ class BaseCoordinateFrame(object):
             if coord.is_transformable_to(some_unknown_frame):
                 coord2 = coord.transform_to(some_unknown_frame)
 
-        This will work even if `some_unknown_frame`  turns out to be the same
-        frame class as `coord`.  This is intended for cases where the frame is
+        This will work even if ``some_unknown_frame``  turns out to be the same
+        frame class as ``coord``.  This is intended for cases where the frame is
         the same regardless of the frame attributes (e.g. ICRS), but be aware
         that it *might* also indicate that someone forgot to define the
         transformation between two objects of the same frame class but with
@@ -447,7 +447,7 @@ class BaseCoordinateFrame(object):
         Returns
         -------
         isdefault : bool
-            True if the attribute `attrnm` has its value by default, False if it
+            True if the attribute ``attrnm`` has its value by default, False if it
             was specified at creation of this frame.
         """
         return attrnm in self._attr_names_with_defaults

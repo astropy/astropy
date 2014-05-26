@@ -1,3 +1,6 @@
+# astropy.cosmology
+py:class astropy.cosmology.Cosmology
+
 # astropy.io.votable
 py:class astropy.io.votable.tree.Element
 py:class astropy.io.votable.tree.SimpleElement
@@ -8,11 +11,13 @@ py:class astropy.modeling.projections.Zenithal
 py:class astropy.modeling.projections.Cylindrical
 py:class astropy.modeling.polynomial.PolynomialBase
 py:class astropy.modeling.rotations.EulerAngleRotation
+py:class astropy.modeling.projections.Projection
 
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 
 # Pending on python docs links issue #11975
+py:class list
 py:obj list.append
 py:obj list.append
 py:obj list.count
@@ -24,6 +29,7 @@ py:obj list.remove
 
 # astropy.table
 py:class astropy.table.column.BaseColumn
+py:class astropy.table.groups.BaseGroups
 
 # astropy.time
 py:class astropy.time.core.TimeUnique

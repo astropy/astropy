@@ -662,6 +662,14 @@ class Column(BaseColumn):
     if six.PY2:
         __str__ = __bytes__
 
+    # We do this to make the methods show up in the API docs
+    name = BaseColumn.name
+    copy = BaseColumn.copy
+    more = BaseColumn.more
+    pprint = BaseColumn.pprint
+    pformat = BaseColumn.pformat
+    convert_unit_to = BaseColumn.convert_unit_to
+
 
 class MaskedColumn(Column, ma.MaskedArray):
     """Define a masked data column for use in a Table object.
@@ -863,3 +871,11 @@ class MaskedColumn(Column, ma.MaskedArray):
                          format=self.format, description=self.description,
                          meta=deepcopy(self.meta))
         return out
+
+    # We do this to make the methods show up in the API docs
+    name = BaseColumn.name
+    copy = BaseColumn.copy
+    more = BaseColumn.more
+    pprint = BaseColumn.pprint
+    pformat = BaseColumn.pformat
+    convert_unit_to = BaseColumn.convert_unit_to

@@ -31,8 +31,7 @@ from ..extern import six
 
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
-           'StaticMatrixTransform', 'DynamicMatrixTransform'
-           ]
+           'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
 
 
 class TransformGraph(object):
@@ -182,7 +181,7 @@ class TransformGraph(object):
         distance : number
             The total distance/priority from ``fromsys`` to ``tosys``.  If
             priorities are not set this is the number of transforms
-            needed. Is `inf` if there is no possible path.
+            needed. Is ``inf`` if there is no possible path.
         """
 
         inf = float('inf')
@@ -239,7 +238,7 @@ class TransformGraph(object):
         q = [[inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys]
         q.insert(0, [0, -1, fromsys, []])
 
-        # this dict will store the distance to node from `fromsys` and the path
+        # this dict will store the distance to node from ``fromsys`` and the path
         result = {}
 
         # definitely starts as a valid heap because of the insert line; from the
@@ -387,7 +386,7 @@ class TransformGraph(object):
         saveformat : str
             The graphviz output format. (e.g. the ``-Txxx`` option for
             the command line program - see graphviz docs for details).
-            Ignored if `savefn` is `None`.
+            Ignored if ``savefn`` is `None`.
 
         Returns
         -------
@@ -515,9 +514,9 @@ class TransformGraph(object):
 
         Notes
         -----
-        This decorator assumes the first argument of the `transcls`
+        This decorator assumes the first argument of the ``transcls``
         initializer accepts a callable, and that the second and third
-        are `fromsys` and `tosys`. If this is not true, you should just
+        are ``fromsys`` and ``tosys``. If this is not true, you should just
         initialize the class manually and use `add_transform` instead of
         using this decorator.
 
@@ -633,18 +632,18 @@ class CoordinateTransform(object):
     @abstractmethod
     def __call__(self, fromcoord, toframe):
         """
-        Does the actual coordinate transformation from the `fromsys` class to
-        the `tosys` class.
+        Does the actual coordinate transformation from the ``fromsys`` class to
+        the ``tosys`` class.
 
         Parameters
         ----------
         fromcoord : fromsys object
-            An object of class matching `fromsys` that is to be transformed.
+            An object of class matching ``fromsys`` that is to be transformed.
         toframe : object
             An object that has the attributes necessary to fully specify the
             frame.  That is, it must have attributes with names that match the
-            keys of `tosys.frame_attr_names`. Typically this is of class
-            `tosys`, but it *might* be some other class as long as it has the
+            keys of ``tosys.frame_attr_names``. Typically this is of class
+            ``tosys``, but it *might* be some other class as long as it has the
             appropriate attributes.
 
         Returns
@@ -664,8 +663,8 @@ class FunctionTransform(CoordinateTransform):
     func : callable
         The transformation function. Should have a call signature
         ``func(formcoord, toframe)``. Note that, unlike
-        `CoordinateTransform.__call__`, `toframe` is assumed to be of type
-        `tosys` for this function.
+        `CoordinateTransform.__call__`, ``toframe`` is assumed to be of type
+        ``tosys`` for this function.
     fromsys : class
         The coordinate frame class to start from.
     tosys : class
@@ -791,8 +790,8 @@ class DynamicMatrixTransform(CoordinateTransform):
     Parameters
     ----------
     matrix_func : callable
-        A callable that has the signature `matrix_func(fromcoord, toframe) and
-        returns a 3 x 3 matrix that converts `fromcoord` in a cartesian
+        A callable that has the signature ``matrix_func(fromcoord, toframe)`` and
+        returns a 3 x 3 matrix that converts ``fromcoord`` in a cartesian
         representation to the new coordinate system.
     fromsys : class
         The coordinate frame class to start from.
@@ -847,8 +846,8 @@ class CompositeTransform(CoordinateTransform):
     transformations.
 
     Note that the intermediate frame objects are constructed using any frame
-    attributes in `toframe` or `fromframe` that overlap with the intermediate
-    frame (`toframe` favored over `fromframe` if there's a conflict).  Any frame
+    attributes in ``toframe`` or ``fromframe`` that overlap with the intermediate
+    frame (``toframe`` favored over ``fromframe`` if there's a conflict).  Any frame
     attributes that are not present use the defaults.
 
     Parameters

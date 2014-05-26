@@ -156,7 +156,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     dist3d : `~astropy.units.Quantity`
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.  If either
-        `matchcoord` or `catalogcoord` don't have a distance, this is the 3D
+        ``matchcoord`` or ``catalogcoord`` don't have a distance, this is the 3D
         distance on the unit sphere, rather than a true distance.
 
     Notes

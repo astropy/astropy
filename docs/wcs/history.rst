@@ -27,7 +27,7 @@ pywcs Version 1.11
 
 - Lots of new unit tests
 
-- `pywcs` will now run without `pyfits`, though the SIP and distortion
+- ``pywcs`` will now run without ``pyfits``, though the SIP and distortion
   lookup table functionality is unavailable.
 
 - Setting `~astropy.wcs.Wcsprm.cunit` will now verify that the values
@@ -36,7 +36,7 @@ pywcs Version 1.11
 pywcs Version 1.10
 ------------------
 
-- Adds a `UnitConversion` class, which gives access to wcslib's unit
+- Adds a ``UnitConversion`` class, which gives access to wcslib's unit
   conversion functionality.  Given two convertible unit strings, pywcs
   can convert arrays of values from one to the other.
 
@@ -48,7 +48,7 @@ pywcs Version 1.9
 -----------------
 
 - Support binary image arrays and pixel list format WCS by presenting
-  a way to call wcslib's `wcsbth()`
+  a way to call wcslib's ``wcsbth()``
 
 - Updated underlying wcslib to version 4.5, which fixes the following:
 

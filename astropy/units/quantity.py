@@ -155,8 +155,8 @@ class Quantity(np.ndarray):
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not either a `Unit` object or a parseable
-        string unit.
+        If the unit provided is not either a :class:`~astropy.units.Unit`
+        object or a parseable string unit.
     """
     # Need to set a class-level default for _equivalencies, or
     # Constants can not initialize properly
@@ -495,7 +495,7 @@ class Quantity(np.ndarray):
             The array to create a view of.  If obj is a numpy or python scalar,
             it will be converted to an array scalar.
 
-        unit : `UnitBase`, or anything convertible to a `Unit`, or `None`
+        unit : `UnitBase`, or anything convertible to a :class:`~astropy.units.Unit`, or `None`
             The unit of the resulting object.  It is used to select a
             subclass, and explicitly assigned to the view if not `None`.
             If `None` (default), the unit is set by `__array_finalize__`

@@ -101,9 +101,10 @@ the catalog::
     >>> dra = (matches.ra - c.ra).arcmin  # doctest: +SKIP
     >>> ddec = (matches.dec - c.dec).arcmin  # doctest: +SKIP
 
-This functionality can also be accessed from the `match_coordinates_sky`
-and `match_coordinates_3d` functions. These will work on either
-|skycoord| objects *or* the lower-level frame classes::
+This functionality can also be accessed from the
+:func:`~astropy.coordinates.matching.match_coordinates_sky` and
+:func:`~astropy.coordinates.matching.match_coordinates_3d` functions. These
+will work on either |skycoord| objects *or* the lower-level frame classes::
 
     >>> from astropy.coordinates import match_coordinates_sky
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP

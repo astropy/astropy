@@ -88,14 +88,14 @@ class SkyCoord(object):
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         Type of coordinate frame this `SkyCoord` should represent.
-    unit : `~astropy.units.Unit`, string, or 2-tuple of `Unit` or string, optional
-        Units for supplied `LON` and `LAT` values, respectively.  If only one unit
-        is supplied then it applies to both `LON` and `LAT`.
+    unit : `~astropy.units.Unit`, string, or 2-tuple of :class:`~astropy.units.Unit` or str, optional
+        Units for supplied ``LON`` and ``LAT`` values, respectively.  If only one unit
+        is supplied then it applies to both ``LON`` and ``LAT``.
     ra, dec: valid `~astropy.coordinates.Angle` initializer, optional
-        RA and Dec for frames where `ra` and `dec` are keys in the frame's
+        RA and Dec for frames where ``ra`` and ``dec`` are keys in the frame's
         ``preferred_attr_names``, including `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
     l, b: valid `~astropy.coordinates.Angle` initializer, optional
-        Galactic `l` and `b` for for frames where `l` and `b` are keys in the frame's
+        Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are keys in the frame's
         ``preferred_attr_names``, including the `Galactic` frame.
     obstime: valid `~astropy.time.Time` initializer, optional
         Time of observation

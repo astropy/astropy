@@ -812,7 +812,7 @@ class W35(VOTableSpecWarning):
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC32>`
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC32>`__
     """
 
     message_template = "'%s' attribute required for INFO elements"
@@ -827,7 +827,7 @@ class W36(VOTableSpecWarning):
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
     message_template = "null value '%s' does not match field datatype, setting to 0"
@@ -842,7 +842,7 @@ class W37(UnimplementedWarning):
     **References:** `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:data>`
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:data>`__
     """
 
     message_template = "Unsupported data format '%s'"
@@ -1023,7 +1023,7 @@ class W50(VOTableSpecWarning):
     Catalogues, Version 2.0
     <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_.
 
-    Consider passing an explicit `unit_format` parameter if the units
+    Consider passing an explicit ``unit_format`` parameter if the units
     in this file conform to another specification.
     """
 
