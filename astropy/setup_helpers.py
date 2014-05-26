@@ -1,4 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+##############################################################################
+# Note: this file exists only for backward-compatibility purposes - the      #
+#       contents have been moved to the separate astropy-helpers package,    #
+#       located at https://github.com/astropy/astropy-helpers. Any new       #
+#       development or bug fixes should be done there.                       #
+##############################################################################
+
 """
 This module contains a number of utilities for use during
 setup/build/packaging that are useful to astropy as a whole.
