@@ -45,6 +45,8 @@ class SkyCoord(object):
       SkyCoord(LON, LAT, frame=FRAME, unit=UNIT, keyword_args ...)
       SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
 
+    Examples
+    --------
     The examples below illustrate common ways of initializing a `SkyCoord`
     object.  For a complete description of the allowed syntax see the
     full coordinates documentation.  First some imports::
@@ -57,7 +59,7 @@ class SkyCoord(object):
     The coordinate values and frame specification can now be provided using
     positional and keyword arguments::
 
-      >>> sc = SkyCoord(10, 20, unit="deg")  # No frame (no transform to other frames)
+      >>> sc = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
       >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
@@ -74,7 +76,7 @@ class SkyCoord(object):
       >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
       >>> sc = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
 
-    As shown, the ``FRAME`` can be a `~astropy.coordinates.BaseCoordinateFrame`
+    As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
     to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, `Galactic`, and `AltAz`.
     The string aliases are simply lower-case versions of the class name, and
