@@ -9,7 +9,49 @@ What's New in Astropy 0.4?
 Overview
 --------
 
-xxx
+Astropy 0.4 is a major release that adds new functionality since the 0.3.x
+series of releases. One new sub-package is included (see `SAMP`_), and many
+new features have been implemented in the existing sub-pacakges, a few of
+which are described below. In addition to usability improvements, we have
+made a number of changes in the infrastructure for setting up/installing the
+package, and for the configuration system (see `astropy-helpers`_ and
+`Configuration`_).
+
+SAMP
+----
+
+The :ref:`vo-samp` sub-package is a new sub-package (adapted from the `SAMPy
+package <http://packages.python.org/sampy/>`_) that contains an
+implementation of the `Simple Application Messaging Protocol (SAMP)
+<http://www.ivoa.net/documents/SAMP/>`_ standard that allows communication
+with any SAMP-enabled application (such as `TOPCAT
+<http://www.star.bris.ac.uk/~mbt/topcat/>`_, `SAO Ds9
+<http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
+<http://aladin.u-strasbg.fr>`_). This sub-package includes both classes for a
+hub and a client, as well as an *integrated client* which automatically
+starts up a hub and acts as a client::
+
+    >>> from astropy.vo.samp import SAMPIntegratedClient
+    >>> client = SAMPIntegratedClient()
+    >>> client.connect()
+
+We can then use the client to communicate with other clients::
+
+    >>> client.get_registered_clients()
+    ['hub', 'c1', 'c2']
+    >>> client.get_metadata('c1')
+    {'author.affiliation': 'Astrophysics Group, Bristol University',
+     'author.email': 'm.b.taylor@bristol.ac.uk',
+     'author.name': 'Mark Taylor',
+     'home.page': 'http://www.starlink.ac.uk/topcat/',
+     'samp.description.text': 'Tool for OPerations on Catalogues And Tables',
+     'samp.documentation.url': 'http://127.0.0.1:2525/doc/sun253/index.html',
+     'samp.icon.url': 'http://127.0.0.1:2525/doc/images/tc_sok.gif',
+     'samp.name': 'topcat',
+     'topcat.version': '4.0-1'}
+
+and we can then send for example tables and images over SAMP to other
+applications (see :ref:`vo-samp` for examples of how to do this).
 
 Inspecting FITS headers from the command line
 ---------------------------------------------
@@ -35,6 +77,25 @@ http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.
 while the appropriate URL for v0.4 and later is:
 http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
 
+astropy-helpers
+---------------
+
+We have now extracted our set-up and documentation utilities into a separate
+package, `astropy-helpers <https://github.com/astropy/astropy-helpers>`_. In
+practice, this does not change anything from a user point of view, but it is
+a big internal change that will allow any other packages to benefit from the
+set-up utilies developed for the core package without having to first install
+astropy.
+
+Configuration
+-------------
+
+The configuration framework has been re-factored. If you have previously
+edited the astropy configuration file (typically located in
+``~/.astropy/config/astropy.cfg``) then you should read over
+:ref:`config-0-4-transition` in order to understand how to update it
+to the new mechanism.
+
 Deprecation and backward-incompatible changes
 ---------------------------------------------
 
@@ -51,3 +112,10 @@ Deprecation and backward-incompatible changes
   for the package.  Pre-v0.4 coordinates may no longer work, and should be
   adapted to the new framework.  From this point on, major changes to the
   coordinates classes are not expected.  [#2422]
+
+Note on future versions
+-----------------------
+
+While the current release supports Python 2.6, 2.7, and 3.1 to 3.4, the next
+release (1.0) will drop support for Python 3.1 and 3.2.
+
