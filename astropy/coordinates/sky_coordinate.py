@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import collections
 
 import numpy as np
+import re
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -849,10 +850,14 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
             # Each row must be either a 2-element iterable or a string that
             # splits into six or two elements.
             if isinstance(coord, six.string_types):
-                coord = coord.split()
-                if len(coord) == 6:
-                    coord = (' '.join(coord[:3]), ' '.join(coord[3:]))
-
+                coord1 = coord.split()
+                if len(coord1) == 6:
+                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                elif len(coord1) > 2:
+                    coord = re.split('(\+|\-)', coord)
+                    coord = (coord[0], ' '.join(coord[1:]))
+                else:
+                    coord = coord1
             try:
                 lon, lat = coord
             except:
