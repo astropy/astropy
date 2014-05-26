@@ -122,8 +122,8 @@ The syntax for |SkyCoord| is given below::
 
 **LON**, **LAT**
 
-Longitude and latitude values can be specified as separate positional
-arguments.  The following options are available:
+For spherical coordinate frames, longitude and latitude values can be specified
+as separate positional arguments.  The following options are available:
 
 - Single angle value:
 
@@ -138,8 +138,9 @@ arguments.  The following options are available:
 
 **COORD**
 
-A coordinate is an object that supplies one or more longitude and latitude
-pairs in one of the following ways:
+This input form uses a single object to supply coordinate data.  For the case
+of spherical coordinate frames, the coordinate can include one or more
+longitude and latitude pairs in one of the following ways:
 
 - Single coordinate string with a LON and LAT value separated by a space.  The
   respective values can be any string which is formatted for
@@ -149,10 +150,15 @@ pairs in one of the following ways:
 - ``N x 2`` numpy or |Quantity| array of values where the first column is
   longitude and the second column is latitude, e.g.
   ``[[270, -30], [355, +85]] * u.deg``
+
+The input can also be more generalized objects that are not necessarily
+represented in the standard spherical coordinates:
+
 - Coordinate frame object, e.g. ``FK4(1*u.deg, 2*u.deg, obstime='J2012.2')``
 - |SkyCoord| object (which just makes a copy of the object)
 - `~astropy.coordinates.BaseRepresentation` subclass object like
-  `~astropy.coordinates.SphericalRepresentation`  or
+  `~astropy.coordinates.SphericalRepresentation`,
+  `~astropy.coordinates.CylindricalRepresentation`,  or
   `~astropy.coordinates.CartesianRepresentation`.
 
 **FRAME**
