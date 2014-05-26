@@ -247,6 +247,7 @@ coordinate systems implemented here include:
     problems and concepts.
 
 
+.. _astropy-coordinates-api:
 
 Reference/API
 =============

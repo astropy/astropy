@@ -3,3 +3,4 @@
 .. |Angle| replace:: `~astropy.coordinates.Angle`
 .. |Longitude| replace:: `~astropy.coordinates.Longitude`
 .. |Latitude| replace:: `~astropy.coordinates.Latitude`
+.. |baseframe| replace:: `~astropy.coordinates.BaseCoordinateFrame`
