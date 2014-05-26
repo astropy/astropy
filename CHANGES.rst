@@ -426,6 +426,9 @@ Bug Fixes
   - The ``astropy.table.Column`` object can now use both functions and callable
     objects as formats. [#2313]
 
+  - Fixed a problem on 64 bit windows that caused errors
+    "expected 'DTYPE_t' but got 'long long'" [#2490]
+
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is
@@ -439,7 +442,7 @@ Bug Fixes
   - Composing base units into identical composite units now works. [#2382]
 
   - Creating and composing/decomposing units is now substantially faster [#2544]
- 
+
 - ``astropy.utils``
 
 - ``astropy.vo``
@@ -487,7 +490,7 @@ Bug Fixes
     [#2061]
 
   - When the C extension for ``astropy.wcs`` is built using a version of
-    ``wscslib`` already present in the system, the package does not try 
+    ``wscslib`` already present in the system, the package does not try
     to install ``wcslib`` headers under ``astropy/wcs/include``. [#2536]
 
 - Misc
