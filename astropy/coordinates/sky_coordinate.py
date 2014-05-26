@@ -78,7 +78,7 @@ class SkyCoord(object):
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
-    to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, `Galactic`, and `AltAz`.
+    to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, and `Galactic`.
     The string aliases are simply lower-case versions of the class name, and
     allow for creating a `SkyCoord` object and transforming frames without
     explicitly importing the frame classes.
