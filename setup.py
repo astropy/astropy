@@ -57,7 +57,7 @@ scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
 package_info = get_package_info()
 
 # Add the project-global data
-package_info['package_data']['astropy'] = ['data/*']
+package_info['package_data'].setdefault('astropy', []).append('data/*')
 
 # Currently the only entry points installed by Astropy are hooks to
 # zest.releaser for doing Astropy's releases
