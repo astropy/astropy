@@ -486,6 +486,10 @@ Bug Fixes
     rather than getting obscure errors once the ``astropy.wcs`` is used.
     [#2061]
 
+  - When the C extension for ``astropy.wcs`` is built using a version of
+    ``wscslib`` already present in the system, the package does not try 
+    to install ``wcslib`` headers under ``astropy/wcs/include``. [#2536]
+
 - Misc
 
   - Running the test suite with ``python setup.py test`` now works if
