@@ -31,6 +31,10 @@ The key distinctions between |SkyCoord| and the low-level classes
 
 - The |SkyCoord| class has a number of convenience methods that are useful
   in typical analysis.
+
+- At present, |SkyCoord| objects can use only coordinate frames that have
+  transformations defined in the ``astropy.coordinates.frame_transform_graph``
+  transform graph object.
   
 Creating SkyCoord objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
