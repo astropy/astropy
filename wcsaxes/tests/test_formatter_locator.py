@@ -144,7 +144,7 @@ class TestScalarFormatterLocator(object):
 
     def test_no_options(self):
 
-        fl = ScalarFormatterLocator()
+        fl = ScalarFormatterLocator(unit = u.m)
         assert fl.values is None
         assert fl.number == 5
         assert fl.spacing is None
@@ -156,20 +156,20 @@ class TestScalarFormatterLocator(object):
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], spacing=5.)
+            ScalarFormatterLocator(values=[1.,2.], spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(number=5, spacing=5.)
+            ScalarFormatterLocator(number=5, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], number=5, spacing=5.)
+            ScalarFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
     def test_values(self):
 
-        fl = ScalarFormatterLocator(values=[0.1, 1., 14.])
+        fl = ScalarFormatterLocator(values=[0.1, 1., 14.],unit = u.m)
         assert fl.values == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
@@ -179,7 +179,7 @@ class TestScalarFormatterLocator(object):
 
     def test_number(self):
 
-        fl = ScalarFormatterLocator(number=7)
+        fl = ScalarFormatterLocator(number=7, unit = u.m)
         assert fl.values is None
         assert fl.number == 7
         assert fl.spacing is None
@@ -196,15 +196,15 @@ class TestScalarFormatterLocator(object):
 
     def test_spacing(self):
 
-        fl = ScalarFormatterLocator(spacing=3.)
+        fl = ScalarFormatterLocator(spacing=3. * u.m)
         assert fl.values is None
         assert fl.number is None
-        assert fl.spacing == 3.
+        assert fl.spacing == 3. * u.m
 
         values, spacing = fl.locator(34.3, 55.4)
         assert_almost_equal(values, [36., 39., 42., 45., 48., 51., 54.])
 
-        fl.spacing = 0.5
+        fl.spacing = 0.5 * u.m
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values, [34.5, 35., 35.5, 36.])
 
@@ -217,19 +217,19 @@ class TestScalarFormatterLocator(object):
                                                     ('x.xx', '15.39'),
                                                     ('x.xxx', '15.392')])
     def test_format(self, format, string):
-        fl = ScalarFormatterLocator(number=5, format=format)
+        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
         assert fl.formatter([15.392231], None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['dd', 'dd:mm', 'xx:mm', 'mx.xxx'])
     def test_invalid_formats(self, format):
-        fl = ScalarFormatterLocator(number=5)
+        fl = ScalarFormatterLocator(number=5, unit = u.m)
         with pytest.raises(ValueError) as exc:
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
 
-    @pytest.mark.parametrize(('format', 'base_spacing'), [('x', 1.),
-                                                          ('x.x', 0.1),
-                                                          ('x.xxx', 0.001)])
+    @pytest.mark.parametrize(('format', 'base_spacing'), [('x', 1. * u.m),
+                                                          ('x.x', 0.1 * u.m),
+                                                          ('x.xxx', 0.001 * u.m)])
     def test_base_spacing(self, format, base_spacing):
-        fl = ScalarFormatterLocator(number=5, format=format)
+        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
         assert fl.base_spacing == base_spacing
