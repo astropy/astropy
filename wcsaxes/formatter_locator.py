@@ -284,12 +284,24 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     def __init__(self, values=None, number=None, spacing=None, format=None, unit = None):
         if unit is not None:
             self._unit = unit
+            self._format_unit = unit
         if spacing is not None:
             self._unit = spacing.unit
+            self._format_unit = spacing.unit
         super(ScalarFormatterLocator, self).__init__(values=values,
                                                      number=number,
                                                      spacing=spacing,
                                                      format=format)
+
+    @property
+    def format_unit(self):
+        return self._format_unit
+
+    @format_unit.setter
+    def format_unit(self, unit):
+        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) :
+            raise TypeError("unit should be an astropy.units.IrreducibleUnit or astropy.units.Unit instance")
+        self._format_unit = unit
 
     @property
     def spacing(self):
@@ -373,6 +385,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     def formatter(self, values, spacing):
 
+        # values_unit = values.unit
+
         if len(values) > 0:
             if self.format is None:
                 if spacing < 1.:
@@ -382,7 +396,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             else:
                 precision = self._precision
 
-            return [("{0:." + str(precision) + "f}").format(x) for x in values]
+            return [("{0:." + str(precision) + "f}").format(x.to(self._format_unit).value) for x in values]
 
         else:
-            return []
+            return [] * self._format_unit
