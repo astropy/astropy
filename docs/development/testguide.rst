@@ -373,7 +373,7 @@ command line with ``py.test --remote-data``.
 
 Examples
 ^^^^^^^^
-::
+.. code-block:: none
 
     from ...config import get_data_filename
     from ...tests.helper import remote_data
@@ -700,7 +700,9 @@ are not actually executable verbatim. An example may depend on some external
 conditions being fulfilled, for example. In these cases there are a few ways to
 skip a doctest:
 
-1. Next to the example add a comment like: ``# doctest: +SKIP``.  For example::
+1. Next to the example add a comment like: ``# doctest: +SKIP``.  For example:
+
+   .. code-block:: none
 
      >>> import os
      >>> os.listdir('.')  # doctest: +SKIP
@@ -710,7 +712,9 @@ skip a doctest:
 
    To skip tests that require fetching remote data, use the ``REMOTE_DATA``
    flag instead.  This way they can be turned on using the
-   ``--remote-data`` flag when running the tests::
+   ``--remote-data`` flag when running the tests:
+
+   .. code-block:: none
 
      >>> datafile = get_data_filename('hash/94935')  # doctest: +REMOTE_DATA
 
