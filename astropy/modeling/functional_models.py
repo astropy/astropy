@@ -26,6 +26,7 @@ __all__ = sorted([
     'custom_model_1d'
 ])
 
+FLOAT_EPSILON = np.float(np.finfo(np.float32).tiny)
 
 class Gaussian1D(Fittable1DModel):
     """
@@ -92,7 +93,7 @@ class Gaussian1D(Fittable1DModel):
 
     amplitude = Parameter()
     mean = Parameter()
-    stddev = Parameter()
+    stddev = Parameter(min=FLOAT_EPSILON)
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:
@@ -115,7 +116,6 @@ class Gaussian1D(Fittable1DModel):
         """
         Gaussian1D model function derivatives.
         """
-
         d_amplitude = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
         d_mean = amplitude * d_amplitude * (x - mean) / stddev ** 2
         d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev ** 3
