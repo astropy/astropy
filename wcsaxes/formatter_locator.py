@@ -399,4 +399,4 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             return [("{0:." + str(precision) + "f}").format(x.to(self._format_unit).value) for x in values]
 
         else:
-            return [] * self._format_unit
+            return []
