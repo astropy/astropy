@@ -202,7 +202,7 @@ class TestNonLinearFitters(object):
         func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
         errf = lambda p, x, y: (func(p, x) - y)
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
-        utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
+        utils.assert_allclose(model.parameters, result[0], rtol=5 * 10 ** (-2))
 
     def test_LSQ_SLSQP(self):
         g1 = models.Gaussian1D(100, 5, stddev=1)

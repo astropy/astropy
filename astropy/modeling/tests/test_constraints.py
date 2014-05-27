@@ -88,7 +88,7 @@ class TestNonLinearConstraints(object):
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         fitter = fitting.NonLinearLSQFitter()
         model = fitter(g1, self.x, ny)
-        utils.assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
+        utils.assert_allclose(model.parameters, fitpar, rtol=10 ** (-1))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
