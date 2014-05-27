@@ -1281,7 +1281,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
-        datasum_keyword: str, optional
+        datasum_keyword : str, optional
             The name of the header keyword to store the datasum value in;
             this is typically 'DATASUM' per convention, but there exist
             use cases in which a different keyword should be used
@@ -1328,12 +1328,12 @@ class _ValidHDU(_BaseHDU, _Verify):
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
-        checksum_keyword: str, optional
+        checksum_keyword : str, optional
             The name of the header keyword to store the checksum value in; this
             is typically 'CHECKSUM' per convention, but there exist use cases
             in which a different keyword should be used
 
-        datasum_keyword: str, optional
+        datasum_keyword : str, optional
             See ``checksum_keyword``
 
         Notes

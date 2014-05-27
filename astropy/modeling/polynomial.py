@@ -213,10 +213,10 @@ class OrthoPolynomialBase(PolynomialBase):
         degree in y
     x_domain : list or None
         domain of the x independent variable
-    y_domain : list or None
-        domain of the y independent variable
     x_window : list or None
         range of the x independent variable
+    y_domain : list or None
+        domain of the y independent variable
     y_window : list or None
         range of the y independent variable
     param_dim : int

@@ -2826,7 +2826,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
            names.
 
         .. warning::
-
            Variable-length array fields may not be restored
            identically when round-tripping through the
            `astropy.table.Table` instance.

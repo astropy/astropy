@@ -229,6 +229,10 @@ class FITSDiff(_BaseDiff):
             Ignore extra whitespace at the end of string values either in
             headers or data. Extra leading whitespace is not ignored
             (default: True).
+
+        ignore_blank_cards : bool, optional
+            Ignore all cards that are blank, i.e. they only contain
+            whitespace (default: True).
         """
 
         if isinstance(a, string_types):

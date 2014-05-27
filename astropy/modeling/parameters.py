@@ -79,6 +79,8 @@ class Parameter(object):
     ----------
     name : str
         parameter name
+    description : str
+        parameter description
     default : float or array
         default value to use for this parameter
     getter : callable

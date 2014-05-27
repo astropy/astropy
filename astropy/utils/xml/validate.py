@@ -23,7 +23,7 @@ def validate_schema(filename, schema_file):
     filename : str
         The path to the XML file to validate
 
-    schema : str
+    schema_file : str
         The path to the XML schema or DTD
 
     Returns

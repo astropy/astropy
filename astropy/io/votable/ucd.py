@@ -173,6 +173,10 @@ def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         the UCD1+ controlled vocabulary, (as required by the VOTable
         specification version 1.2), otherwise not.
 
+    has_colon : bool, optional
+        If `True`, the UCD may contain a colon (as defined in earlier
+        versions of the standard).
+
     Returns
     -------
     valid : bool
