@@ -218,7 +218,16 @@ class TestScalarFormatterLocator(object):
                                                     ('x.xxx', '15.392')])
     def test_format(self, format, string):
         fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
-        assert fl.formatter([15.392231], None)[0] == string
+        assert fl.formatter([15.392231] * u.m, None)[0] == string
+
+    @pytest.mark.parametrize(('format', 'string'), [('x', '1539'),
+                                                    ('x.x', '1539.2'),
+                                                    ('x.xx', '1539.22'),
+                                                    ('x.xxx', '1539.223')])
+    def test_format_unit(self, format, string):
+        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
+        fl.format_unit = u.cm
+        assert fl.formatter([15.392231] * u.m, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['dd', 'dd:mm', 'xx:mm', 'mx.xxx'])
     def test_invalid_formats(self, format):
