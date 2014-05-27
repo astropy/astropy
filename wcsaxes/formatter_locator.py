@@ -281,11 +281,27 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None):
+    def __init__(self, values=None, number=None, spacing=None, format=None, unit = None):
+        if unit is not None:
+            self._unit = unit
+        if spacing is not None:
+            self._unit = spacing.unit
         super(ScalarFormatterLocator, self).__init__(values=values,
                                                      number=number,
                                                      spacing=spacing,
                                                      format=format)
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @spacing.setter
+    def spacing(self, spacing):
+        if spacing is not None and not isinstance(spacing, u.Quantity):
+            raise TypeError("spacing should be an astropy.units.Quantity instance")
+        self._number = None
+        self._spacing = spacing
+        self._values = None
 
     @property
     def format(self):
@@ -311,27 +327,27 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             warnings.warn("Spacing is too small - resetting spacing to match format")
             self.spacing = self.base_spacing
 
-        if self.spacing is not None and (self.spacing % self.base_spacing) > 1e-10:
+        if self.spacing is not None and (self.spacing % self.base_spacing) > 1e-10 * self._unit:
             warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
             self.spacing = self.base_spacing * np.round(self.spacing / self.spacing)
 
     @property
     def base_spacing(self):
-        return 1. / (10. ** self._precision)
+        return self._unit / (10. ** self._precision)
 
     def locator(self, value_min, value_max):
 
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values), 1.1
+            return np.asarray(self.values), 1.1 * self._unit
 
         else:
 
             if self.spacing is not None:
 
                 # spacing was manually specified
-                spacing = self.spacing
+                spacing = self.spacing.to(self._unit).value
 
             elif self.number is not None:
 
@@ -340,10 +356,10 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # first compute the exact spacing
                 dv = abs(float(value_max - value_min)) / self.number
 
-                if self.format is not None and dv < self.base_spacing:
+                if self.format is not None and dv < self.base_spacing.value:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
-                    spacing = self.base_spacing
+                    spacing = self.base_spacing.to(self._unit).value
                 else:
                     from .utils import select_step_scalar
                     spacing = select_step_scalar(dv)
@@ -353,12 +369,11 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             imin = np.ceil(value_min / spacing)
             imax = np.floor(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
-            return values, spacing
+            return values, spacing * self._unit
 
     def formatter(self, values, spacing):
 
         if len(values) > 0:
-
             if self.format is None:
                 if spacing < 1.:
                     precision = -int(np.floor(np.log10(spacing)))
