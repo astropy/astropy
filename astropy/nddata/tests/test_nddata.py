@@ -91,12 +91,43 @@ def test_nddata_mask_valid():
         NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
 
 
+@pytest.mark.parametrize('mask_in', [
+                         np.array([True, False]),
+                         np.array([1, 0]),
+                         [True, False],
+                         [1, 0]])
+def test_nddata_mask_init_without_np_array(mask_in):
+    ndd = NDData([1, 1], mask=mask_in)
+    assert (ndd.mask == mask_in).all()
+
+
 @pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
 def test_nddata_mask_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:
         with NumpyRNGContext(789):
             NDData(np.random.random((10, 10)), mask=np.random.random(shape) > 0.5)
     assert exc.value.args[0] == 'dimensions of mask do not match data'
+
+
+@pytest.mark.parametrize('flags_in', [
+                         np.array([True, False]),
+                         np.array([1, 0]),
+                         [True, False],
+                         [1, 0],
+                         np.array(['a', 'b']),
+                         ['a', 'b']])
+def test_nddata_flags_init_without_np_array(flags_in):
+    ndd = NDData([1, 1], flags=flags_in)
+    assert (ndd.flags == flags_in).all()
+
+
+@pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
+def test_nddata_flags_invalid_shape(shape):
+    with pytest.raises(ValueError) as exc:
+        with NumpyRNGContext(789):
+            NDData(np.random.random((10, 10)), flags=np.random.random(shape))
+    assert exc.value.args[0] == 'dimensions of flags do not match data'
+
 
 
 def test_nddata_uncertainty_init():

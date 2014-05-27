@@ -44,17 +44,19 @@ class NDData(object):
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
 
-    mask : `~numpy.ndarray`, optional
-        Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values must be `False` where
-        the data is *valid* and `True` when it is not (like Numpy
-        masked arrays). If ``data`` is a numpy masked array, providing
+    mask : `~numpy.ndarray`-like, optional
+        Mask for the data, given as a boolean Numpy array or any object that
+        can be converted to a boolean Numpy array with a shape
+        matching that of the data. The values must be ``False`` where
+        the data is *valid* and ``True`` when it is not (like Numpy
+        masked arrays). If `data` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 
-    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
+    flags : `~numpy.ndarray`-like or `~astropy.nddata.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
-        either as a Numpy array of any type with a shape matching that of the
+        either as a Numpy array of any type (or an object which can be converted
+        to a Numpy array) with a shape matching that of the
         data, or as a `~astropy.nddata.FlagCollection` instance which has a
         shape matching that of the data.
 
@@ -185,16 +187,11 @@ class NDData(object):
     @mask.setter
     def mask(self, value):
         if value is not None:
-            if isinstance(value, np.ndarray):
-                if value.dtype != np.bool_:
-                    raise TypeError("mask must be a boolean Numpy array")
-                else:
-                    if value.shape != self.shape:
-                        raise ValueError("dimensions of mask do not match data")
-                    else:
-                        self._mask = value
+            mask = np.array(value, dtype=np.bool_, copy=False)
+            if mask.shape != self.shape:
+                raise ValueError("dimensions of mask do not match data")
             else:
-                raise TypeError("mask must be a Numpy array")
+                self._mask = mask
         else:
             # internal representation should be one numpy understands
             self._mask = np.ma.nomask
@@ -206,18 +203,17 @@ class NDData(object):
     @flags.setter
     def flags(self, value):
         if value is not None:
-            if isinstance(value, np.ndarray):
-                if value.shape != self.shape:
-                    raise ValueError("dimensions of flags do not match data")
-                else:
-                    self._flags = value
-            elif isinstance(value, FlagCollection):
+            if isinstance(value, FlagCollection):
                 if value.shape != self.shape:
                     raise ValueError("dimensions of FlagCollection does not match data")
                 else:
                     self._flags = value
             else:
-                raise TypeError("flags should be a Numpy array or a FlagCollection instance")
+                flags = np.array(value, copy=False)
+                if flags.shape != self.shape:
+                    raise ValueError("dimensions of flags do not match data")
+                else:
+                    self._flags = flags
         else:
             self._flags = value
 
