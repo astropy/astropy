@@ -1983,9 +1983,10 @@ naxis kwarg.
         else:
             return self.slice(item)
 
+    @property
     def axis_type_names(self):
         """
-        Extract world names for each coordinate axis
+        World names for each coordinate axis
 
         Returns
         -------
