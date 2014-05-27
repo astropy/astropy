@@ -8,6 +8,8 @@ by objects of the |Angle| class. While most likely to be encountered in
 the context of coordinate objects, |Angle| objects can also be used on
 their own wherever a representation of an angle is needed.
 
+.. _angle-creation:
+
 Creation
 ^^^^^^^^
 

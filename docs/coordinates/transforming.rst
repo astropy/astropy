@@ -13,8 +13,7 @@ transformations.  The topic of writing your own coordinate frame or
 transforms is detailed in :ref :`astropy-coordinates-design`, and this
 section is focused on how to *use* transformations.
 
-The simplest for of transformation is simply::
-
+The simplest method of transformation is shown below::
 
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
@@ -23,34 +22,55 @@ The simplest for of transformation is simply::
     <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
 
 While this appears to be simple attribute-style access, it is actually
-just syntactic sugar for the
+syntactic sugar for the more general
 :meth:`~astropy.coordinates.SkyCoord.transform_to` method, which can
-accept either frame names, or `~astropy.coordinates.BaseCoordinateFrame`
-classes::
+accept either a frame name, class or instance::
 
     >>> from astropy.coordinates import FK5
     >>> gc.transform_to('fk5')
     <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
     >>> gc.transform_to(FK5)
     <SkyCoord (FK5): equinox=J2000.000, ra=229.27250... deg, dec=-1.128417... deg>
+    >>> gc.transform_to(FK5(equinox='J1980.0'))
+    <SkyCoord (FK5): equinox=J1980.000, ra=229.01468... deg, dec=-1.055578... deg>
 
+As a convenience it is also possible to use a |SkyCoord| object as the frame in
+:meth:`~astropy.coordinates.SkyCoord.transform_to`.  This allows easily putting one
+coordinate object into the frame of another::
 
-The full list of supported coordinate systems and transformations is
-in the `astropy.coordinates` API documentation.
+    >>> sc = SkyCoord(ra=1.0, dec=2.0, unit='deg', frame=FK5, equinox='J1980.0')
+    >>> gc.transform_to(sc)
+    <SkyCoord (FK5): equinox=J1980.000, ra=229.01468... deg, dec=-1.055578... deg>
 
-Additionally, some coordinate frames support "self transformations",
-meaning the *type* of frame doesn't change, but the frame attributes do.
-Any example is precessing a coordinate from one equinox to another in an
-equatorial system. This is done by passing `transform_to` a frame class
-with the relevant attributes, as shown below. Note that these systems
-have a default equinox they start with if you don't specify one::
+The table below summarizes the built-in coordinate frames.  For details of
+these frames and the transformations between them see the `astropy.coordinates`
+API documentation and the `~astropy.coordinates.BaseCoordinateFrame` class
+which forms the basis for all `astropy` coordinate frames.
+
+================================== ================
+ Frame class                        Frame name
+================================== ================
+`~astropy.coordinates.ICRS`         ``icrs``
+`~astropy.coordinates.FK5`          ``fk5``
+`~astropy.coordinates.FK4`          ``fk4``
+`~astropy.coordinates.FK4NoETerms`  ``fk4noeterms``
+`~astropy.coordinates.Galactic`     ``galactic``
+================================== ================
+
+Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
+`~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
+"self transformations", meaning the *type* of frame doesn't change, but the
+frame attributes do.  Any example is precessing a coordinate from one equinox
+to another in an equatorial system. This is done by passing `transform_to` a
+frame class with the relevant attributes, as shown below. Note that these
+systems use a default equinox if you don't specify one::
 
     >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s')
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' value=J2000.000>
     >>> fk5c
     <SkyCoord (FK5): equinox=J2000.000, ra=37.9545416... deg, dec=89.2641... deg>
-    >>> fk5_2005 = FK5(equinox='J2005')  # internally the string becomes an astropy.time.Time object
+    >>> fk5_2005 = FK5(equinox='J2005')  # String initializes an astropy.time.Time object
     >>> fk5c.transform_to(fk5_2005)
     <SkyCoord (FK5): equinox=J2005.000, ra=39.3931763... deg, dec=89.2858... deg>
 
@@ -69,7 +89,7 @@ The same lower-level frame classes also have a
 that works the same as above, but they do not support attribute-style
 access. They are also subtly different in that they only use frame
 attributes present in the initial or final frame, while |skycoord|
-objects use  any frame attributes they have for all transformation
+objects use any frame attributes they have for all transformation
 steps.  So |skycoord| can always transform from one frame to another and
 back again without change, while low-level classes may lose information
 and hence often do not round-trip.
