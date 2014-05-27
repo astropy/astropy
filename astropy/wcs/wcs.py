@@ -1945,14 +1945,24 @@ naxis kwarg.
         numpy_order : bool
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
-            way.  If you turn this off, the WCS will be sliced in FITS order.
+            way.  If set to ``False``, the WCS will be sliced in FITS order,
+            meaning the first slice will be applied to the *last* numpy index
+            but the *first* WCS axis.
 
         Returns
         -------
-        A new `~astropy.wcs.WCS` instance
+        wcs_new : `~astropy.wcs.WCS`
+            A new resampled WCS axis
         """
-        if len(view) != self.wcs.naxis:
-            raise ValueError("Must have same number of slices as number of WCS axes")
+        if hasattr(view,'__len__') and len(view) > self.wcs.naxis:
+            raise ValueError("Must have # of slices <= # of WCS axes")
+        elif not hasattr(view,'__len__'): # view MUST be an iterable
+            view = [view]
+
+        if not all([isinstance(x, slice) for x in view]):
+            raise ValueError("Cannot downsample a WCS with indexing.  Use "
+                             "wcs.sub or wcs.dropaxis if you want to remove "
+                             "axes.")
 
         wcs_new = self.deepcopy()
         for i, iview in enumerate(view):
@@ -1965,9 +1975,12 @@ naxis kwarg.
                 if iview.step not in (None, 1):
                     crpix = self.wcs.crpix[wcs_index]
                     cdelt = self.wcs.cdelt[wcs_index]
-                    # equivalently:
-                    # wcs_new.wcs.crpix[wcs_index] = (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
-                    wcs_new.wcs.crpix[wcs_index] = (crpix - iview.start - 1.)/iview.step + 0.5 + 1./iview.step/2.
+                    # equivalently (keep this comment so you can compare eqns):
+                    # wcs_new.wcs.crpix[wcs_index] =
+                    # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
+                    crp = ((crpix - iview.start - 1.)/iview.step
+                           + 0.5 + 1./iview.step/2.)
+                    wcs_new.wcs.crpix[wcs_index] = crp
                     wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
@@ -1978,10 +1991,7 @@ naxis kwarg.
         # there is no obvious and unambiguous interpretation of wcs[1,2,3]
         # We COULD allow wcs[1] to link to wcs.sub([2])
         # (wcs[i] -> wcs.sub([i+1])
-        if not hasattr(item, '__len__') or len(item) != self.wcs.naxis:
-            raise ValueError("Must specify slices for each dimension.")
-        else:
-            return self.slice(item)
+        return self.slice(item)
 
     @property
     def axis_type_names(self):

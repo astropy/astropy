@@ -93,6 +93,11 @@ def test_slice_getitem():
     assert np.all(slice_wcs.wcs.crpix == np.array([0.875,0.75]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
 
+    # Default: numpy order
+    slice_wcs = mywcs[1::2]
+    assert np.all(slice_wcs.wcs.crpix == np.array([2,0.75]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.1,0.2]))
+
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1,1]
@@ -105,6 +110,25 @@ def test_slice_fitsorder():
     slice_wcs = mywcs.slice([slice(1,None,2),slice(0,None,4)], numpy_order=False)
     assert np.all(slice_wcs.wcs.crpix == np.array([0.25,0.625]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.4]))
+
+    slice_wcs = mywcs.slice([slice(1,None,2)], numpy_order=False)
+    assert np.all(slice_wcs.wcs.crpix == np.array([0.25,1]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.1]))
+
+def test_invalid_slice():
+    mywcs = WCS(naxis=2)
+
+    with pytest.raises(ValueError) as exc:
+        mywcs[0]
+    assert exc.value.args[0] == ("Cannot downsample a WCS with indexing.  Use "
+                                 "wcs.sub or wcs.dropaxis if you want to remove "
+                                 "axes.")
+
+    with pytest.raises(ValueError) as exc:
+        mywcs[0,::2]
+    assert exc.value.args[0] == ("Cannot downsample a WCS with indexing.  Use "
+                                 "wcs.sub or wcs.dropaxis if you want to remove "
+                                 "axes.")
 
 def test_axis_names():
     mywcs = WCS(naxis=4)
