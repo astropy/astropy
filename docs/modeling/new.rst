@@ -5,7 +5,7 @@ Defining New Model Classes
 This document describes how to add a model to the package or to create a
 user-defined model. In short, one needs to define all model parameters and
 write an eval function which evaluates the model.  If the model is fittable, a
-function to compute the derivatives with respect to parapemeters is required
+function to compute the derivatives with respect to parameters is required
 if a linear fitting algorithm is to be used and optional if a non-linear fitter is to be used.
 
 
@@ -126,7 +126,7 @@ There is an option to compute numerical derivatives for nonlinear models in
 which case the ``fit_deriv`` method should be ``None``::
 
     @staticmethod
-    def fit_deriv(x, ampltidue, mean, stddev):
+    def fit_deriv(x, amplitude, mean, stddev):
         d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
         d_mean = (2 * amplitude *
                   np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *

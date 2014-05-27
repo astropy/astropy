@@ -217,7 +217,7 @@ class Model(object):
         parameter may be used to set the ``tied`` constraint on individual
         parameters.
     bounds : dict
-        Dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
+        Dictionary ``{parameter_name: value}`` of lower and upper bounds of
         parameters. Keys are parameter names. Values are a list of length 2
         giving the desired range for the parameter.
 
