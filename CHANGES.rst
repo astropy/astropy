@@ -538,6 +538,8 @@ Other Changes and Additions
 - The ``human_time`` function in ``astropy.utils`` now returns strings
   without zero padding. [#2420]
 
+- The ``bdist_dmg`` command for ``setup.py`` has now been removed. [#2553]
+
 
 0.3.2 (2014-05-13)
 ------------------
