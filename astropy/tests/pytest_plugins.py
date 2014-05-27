@@ -514,8 +514,11 @@ def pytest_report_header(config):
     stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
-    s += "Running tests in {0}.\n\n".format(" ".join([
-        x.decode('utf-8') for x in config.args]))
+    if six.PY2:
+        args = [x.decode('utf-8') for x in config.args]
+    elif six.PY3:
+        args = config.args
+    s += "Running tests in {0}.\n\n".format(" ".join(args))
 
     from platform import platform
     plat = platform()
