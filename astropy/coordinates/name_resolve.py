@@ -103,17 +103,17 @@ def _parse_response(resp_data):
 
 def get_icrs_coordinates(name):
     """
-    Retrieve an ICRS object by using an online name resolving service
-    to retrieve coordinates for the specified name. By default, this
-    will search all available databases until a match is found. If you
-    would like to specify the database, use the science state
-    `name_resolve.sesame_database` . You can also specify a list of
-    servers to use for querying Sesame using the science state
-    `name_resolve.sesame_url`. This will try each one in order until a
-    valid response is returned. By default, this list includes the
-    main Sesame host and a mirror at vizier.  The configuration item
-    `astropy.utils.data.Conf.remote_timeout` controls the number of
-    seconds to wait for a response from the server before giving
+    Retrieve an ICRS object by using an online name resolving service to
+    retrieve coordinates for the specified name. By default, this will
+    search all available databases until a match is found. If you would like
+    to specify the database, use the science state
+    ``astropy.coordinates.name_resolve.sesame_database``. You can also
+    specify a list of servers to use for querying Sesame using the science
+    state ``astropy.coordinates.name_resolve.sesame_url``. This will try
+    each one in order until a valid response is returned. By default, this
+    list includes the main Sesame host and a mirror at vizier.  The
+    configuration item `astropy.utils.data.Conf.remote_timeout` controls the
+    number of seconds to wait for a response from the server before giving
     up.
 
     Parameters

@@ -462,8 +462,8 @@ class TransformGraph(object):
 
         Returns
         -------
-        nxgraph : `networkx.Graph`
-            This `TransformGraph` as a `networkx.Graph`.
+        nxgraph : `networkx.Graph <http://networkx.lanl.gov/reference/classes.graph.html>`_
+            This `TransformGraph` as a `networkx.Graph`_.
         """
         import networkx as nx
 
@@ -557,8 +557,8 @@ class CoordinateTransform(object):
     """
     An object that transforms a coordinate from one system to another.
     Subclasses must implement `__call__` with the provided signature.
-    They should also call this superclass's `__init__` in their
-    `__init__`.
+    They should also call this superclass's ``__init__`` in their
+    ``__init__``.
 
     Parameters
     ----------
@@ -569,9 +569,9 @@ class CoordinateTransform(object):
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
+    register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
-        None to leave it unregistered.
+        `None` to leave it unregistered.
     """
 
     def __init__(self, fromsys, tosys, priority=1, register_graph=None):
@@ -672,9 +672,9 @@ class FunctionTransform(CoordinateTransform):
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
+    register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
-        None to leave it unregistered.
+        `None` to leave it unregistered.
 
     Raises
     ------
@@ -734,9 +734,9 @@ class StaticMatrixTransform(CoordinateTransform):
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
+    register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
-        None to leave it unregistered.
+        `None` to leave it unregistered.
 
     Raises
     ------
@@ -800,9 +800,9 @@ class DynamicMatrixTransform(CoordinateTransform):
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
+    register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
-        None to leave it unregistered.
+        `None` to leave it unregistered.
 
     Raises
     ------
@@ -852,7 +852,7 @@ class CompositeTransform(CoordinateTransform):
 
     Parameters
     ----------
-    transforms : sequence of `CoordinateTransform`s
+    transforms : sequence of `CoordinateTransform` objects
         The sequence of transformations to apply.
     fromsys : class
         The coordinate frame class to start from.
@@ -861,11 +861,11 @@ class CompositeTransform(CoordinateTransform):
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
-    register_graph : TransformGraph or None
+    register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
-        None to leave it unregistered.
+        `None` to leave it unregistered.
     collapse_static_mats : bool
-        If True, consecutive `StaticMatrixTransform` will be collapsed into a
+        If `True`, consecutive `StaticMatrixTransform` will be collapsed into a
         single transformation to speed up the calculation.
 
     """

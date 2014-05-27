@@ -261,9 +261,10 @@ register these transformations with the frame transform graph::
         ...
 
 If the transformation to your coordinate frame of interest is not
-representable by a matrix operation, you can also specify a function to
-do the actual transformation, and pass the `FunctionTransform` class to
-the transform graph decorator instead::
+representable by a matrix operation, you can also specify a function to do
+the actual transformation, and pass the
+`~astropy.coordinates.FunctionTransform` class to the transform graph
+decorator instead::
 
     @frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
     def fk4_no_e_to_fk4(fk4noecoord, fk4frame):

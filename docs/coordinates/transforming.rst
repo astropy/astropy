@@ -10,7 +10,7 @@ coordinates from one system to another.  While common astronomy frames
 are  built into Astropy, the transformation infrastructure is dynamic.
 This means it allows users to define new coordinate frames and their
 transformations.  The topic of writing your own coordinate frame or
-transforms is detailed in :ref :`astropy-coordinates-design`, and this
+transforms is detailed in :ref:`astropy-coordinates-design`, and this
 section is focused on how to *use* transformations.
 
 The simplest method of transformation is shown below::
