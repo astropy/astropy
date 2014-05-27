@@ -115,6 +115,9 @@ operands are dropped so that the result of the operation always has no flags.
 These methods are intended for use by sub-classes and functions that deal with
 more complex combinations.
 
+Entries that are masked in either of the operands are also masked in the
+result.
+
 .. warning:: Uncertainty propagation is still experimental, and does not take
              into account correlated uncertainties.
 

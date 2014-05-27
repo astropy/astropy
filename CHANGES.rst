@@ -405,6 +405,8 @@ Bug Fixes
   - Ensure uncertainty and mask members are copied in arithmetic and
     convert_unit_to. [#2394]
 
+  - Mask result of arithmetic if either of the operands is masked. [#2403]
+
   - Copy all attributes of input object if ``astropy.nddata.NDData`` is
     initialized with an ``NDData`` object. [#2406]
 
