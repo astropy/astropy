@@ -262,6 +262,9 @@ API Changes
 
 - ``astropy.nddata``
 
+  - Issue warning if unit is changed from a non-trivial value by directly
+    setting ``NDData.unit``. [#2411]
+
   - The ``mask`` and ``flag`` attributes of ``astropy.nddata.NDData`` can now
     be set with any array-like object instead of requiring that they be set
     with a ``numpy.ndarray``. [#2419]
