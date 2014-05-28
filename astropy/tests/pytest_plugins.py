@@ -26,7 +26,8 @@ import sys
 import tempfile
 import types
 
-from .helper import pytest, treat_deprecations_as_exceptions
+from .helper import (
+    pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
 
 # these pytest hooks allow us to mark tests and run the marked tests with

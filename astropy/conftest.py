@@ -3,3 +3,5 @@
 # no matter how it is invoked within the astropy tree.
 
 from .tests.pytest_plugins import *
+
+enable_deprecations_as_exceptions()

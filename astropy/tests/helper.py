@@ -355,6 +355,17 @@ class raises(object):
         return self._ctx.__exit__(*exc_info)
 
 
+_deprecations_as_exceptions = False
+
+
+def enable_deprecations_as_exceptions():
+    """
+    Turn on the feature that turns deprecations into exceptions.
+    """
+    global _deprecations_as_exceptions
+    _deprecations_as_exceptions = True
+
+
 def treat_deprecations_as_exceptions():
     """
     Turn all DeprecationWarnings (which indicate deprecated uses of
@@ -365,6 +376,9 @@ def treat_deprecations_as_exceptions():
     This completely resets the warning filters and any "already seen"
     warning state.
     """
+    if not _deprecations_as_exceptions:
+        return
+
     # First, totally reset the warning state
     for module in list(six.itervalues(sys.modules)):
         # We don't want to deal with six.MovedModules, only "real"
