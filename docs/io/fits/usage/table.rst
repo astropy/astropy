@@ -142,14 +142,14 @@ table.  Updating an existing table with a new column is generally more
 difficult than it's worth, but one can "append" a column to a table by creating
 a new table with columns from the existing table plus the new column(s)::
 
-    >>> orig_table = pyfits.open('table.fits')[1].data
+    >>> orig_table = fits.open('table.fits')[1].data
     >>> orig_cols = orig_table.columns
-    >>> new_cols = pyfits.ColDefs([
-    ...     pyfits.Column(name='NEWCOL1', format='D',
-    ...                   array=np.zeros(len(orig_table))),
-    ...     pyfits.Column(name='NEWCOL2', format='D',
-    ...                   array=np.zeros(len(orig_table)))])
-    >>> hdu = pyfits.BinTableHDU.from_columns(orig_cols + new_cols)
+    >>> new_cols = fits.ColDefs([
+    ...     fits.Column(name='NEWCOL1', format='D',
+    ...                 array=np.zeros(len(orig_table))),
+    ...     fits.Column(name='NEWCOL2', format='D',
+    ...                 array=np.zeros(len(orig_table)))])
+    >>> hdu = fits.BinTableHDU.from_columns(orig_cols + new_cols)
     >>> hdu.writeto('newtable.fits')
 
 Now ``newtable.fits`` contains a new table with the original table, plus the
