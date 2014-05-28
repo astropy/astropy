@@ -152,11 +152,11 @@ class TestScalarFormatterLocator(object):
     def test_too_many_options(self):
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], number=5)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, number=5)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], spacing=5. * u.m)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
@@ -164,13 +164,13 @@ class TestScalarFormatterLocator(object):
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.m)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, number=5, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
     def test_values(self):
 
-        fl = ScalarFormatterLocator(values=[0.1, 1., 14.],unit = u.m)
-        assert fl.values == [0.1, 1., 14.]
+        fl = ScalarFormatterLocator(values=[0.1, 1., 14.] * u.m ,unit = u.m)
+        assert fl.values.value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
 

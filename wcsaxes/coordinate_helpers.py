@@ -147,6 +147,20 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
+    def set_format_unit(self, unit):
+        """
+        Set the unit of the formatter for the major tick labels.
+
+        Parameters
+        ----------
+        unit: astropy Quantity
+            The unit to which the tick labels should be converted to.
+        """
+        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) :
+            raise TypeError("unit should be an astropy IrreducibleUnit or Unit instance")
+        self._formatter_locator.format_unit = unit
+
+
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None):
         """
