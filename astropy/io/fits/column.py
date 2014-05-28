@@ -1330,9 +1330,9 @@ class ColDefs(object):
         ----------
         attrib : str
             Can be one or more of the attributes listed in
-            ``pyfits.column.KEYWORD_ATTRIBUTES``.  The default is ``"all"``
-            which will print out all attributes.  It forgives plurals and
-            blanks.  If there are two or more attribute names, they must be
+            ``astropy.io.fits.column.KEYWORD_ATTRIBUTES``.  The default is
+            ``"all"`` which will print out all attributes.  It forgives plurals
+            and blanks.  If there are two or more attribute names, they must be
             separated by comma(s).
 
         output : file, optional
