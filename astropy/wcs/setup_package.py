@@ -5,12 +5,15 @@ from __future__ import (absolute_import, division, print_function,
 CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
 
-from distutils.core import Extension
 import io
 from os.path import join
 import os.path
 import shutil
 import sys
+
+from distutils.core import Extension
+from distutils.dep_util import newer_group
+
 
 from astropy_helpers import setup_helpers
 from astropy.extern import six
@@ -311,8 +314,10 @@ def get_package_data():
         ]
     if not setup_helpers.use_system_library('wcslib'):
         for header in wcslib_headers:
-            shutil.copy(join('cextern', 'wcslib', 'C', header),
-                    join('astropy', 'wcs', 'include', 'wcslib', header))
+            source = join('cextern', 'wcslib', 'C', header)
+            dest = join('astropy', 'wcs', 'include', 'wcslib', header)
+            if newer_group([source], dest, 'newer'):
+                shutil.copy(source, dest)
             api_files.append(join('include', 'wcslib', header))
 
     return {
