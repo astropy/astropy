@@ -42,7 +42,7 @@ UFUNC_HELPERS[np.signbit] = helper_onearg_test
 
 # ufuncs that return a value with the same unit as the input
 
-helper_invariant = lambda f, unit: ([1.], unit)
+helper_invariant = lambda f, unit: ([1.], _d(unit))
 
 UFUNC_HELPERS[np.absolute] = helper_invariant
 UFUNC_HELPERS[np.fabs] = helper_invariant
@@ -57,9 +57,13 @@ UFUNC_HELPERS[np.trunc] = helper_invariant
 
 # ufuncs handled as special cases
 
-UFUNC_HELPERS[np.sqrt] = lambda f, unit: ([1.], unit ** 0.5)
-UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2)
-UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1)
+UFUNC_HELPERS[np.sqrt] = lambda f, unit: ([1.], unit ** 0.5 if unit is not None
+                                          else dimensionless_unscaled)
+UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2 if unit is not None
+                                            else dimensionless_unscaled)
+UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1
+                                                if unit is not None
+                                                else dimensionless_unscaled)
 # ones_like was not private in numpy <= 1.6
 if isinstance(getattr(np.core.umath, 'ones_like', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath.ones_like] = (lambda f, unit:
@@ -72,7 +76,7 @@ if isinstance(getattr(np.core.umath, '_ones_like', None), np.ufunc):
 # ufuncs that require dimensionless input and and give dimensionless output
 def helper_dimensionless_to_dimensionless(f, unit):
     try:
-        scale = unit.to(dimensionless_unscaled)
+        scale = unit.to(dimensionless_unscaled) if unit is not None else 1.
     except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "dimensionless quantities"
@@ -93,7 +97,7 @@ UFUNC_HELPERS[np.modf] = helper_dimensionless_to_dimensionless
 def helper_dimensionless_to_radian(f, unit):
     from .si import radian
     try:
-        scale = unit.to(dimensionless_unscaled)
+        scale = unit.to(dimensionless_unscaled) if unit is not None else 1.
     except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "dimensionless quantities"
@@ -191,7 +195,7 @@ def helper_power(f, unit1, unit2):
 
     # TODO: find a better way to do this, currently
     # need to raise power of unit1 in main code
-    return [1., scale2], unit1
+    return [1., scale2], _d(unit1)
 
 UFUNC_HELPERS[np.power] = helper_power
 
@@ -201,7 +205,7 @@ def helper_ldexp(f, unit1, unit2):
         raise TypeError("Cannot use ldexp with a quantity "
                         "as second argument.")
     else:
-        return [1., 1.], unit1
+        return [1., 1.], _d(unit1)
 
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
 
@@ -233,9 +237,9 @@ UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
 def find_scales(f, *units):
 
     scales = [1., 1.]
-    # no units for any input -- e.g., np.arctan2(a1, a2, out=q)
+    # no units for any input -- e.g., np.add(a1, a2, out=q)
     if all(unit is None for unit in units):
-        return scales, None
+        return scales, dimensionless_unscaled
 
     fixed, changeable = (1, 0) if units[1] is None else (0, 1)
     if units[fixed] is None:

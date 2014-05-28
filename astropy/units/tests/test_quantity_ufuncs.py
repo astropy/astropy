@@ -517,6 +517,29 @@ class TestInplaceUfuncs(object):
         assert check2.unit == u.dimensionless_unscaled
         assert_allclose(s.value, s2.value)
 
+    @pytest.mark.skipif("NUMPY_LT_1P6")
+    @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
+    def test_one_argument_ufunc_inplace_2(self, value):
+        """Check inplace works with non-quantity input and quantity output"""
+        s = value * u.m
+        check = s
+        np.absolute(value, out=s)
+        assert check is s
+        assert np.all(check.value == np.absolute(value))
+        assert check.unit is u.dimensionless_unscaled
+        np.sqrt(value, out=s)
+        assert check is s
+        assert np.all(check.value == np.sqrt(value))
+        assert check.unit is u.dimensionless_unscaled
+        np.exp(value, out=s)
+        assert check is s
+        assert np.all(check.value == np.exp(value))
+        assert check.unit is u.dimensionless_unscaled
+        np.arcsin(value/10., out=s)
+        assert check is s
+        assert np.all(check.value == np.arcsin(value/10.))
+        assert check.unit is u.radian
+
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_two_output_ufunc_inplace(self, value):
         v = 100. * value * u.cm / u.m
@@ -580,9 +603,12 @@ class TestInplaceUfuncs(object):
     @pytest.mark.skipif("NUMPY_LT_1P6")
     def test_two_argument_ufunc_inplace_3(self):
         s = np.array([1., 2., 3.]) * u.dimensionless_unscaled
+        np.add(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
+        assert np.all(s.value == np.array([3., 6., 9.]))
+        assert s.unit is u.dimensionless_unscaled
         np.arctan2(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
         assert_allclose(s.value, np.arctan2(1., 2.))
-        assert s.unit == u.radian
+        assert s.unit is u.radian
 
     def test_ufunc_inplace_non_contiguous_data(self):
         # ensure inplace works also for non-contiguous data (closes #1834)
