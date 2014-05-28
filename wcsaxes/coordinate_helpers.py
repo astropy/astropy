@@ -400,13 +400,16 @@ class CoordinateHelper(object):
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
             if self.coord_type == 'longitude':
-                tick_world_coordinates = np.hstack([tick_world_coordinates,
-                                                    tick_world_coordinates + 360.])
+                tick_world_coordinates_unit = tick_world_coordinates_unit
+                tick_world_coordinates_values = tick_world_coordinates.values
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
+                                                    tick_world_coordinates_values + 360.])
+                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates_unit
 
             for t in tick_world_coordinates:
 
                 # Find steps where a tick is present
-                intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
+                intersections = np.nonzero(((t.value - w1) * (t.value - w2)) < 0)[0]
 
                 # Loop over ticks, and find exact pixel coordinates by linear
                 # interpolation
@@ -414,7 +417,7 @@ class CoordinateHelper(object):
 
                     imax = imin + 1
 
-                    frac = (t - w1[imin]) / (w2[imin] - w1[imin])
+                    frac = (t.value - w1[imin]) / (w2[imin] - w1[imin])
                     x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
                     y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
                     x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
@@ -427,9 +430,9 @@ class CoordinateHelper(object):
                     angle_i = tick_angle[imin] + frac * delta_angle
 
                     if self.coord_type == 'longitude':
-                        world = wrap_angle_at(t, self.coord_wrap)
+                        world = wrap_angle_at(t.value, self.coord_wrap)
                     else:
-                        world = t
+                        world = t.value
 
                     self.ticks.add(axis=axis,
                                    pixel=(x_data_i, y_data_i),
@@ -445,7 +448,7 @@ class CoordinateHelper(object):
                                    world=world,
                                    angle=spine.normal_angle[imin],
                                    axis_displacement=imin + frac))
-                    lbl_world.append(world)
+                    lbl_world.append(world * tick_world_coordinates.unit)
 
         # format tick labels, add to scene
         text = self._formatter_locator.formatter(lbl_world, spacing=spacing)
@@ -469,11 +472,11 @@ class CoordinateHelper(object):
         self.grid_lines = []
         for w in tick_world_coordinates:
             if self.coord_index == 0:
-                x_world = np.repeat(w, 1000)
+                x_world = np.repeat(w.value, 1000)
                 y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
             else:
                 x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                y_world = np.repeat(w, 1000)
+                y_world = np.repeat(w.value, 1000)
             xy_world = np.vstack([x_world, y_world]).transpose()
             self.grid_lines.append(self._get_gridline(xy_world))
 
@@ -497,12 +500,14 @@ class CoordinateHelper(object):
         field = field[self.coord_index]
 
         if self.coord_type == 'longitude':
+            # tick_world_coordinates is a Quantities array and we only needs its values
+            tick_world_coordinates_values = tick_world_coordinates.value
 
             # Find biggest gap in tick_world_coordinates and wrap in  middle
             # For now just assume spacing is equal, so any mid-point will do
-            mid = 0.5 * (tick_world_coordinates[0] + tick_world_coordinates[1])
+            mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
             field = wrap_angle_at(field, mid)
-            tick_world_coordinates = wrap_angle_at(tick_world_coordinates, mid)
+            tick_world_coordinates_values = wrap_angle_at(tick_world_coordinates_values, mid)
 
             # Replace wraps by NaN
             reset = (np.abs(np.diff(field[:,:-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1,:], axis=1)) > 180)
@@ -511,4 +516,4 @@ class CoordinateHelper(object):
             field[:-1,1:][reset] = np.nan
             field[1:,1:][reset] = np.nan
 
-        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates)
+        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates.values)

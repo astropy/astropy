@@ -15,7 +15,6 @@ from astropy.coordinates import Angle
 
 from . import six
 
-
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')
 DDEC_RE = re.compile('^d(.(d)+)?$')
@@ -51,6 +50,10 @@ class BaseFormatterLocator(object):
 
     @values.setter
     def values(self, values):
+        if not isinstance(values, u.Quantity):
+            raise TypeError("values should be an astropy.units.Quantity array")
+        elif not isinstance(values.value, np.ndarray):
+            raise TypeError("values should be an astropy.units.Quantity array")
         self._number = None
         self._spacing = None
         self._values = values
@@ -195,7 +198,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values), 1.1 * u.arcsec
+            return np.asarray(self.values) * u.arcsec, 1.1 * u.arcsec
 
         else:
 
@@ -230,7 +233,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             imin = np.ceil(value_min / spacing_deg)
             imax = np.floor(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            return values, spacing_deg * u.degree
+            return values * u.degree, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
 
@@ -265,7 +268,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 else:
                     sep=('h', 'm', 's')
 
-            angles = Angle(np.asarray(values), unit=u.deg)
+            angles = Angle(np.asarray(values.value), unit=u.deg)
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
@@ -288,6 +291,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if spacing is not None:
             self._unit = spacing.unit
             self._format_unit = spacing.unit
+        elif values is not None:
+            self._unit = values.unit
+            self._format_unit = values.unit
         super(ScalarFormatterLocator, self).__init__(values=values,
                                                      number=number,
                                                      spacing=spacing,
@@ -352,7 +358,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values), 1.1 * self._unit
+            return np.asarray(self.values) * self._unit, 1.1 * self._unit
 
         else:
 
@@ -381,11 +387,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             imin = np.ceil(value_min / spacing)
             imax = np.floor(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
-            return values, spacing * self._unit
+            return values * self._unit, spacing * self._unit
 
     def formatter(self, values, spacing):
-
-        # values_unit = values.unit
 
         if len(values) > 0:
             if self.format is None:
