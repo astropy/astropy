@@ -2,7 +2,6 @@
 
 import copy
 import operator
-import sys
 import warnings
 import weakref
 
@@ -98,7 +97,7 @@ class FITS_record(object):
             if indx < self.start or indx > self.end - 1:
                 raise KeyError("Key '%s' does not exist." % key)
         elif isinstance(key, slice):
-            for indx in range(slice.start, slice.stop, slice.step):
+            for indx in xrange(slice.start, slice.stop, slice.step):
                 indx = self._get_indx(indx)
                 self.array.field(indx)[self.row] = value
         else:
@@ -112,7 +111,7 @@ class FITS_record(object):
         return self[slice(start, end)]
 
     def __len__(self):
-        return len(range(self.start, self.end, self.step))
+        return len(xrange(self.start, self.end, self.step))
 
     def __repr__(self):
         """
@@ -120,7 +119,7 @@ class FITS_record(object):
         """
 
         outlist = []
-        for idx in range(len(self)):
+        for idx in xrange(len(self)):
             outlist.append(repr(self[idx]))
         return '(%s)' % ', '.join(outlist)
 

@@ -5,7 +5,6 @@ from __future__ import division, with_statement
 import gzip
 import mmap
 import os
-import sys
 import tempfile
 import warnings
 import zipfile
