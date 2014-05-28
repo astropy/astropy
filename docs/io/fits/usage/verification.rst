@@ -116,7 +116,7 @@ Same as fix, but will not print out informative messages. This may be useful in
 a large script where the user does not want excessive harmless messages. If the
 violation is not fixable, it will still throw an exception.
 
-In addition, as of PyFITS version 3.3.0 the following 'combined' options are
+In addition, as of Astropy version 0.4.0 the following 'combined' options are
 available:
 
  * **fix+ignore**
