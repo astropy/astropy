@@ -508,7 +508,10 @@ class ProgressBar(six.Iterator):
         file = self._file
         write = file.write
 
-        bar_fill = int(float(self._bar_length) * frac)
+        if frac > 1:
+            bar_fill = int(self._bar_length)
+        else:
+            bar_fill = int(float(self._bar_length) * frac)
         write('\r|')
         color_print('=' * bar_fill, 'blue', file=file, end='')
         if bar_fill < self._bar_length:
