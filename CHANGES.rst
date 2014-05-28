@@ -644,6 +644,9 @@ Bug Fixes
     rather than import time. Previously, setting ``REMOTE_TIMEOUT`` after
     import had no effect on the function's behavior. [#2302]
 
+  - Progressbar will be limited to 100% so that the bar does not exceed the
+    terminal width.  The numerical display can still exceed 100%, however.
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
