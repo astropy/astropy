@@ -1,8 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import socket
 import contextlib
+import socket
+import urllib2
 
 # save original socket method for restoration
 # These are global so that re-calling the turn_off_internet function doesn't
@@ -14,6 +15,11 @@ socket_connect = socket.socket.connect
 
 
 INTERNET_OFF = False
+
+# urllib2 uses a global variable to cache its default "opener" for opening
+# connections for various protocols; we store it off here so we can restore to
+# the default after re-enabling internet use
+_orig_opener = None
 
 
 # ::1 is apparently another valid name for localhost?
@@ -54,6 +60,7 @@ def turn_off_internet(verbose=False):
     """
 
     global INTERNET_OFF
+    global _orig_opener
 
     if INTERNET_OFF:
         return
@@ -63,6 +70,14 @@ def turn_off_internet(verbose=False):
     __tracebackhide__ = True
     if verbose:
         print("Internet access disabled")
+
+    # Update urllib2 to force it not to use any proxies
+    # Must use {} here (the default of None will kick off an automatic search
+    # for proxies)
+    _orig_opener = urllib2.build_opener()
+    no_proxy_handler = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(no_proxy_handler)
+    urllib2.install_opener(opener)
 
     socket.create_connection = check_internet_off(socket_create_connection)
     socket.socket.bind = check_internet_off(socket_bind)
@@ -77,6 +92,7 @@ def turn_on_internet(verbose=False):
     """
 
     global INTERNET_OFF
+    global _orig_opener
 
     if not INTERNET_OFF:
         return
@@ -85,6 +101,8 @@ def turn_on_internet(verbose=False):
 
     if verbose:
         print("Internet access enabled")
+
+    urllib2.install_opener(_orig_opener)
 
     socket.create_connection = socket_create_connection
     socket.socket.bind = socket_bind
