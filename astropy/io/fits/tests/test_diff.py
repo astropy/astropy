@@ -5,10 +5,10 @@ import io
 import numpy as np
 
 from ..column import Column
-from ..diff import *
-from ..diff import report_diff_values
+from ..diff import (FITSDiff, HeaderDiff, ImageDataDiff, TableDataDiff,
+                    report_diff_values)
 from ..hdu import HDUList, PrimaryHDU, ImageHDU
-from ..hdu.table import new_table
+from ..hdu.table import BinTableHDU
 from ..header import Header
 
 from ....io import fits
@@ -127,7 +127,7 @@ class TestDiff(FitsTestCase):
             assert diff.diff_keyword_values == {'C': [('A       ', 'A')]}
 
     def test_ignore_blank_cards(self):
-        """Test for https://trac.assembla.com/pyfits/ticket/152
+        """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/152
 
         Ignore blank cards.
         """
@@ -212,7 +212,7 @@ class TestDiff(FitsTestCase):
         assert diff.diff_total == 0
 
     def test_identical_comp_image_hdus(self):
-        """Regression test for https://trac.assembla.com/pyfits/ticket/189
+        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/189
 
         For this test we mostly just care that comparing to compressed images
         does not crash, and returns the correct results.  Two compressed images
@@ -273,8 +273,8 @@ class TestDiff(FitsTestCase):
 
         columns = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10]
 
-        ta = new_table(columns)
-        tb = new_table([c.copy() for c in columns])
+        ta = BinTableHDU.from_columns(columns)
+        tb = BinTableHDU.from_columns([c.copy() for c in columns])
 
         diff = TableDataDiff(ta.data, tb.data)
         assert diff.identical
@@ -286,14 +286,14 @@ class TestDiff(FitsTestCase):
 
     def test_diff_empty_tables(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/178
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/178
 
         Ensure that diffing tables containing empty data doesn't crash.
         """
 
         c1 = Column('D', format='J')
         c2 = Column('E', format='J')
-        thdu = new_table([c1, c2], nrows=0)
+        thdu = BinTableHDU.from_columns([c1, c2], nrows=0)
 
         hdula = fits.HDUList([thdu])
         hdulb = fits.HDUList([thdu])
@@ -311,8 +311,8 @@ class TestDiff(FitsTestCase):
         c5 = Column('C', format='4I', dim='(2, 2)',
                     array=[[1, 2, 3, 4], [5, 6, 7, 8]])
 
-        ta = new_table([c1, c2, c3])
-        tb = new_table([c1, c4, c5])
+        ta = BinTableHDU.from_columns([c1, c2, c3])
+        tb = BinTableHDU.from_columns([c1, c4, c5])
 
         diff = TableDataDiff(ta.data, tb.data, ignore_fields=['B', 'C'])
         assert diff.identical
@@ -328,8 +328,8 @@ class TestDiff(FitsTestCase):
         cb = Column('B', format='L', array=[True, False])
         cc = Column('C', format='L', array=[True, False])
 
-        ta = new_table([ca, cb])
-        tb = new_table([ca, cc])
+        ta = BinTableHDU.from_columns([ca, cb])
+        tb = BinTableHDU.from_columns([ca, cc])
 
         diff = TableDataDiff(ta.data, tb.data)
 
@@ -350,8 +350,8 @@ class TestDiff(FitsTestCase):
         cb = Column('B', format='L', array=[True, False])
         cc = Column('C', format='L', array=[True, False])
 
-        ta = new_table([cb])
-        tb = new_table([ca, cb, cc])
+        ta = BinTableHDU.from_columns([cb])
+        tb = BinTableHDU.from_columns([ca, cb, cc])
 
         diff = TableDataDiff(ta.data, tb.data)
 
@@ -374,8 +374,8 @@ class TestDiff(FitsTestCase):
         ca2 = Column('A', format='L', array=[True, False, True])
         cb2 = Column('B', format='L', array=[True, False, True])
 
-        ta = new_table([ca1, cb1])
-        tb = new_table([ca2, cb2])
+        ta = BinTableHDU.from_columns([ca1, cb1])
+        tb = BinTableHDU.from_columns([ca2, cb2])
 
         diff = TableDataDiff(ta.data, tb.data)
 
@@ -422,8 +422,10 @@ class TestDiff(FitsTestCase):
         cb9 = Column('I', format='M', array=[5.0+5.0j, 6.0+7.0j])
         cb10 = Column('J', format='PI(2)', array=[[1, 2], [3, 4]])
 
-        ta = new_table([ca1, ca2, ca3, ca4, ca5, ca6, ca7, ca8, ca9, ca10])
-        tb = new_table([cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8, cb9, cb10])
+        ta = BinTableHDU.from_columns([ca1, ca2, ca3, ca4, ca5, ca6, ca7,
+                                       ca8, ca9, ca10])
+        tb = BinTableHDU.from_columns([cb1, cb2, cb3, cb4, cb5, cb6, cb7,
+                                       cb8, cb9, cb10])
 
         diff = TableDataDiff(ta.data, tb.data, numdiffs=20)
         assert not diff.identical
@@ -540,7 +542,7 @@ class TestDiff(FitsTestCase):
         assert '100 different pixels found (100.00% different).' in report
 
     def test_diff_nans(self):
-        """Regression test for https://trac.assembla.com/pyfits/ticket/204"""
+        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204"""
 
         # First test some arrays that should be equivalent....
         arr = np.empty((10, 10), dtype=np.float64)

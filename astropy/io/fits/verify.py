@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import unicode_literals
 
 import warnings
 
-from ...extern.six import u
+from ...extern.six import next
 from ...utils import indent
 from ...utils.exceptions import AstropyUserWarning
 
@@ -19,6 +20,11 @@ class VerifyWarning(AstropyUserWarning):
     """
 
 
+VERIFY_OPTIONS = ['ignore', 'warn', 'exception', 'fix', 'silentfix',
+                  'fix+ignore', 'fix+warn', 'fix+exception',
+                  'silentfix+ignore', 'silentfix+warn', 'silentfix+exception']
+
+
 class _Verify(object):
     """
     Shared methods for verification.
@@ -32,19 +38,17 @@ class _Verify(object):
 
         text = err_text
 
-        if not fixable:
-            option = 'unfixable'
-
         if option in ['warn', 'exception']:
-            pass
+            fixable = False
         # fix the value
-        elif option == 'unfixable':
+        elif not fixable:
             text = 'Unfixable error: %s' % text
         else:
             if fix:
                 fix()
             text += '  ' + fix_text
-        return text
+
+        return (fixable, text)
 
     def verify(self, option='warn'):
         """
@@ -55,28 +59,65 @@ class _Verify(object):
         option : str
             Output verification option.  Must be one of ``"fix"``,
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
+            ``"exception"``.  May also be any combination of ``"fix"`` or
+            ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
         """
 
         opt = option.lower()
-        if opt not in ['fix', 'silentfix', 'ignore', 'warn', 'exception']:
-            raise ValueError('Option %s not recognized.' % option)
+        if opt not in VERIFY_OPTIONS:
+            raise ValueError('Option %r not recognized.' % option)
 
         if opt == 'ignore':
             return
 
-        x = str(self._verify(opt)).rstrip()
-        if opt in ['fix', 'silentfix'] and 'Unfixable' in x:
-            raise VerifyError('\n' + x)
-        if opt not in ['silentfix', 'exception'] and x:
-            warnings.warn(u('Output verification result:'), VerifyWarning)
-            for line in x.splitlines():
-                # Each line contains a single issue that was fixed--issue a
-                # separate warning for each of those issues
-                warnings.warn(line, VerifyWarning)
-            warnings.warn(u('Note: Astropy uses zero-based indexing.\n'), VerifyWarning)
-        if opt == 'exception' and x:
-            raise VerifyError('\n' + x)
+        errs = self._verify(opt)
+
+        # Break the verify option into separate options related to reporting of
+        # errors, and fixing of fixable errors
+        if '+' in opt:
+            fix_opt, report_opt = opt.split('+')
+        elif opt in ['fix', 'silentfix']:
+            # The original default behavior for 'fix' and 'silentfix' was to
+            # raise an exception for unfixable errors
+            fix_opt, report_opt = opt, 'exception'
+        else:
+            fix_opt, report_opt = None, opt
+
+        if fix_opt == 'silentfix' and report_opt == 'ignore':
+            # Fixable errors were fixed, but don't report anything
+            return
+
+        if fix_opt == 'silentfix':
+            # Don't print out fixable issues; the first element of each verify
+            # item is a boolean indicating whether or not the issue was fixable
+            line_filter = lambda x: not x[0]
+        elif fix_opt == 'fix' and report_opt == 'ignore':
+            # Don't print *unfixable* issues, but do print fixed issues; this
+            # is probably not very useful but the option exists for
+            # completeness
+            line_filter = lambda x: x[0]
+        else:
+            line_filter = None
+
+        unfixable = False
+        messages = []
+        for fixable, message in errs.iter_lines(filter=line_filter):
+            if fixable is not None:
+                unfixable = not fixable
+            messages.append(message)
+
+        if messages:
+            messages.insert(0, 'Verification reported errors:')
+            messages.append('Note: PyFITS uses zero-based indexing.\n')
+
+            if fix_opt == 'silentfix' and not unfixable:
+                return
+            elif report_opt == 'warn' or (fix_opt == 'fix' and not unfixable):
+                for line in messages:
+                    warnings.warn(line, VerifyWarning)
+            else:
+                raise VerifyError('\n' + '\n'.join(messages))
 
 
 class _ErrList(list):
@@ -86,39 +127,48 @@ class _ErrList(list):
     different class levels.
     """
 
-    def __init__(self, val, unit='Element'):
-        list.__init__(self, val)
+    def __new__(cls, val=None, unit='Element'):
+        return super(cls, cls).__new__(cls, val)
+
+    def __init__(self, val=None, unit='Element'):
         self.unit = unit
 
     def __str__(self):
-        return self._display()
+        return '\n'.join(item[1] for item in self.iter_lines())
 
-    def _display(self, ind=0):
+    def iter_lines(self, filter=None, shift=0):
         """
-        Print out nested structure with corresponding indentations.
+        Iterate the nested structure as a list of strings with appropriate
+        indentations for each level of structure.
         """
 
-        result = []
         element = 0
-
         # go through the list twice, first time print out all top level
         # messages
         for item in self:
             if not isinstance(item, _ErrList):
-                result.append('%s\n' % indent(item, shift=ind))
+                if filter is None or filter(item):
+                    yield item[0], indent(item[1], shift=shift)
 
         # second time go through the next level items, each of the next level
         # must present, even it has nothing.
         for item in self:
             if isinstance(item, _ErrList):
-                tmp = item._display(ind=ind + 1)
+                next_lines = item.iter_lines(filter=filter, shift=shift + 1)
+                try:
+                    first_line = next(next_lines)
+                except StopIteration:
+                    first_line = None
 
-                # print out a message only if there is something
-                if tmp.strip():
+                if first_line is not None:
                     if self.unit:
-                        result.append(indent('%s %s:\n' % (self.unit, element),
-                                      shift=ind))
-                    result.append(tmp)
-                element += 1
+                        # This line is sort of a header for the next level in
+                        # the hierarchy
+                        yield None, indent('%s %s:' % (self.unit, element),
+                                           shift=shift)
+                    yield first_line
 
-        return ''.join(result)
+                for line in next_lines:
+                    yield line
+
+                element += 1

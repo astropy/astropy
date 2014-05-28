@@ -14,6 +14,7 @@ import glob
 import inspect
 import io
 import textwrap
+import sys
 
 from collections import defaultdict
 from itertools import islice
@@ -238,9 +239,9 @@ class FITSDiff(_BaseDiff):
         if isinstance(a, string_types):
             try:
                 a = fitsopen(a)
-            except Exception as e:
+            except Exception as exc:
                 raise IOError("error opening file a (%s): %s: %s" %
-                              (a, e.__class.__name__, e.args[0]))
+                              (a, excls.__name__, exc.args[0]))
             close_a = True
         else:
             close_a = False
@@ -248,9 +249,9 @@ class FITSDiff(_BaseDiff):
         if isinstance(b, string_types):
             try:
                 b = fitsopen(b)
-            except Exception as e:
+            except Exception as exc:
                 raise IOError("error opening file b (%s): %s: %s" %
-                              (b, e.__class.__name__, e.args[0]))
+                              (b, excls, exc.args[0]))
             close_b = True
         else:
             close_b = False
@@ -1090,7 +1091,7 @@ class TableDataDiff(_BaseDiff):
                 diffs = where_not_allclose(arra, arrb, atol=0.0,
                                            rtol=self.tolerance)
             elif 'P' in col.format:
-                diffs = ([idx for idx in xrange(len(arra))
+                diffs = ([idx for idx in range(len(arra))
                           if not np.allclose(arra[idx], arrb[idx], atol=0.0,
                                              rtol=self.tolerance)],)
             else:

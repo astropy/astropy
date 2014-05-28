@@ -2,6 +2,7 @@
 
 import copy
 import operator
+import sys
 import warnings
 import weakref
 
@@ -97,7 +98,7 @@ class FITS_record(object):
             if indx < self.start or indx > self.end - 1:
                 raise KeyError("Key '%s' does not exist." % key)
         elif isinstance(key, slice):
-            for indx in xrange(slice.start, slice.stop, slice.step):
+            for indx in range(slice.start, slice.stop, slice.step):
                 indx = self._get_indx(indx)
                 self.array.field(indx)[self.row] = value
         else:
@@ -111,7 +112,7 @@ class FITS_record(object):
         return self[slice(start, end)]
 
     def __len__(self):
-        return len(xrange(self.start, self.end, self.step))
+        return len(range(self.start, self.end, self.step))
 
     def __repr__(self):
         """
@@ -119,7 +120,7 @@ class FITS_record(object):
         """
 
         outlist = []
-        for idx in xrange(len(self)):
+        for idx in range(len(self)):
             outlist.append(repr(self[idx]))
         return '(%s)' % ', '.join(outlist)
 
@@ -189,7 +190,6 @@ class FITS_rec(np.recarray):
         self._coldefs = None
         self._gap = 0
         self._uint = False
-        self.names = list(self.dtype.names)
         self.formats = None
         return self
 
@@ -217,8 +217,8 @@ class FITS_rec(np.recarray):
         column_state = []
         meta = []
 
-        for attrs in ['_convert', '_heapoffset', '_heapsize', '_nfields', '_gap',
-                      '_uint', 'names', 'formats', 'parnames', '_coldefs']:
+        for attrs in ['_convert', '_heapoffset', '_heapsize', '_nfields',
+                      '_gap', '_uint', 'formats', 'parnames', '_coldefs']:
 
             with ignored(AttributeError):
                 # _coldefs can be Delayed, and file objects cannot be
@@ -245,7 +245,6 @@ class FITS_rec(np.recarray):
             self._nfields = obj._nfields
             self._gap = obj._gap
             self._uint = obj._uint
-            self.names = obj.names
             self.formats = obj.formats
         else:
             # This will allow regular ndarrays with fields, rather than
@@ -261,7 +260,6 @@ class FITS_rec(np.recarray):
             self._uint = getattr(obj, '_uint', False)
 
             # Bypass setattr-based assignment to fields; see #86
-            self.names = list(obj.dtype.names)
             self.formats = None
 
             attrs = ['_convert', '_coldefs', '_gap']
@@ -588,18 +586,40 @@ class FITS_rec(np.recarray):
         """
         A user-visible accessor for the coldefs.
 
-        See https://trac.assembla.com/pyfits/ticket/44
+        See https://aeon.stsci.edu/ssb/trac/pyfits/ticket/44
         """
 
         return self._coldefs
+
+    @property
+    def names(self):
+        """List of column names."""
+
+        if hasattr(self, '_coldefs') and self._coldefs is not None:
+            return self._coldefs.names
+        else:
+            return list(self.dtype.names)
+
 
     def field(self, key):
         """
         A view of a `Column`'s data as an array.
         """
 
-        indx = _get_index(self.names, key)
-        recformat = self._coldefs._recformats[indx]
+        # NOTE: The *column* index may not be the same as the field index in
+        # the recarray, if the column is a phantom column
+        col_indx = _get_index(self.columns.names, key)
+        if self.columns[col_indx]._phantom:
+            warnings.warn(
+                'Field %r has a repeat count of 0 in its format code, '
+                'indicating an empty field.' % key)
+            recformat = self.columns._recformats[col_indx].lstrip('0')
+            return np.array([], dtype=recformat)
+        # Ignore phantom columns in determining the physical field number
+        n_phantom = len([c for c in self.columns[:col_indx] if c._phantom])
+        field_indx = col_indx - n_phantom
+
+        recformat = self._coldefs._recformats[col_indx]
 
         # If field's base is a FITS_rec, we can run into trouble because it
         # contains a reference to the ._coldefs object of the original data;
@@ -611,21 +631,21 @@ class FITS_rec(np.recarray):
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
         # recursion
-        field = np.recarray.field(base, indx)
+        field = np.recarray.field(base, field_indx)
 
-        if self._convert[indx] is None:
+        if self._convert[field_indx] is None:
             if isinstance(recformat, _FormatP):
                 # for P format
-                converted = self._convert_p(indx, field, recformat)
+                converted = self._convert_p(col_indx, field, recformat)
             else:
                 # Handle all other column data types which are fixed-width
                 # fields
-                converted = self._convert_other(indx, field, recformat)
+                converted = self._convert_other(col_indx, field, recformat)
 
-            self._convert[indx] = converted
+            self._convert[field_indx] = converted
             return converted
 
-        return self._convert[indx]
+        return self._convert[field_indx]
 
     def _convert_x(self, field, recformat):
         """Convert a raw table column to a bit array as specified by the
@@ -647,9 +667,9 @@ class FITS_rec(np.recarray):
         if raw_data is None:
             raise IOError(
                 "Could not find heap data for the %r variable-length "
-                "array column." % self.names[indx])
+                "array column." % self.columns.names[indx])
 
-        for idx in xrange(len(self)):
+        for idx in range(len(self)):
             offset = field[idx, 1] + self._heapoffset
             count = field[idx, 0]
 
@@ -701,10 +721,11 @@ class FITS_rec(np.recarray):
 
         try:
             dummy = np.array(dummy, dtype=recformat)
-        except ValueError as e:
+        except ValueError as exc:
             raise ValueError(
                 '%s; the header may be missing the necessary TNULL%d '
-                'keyword or the table contains invalid data' % (e, indx + 1))
+                'keyword or the table contains invalid data' %
+                (exc, indx + 1))
 
         return dummy
 
@@ -797,7 +818,7 @@ class FITS_rec(np.recarray):
                     except OverflowError:
                         warnings.warn(
                             "Overflow detected while applying TZERO{0:d}. "
-                            "Returning unscaled data.".format(indx))
+                            "Returning unscaled data.".format(indx + 1))
                     else:
                         field = test_overflow
                 else:
@@ -1020,7 +1041,7 @@ class FITS_rec(np.recarray):
                         else:
                             pad = self._coldefs._padding_byte.encode('ascii')
 
-                        for idx in xrange(len(dummy)):
+                        for idx in range(len(dummy)):
                             val = dummy[idx]
                             dummy[idx] = val + (pad * (itemsize - len(val)))
 

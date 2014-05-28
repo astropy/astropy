@@ -631,7 +631,7 @@ class CompImageHDU(BinTableHDU):
         self._scale_back = scale_back
 
         self._axes = [self._header.get('ZNAXIS' + str(axis + 1), 0)
-                      for axis in xrange(self._header.get('ZNAXIS', 0))]
+                      for axis in range(self._header.get('ZNAXIS', 0))]
 
         # store any scale factors from the table header
         if do_not_scale_image_data:
@@ -969,7 +969,7 @@ class CompImageHDU(BinTableHDU):
                     # user specified tile size is too small
                     raise ValueError('Hcompress minimum tile dimension is '
                                      '4 pixels')
-                major_dims = len(list(filter(lambda x: x > 1, tile_size)))
+                major_dims = len([ts for ts in tile_size if ts > 1])
                 if major_dims > 2:
                     raise ValueError(
                         'HCOMPRESS can only support 2-dimensional tile sizes.'

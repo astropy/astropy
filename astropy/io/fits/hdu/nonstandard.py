@@ -106,13 +106,7 @@ class FitsHDU(NonstandardExtHDU):
 
         cards.append(('COMPRESS',  compress, 'Uses gzip compression'))
         header = Header(cards)
-        # TODO: This wrapping of the fileobj should probably be handled by
-        # cls.fromstring, though cls.fromstring itself has a strange
-        # implementation that I probably need to fix.  For example, it
-        # shouldn't care about fileobjs.  There should be a _BaseHDU.fromfile
-        # for that (there is _BaseHDU.readfrom which plays that role, but its
-        # semantics are also a little unclear...)
-        return cls.fromstring(header, fileobj=_File(bs))
+        return cls._readfrom_internal(_File(bs), header=header)
 
     @classmethod
     def match_header(cls, header):

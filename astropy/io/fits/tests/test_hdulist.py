@@ -17,6 +17,7 @@ from . import FitsTestCase
 
 
 class TestHDUListFunctions(FitsTestCase):
+    @ignore_warnings()
     def test_update_name(self):
         hdul = fits.open(self.data('o4sp040b0_raw.fits'))
         hdul[4].update_ext_name('Jim', "added by Jim")
@@ -59,7 +60,7 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_create_from_multiple_primary(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/145
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/145
 
         Ensure that a validation error occurs when saving an HDUList containing
         multiple PrimaryHDUs.
@@ -434,7 +435,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert hdul[0].header['EXTEND'] == True
 
     def test_new_hdulist_extend_keyword(self):
-        """Regression test for https://trac.assembla.com/pyfits/ticket/114
+        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/114
 
         Tests that adding a PrimaryHDU to a new HDUList object updates the
         EXTEND keyword on that HDU.
@@ -461,7 +462,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert ((old_data + 1) == hdul[1].data).all()
 
     def test_open_file_with_end_padding(self):
-        """Regression test for https://trac.assembla.com/pyfits/ticket/106
+        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/106
 
         Open files with end padding bytes.
         """
@@ -479,7 +480,7 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_open_file_with_bad_header_padding(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/136
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/136
 
         Open files with nulls for header block padding instead of spaces.
         """
@@ -507,7 +508,7 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_update_with_truncated_header(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/148
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148
 
         Test that saving an update where the header is shorter than the
         original header doesn't leave a stump from the old header in the file.
@@ -567,7 +568,7 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_update_resized_header2(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/150
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/150
 
         This is similar to test_update_resized_header, but specifically tests a
         case of multiple consecutive flush() calls on the same HDUList object,
@@ -598,6 +599,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[1].data == data2).all()
             assert (hdul[2].data == data2).all()
 
+    @ignore_warnings()
     def test_hdul_fromstring(self):
         """
         Test creating the HDUList structure in memory from a string containing
@@ -642,7 +644,7 @@ class TestHDUListFunctions(FitsTestCase):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
                 # versions of Numpy on Windows.  See PyFITS ticket
-                # https://trac.assembla.com/pyfits/ticket/174
+                # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
                 continue
             test_fromstring(filename)
 
@@ -650,7 +652,7 @@ class TestHDUListFunctions(FitsTestCase):
         pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])
 
     def test_save_backup(self):
-        """Test for https://trac.assembla.com/pyfits/ticket/121
+        """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/121
 
         Save backup of file before flushing changes.
         """
@@ -736,9 +738,9 @@ class TestHDUListFunctions(FitsTestCase):
         def test(mmap_a, mmap_b):
             col_a = fits.Column(name='a', format='J', array=arr_a)
             col_b = fits.Column(name='b', format='J', array=arr_b)
-            hdu_a = fits.new_table([col_a])
+            hdu_a = fits.BinTableHDU.from_columns([col_a])
             hdu_a.writeto(self.temp('test_a.fits'), clobber=True)
-            hdu_b = fits.new_table([col_b])
+            hdu_b = fits.BinTableHDU.from_columns([col_b])
             hdu_b.writeto(self.temp('test_b.fits'), clobber=True)
 
             hdul_a = fits.open(self.temp('test_a.fits'), mode='update',

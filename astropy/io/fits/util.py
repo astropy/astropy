@@ -27,7 +27,8 @@ except ImportError:
 
 
 from ...extern import six
-from ...extern.six import string_types, integer_types, text_type, next
+from ...extern.six import (string_types, integer_types, text_type,
+                           binary_type, next)
 from ...extern.six.moves import zip
 from ...utils.exceptions import AstropyUserWarning
 
@@ -36,6 +37,20 @@ if six.PY3:
     cmp = lambda a, b: (a > b) - (a < b)
 elif six.PY2:
     cmp = cmp
+
+
+def first(iterable):
+    """
+    Returns the first item returned by iterating over an iterable object.
+
+    Example:
+
+    >>> a = [1, 2, 3]
+    >>> first(a)
+    1
+    """
+
+    return next(iter(iterable))
 
 
 def itersubclasses(cls, _seen=None):
@@ -656,7 +671,7 @@ def _convert_array(array, dtype):
             (np.issubdtype(array.dtype, np.number) and
              np.issubdtype(dtype, np.number))):
         # Includes a special case when both dtypes are at least numeric to
-        # account for ticket #218: https://trac.assembla.com/pyfits/ticket/218
+        # account for ticket #218: https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218
         return array.view(dtype)
     else:
         return array.astype(dtype)
@@ -677,7 +692,7 @@ def _is_pseudo_unsigned(dtype):
 
 
 def _is_int(val):
-    return isinstance(val, (integer_types, np.integer))
+    return isinstance(val, integer_types + (np.integer,))
 
 
 def _str_to_num(val):
@@ -748,7 +763,7 @@ def _words_group(input, strlen):
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
+    arr = np.fromstring((input + ' '), dtype=(binary_type, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]

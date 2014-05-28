@@ -275,36 +275,34 @@ class lazyproperty(object):
             self.__doc__ = fget.__doc__
         else:
             self.__doc__ = doc
+        self._key = self._fget.__name__
 
     def __get__(self, obj, owner=None):
         if obj is None:
             return self
-        key = self._fget.__name__
-        if key not in obj.__dict__:
+        try:
+            return obj.__dict__[self._key]
+        except KeyError:
             val = self._fget(obj)
-            obj.__dict__[key] = val
+            obj.__dict__[self._key] = val
             return val
-        else:
-            return obj.__dict__[key]
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        func_name = self._fget.__name__
         if self._fset:
             ret = self._fset(obj, val)
-            if ret is not None and obj_dict.get(func_name) is ret:
+            if ret is not None and obj_dict.get(self._key) is ret:
                 # By returning the value set the setter signals that it took
                 # over setting the value in obj.__dict__; this mechanism allows
                 # it to override the input value
                 return
-        obj_dict[func_name] = val
+        obj_dict[self._key] = val
 
     def __delete__(self, obj):
         if self._fdel:
             self._fdel(obj)
-        key = self._fget.__name__
-        if key in obj.__dict__:
-            del obj.__dict__[key]
+        if self._key in obj.__dict__:
+            del obj.__dict__[self._key]
 
     def getter(self, fget):
         return self.__ter(fget, 0)

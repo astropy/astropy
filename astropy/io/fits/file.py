@@ -5,6 +5,7 @@ from __future__ import division, with_statement
 import gzip
 import mmap
 import os
+import sys
 import tempfile
 import warnings
 import zipfile
@@ -480,6 +481,7 @@ class _File(object):
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
                               'disabled' % str(e), AstropyUserWarning)
                 _File._mmap_available = False
+                del exc
                 return False
             try:
                 mm.flush()

@@ -529,7 +529,9 @@ class HDUList(list, _Verify):
         output_verify : str
             Output verification option.  Must be one of ``"fix"``,
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
+            ``"exception"``.  May also be any combination of ``"fix"`` or
+            ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         verbose : bool
             When `True`, print verbose messages
@@ -554,9 +556,9 @@ class HDUList(list, _Verify):
                               (filename, backup), AstropyUserWarning)
                 try:
                     shutil.copy(filename, backup)
-                except IOError as e:
+                except IOError as exc:
                     raise IOError('Failed to save backup to destination %s: '
-                                  '%s' % (filename, str(e)))
+                                  '%s' % (filename, exc))
 
         self.verify(option=output_verify)
 
@@ -621,7 +623,9 @@ class HDUList(list, _Verify):
         output_verify : str
             Output verification option.  Must be one of ``"fix"``,
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
+            ``"exception"``.  May also be any combination of ``"fix"`` or
+            ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         clobber : bool
             When `True`, overwrite the output file if exists.
@@ -670,7 +674,9 @@ class HDUList(list, _Verify):
         output_verify : str
             Output verification option.  Must be one of ``"fix"``,
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
+            ``"exception"``.  May also be any combination of ``"fix"`` or
+            ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         verbose : bool
             When `True`, print out verbose messages.
@@ -799,7 +805,7 @@ class HDUList(list, _Verify):
                             hdu = _BaseHDU.readfrom(ffo, **kwargs)
                         except EOFError:
                             break
-                        except IOError as err:
+                        except IOError:
                             if ffo.writeonly:
                                 break
                             else:
@@ -815,13 +821,14 @@ class HDUList(list, _Verify):
                         hdu._output_checksum = kwargs['checksum']
                 # check in the case there is extra space after the last HDU or
                 # corrupted HDU
-                except (VerifyError, ValueError) as err:
+                except (VerifyError, ValueError) as exc:
                     warnings.warn(
                         'Error validating header for HDU #%d (note: Astropy '
                         'uses zero-based indexing).\n%s\n'
                         'There may be extra bytes after the last HDU or the '
                         'file is corrupted.' %
-                        (len(hdulist), indent(str(err))), VerifyWarning)
+                        (len(hdulist), indent(str(exc))), VerifyWarning)
+                    del exc
                     break
 
             # If we're trying to read only and no header units were found,

@@ -116,7 +116,7 @@ class _ImageBaseHDU(_ValidHDU):
         # Save off other important values from the header needed to interpret
         # the image data
         self._axes = [self._header.get('NAXIS' + str(axis + 1), 0)
-                      for axis in xrange(self._header.get('NAXIS', 0))]
+                      for axis in range(self._header.get('NAXIS', 0))]
         self._bitpix = self._header.get('BITPIX', 8)
         self._gcount = self._header.get('GCOUNT', 1)
         self._pcount = self._header.get('PCOUNT', 0)

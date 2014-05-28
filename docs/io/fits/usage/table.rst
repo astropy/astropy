@@ -38,6 +38,16 @@ field is a short integer, second a character string (of length 20), third a
 floating point number, and fourth a character string (of length 10). Each
 record has the same (heterogeneous) data structure.
 
+The underlying data structure used for FITS tables is a class called
+:class:`FITS_rec` which is a specialized subclass of `numpy.recarray`.  A
+:class:`FITS_rec` can be instantiated directly using the same initialization
+format presented for plain recarrays as in the example above.  One may also
+instantiate a new :class:`FITS_rec` from a list of PyFITS `Column` objects
+using the :meth:`FITS_rec.from_columns` class method.  This has the exact same
+semantics as :meth:`BinTableHDU.from_columns` and
+:meth:`TableHDU.from_columns`, except that it only returns an actual FITS_rec
+array and not a whole HDU object.
+
 
 Metadata of a Table
 """""""""""""""""""
@@ -59,19 +69,16 @@ Reading a FITS Table
 Like images, the ``.data`` attribute of a table HDU contains the data of the
 table.  To recap, the simple example in the Quick Tutorial::
 
-    >>> f = fits.open('bright_stars.fits') # open a FITS file
-    >>> tbdata = f[1].data # assume the first extension is a table
-    >>> print tbdata[:2] # show the first two rows
+    >>> f = fits.open('bright_stars.fits')  # open a FITS file
+    >>> tbdata = f[1].data  # assume the first extension is a table
+    >>> print tbdata[:2]  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-
-    >>> print tbdata.field('mag') # show the values in field "mag"
+    
+    >>> print tbdata['mag']  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
-    >>> print tbdata.field(1) # field can be referred by index too
+    >>> print tbdata.field(1)  # columns can be referenced by index too
     ['Sirius' 'Canopus' 'Rigil Kent']
-    >>> scidata[1,4] = 999 # update a pixel value
-    >>> scidata[30:40, 10:20] = 0 # update values of a subsection
-    >>> scidata[3] = scidata[2] # copy the 3rd row to the 4th row
 
 Note that in Astropy, when using the ``field()`` method, it is 0-indexed while
 the suffixes in header keywords, such as TFORM is 1-indexed. So,
@@ -106,9 +113,9 @@ the input table is generated::
     >>> from astropy.io import fits
     >>> t = fits.open('table.fits')
     >>> tbdata = t[1].data
-    >>> mask = tbdata.field('magnitude') > 5
+    >>> mask = tbdata.['magnitude'] > 5
     >>> newtbdata = tbdata[mask]
-    >>> hdu = fits.BinTableHDU(newtbdata)
+    >>> hdu = fits.BinTableHDU(data=newtbdata)
     >>> hdu.writeto('newtable.fits')
 
 
@@ -120,9 +127,8 @@ definitions of the input tables::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
-    >>> # the column attribute is the column definitions
-    >>> t = t1[1].columns + t2[1].columns
-    >>> hdu = fits.new_table(t)
+    >>> new_columns = t1[1].columns + t2[1].columns
+    >>> hdu = fits.BinTableHDU.from_columns(new_columns)
     >>> hdu.writeto('newtable.fits')
 
 The number of fields in the output table will be the sum of numbers of fields
@@ -161,20 +167,12 @@ the first table::
 
     >>> t1 = fits.open('table1.fits')
     >>> t2 = fits.open('table2.fits')
-    >>> # one way to find the number of records
     >>> nrows1 = t1[1].data.shape[0]
-    >>> # another way to find the number of records
-    >>> nrows2 = t2[1].header['naxis2']
-    >>> # total number of rows in the table to be generated
+    >>> nrows2 = t2[1].data.shape[0]
     >>> nrows = nrows1 + nrows2
-    >>> hdu = fits.new_table(t1[1].columns, nrows=nrows)
-    >>> # first case, append by the order of fields
-    >>> for i in range(len(t1[1].columns)):
-    ... hdu.data.field(i)[nrows1:]=t2[1].data.field(i)
-    >>> # or, second case, append by the field names
-    >>> for name in t1[1].columns.names:
-    ... hdu.data.field(name)[nrows1:]=t2[1].data.field(name)
-    >>> # write the new table to a FITS file
+    >>> hdu = fits.BinTableHDU.from_columns(t1[1].columns, nrows=nrows)
+    >>> for colname in t1[1].columns.names:
+    ...     hdu.data[colname][nrows1:] = t2[1].data[colname]
     >>> hdu.writeto('newtable.fits')
 
 
@@ -184,8 +182,8 @@ Scaled Data in Tables
 A table field's data, like an image, can also be scaled. Scaling in a table has
 a more generalized meaning than in images. In images, the physical data is a
 simple linear transformation from the storage data. The table fields do have
-such construct too, where BSCALE and BZERO are stored in the header as TSCALn
-and TZEROn. In addition, Boolean columns and ASCII tables' numeric fields are
+such a construct too, where BSCALE and BZERO are stored in the header as TSCALn
+and TZEROn. In addition, boolean columns and ASCII tables' numeric fields are
 also generalized "scaled" fields, but without TSCAL and TZERO.
 
 All scaled fields, like the image case, will take extra memory space as well as
@@ -224,6 +222,7 @@ name and format. Here is a summary of all allowed formats for a binary table:
     C                        single precision complex        8
     M                        double precision complex        16
     P                        array descriptor                8
+    Q                        array descriptor                16
 
 We'll concentrate on binary tables in this chapter. ASCII tables will be
 discussed in a later chapter. The less frequently used X format (bit array) and
@@ -262,7 +261,7 @@ Here are a few Columns using various combination of these arguments:
     >>> c2 = Column(name='counts', format='J', unit='DN', array=counts)
     >>> c3 = Column(name='notes', format='A10')
     >>> c4 = Column(name='spectrum', format='1000E')
-    >>> c5 = Column(name='flag', format='L', array=[1, 0, 1, 1])
+    >>> c5 = Column(name='flag', format='L', array=[True, False, True, True])
 
 In this example, formats are specified with the FITS letter codes. When there
 is a number (>1) preceding a (numeric type) letter code, it means each cell in
@@ -277,18 +276,29 @@ correct format will be written in the header).  So, for columns c1 and c3, they
 both have 10 characters in each of their cells. For numeric data type, the
 dimension number must be before the letter code, not after.
 
-After the columns are constructed, the :func:`new_table` function can be used to
-construct a table HDU. We can either go through the column definition object:
+After the columns are constructed, the :meth:`BinTableHDU.from_columns` class
+method can be used to construct a table HDU. We can either go through the
+column definition object::
 
     >>> coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
-    >>> tbhdu = fits.new_table(coldefs)
+    >>> tbhdu = fits.BinTableHDU.from_columns(coldefs)
 
-or directly use the :func:`new_table` function:
+or directly use the :meth:`BinTableHDU.from_columns` method::
 
-    >>> tbhdu = fits.new_table([c1, c2, c3, c4, c5])
+    >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5])
+
+.. note::
+
+    Users familiar with older versions of PyFITS or Astropy will wonder what
+    happened to :func:`~astropy.io.fits.new_table`.  It is still there, but is
+    deprecated.  :meth:`BinTableHDU.from_columns` and its companion for ASCII
+    tables :meth:`TableHDU.from_columns` are the same as
+    :func:`~astropy.io.fits.new_table` in the arguments they accept and their
+    behavior.  They just make it more explicit what type of table HDU they
+    create.
 
 A look of the newly created HDU's header will show that relevant keywords are
-properly populated:
+properly populated::
 
     >>> tbhdu.header
     XTENSION = 'BINTABLE'                      / binary table extension
@@ -311,27 +321,27 @@ properly populated:
     TTYPE5   = 'flag '
     TFORM5   = 'L '
 
-**Warning:** It should be noted that when creating a new table with
-:func:`new_table`, an in-memory copy of all of the input column arrays is
-created.  This is because it is not guaranteed that the columns are arranged
-contiguously in memory in row-major order (in fact, they are most likely not),
-so they have to be combined into a new array.
+.. warning::
+    It should be noted that when creating a new table with
+    :meth:`BinTableHDU.from_columns`, an in-memory copy of all of the input
+    column arrays is created.  This is because it is not guaranteed that the
+    columns are arranged contiguously in memory in row-major order (in fact,
+    they are most likely not), so they have to be combined into a new array.
 
 However, if the array data *is* already contiguous in memory, such as in an
 existing record array, a kludge can be used to create a new table HDU without
 any copying.  First, create the Columns as before, but without using the
-``array=`` argument:
+``array=`` argument::
 
     >>> c1 = Column(name='target', format='10A')
-    ...
 
-Then call :func:`new_table`:
+Then call :meth:`BinTableHDU.from_columns`::
 
-    >>> tbhdu = fits.new_table([c1, c2, c3, c4, c5])
+    >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5])
 
 This will create a new table HDU as before, with the correct column
 definitions, but an empty data section.  Now simply assign your array directly
-to the HDU's data attribute:
+to the HDU's data attribute::
 
     >>> tbhdu.data = mydata
 

@@ -25,7 +25,7 @@ The Trac ticket discussing the initial motivation and changes to be made to the
 background to this work, though this document contains a more complete
 description of the "final" product (which will continue to evolve).
 
-.. _#64: https://trac.assembla.com/pyfits/ticket/64
+.. _#64: https://aeon.stsci.edu/ssb/trac/pyfits/ticket/64
 
 
 Background

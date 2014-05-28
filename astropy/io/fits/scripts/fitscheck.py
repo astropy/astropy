@@ -159,9 +159,9 @@ def verify_compliance(filename):
     hdulist = fits.open(filename)
     try:
         hdulist.verify('exception')
-    except fits.VerifyError as e:
+    except fits.VerifyError as exc:
         log.warn('NONCOMPLIANT %r .. %s' %
-                 (filename), str(e).replace('\n', ' '))
+                 (filename), str(exc).replace('\n', ' '))
         return 1
     return 0
 

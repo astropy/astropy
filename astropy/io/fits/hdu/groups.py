@@ -204,6 +204,11 @@ class GroupData(FITS_rec):
 
     @property
     def data(self):
+        """
+        The raw group data represented as a multi-dimensional `numpy.ndarray`
+        array.
+        """
+
         # The last column in the coldefs is the data portion of the group
         return self.field(self._coldefs.names[-1])
 

@@ -79,7 +79,7 @@ class TestUintFunctions(FitsTestCase):
             col = fits.Column(name=utype, array=u,
                               format=self.format_map[utype], bzero=bzero)
 
-            table = fits.new_table([col])
+            table = fits.BinTableHDU.from_columns([col])
             assert (table.data[utype] == u).all()
             # This used to be table.data.base, but now after adding a table to
             # a BinTableHDU it gets stored as a view of the original table,

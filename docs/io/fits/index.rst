@@ -318,7 +318,7 @@ use::
 
 A numpy object with the data type of the specified field is returned.
 
-Like header keywords, a field can be referred either by index, as above, or by
+Like header keywords, a column can be referred either by index, as above, or by
 name::
 
     >>> tbdata.field('id')
@@ -374,10 +374,17 @@ e.g.
 
 returns a (Python) list of field names.
 
-Since each field is a numpy object, we'll have the entire arsenal of numpy
+Since each field is a Numpy object, we'll have the entire arsenal of Numpy
 tools to use. We can reassign (update) the values::
 
-    >>> tbdata.field('flag')[:] = 0
+    >>> tbdata['flag'][:] = 0
+
+take the mean of a column::
+
+    >>> tbdata['mag'].mean()
+    >>> 84.4
+
+and so on.
 
 
 Save File Changes
@@ -402,7 +409,9 @@ file opened with update mode::
 
     >>> f = fits.open('original.fits', mode='update')
     ... # making changes in data and/or header
-    >>> f.flush() # changes are written back to original.fits
+    >>> f.flush()  # changes are written back to original.fits
+    >>> f.close()  # closing the file will also flush any changes and prevent
+    ...            # further writing
 
 
 Creating a New FITS File
@@ -464,10 +473,10 @@ Next, create a :class:`ColDefs` (column-definitions) object for all columns::
 
     >>> cols = fits.ColDefs([col1, col2])
 
-Now, create a new binary table HDU object by using the :func:`new_table()`
-function::
+Now, create a new binary table HDU object by using the
+:func:`BinTableHDU.from_columns` function::
 
-    >>> tbhdu = fits.new_table(cols)
+    >>> tbhdu = fits.BinTableHDU.from_columns(cols)
 
 This function returns (in this case) a :class:`BinTableHDU`.
 
@@ -477,9 +486,9 @@ variables for the individual columns and without manually creating a
 
 
     >>> from astropy.io import fits
-    >>> tbhdu = fits.new_table(
-    ...     fits.ColDefs([fits.Column(name='target', format='20A', array=a1),
-    ...                   fits.Column(name='V_mag', format='E', array=a2)]))
+    >>> tbhdu = fits.BinTableHDU.from_columns(
+    ...     [fits.Column(name='target', format='20A', array=a1),
+    ...      fits.Column(name='V_mag', format='E', array=a2)])
 
 Now you may write this new table HDU directly to a FITS file like so::
 
@@ -503,9 +512,8 @@ keywords you want to include in the primary HDU, then as before create a
 When we create a new primary HDU with a custom header as in the above example,
 this will automatically include any additional header keywords that are
 *required* by the FITS format (keywords such as ``SIMPLE`` and ``NAXIS`` for
-example).  In general, PyFITS users should not have to manually manage such
-keywords, and should only create and modify observation-specific informational
-keywords.
+example).  In general, users should not have to manually manage such keywords,
+and should only create and modify observation-specific informational keywords.
 
 We then create a HDUList containing both the primary HDU and the newly created
 table extension, and write to a new file::
@@ -518,6 +526,11 @@ the image file section::
 
     >>> hdulist.append(tbhdu)
     >>> hdulist.writeto('image_and_table.fits')
+
+The data structure used to represent FITS tables is called a :class:`FITS_rec`
+and is derived from the :class:`numpy.recarray` interface.  When creating
+a new table HDU the individual column arrays will be assembled into a single
+:class:`FITS_rec` array.
 
 So far, we have covered the most basic features of `astropy.io.fits`. In the
 following chapters we'll show more advanced examples and explain options in

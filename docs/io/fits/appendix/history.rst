@@ -14,8 +14,134 @@ Astropy.
    :local:
 
 
-3.2.3 (unreleased)
+3.3.0 (unreleased)
 ------------------
+
+New Features
+^^^^^^^^^^^^
+
+- Added new verification options ``fix+ignore``, ``fix+warn``,
+  ``fix+exception``, ``silentfix+ignore``, ``silentfix+warn``, and
+  ``silentfix+exception`` which give more control over how to report fixable
+  errors as opposed to unfixable errors.  See the "Verification" section in
+  the PyFITS documentation for more details.
+
+API Changes
+^^^^^^^^^^^
+
+- The ``pyfits.new_table`` function is now fully deprecated (though will not
+  be removed for a long time, considering how widely it is used).
+
+  Instead please use the more explicit ``pyfits.BinTableHDU.from_columns`` to
+  create a new binary table HDU, and the similar
+  ``pyfits.TableHDU.from_columns`` to create a new ASCII table.  These
+  otherwise accept the same arguments as ``pyfits.new_table`` which is now
+  just a wrapper for these.
+
+- The ``.fromstring`` classmethod of each HDU type has been simplified such
+  that, true to its namesake, it only initializes an HDU from a string
+  containing its header *and* data. (spacetelescope/PyFITS#64)
+
+- Fixed an issue where header wildcard matching (for example
+  ``header['DATE*']``) can be used to match *any* characters that might appear
+  in a keyword.  Previously this only matched keywords containing characters
+  in the set ``[0-9A-Za-z_]``.  Now this can also match a hyphen ``-`` and any
+  other characters, as some conventions like ``HIERARCH`` and record-valued
+  keyword cards allow a wider range of valid characters than standard FITS
+  keywords.
+
+- This will be the *last* release to support the following APIs that have been
+  marked deprecated since PyFITS v3.1:
+
+  - The ``CardList`` class, which was part of the old header implementation.
+
+  - The ``Card.key`` attribute.  Use ``Card.keyword`` instead.
+
+  - The ``Card.cardimage`` and ``Card.ascardimage`` attributes.  Use simply
+    ``Card.image`` or ``str(card)`` instead.
+
+  - The ``create_card`` factory function.  Simply use the normal ``Card``
+    constructor instead.
+
+  - The ``create_card_from_string`` factory function.  Use ``Card.fromstring``
+    instead.
+
+  - The ``upper_key`` function.  Use ``Card.normalize_keyword`` method instead
+    (this is not unlikely to be used outside of PyFITS itself, but it was
+    technically public API).
+
+  - The usage of ``Header.update`` with ``Header.update(keyword, value,
+    comment)`` arguments.  ``Header.update`` should only be used analogously
+    to ``dict.update``.  Use ``Header.set`` instead.
+
+  - The ``Header.ascard`` attribute.  Use ``Header.cards`` instead for a list
+    of all the ``Card`` objects in the header.
+
+  - The ``Header.rename_key`` method.  Use ``Header.rename_keyword`` instead.
+
+  - The ``Header.get_history`` method.  Use ``header['HISTORY']`` instead
+    (normal keyword lookup).
+
+  - The ``Header.get_comment`` method.  Use ``header['COMMENT']`` instead.
+
+  - The ``Header.toTxtFile`` method.  Use ``header.totextfile`` instead.
+
+  - The ``Header.fromTxtFile`` method.  Use ``Header.fromtextfile`` instead.
+
+  - The ``pyfits.tdump`` and ``tcreate`` functions.  Use ``pyfits.tabledump``
+    and ``pyfits.tableload`` respectively.
+
+  - The ``BinTableHDU.tdump`` and ``tcreate`` methods.  Use
+    ``BinTableHDU.dump`` and ``BinTableHDU.load`` respectively.
+
+  - The ``txtfile`` argument to the ``Header`` constructor.  Use
+    ``Header.fromfile`` instead.
+
+  - The ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
+    constructor.  These are unlikely to be used by any user code.
+
+  These deprecated interfaces will be removed from the development version of
+  PyFITS following the v3.3 release (they will still be available in any
+  v3.3.x bugfix releases, however).
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- PyFITS has switched to a unified code base which supports Python 2.5 through
+  3.4 simultaneously without translation.  This *shouldn't* have any
+  significant performance impacts, but please report if anything seems
+  noticeably slower.  As a reminder, support for Python 2.5 will be ended
+  after PyFITS 3.3.x.
+
+- Warnings for deprecated APIs in PyFITS are now always displayed by default.
+  This is in line with a similar change made recently to Astropy:
+  https://github.com/astropy/astropy/pull/1871
+  To disable PyFITS deprecation warnings in scripts one may call
+  ``pyfits.ignore_deprecation_warnings()`` after importing PyFITS.
+
+- ``Card`` objects have a new ``is_blank`` attribute which returns ``True`` if
+  the card represents a blank card (no keyword, value, or comment) and
+  ``False`` otherwise.
+
+
+3.2.4 (unreleased)
+------------------
+
+- Fixed a regression where multiple consecutive calls of the ``writeto``
+  method on the same HDU but to different files could lead to corrupt data or
+  crashes on the subsequent calls after the first. (spacetelescope/PyFITS#40)
+
+
+3.1.7 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+3.2.3 (2014-05-14)
+------------------
+
+- Nominal support for Python 3.4.
 
 - Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
   tables containing array columns (columns in which each element is an array
@@ -41,8 +167,10 @@ Astropy.
   (spacetelescope/PyFITS#59)
 
 
-3.1.6 (unreleased)
+3.1.6 (2014-05-14)
 ------------------
+
+- Nominal support for Python 3.4.
 
 - Fixed a bug with using the ``tabledump`` and ``tableload`` functions with
   tables containing array columns (columns in which each element is an array
@@ -65,7 +193,7 @@ Astropy.
   (Backported from 3.2.3)
 
 
-3.2.2 (2014-03-28)
+3.2.2 (2014-03-25)
 ------------------
 
 - Fixed a regression on deletion of record-valued keyword cards using
