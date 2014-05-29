@@ -25,7 +25,7 @@ __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
+def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.ma.std,
                axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
@@ -56,7 +56,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     varfunc : callable
         The technique to compute the standard deviation about the center. Must
         be a callable that takes in a masked array and outputs a width
-        estimator.  Defaults to the standard deviation (numpy.var).
+        estimator.  Defaults to the standard deviation (numpy.std).
     axis : int or `None`
         If not `None`, clip along the given axis.  For this case, axis=int will
         be passed on to cenfunc and varfunc, which are expected to return an
