@@ -3,7 +3,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import contextlib
 import socket
-import urllib2
+
+from ..extern.six.moves import urllib
 
 # save original socket method for restoration
 # These are global so that re-calling the turn_off_internet function doesn't
@@ -74,10 +75,10 @@ def turn_off_internet(verbose=False):
     # Update urllib2 to force it not to use any proxies
     # Must use {} here (the default of None will kick off an automatic search
     # for proxies)
-    _orig_opener = urllib2.build_opener()
-    no_proxy_handler = urllib2.ProxyHandler({})
-    opener = urllib2.build_opener(no_proxy_handler)
-    urllib2.install_opener(opener)
+    _orig_opener = urllib.request.build_opener()
+    no_proxy_handler = urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(no_proxy_handler)
+    urllib.request.install_opener(opener)
 
     socket.create_connection = check_internet_off(socket_create_connection)
     socket.socket.bind = check_internet_off(socket_bind)
@@ -102,7 +103,7 @@ def turn_on_internet(verbose=False):
     if verbose:
         print("Internet access enabled")
 
-    urllib2.install_opener(_orig_opener)
+    urllib.request.install_opener(_orig_opener)
 
     socket.create_connection = socket_create_connection
     socket.socket.bind = socket_bind
