@@ -482,7 +482,7 @@ class VarArray(Array):
 
     def output(self, value, mask):
         output = self._base.output
-        result = [output(x, m) for x, m in np.broadcast(value, value.mask)]
+        result = [output(x, m) for x, m in np.broadcast(value, mask)]
         return ' '.join(result)
 
     def binparse(self, read):
