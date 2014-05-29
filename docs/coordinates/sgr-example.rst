@@ -13,7 +13,7 @@ angular coordinates, :math:`\Lambda,B`.
 
 We need to define a subclass of `~astropy.coordinates.BaseCoordinateFrame`
 that knows the preferred names and units of the coordinate system angles.
-In this case, these are "Lambda" and "Beta."" Then we have to define the
+In this case, these are "Lambda" and "Beta. Then we have to define the
 transformation from this coordinate system to some other built-in system.
 Here we will use Galactic coordinates, represented by the
 `~astropy.coordinates.Galactic` class.
