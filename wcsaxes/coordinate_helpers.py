@@ -4,6 +4,7 @@ axes, ticks, tick labels, and grid lines.
 """
 
 import numpy as np
+from astropy import units as u
 
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
@@ -29,13 +30,14 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_wrap=None, frame=None):
+                 coord_type='scalar',coord_unit = None, coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
         self.transform = transform
         self.coord_index = coord_index
         self.coord_type = coord_type
+        self.coord_unit = coord_unit
         self.frame = frame
 
         if coord_type == 'longitude' and coord_wrap is None:
@@ -47,7 +49,7 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
-            self._formatter_locator = ScalarFormatterLocator()
+            self._formatter_locator = ScalarFormatterLocator(unit = coord_unit)
         elif coord_type in ['longitude', 'latitude']:
             self._formatter_locator = AngleFormatterLocator()
         else:
@@ -149,15 +151,15 @@ class CoordinateHelper(object):
 
     def set_format_unit(self, unit):
         """
-        Set the unit of the formatter for the major tick labels.
+        Set the unit for the major tick labels.
 
         Parameters
         ----------
         unit: astropy Quantity
             The unit to which the tick labels should be converted to.
         """
-        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) :
-            raise TypeError("unit should be an astropy IrreducibleUnit or Unit instance")
+        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit))  and (not isinstance(unit, u.CompositeUnit)) :
+            raise TypeError("unit should be an astropy Unit, CompositeUnit or IrreducibleUnit instance")
         self._formatter_locator.format_unit = unit
 
 
@@ -400,11 +402,10 @@ class CoordinateHelper(object):
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
             if self.coord_type == 'longitude':
-                tick_world_coordinates_unit = tick_world_coordinates_unit
-                tick_world_coordinates_values = tick_world_coordinates.values
+                tick_world_coordinates_values = tick_world_coordinates.value
                 tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                     tick_world_coordinates_values + 360.])
-                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates_unit
+                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates.unit
 
             for t in tick_world_coordinates:
 
@@ -448,10 +449,10 @@ class CoordinateHelper(object):
                                    world=world,
                                    angle=spine.normal_angle[imin],
                                    axis_displacement=imin + frac))
-                    lbl_world.append(world * tick_world_coordinates.unit)
+                    lbl_world.append(world)
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world, spacing=spacing)
+        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates.unit, spacing=spacing)
         for kwargs, txt in zip(lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 

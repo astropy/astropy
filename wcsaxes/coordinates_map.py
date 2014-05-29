@@ -29,11 +29,13 @@ class CoordinatesMap(object):
         for coord_index in range(self._wcs.wcs.naxis):
 
             coord_type, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
+            coord_unit = wcs.wcs.cunit[coord_index]
             self._coords.append(CoordinateHelper(parent_axes=axes,
                                                  transform=self._transform,
                                                  coord_index=coord_index,
                                                  coord_type=coord_type,
                                                  coord_wrap=coord_wrap,
+                                                 coord_unit=coord_unit,
                                                  frame=self.frame))
 
 

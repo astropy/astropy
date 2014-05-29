@@ -34,15 +34,15 @@ class BaseFormatterLocator(object):
             raise ValueError("At most one of values/number/spacing can be specifed")
 
         if values is not None:
-            self.values = values
+            self._values = values
         elif number is not None:
-            self.number = number
+            self._number = number
         elif spacing is not None:
-            self.spacing = spacing
+            self._spacing = spacing
         else:
-            self.number = 5
+            self._number = 5
 
-        self.format = format
+        self._format = format
 
     @property
     def values(self):
@@ -50,9 +50,7 @@ class BaseFormatterLocator(object):
 
     @values.setter
     def values(self, values):
-        if not isinstance(values, u.Quantity):
-            raise TypeError("values should be an astropy.units.Quantity array")
-        elif not isinstance(values.value, np.ndarray):
+        if not isinstance(values, u.Quantity) and (not isinstance(values.value, np.ndarray)) :
             raise TypeError("values should be an astropy.units.Quantity array")
         self._number = None
         self._spacing = None
@@ -236,6 +234,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
             return values * u.degree, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
+        if not isinstance(values, u.Quantity) and values is not None:
+            raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
             if self.format is None:
@@ -288,7 +288,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if unit is not None:
             self._unit = unit
             self._format_unit = unit
-        if spacing is not None:
+        elif spacing is not None:
             self._unit = spacing.unit
             self._format_unit = spacing.unit
         elif values is not None:
@@ -305,8 +305,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @format_unit.setter
     def format_unit(self, unit):
-        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) :
-            raise TypeError("unit should be an astropy.units.IrreducibleUnit or astropy.units.Unit instance")
+        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) and (not isinstance(unit, u.CompositeUnit)):
+            raise TypeError("unit should be an astropy Unit, CompositeUnit or IrreducibleUnit instance")
         self._format_unit = unit
 
     @property
@@ -393,7 +393,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
         if len(values) > 0:
             if self.format is None:
-                if spacing < 1.:
+                if spacing.value < 1.:
                     precision = -int(np.floor(np.log10(spacing)))
                 else:
                     precision = 0
