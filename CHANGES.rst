@@ -517,6 +517,10 @@ Bug Fixes
   - Removed deprecated option from travis configuration and force use of
     wheels rather than allowing build from source. [#2576]
 
+  - The short option ``-n`` to run tests in parallel was broken
+    (conflicts with the distutils built-in option of "dry-run").
+    Changed to ``-j``. [#2566]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
