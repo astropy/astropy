@@ -23,7 +23,7 @@ Frames without Data
 Frame objects have two distinct (but related) uses.  The first is
 storing the information needed to uniquely define a frame (e.g.,
 equinox, observation time). This information is stored on the frame
-objects as (read-only) python attributes, which are set with the object
+objects as (read-only) Python attributes, which are set with the object
 is first created::
 
     >>> from astropy.coordinates import ICRS, FK5
@@ -41,14 +41,18 @@ their default values)  are available as the class attribute
     >>> FK5.frame_attr_names
     {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
 
-You can access any of the attributes on a frame by using standard python
+You can access any of the attributes on a frame by using standard Python
 attribute access.  Note that for cases like ``equinox``, which are time
-inputs, if you pass in a valid epoch string, it will be converted into
-an `~astropy.time.Time` object::
+inputs, if you pass in any unambiguous time string, it will be converted
+into an `~astropy.time.Time` object with UTC scale (see
+:ref:`astropy-time-inferring-input`)::
 
     >>> f = FK5(equinox='J1975')
     >>> f.equinox
     <Time object: scale='utc' format='jyear_str' value=J1975.000>
+    >>> f = FK5(equinox='2011-05-15T12:13:14')
+    >>> f.equinox
+    <Time object: scale='utc' format='isot' value=2011-05-15T12:13:14.000>
 
 
 Frames with Data
@@ -104,7 +108,7 @@ any  frame attributes required::
     >>> FK5(rep, equinox='J1975')
     <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
 
-A final way is to create an frame object from an already existing frame
+A final way is to create a frame object from an already existing frame
 (either one with or without data), using the `realize_frame` method.  This will
 yield a frame with the same attributes, but new data::
 
@@ -126,7 +130,7 @@ if it is preset, it can be accessed from the ``data`` attribute::
     >>> cooi.data
     <UnitSphericalRepresentation lon=1.1 deg, lat=2.2 deg>
 
-All of the above methods can also accept array data (or other python
+All of the above methods can also accept array data (or other Python
 sequences) to create arrays of coordinates::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)
@@ -140,7 +144,7 @@ over the scalars appropriately::
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
         [(1.5, 3.5, 5.0), (2.5, 4.5, 5.0)]>
 
-An additional operation that way be useful is the ability to extract the
+An additional operation that may be useful is the ability to extract the
 data in different representations.  E.g., to get the Cartesian form of
 an ICRS coordinate::
 
@@ -178,12 +182,12 @@ Defining a New Frame
 ====================
 
 Users can add new coordinate frames by simply creating new classes that
-are cubclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
+are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
 instructions for subclassing are in the docstrings for that class.  The
 key aspects are to define the class attributes `frame_attr_names`,
 `preferred_representation`, `preferred_attr_names`, and possibly
 `preferred_attr_units`. If these are defined, there is often no need to
-define an :func:``__init__`` function, as the initializer in
+define an :func:`__init__` function, as the initializer in
 `~astropy.coordinates.BaseCoordinateFrame` will probably behave the way
 you want.
 
@@ -210,7 +214,7 @@ concept for these transformations is the frame transform graph,
 available as `astropy.coordinates.frame_transform_graph`, an instance of
 the `~astropy.coordinates.TransformGraph` class.  This graph (in the
 "graph theory" sense, not "plot"), stores all the transformations
-between all of the builtin graphs, as well as tools for finding shortest
+between all of the builtin frames, as well as tools for finding shortest
 paths through this graph to transform from any frame to any other.  All
 of the power of this graph is available to user-created frames, meaning
 that once you define even one transform from your frame to some frame in
@@ -264,3 +268,12 @@ the transform graph decorator instead::
     @frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
     def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         ...
+
+Furthermore, the `frame_transform_graph` does some caching and
+optimization to speed up transformations after the first attempt to go
+from one frame to another, and shortcuts steps where relevant (for
+example, combining multiple static matrix transforms into a single
+matrix).  Hence, in general, it is better to define whatever are the
+most natural transformations for a user-defined frame, rather than
+worrying about optimizing or caching a transformation to speed up the
+process.
