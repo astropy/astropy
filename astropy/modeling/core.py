@@ -365,10 +365,9 @@ class Model(object):
 
         raise NotImplementedError("Subclasses should implement this")
 
+    @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
-
-        raise NotImplementedError("Subclasses should implement this")
 
     def prepare_inputs(self, *inputs, **kwargs):
         """
