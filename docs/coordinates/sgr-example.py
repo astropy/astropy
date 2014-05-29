@@ -113,8 +113,7 @@ def sgr_to_galactic(sgr_coord, gal_frame):
     l = np.arctan2(Y, X)*u.radian
     b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
-    if l < 0:
-        l += 2*np.pi*u.radian
+    l[l<0] += 2*np.pi*u.radian
 
     return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
 

@@ -63,10 +63,10 @@ that specify the preferred representation -- e.g., spherical, cartesian, etc.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions
-that return transformation matrices, or by simply defining function that accept
+that return transformation matrices, or by simply defining a function that accepts
 a coordinate and returns a new coordinate in the new system. We'll start by
 constructing the rotation matrix, using the helper function
-``rotation_matrix()`` ::
+:func:`rotation_matrix` ::
 
     # Define the Euler angles (from Law & Majewski 2010)
     SGR_PHI = np.radians(180+3.75)
@@ -93,9 +93,9 @@ Sgr. Now we can define our first transformation function::
         l = np.atleast_1d(gal_coord.l.radian)
         b = np.atleast_1d(gal_coord.b.radian)
 
-        X = cos(b)*cos(l)
-        Y = cos(b)*sin(l)
-        Z = sin(b)
+        X = np.cos(b)*np.cos(l)
+        Y = np.cos(b)*np.sin(l)
+        Z = np.sin(b)
 
         # Calculate X,Y,Z,distance in the Sgr system
         Xs, Ys, Zs = SGR_MATRIX.dot(np.array([X, Y, Z]))
@@ -141,8 +141,7 @@ rotation matrix (which is faster to compute than the inverse)::
         l = np.arctan2(Y,X)*u.radian
         b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
-        if l<0:
-            l += 2*np.pi*u.radian
+        l[l<=] += 2*np.pi*u.radian
 
         return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
 
