@@ -1,8 +1,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import socket
 import contextlib
+import socket
+
+from ..extern.six.moves import urllib
 
 # save original socket method for restoration
 # These are global so that re-calling the turn_off_internet function doesn't
@@ -15,18 +17,33 @@ socket_connect = socket.socket.connect
 
 INTERNET_OFF = False
 
+# urllib2 uses a global variable to cache its default "opener" for opening
+# connections for various protocols; we store it off here so we can restore to
+# the default after re-enabling internet use
+_orig_opener = None
+
 
 # ::1 is apparently another valid name for localhost?
 # it is returned by getaddrinfo when that function is given localhost
 
 def check_internet_off(original_function):
     def new_function(*args, **kwargs):
+        hostname = socket.gethostname()
+        fqdn = socket.getfqdn()
+
         if isinstance(args[0], socket.socket):
             host = args[1][0]
             valid_hosts = ('localhost', '127.0.0.1', '::1')
+            if host in (hostname, fqdn):
+                host = 'localhost'
+                args = (args[0], (host, args[1][1])) + args[2:]
         else:
             host = args[0][0]
             valid_hosts = ('localhost', '127.0.0.1')
+            if host in (hostname, fqdn):
+                host = 'localhost'
+                args = ((host, args[0][1]),) + args[1:]
+
         if any([h in host for h in valid_hosts]):
             return original_function(*args, **kwargs)
         else:
@@ -44,6 +61,7 @@ def turn_off_internet(verbose=False):
     """
 
     global INTERNET_OFF
+    global _orig_opener
 
     if INTERNET_OFF:
         return
@@ -53,6 +71,14 @@ def turn_off_internet(verbose=False):
     __tracebackhide__ = True
     if verbose:
         print("Internet access disabled")
+
+    # Update urllib2 to force it not to use any proxies
+    # Must use {} here (the default of None will kick off an automatic search
+    # for proxies)
+    _orig_opener = urllib.request.build_opener()
+    no_proxy_handler = urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(no_proxy_handler)
+    urllib.request.install_opener(opener)
 
     socket.create_connection = check_internet_off(socket_create_connection)
     socket.socket.bind = check_internet_off(socket_bind)
@@ -67,6 +93,7 @@ def turn_on_internet(verbose=False):
     """
 
     global INTERNET_OFF
+    global _orig_opener
 
     if not INTERNET_OFF:
         return
@@ -75,6 +102,8 @@ def turn_on_internet(verbose=False):
 
     if verbose:
         print("Internet access enabled")
+
+    urllib.request.install_opener(_orig_opener)
 
     socket.create_connection = socket_create_connection
     socket.socket.bind = socket_bind
