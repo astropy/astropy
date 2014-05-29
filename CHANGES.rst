@@ -152,6 +152,10 @@ New Features
   - Fix to allow numpy integer types as valid indices into tables in
     Python 3.x [#2477]
 
+  - Remove transition code related to the order change in ``Column`` and
+    ``MaskedColumn`` arguments ``name`` and ``data`` from Astropy 0.2
+    to 0.3. [#2511]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the
