@@ -25,6 +25,11 @@ matrix:
           env: SETUP_CMD='build_sphinx -w -n' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true
           # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
 
+        - python: 2.7
+          env: SETUP_CMD='build_sphinx -b signaturedocstring' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=true
+          # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
+
+
         # Try all python versions with the latest numpy
         - python: 2.6
           env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
