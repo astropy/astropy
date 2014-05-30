@@ -508,8 +508,7 @@ class AffineTransformation2D(Model):
 
     def __init__(self, matrix=matrix.default,
                  translation=translation.default):
-        super(AffineTransformation2D, self).__init__(matrix, translation,
-                                                     param_dim=1)
+        super(AffineTransformation2D, self).__init__(matrix, translation)
         self._augmented_matrix = self._create_augmented_matrix(
             self.matrix.value, self.translation.value)
 

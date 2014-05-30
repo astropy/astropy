@@ -25,9 +25,9 @@ class TestParModel(Model):
     coeff = Parameter()
     e = Parameter()
 
-    def __init__(self, coeff, e, param_dim=1):
+    def __init__(self, coeff, e, model_set_axis=None):
         super(TestParModel, self).__init__(
-                coeff=coeff, e=e, param_dim=param_dim)
+                coeff=coeff, e=e, model_set_axis=model_set_axis)
 
     def __call__(self):
         pass
@@ -252,10 +252,10 @@ class TestParameters(object):
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
-        p1 = models.Polynomial1D(3, param_dim=3)
+        p1 = models.Polynomial1D(3, c0=[0, 0, 0], model_set_axis=0)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
-        utils.assert_equal(p1.c0, [0., 0, 0])
+        utils.assert_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 10.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -264,7 +264,7 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice
         """
-        p1 = models.Polynomial1D(3, param_dim=3)
+        p1 = models.Polynomial1D(3, c0=[0, 0, 0], model_set_axis=0)
         p1.c0[:2] = [10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -303,7 +303,8 @@ class TestMultipleParameterSets(object):
         self.x1 = np.arange(1, 10, .1)
         self.y, self.x = np.mgrid[:10, :7]
         self.x11 = np.array([self.x1, self.x1]).T
-        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7])
+        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7],
+                                        model_set_axis=0)
 
     def test_change_par(self):
         """
@@ -335,7 +336,8 @@ class TestMultipleParameterSets(object):
                        5.2],
                       [0.4,
                        0.7]]))
-        utils.assert_almost_equal(self.gmodel.parameters, [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+        utils.assert_almost_equal(self.gmodel.parameters,
+                                  [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
@@ -343,17 +345,28 @@ class TestMultipleParameterSets(object):
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
     def test_object_params(self):
-        l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
+        l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), model_set_axis=0)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
         #utils.assert_almost_equal(l2.param_sets, np.array([[[1, 2.],[3., 4.]],
         #                                                   [2., 3.]], dtype=np.object))
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
+            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
-        # This *should* work--if param_dim > 1 and one of the parameter values
-        # is given as a scalar, repeat that value across all param sets
-        m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
-        utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
+        with pytest.raises(InputParameterError):
+            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
+
+    def test_array_parameter1(self):
+        with pytest.raises(InputParameterError):
+            t = TestParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
+
+    def test_array_parameter2(self):
+        t = TestParModel(np.array([[1, 2], [3, 4]]), 1)
+        assert np.all(t.parameters == [1, 2, 3, 4, 1])
+
+    def test_array_parameter3(self):
+        with pytest.raises(InputParameterError):
+            m = TestParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
+                             model_set_axis=0)

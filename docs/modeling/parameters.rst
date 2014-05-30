@@ -49,11 +49,13 @@ Parameter examples
 - It is possible to set the coefficients passing the parameters in a
   dictionary::
 
-    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, param_dim=2)
+    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3,
+    ...                          c0_0 = [0, 0], model_set_axis=0)
     >>> coeff = dict((name, [idx, idx + 10])
     ...              for idx, name in enumerate(ch2.param_names))
     >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, **coeff)
-    INFO: Inferred 2 dimensions when creating a Chebyshev2D model. Resetting param_dim to 2 [astropy.modeling.polynomial]
+    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3,
+    ...                          model_set_axis=0, **coeff)
     >>> ch2.param_sets
     array([[  0.,  10.],
            [  1.,  11.],
@@ -76,8 +78,8 @@ Parameter examples
     ...                               c1_0=[1, 11], c1_1=[4, 14],
     ...                               c1_2=[7, 17], c1_3=[10, 20,],
     ...                               c2_0=[2, 12], c2_1=[5, 15],
-    ...                               c2_2=[8, 18], c2_3=[11, 21])
-    INFO: Inferred 2 dimensions when creating a Chebyshev2D model. Resetting param_dim to 2 [astropy.modeling.polynomial]
+    ...                               c2_2=[8, 18], c2_3=[11, 21],
+    ...                               model_set_axis=0)
 
 - It is possible to change a single parameter::
 
@@ -90,5 +92,5 @@ Parameter examples
 - The number of parameter sets is stored in an attribute
   `~astropy.modeling.Model.param_dim`::
 
-    >>> ch2.param_dim
+    >>> len(ch2)
     2

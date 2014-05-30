@@ -155,7 +155,7 @@ class Rotation2D(Model):
     angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, angle=angle.default):
-        super(Rotation2D, self).__init__(angle, param_dim=1)
+        super(Rotation2D, self).__init__(angle)
         self._matrix = self._compute_matrix(np.deg2rad(angle))
 
     def inverse(self):

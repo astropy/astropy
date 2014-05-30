@@ -235,12 +235,14 @@ class LinearLSQFitter(object):
 
         farg = _convert_input(x, y, z)
 
+        # TODO: This code needs to respect model_set_axis
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                if y.shape[1] != model_copy.param_dim:
-                    raise ValueError("Number of data sets (Y array is expected"
-                                     " to equal the number of parameter sets")
+                if y.shape[1] != len(model_copy):
+                    raise ValueError(
+                        "Number of data sets (y array is expected to equal "
+                        "the number of parameter sets)")
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
@@ -290,7 +292,7 @@ class LinearLSQFitter(object):
                 lhs *= weights[:, np.newaxis]
                 rhs = rhs * weights
 
-        if not multiple and model_copy.param_dim > 1:
+        if not multiple and len(model_copy) > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -306,10 +308,10 @@ class LinearLSQFitter(object):
         # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
-        if multiple and model_copy.param_dim != multiple:
-            model_copy.param_dim = multiple
-        # TODO: Changing the model's param_dim needs to be handled more
-        # carefully; for now it's not actually allowed
+        if multiple and len(model_copy) != multiple:
+            # TODO: This should be reworked so that model_copy has the correct
+            # number of model instances to begin with
+            model_copy._n_models = multiple
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
         # TODO: Only Polynomial models currently have an _order attribute;

@@ -85,13 +85,14 @@ necessary to provide the name twice.
 At a minimum, the ``__init__`` method takes all parameters and the number of
 parameter sets, `~astropy.modeling.Model.param_dim`::
 
-    def __init__(self, amplitude, mean, stddev, param_dim=1, **constraints):
+    def __init__(self, amplitude, mean, stddev, model_set_axis=None,
+                 **constraints):
         # Note that this __init__ does nothing different from the base class's
         # __init__.  The main point of defining it is so that the function
         # signature is more informative.
         super(Gaussian1DModel, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, param_dim=param_dim,
-            **constraints)
+            amplitude=amplitude, mean=mean, stddev=stddev,
+            model_set_axis=model_set_axis, **constraints)
 
 .. note::
 
@@ -169,9 +170,10 @@ A full example of a LineModel
         intercept = Parameter()
         linear = True
 
-    def __init__(self, slope, intercept, param_dim=1, **constraints):
-        super(LineModel, self).__init__(slope=slope, intercept=intercept,
-                                        param_dim=param_dim, **constraints)
+    def __init__(self, slope, intercept, model_set_axis=None, **constraints):
+        super(LineModel, self).__init__(
+            slope=slope, intercept=intercept, model_set_axis=model_set_axis,
+            **constraints)
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2

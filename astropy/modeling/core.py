@@ -90,7 +90,7 @@ def format_input(func):
             scalar = False
 
             arg = np.asarray(arg) + 0.
-            if self.param_dim == 1:
+            if len(self) == 1:
                 if arg.ndim == 0:
                     scalar = True
                 converted.append(arg)
@@ -99,12 +99,12 @@ def format_input(func):
             if arg.ndim < 2:
                 converted.append(np.array([arg]).T)
             elif arg.ndim == 2:
-                if arg.shape[-1] != self.param_dim:
+                if arg.shape[-1] != len(self):
                     raise ValueError("Cannot broadcast with shape ({0}, {1})".
                                      format(arg.shape[0], arg.shape[1]))
                 converted.append(arg)
             elif arg.ndim > 2:
-                if arg.shape[0] != self.param_dim:
+                if arg.shape[0] != len(self):
                     raise ValueError("Cannot broadcast with shape ({0}, {1}, "
                                      "{2})".format(arg.shape[0],
                                                    arg.shape[1], arg.shape[2]))
@@ -295,15 +295,12 @@ class Model(object):
     def __str__(self):
         return self._format_str()
 
+    def __len__(self):
+        return self._n_models
+
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
-
-    @property
-    def param_dim(self):
-        """Number of parameter sets in a model."""
-
-        return self._param_dim
 
     @property
     def param_sets(self):
@@ -324,8 +321,8 @@ class Model(object):
             else:
                 psets = np.asarray(values)
         else:
-            psets = np.asarray(values)
-            psets.shape = (len(self.param_names), self.param_dim)
+            psets = np.asarray(values).reshape(len(self.param_names),
+                                               len(self))
         return psets
 
     @property
@@ -471,8 +468,13 @@ class Model(object):
         slices of this array.
         """
 
-        # Pop off the param_dims
-        param_dim = kwargs.pop('param_dim', None)
+        # Pop off the model_set_axis
+        model_set_axis = kwargs.pop('model_set_axis', None)
+        if not isinstance(model_set_axis, (type(None), int)):
+            raise ValueError(
+                "model_set_axis must be either None or an integer specifying "
+                "the parameter array axis to associate with a set of multiple "
+                "models (got {0!r}).".format(model_set_axis))
 
         # Process positional arguments by matching them up with the
         # corresponding parameters in self.param_names--if any also appear as
@@ -485,7 +487,10 @@ class Model(object):
                                 len(args)))
 
         for idx, arg in enumerate(args):
-            params[self.param_names[idx]] = arg
+            if arg is None:
+                # A value of None implies using the default value, if exists
+                continue
+            params[self.param_names[idx]] = np.asarray(arg, dtype=np.float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -495,7 +500,10 @@ class Model(object):
                     raise TypeError(
                         "{0}.__init__() got multiple values for parameter "
                         "{1!r}".format(self.__class__.__name__, param_name))
-                params[param_name] = kwargs.pop(param_name)
+                value = kwargs.pop(param_name)
+                if value is None:
+                    continue
+                params[param_name] = np.asarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -507,29 +515,46 @@ class Model(object):
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
 
-        # Determine the number of parameter sets: This will be based
-        # on the size of any parameters whose values have been specified
-        # or the default of 1 is used
-        if param_dim is None:
-            max_param_dim = 1
-            for name, value in params.items():
-                # Determine the best param_dims, if not already specified,
-                # based on the sizes of the input parameter values
-                max_param_dim = max(max_param_dim, np.size(value))
+        # Determine the number of model sets: If the model_set_axis is
+        # None then there is just one parameter set; otherwise it is determined
+        # by the size of that axis on the first parameter--if the other
+        # parameters don't have the right number of axes or the sizes of their
+        # model_set_axis don't match an error is raised
+        n_models = None
+        if model_set_axis is not None:
+            for name, value in six.iteritems(params):
+                param_ndim = np.ndim(value)
+                if param_ndim < model_set_axis + 1:
+                    raise InputParameterError(
+                        "All parameter values must be arrays of dimension "
+                        "at least {0} for model_set_axis={1} (the value "
+                        "given for {2!r} is only {3}-dimensional)".format(
+                            model_set_axis + 1, model_set_axis, name,
+                            param_ndim))
+                if n_models is None:
+                    # Use the dimensions of the first parameter to determine
+                    # the number of model sets
+                    n_models = value.shape[model_set_axis]
+                elif value.shape[model_set_axis] != n_models:
+                    raise InputParameterError(
+                        "Inconsistent dimensions for parameter {0!r} for "
+                        "{1} model sets.  The length of axis {2} must be the "
+                        "same for all input parameter values when "
+                        "model_set_axis={2}.".format(name, n_models,
+                                                     model_set_axis))
+        else:
+            n_models = 1
 
-            param_dim = max_param_dim
 
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
         # parameter, and the param_dim
-        self._param_dim = param_dim
+        self._n_models = n_models
+        self._model_set_axis = model_set_axis
         self._param_metrics = {}
         total_size = 0
         for name in self.param_names:
             if params.get(name) is None:
-                # parameters that were not supplied at all or that have
-                # defaults of None should attempt to use the default provided
-                # by their Parameter descriptor
                 default = getattr(self, name).default
 
                 if default is None:
@@ -539,43 +564,13 @@ class Model(object):
                     raise TypeError(
                         "{0}.__init__() requires a value for parameter "
                         "{1!r}".format(self.__class__.__name__, name))
-                else:
-                    params[name] = default
 
-            value = params[name]
+                value = params[name] = default
+            else:
+                value = params[name]
 
             param_size = np.size(value)
             param_shape = np.shape(value)
-
-            if param_dim == 1:
-                pass
-            elif param_dim > 1:
-                if param_size == 1:
-                    param_size = param_dim
-                    # Update the value for this param to the new repeated
-                    # version
-                    value = params[name] = np.repeat(value, param_size)
-                    param_shape = value.shape
-            else:
-                raise ValueError("Model param_dim must be 1 or greater.")
-
-            if param_size > 1 and param_dim > 1 and len(value) != param_dim:
-                # The len(value) == self.param_dim case is a special case
-                # (see #1680) where the parameter has compound values (like [1,
-                # 2]) but we're passing in two (or more) param sets, so we want
-                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
-                # having values for 2 param sets, not 4.
-
-                # For now all parameter values must have a number of elements
-                # equal to param_dim (the number of param sets) or it is
-                # invalid.  The *only* exception is, again, a scalar value is
-                # allowed to be repeated across param sets
-                raise InputParameterError(
-                    "The input value for {0!r} has too many elements for "
-                    "param_dim={1}.  Parameter values must either match the "
-                    "model's param_dim in size, or may be a scalar value, in "
-                    "which case the value is repeated accross parameter "
-                    "sets.".format(name, param_dim))
 
             param_slice = slice(total_size, total_size + param_size)
             self._param_metrics[name] = (param_slice, param_shape)
@@ -596,6 +591,8 @@ class Model(object):
         formatting.
         """
 
+        # TODO: I think this could be reworked to preset model sets better
+
         parts = ['<{0}('.format(self.__class__.__name__)]
 
         parts.append(', '.join(repr(a) for a in args))
@@ -613,8 +610,8 @@ class Model(object):
                 continue
             parts.append(', {0}={1!r}'.format(kwarg, value))
 
-        if self.param_dim > 1:
-            parts.append(", param_dim={0}".format(self.param_dim))
+        if len(self) > 1:
+            parts.append(", n_models={0}".format(len(self)))
 
         parts.append(')>')
 
@@ -633,7 +630,7 @@ class Model(object):
             ('Model', self.__class__.__name__),
             ('Inputs', self.n_inputs),
             ('Outputs', self.n_outputs),
-            ('Parameter sets', self.param_dim)
+            ('Model set size', len(self))
         ]
 
         parts = ['{0}: {1}'.format(keyword, value)
@@ -641,7 +638,7 @@ class Model(object):
 
         parts.append('Parameters:')
 
-        if self.param_dim == 1:
+        if len(self) == 1:
             columns = [[getattr(self, name).value]
                        for name in self.param_names]
         else:

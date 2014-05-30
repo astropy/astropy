@@ -53,7 +53,7 @@ parametrized functions::
     Model: Gaussian1D
     Inputs: 1
     Outputs: 1
-    Parameter sets: 1
+    Model set size: 1
     Parameters:
         amplitude mean stddev
         --------- ---- ------
