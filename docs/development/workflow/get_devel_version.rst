@@ -99,12 +99,15 @@ essential items:
 
 We also recommend setting up `git`_ so that when you copy changes from your
 computer to `GitHub`_ only the copy (called a *branch*) of Astropy that you are
-working on gets pushed up to GitHub. Do that with::
+working on gets pushed up to GitHub.  *If* your version of git is 1.7.11 or,
+greater, you can do that with::
 
     git config --global push.default simple
 
 If you skip this step now it is not a problem; `git`_ will remind you to do it in
-those cases when it is relevant.
+those cases when it is relevant.  If your version of git is less than 1.7.11,
+you can still continue without this, but it may lead to confusion later, as you
+might push up branches you do not intend to push.
 
 .. note::
 
