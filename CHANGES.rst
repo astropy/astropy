@@ -123,6 +123,7 @@ New Features
 - ``astropy.stats``
 
   - Added flat prior to binom_conf_interval and binned_binom_proportion
+  - change default in ``sigma_clip`` from ``np.median`` to ``np.ma.median``
 
 - ``astropy.sphinx``
 
