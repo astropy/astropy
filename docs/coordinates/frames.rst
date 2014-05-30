@@ -156,11 +156,11 @@ an ICRS coordinate::
 Transforming between Frames
 ===========================
 
-Transforming a frame object with data into another frame is
-straightforward.  Simply use the `transform_to` method of an object, and
-provide it the frame you wish to transform to.  This frame can either be
-a frame *class*, in which case the default attributes will be used, or a
-frame object (with or without data)::
+To transform a frame object with data into another frame, use the
+`transform_to` method of an object, and provide it the frame you wish to
+transform to.  This frame can either be a frame *class*, in which case
+the default attributes will be used, or a frame object (with or without
+data)::
 
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
     >>> cooi.transform_to(FK5)
@@ -181,7 +181,7 @@ for or manipulate transformations, see the
 Defining a New Frame
 ====================
 
-Users can add new coordinate frames by simply creating new classes that
+Users can add new coordinate frames by creating new classes that
 are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
 instructions for subclassing are in the docstrings for that class.  The
 key aspects are to define the class attributes `frame_attr_names`,

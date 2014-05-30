@@ -141,7 +141,7 @@ rotation matrix (which is faster to compute than the inverse)::
         l = np.arctan2(Y,X)*u.radian
         b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
-        l[l<=] += 2*np.pi*u.radian
+        l[l<=0] += 2*np.pi*u.radian
 
         return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
 
