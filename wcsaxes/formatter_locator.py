@@ -34,15 +34,15 @@ class BaseFormatterLocator(object):
             raise ValueError("At most one of values/number/spacing can be specifed")
 
         if values is not None:
-            self._values = values
+            self.values = values
         elif number is not None:
-            self._number = number
+            self.number = number
         elif spacing is not None:
-            self._spacing = spacing
+            self.spacing = spacing
         else:
-            self._number = 5
+            self.number = 5
 
-        self._format = format
+        self.format = format
 
     @property
     def values(self):
