@@ -120,6 +120,9 @@ New Features
 
 - ``astropy.nddata``
 
+  - Allow initialization ``NDData`` or ``StdDevUncertainty`` with a
+    ``Quantity``. [#2380]
+
 - ``astropy.stats``
 
   - Added flat prior to binom_conf_interval and binned_binom_proportion

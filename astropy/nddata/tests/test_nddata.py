@@ -19,6 +19,7 @@ from ...utils import NumpyRNGContext
 class FakeUncertainty(NDUncertainty):
 
     def __init__(self, *arg, **kwd):
+        self._unit = None
         pass
 
     def propagate_add(self, data, final_data):
@@ -531,6 +532,58 @@ def test_initializing_from_nduncertainty():
     u2 = StdDevUncertainty(u1, copy=False)
 
     assert u1.array is u2.array
+
+
+# Test an array and a scalar because a scalar Quantity does not always
+# behaves the same way as an array.
+@pytest.mark.parametrize('data', [np.array([1, 2, 3]), 5])
+def test_initializing_nddata_from_quantity(data):
+    # Until nddata and quantity are integrated initializing with a quantity
+    # should raise an error.
+    unit = u.adu
+    ndd = NDData(data * unit)
+    assert ndd.unit == unit
+    np.testing.assert_array_equal(ndd.data, np.array(data))
+
+
+def test_initializing_nddata_from_quantity_and_unit_raises_error():
+    # Should raise an error if a Quantity is provided for the data and
+    # an explicit unit is given.
+    with pytest.raises(ValueError):
+        NDData([1, 2, 3] * u.adu, unit=u.adu)
+
+
+def test_initializing_nduncertainty_from_quantity():
+    # Until nddata and quantity are integrated initializing with a quantity
+    # should raise an error.
+    input_ndd_unit = u.kg
+    ndd = NDData(np.array([1, 2, 3]), unit=input_ndd_unit)
+    std_data = np.array([1, 2, 3])
+
+    # Unit of the uncertainty not convertible to unit of ndd, should raise
+    # an error.
+    std_error = StdDevUncertainty(u.adu * std_data)
+    assert std_error._unit is u.adu
+    with pytest.raises(u.UnitsError):
+        ndd.uncertainty = std_error
+
+    # Uncertainty should be settable without any change in its values
+    # because uncertainty unit is same as data unit.
+    std_error = StdDevUncertainty(u.kg * std_data)
+    ndd.uncertainty = std_error
+    assert_array_equal(std_data, ndd.uncertainty.array)
+
+    # If the uncertainty unit is grams there should be no error, but the
+    # values of the uncertainty should be scaled.
+    std_error = StdDevUncertainty(u.g * std_data)
+    ndd.uncertainty = std_error
+    assert_array_equal(std_data, 1000 * ndd.uncertainty.array)
+
+    # If ndd has no unit but the uncertainty does an error should be raised.
+    ndd.unit = None
+    with pytest.raises(ValueError):
+        ndd.uncertainty = std_error
+
 
 def test_masked_array_input():
 
