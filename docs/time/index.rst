@@ -254,6 +254,8 @@ appropriate::
   >>> t[2]
   <Time object: scale='utc' format='mjd' value=300.0>
 
+.. _astropy-time-inferring-input:
+
 Inferring input format
 ^^^^^^^^^^^^^^^^^^^^^^
 

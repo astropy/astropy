@@ -1,10 +1,10 @@
 .. _sgr-example:
 
-Example: Defining a new spherical coordinate system
----------------------------------------------------
+Example: Defining A Coordinate Frame for the Sgr Dwarf
+------------------------------------------------------
 
 This document describes in detail how to subclass and define a custom
-spherical coordinate system, as mentioned in :doc:`frames` and the
+spherical coordinate frame, as discussed in :doc:`frames` and the
 docstring for `~astropy.coordinates.BaseCoordinateFrame`. In this
 example, we will define a coordinate system defined by the plane of orbit of
 the Sagittarius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et
@@ -13,10 +13,10 @@ angular coordinates, :math:`\Lambda,B`.
 
 We need to define a subclass of `~astropy.coordinates.BaseCoordinateFrame`
 that knows the preferred names and units of the coordinate system angles.
-In this case, these are Lambda and Beta. Then we have to define the
+In this case, these are "Lambda" and "Beta. Then we have to define the
 transformation from this coordinate system to some other built-in system.
-Here we will use spherical Galactic coordinates as defined in
-`~astropy.coordinates.Galactic`.
+Here we will use Galactic coordinates, represented by the
+`~astropy.coordinates.Galactic` class.
 
 The first step is to create a new class, which we'll call
 ``Sagittarius`` and make it a subclass of
@@ -55,31 +55,29 @@ The first step is to create a new class, which we'll call
                                             ('distance', 'distance')])
         preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
 
-Line by line, the first few are simply imports. Next, the decorator method
-``@coord.frame_transform_graph.add_coord_name`` tells the global transform
-graph to recognize this as a new coordinate name. Next we define the class
-as subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include
+Line by line, the first few are simply imports. Next we define the class
+as a subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include
 a descriptive docstring. The final three lines are class-level attributes
 that specify the preferred representation -- e.g., spherical, cartesian, etc.
 -- the names of the individual coordinates, and the preferred units.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions
-that return transformation matrices, or by simply defining function that accept
+that return transformation matrices, or by simply defining a function that accepts
 a coordinate and returns a new coordinate in the new system. We'll start by
 constructing the rotation matrix, using the helper function
-``rotation_matrix()`` ::
+:func:`rotation_matrix` ::
 
     # Define the Euler angles (from Law & Majewski 2010)
-    phi = np.radians(180+3.75)
-    theta = np.radians(90-13.46)
-    psi = np.radians(180+14.111534)
+    SGR_PHI = np.radians(180+3.75)
+    SGR_THETA = np.radians(90-13.46)
+    SGR_PSI = np.radians(180+14.111534)
 
     # Generate the rotation matrix using the x-convention (see Goldstein)
-    D = rotation_matrix(phi, "z", unit=u.radian)
-    C = rotation_matrix(theta, "x", unit=u.radian)
-    B = rotation_matrix(psi, "z", unit=u.radian)
-    sgr_matrix = np.array(B.dot(C).dot(D))
+    D = rotation_matrix(SGR_PHI, "z", unit=u.radian)
+    C = rotation_matrix(SGR_THETA, "x", unit=u.radian)
+    B = rotation_matrix(SGR_PSI, "z", unit=u.radian)
+    SGR_MATRIX = np.array(B.dot(C).dot(D))
 
 This is done at the module level, since it will be used by both the
 transformation from Sgr to Galactic as well as the inverse from Galactic to
@@ -95,12 +93,12 @@ Sgr. Now we can define our first transformation function::
         l = np.atleast_1d(gal_coord.l.radian)
         b = np.atleast_1d(gal_coord.b.radian)
 
-        X = cos(b)*cos(l)
-        Y = cos(b)*sin(l)
-        Z = sin(b)
+        X = np.cos(b)*np.cos(l)
+        Y = np.cos(b)*np.sin(l)
+        Z = np.sin(b)
 
         # Calculate X,Y,Z,distance in the Sgr system
-        Xs, Ys, Zs = sgr_matrix.dot(np.array([X, Y, Z]))
+        Xs, Ys, Zs = SGR_MATRIX.dot(np.array([X, Y, Z]))
         Zs = -Zs
 
         # Calculate the angular coordinates lambda,beta
@@ -111,12 +109,15 @@ Sgr. Now we can define our first transformation function::
         return Sagittarius(Lambda=Lambda, Beta=Beta,
                            distance=gal_coord.distance)
 
-The decorator ``@frame_transform_graph.transform(coord.FunctionTransform, coord.Galactic, Sagittarius)`` registers this function with the `~astropy.coordinates`
-subpackage as a transformation.  Inside the function, we simply follow the
-same procedure as detailed by David Law's `transformation code
-<http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_. Note that in this
-case, both coordinate systems are heliocentric, so we can simply copy any
-distance from the `~astropy.coordinates.Galactic` object.
+The decorator
+``@frame_transform_graph.transform(coord.FunctionTransform,
+coord.Galactic, Sagittarius)``  registers this function on the
+`frame_transform_graph` as a  transformation.   Inside the function, we
+simply follow the same procedure as detailed by David Law's
+`transformation code <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_.
+Note that in this case, both coordinate systems are heliocentric, so we
+can simply copy any distance from the `~astropy.coordinates.Galactic`
+object.
 
 We then register the inverse transformation by using the transpose of the
 rotation matrix (which is faster to compute than the inverse)::
@@ -135,13 +136,12 @@ rotation matrix (which is faster to compute than the inverse)::
         Zs = sin(B)
         Zs = -Zs
 
-        X, Y, Z = sgr_matrix.T.dot(np.array([Xs, Ys, Zs]))
+        X, Y, Z = SGR_MATRIX.T.dot(np.array([Xs, Ys, Zs]))
 
         l = np.arctan2(Y,X)*u.radian
         b = np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z))*u.radian
 
-        if l<0:
-            l += 2*np.pi*u.radian
+        l[l<=0] += 2*np.pi*u.radian
 
         return coord.Galactic(l=l, b=b, distance=sgr_coord.distance)
 
