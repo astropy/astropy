@@ -508,6 +508,9 @@ Bug Fixes
 
   - The version of ERFA included with Astropy is now v1.1.0 [#2497]
 
+  - Removed deprecated option from travis configuration and force use of
+    wheels rather than allowing build from source. [#2576]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

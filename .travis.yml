@@ -8,7 +8,8 @@ python:
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
     global:
-        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel --use-mirrors"
+        - PIP_ASTROPY_WHEEL="pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel --no-index"
+        - PIP_PYPI="pip install --use-wheel"
     matrix:
         - SETUP_CMD='egg_info' NUMPY_VERSION=1.8.0 OPTIONAL_DEPS=false
 
@@ -79,28 +80,29 @@ before_install:
 install:
 
     # CORE DEPENDENCIES
-    # These command run pip first trying a wheel, and then falling back on
-    # source build
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "Cython==0.19.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest==2.5.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist==1.10"; fi
+    # These command run pip, trying a wheel. If they fail the build aborts.
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL --upgrade "numpy==$NUMPY_VERSION"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "Cython==0.19.1"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "pytest==2.5.1"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "pytest-xdist==1.10"; fi
 
     # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "scipy==0.13.1"; fi
-    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "h5py==2.1.3"; fi
-    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "beautifulsoup4"; fi
+    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "scipy==0.13.1"; fi
+    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "h5py==2.1.3"; fi
+    - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "beautifulsoup4"; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "Sphinx==1.2b3"; fi
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "matplotlib==1.3.0"; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_ASTROPY_WHEEL "Sphinx>=1.2b3"; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_ASTROPY_WHEEL "matplotlib==1.3.0"; fi
 
     # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_WHEEL_COMMAND "coverage" ; fi
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_WHEEL_COMMAND "coveralls"; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_ASTROPY_WHEEL "coverage" ; fi
+    # coveralls is a quick install and wheels*.astropy.org don't build it, so
+    # install from pypi.
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_PYPI "coveralls"; fi
 
 script:
     - python setup.py $SETUP_CMD
