@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import io
+
 # THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -233,3 +235,30 @@ def test_float_default_precision():
     c = converters.get_converter(field, config=config)
     assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
             '1 2 3 8.9999990000000007')
+
+
+def test_vararray():
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.Table(votable)
+    resource.tables.append(table)
+
+    tabarr = []
+    heads = ['headA', 'headB', 'headC']
+    types = ["char", "double", "int"]
+
+    vals = [["A", 1.0, 2],
+            ["B", 2.0, 3],
+            ["C", 3.0, 4]]
+    for i in range(len(heads)):
+        tabarr.append(tree.Field(
+            votable, name=heads[i], datatype=types[i], arraysize="*"))
+
+    table.fields.extend(tabarr)
+    table.create_arrays(len(vals))
+    for i in range(len(vals)):
+        values = tuple(vals[i])
+        table.array[i] = values
+    buff = io.BytesIO()
+    votable.to_xml(buff)

@@ -389,6 +389,8 @@ Bug Fixes
     ``binary`` and ``binary2``, by using the ``tabledata_format``
     kwarg. [#2138]
 
+  - Fixed a crash writing out variable length arrays. [#2577]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
