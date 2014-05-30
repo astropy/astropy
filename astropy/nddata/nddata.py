@@ -26,7 +26,6 @@ WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
     '0.4', 'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
     'astropy.nddata.nddata', 'astropy.nddata')
 
-
 class NDData(object):
     """A Superclass for array-based data in Astropy.
 
@@ -238,6 +237,19 @@ class NDData(object):
 
     @unit.setter
     def unit(self, value):
+        from . import conf
+
+        try:
+            if self._unit is not None and conf.warn_setting_unit_directly:
+                log.info('Setting the unit directly changes the unit without '
+                         'updating the data or uncertainty. Use the '
+                         '.convert_unit_to() method to change the unit and '
+                         'scale values appropriately.')
+        except AttributeError:
+            # raised if self._unit has not been set yet, in which case the
+            # warning is irrelevant
+            pass
+
         if value is None:
             self._unit = None
         else:
