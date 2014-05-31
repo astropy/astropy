@@ -328,13 +328,12 @@ class AltAz(BaseCoordinateFrame):
 
     def __init__(self, *args, **kwargs):
         from warnings import warn
-        from astropy.utils.exceptions import AstropyDeprecationWarning
+        from astropy.utils.exceptions import AstropyWarning
 
-        warn(AstropyDeprecationWarning('The AltAz class currently does not '
-                                       'support any transformations.  In a '
-                                       'future version, it will support the '
-                                       'standard IAU2000 AltAz<->ICRS '
-                                       'transformations.'))
+        warn(AstropyWarning('The AltAz class currently does not support any '
+                            'transformations.  In a future version, it will '
+                            'support the standard IAU2000 AltAz<->ICRS '
+                            'transformations.'))
         super(AltAz, self).__init__(*args, **kwargs)
 
 
