@@ -39,11 +39,11 @@ class FrameMeta(type):
         pref_attrs = frame_attrs = {}
         found_pref_repr = found_pref_attrs = found_frame_attrs = False
         for clsdcti in parent_clsdcts:
-            if not found_pref_repr and 'preferred_representation' in clsdcti:
-                pref_repr = clsdcti['preferred_representation']
+            if not found_pref_repr and '_preferred_representation' in clsdcti:
+                pref_repr = clsdcti['_preferred_representation']
                 found_pref_repr = True
-            if not found_pref_attrs and 'preferred_attr_names' in clsdcti:
-                pref_attrs = clsdcti['preferred_attr_names']
+            if not found_pref_attrs and '_preferred_attr_names' in clsdcti:
+                pref_attrs = clsdcti['_preferred_attr_names']
                 found_pref_attrs = True
             if not found_frame_attrs and 'frame_attr_names' in clsdcti:
                 frame_attrs = clsdcti['frame_attr_names']
@@ -131,9 +131,26 @@ class BaseCoordinateFrame(object):
 
     """
 
-    preferred_representation = None
-    preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
-    preferred_attr_units = {}  # maps preferred name to the "standard" unit/string repr
+    @property
+    def preferred_representation(self):
+        return self._preferred_representation
+
+    @preferred_representation.setter
+    def preferred_representation(self, value):
+        # In reality do validation of `value` and allow string input
+        self._preferred_representation = value
+
+    @property
+    def preferred_attr_names(self):
+        return self._representations[self._preferred_representation]['attr_names']
+
+    @property
+    def preferred_attr_units(self):
+        return self._representations[self._preferred_representation]['attr_units']
+
+    _preferred_representation = None
+    _preferred_attr_names = {}
+    _preferred_attr_units = {}
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
@@ -173,7 +190,7 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            for key in cls.preferred_attr_names:
+            for key in cls._preferred_attr_names:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -498,7 +515,7 @@ class BaseCoordinateFrame(object):
                     frameattrs = frameattrs + ', '
 
                 #remove both the leading "<" and the space after the name
-                data_repr = data_repr[(len(self.data.__class__.__name__) + 2):]
+                data_repr = data_repr[(len(data.__class__.__name__) + 2):]
 
                 return '<{0} Coordinate: {1}{2}'.format(self.__class__.__name__,
                                                         frameattrs, data_repr)

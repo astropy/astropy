@@ -127,7 +127,7 @@ class SkyCoord(object):
 
         coord_kwargs = {}
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame_cls.preferred_attr_names
+            if value is not None and (attr in frame_cls._preferred_attr_names
                                       or attr in frame_cls.frame_attr_names):
                 coord_kwargs[attr] = value
 
@@ -204,7 +204,7 @@ class SkyCoord(object):
                 if frame_cls is None:
                     frame_cls = NoFrame
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                          frame_cls.preferred_attr_names.items())
+                                          frame_cls._preferred_attr_names.items())
                 coord_kwargs = {}
                 coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=lon_unit)
                 coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=lat_unit)
@@ -836,7 +836,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     if frame_cls is None:
         frame_cls = NoFrame
     attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                              frame_cls.preferred_attr_names.items())
+                              frame_cls._preferred_attr_names.items())
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -933,7 +933,7 @@ def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
                                       (Latitude, 'lat', lat_unit),
                                       (Distance, 'distance', None)):
         attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                  frame_cls.preferred_attr_names.items())
+                                  frame_cls._preferred_attr_names.items())
         name = attr_name_for_type[attr_type]
         value = kwargs.pop(name, None)
         if value is not None:
