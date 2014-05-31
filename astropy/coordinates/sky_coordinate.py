@@ -8,7 +8,7 @@ import re
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..extern.six.moves import zip
-from ..units import Unit
+from ..units import Unit, Quantity
 from .. import units as u
 
 from .angles import Latitude, Longitude
@@ -176,12 +176,12 @@ class SkyCoord(object):
         for attr in FRAME_ATTR_NAMES_SET():
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
-        # Get latitude and longitude units
-        lon_unit, lat_unit = _get_units(args, kwargs)
+        # Get units
+        units = _get_units(args, kwargs)
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
         # and migrate to valid_kwargs.
-        valid_kwargs.update(_get_preferred_attrs(frame, lon_unit, lat_unit, kwargs))
+        valid_kwargs.update(_get_preferred_attrs(frame, units, kwargs))
 
         # Error if anything is still left in kwargs
         if kwargs:
@@ -196,7 +196,7 @@ class SkyCoord(object):
                 # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units[0], units[1])
 
             elif len(args) == 2:
                 # Must be longitude, latitude.
@@ -206,8 +206,8 @@ class SkyCoord(object):
                 attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                           frame_cls._preferred_attr_names.items())
                 coord_kwargs = {}
-                coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=lon_unit)
-                coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=lat_unit)
+                coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=units[0])
+                coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=units[1])
             else:
                 raise ValueError('Must supply no more than two positional arguments, got {}'
                                  .format(len(args)))
@@ -815,7 +815,7 @@ def _get_units(args, kwargs):
             raise ValueError('Unit keyword must have one unit value or two unit values as '
                              'tuple or comma-separated string')
 
-    return lon_unit, lat_unit
+    return (lon_unit, lat_unit)
 
 
 def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
@@ -918,7 +918,7 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     return valid_kwargs
 
 
-def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
+def _get_preferred_attrs(frame, units, kwargs):
     """
     Find instances of the "preferred attributes" for specifying longitude,
     latitude, and distance for this frame.  Pop them off of kwargs, run
@@ -929,9 +929,9 @@ def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
     frame_cls = frame_transform_graph.lookup_name(frame)
     if frame_cls is None:
         frame_cls = NoFrame
-    for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
-                                      (Latitude, 'lat', lat_unit),
-                                      (Distance, 'distance', None)):
+    for attr_cls, attr_type, unit in ((Longitude, 'lon', units[0]),
+                                      (Latitude, 'lat', units[1]),
+                                      (Quantity, 'distance', None)):
         attr_name_for_type = dict((attr_type, name) for name, attr_type in
                                   frame_cls._preferred_attr_names.items())
         name = attr_name_for_type[attr_type]
