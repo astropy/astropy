@@ -55,13 +55,8 @@ class FrameMeta(type):
             raise ValueError('Could not find the expected BaseCoordinateFrame '
                              'class attributes.  Are you mis-using FrameMeta?')
 
-        if pref_repr:
-            # create properties for the preferred_attr_names
-            for propnm, reprnm in pref_attrs.items():
-                clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm, propnm))
-
-        #also make properties for the frame_attr_names to make them immutible
-        #after creation
+        # Make properties for the frame_attr_names to make them immutable
+        # after creation.
         for attrnm in frame_attrs:
             if attrnm in clsdct:
                 if isinstance(clsdct[attrnm], property):
@@ -77,17 +72,6 @@ class FrameMeta(type):
             clsdct['name'] = name.lower()
 
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
-
-    @staticmethod
-    def repr_getter_factory(reprnm, propertynm):
-        def getter(self):
-            rep = self.represent_as(self.preferred_representation)
-            val = getattr(rep, reprnm)
-            if propertynm in self.preferred_attr_units:
-                return val.to(self.preferred_attr_units[propertynm])
-            else:
-                return val
-        return getter
 
     @staticmethod
     def frame_attr_factory(attrnm):
@@ -209,6 +193,9 @@ class BaseCoordinateFrame(object):
 
     def __init__(self, *args, **kwargs):
         self._attr_names_with_defaults = []
+
+        if 'representation' in kwargs:
+            self.preferred_representation = kwargs.pop('representation')
 
         representation = None  # if not set below, this is a frame with no data
 
@@ -538,12 +525,25 @@ class BaseCoordinateFrame(object):
             raise ValueError('Cannot index a frame with no data')
 
     def __getattr__(self, attr):
-        if attr in self.preferred_attr_names:
-            data = self.data.represent_as(self.preferred_representation)
-            return getattr(data, attr)
-        else:
+        if attr not in self.preferred_attr_names:
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
+
+        rep = self.represent_as(self.preferred_representation)
+        val = getattr(rep, self.preferred_attr_names[attr])
+        if attr in self.preferred_attr_units:
+            val = val.to(self.preferred_attr_units[attr])
+        return val
+
+    def __setattr__(self, attr, value):
+        repr_attr_names = []
+        if hasattr(self, '_representations'):
+            for representation in self._representations.values():
+                repr_attr_names.extend(representation['attr_names'])
+        if attr in repr_attr_names:
+            raise AttributeError('Cannot set any frame attribute {0}'.format(attr))
+        else:
+            super(BaseCoordinateFrame, self).__setattr__(attr, value)
 
     def separation(self, other):
         """
