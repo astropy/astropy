@@ -56,12 +56,13 @@ class HeaderFormatter(object):
     compressed : boolean, optional
         show the header describing the compression (for CompImageHDU's only)
     """
-    def __init__(self, filename, compressed=False):
+    def __init__(self, filename, compressed=False, keyword=None):
         try:
             self.hdulist = fits.open(filename)
         except IOError as e:
             raise FormattingException(str(e))
         self.compressed = compressed
+        self.keyword = keyword
 
     def parse(self, extension=None):
         """Returns the FITS file header(s) in a readable format.
@@ -117,16 +118,20 @@ class HeaderFormatter(object):
         """Returns the formatted version of the header; the important bit."""
         text = []
         for i, key in enumerate(hdukeys):
-            if i > 0:
-                prefix = '\n\n'  # Separate HDUs by a blank line
-            else:
-                prefix = ''
-            text.append('{prefix}# HDU {key} in {filename}:\n{header}'.format(
-                        prefix=prefix,
-                        key=key,
-                        filename=self.hdulist.filename(),
-                        header=self._get_header(key).tostring(sep='\n',
-                                                              padding=False)))
+            if self.keyword:  # True if only specific keywords must be shown
+                for kw in self.keyword:
+                    try:
+                        text.append('{0}\n'.format(self._get_header(key)[kw]))
+                    except KeyError as e:  # Keyword does not exist
+                        text.append('\n')
+            else:  # Print the entire header
+                if i > 0:  # Separate different HDUs by a blank line
+                    text.append('\n')
+                text.append('# HDU {key} in {filename}:\n{header}\n'.format(
+                            key=key,
+                            filename=self.hdulist.filename(),
+                            header=self._get_header(key)
+                                       .tostring(sep='\n', padding=False)))
         return ''.join(text)
 
 
@@ -138,19 +143,27 @@ def main(args=None):
                      'All HDU extensions are shown by default. '
                      'In the case of a compressed image, '
                      'the decompressed header is shown.'))
-    parser.add_argument('-e', '--ext', metavar='hdu',
-                        help='specify the HDU extension number or name')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
                              'the compression rather than the data')
+    parser.add_argument('-e', '--ext', metavar='hdu',
+                        help='specify the HDU extension number or name')
+    parser.add_argument('-k', '--keyword',
+                        metavar='keyword', nargs='+',
+                        help='show only the value'
+                        ' of the specified keyword(s)')
     parser.add_argument('filename', nargs='+',
                         help='path to one or more FITS files to display')
     args = parser.parse_args(args)
 
     try:
-        for filename in args.filename:
-            print(HeaderFormatter(filename, args.compressed).parse(args.ext))
+        for i, filename in enumerate(args.filename):
+            if i > 0 and not args.keyword:
+                print()  # Prints a newline for clarity
+            print(HeaderFormatter(filename,
+                                  args.compressed,
+                                  args.keyword).parse(args.ext), end='')
     except FormattingException as e:
         log.error(e)
     except IOError as e:
