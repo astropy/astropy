@@ -537,6 +537,14 @@ class BaseCoordinateFrame(object):
         else:
             raise ValueError('Cannot index a frame with no data')
 
+    def __getattr__(self, attr):
+        if attr in self.preferred_attr_names:
+            data = self.data.represent_as(self.preferred_representation)
+            return getattr(data, attr)
+        else:
+            raise AttributeError("'{0}' object has no attribute '{1}'"
+                                 .format(self.__class__.__name__, attr))
+
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
