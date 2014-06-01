@@ -2562,7 +2562,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         # Can an extension by specified by the EXTNAME keyword?
         hf = fitsheader.HeaderFormatter(self.data('zerowidth.fits'))
         assert "EXTNAME = 'AIPS FQ" in hf.parse('AIPS FQ')
-
+        # Alternative keyword access:
+        assert 'AIPS FQ\n' == hf.parse('AIPS FQ', ['EXTNAME'])
         # Can an extension by specified by the EXTNAME+EXTVER keywords?
         hf = fitsheader.HeaderFormatter(self.data('test0.fits'))
         assert "EXTNAME = 'SCI" in hf.parse('SCI,2')
