@@ -183,5 +183,4 @@ for line in open('nitpick-exceptions'):
     nitpick_ignore.append((dtype, six.u(target)))
 
 if six.PY2:
-    nitpick_ignore.extend([(six.u('py:class'), six.u('object')),
-                           ('py:obj', six.u('bases'))])
+    nitpick_ignore.extend([('py:obj', six.u('bases'))])
