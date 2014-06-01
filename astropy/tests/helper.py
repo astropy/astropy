@@ -548,7 +548,7 @@ class astropy_test(Command, object):
         ('coverage', 'c',
          'Create a coverage report. Requires the coverage package.'),
         ('open-files', 'o', 'Fail if any tests leave files open.'),
-        ('parallel=', 'n',
+        ('parallel=', 'j',
          'Run the tests in parallel on the specified number of '
          'CPUs.  If negative, all the cores on the machine will be '
          'used.  Requires the pytest-xdist plugin.'),
