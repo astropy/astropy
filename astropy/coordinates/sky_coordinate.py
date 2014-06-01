@@ -195,7 +195,7 @@ class SkyCoord(object):
                 # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, units[0], units[1])
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
             elif len(args) == 2:
                 # Must be longitude, latitude.
@@ -811,7 +811,8 @@ def _get_units(args, kwargs):
 
         try:
             units = [(Unit(x) if x else None) for x in units]
-            if len(units) == 0 or len(units) > 3:
+            units.extend(None for x in range(3 - len(units)))
+            if len(units) > 3:
                 raise ValueError()
         except:
             raise ValueError('Unit keyword must have one to three unit values as '
@@ -849,18 +850,23 @@ def _parse_coordinate_arg(coords, frame, units):
         if not coords.has_data:
             raise ValueError('Cannot initialize from a frame without coordinate data')
 
-        for attr, attr_type in coords.preferred_attr_names.items():
-            value = getattr(coords, attr)
-            if attr_type == 'lon':
-                valid_kwargs[attr] = Longitude(value, unit=lon_unit)
-            elif attr_type == 'lat':
-                valid_kwargs[attr] = Latitude(value, unit=lat_unit)
-            elif attr_type == 'distance':
-                # don't pass on a distance if no distance was initially given
-                if not isinstance(coords.data, UnitSphericalRepresentation):
-                    valid_kwargs[attr] = value
-            else:
-                raise ValueError("Unexpected attribute type '{0}'".format(attr_type))
+        frame_attr_names = frame.preferred_attr_names.keys()
+        repr_attr_names = frame.preferred_attr_names.values()
+        data = coords.data.represent_as(frame.preferred_representation)
+        print(frame.preferred_representation)
+
+        for frame_attr_name, repr_attr_name, unit in zip(frame_attr_names, repr_attr_names, units):
+            # If coords did not have an explicit distance then don't include in initializers.
+            if (isinstance(coords.data, UnitSphericalRepresentation) and
+                    repr_attr_name == 'distance'):
+                continue
+
+            # Get the value from `data` in the eventual representation and then validate
+            # by passing through the appropriate initializer class with a unit (which
+            # might be None).
+            value = getattr(data, repr_attr_name)
+            attr_class = frame.preferred_representation._attr_classes[repr_attr_name]
+            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
 
         for attr in FRAME_ATTR_NAMES_SET():
             value = getattr(coords, attr, None)
