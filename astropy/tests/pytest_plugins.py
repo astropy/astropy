@@ -343,10 +343,10 @@ class DoctestPlus(object):
             return self._doctest_module_item_cls(path, parent)
         elif self._run_rst_doctests and path.ext == '.rst':
             # Ignore generated .rst files
-            parts = str(path).split(os.path.sep)
-            if (path.basename.startswith('_') or
-                any(x.startswith('_') for x in parts) or
-                any(x == 'api' for x in parts)):
+            parts = bytes(path).split(os.path.sep)
+            if (path.basename.startswith(b'_') or
+                any(x.startswith(b'_') for x in parts) or
+                any(x == b'api' for x in parts)):
                 return None
 
             # TODO: Get better names on these items when they are
@@ -514,7 +514,11 @@ def pytest_report_header(config):
     stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
-    s += "Running tests in {0}.\n\n".format(" ".join(config.args))
+    if six.PY2:
+        args = [x.decode('utf-8') for x in config.args]
+    elif six.PY3:
+        args = config.args
+    s += "Running tests in {0}.\n\n".format(" ".join(args))
 
     from platform import platform
     plat = platform()
