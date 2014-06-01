@@ -1317,7 +1317,7 @@ class UnitBase(object):
     def find_equivalent_units(self, equivalencies=[], units=None,
                               include_prefix_units=False):
         """
-        Return a list of all the units that are the same type as `self`.
+        Return a list of all the units that are the same type as ``self``.
 
         Parameters
         ----------

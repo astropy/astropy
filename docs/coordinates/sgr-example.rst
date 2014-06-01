@@ -66,7 +66,7 @@ system; we will use Galactic coordinates. We can do this by defining functions
 that return transformation matrices, or by simply defining a function that accepts
 a coordinate and returns a new coordinate in the new system. We'll start by
 constructing the rotation matrix, using the helper function
-:func:`rotation_matrix` ::
+``rotation_matrix``::
 
     # Define the Euler angles (from Law & Majewski 2010)
     SGR_PHI = np.radians(180+3.75)
@@ -112,7 +112,7 @@ Sgr. Now we can define our first transformation function::
 The decorator
 ``@frame_transform_graph.transform(coord.FunctionTransform,
 coord.Galactic, Sagittarius)``  registers this function on the
-`frame_transform_graph` as a  transformation.   Inside the function, we
+``frame_transform_graph`` as a  transformation.   Inside the function, we
 simply follow the same procedure as detailed by David Law's
 `transformation code <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`_.
 Note that in this case, both coordinate systems are heliocentric, so we

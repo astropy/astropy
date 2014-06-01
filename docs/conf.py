@@ -37,6 +37,7 @@ import astropy
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.1'
 
+
 # The intersphinx_mapping in astropy_helpers.sphinx.conf refers to astropy for
 # the benefit of affiliated packages who want to refer to objects in the
 # astropy core.  However, we don't want to cyclically reference astropy in its
@@ -182,4 +183,5 @@ for line in open('nitpick-exceptions'):
     nitpick_ignore.append((dtype, six.u(target)))
 
 if six.PY2:
-    nitpick_ignore.extend([('py:obj', six.u('bases'))])
+    nitpick_ignore.extend([(six.u('py:class'), six.u('object')),
+                           ('py:obj', six.u('bases'))])

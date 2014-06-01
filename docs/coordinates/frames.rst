@@ -109,8 +109,8 @@ any  frame attributes required::
     <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
 
 A final way is to create a frame object from an already existing frame
-(either one with or without data), using the `realize_frame` method.  This will
-yield a frame with the same attributes, but new data::
+(either one with or without data), using the ``realize_frame`` method. This
+will yield a frame with the same attributes, but new data::
 
     >>> f1 = FK5(equinox='J1975')
     >>> f1
@@ -157,7 +157,7 @@ Transforming between Frames
 ===========================
 
 To transform a frame object with data into another frame, use the
-`transform_to` method of an object, and provide it the frame you wish to
+``transform_to`` method of an object, and provide it the frame you wish to
 transform to.  This frame can either be a frame *class*, in which case
 the default attributes will be used, or a frame object (with or without
 data)::
@@ -168,12 +168,12 @@ data)::
     >>> cooi.transform_to(FK5(equinox='J1975'))
     <FK5 Coordinate: equinox=J1975.000, ra=1.179603481... deg, dec=2.360853208... deg>
 
-The :ref:`astropy-coordinates-api` includes a list of all of the frames
-built into `astropy`, as well as the defined transformations between
-them.  Any transformation that has a valid path, even if it passes
-through other frames, can be transformed to.  To programmatically check
-for or manipulate transformations, see the
-`~astropy.coordinates.TransformGraph` documentation.
+The :ref:`astropy-coordinates-api` includes a list of all of the frames built
+into `astropy.coordinates`, as well as the defined transformations between
+them. Any transformation that has a valid path, even if it passes through
+other frames, can be transformed to. To programmatically check for or
+manipulate transformations, see the `~astropy.coordinates.TransformGraph`
+documentation.
 
 
 .. _astropy-coordinates-design:
@@ -184,10 +184,10 @@ Defining a New Frame
 Users can add new coordinate frames by creating new classes that
 are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
 instructions for subclassing are in the docstrings for that class.  The
-key aspects are to define the class attributes `frame_attr_names`,
-`preferred_representation`, `preferred_attr_names`, and possibly
-`preferred_attr_units`. If these are defined, there is often no need to
-define an :func:`__init__` function, as the initializer in
+key aspects are to define the class attributes ``frame_attr_names``,
+``preferred_representation``, ``preferred_attr_names``, and possibly
+``preferred_attr_units``. If these are defined, there is often no need to
+define an ``__init__`` function, as the initializer in
 `~astropy.coordinates.BaseCoordinateFrame` will probably behave the way
 you want.
 
@@ -198,7 +198,7 @@ frame.
 
 For examples of defining frame classes, the first place to look is
 probably the source code for the frames that are included in astropy
-(available at `astropy.coordinates.builtin_frames`).  These are not
+(available at ``astropy.coordinates.builtin_frames``).  These are not
 "magic" in any way, and use all the same API and features available to
 user-created frames.  A more annotated example is also available in the
 :ref:`sgr-example` documentation section.
@@ -211,7 +211,7 @@ A frame may not be too useful without a way to transform coordinates
 defined in it to or from other frames. Fortunately,
 `astropy.coordinates` provides a framework to do just that.  The key
 concept for these transformations is the frame transform graph,
-available as `astropy.coordinates.frame_transform_graph`, an instance of
+available as ``astropy.coordinates.frame_transform_graph``, an instance of
 the `~astropy.coordinates.TransformGraph` class.  This graph (in the
 "graph theory" sense, not "plot"), stores all the transformations
 between all of the builtin frames, as well as tools for finding shortest
@@ -244,7 +244,7 @@ subclasses/types of transformations are:
 
 
 Generally, it is not necessary to use these classes directly.  Instead,
-use methods on `frame_transform_graph` that can be used as function
+use methods on ``frame_transform_graph`` that can be used as function
 decorators.  Then just define functions that either do the actual
 transformation (for FunctionTransform), or that compute the necessary
 transformation matrices to transform. Then decorate the functions to
@@ -270,7 +270,7 @@ decorator instead::
     def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         ...
 
-Furthermore, the `frame_transform_graph` does some caching and
+Furthermore, the ``frame_transform_graph`` does some caching and
 optimization to speed up transformations after the first attempt to go
 from one frame to another, and shortcuts steps where relevant (for
 example, combining multiple static matrix transforms into a single

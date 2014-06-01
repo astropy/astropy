@@ -1,5 +1,6 @@
 # astropy.cosmology
 py:class astropy.cosmology.Cosmology
+py:class astropy.cosmology.core.Cosmology
 
 # astropy.io.votable
 py:class astropy.io.votable.tree.Element
@@ -15,6 +16,17 @@ py:class astropy.modeling.projections.Projection
 
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
+
+# astropy.utils
+py:class astropy.extern.six.Iterator
+py:class type
+py:class json.encoder.JSONEncoder
+
+# classes that use InhertedDocstring don't work well with smart_resolver
+# because they are not of type 'type'.
+py:class astropy.config.configuration.ConfigItem
+py:class astropy.config.configuration.ConfigurationItem
+py:class astropy.config.configuration.ConfigAlias
 
 # Pending on python docs links issue #11975
 py:class list
@@ -41,3 +53,9 @@ py:obj a.size == 1
 py:obj n
 py:obj ndarray
 py:obj args
+
+# other classes
+py:class numpy.ma.core.MaskedArray
+py:class numpy.core.records.recarray
+py:class xmlrpclib.Fault
+py:class xmlrpclib.Error

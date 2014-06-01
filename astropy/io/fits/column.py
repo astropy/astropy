@@ -753,8 +753,8 @@ class ColDefs(object):
     Column definitions class.
 
     It has attributes corresponding to the `Column` attributes
-    (e.g. `ColDefs` has the attribute `~ColDefs.names` while `Column`
-    has `~Column.name`). Each attribute in `ColDefs` is a list of
+    (e.g. `ColDefs` has the attribute ``names`` while `Column`
+    has ``name``). Each attribute in `ColDefs` is a list of
     corresponding attribute values from all `Column` objects.
     """
 

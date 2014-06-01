@@ -1968,7 +1968,7 @@ class Table(object):
 
         This effectively splits the table into groups which correspond to
         unique values of the ``keys`` grouping object.  The output is a new
-        `GroupedTable` which contains a copy of this table but sorted by row
+        `TableGroups` which contains a copy of this table but sorted by row
         according to ``keys``.
 
         The ``keys`` input to `group_by` can be specified in different ways:
