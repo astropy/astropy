@@ -113,7 +113,7 @@ class SAMPIntegratedClient(object):
         """
         return self.hub.is_connected and self.client.is_running
 
-    def connect(self, hub=None, hub_params=None, user=None, password=None,
+    def connect(self, hub=None, hub_params=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=None, pool_size=20):
         """
@@ -167,7 +167,7 @@ class SAMPIntegratedClient(object):
             The number of socket connections opened to communicate with the
             Hub.
         """
-        self.hub.connect(hub, hub_params, user, password, key_file, cert_file,
+        self.hub.connect(hub, hub_params, key_file, cert_file,
                          cert_reqs, ca_certs, ssl_version, pool_size)
         self.client.start()
         self.client.register()
