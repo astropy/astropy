@@ -169,6 +169,8 @@ class CartesianRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
+    _attr_classes = {'x': u.Quantity, 'y': u.Quantity, 'z': u.Quantity}
+
     def __init__(self, x, y=None, z=None, copy=True):
 
         if y is None and z is None:
@@ -259,6 +261,8 @@ class SphericalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    _attr_classes = {'lon': Longitude, 'lat': Latitude, 'distance': u.Quantity}
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -372,6 +376,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
+    _attr_classes = {'lon': Longitude, 'lat': Latitude, 'distance': u.Quantity}
+
     def __init__(self, lon, lat, copy=True):
 
         if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
@@ -473,6 +479,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    _attr_classes = {'phi': Angle, 'theta': Angle, 'r': u.Quantity}
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -600,6 +608,8 @@ class CylindricalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    _attr_classes = {'rho': u.Quantity, 'phi': Angle, 'z': u.Quantity}
 
     def __init__(self, rho, phi, z, copy=True):
 
