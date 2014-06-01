@@ -28,3 +28,5 @@ recursive-include astropy/sphinx/themes *
 exclude *.pyc *.o
 prune docs/_build
 prune build
+
+recursive-include astropy_helpers *
