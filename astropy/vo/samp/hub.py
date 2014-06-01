@@ -85,14 +85,6 @@ class SAMPHubServer(object):
         A string used to label the Hub with a human readable name. This string
         is written in the lock-file assigned to the ``hub.label`` token.
 
-    owner : str, optional
-        General purpose Hub owner name. This value is written in the lock-file
-        and assigned to the ``hub.owner.name`` token.
-
-    owner_group : str, optional
-        General purpose Hub owner group name. This value is written in the
-        lock-file and assigned to the ``hub.owner.group`` token.
-
     https : bool, optional
         Set the Hub running on a Secure Sockets Layer connection (HTTPS). By
         default SSL is disabled.

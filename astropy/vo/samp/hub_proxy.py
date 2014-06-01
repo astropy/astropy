@@ -38,7 +38,7 @@ class SAMPHubProxy(object):
         """
         return self._connected
 
-    def connect(self, hub=None, hub_params=None, user=None, password=None,
+    def connect(self, hub=None, hub_params=None,
                 key_file=None, cert_file=None, cert_reqs=0,
                 ca_certs=None, ssl_version=None, pool_size=20):
         """
