@@ -796,7 +796,7 @@ def _get_units(args, kwargs):
     is to allow input from args as well.
     """
     if 'unit' not in kwargs:
-        lon_unit, lat_unit = None, None
+        units = [None, None, None]
 
     else:
         units = kwargs.pop('unit')
@@ -805,17 +805,17 @@ def _get_units(args, kwargs):
             units = [x.strip() for x in units.split(',')]
             # Allow for input like `unit='deg'`
             if len(units) == 1:
-                units = (units[0], units[0])
+                units = [units[0], units[0], units[0]]
         elif isinstance(units, Unit):
-            units = (units, units)
+            units = [units, units, units]
 
         try:
-            lon_unit, lat_unit = [Unit(x) for x in units]
+            units = [(Unit(x) if x else None) for x in units]
         except:
             raise ValueError('Unit keyword must have one unit value or two unit values as '
                              'tuple or comma-separated string')
 
-    return (lon_unit, lat_unit)
+    return units
 
 
 def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
