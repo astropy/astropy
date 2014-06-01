@@ -22,23 +22,6 @@ py:class astropy.extern.six.Iterator
 py:class type
 py:class json.encoder.JSONEncoder
 
-# classes that use InhertedDocstring don't work well with smart_resolver
-# because they are not of type 'type'.
-py:class astropy.config.configuration.ConfigItem
-py:class astropy.config.configuration.ConfigurationItem
-py:class astropy.config.configuration.ConfigAlias
-
-# Pending on python docs links issue #11975
-py:class list
-py:obj list.append
-py:obj list.append
-py:obj list.count
-py:obj list.extend
-py:obj list.index
-py:obj list.insert
-py:meth list.pop
-py:obj list.remove
-
 # astropy.table
 py:class astropy.table.column.BaseColumn
 py:class astropy.table.groups.BaseGroups
@@ -54,8 +37,25 @@ py:obj n
 py:obj ndarray
 py:obj args
 
-# other classes
+# other classes that cannot be linked to
 py:class numpy.ma.core.MaskedArray
 py:class numpy.core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error
+
+# classes that use InhertedDocstring don't work well with smart_resolver
+# because they are not of type 'type'. See astropy/astropy-helpers#28.
+py:class astropy.config.configuration.ConfigItem
+py:class astropy.config.configuration.ConfigurationItem
+py:class astropy.config.configuration.ConfigAlias
+
+# Pending on python docs links issue #11975
+py:class list
+py:obj list.append
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove
