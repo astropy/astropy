@@ -854,7 +854,6 @@ def _parse_coordinate_arg(coords, frame, units):
         frame_attr_names = frame.preferred_attr_names.keys()
         repr_attr_names = frame.preferred_attr_names.values()
         data = coords.data.represent_as(frame.preferred_representation)
-        print(frame.preferred_representation)
 
         for frame_attr_name, repr_attr_name, unit in zip(frame_attr_names, repr_attr_names, units):
             # If coords did not have an explicit distance then don't include in initializers.
@@ -884,6 +883,7 @@ def _parse_coordinate_arg(coords, frame, units):
         valid_kwargs[attr_name_for_type['distance']] = sph_coords.distance
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
+        # TODO: Generalize (might be difficult?)
         # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
         # SkyCoord(ra, dec) or SkyCoord([(ra, dec)])
         lons = []
@@ -914,8 +914,8 @@ def _parse_coordinate_arg(coords, frame, units):
             lons, lats = lons[0], lats[0]
 
         try:
-            valid_kwargs[attr_name_for_type['lon']] = Longitude(lons, unit=lon_unit)
-            valid_kwargs[attr_name_for_type['lat']] = Latitude(lats, unit=lat_unit)
+            valid_kwargs[attr_name_for_type['lon']] = Longitude(lons, unit=units[0])
+            valid_kwargs[attr_name_for_type['lat']] = Latitude(lats, unit=units[1])
         except Exception as err:
             raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
                              .format(err))

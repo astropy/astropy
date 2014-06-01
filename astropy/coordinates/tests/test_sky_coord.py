@@ -157,15 +157,14 @@ def test_coord_init_unit():
         assert allclose(sc.ra, Angle(15 * u.deg))
         assert allclose(sc.dec, Angle(2 * u.deg))
 
-    for unit in ('deg,deg,deg', [u.deg, u.deg, u.deg], None):
+    for unit in ('deg,deg,deg,deg', [u.deg, u.deg, u.deg, u.deg], None):
         with pytest.raises(ValueError) as err:
             SkyCoord(1, 2, unit=unit)
-        assert 'Unit keyword must have one unit value or two unit values' in str(err)
+        assert 'Unit keyword must have one to three unit values' in str(err)
 
     for unit in ('m', (u.m, u.deg), ''):
         with pytest.raises(u.UnitsError) as err:
             SkyCoord(1, 2, unit=unit)
-        assert 'is not convertible to an angle' in str(err)
 
 
 def test_coord_init_list():
