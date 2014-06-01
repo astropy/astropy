@@ -197,16 +197,17 @@ class SkyCoord(object):
                 # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
-            elif len(args) == 2:
-                # Must be longitude, latitude.
-                attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                          frame.preferred_attr_names.items())
-                # TODO: generalize
+            elif len(args) <= 3:
+                frame_attr_names = frame.preferred_attr_names.keys()
+                repr_attr_names = frame.preferred_attr_names.values()
                 coord_kwargs = {}
-                coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=units[0])
-                coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=units[1])
+                for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
+                                                                      repr_attr_names, units):
+                    attr_class = frame.preferred_representation._attr_classes[repr_attr_name]
+                    coord_kwargs[frame_attr_name] = attr_class(arg, unit=unit)
+
             else:
-                raise ValueError('Must supply no more than two positional arguments, got {}'
+                raise ValueError('Must supply no more than three positional arguments, got {}'
                                  .format(len(args)))
 
             # Copy the coord_kwargs into the final valid_kwargs dict.  For each
@@ -876,6 +877,7 @@ def _parse_coordinate_arg(coords, frame, units):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
+        # TODO: Generalize
         sph_coords = coords.represent_as(SphericalRepresentation)
         valid_kwargs[attr_name_for_type['lon']] = sph_coords.lon
         valid_kwargs[attr_name_for_type['lat']] = sph_coords.lat
