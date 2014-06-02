@@ -1876,6 +1876,140 @@ naxis kwarg.
         return (__WCS_unpickle__,
                 (self.__class__, self.__dict__, buffer.getvalue(),))
 
+    def dropaxis(self, dropax):
+        """
+        Remove an axis from the WCS.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The WCS with naxis to be chopped to naxis-1
+        dropax : int
+            The index of the WCS to drop, counting from 0 (i.e., python convention,
+            not FITS convention)
+
+        Returns
+        -------
+        A new `~astropy.wcs.WCS` instance with one axis fewer
+        """
+        inds = list(range(self.wcs.naxis))
+        inds.pop(dropax)
+
+        # axis 0 has special meaning to sub
+        # if wcs.wcs.ctype == ['RA','DEC','VLSR'], you want
+        # wcs.sub([1,2]) to get 'RA','DEC' back
+        return self.sub([i+1 for i in inds])
+
+    def swapaxes(self, ax0, ax1):
+        """
+        Swap axes in a WCS.
+
+        Parameters
+        ----------
+        wcs: `~astropy.wcs.WCS`
+            The WCS to have its axes swapped
+        ax0: int
+        ax1: int
+            The indices of the WCS to be swapped, counting from 0 (i.e., python
+            convention, not FITS convention)
+
+        Returns
+        -------
+        A new `~astropy.wcs.WCS` instance with the same number of axes, but two
+        swapped
+        """
+        inds = list(range(self.wcs.naxis))
+        inds[ax0],inds[ax1] = inds[ax1],inds[ax0]
+
+        return self.sub([i+1 for i in inds])
+
+    def reorient_celestial_first(self):
+        """
+        Reorient the WCS such that the celestial axes are first, followed by
+        the spectral axis, followed by any others.
+        Assumes at least celestial axes are present.
+        """
+        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])
+
+    def slice(self, view, numpy_order=True):
+        """
+        Slice a WCS instance using a Numpy slice. The order of the slice should
+        be reversed (as for the data) compared to the natural WCS order.
+
+        Parameters
+        ----------
+        view : tuple
+            A tuple containing the same number of slices as the WCS system.
+            The `step` method, the third argument to a slice, is not presently
+            supported.
+        numpy_order : bool
+            Use numpy order, i.e. slice the WCS so that an identical slice
+            applied to a numpy array will slice the array and WCS in the same
+            way.  If set to ``False``, the WCS will be sliced in FITS order,
+            meaning the first slice will be applied to the *last* numpy index
+            but the *first* WCS axis.
+
+        Returns
+        -------
+        wcs_new : `~astropy.wcs.WCS`
+            A new resampled WCS axis
+        """
+        if hasattr(view,'__len__') and len(view) > self.wcs.naxis:
+            raise ValueError("Must have # of slices <= # of WCS axes")
+        elif not hasattr(view,'__len__'): # view MUST be an iterable
+            view = [view]
+
+        if not all([isinstance(x, slice) for x in view]):
+            raise ValueError("Cannot downsample a WCS with indexing.  Use "
+                             "wcs.sub or wcs.dropaxis if you want to remove "
+                             "axes.")
+
+        wcs_new = self.deepcopy()
+        for i, iview in enumerate(view):
+            if iview.start is not None:
+                if numpy_order:
+                    wcs_index = self.wcs.naxis - 1 - i
+                else:
+                    wcs_index = i
+
+                if iview.step not in (None, 1):
+                    crpix = self.wcs.crpix[wcs_index]
+                    cdelt = self.wcs.cdelt[wcs_index]
+                    # equivalently (keep this comment so you can compare eqns):
+                    # wcs_new.wcs.crpix[wcs_index] =
+                    # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
+                    crp = ((crpix - iview.start - 1.)/iview.step
+                           + 0.5 + 1./iview.step/2.)
+                    wcs_new.wcs.crpix[wcs_index] = crp
+                    wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
+                else:
+                    wcs_new.wcs.crpix[wcs_index] -= iview.start
+        return wcs_new
+
+    def __getitem__(self, item):
+        # "getitem" is a shortcut for self.slice; it is very limited
+        # there is no obvious and unambiguous interpretation of wcs[1,2,3]
+        # We COULD allow wcs[1] to link to wcs.sub([2])
+        # (wcs[i] -> wcs.sub([i+1])
+        return self.slice(item)
+
+    @property
+    def axis_type_names(self):
+        """
+        World names for each coordinate axis
+
+        Returns
+        -------
+        A list of names along each axis
+        """
+        names = list(self.wcs.cname)
+        types = self.wcs.ctype
+        for i in range(len(names)):
+            if len(names[i]) > 0:
+                continue
+            names[i] = types[i].split('-')[0]
+        return names
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """

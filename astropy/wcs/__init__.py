@@ -25,6 +25,7 @@ from __future__ import division  # confidence high
 try:
     # Not guaranteed available at setup time
     from .wcs import *
+    from . import utils
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
