@@ -18,7 +18,8 @@ from ..utils.compat.odict import OrderedDict
 from .. import units as u
 from ..time import Time
 from .angles import Angle
-from .representation import SphericalRepresentation, CartesianRepresentation
+from .representation import (SphericalRepresentation, CartesianRepresentation,
+                             UnitSphericalRepresentation)
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
@@ -58,6 +59,9 @@ class ICRS(BaseCoordinateFrame):
     _representations = {SphericalRepresentation:
                         {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                                     ('distance', 'distance')]),
+                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
                          'attr_units': {'ra': u.degree, 'dec': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
@@ -116,6 +120,9 @@ class FK5(BaseCoordinateFrame):
     _representations = {SphericalRepresentation:
                         {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                                     ('distance', 'distance')]),
+                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
                          'attr_units': {'ra': u.degree, 'dec': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
@@ -185,6 +192,9 @@ class FK4(BaseCoordinateFrame):
                         {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                                     ('distance', 'distance')]),
                          'attr_units': {'ra': u.degree, 'dec': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
+                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
                          'attr_units': {}}
@@ -239,6 +249,9 @@ class FK4NoETerms(BaseCoordinateFrame):
     _representations = {SphericalRepresentation:
                         {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                                     ('distance', 'distance')]),
+                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
                          'attr_units': {'ra': u.degree, 'dec': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
@@ -318,6 +331,9 @@ class Galactic(BaseCoordinateFrame):
                         {'attr_names': OrderedDict([('l', 'lon'), ('b', 'lat'),
                                                     ('distance', 'distance')]),
                          'attr_units': {'l': u.degree, 'b': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('l', 'lon'), ('b', 'lat')]),
+                         'attr_units': {'l': u.degree, 'b': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
                          'attr_units': {}}
@@ -368,6 +384,9 @@ class AltAz(BaseCoordinateFrame):
                         {'attr_names': OrderedDict([('az', 'lon'), ('alt', 'lat'),
                                                     ('distance', 'distance')]),
                          'attr_units': {'az': u.degree, 'alt': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('az', 'lon'), ('alt', 'lat')]),
+                         'attr_units': {'az': u.degree, 'alt': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
                          'attr_units': {}}
@@ -407,6 +426,9 @@ class NoFrame(BaseCoordinateFrame):
     _representations = {SphericalRepresentation:
                         {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
                                                     ('distance', 'distance')]),
+                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
+                        UnitSphericalRepresentation:
+                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
                          'attr_units': {'ra': u.degree, 'dec': u.degree}},
                         CartesianRepresentation:
                         {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
