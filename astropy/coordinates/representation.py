@@ -376,7 +376,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'lon': Longitude, 'lat': Latitude, 'distance': u.Quantity}
+    _attr_classes = {'lon': Longitude, 'lat': Latitude}
 
     def __init__(self, lon, lat, copy=True):
 
