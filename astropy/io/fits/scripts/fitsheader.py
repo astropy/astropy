@@ -19,15 +19,11 @@ Example uses of fitsheader:
 
     $ fitsheader --ext "SCI,2" filename.fits
 
-4. Print the value of a specific header keyword only::
+4. Print the value of specific header keyword(s) only::
 
-    $ fitsheader --keyword BITPIX filename.fits
+    $ fitsheader --key BITPIX --key NAXIS filename.fits
 
-4. Print the header of several specific keywords::
-
-    $ fitsheader --keyword BITPIX,NAXIS1,NAXIS2 filename.fits
-
-6. Print the headers of all fits files in a directory::
+5. Print the headers of all fits files in a directory::
 
     $ fitsheader *.fits
 
@@ -80,9 +76,9 @@ class HeaderFormatter(object):
             Format only a specific HDU, identified by its number or its name.
             The name is the "EXTNAME" or "EXTNAME,EXTVER" string.
 
-        keywords : str, optional
-            Comma-delimited string of keywords for which the value(s) should be
-            returned. If not specified, then the entire header is returned.
+        keywords : list of str, optional
+            Keywords for which the value(s) should be returned.
+            If not specified, then the entire header is returned.
 
         Returns
         -------
@@ -108,28 +104,32 @@ class HeaderFormatter(object):
         # Having established which HDUs the user wants, we now format these:
         result = []
         for i, hdukey in enumerate(hdukeys):
+            if i > 0:  # Separate different HDUs by a blank line
+                result.append('\n')
+            result.append('# HDU {hdukey} in {filename}:\n'.format(
+                          filename=self.hdulist.filename(),
+                          hdukey=hdukey
+                          ))
             if keywords:  # Are specific keywords requested?
-                for kw in keywords.split(','):
+                for kw in keywords:
                     try:
-                        result.append('{0}\n'.format(
-                                      self._get_header(hdukey)[kw]
-                                      ))
+                        card = self._get_header(hdukey).cards[kw]
+                        if type(card) is fits.card.Card:
+                            prettycard = str(card)
+                        else:  # Allow for wildcard access
+                            prettycard = '\n'.join([str(c) for c in card])
+                        result.append('{0}\n'.format(prettycard))
                     except KeyError as e:  # Keyword does not exist
                         log.warning('{filename} (HDU {hdukey}): '
                                     'Keyword {kw} not found.'.format(
                                         filename=self.hdulist.filename(),
                                         hdukey=hdukey,
                                         kw=kw))
-                        result.append('\n')  # Show a blank instead of a value
             else:  # Print the entire header instead of specific keywords
-                if i > 0:  # Separate different HDUs by a blank line
-                    result.append('\n')
-                prettyheader = self._get_header(hdukey) \
-                                   .tostring(sep='\n', padding=False)
-                result.append('# HDU {hdukey} in {filename}:\n{prettyheader}\n'
-                              .format(hdukey=hdukey,
-                                      filename=self.hdulist.filename(),
-                                      prettyheader=prettyheader))
+                result.append('{0}\n'.format(
+                              self._get_header(hdukey)
+                              .tostring(sep='\n', padding=False)
+                              ))
         return ''.join(result)
 
     def _get_header(self, hdukey):
@@ -159,9 +159,8 @@ def main(args=None):
                      'the decompressed header is shown.'))
     parser.add_argument('-e', '--ext', metavar='HDU',
                         help='specify the HDU extension by name or number')
-    parser.add_argument('-k', '--keyword', nargs=1, default=[None],
-                        help='retrieve the value for a specific keyword, '
-                        'or for a comma-delimited list of keywords')
+    parser.add_argument('-k', '--key', action='append',
+                        help='show only the specified keyword(s)')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -172,10 +171,10 @@ def main(args=None):
 
     try:
         for i, filename in enumerate(args.filename):
-            if i > 0 and not args.keyword:
+            if i > 0 and not args.key:
                 print()  # newline between different headers
             print(HeaderFormatter(filename, args.compressed)
-                  .parse(args.ext, args.keyword[0]), end='')
+                  .parse(args.ext, args.key), end='')
     except FormattingException as e:
         log.error(e)
     except IOError as e:
