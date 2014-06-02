@@ -363,10 +363,48 @@ class TestMultipleParameterSets(object):
             t = TestParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
-        t = TestParModel(np.array([[1, 2], [3, 4]]), 1)
-        assert np.all(t.parameters == [1, 2, 3, 4, 1])
-
-    def test_array_parameter3(self):
         with pytest.raises(InputParameterError):
             m = TestParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
                              model_set_axis=0)
+
+    def test_array_parameter3(self):
+        """
+        Test a single parameter set model with parameters of mixed
+        dimensionality.
+        """
+
+        t = TestParModel(np.array([[1, 2], [3, 4]]), 1)
+        assert np.all(t.parameters == [1, 2, 3, 4, 1])
+
+        # Because of the mixed dimension, param_sets should actually be an
+        # object array with one array per parameter
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert len(t.param_sets) == 2
+        assert np.all(t.param_sets[0] == [[[1, 2], [3, 4]]])
+        assert np.all(t.param_sets[1] == [1])
+
+    def test_array_parameter4(self):
+        """
+        Test multiple parameter model with array-valued parameters of the
+        same size as the number of parameter sets.
+        """
+
+        t = TestParModel([1, 2], [3, 4])
+        assert len(t) == 1
+        assert t.coeff.shape == (2,)
+        assert t.e.shape == (2,)
+        assert np.all(t.param_sets == [[[1, 2]], [[3, 4]]])
+
+        t2 = TestParModel([1, 2], [3, 4], model_set_axis=0)
+        assert len(t2) == 2
+        assert t2.coeff.shape == ()
+        assert t2.e.shape == ()
+        assert np.all(t2.param_sets == [[1, 2], [3, 4]])
+
+        t3 = TestParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=0)
+        assert len(t3) == 2
+        assert t3.coeff.shape == (2,)
+        assert t3.e.shape == ()
+        assert np.issubdtype(t3.param_sets.dtype, object)
+        assert np.all(t3.param_sets[0] == [[1, 2], [3, 4]])
+        assert np.all(t3.param_sets[1] == [5, 6])

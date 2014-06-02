@@ -310,20 +310,28 @@ class Model(object):
         This is an array where each column represents one parameter set.
         """
 
-        parameters = [getattr(self, attr) for attr in self.param_names]
-        values = [par.value for par in parameters]
-        shapes = [par.shape for par in parameters]
-        n_dims = np.asarray([len(p.shape) for p in parameters])
+        values = [getattr(self, name).value for name in self.param_names]
+        shapes = [np.shape(value) for value in values]
 
-        if (n_dims > 1).any():
-            if () in shapes:
-                psets = np.asarray(values, dtype=np.object)
-            else:
-                psets = np.asarray(values)
-        else:
-            psets = np.asarray(values).reshape(len(self.param_names),
-                                               len(self))
-        return psets
+        if len(self) == 1:
+            # Add a single param set axis to the parameter's value (thus
+            # converting scalars to shape (1,) array values) for consistency
+            values = [np.array([value]) for value in values]
+
+        if len(set(shapes)) != 1:
+            # If the parameters are not all the same shape, converting to an
+            # array is going to produce an object array
+            # However the way Numpy creates object arrays is tricky in that it
+            # will recurse into array objects in the list and break them up
+            # into separate objects.  Doing things this way ensures a 1-D
+            # object array the elements of which are the individual parameter
+            # arrays.  There's not much reason to do this over returning a list
+            # except for consistency
+            psets = np.empty(len(values), dtype=object)
+            psets[:] = values
+            return psets
+
+        return np.array(values)
 
     @property
     def parameters(self):
