@@ -562,7 +562,7 @@ Other Changes and Additions
 - Many broken API links have been fixed in the documentation, and the
   ``nitpick`` Sphinx option is now used to avoid broken links in future.
   [#1221, #2019, #2109, #2161, #2162, #2192, #2200, #2296, #2448, #2456,
-   #2460, #2467, #2476, #2508, #2509]
+  #2460, #2467, #2476, #2508, #2509]
 
 0.3.2 (2014-05-13)
 ------------------
