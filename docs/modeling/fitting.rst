@@ -40,7 +40,7 @@ Fitting examples
     >>> x = np.arange(10)
     >>> y = p1(x)
     >>> yy = np.array([y, y]).T
-    >>> p2 = models.Polynomial1D(3, c0=[0, 0], model_set_axis=0)
+    >>> p2 = models.Polynomial1D(3, n_models=2)
     >>> pfit = fitting.LinearLSQFitter()
     >>> new_model = pfit(p2, x, yy)
     >>> print(new_model.param_sets)  # doctest: +SKIP
@@ -62,7 +62,7 @@ Fitters support constrained fitting.
   model::
 
       >>> x = np.arange(1, 10, .1)
-      >>> p1 = models.Polynomial1D(2, c0=[0, 0], model_set_axis=0)
+      >>> p1 = models.Polynomial1D(2, n_models=2)
       >>> p1.parameters = [1, 1, 2, 2, 3, 3]
       >>> p1.param_sets
       array([[ 1.,  1.],

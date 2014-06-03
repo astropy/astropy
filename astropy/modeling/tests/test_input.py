@@ -90,7 +90,7 @@ class TestFitting(object):
         1 set 1D x, 2 sets 1D y, 2 param_sets
         """
         expected = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
-        p1 = models.Polynomial1D(3, c0=[0, 0], model_set_axis=0)
+        p1 = models.Polynomial1D(3, n_models=2)
         p1.parameters = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
         params = {}
         for i in range(4):
@@ -151,7 +151,7 @@ class TestFitting(object):
         with pytest.raises(ValueError):
             p1 = models.Polynomial1D(5)
             y1 = p1(self.x1)
-            p1 = models.Polynomial1D(5, c0=[0, 0], model_set_axis=0)
+            p1 = models.Polynomial1D(5, n_models=2)
             pfit = fitting.LinearLSQFitter()
             model = pfit(p1, self.x1, y1)
 
@@ -165,7 +165,7 @@ class TestFitting(object):
                              [1, 3],
                              [1, 4],
                              [1, 5]])
-        p1 = models.Polynomial1D(5, c0=[0, 0], model_set_axis=0)
+        p1 = models.Polynomial1D(5, n_models=2)
         params = {}
         for i in range(6):
             params[p1.param_names[i]] = [1, i]
@@ -237,7 +237,7 @@ class TestEvaluation(object):
         This case covers:
             N param sets , 1 set 1D x --> N 1D y data
         """
-        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2], model_set_axis=0)
+        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2], n_models=2)
         y1 = g1(self.x1)
         utils.assert_equal((y1[:, 0] - y1[:, 1]).nonzero(), (np.array([]),))
 
@@ -245,7 +245,7 @@ class TestEvaluation(object):
         """
         This case covers: N param sets , N sets 1D x --> N N sets 1D y data
         """
-        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2], model_set_axis=0)
+        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2], n_models=2)
         xx = np.array([self.x1, self.x1])
         y1 = g1(xx.T)
         utils.assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
@@ -262,7 +262,7 @@ class TestEvaluation(object):
         """
         N data sets, N param_sets, Polynomial1D
         """
-        p1 = models.Polynomial1D(4, c0=[0, 0], model_set_axis=0)
+        p1 = models.Polynomial1D(4, n_models=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
         assert y1.shape == (20, 2)
         utils.assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
@@ -279,7 +279,7 @@ class TestEvaluation(object):
         """
         N param_sets, N 2D data sets, Poly2d
         """
-        p2 = models.Polynomial2D(5, c0_0=[0, 0], model_set_axis=0)
+        p2 = models.Polynomial2D(5, n_models=2)
         xx = np.array([self.x, self.x])
         yy = np.array([self.y, self.y])
         z = p2(xx, yy)
@@ -293,7 +293,7 @@ class TestEvaluation(object):
         xx[0, 0] = 100
         xx[1, 0] = 100
         xx[2, 0] = 99
-        p1 = models.Polynomial1D(5, c0=[0, 0], model_set_axis=0)
+        p1 = models.Polynomial1D(5, n_models=2)
         yy = p1(xx)
         x1 = xx[:, 0]
         x2 = xx[:, 1]

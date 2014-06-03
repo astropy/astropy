@@ -56,7 +56,7 @@ The examples here assume this import statement was executed::
     >>> models.Gaussian1D.param_names
     ['amplitude', 'mean', 'stddev']
     >>> g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2, 3],
-    ...                        stddev=[0.15, .1], model_set_axis=0)
+    ...                        stddev=[0.15, .1], n_models=2)
     >>> g1.param_sets
     array([[ 10.  ,   9.  ],
            [  2.  ,   3.  ],
@@ -81,7 +81,7 @@ The examples here assume this import statement was executed::
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
-                          model_set_axis=0)
+                          n_models=2)
    y = g1(x)
    plt.plot(x, y)
    plt.title('Evaluate a Gaussian1D model with 2 parameter sets and 1 set of '
@@ -121,7 +121,7 @@ The examples here assume this import statement was executed::
    import numpy as np
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
-   p1 = models.Polynomial1D(1, c0=[0, 0, 0, 0, 0], model_set_axis=0)
+   p1 = models.Polynomial1D(1, n_models=5)
    p1.c1 = [0, 1, 2, 3, 4]
    y = p1(x)
    plt.plot(x, y)

@@ -94,11 +94,9 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter()
     stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, mean, stddev, **kwargs):
         super(Gaussian1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, mean, stddev):
@@ -148,11 +146,9 @@ class GaussianAbsorption1D(Fittable1DModel):
     mean = Parameter()
     stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, mean, stddev, **kwargs):
         super(GaussianAbsorption1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, mean, stddev):
@@ -256,8 +252,7 @@ class Gaussian2D(Fittable2DModel):
     theta = Parameter()
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 theta=0.0, cov_matrix=None, model_set_axis=None,
-                 **constraints):
+                 theta=0.0, cov_matrix=None, **kwargs):
         if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
                 "Either x/y_stddev must be specified, or a "
@@ -283,8 +278,7 @@ class Gaussian2D(Fittable2DModel):
 
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
-            x_stddev=x_stddev, y_stddev=y_stddev, theta=theta,
-            model_set_axis=model_set_axis, **constraints)
+            x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -365,9 +359,8 @@ class Shift(Model):
 
     offsets = Parameter()
 
-    def __init__(self, offsets, model_set_axis=None, **constraints):
-        super(Shift, self).__init__(offsets, model_set_axis=model_set_axis,
-                                    **constraints)
+    def __init__(self, offsets, **kwargs):
+        super(Shift, self).__init__(offsets, **kwargs)
 
     # TODO: Might need to do some work to ensure that cases like this work
     # consistently.  Should iterating over self.offsets mean iterating over its
@@ -404,9 +397,8 @@ class Scale(Model):
     factors = Parameter()
     linear = True
 
-    def __init__(self, factors, model_set_axis=None, **constraints):
-        super(Scale, self).__init__(factors, model_set_axis=model_set_axis,
-                                    **constraints)
+    def __init__(self, factors, **kwargs):
+        super(Scale, self).__init__(factors, **kwargs)
 
     def inverse(self):
         inv = self.copy()
@@ -445,9 +437,8 @@ class Redshift(Fittable1DModel):
     """
     z = Parameter(description='redshift')
 
-    def __init__(self, z, model_set_axis=None, **constraints):
-        super(Redshift, self).__init__(z=z, model_set_axis=model_set_axis,
-                                       **constraints)
+    def __init__(self, z, **kwargs):
+        super(Redshift, self).__init__(z=z, **kwargs)
 
     @staticmethod
     def eval(x, z):
@@ -494,11 +485,9 @@ class Sine1D(Fittable1DModel):
     amplitude = Parameter()
     frequency = Parameter()
 
-    def __init__(self, amplitude, frequency, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, frequency, **kwargs):
         super(Sine1D, self).__init__(
-            amplitude=amplitude, frequency=frequency,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, frequency=frequency, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, frequency):
@@ -543,10 +532,9 @@ class Linear1D(Fittable1DModel):
     intercept = Parameter()
     linear = True
 
-    def __init__(self, slope, intercept, model_set_axis=None, **constraints):
+    def __init__(self, slope, intercept, **kwargs):
         super(Linear1D, self).__init__(
-            slope=slope, intercept=intercept, model_set_axis=model_set_axis,
-            **constraints)
+            slope=slope, intercept=intercept, **kwargs)
 
     @staticmethod
     def eval(x, slope, intercept):
@@ -593,11 +581,9 @@ class Lorentz1D(Fittable1DModel):
     x_0 = Parameter()
     fwhm = Parameter()
 
-    def __init__(self, amplitude, x_0, fwhm, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, fwhm, **kwargs):
         super(Lorentz1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, fwhm=fwhm,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, fwhm=fwhm, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, x_0, fwhm):
@@ -640,9 +626,8 @@ class Const1D(Fittable1DModel):
     amplitude = Parameter()
     linear = True
 
-    def __init__(self, amplitude, model_set_axis=None, **constraints):
-        super(Const1D, self).__init__(
-            amplitude=amplitude, model_set_axis=model_set_axis, **constraints)
+    def __init__(self, amplitude, **kwargs):
+        super(Const1D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
     def eval(x, amplitude):
@@ -681,9 +666,8 @@ class Const2D(Fittable2DModel):
     amplitude = Parameter()
     linear = True
 
-    def __init__(self, amplitude, model_set_axis=None, **constraints):
-        super(Const2D, self).__init__(
-            amplitude=amplitude, model_set_axis=model_set_axis, **constraints)
+    def __init__(self, amplitude, **kwargs):
+        super(Const2D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude):
@@ -730,11 +714,9 @@ class Disk2D(Fittable2DModel):
     y_0 = Parameter()
     R_0 = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, R_0, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, y_0, R_0, **kwargs):
         super(Disk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, R_0):
@@ -791,7 +773,7 @@ class Ring2D(Fittable2DModel):
     width = Parameter()
 
     def __init__(self, amplitude, x_0, y_0, r_in, width=None, r_out=None,
-                 model_set_axis=None, **constraints):
+                 **kwargs):
         if r_out is not None:
             width = r_out - r_in
         if r_out is None and width is None:
@@ -799,7 +781,7 @@ class Ring2D(Fittable2DModel):
 
         super(Ring2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, r_in=r_in, width=width,
-            model_set_axis=model_set_axis, **constraints)
+            **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, r_in, width):
@@ -859,11 +841,9 @@ class Box1D(Fittable1DModel):
     x_0 = Parameter()
     width = Parameter()
 
-    def __init__(self, amplitude, x_0, width, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, width, **kwargs):
         super(Box1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, width=width, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, x_0, width):
@@ -926,11 +906,10 @@ class Box2D(Fittable2DModel):
     x_width = Parameter()
     y_width = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, x_width, y_width,
-                 model_set_axis=None, **constraints):
+    def __init__(self, amplitude, x_0, y_0, x_width, y_width, **kwargs):
         super(Box2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, x_width=x_width,
-            y_width=y_width, model_set_axis=model_set_axis, **constraints)
+            y_width=y_width, **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
@@ -967,11 +946,9 @@ class Trapezoid1D(Fittable1DModel):
     width = Parameter()
     slope = Parameter()
 
-    def __init__(self, amplitude, x_0, width, slope, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, width, slope, **kwargs):
         super(Trapezoid1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width, slope=slope,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, width=width, slope=slope, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, x_0, width, slope):
@@ -1021,11 +998,10 @@ class TrapezoidDisk2D(Fittable2DModel):
     R_0 = Parameter()
     slope = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, R_0, slope, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, y_0, R_0, slope, **kwargs):
         super(TrapezoidDisk2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, slope=slope,
-            model_set_axis=model_set_axis, **constraints)
+            **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, R_0, slope):
@@ -1071,11 +1047,9 @@ class MexicanHat1D(Fittable1DModel):
     x_0 = Parameter()
     sigma = Parameter()
 
-    def __init__(self, amplitude, x_0, sigma, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, sigma, **kwargs):
         super(MexicanHat1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, sigma=sigma,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, sigma=sigma, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, x_0, sigma):
@@ -1121,11 +1095,9 @@ class MexicanHat2D(Fittable2DModel):
     y_0 = Parameter()
     sigma = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, sigma, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, y_0, sigma, **kwargs):
         super(MexicanHat2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, sigma=sigma,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, y_0=y_0, sigma=sigma, **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, sigma):
@@ -1184,8 +1156,7 @@ class AiryDisk2D(Fittable2DModel):
     radius = Parameter()
     _j1 = None
 
-    def __init__(self, amplitude, x_0, y_0, radius, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, y_0, radius, **kwargs):
         if self._j1 is None:
             try:
                 from scipy.special import j1, jn_zeros
@@ -1196,8 +1167,7 @@ class AiryDisk2D(Fittable2DModel):
                 raise ImportError("AiryDisk2D model requires scipy > 0.11.")
 
         super(AiryDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
 
     def __deepcopy__(self, memo):
         new_model = self.__class__(self.amplitude.value, self.x_0.value,
@@ -1256,11 +1226,9 @@ class Beta1D(Fittable1DModel):
     gamma = Parameter()
     alpha = Parameter()
 
-    def __init__(self, amplitude, x_0, gamma, alpha, model_set_axis=None,
-                 **constraints):
+    def __init__(self, amplitude, x_0, gamma, alpha, **kwargs):
         super(Beta1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, gamma=gamma, alpha=alpha,
-            model_set_axis=model_set_axis, **constraints)
+            amplitude=amplitude, x_0=x_0, gamma=gamma, alpha=alpha, **kwargs)
 
     @staticmethod
     def eval(x, amplitude, x_0, gamma, alpha):
@@ -1318,11 +1286,10 @@ class Beta2D(Fittable2DModel):
     gamma = Parameter()
     alpha = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, gamma, alpha,
-                 model_set_axis=None, **constraints):
+    def __init__(self, amplitude, x_0, y_0, gamma, alpha, **kwargs):
         super(Beta2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, gamma=gamma, alpha=alpha,
-            model_set_axis=model_set_axis, **constraints)
+            **kwargs)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, gamma, alpha):
@@ -1445,9 +1412,8 @@ def custom_model_1d(func, func_fit_deriv=None):
     eval_globals = {}
 
     init_code_string = dedent("""
-        def __init__(self, {0}, model_set_axis=None, **constraints):
-            super(self.__class__, self).__init__(
-                {1}, model_set_axis=model_set_axis, **constraints)
+        def __init__(self, {0}, **kwargs):
+            super(self.__class__, self).__init__({1}, **kwargs)
     """).format(arg_signature_1, arg_signature_2)
 
     eval(compile(init_code_string, filename, 'single'), eval_globals)

@@ -47,8 +47,9 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
-import functools
 import copy
+import functools
+import warnings
 
 import numpy as np
 
@@ -57,6 +58,8 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
+from ..utils import deprecated
+from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import array_repr_oneline
 
 from .parameters import Parameter, InputParameterError
@@ -303,6 +306,11 @@ class Model(object):
         """Evaluate the model on some input variables."""
 
     @property
+    @deprecated('0.4', alternative='len(model)')
+    def param_dim(self):
+        return self._n_models
+
+    @property
     def param_sets(self):
         """
         Return parameters as a pset.
@@ -476,13 +484,46 @@ class Model(object):
         slices of this array.
         """
 
-        # Pop off the model_set_axis
-        model_set_axis = kwargs.pop('model_set_axis', None)
-        if not isinstance(model_set_axis, (type(None), int)):
+        n_models = None
+        # Pop off param_dim and handle backwards compatibility
+        if 'param_dim' in kwargs:
+            n_models = kwargs.pop('param_dim')
+            warnings.warn(
+                'The param_dim argument to {0}.__init__ is deprecated; '
+                'use n_models instead.  See also the model_set_axis argument '
+                'and related discussion in the docstring for Model.'.format(
+                    self.__class__.__name__), AstropyDeprecationWarning)
+            if 'n_models' in kwargs:
+                raise TypeError(
+                    "param_dim and n_models cannot both be specified; use "
+                    "n_models, as param_dim is deprecated")
+
+        n_models = kwargs.pop('n_models', None)
+        if not (isinstance(n_models, (type(None), int)) or
+                n_models >= 1):
             raise ValueError(
-                "model_set_axis must be either None or an integer specifying "
-                "the parameter array axis to associate with a set of multiple "
-                "models (got {0!r}).".format(model_set_axis))
+                "n_models must be either None (in which case it is "
+                "determined from the model_set_axis of the parameter initial "
+                "values) or it must be a positive integer "
+                "(got {0!r})".format(n_models))
+
+        model_set_axis = kwargs.pop('model_set_axis', None)
+        if model_set_axis is None:
+            if n_models is not None and n_models > 1:
+                # Default to zero
+                model_set_axis = 0
+            else:
+                # Otherwise disable
+                model_set_axis = False
+        else:
+            if not (model_set_axis is False or
+                    (isinstance(model_set_axis, int) and
+                        not isinstance(model_set_axis, bool))):
+                raise ValueError(
+                    "model_set_axis must be either False or an integer "
+                    "specifying the parameter array axis to map to each "
+                    "model in a set of models (got {0!r}).".format(
+                        model_set_axis))
 
         # Process positional arguments by matching them up with the
         # corresponding parameters in self.param_names--if any also appear as
@@ -528,8 +569,7 @@ class Model(object):
         # by the size of that axis on the first parameter--if the other
         # parameters don't have the right number of axes or the sizes of their
         # model_set_axis don't match an error is raised
-        n_models = None
-        if model_set_axis is not None:
+        if model_set_axis is not False and n_models != 1 and params:
             for name, value in six.iteritems(params):
                 param_ndim = np.ndim(value)
                 if param_ndim < model_set_axis + 1:
@@ -547,12 +587,10 @@ class Model(object):
                     raise InputParameterError(
                         "Inconsistent dimensions for parameter {0!r} for "
                         "{1} model sets.  The length of axis {2} must be the "
-                        "same for all input parameter values when "
-                        "model_set_axis={2}.".format(name, n_models,
-                                                     model_set_axis))
-        else:
+                        "same for all input parameter values".format(
+                        name, n_models, model_set_axis))
+        elif n_models is None:
             n_models = 1
-
 
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
@@ -561,6 +599,7 @@ class Model(object):
         self._model_set_axis = model_set_axis
         self._param_metrics = {}
         total_size = 0
+
         for name in self.param_names:
             if params.get(name) is None:
                 default = getattr(self, name).default
