@@ -49,7 +49,7 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
-            self._formatter_locator = ScalarFormatterLocator(unit = coord_unit)
+            self._formatter_locator = ScalarFormatterLocator(unit=coord_unit)
         elif coord_type in ['longitude', 'latitude']:
             self._formatter_locator = AngleFormatterLocator()
         else:
