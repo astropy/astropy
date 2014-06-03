@@ -50,7 +50,7 @@ class BaseFormatterLocator(object):
 
     @values.setter
     def values(self, values):
-        if not isinstance(values, u.Quantity) and (not isinstance(values.value, np.ndarray)) :
+        if not isinstance(values, u.Quantity) and (not values.ndim ==1):
             raise TypeError("values should be an astropy.units.Quantity array")
         self._number = None
         self._spacing = None
@@ -268,7 +268,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 else:
                     sep=('h', 'm', 's')
 
-            angles = Angle(np.asarray(values.value), unit=u.deg)
+            angles = Angle(values)
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
@@ -305,8 +305,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @format_unit.setter
     def format_unit(self, unit):
-        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit)) and (not isinstance(unit, u.CompositeUnit)):
-            raise TypeError("unit should be an astropy Unit, CompositeUnit or IrreducibleUnit instance")
+        if (not issubclass(unit.__class__, u.UnitBase)) :
+            raise TypeError("unit should be an astropy UnitBase subclass")
         self._format_unit = unit
 
     @property

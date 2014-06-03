@@ -30,7 +30,7 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar',coord_unit = None, coord_wrap=None, frame=None):
+                 coord_type='scalar',coord_unit=None, coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -155,11 +155,11 @@ class CoordinateHelper(object):
 
         Parameters
         ----------
-        unit: astropy Quantity
+        unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
         """
-        if (not isinstance(unit, u.IrreducibleUnit)) and (not isinstance(unit, u.Unit))  and (not isinstance(unit, u.CompositeUnit)) :
-            raise TypeError("unit should be an astropy Unit, CompositeUnit or IrreducibleUnit instance")
+        if (not issubclass(unit.__class__, u.UnitBase)) :
+            raise TypeError("unit should be an astropy UnitBase subclass")
         self._formatter_locator.format_unit = unit
 
 
@@ -190,6 +190,8 @@ class CoordinateHelper(object):
                              "be specified")
 
         if values is not None:
+            if not isinstance(values, u.Quantity) and (not isinstance(values.value, np.ndarray)) :
+                raise TypeError("values should be an astropy.units.Quantity array")
             self._formatter_locator.values = values
         elif spacing is not None:
             self._formatter_locator.spacing = spacing
