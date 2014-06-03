@@ -83,8 +83,8 @@ install:
     # These command run pip, trying a wheel. If they fail the build aborts.
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL --upgrade "numpy==$NUMPY_VERSION"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "Cython==0.19.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "pytest==2.5.1"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_ASTROPY_WHEEL "pytest-xdist==1.10"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then pip install "pytest==2.5.2"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then pip install "pytest-xdist==1.10"; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then $PIP_ASTROPY_WHEEL "scipy==0.13.1"; fi
