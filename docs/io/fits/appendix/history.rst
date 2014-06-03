@@ -459,7 +459,7 @@ Bug Fixes
 
 - Slightly refactored how tables containing variable-length array columns are
   handled to add two improvements: Fixes an issue where accessing the data
-  after a call to the `pyfits.getdata` convenience function caused an
+  after a call to the ``pyfits.getdata`` convenience function caused an
   exception, and allows the VLA data to be read from an existing mmap of the
   FITS file. (#200)
 
@@ -530,7 +530,7 @@ Bug Fixes
 
 - Slightly refactored how tables containing variable-length array columns are
   handled to add two improvements: Fixes an issue where accessing the data
-  after a call to the `pyfits.getdata` convenience function caused an
+  after a call to the ``pyfits.getdata`` convenience function caused an
   exception, and allows the VLA data to be read from an existing mmap of the
   FITS file. Backported from 3.1.2. (#200)
 
@@ -817,12 +817,12 @@ New Features
 
 - Added support for the proposed "FITS" extension HDU type.  See
   http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.  FITS
-  HDUs contain an entire FITS file embedded in their data section.  `FitsHDU`
+  HDUs contain an entire FITS file embedded in their data section.  ``FitsHDU``
   objects work like other HDU types in PyFITS.  Their ``.data`` attribute
   returns the raw data array.  However, they have a special ``.hdulist``
   attribute which processes the data as a FITS file and returns it as an
   in-memory HDUList object.  FitsHDU objects also support a
-  ``FitsHDU.fromhdulist()`` classmethod which returns a new `FitsHDU` object
+  ``FitsHDU.fromhdulist()`` classmethod which returns a new ``FitsHDU`` object
   that embeds the supplied HDUList. (#80)
 
 - Added a new ``.is_image`` attribute on HDU objects, which is True if the HDU
@@ -1023,7 +1023,7 @@ Bug Fixes
 - Fixed slicing of Group objects--previously it was not possible to slice
   slice them at all.
 
-- Made it possible to assign `np.bool_` objects as header values. (#123)
+- Made it possible to assign ``np.bool_`` objects as header values. (#123)
 
 - Fixed overly strict handling of the EXTEND keyword; see "Changes in
   behavior" above. (#124)
@@ -1035,7 +1035,7 @@ Bug Fixes
 - Fixed a bug where the values of the PTYPEn keywords in a random groups HDU
   were forced to be all lower-case when saving the file. (#130)
 
-- Removed an unnecessary inline import in `ExtensionHDU.__setattr__` that was
+- Removed an unnecessary inline import in ``ExtensionHDU.__setattr__`` that was
   causing some slowdown when opening files containing a large number of
   extensions, plus a few other small (but not insignificant) performance
   improvements thanks to Julian Taylor. (#133)
@@ -1132,10 +1132,10 @@ Bug Fixes
 - Fixed a crash that could occur in Python 3 when opening files with checksum
   checking enabled. (r1336)
 
-- Fixed a small bug that could cause a crash in the `StreamingHDU` interface
+- Fixed a small bug that could cause a crash in the ``StreamingHDU`` interface
   when using Numpy below version 1.5.
 
-- Fixed a crash that could occur when creating a new `CompImageHDU` from an
+- Fixed a crash that could occur when creating a new ``CompImageHDU`` from an
   array of big-endian data. (#104)
 
 - Fixed a crash when opening a file with extra zero padding at the end.
@@ -1330,7 +1330,7 @@ Bug Fixes
 
 - Calls to deprecated functions will display a Deprecation warning.  However,
   in Python 2.7 and up Deprecation warnings are ignored by default, so run
-  Python with the `-Wd` option to see if you're using any deprecated
+  Python with the ``-Wd`` option to see if you're using any deprecated
   functions.  If we get close to actually removing any functions, we might
   make the Deprecation warnings display by default.
 
@@ -1388,7 +1388,7 @@ The following enhancements were added:
 
 - Checksum support now correctly conforms to the FITS standard.  pyfits
   supports reading and writing both the old checksums and new
-  standard-compliant checksums.  The `fitscheck` command-line utility is
+  standard-compliant checksums.  The ``fitscheck`` command-line utility is
   provided to verify and update checksums.
 
 - Added a new optional keyword argument ``do_not_scale_image_data``

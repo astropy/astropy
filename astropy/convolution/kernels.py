@@ -161,7 +161,7 @@ class Box1DKernel(Kernel1D):
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifacts, when applied repeatedly to the same data.
 
-    By default the Box kernel uses the `linear_interp` discretization mode,
+    By default the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2. E.g a Box kernel with an effective
     smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
@@ -229,7 +229,7 @@ class Box2DKernel(Kernel2D):
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifact, when applied repeatedly to the same data.
 
-    By default the Box kernel uses the `linear_interp` discretization mode,
+    By default the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2.
 

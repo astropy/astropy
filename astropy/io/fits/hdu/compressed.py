@@ -435,7 +435,7 @@ class CompImageHDU(BinTableHDU):
                before performing the requested read operations.  The
                astropy.io.fits package does not support writing to these types
                of compressed files.  This type of compression is supported in
-               the `_File` class, not in the `CompImageHDU` class.  The file
+               the ``_File`` class, not in the `CompImageHDU` class.  The file
                compression type is recognized by the ``.gz`` or ``.zip`` file
                name extension.
 

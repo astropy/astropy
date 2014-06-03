@@ -48,7 +48,7 @@ class NDData(object):
         can be converted to a boolean Numpy array with a shape
         matching that of the data. The values must be ``False`` where
         the data is *valid* and ``True`` when it is not (like Numpy
-        masked arrays). If `data` is a numpy masked array, providing
+        masked arrays). If ``data`` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 

@@ -4,7 +4,7 @@ Masking and missing values
 --------------------------
 
 The `astropy.table` package provides support for masking and missing
-values in a table by wrapping the `~numpy.ma` masked array package.
+values in a table by wrapping the ``numpy.ma`` masked array package.
 This allows handling tables with missing or invalid entries in much
 the same manner as for standard (unmasked) tables.  It
 is useful to be familiar with the `masked array
@@ -13,7 +13,7 @@ documentation when using masked tables within `astropy.table`.
 
 In a nutshell, the concept is to define a boolean mask that mirrors
 the structure of the table data array.  Wherever a mask value is
-``True``, the corresponding entry is considered to be missing or invalid.
+`True`, the corresponding entry is considered to be missing or invalid.
 Operations involving column or row access and slicing are unchanged.
 The key difference is that arithmetic or reduction operations involving
 columns or column slices follow the rules for `operations

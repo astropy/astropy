@@ -16,7 +16,7 @@ The key distinctions between |SkyCoord| and the low-level classes
 
 - The |SkyCoord| object can maintain the union of frame attributes for all
   built-in and user-defined coordinate frames in the
-  `~astropy.coordinates.frame_transform_graph`.  Individual frame classes hold
+  ``~astropy.coordinates.frame_transform_graph``.  Individual frame classes hold
   only the required attributes (e.g. equinox, observation time or observer
   location) for that frame.  This means that a transformation from
   `~astropy.coordinates.FK4` (with equinox and observation time) to
@@ -35,7 +35,7 @@ The key distinctions between |SkyCoord| and the low-level classes
 - At present, |SkyCoord| objects can use only coordinate frames that have
   transformations defined in the ``astropy.coordinates.frame_transform_graph``
   transform graph object.
-  
+
 Creating SkyCoord objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -82,7 +82,7 @@ separations.
 
 String inputs in common formats are acceptable, and the frame can be supplied
 as either a class type like `~astropy.coordinates.FK4` or the lower-case
-version of the name as a string, e.g. `"fk4"`::
+version of the name as a string, e.g. ``"fk4"``::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
   >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
@@ -132,7 +132,7 @@ as separate positional arguments.  The following options are available:
 - Single angle value:
 
   - |Quantity| object
-  - Plain numeric value with `unit` keyword specifying the unit
+  - Plain numeric value with ``unit`` keyword specifying the unit
   - Angle string which is formatted for :ref:`angle-creation` of
     |Longitude| or |Latitude| objects
 
@@ -198,10 +198,11 @@ frame-specific names can be used as keyword arguments:
 
 *ra*, *dec*: **LON**, **LAT** values, optional
     RA and Dec for frames where this is preferred representation, including
-    `ICRS`, `FK5`, `FK4`, and `FK4NoETerms`.
+    `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
+    `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`.
 
 *l*, *b*:  **LON**, **LAT** values, optional
-    Galactic `l` and `b` for the `Galactic` frame.
+    Galactic ``l`` and ``b`` for the `~astropy.coordinates.Galactic` frame.
 
 The following keywords can be specified for any frame:
 
@@ -251,7 +252,7 @@ slicing, dicing, and selection::
   <SkyCoord (ICRS): ra=304.304015... deg, dec=6.900282... deg>
 
 
-Attributes 
+Attributes
 ^^^^^^^^^^^
 
 The |SkyCoord| object has a number of useful attributes which come in handy.
@@ -277,7 +278,7 @@ documentation::
   sc.frame                     sc.obstime                   sc.time_attr_names
   sc.frame_attr_names          sc.position_angle            sc.to_string
   sc.from_name                 sc.preferred_attr_names      sc.transform_to
-  sc.galactic                  sc.preferred_attr_units      
+  sc.galactic                  sc.preferred_attr_units
 
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
@@ -291,7 +292,7 @@ which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
 Next notice that all the built-in frame names ``icrs``, ``galactic``, ``fk5``
 ``fk4``, and ``fk4noeterms`` are there.  Through the magic of Python
 properties, accessing these attributes calls the object
-`~astropy.coordinate.Skycoord.transform_to` method appropriately and returns a
+`~astropy.coordinates.SkyCoord.transform_to` method appropriately and returns a
 new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic
@@ -299,7 +300,7 @@ new |SkyCoord| object in the requested frame::
   <SkyCoord (Galactic): l=99.637943... deg, b=-58.709605... deg>
 
 Other attributes you should recognize are ``distance``, ``equinox``,
-``obstime``, ``shape``.  
+``obstime``, ``shape``.
 
 Digger deeper
 """""""""""""""

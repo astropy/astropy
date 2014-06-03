@@ -12,7 +12,7 @@ Astropy Project is a process intended to facilitate communication and
 interoperability of python packages/codes in astronomy and astrophysics.
 The project thus encompasses the ``astropy`` core package (which provides
 a common framework), all "affiliated packages" (described below in
-`Affiliated Packages_`), and a general community aimed at bringing
+`Affiliated Packages`_), and a general community aimed at bringing
 resources together and not duplicating efforts.
 
 

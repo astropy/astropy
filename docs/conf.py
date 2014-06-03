@@ -27,6 +27,7 @@
 
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
+from astropy.extern import six
 
 import astropy
 
@@ -35,6 +36,7 @@ import astropy
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.1'
+
 
 # The intersphinx_mapping in astropy_helpers.sphinx.conf refers to astropy for
 # the benefit of affiliated packages who want to refer to objects in the
@@ -166,3 +168,19 @@ edit_on_github_source_root = ""
 edit_on_github_doc_root = "docs"
 
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
+
+# Enable nitpicky mode - which ensures that all references in the docs
+# resolve.
+
+nitpicky = True
+nitpick_ignore = []
+
+for line in open('nitpick-exceptions'):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, six.u(target)))
+
+if six.PY2:
+    nitpick_ignore.extend([('py:obj', six.u('bases'))])

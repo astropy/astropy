@@ -19,9 +19,9 @@ Getting Started
 ===============
 
 Cosmological quantities are calculated using methods of a
-`~astropy.cosmology.Cosmology` object. For example, to calculate
-the Hubble constant at z=0 (i.e., ``H0``), and the number of
-transverse proper kpc corresponding to an arcminute at z=3:
+:class:`~astropy.cosmology.Cosmology` object. For example, to calculate the
+Hubble constant at z=0 (i.e., ``H0``), and the number of transverse proper
+kpc corresponding to an arcminute at z=3:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.H(0)

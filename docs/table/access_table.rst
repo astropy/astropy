@@ -214,13 +214,13 @@ table using one of several methods:
 
 - `print` statement (Python 2) or `print()` function (Python 3).
 - Table :meth:`~astropy.table.Table.more` or Column
-  :meth:`~astropy.table.table.Column.more` methods to interactively scroll
+  :meth:`~astropy.table.Column.more` methods to interactively scroll
   through table values.
 - Table :meth:`~astropy.table.Table.pprint` or Column
-  :func:`~astropy.table.table.Column.pprint` methods to print a formatted version of
+  :func:`~astropy.table.Column.pprint` methods to print a formatted version of
   the table to the screen.
 - Table :meth:`~astropy.table.Table.pformat` or Column
-  :func:`~astropy.table.table.Column.pformat` methods to return the formatted table
+  :func:`~astropy.table.Column.pformat` methods to return the formatted table
   or column as a list of fixed-width strings.  This could be used as a quick
   way to save a table.
 
@@ -260,7 +260,7 @@ more() method
 '''''''''''''
 
 In order to browse all rows of a table or column use the Table
-:meth:`~astropy.table.Table.more` or Column :func:`~astropy.table.table.Column.more`
+:meth:`~astropy.table.Table.more` or Column :func:`~astropy.table.Column.more`
 methods.  These let you interactively scroll through the rows much like the
 linux ``more`` command.  Once part of the table or column is displayed the
 supported navigation keys are:
@@ -280,7 +280,7 @@ pprint() method
 
 In order to fully control the print output use the Table
 :meth:`~astropy.table.Table.pprint` or Column
-:func:`~astropy.table.table.Column.pprint` methods.  These have keyword
+:func:`~astropy.table.Column.pprint` methods.  These have keyword
 arguments ``max_lines``, ``max_width``, ``show_name``, ``show_unit`` with
 meaning as shown below::
 
@@ -347,7 +347,7 @@ table in this example one sees 6 lines of wrapped output like the following::
   0 2991.0 2992.0 2993.0 2994.0 2995.0 2996.0 2997.0 2998.0 2999.0
 
 For columns the syntax and behavior of
-:func:`~astropy.table.table.Column.pprint` is the same except that there is no
+:func:`~astropy.table.Column.pprint` is the same except that there is no
 ``max_width`` keyword argument::
 
   >>> t['col3'].pprint(max_lines=8)
@@ -365,7 +365,7 @@ pformat() method
 
 In order to get the formatted output for manipulation or writing to a file use
 the Table :meth:`~astropy.table.Table.pformat` or Column
-:func:`~astropy.table.table.Column.pformat` methods.  These behave just as for
+:func:`~astropy.table.Column.pformat` methods.  These behave just as for
 :meth:`~astropy.table.Table.pprint` but return a list corresponding to each formatted line in the
 :meth:`~astropy.table.Table.pprint` output.
 

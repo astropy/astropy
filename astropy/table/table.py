@@ -1855,7 +1855,7 @@ class Table(object):
           >>> events = Table.read('events.fits', format='fits')
 
         The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
+        passed through to the underlying data reader (e.g. `~astropy.io.ascii.read`).
         """
         return io_registry.read(cls, *args, **kwargs)
 
@@ -1872,7 +1872,7 @@ class Table(object):
           >>> dat.write('table.dat', format='ascii')
 
         The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.write`).
+        passed through to the underlying data reader (e.g. `~astropy.io.ascii.write`).
         """
         io_registry.write(self, *args, **kwargs)
 
@@ -1968,7 +1968,7 @@ class Table(object):
 
         This effectively splits the table into groups which correspond to
         unique values of the ``keys`` grouping object.  The output is a new
-        `GroupedTable` which contains a copy of this table but sorted by row
+        `TableGroups` which contains a copy of this table but sorted by row
         according to ``keys``.
 
         The ``keys`` input to `group_by` can be specified in different ways:

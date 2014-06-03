@@ -64,7 +64,7 @@ class AsyncConeSearch(AsyncBase):
     Get search results after a 30-second wait (not to be
     confused with `astropy.utils.data.Conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
-    done after 30 seconds, `~.exceptions.TimeoutError` is raised. Otherwise,
+    done after 30 seconds, `TimeoutError` is raised. Otherwise,
     Cone Search result is returned and can be manipulated as in
     :ref:`Simple Cone Search Examples <vo-sec-scs-examples>`.
     If no ``timeout`` keyword given, it waits until completion:
@@ -220,7 +220,7 @@ class AsyncSearchAll(AsyncBase):
     Get a dictionary of all search results after a 30-second wait (not
     to be confused with `astropy.utils.data.Conf.remote_timeout` that
     governs individual Cone Search queries). If search is still not
-    done after 30 seconds, `~.exceptions.TimeoutError` is raised. Otherwise, a
+    done after 30 seconds, `TimeoutError` is raised. Otherwise, a
     dictionary is returned and can be manipulated as in :ref:`Simple
     Cone Search Examples <vo-sec-scs-examples>`.  If no ``timeout``
     keyword given, it waits until completion:

@@ -10,7 +10,7 @@ coordinates from one system to another.  While common astronomy frames
 are  built into Astropy, the transformation infrastructure is dynamic.
 This means it allows users to define new coordinate frames and their
 transformations.  The topic of writing your own coordinate frame or
-transforms is detailed in :ref :`astropy-coordinates-design`, and this
+transforms is detailed in :ref:`astropy-coordinates-design`, and this
 section is focused on how to *use* transformations.
 
 The simplest method of transformation is shown below::
@@ -45,7 +45,7 @@ coordinate object into the frame of another::
 The table below summarizes the built-in coordinate frames.  For details of
 these frames and the transformations between them see the `astropy.coordinates`
 API documentation and the `~astropy.coordinates.BaseCoordinateFrame` class
-which forms the basis for all `astropy` coordinate frames.
+which forms the basis for all `astropy.coordinates` coordinate frames.
 
 ================================== ================
  Frame class                        Frame name
@@ -61,7 +61,7 @@ Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
 `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
 "self transformations", meaning the *type* of frame doesn't change, but the
 frame attributes do.  Any example is precessing a coordinate from one equinox
-to another in an equatorial system. This is done by passing `transform_to` a
+to another in an equatorial system. This is done by passing ``transform_to`` a
 frame class with the relevant attributes, as shown below. Note that these
 systems use a default equinox if you don't specify one::
 

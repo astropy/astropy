@@ -287,7 +287,9 @@ class Latex(core.BaseReader):
 
 
 class AASTexHeader(LatexHeader):
-    '''In a `deluxetable` some header keywords differ from standard LaTeX.
+    '''In a `deluxetable
+    <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ some header
+    keywords differ from standard LaTeX.
 
     This header is modified to take that into account.
     '''
@@ -316,7 +318,7 @@ class AASTexHeader(LatexHeader):
 
 
 class AASTexData(LatexData):
-    '''In a `deluxetable` the data is enclosed in `\startdata` and `\enddata`
+    '''In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`
     '''
     data_start = r'\startdata'
     data_end = r'\enddata'
@@ -333,7 +335,7 @@ class AASTexData(LatexData):
 
 
 class AASTexHeaderSplitter(LatexSplitter):
-    '''extract column names from a `deluxetable`
+    '''Extract column names from a `deluxetable`_.
 
     This splitter expects the following LaTeX code **in a single line**:
 

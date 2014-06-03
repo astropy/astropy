@@ -16,7 +16,7 @@ meaning is further complicated by the fact that such systems use quite
 different ways of defining a frame.
 
 Because of the likelihood of confusion between theses meanings of
-"coordinate system", `~astropy.coordintes` avoids this term wherever
+"coordinate system", `~astropy.coordinates` avoids this term wherever
 possible, and instead adopts the following terms (loosely inspired by
 the IAU2000 resolutions on celestial coordinate systems):
 

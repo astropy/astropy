@@ -5,7 +5,7 @@
 This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 
-The `mag` unit is provided for compatibility with the FITS unit string
+The ``mag`` unit is provided for compatibility with the FITS unit string
 standard.  However, it is not very useful as-is since it is "orphaned"
 and can not be converted to any other unit.  A future astropy
 magnitudes library is planned to address this shortcoming.
@@ -36,8 +36,8 @@ def_unit(['pc', 'parsec'], _si.pc.value * si.m, namespace=_ns, prefixes=True,
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun.value * si.m, namespace=_ns,
          doc="Solar radius",
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m, namespace=_ns,
-         doc="Light year")
+def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m,
+         namespace=_ns, doc="Light year")
 
 
 ###########################################################################

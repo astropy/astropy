@@ -63,13 +63,21 @@ For example, to convolve a 1-d dataset with a user-specified kernel, you can do:
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
     array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
 
-Notice that the end points are set to zero - by default, points that are too close to the boundary to have a convolved value calculated are set to zero. However, the :func:`~astropy.convolution.convolve` function allows for a `boundary` argument that can be used to specify alternate behaviors. For example, setting `boundary='extend'` causes values near the edges to be computed, assuming the original data is simply extended using a constant extrapolation beyond the boundary::
+Notice that the end points are set to zero - by default, points that are too
+close to the boundary to have a convolved value calculated are set to zero.
+However, the :func:`~astropy.convolution.convolve` function allows for a
+``boundary`` argument that can be used to specify alternate behaviors. For
+example, setting ``boundary='extend'`` causes values near the edges to be
+computed, assuming the original data is simply extended using a constant
+extrapolation beyond the boundary::
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
 
-The values at the end are computed assuming that any value below the first point is ``1``, and any value above the last point is ``8``. For a more detailed discussion of boundary treatment, see :doc:`using`.
+The values at the end are computed assuming that any value below the first
+point is ``1``, and any value above the last point is ``8``. For a more
+detailed discussion of boundary treatment, see :doc:`using`.
 
 This module also includes built-in kernels that can be imported as e.g.::
 
@@ -116,8 +124,8 @@ The kernel can then be used directly when calling
     plt.show()
 
 
-Using `convolve`
-================
+Using `astropy.convolution`
+===========================
 
 .. toctree::
    :maxdepth: 2

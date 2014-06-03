@@ -1,0 +1,55 @@
+# astropy.cosmology
+py:class astropy.cosmology.Cosmology
+py:class astropy.cosmology.core.Cosmology
+
+# astropy.io.votable
+py:class astropy.io.votable.tree.Element
+py:class astropy.io.votable.tree.SimpleElement
+py:class astropy.io.votable.tree.SimpleElementWithContent
+
+# astropy.modeling
+py:class astropy.modeling.projections.Zenithal
+py:class astropy.modeling.projections.Cylindrical
+py:class astropy.modeling.polynomial.PolynomialBase
+py:class astropy.modeling.rotations.EulerAngleRotation
+py:class astropy.modeling.projections.Projection
+
+# astropy.io.fits
+py:class astropy.io.fits.hdu.base.ExtensionHDU
+
+# astropy.utils
+py:class astropy.extern.six.Iterator
+py:class type
+py:class json.encoder.JSONEncoder
+
+# astropy.table
+py:class astropy.table.column.BaseColumn
+py:class astropy.table.groups.BaseGroups
+
+# astropy.time
+py:class astropy.time.core.TimeUnique
+
+# numpy inherited docstrings
+py:obj dtype
+py:obj a
+py:obj a.size == 1
+py:obj n
+py:obj ndarray
+py:obj args
+
+# other classes that cannot be linked to
+py:class numpy.ma.core.MaskedArray
+py:class numpy.core.records.recarray
+py:class xmlrpclib.Fault
+py:class xmlrpclib.Error
+
+# Pending on python docs links issue #11975
+py:class list
+py:obj list.append
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove

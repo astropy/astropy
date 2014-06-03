@@ -1940,12 +1940,12 @@ naxis kwarg.
         ----------
         view : tuple
             A tuple containing the same number of slices as the WCS system.
-            The `step` method, the third argument to a slice, is not presently
-            supported.
+            The ``step`` method, the third argument to a slice, is not
+            presently supported.
         numpy_order : bool
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
-            way.  If set to ``False``, the WCS will be sliced in FITS order,
+            way. If set to `False`, the WCS will be sliced in FITS order,
             meaning the first slice will be applied to the *last* numpy index
             but the *first* WCS axis.
 
@@ -1954,9 +1954,9 @@ naxis kwarg.
         wcs_new : `~astropy.wcs.WCS`
             A new resampled WCS axis
         """
-        if hasattr(view,'__len__') and len(view) > self.wcs.naxis:
+        if hasattr(view, '__len__') and len(view) > self.wcs.naxis:
             raise ValueError("Must have # of slices <= # of WCS axes")
-        elif not hasattr(view,'__len__'): # view MUST be an iterable
+        elif not hasattr(view, '__len__'): # view MUST be an iterable
             view = [view]
 
         if not all([isinstance(x, slice) for x in view]):

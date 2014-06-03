@@ -34,16 +34,16 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel : `numpy.ndarray` or `astropy.nddata.convolution.Kernel`
+    kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
     boundary : str, optional
         A flag indicating how to handle boundaries:
             * `None`
-                Set the `result` values to zero where the kernel
+                Set the ``result`` values to zero where the kernel
                 extends beyond the edge of the array (default).
             * 'fill'
-                Set values outside the array boundary to `fill_value`.
+                Set values outside the array boundary to ``fill_value``.
             * 'wrap'
                 Periodic boundary that wrap to the other side of ``array``.
             * 'extend'
@@ -61,12 +61,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         convolved with kernel.  The data type depends on the input
         array type.  If array is a floating point type, then the
         return array keeps the same data type, otherwise the type
-        is numpy.float.
+        is ``numpy.float``.
 
     Notes
     -----
     Masked arrays are not supported at this time.  The convolution
-    is always done at `numpy.float` precision.
+    is always done at ``numpy.float`` precision.
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
@@ -233,24 +233,24 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
 
     * It can treat ``NaN`` values as zeros or interpolate over them.
-    * `inf` values are treated as ``NaN``
+    * ``inf`` values are treated as ``NaN``
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
-    * Its only valid `mode` is 'same' (i.e., the same shape array is returned)
+    * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
       `pyFFTW <http://pypi.python.org/pypi/pyFFTW>`_ or
       `pyFFTW3 <http://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
       performance improvements, depending on your system configuration.  pyFFTW3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
-      the `fftn` and `ifftn` keywords to override the default, which is
+      the ``fftn`` and ``ifftn`` keywords to override the default, which is
       `numpy.fft.fft` and `numpy.fft.ifft`.
 
     Parameters
     ----------
     array : `numpy.ndarray`
-          Array to be convolved with `kernel`
+          Array to be convolved with ``kernel``
     kernel : `numpy.ndarray`
-          Will be normalized if `normalize_kernel` is set.  Assumed to be
+          Will be normalized if ``normalize_kernel`` is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
@@ -272,7 +272,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         If ignoring ``NaN`` / zeros, force all grid points with a weight less than
         this value to ``NaN`` (the weight of a grid point with *no* ignored
         neighbors is 1.0).
-        If `min_wt` == 0.0, then all zero-weight points will be set to zero
+        If ``min_wt`` is zero, then all zero-weight points will be set to zero
         instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
         See the examples below
     normalize_kernel : function or boolean, optional
@@ -300,7 +300,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     fftn, ifftn : functions, optional
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
-        `fftn=scipy.fftpack.fftn`
+        ``fftn=scipy.fftpack.fftn``
     complex_dtype : np.complex, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
@@ -324,8 +324,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     Returns
     -------
     default : ndarray
-        **array** convolved with `kernel`.
-        If `return_fft` is set, returns fft(**array**) * fft(`kernel`).
+        **array** convolved with ``kernel``.
+        If ``return_fft`` is set, returns fft(**array**) * fft(``kernel``).
         If crop is not set, returns the image, but with the fft-padded size
         instead of the input size
 

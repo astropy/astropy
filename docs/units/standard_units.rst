@@ -54,7 +54,7 @@ equal to `None`: that indicates that no unit was specified in the data
 or by the user.
 
 For convenience, there is a unit that is both dimensionless and
-unscaled: the ``astropy.units.core.dimensionless_unscaled`` object::
+unscaled: the ``dimensionless_unscaled`` object::
 
    >>> from astropy import units as u
    >>> u.dimensionless_unscaled

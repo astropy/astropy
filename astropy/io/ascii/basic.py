@@ -96,7 +96,7 @@ class CommentedHeaderHeader(core.BaseHeader):
 
 class CommentedHeader(core.BaseReader):
     """Read a file where the column names are given in a line that begins with
-    the header comment character. `header_start` can be used to specify the
+    the header comment character. ``header_start`` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
     for the last commented line).  The default delimiter is the <space>
     character.::
@@ -166,7 +166,7 @@ class Csv(Basic):
     such files.
     Masked values (indicated by an empty '' field value when reading) are
     written out in the same way with an empty ('') field.  This is different
-    from the typical default for `io.ascii` in which missing values are
+    from the typical default for `astropy.io.ascii` in which missing values are
     indicated by ``--``.
 
     Example::

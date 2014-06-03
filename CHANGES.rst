@@ -24,7 +24,7 @@ New Features
     has changed substantially. See the APE5 text and the package documentation
     for more details. [#2422]
 
-  - A `position_angle` method has been added to the new ``SkyCoord``. [#2487]
+  - A ``position_angle`` method has been added to the new ``SkyCoord``. [#2487]
 
   - Updated ``Angle.dms`` and ``Angle.hms`` to return ``namedtuple`` -s instead
     of regular tuples, and added ``Angle.signed_dms`` attribute that gives the
@@ -39,7 +39,7 @@ New Features
     conversion to ``Angle`` is now required. [#2461]
 
   - The deprecated functions for pre-0.3 coordinate object names like
-    `ICRSCoordinates` have been removed. [#2422]
+    ``ICRSCoordinates`` have been removed. [#2422]
 
 - ``astropy.cosmology``
 

@@ -237,7 +237,7 @@ class Gaussian2D(Fittable2DModel):
             \\rho \\sigma_x \\sigma_y & \\sigma_y^2
             \end{array}\\right)
 
-    :math:`\\rho` is the correlation between `x` and `y`, which should
+    :math:`\\rho` is the correlation between ``x`` and ``y``, which should
     be between -1 and +1.  Positive correlation corresponds to a
     ``theta`` in the range 0 to 90 degrees.  Negative correlation
     corresponds to a ``theta`` in the range of 0 to -90 degrees.
@@ -1356,16 +1356,17 @@ def custom_model_1d(func, func_fit_deriv=None):
     func : function
         Function which defines the model.  It should take one positional
         argument (the independent variable in the model), and any number of
-        keyword arguments (the parameters).  It must return the value
-        of the model (typically as an array, but can also be a scalar for
-        scalar inputs).  This corresponds to the `FittableModel.eval` method.
+        keyword arguments (the parameters).  It must return the value of the
+        model (typically as an array, but can also be a scalar for scalar
+        inputs).  This corresponds to the
+        ``astropy.modeling.FittableModel.eval`` method.
     func_fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should
-        have the same argument signature as `func`, but should return a
+        have the same argument signature as ``func``, but should return a
         sequence where each element of the sequence is the derivative
         with respect to the correseponding argument. This corresponds to the
-        `FittableModel.fit_deriv` method.
+        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
 
 
     Examples

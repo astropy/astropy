@@ -154,7 +154,7 @@ class FK4(BaseCoordinateFrame):
     dec : `Angle`, optional, must be keyword
         The Declination for this object (``ra`` must also be given and
         ``representation`` must be None).
-    distance : `Quantity`, optional, must be keyword
+    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     equinox : astropy.time.Time, optional, must be keyword
@@ -202,7 +202,7 @@ class FK4NoETerms(BaseCoordinateFrame):
     dec : `Angle`, optional, must be keyword
         The Declination for this object (``ra`` must also be given and
         ``representation`` must be None).
-    distance : `Quantity`, optional, must be keyword
+    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     obstime : astropy.time.Time, optional, must be keyword
@@ -316,7 +316,7 @@ class AltAz(BaseCoordinateFrame):
     alt : `Angle`, optional, must be keyword
         The Altitude for this object (``az`` must also be given and
         ``representation`` must be None).
-    distance : `Quantity`, optional, must be keyword
+    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
 
