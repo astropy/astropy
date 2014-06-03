@@ -43,12 +43,6 @@ py:class numpy.core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error
 
-# classes that use InhertedDocstring don't work well with smart_resolver
-# because they are not of type 'type'. See astropy/astropy-helpers#28.
-py:class astropy.config.configuration.ConfigItem
-py:class astropy.config.configuration.ConfigurationItem
-py:class astropy.config.configuration.ConfigAlias
-
 # Pending on python docs links issue #11975
 py:class list
 py:obj list.append
