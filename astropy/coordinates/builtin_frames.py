@@ -297,7 +297,14 @@ class Galactic(BaseCoordinateFrame):
 
 class AltAz(BaseCoordinateFrame):
     """
-    A coordinate or frame in the AltAz system.
+    A coordinate or frame in the Altitude-Azimuth system (i.e., Horizontal
+    coordinates).
+
+    .. warning::
+        The AltAz class currently does not support any transformations. In a
+        future version, it will support the standard IAU2000 AltAz<->ICRS
+        transformations.  It is provided right now as a placeholder for storing
+        as-observed horizontal coordinates.
 
     Parameters
     ----------
@@ -317,7 +324,17 @@ class AltAz(BaseCoordinateFrame):
     preferred_attr_names = OrderedDict([('az', 'lon'), ('alt', 'lat'),
                                         ('distance', 'distance')])
     preferred_attr_units = {'az': u.degree, 'alt': u.degree}
-    frame_attr_names = {}
+    frame_attr_names = {'obstime': None, 'location': None}
+
+    def __init__(self, *args, **kwargs):
+        from warnings import warn
+        from astropy.utils.exceptions import AstropyWarning
+
+        warn(AstropyWarning('The AltAz class currently does not support any '
+                            'transformations.  In a future version, it will '
+                            'support the standard IAU2000 AltAz<->ICRS '
+                            'transformations.'))
+        super(AltAz, self).__init__(*args, **kwargs)
 
 
 class NoFrame(BaseCoordinateFrame):

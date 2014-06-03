@@ -289,3 +289,18 @@ def test_is_frame_attr_default():
 
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
+
+def test_altaz_attributes():
+    from ...time import Time
+    from .. import EarthLocation, AltAz
+
+    aa = AltAz(1*u.deg, 2*u.deg)
+    assert aa.obstime is None
+    assert aa.location is None
+
+    aa2 = AltAz(1*u.deg, 2*u.deg, obstime='J2000')
+    assert aa2.obstime == Time('J2000')
+
+    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg,0*u.deg, 0*u.m))
+    assert isinstance(aa3.location, EarthLocation)
+
