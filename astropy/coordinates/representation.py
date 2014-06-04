@@ -15,6 +15,7 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
+from ..utils import OrderedDict
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
@@ -169,7 +170,9 @@ class CartesianRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'x': u.Quantity, 'y': u.Quantity, 'z': u.Quantity}
+    _attr_classes = OrderedDict([('x', u.Quantity),
+                                 ('y', u.Quantity),
+                                 ('z', u.Quantity)])
 
     def __init__(self, x, y=None, z=None, copy=True):
 
@@ -262,7 +265,9 @@ class SphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'lon': Longitude, 'lat': Latitude, 'distance': u.Quantity}
+    _attr_classes = OrderedDict([('lon', Longitude),
+                                 ('lat', Latitude),
+                                 ('distance', u.Quantity)])
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -376,7 +381,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'lon': Longitude, 'lat': Latitude}
+    _attr_classes = OrderedDict([('lon', Longitude),
+                                 ('lat', Latitude)])
 
     def __init__(self, lon, lat, copy=True):
 
@@ -480,7 +486,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'phi': Angle, 'theta': Angle, 'r': u.Quantity}
+    _attr_classes = OrderedDict([('phi', Angle),
+                                 ('theta', Angle),
+                                 ('r', u.Quantity)])
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -609,7 +617,9 @@ class CylindricalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = {'rho': u.Quantity, 'phi': Angle, 'z': u.Quantity}
+    _attr_classes = OrderedDict([('rho', u.Quantity),
+                                 ('phi', Angle),
+                                 ('z', u.Quantity)])
 
     def __init__(self, rho, phi, z, copy=True):
 
