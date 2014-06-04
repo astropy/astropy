@@ -62,7 +62,8 @@ def missing_reference_handler(app, env, node, contnode):
             newnode = env.domains['py'].resolve_xref(
                 env, node['refdoc'], app.builder, 'class', newtarget,
                 node, contnode)
-            newnode['reftitle'] = reftarget
+            if newnode is not None:
+                newnode['reftitle'] = reftarget
             return newnode
 
 
