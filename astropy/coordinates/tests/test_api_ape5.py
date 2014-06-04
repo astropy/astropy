@@ -200,7 +200,7 @@ def test_frame_api():
     npt.assert_allclose(icrs.dec.to(u.deg), 5*u.deg)
     npt.assert_allclose(fk5.ra.to(u.hourangle), 8*u.hourangle)
 
-    assert icrs.preferred_representation == SphericalRepresentation
+    assert icrs.representation == SphericalRepresentation
 
     # low-level classes can also be initialized with the preferred names:
     icrs_2 = ICRS(ra=8*u.hour, dec=5*u.deg, distance=1*u.kpc)

@@ -203,7 +203,7 @@ class SkyCoord(object):
                 coord_kwargs = {}
                 for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
                                                                       repr_attr_names, units):
-                    attr_class = frame.preferred_representation._attr_classes[repr_attr_name]
+                    attr_class = frame.representation._attr_classes[repr_attr_name]
                     coord_kwargs[frame_attr_name] = attr_class(arg, unit=unit)
 
             else:
@@ -854,7 +854,7 @@ def _parse_coordinate_arg(coords, frame, units):
         if not coords.has_data:
             raise ValueError('Cannot initialize from a frame without coordinate data')
 
-        data = coords.data.represent_as(frame.preferred_representation)
+        data = coords.data.represent_as(frame.representation)
 
         for frame_attr_name, repr_attr_name, unit in zip(frame_attr_names, repr_attr_names, units):
             # If coords did not have an explicit distance then don't include in initializers.
@@ -866,7 +866,7 @@ def _parse_coordinate_arg(coords, frame, units):
             # by passing through the appropriate initializer class with a unit (which
             # might be None).
             value = getattr(data, repr_attr_name)
-            attr_class = frame.preferred_representation._attr_classes[repr_attr_name]
+            attr_class = frame.representation._attr_classes[repr_attr_name]
             valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
 
         for attr in FRAME_ATTR_NAMES_SET():
@@ -877,7 +877,7 @@ def _parse_coordinate_arg(coords, frame, units):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
-        data = coords.represent_as(frame.preferred_representation)
+        data = coords.represent_as(frame.representation)
         for frame_attr_name, repr_attr_name in zip(frame_attr_names, repr_attr_names):
             valid_kwargs[frame_attr_name] = getattr(data, repr_attr_name)
 
@@ -933,8 +933,8 @@ def _get_preferred_attrs(frame, units, kwargs):
     """
     valid_kwargs = {}
     
-    attr_classes = frame.preferred_representation._attr_classes.values()
-    attr_types = frame.preferred_representation._attr_classes.keys()
+    attr_classes = frame.representation._attr_classes.values()
+    attr_types = frame.representation._attr_classes.keys()
 
     for attr_cls, attr_type, unit in zip(attr_classes, attr_types, units):
         attr_name_for_type = dict((attr_type, name) for name, attr_type in
