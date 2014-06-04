@@ -35,21 +35,16 @@ class FrameMeta(type):
         parent_clsdcts.insert(0, clsdct)
 
         #now look through the whole MRO for the relevant class attributes
-        pref_repr = None
-        pref_attrs = frame_attrs = {}
-        found_pref_repr = found_pref_attrs = found_frame_attrs = False
+        frame_attrs = {}
+        found_pref_repr = found_frame_attrs = False
         for clsdcti in parent_clsdcts:
-            if not found_pref_repr and '_preferred_representation' in clsdcti:
-                pref_repr = clsdcti['_preferred_representation']
+            if not found_pref_repr and '_representation' in clsdcti:
                 found_pref_repr = True
-            if not found_pref_attrs and '_preferred_attr_names' in clsdcti:
-                pref_attrs = clsdcti['_preferred_attr_names']
-                found_pref_attrs = True
             if not found_frame_attrs and 'frame_attr_names' in clsdcti:
                 frame_attrs = clsdcti['frame_attr_names']
                 found_frame_attrs = True
 
-            if found_pref_repr and found_pref_attrs and found_frame_attrs:
+            if found_pref_repr and found_frame_attrs:
                 break
         else:
             raise ValueError('Could not find the expected BaseCoordinateFrame '
@@ -88,19 +83,10 @@ class BaseCoordinateFrame(object):
     This class is intended to be subclassed to create instances of specific
     systems.  Subclasses can implement the following attributes.
 
-    * `preferred_representation`
+    * `representation`
         A subclass of `~astropy.coordinates.BaseRepresentation` that will be
         treated as the "standard" representation of this frame, or None to have
         no special representation.
-
-    * `preferred_attr_names`
-        A dictionary mapping attribute names to be created on *this* class to
-        names of attributes on the `preferred_representation`. If
-        `preferred_representation` is None, this does nothing.
-
-    * `preferred_attr_units`
-        A dictionary mapping attribute names to their preferred human-readable
-        units. Keys must also be keys in `preferred_attr_names`.
 
     * `frame_attr_names`
         A dictionary with keys that are the additional attributes necessary to
@@ -116,25 +102,24 @@ class BaseCoordinateFrame(object):
     """
 
     @property
-    def preferred_representation(self):
-        return self._preferred_representation
+    def representation(self):
+        return self._representation
 
-    @preferred_representation.setter
-    def preferred_representation(self, value):
+    @representation.setter
+    def representation(self, value):
         # In reality do validation of `value` and allow string input
-        self._preferred_representation = value
+        self._representation = value
 
     @property
     def preferred_attr_names(self):
-        return self._representations[self._preferred_representation]['attr_names']
+        return self.representation_attrs[self.representation]['attr_names']
 
     @property
     def preferred_attr_units(self):
-        return self._representations[self._preferred_representation]['attr_units']
+        return self.representation_attrs[self.representation]['attr_units']
 
-    _preferred_representation = None
-    _preferred_attr_names = {}
-    _preferred_attr_units = {}
+    _representation = None
+
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
@@ -174,7 +159,8 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            for key in cls._preferred_attr_names:
+            representation = kwargs.get('representation') or cls._representation
+            for key in cls.representation_attrs[representation]['attr_names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -195,7 +181,7 @@ class BaseCoordinateFrame(object):
         self._attr_names_with_defaults = []
 
         if 'representation' in kwargs:
-            self.preferred_representation = kwargs.pop('representation')
+            self.representation = kwargs.pop('representation')
 
         representation = None  # if not set below, this is a frame with no data
 
@@ -215,7 +201,7 @@ class BaseCoordinateFrame(object):
                 setattr(self, '_' + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
 
-        pref_rep = self.preferred_representation
+        pref_rep = self.representation
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
                                 args[0] is None):
@@ -461,12 +447,12 @@ class BaseCoordinateFrame(object):
                                 for attrnm in self.frame_attr_names])
 
         if self.has_data:
-            if self.preferred_representation:
-                if (self.preferred_representation == SphericalRepresentation and
-                    isinstance(self.data, UnitSphericalRepresentation)):
+            if self.representation:
+                if (self.representation == SphericalRepresentation and
+                        isinstance(self.data, UnitSphericalRepresentation)):
                     data = self.represent_as(UnitSphericalRepresentation)
                 else:
-                    data = self.represent_as(self.preferred_representation)
+                    data = self.represent_as(self.representation)
                 # if necessary, make a new representation with preferred units
                 if self.preferred_attr_units:
                     # first figure out how to map *representation* attribute
@@ -529,7 +515,7 @@ class BaseCoordinateFrame(object):
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
-        rep = self.represent_as(self.preferred_representation)
+        rep = self.represent_as(self.representation)
         val = getattr(rep, self.preferred_attr_names[attr])
         if attr in self.preferred_attr_units:
             val = val.to(self.preferred_attr_units[attr])
@@ -537,9 +523,9 @@ class BaseCoordinateFrame(object):
 
     def __setattr__(self, attr, value):
         repr_attr_names = []
-        if hasattr(self, '_representations'):
-            for representation in self._representations.values():
-                repr_attr_names.extend(representation['attr_names'])
+        if hasattr(self, 'representation_attrs'):
+            for representation_attr in self.representation_attrs.values():
+                repr_attr_names.extend(representation_attr['attr_names'])
         if attr in repr_attr_names:
             raise AttributeError('Cannot set any frame attribute {0}'.format(attr))
         else:
