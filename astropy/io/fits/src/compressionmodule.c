@@ -1033,6 +1033,11 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     get_hdu_data_base(hdu, &inbuf, &inbufsize);
     if (PyErr_Occurred()) {
         return NULL;
+    } else if (inbufsize == 0) {
+        // The compressed data buffer is empty (probably zero rows, for an
+        // empty "compressed" image.  Just return None in this case.
+        Py_INCREF(Py_None);
+        return Py_None;
     }
 
     open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, &columns);

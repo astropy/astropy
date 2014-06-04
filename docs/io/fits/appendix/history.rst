@@ -123,6 +123,13 @@ Other Changes and Additions
   the card represents a blank card (no keyword, value, or comment) and
   ``False`` otherwise.
 
+Bug Fixes
+^^^^^^^^^
+
+- Fixed a regression where it was not possible to save an empty "compressed"
+  image to a file (in this case there is nothing to compress, hence the
+  quotes, but trying to do so caused a crash). (spacetelescope/PyFITS#69)
+
 
 3.2.4 (unreleased)
 ------------------
