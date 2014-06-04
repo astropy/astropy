@@ -242,7 +242,7 @@ class BaseCoordinateFrame(object):
 
         if self._data:
             self._rep_cache = dict()
-            self._rep_cache[representation.__class__.__name__] = representation
+            self._rep_cache[representation.__class__.__name__, False] = representation
 
     @property
     def data(self):
@@ -300,7 +300,7 @@ class BaseCoordinateFrame(object):
                         if nm not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
-    def represent_as(self, new_representation):
+    def represent_as(self, new_representation, in_frame_units=False):
         """
         Generate and return a new representation of this frame's `data`.
 
@@ -309,6 +309,10 @@ class BaseCoordinateFrame(object):
         new_representation : subclass of BaseRepresentation
             The type of representation to generate, as a *class* (not an
             instance).
+
+        in_frame_units : bool
+            Force the representation units to match the specified units
+            particular to this frame
 
         Returns
         -------
@@ -328,11 +332,41 @@ class BaseCoordinateFrame(object):
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
         """
-        cached_repr = self._rep_cache.get(new_representation.__name__, None)
+        cached_repr = self._rep_cache.get((new_representation.__name__, in_frame_units))
         if not cached_repr:
-            rep = self.data.represent_as(new_representation)
-            self._rep_cache[new_representation.__name__] = rep
-        return self._rep_cache[new_representation.__name__]
+            data = self.data.represent_as(new_representation)
+
+            # If the new representation is known to this frame and has a defined
+            # set of names and units, then use that.
+            new_attrs = self.representation_attrs.get(new_representation)
+            if new_attrs and in_frame_units:
+                new_attr_names = new_attrs['attr_names']
+                new_attr_units = new_attrs['attr_units']
+
+                # if necessary, make a new representation with preferred units
+                if new_attr_units:
+                    # first figure out how to map *representation* attribute
+                    # names to units
+                    comp_to_unit = {}
+                    for attnm, unit in new_attr_units.items():
+                        if attnm not in new_attr_names:
+                            msg = ('The attribute {0} in `preferred_attr_units`'
+                                   ' is not in `preferred_attr_names`')
+                            raise ValueError(msg.format(attnm))
+                        comp_to_unit[new_attr_names[attnm]] = unit
+
+                    # Now actually create a new representation with the new units
+                    datakwargs = {}
+                    for comp in data.components:
+                        datakwargs[comp] = getattr(data, comp)
+                        newu = comp_to_unit.get(comp, None)
+                        if newu:
+                            datakwargs[comp] = datakwargs[comp].to(newu)
+                    data = data.__class__(**datakwargs)
+
+            self._rep_cache[new_representation.__name__, in_frame_units] = data
+
+        return self._rep_cache[new_representation.__name__, in_frame_units]
 
     def transform_to(self, new_frame):
         """
@@ -450,29 +484,9 @@ class BaseCoordinateFrame(object):
             if self.representation:
                 if (self.representation == SphericalRepresentation and
                         isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation)
+                    data = self.represent_as(UnitSphericalRepresentation, in_frame_units=True)
                 else:
-                    data = self.represent_as(self.representation)
-                # if necessary, make a new representation with preferred units
-                if self.preferred_attr_units:
-                    # first figure out how to map *representation* attribute
-                    # names to units
-                    comp_to_unit = {}
-                    for attnm, unit in self.preferred_attr_units.items():
-                        if attnm not in self.preferred_attr_names:
-                            msg = ('The attribute {0} in `preferred_attr_units`'
-                                   ' is not in `preferred_attr_names`')
-                            raise ValueError(msg.format(attnm))
-                        comp_to_unit[self.preferred_attr_names[attnm]] = unit
-
-                    #now actually create a new representation with the new units
-                    datakwargs = {}
-                    for comp in data.components:
-                        datakwargs[comp] = getattr(data, comp)
-                        newu = comp_to_unit.get(comp, None)
-                        if newu:
-                            datakwargs[comp] = datakwargs[comp].to(newu)
-                    data = data.__class__(**datakwargs)
+                    data = self.represent_as(self.representation, in_frame_units=True)
 
                 data_repr = repr(data)
                 for nmpref, nmrepr in self.preferred_attr_names.items():
@@ -515,10 +529,8 @@ class BaseCoordinateFrame(object):
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
-        rep = self.represent_as(self.representation)
+        rep = self.represent_as(self.representation, in_frame_units=True)
         val = getattr(rep, self.preferred_attr_names[attr])
-        if attr in self.preferred_attr_units:
-            val = val.to(self.preferred_attr_units[attr])
         return val
 
     def __setattr__(self, attr, value):
@@ -611,7 +623,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(CartesianRepresentation)
+        return self.represent_as(CartesianRepresentation, in_frame_units=True)
 
     @property
     def spherical(self):
@@ -620,7 +632,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(SphericalRepresentation)
+        return self.represent_as(SphericalRepresentation, in_frame_units=True)
 
 
 class GenericFrame(BaseCoordinateFrame):
