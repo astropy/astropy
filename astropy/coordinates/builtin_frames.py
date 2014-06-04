@@ -56,21 +56,12 @@ class ICRS(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     """
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
@@ -117,21 +108,12 @@ class FK5(BaseCoordinateFrame):
         The equinox of this frame.
     """
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {'equinox': _EQUINOX_J2000}
 
@@ -188,21 +170,12 @@ class FK4(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
@@ -246,21 +219,12 @@ class FK4NoETerms(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
@@ -327,21 +291,12 @@ class Galactic(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
     """
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('l', 'lon'), ('b', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'l': u.degree, 'b': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('l', 'lon'), ('b', 'lat')]),
-                         'attr_units': {'l': u.degree, 'b': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('l', 'b', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('l', 'b'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {}
 
@@ -379,27 +334,13 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('az', 'alt', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('az', 'alt'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('az', 'lon'), ('alt', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'az': u.degree, 'alt': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('az', 'lon'), ('alt', 'lat')]),
-                         'attr_units': {'az': u.degree, 'alt': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    _representation = SphericalRepresentation
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
-
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('az', 'lon'), ('alt', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'az': u.degree, 'alt': u.degree}
     frame_attr_names = {'obstime': None, 'location': None}
 
     def __init__(self, *args, **kwargs):
@@ -423,26 +364,17 @@ class NoFrame(BaseCoordinateFrame):
 
     """
 
-    _representations = {SphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                                    ('distance', 'distance')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        UnitSphericalRepresentation:
-                        {'attr_names': OrderedDict([('ra', 'lon'), ('dec', 'lat')]),
-                         'attr_units': {'ra': u.degree, 'dec': u.degree}},
-                        CartesianRepresentation:
-                        {'attr_names': OrderedDict([('x', 'x'), ('y', 'y'), ('z', 'z')]),
-                         'attr_units': {}}
-                        }
+    representation_attrs = dict(
+        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
+         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
+         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-    _preferred_representation = SphericalRepresentation
-    _preferred_attr_names = _representations[_preferred_representation]['attr_names']
-    _preferred_attr_units = _representations[_preferred_representation]['attr_units']
+    _representation = SphericalRepresentation
 
     frame_attr_names = {}
 
 
-#<--------------------------------transformations------------------------------>
+# <--------------------------------transformations------------------------------>
 # Transformations are defined here instead of in the classes themselves, because
 # we need references to the various objects to give to the decorators.
 

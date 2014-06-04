@@ -75,6 +75,41 @@ class BaseRepresentation(object):
         """Return tuple with the names of the coordinate components"""
         raise NotImplementedError()
 
+    @classmethod
+    def attr_dict(cls, names, units):
+        """
+        Return a tuple in the form (cls, {'attr_names': {'ra': 'lon', ...},
+                                          'attr_units': {'ra': u.deg, ...}}
+        This is a convenience method to make frame class definitions more
+        concise and readable.  The output is intended to use the tuple to
+        initialize the frame representation_attrs dict which maps cls to
+        the above nested dict.
+
+        Parameters
+        ----------
+        names : tuple of strings
+            Names of attributes in frame corresponding to representation
+            attributes, in order.
+        units : tuple of `~astropy.units.Unit` or None values
+            Units of attributes in frame corresponding to representation
+            attributes, in order.  None implies no unit.
+
+
+        """
+        attr_names = OrderedDict()
+        attr_units = OrderedDict()
+        # cls._attr_classes gives the representation attribute names in order
+        if len(names) != len(cls._attr_classes):
+            raise ValueError('Must have same number of names as representation attributes')
+
+        for name, repr_name in zip(names, cls._attr_classes):
+            attr_names[name] = repr_name
+        for name, unit in zip(names, units):
+            if unit is not None:
+                attr_units[name] = unit
+
+        return (cls, {'attr_names': attr_names, 'attr_units': attr_units})
+
     def __getitem__(self, view):
         return self.__class__(*[getattr(self, component)[view]
                                 for component in self.components])
