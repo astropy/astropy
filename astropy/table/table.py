@@ -224,11 +224,6 @@ class Row(object):
     def dtype(self):
         return self.data.dtype
 
-    @property
-    @deprecated('0.3', alternative=':attr:`Row.dtype`', pending=False)
-    def dtypes(self):
-        return self.dtype
-
     def __repr__(self):
         return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
             self.index, self.data, self.dtype, self.__class__.__name__)
@@ -280,12 +275,7 @@ class Table(object):
     TableFormatter = TableFormatter
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, dtypes=None, rows=None):
-
-        if dtypes is not None:
-            dtype = dtypes
-            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          AstropyDeprecationWarning)
+                 meta=None, copy=True, rows=None):
 
         # Set up a placeholder empty table
         self._data = None

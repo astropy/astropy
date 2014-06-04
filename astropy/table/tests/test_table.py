@@ -28,7 +28,7 @@ class SetupData(object):
         if self._column_type is not None:
             if not hasattr(self, '_a'):
                 self._a = self._column_type(
-                    name='a', data=[1, 2, 3], format='%d',
+                    [1, 2, 3], name='a', format='%d',
                     meta={'aa': [0, 1, 2, 3, 4]})
             return self._a
 
@@ -37,28 +37,28 @@ class SetupData(object):
         if self._column_type is not None:
             if not hasattr(self, '_b'):
                 self._b = self._column_type(
-                    name='b', data=[4, 5, 6], format='%d', meta={'aa': 1})
+                    [4, 5, 6], name='b', format='%d', meta={'aa': 1})
             return self._b
 
     @property
     def c(self):
         if self._column_type is not None:
             if not hasattr(self, '_c'):
-                self._c = self._column_type(name='c', data=[7, 8, 9])
+                self._c = self._column_type([7, 8, 9], 'c')
             return self._c
 
     @property
     def d(self):
         if self._column_type is not None:
             if not hasattr(self, '_d'):
-                self._d = self._column_type(name='d', data=[7, 8, 7])
+                self._d = self._column_type([7, 8, 7], 'd')
             return self._d
 
     @property
     def obj(self):
         if self._column_type is not None:
             if not hasattr(self, '_obj'):
-                self._obj = self._column_type(name='obj', data=[1, 'string', 3], dtype='O')
+                self._obj = self._column_type([1, 'string', 3], 'obj', dtype='O')
             return self._obj
 
     @property

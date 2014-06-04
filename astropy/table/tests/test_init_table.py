@@ -28,7 +28,7 @@ class BaseInitFrom():
         assert np.all(t['c'] == np.array([3, 5]))
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_set_dtypes(self, table_type):
+    def test_set_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=('a', 'b', 'c'), dtype=('i4', 'f4', 'f8'))
         assert t.colnames == ['a', 'b', 'c']
@@ -40,7 +40,7 @@ class BaseInitFrom():
         assert t['c'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_names_dtypes_mismatch(self, table_type):
+    def test_names_dtype_mismatch(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
             table_type(self.data, names=('a',), dtype=('i4', 'f4', 'i4'))
@@ -94,7 +94,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         # NOTE: assert np.all(t._data == self.data) fails because when
         # homogenous array is viewcast to structured then the == is False
 
-    def test_partial_names_dtypes(self, table_type):
+    def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['a', None, 'c'], dtype=[None, None, 'f8'])
         assert t.colnames == ['a', 'col1', 'c']
@@ -128,7 +128,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
         assert t.colnames == ['col0', 'col1', 'col2']
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_partial_names_dtypes(self, table_type):
+    def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['b', None, 'c'],
                   dtype=['f4', None, 'f8'])
@@ -183,7 +183,7 @@ class TestInitFromColsList(BaseInitFromListLike):
         assert t.colnames == ['x', 'col1', 'col2']
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_partial_names_dtypes(self, table_type):
+    def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['b', None, 'c'], dtype=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
@@ -218,7 +218,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         assert np.all(t._data == self.data)
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_partial_names_dtypes(self, table_type):
+    def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['e', None, 'd'], dtype=['f4', None, 'f8'])
         assert t.colnames == ['e', 'y', 'd']
@@ -317,7 +317,7 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert np.all(t._data == self.data._data)
         assert all(t[name].name == name for name in t.colnames)
 
-    def test_partial_names_dtypes(self, table_type):
+    def test_partial_names_dtype(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['e', None, 'd'], dtype=['f4', None, 'i8'])
         assert t.colnames == ['e', 'y', 'd']

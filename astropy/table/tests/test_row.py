@@ -21,7 +21,7 @@ def test_masked_row_with_object_col():
     Numpy < 1.8 has a bug in masked array that prevents access a row if there is
     a column with object type.
     """
-    t = table.Table([[1]], dtypes=['O'], masked=True)
+    t = table.Table([[1]], dtype=['O'], masked=True)
     if numpy_lt_1p8:
         with pytest.raises(ValueError):
             t['col0'].mask = False
@@ -148,11 +148,3 @@ class TestRow():
         table = self.t
         row = table[0]
         assert format(row, "").startswith("<{0} 0 of table".format(row.__class__.__name__))
-
-    def test_deprecated_attributes(self, table_types):
-        self._setup(table_types)
-        r = Row(self.t, 2)
-
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
-            r.dtypes
-            assert warning_lines[0].category == AstropyDeprecationWarning

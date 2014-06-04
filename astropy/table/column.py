@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
-import functools
 import operator
 
 import warnings
@@ -31,32 +30,9 @@ AUTO_COLNAME = ConfigAlias(
     '0.4', 'AUTO_COLNAME', 'auto_colname',
     'astropy.table.column', 'astropy.table')
 
-ERROR_COLUMN_ARGS_MESSAGE = """
-The first argument to {class_name} is the string {first_arg}, which was
-probably intended as the column name.  Starting in Astropy 0.3 the argument
-order for initializing a {class_name} object is {class_name}(data=None,
-name=None, ...)."""
-
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()
-
-
-def _check_column_new_args(func):
-    """
-    Decorator for transition from 0.2 arg order (name, data, ..) to 0.3
-    order (data, name, ...).  Check if user provided a string as the first
-    arg (note that a string cannot be valid as ``data``).  Raise an error
-    with a useful message.
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if len(args) > 1 and isinstance(args[1], six.string_types):
-            cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
-            raise ValueError(ERROR_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__,
-                                                              first_arg=repr(args[1])))
-        return func(*args, **kwargs)
-    return wrapper
 
 
 def _auto_names(n_cols):
@@ -90,21 +66,9 @@ class BaseColumn(np.ndarray):
     __gt__ = _column_compare(operator.gt)
     __ge__ = _column_compare(operator.ge)
 
-    @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None,
-                dtypes=None, units=None):
-
-        if dtypes is not None:
-            dtype = dtypes
-            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          AstropyDeprecationWarning)
-
-        if units is not None:
-            unit = units
-            warnings.warn("'units' has been renamed to the singular 'unit'.",
-                          AstropyDeprecationWarning)
+                description=None, unit=None, format=None, meta=None):
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -609,35 +573,18 @@ class Column(BaseColumn):
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
-
-    .. warning::
-
-       In the next major release of ``astropy`` (0.3), the order of function
-       arguments for creating a |Column| will change.  Currently the order is
-       ``Column(name, data, ...)``, but in 0.3 and later it will be
-       ``Column(data, name, ...)``.  This improves consistency with |Table| and
-       `numpy`.
-
-       In order to use the same code for Astropy 0.2 and 0.3, column objects
-       should always be created using named keyword arguments for ``data`` and
-       ``name``, for instance ``c = Column(data=[1, 2], name='col')``.  When
-       Astropy 0.3 is released then the the keyword identifiers can be dropped,
-       allowing for ``c = Column([1, 2], 'c')``.
     """
 
-    @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None,
-                dtypes=None, units=None):
+                description=None, unit=None, format=None, meta=None):
 
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
 
         self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
                                           shape=shape, length=length, description=description,
-                                          unit=unit, format=format, meta=meta,
-                                          dtypes=dtypes, units=units)
+                                          unit=unit, format=format, meta=meta)
         return self
 
     def __repr__(self):
@@ -741,27 +688,11 @@ class MaskedColumn(Column, ma.MaskedArray):
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
-
-    .. warning::
-
-       In the next major release of ``astropy`` (0.3), the order of function
-       arguments for creating a |MaskedColumn| will change.  Currently the order is
-       ``MaskedColumn(name, data, ...)``, but in 0.3 and later it will be
-       ``MaskedColumn(data, name, ...)``.  This improves consistency with |Table|
-       and `numpy`.
-
-       In order to use the same code for Astropy 0.2 and 0.3, column objects
-       should always be created using named keyword arguments for ``data`` and
-       ``name``, for instance ``c = MaskedColumn(data=[1, 2], name='col')``.  When
-       Astropy 0.3 is released then the the keyword identifiers can be dropped,
-       allowing for ``c = MaskedColumn([1, 2], 'c')``.
     """
 
-    @_check_column_new_args
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None,
-                units=None, dtypes=None):
+                description=None, unit=None, format=None, meta=None):
 
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
@@ -777,8 +708,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         # First just pass through all args and kwargs to BaseColumn, then wrap that object
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
-                               unit=unit, format=format, description=description, meta=meta,
-                               units=units, dtypes=dtypes)
+                               unit=unit, format=format, description=description, meta=meta)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not

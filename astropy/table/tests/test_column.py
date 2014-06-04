@@ -88,21 +88,6 @@ class TestColumn():
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
-    def test_deprecated_attributes(self, Column, recwarn):
-        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
-
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
-            d.units
-            assert warning_lines[0].category == AstropyDeprecationWarning
-
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
-            c = Column([1,2,3], name='a', dtypes="f8", unit="m")
-            assert warning_lines[0].category == AstropyDeprecationWarning
-
-        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
-            c = Column([1,2,3], name='a', dtype="f8", units="m")
-            assert warning_lines[0].category == AstropyDeprecationWarning
-
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a
