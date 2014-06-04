@@ -136,6 +136,14 @@ class SkyCoord(object):
     def frame(self):
         return self._sky_coord_frame
 
+    @property
+    def representation(self):
+        return self.frame.representation
+
+    @representation.setter
+    def representation(self, value):
+        self.frame.representation = value
+
     def __len__(self):
         return len(self.frame)
 
