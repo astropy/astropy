@@ -96,7 +96,9 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         If the provided filesystem path is not found an attempt will be made to
         download astropy_helpers from PyPI.  It will then be made temporarily
         available on `sys.path` as a ``.egg`` archive (using the
-        ``setup_requires`` feature of setuptools.
+        ``setup_requires`` feature of setuptools.  If the ``--offline`` option
+        is given at the command line the value of this argument is overridden
+        to `False`.
 
     index_url : str, optional
         If provided, use a different URL for the Python package index than the
@@ -104,14 +106,16 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
 
     use_git : bool, optional
         If `False` no git commands will be used--this effectively disables
-        support for git submodules.
+        support for git submodules. If the ``--no-git`` option is given at the
+        command line the value of this argument is overridden to `False`.
 
     auto_upgrade : bool, optional
         By default, when installing a package from a non-development source
         distribution ah_boostrap will try to automatically check for patch
         releases to astropy-helpers on PyPI and use the patched version over
         any bundled versions.  Setting this to `False` will disable that
-        functionality.
+        functionality. If the ``--offline`` option is given at the command line
+        the value of this argument is overridden to `False`.
     """
 
     # True by default, unless the --offline option was provided on the command
@@ -120,6 +124,10 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         download_if_needed = False
         auto_upgrade = False
         sys.argv.remove('--offline')
+
+    if '--no-git' in sys.argv:
+        use_git = False
+        sys.argv.remove('--no-git')
 
     if path is None:
         path = PACKAGE_NAME
