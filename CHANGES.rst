@@ -437,6 +437,10 @@ Bug Fixes
     state that ``numpy.ma`` expects so that an ``NDData`` behaves as an
     unmasked array. [#2417]
 
+- ``astropy.sphinx``
+
+  - Fix crash in smart resolver when the resolution doesn't work. [#2591]
+
 - ``astropy.stats``
 
 - ``astropy.table``
