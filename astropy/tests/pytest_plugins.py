@@ -644,7 +644,8 @@ class Pair(pytest.File):
         try:
             mod = self.fspath.pyimport(ensuresyspath=True)
         except SyntaxError:
-            excinfo = pytest.py.code.ExceptionInfo()
+            import py
+            excinfo = py.code.ExceptionInfo()
             raise self.CollectError(excinfo.getrepr(style="short"))
         except self.fspath.ImportMismatchError:
             e = sys.exc_info()[1]
