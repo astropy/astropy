@@ -87,7 +87,7 @@ def read(table, guess=None, **kwargs):
     the default behavior for various parameters is determined by the Reader
     class.
 
-    :param table: input table (file name, list of strings, or single newline-separated string)
+    :param table: input table (file name, file-like object, list of strings, or single newline-separated string)
     :param guess: try to guess the table format (default=True)
     :param format: input table format
     :param Inputter: Inputter class

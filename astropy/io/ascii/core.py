@@ -833,6 +833,7 @@ class BaseReader(object):
         one of:
 
         * File name
+        * File-like object
         * String (newline separated) with all header and data lines (must have at least 2 lines)
         * List of strings
 
