@@ -798,6 +798,17 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         If the default configuration could not be found.
 
     """
+    if path.isdir(default_cfg_dir_or_fn):
+        default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+    else:
+        default_cfgfn = default_cfg_dir_or_fn
+
+    if not path.isfile(default_cfgfn):
+        # There is no template configuration file, which basically
+        # means the affiliated package is not using the configuration
+        # system, so just return.
+        return
+
     cfgfn = get_config(pkg).filename
 
     if path.exists(cfgfn):
@@ -822,18 +833,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         needs_template = False
 
     if doupdate or needs_template:
-        if path.isdir(default_cfg_dir_or_fn):
-            default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
-        else:
-            default_cfgfn = default_cfg_dir_or_fn
-
-        if not path.isfile(default_cfgfn):
-            # TODO: Since this file is in the repository now, it seems very
-            # unlikely it would be missing...  Remove this?
-            raise ConfigurationDefaultMissingError(
-                'Requested default configuration file {0} is '
-                'not a file.'.format(default_cfgfn))
-
         with io.open(default_cfgfn, 'rb') as fr:
             content = fr.read()
 
