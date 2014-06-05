@@ -78,8 +78,8 @@ class BaseRepresentation(object):
     @classmethod
     def attr_dict(cls, names, units):
         """
-        Return a tuple in the form (cls, {'attr_names': {'ra': 'lon', ...},
-                                          'attr_units': {'ra': u.deg, ...}}
+        Return a tuple in the form (cls, {'names': {'ra': 'lon', ...},
+                                          'units': {'ra': u.deg, ...}}
         This is a convenience method to make frame class definitions more
         concise and readable.  The output is intended to use the tuple to
         initialize the frame representation_attrs dict which maps cls to
@@ -108,7 +108,7 @@ class BaseRepresentation(object):
             if unit is not None:
                 attr_units[name] = unit
 
-        return (cls, {'attr_names': attr_names, 'attr_units': attr_units})
+        return (cls, {'names': attr_names, 'units': attr_units})
 
     def __getitem__(self, view):
         return self.__class__(*[getattr(self, component)[view]

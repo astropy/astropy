@@ -112,11 +112,11 @@ class BaseCoordinateFrame(object):
 
     @property
     def preferred_attr_names(self):
-        return self.representation_attrs[self.representation]['attr_names']
+        return self.representation_attrs[self.representation]['names']
 
     @property
     def preferred_attr_units(self):
-        return self.representation_attrs[self.representation]['attr_units']
+        return self.representation_attrs[self.representation]['units']
 
     _representation = None
 
@@ -160,7 +160,7 @@ class BaseCoordinateFrame(object):
 
         if not use_skycoord:
             representation = kwargs.get('representation') or cls._representation
-            for key in cls.representation_attrs[representation]['attr_names']:
+            for key in cls.representation_attrs[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -340,8 +340,8 @@ class BaseCoordinateFrame(object):
             # set of names and units, then use that.
             new_attrs = self.representation_attrs.get(new_representation)
             if new_attrs and in_frame_units:
-                new_attr_names = new_attrs['attr_names']
-                new_attr_units = new_attrs['attr_units']
+                new_attr_names = new_attrs['names']
+                new_attr_units = new_attrs['units']
 
                 # if necessary, make a new representation with preferred units
                 if new_attr_units:
@@ -537,7 +537,7 @@ class BaseCoordinateFrame(object):
         repr_attr_names = []
         if hasattr(self, 'representation_attrs'):
             for representation_attr in self.representation_attrs.values():
-                repr_attr_names.extend(representation_attr['attr_names'])
+                repr_attr_names.extend(representation_attr['names'])
         if attr in repr_attr_names:
             raise AttributeError('Cannot set any frame attribute {0}'.format(attr))
         else:
