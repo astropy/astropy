@@ -99,6 +99,7 @@ def test_frame_repr():
 def test_converting_units():
     import re
     from ..builtin_frames import ICRS, FK5
+    from ..representation import SphericalRepresentation
 
     # this is a regular expression that with split (see below) removes what's
     # the decimal point  to fix rounding problems
@@ -118,7 +119,9 @@ def test_converting_units():
 
     #but that *shouldn't* hold if we turn off preferred_attr_units
     class FakeICRS(ICRS):
-        preferred_attr_units = {}
+        representation_attrs = dict(
+            [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (None, None, None))])
+
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
