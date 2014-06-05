@@ -86,7 +86,7 @@ These same attributes can be used to access the data in the frames, as
     <Longitude 0.0733... hourangle>
 
 You can use the ``representation`` attribute in conjunction
-with the ``preferred_attr_names`` attribute to figure out what keywords
+with the ``representation_names`` attribute to figure out what keywords
 are accepted by a particular class object.  The former will be the
 representation class the system is typically expressed in (e.g.,
 spherical for equatorial frames), and the latter will be a dictionary
@@ -96,7 +96,7 @@ class::
     >>> icrs = ICRS(0*u.deg, 0*u.deg)
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
-    >>> icrs.preferred_attr_names
+    >>> icrs.representation_names
     OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
 
 There are two other ways to create frame classes with coordinates.  A
@@ -184,9 +184,8 @@ Defining a New Frame
 Users can add new coordinate frames by creating new classes that
 are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
 instructions for subclassing are in the docstrings for that class.  The
-key aspects are to define the class attributes ``frame_attr_names``,
-``representation``, ``preferred_attr_names``, and possibly
-``preferred_attr_units``. If these are defined, there is often no need to
+key aspects are to define the class attributes ``frame_attr_names``and
+``representation_attrs``. If these are defined, there is often no need to
 define an ``__init__`` function, as the initializer in
 `~astropy.coordinates.BaseCoordinateFrame` will probably behave the way
 you want.

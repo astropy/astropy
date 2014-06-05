@@ -12,8 +12,10 @@ al. 2003).  The Sgr coordinate system is often referred to in terms of two
 angular coordinates, :math:`\Lambda,B`.
 
 We need to define a subclass of `~astropy.coordinates.BaseCoordinateFrame`
-that knows the preferred names and units of the coordinate system angles.
-In this case, these are "Lambda" and "Beta. Then we have to define the
+that knows the names and units of the coordinate system angles in each of
+the supported representations.  In this case we support
+`~astropy.coordinates.SphericalRepresentation` with "Lambda" and "Beta".
+Then we have to define the
 transformation from this coordinate system to some other built-in system.
 Here we will use Galactic coordinates, represented by the
 `~astropy.coordinates.Galactic` class.
@@ -49,17 +51,19 @@ The first step is to create a new class, which we'll call
             (`representation` must be None).
 
         """
+        representation_attrs = dict(
+            [SphericalRepresentation.attr_dict(('Lambda', 'Beta', 'distance'),
+                                               (u.deg, u.deg, None)),
+             UnitSphericalRepresentation.attr_dict(('Lambda', 'Beta'), (u.deg, u.deg)),
+             CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
 
-        preferred_representation = coord.SphericalRepresentation
-        preferred_attr_names = OrderedDict([('Lambda', 'lon'), ('Beta', 'lat'),
-                                            ('distance', 'distance')])
-        preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
+        _representation = SphericalRepresentation
 
-Line by line, the first few are simply imports. Next we define the class
-as a subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include
-a descriptive docstring. The final three lines are class-level attributes
-that specify the preferred representation -- e.g., spherical, cartesian, etc.
--- the names of the individual coordinates, and the preferred units.
+Line by line, the first few are simply imports. Next we define the class as a
+subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include a
+descriptive docstring.  The final lines are class-level attributes that specify
+the data attribute names and units for each representation (e.g. spherical,
+cartesian) in this frame.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions

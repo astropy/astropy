@@ -197,7 +197,7 @@ In lieu of positional arguments to specify the longitude and latitude, the
 frame-specific names can be used as keyword arguments:
 
 *ra*, *dec*: **LON**, **LAT** values, optional
-    RA and Dec for frames where this is preferred representation, including
+    RA and Dec for frames where these are representation, including [FIXME]
     `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
     `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`.
 
@@ -267,18 +267,17 @@ documentation::
 
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
-  sc.cartesian                 sc.has_data                  sc.representation
-  sc.data                      sc.icrs                      sc.ra
-  sc.dec                       sc.is_frame_attr_default     sc.realize_frame
-  sc.distance                  sc.is_transformable_to       sc.represent_as
-  sc.equinox                   sc.isscalar                  sc.separation
-  sc.fk4                       sc.match_to_catalog_3d       sc.separation_3d
-  sc.fk4noeterms               sc.match_to_catalog_sky      sc.shape
-  sc.fk5                       sc.name                      sc.spherical
-  sc.frame                     sc.obstime                   sc.time_attr_names
-  sc.frame_attr_names          sc.position_angle            sc.to_string
-  sc.from_name                 sc.preferred_attr_names      sc.transform_to
-  sc.galactic                  sc.preferred_attr_units
+  sc.cartesian              sc.icrs                   sc.representation
+  sc.data                   sc.is_frame_attr_default  sc.representation_attrs
+  sc.equinox                sc.is_transformable_to    sc.representation_names
+  sc.fk4                    sc.isscalar               sc.representation_units
+  sc.fk4noeterms            sc.match_to_catalog_3d    sc.separation
+  sc.fk5                    sc.match_to_catalog_sky   sc.separation_3d
+  sc.frame                  sc.name                   sc.shape
+  sc.frame_attr_names       sc.obstime                sc.spherical
+  sc.from_name              sc.position_angle         sc.time_attr_names
+  sc.galactic               sc.realize_frame          sc.to_string
+  sc.has_data               sc.represent_as           sc.transform_to
 
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
@@ -311,10 +310,10 @@ labeled ``l`` and ``b``, following the normal convention for Galactic
 coordinates.  How does the object know what to call its values?  The answer
 lies in some less-obvious attributes::
 
-  >>> sc_gal.preferred_attr_names
+  >>> sc_gal.representation_names
   OrderedDict([(u'l', u'lon'), (u'b', u'lat'), (u'distance', u'distance')])
 
-  >>> sc_gal.preferred_attr_units
+  >>> sc_gal.representation_units
   OrderedDict([(u'l', Unit("deg")), (u'b', Unit("deg"))])
 
   >>> sc_gal.representation
@@ -323,7 +322,7 @@ lies in some less-obvious attributes::
 Together these tell the object that ``l`` and ``b`` are the longitude and
 latitude, and that they should both be displayed in units of degrees as
 a spherical-type coordinate (and not, e.g. a cartesian coordinate).
-Furthermore the frame's ``preferred_attr_names`` attribute defines
+Furthermore the frame's ``representation_names`` attribute defines
 the coordinate keyword arguments that |SkyCoord| will accept.
 
 Another important attribute is ``frame_attr_names``, which defines the
@@ -352,21 +351,17 @@ and |SkyCoord| (aka high-level class)::
   >>> sc.frame
   <ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>
 
-  >>> sc.preferred_attr_units is sc.frame.preferred_attr_units
+  >>> sc.representation_units is sc.frame.representation_units
   True
 
   >>> sc.frame.<TAB>  # doctest: +SKIP
-  sc.frame.cartesian                 sc.frame.preferred_attr_units
-  sc.frame.data                      sc.frame.ra
-  sc.frame.dec                       sc.frame.realize_frame
-  sc.frame.distance                  sc.frame.represent_as
-  sc.frame.frame_attr_names          sc.frame.representation
-  sc.frame.has_data                  sc.frame.separation
-  sc.frame.is_frame_attr_default     sc.frame.separation_3d
-  sc.frame.is_transformable_to       sc.frame.shape
-  sc.frame.isscalar                  sc.frame.spherical
-  sc.frame.name                      sc.frame.time_attr_names
-  sc.frame.preferred_attr_names      sc.frame.transform_to
+  sc.frame.cartesian              sc.frame.name                   sc.frame.separation
+  sc.frame.data                   sc.frame.realize_frame          sc.frame.separation_3d
+  sc.frame.frame_attr_names       sc.frame.represent_as           sc.frame.shape
+  sc.frame.has_data               sc.frame.representation         sc.frame.spherical
+  sc.frame.is_frame_attr_default  sc.frame.representation_attrs   sc.frame.time_attr_names
+  sc.frame.is_transformable_to    sc.frame.representation_names   sc.frame.transform_to
+  sc.frame.isscalar               sc.frame.representation_units
 
   >>> sc.frame.name
   'icrs'

@@ -94,11 +94,11 @@ class SkyCoord(object):
         ``LAT``.
     ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
         RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-        frame's ``preferred_attr_names``, including `ICRS`, `FK5`, `FK4`,
+        frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
         and `FK4NoETerms`.
     l, b : valid `~astropy.coordinates.Angle` initializer, optional
         Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-        keys in the frame's ``preferred_attr_names``, including the
+        keys in the frame's ``representation_names``, including the
         `Galactic` frame.
     obstime : valid `~astropy.time.Time` initializer, optional
         Time of observation
@@ -125,7 +125,7 @@ class SkyCoord(object):
         if 'representation' in kwargs:
             coord_kwargs['representation'] = kwargs['representation']
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame.preferred_attr_names
+            if value is not None and (attr in frame.representation_names
                                       or attr in frame.frame_attr_names):
                 coord_kwargs[attr] = value
 
@@ -188,7 +188,7 @@ class SkyCoord(object):
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
         # and migrate to valid_kwargs.
-        valid_kwargs.update(_get_preferred_attrs(frame, units, kwargs))
+        valid_kwargs.update(_get_representation_attrs(frame, units, kwargs))
 
         # Error if anything is still left in kwargs
         if kwargs:
@@ -206,8 +206,8 @@ class SkyCoord(object):
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
             elif len(args) <= 3:
-                frame_attr_names = frame.preferred_attr_names.keys()
-                repr_attr_names = frame.preferred_attr_names.values()
+                frame_attr_names = frame.representation_names.keys()
+                repr_attr_names = frame.representation_names.values()
                 coord_kwargs = {}
                 for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
                                                                       repr_attr_names, units):
@@ -752,7 +752,7 @@ def _get_frame(args, kwargs):
 
     This allows for frame to be specified as a string like 'icrs' or a frame
     class like ICRS, but not an instance ICRS() since the latter could have
-    non-default preferred attributes which would require a three-way merge.
+    non-default representation attributes which would require a three-way merge.
     """
     frame = kwargs.pop('frame', None)
 
@@ -845,10 +845,10 @@ def _parse_coordinate_arg(coords, frame, units):
     # Get the mapping of attribute type (e.g. 'lat', 'lon', 'distance')
     # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
     attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                              frame.preferred_attr_names.items())
+                              frame.representation_names.items())
 
-    frame_attr_names = frame.preferred_attr_names.keys()
-    repr_attr_names = frame.preferred_attr_names.values()
+    frame_attr_names = frame.representation_names.keys()
+    repr_attr_names = frame.representation_names.values()
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -932,21 +932,24 @@ def _parse_coordinate_arg(coords, frame, units):
     return valid_kwargs
 
 
-def _get_preferred_attrs(frame, units, kwargs):
+def _get_representation_attrs(frame, units, kwargs):
     """
-    Find instances of the "preferred attributes" for specifying longitude,
-    latitude, and distance for this frame.  Pop them off of kwargs, run
-    through the appropriate class constructor (to validate and apply unit), and
-    put into the output valid_kwargs.
+    Find instances of the "representation attributes" for specifying data
+    for this frame.  Pop them off of kwargs, run through the appropriate class
+    constructor (to validate and apply unit), and put into the output
+    valid_kwargs.  "Representation attributes" are the frame-specific aliases
+    for the underlying data values in the representation, e.g. "ra" for "lon"
+    for many equatorial spherical representations, or "w" for "x" in the
+    cartesian representation of Galactic.
     """
     valid_kwargs = {}
-    
+
     attr_classes = frame.representation._attr_classes.values()
     attr_types = frame.representation._attr_classes.keys()
 
     for attr_cls, attr_type, unit in zip(attr_classes, attr_types, units):
         attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                  frame.preferred_attr_names.items())
+                                  frame.representation_names.items())
         name = attr_name_for_type[attr_type]
         value = kwargs.pop(name, None)
         if value is not None:

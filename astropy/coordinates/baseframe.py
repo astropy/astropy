@@ -111,11 +111,11 @@ class BaseCoordinateFrame(object):
         self._representation = value
 
     @property
-    def preferred_attr_names(self):
+    def representation_names(self):
         return self.representation_attrs[self.representation]['names']
 
     @property
-    def preferred_attr_units(self):
+    def representation_units(self):
         return self.representation_attrs[self.representation]['units']
 
     _representation = None
@@ -212,7 +212,7 @@ class BaseCoordinateFrame(object):
 
         elif pref_rep:
             pref_kwargs = {}
-            for nmkw, nmrep in self.preferred_attr_names.items():
+            for nmkw, nmrep in self.representation_names.items():
                 if len(args) > 0:
                     #first gather up positional args
                     pref_kwargs[nmrep] = args.pop(0)
@@ -343,15 +343,15 @@ class BaseCoordinateFrame(object):
                 new_attr_names = new_attrs['names']
                 new_attr_units = new_attrs['units']
 
-                # if necessary, make a new representation with preferred units
+                # if necessary, make a new representation with new_attr_units
                 if new_attr_units:
                     # first figure out how to map *representation* attribute
                     # names to units
                     comp_to_unit = {}
                     for attnm, unit in new_attr_units.items():
                         if attnm not in new_attr_names:
-                            msg = ('The attribute {0} in `preferred_attr_units`'
-                                   ' is not in `preferred_attr_names`')
+                            msg = ('The attribute {0} in `representation_units`'
+                                   ' is not in `representation_names`')
                             raise ValueError(msg.format(attnm))
                         comp_to_unit[new_attr_names[attnm]] = unit
 
@@ -489,7 +489,7 @@ class BaseCoordinateFrame(object):
                     data = self.represent_as(self.representation, in_frame_units=True)
 
                 data_repr = repr(data)
-                for nmpref, nmrepr in self.preferred_attr_names.items():
+                for nmpref, nmrepr in self.representation_names.items():
                     data_repr = data_repr.replace(nmrepr, nmpref)
 
             else:
@@ -525,12 +525,12 @@ class BaseCoordinateFrame(object):
             raise ValueError('Cannot index a frame with no data')
 
     def __getattr__(self, attr):
-        if attr not in self.preferred_attr_names:
+        if attr not in self.representation_names:
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
         rep = self.represent_as(self.representation, in_frame_units=True)
-        val = getattr(rep, self.preferred_attr_names[attr])
+        val = getattr(rep, self.representation_names[attr])
         return val
 
     def __setattr__(self, attr, value):

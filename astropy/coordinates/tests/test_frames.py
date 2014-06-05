@@ -117,7 +117,7 @@ def test_converting_units():
     assert ri2 == ri4
     assert i2.data.lon.unit != i4.data.lon.unit  # Internal repr changed
 
-    #but that *shouldn't* hold if we turn off preferred_attr_units
+    #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
         representation_attrs = dict(
             [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (None, None, None))])
@@ -131,7 +131,7 @@ def test_converting_units():
 
     # the attributes should also get the right units
     assert i2.ra.unit == i4.ra.unit
-    # unless no preferred_attr_units
+    # unless no units
     assert i2.ra.unit != fi.ra.unit
 
 

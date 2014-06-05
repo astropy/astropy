@@ -192,7 +192,7 @@ def test_frame_api():
     npt.assert_allclose(icrs.spherical.lat.to(u.deg), 5*u.deg)  # shorthand for the above
     assert icrs.cartesian.z.value > 0
 
-    # Many frames have a "preferred" representation, the one in which they are
+    # Many frames have a "default" representation, the one in which they are
     # conventionally described, often with a special name for some of the
     # coordinates. E.g., most equatorial coordinate systems are spherical with RA and
     # Dec. This works simply as a shorthand for the longer form above
@@ -202,7 +202,8 @@ def test_frame_api():
 
     assert icrs.representation == SphericalRepresentation
 
-    # low-level classes can also be initialized with the preferred names:
+    # low-level classes can also be initialized with names valid for that representation
+    # and frame:
     icrs_2 = ICRS(ra=8*u.hour, dec=5*u.deg, distance=1*u.kpc)
     npt.assert_allclose(icrs.ra.to(u.deg), icrs_2.ra.to(u.deg))
 

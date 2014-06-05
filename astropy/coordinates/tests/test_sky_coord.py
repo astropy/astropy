@@ -272,7 +272,7 @@ def test_frame_init():
 
 def test_attr_inheritance():
     """
-    When initializing from an existing coord the preferred attrs like
+    When initializing from an existing coord the representation attrs like
     equinox should be inherited to the SkyCoord.  If there is a conflict
     then raise an exception.
     """
