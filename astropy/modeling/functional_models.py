@@ -371,7 +371,7 @@ class Shift(Model):
         return inv
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 
@@ -406,7 +406,7 @@ class Scale(Model):
         return inv
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 

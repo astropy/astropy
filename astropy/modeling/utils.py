@@ -9,9 +9,36 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from ..extern.six.moves import xrange
+from ..extern.six.moves import xrange, zip
 
-__all__ = ['poly_map_domain', 'comb']
+__all__ = ['can_broadcast', 'poly_map_domain', 'comb']
+
+
+
+def can_broadcast(shape_a, shape_b):
+    """
+    Determines whether two Numpy arrays can be broadcast with each other
+    based on their shape tuple alone.
+
+    Parameters
+    ----------
+    shape_a : tuple
+        The shape tuple of the first array.
+    shape_b : tuple
+        The shape tuple of the second array.
+
+    Returns
+    -------
+    can_broadcast : bool
+        `True` if two arrays with the given shapes can be broadcast against
+        each other.
+    """
+
+    for dim_a, dim_b in zip(reversed(shape_a), reversed(shape_b)):
+        if not (dim_a == 1 or dim_b == 1 or dim_a == dim_b):
+            return False
+
+    return True
 
 
 def poly_map_domain(oldx, domain, window):

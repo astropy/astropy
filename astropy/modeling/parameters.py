@@ -474,15 +474,10 @@ class Parameter(object):
             # Just validate the value with _tofloat
             return value, np.shape(value)
         else:
-            #try:
-            #    # Validate each value
-            #    value, _tofloat(value)
-            #except (TypeError, IndexError):
-            #    raise InputParameterError(
-            #        "Expected a multivalued input of dimension {0} "
-            #        "for parameter '{1}'".format(n_models, self.name))
             shape = np.shape(value)
             model_axis = model._model_set_axis
+            if model_axis < 0:
+                model_axis = len(shape) + model_axis
             shape = shape[:model_axis] + shape[model_axis + 1:]
 
             return value, shape
@@ -523,7 +518,7 @@ class Parameter(object):
         return self.value + val
 
     def __radd__(self, val):
-        return self.value + val
+        return val + self.value
 
     def __sub__(self, val):
         return self.value - val
@@ -535,7 +530,7 @@ class Parameter(object):
         return self.value * val
 
     def __rmul__(self, val):
-        return self.value * val
+        return val * self.value
 
     def __pow__(self, val):
         return self.value ** val

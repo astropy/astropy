@@ -328,7 +328,7 @@ class OrthoPolynomialBase(PolynomialBase):
         raise NotImplementedError("Subclasses should implement this")
 
     @format_input
-    def __call__(self, x, y):
+    def __call__(self, x, y, model_set_axis=None):
         """
         Transforms data using this model.
 
@@ -423,7 +423,7 @@ class Chebyshev1D(PolynomialModel):
         return np.rollaxis(v, 0, v.ndim)
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 
@@ -510,7 +510,7 @@ class Legendre1D(PolynomialModel):
         return np.rollaxis(v, 0, v.ndim)
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 
@@ -582,7 +582,7 @@ class Polynomial1D(PolynomialModel):
         return c0
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 
@@ -711,7 +711,7 @@ class Polynomial2D(PolynomialModel):
         return np.array(coeff[::-1])
 
     @format_input
-    def __call__(self, x, y):
+    def __call__(self, x, y, model_set_axis=None):
         """
         Transforms data using this model.
 
