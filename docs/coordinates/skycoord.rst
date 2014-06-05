@@ -267,7 +267,7 @@ documentation::
 
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
-  sc.cartesian                 sc.has_data                  sc.preferred_representation
+  sc.cartesian                 sc.has_data                  sc.representation
   sc.data                      sc.icrs                      sc.ra
   sc.dec                       sc.is_frame_attr_default     sc.realize_frame
   sc.distance                  sc.is_transformable_to       sc.represent_as
@@ -315,9 +315,9 @@ lies in some less-obvious attributes::
   OrderedDict([(u'l', u'lon'), (u'b', u'lat'), (u'distance', u'distance')])
 
   >>> sc_gal.preferred_attr_units
-  {u'b': Unit("deg"), u'l': Unit("deg")}
+  OrderedDict([(u'l', Unit("deg")), (u'b', Unit("deg"))])
 
-  >>> sc_gal.preferred_representation
+  >>> sc_gal.representation
   <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 Together these tell the object that ``l`` and ``b`` are the longitude and
@@ -357,10 +357,10 @@ and |SkyCoord| (aka high-level class)::
 
   >>> sc.frame.<TAB>  # doctest: +SKIP
   sc.frame.cartesian                 sc.frame.preferred_attr_units
-  sc.frame.data                      sc.frame.preferred_representation
-  sc.frame.dec                       sc.frame.ra
-  sc.frame.distance                  sc.frame.realize_frame
-  sc.frame.frame_attr_names          sc.frame.represent_as
+  sc.frame.data                      sc.frame.ra
+  sc.frame.dec                       sc.frame.realize_frame
+  sc.frame.distance                  sc.frame.represent_as
+  sc.frame.frame_attr_names          sc.frame.representation
   sc.frame.has_data                  sc.frame.separation
   sc.frame.is_frame_attr_default     sc.frame.separation_3d
   sc.frame.is_transformable_to       sc.frame.shape
@@ -381,7 +381,7 @@ The lowest layer in the stack is the abstract
 `~astropy.coordinates.UnitSphericalRepresentation` object:
 
   >>> sc_gal.frame.data
-  <UnitSphericalRepresentation lon=99.637943... deg, lat=-58.709605... deg>
+  <UnitSphericalRepresentation lon=1.739010... rad, lat=-1.024675... rad>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
