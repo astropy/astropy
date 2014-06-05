@@ -135,6 +135,15 @@ class Constant(Quantity):
     def __quantity_subclass__(self, unit):
         return super(Constant, self).__quantity_subclass__(unit)[0], False
 
+    def copy(self):
+        """
+        Return a copy of this `Constant` instance.  Since they are by
+        definition immutable, this merely returns another reference to
+        ``self``.
+        """
+        return self
+    __deepcopy__ = __copy__ = copy
+
     @property
     def abbrev(self):
         """A typical ASCII text abbreviation of the constant, also generally
