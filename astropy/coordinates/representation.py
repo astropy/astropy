@@ -21,6 +21,11 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
+# Module-level dict mapping representation string alias names to class.
+# This is populated by the metaclass init so all representation classes
+# get registered automatically.
+REPRESENTATION_CLASSES = {}
+
 
 def broadcast_quantity(*args, **kwargs):
     """
@@ -33,7 +38,18 @@ def broadcast_quantity(*args, **kwargs):
     return tuple(new_quantities)
 
 
-@six.add_metaclass(abc.ABCMeta)
+class MetaBaseRepresentation(type):
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
+
+        # Register representation name (except for BaseRepresentation)
+        if cls.__name__ == 'BaseRepresentation':
+            return
+
+        REPRESENTATION_CLASSES[cls.get_name()] = cls
+
+
+@six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(object):
     """
     Base Representation object, for representing a point in a 3D coordinate
@@ -74,6 +90,13 @@ class BaseRepresentation(object):
     def components(self):
         """Return tuple with the names of the coordinate components"""
         raise NotImplementedError()
+
+    @classmethod
+    def get_name(cls):
+        name = cls.__name__.lower()
+        if name.endswith('representation'):
+            name = name[:-14]
+        return name
 
     @classmethod
     def attr_dict(cls, names, units):
@@ -208,6 +231,8 @@ class CartesianRepresentation(BaseRepresentation):
     _attr_classes = OrderedDict([('x', u.Quantity),
                                  ('y', u.Quantity),
                                  ('z', u.Quantity)])
+    _default_names = ('x', 'y', 'z')
+    _default_units = (None, None, None)
 
     def __init__(self, x, y=None, z=None, copy=True):
 
@@ -303,6 +328,8 @@ class SphericalRepresentation(BaseRepresentation):
     _attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude),
                                  ('distance', u.Quantity)])
+    _default_names = ('ra', 'dec', 'distance')
+    _default_units = (u.deg, u.deg, None)
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -418,6 +445,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     _attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude)])
+    _default_names = ('ra', 'dec')
+    _default_units = (u.deg, u.deg)
 
     def __init__(self, lon, lat, copy=True):
 
@@ -524,6 +553,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     _attr_classes = OrderedDict([('phi', Angle),
                                  ('theta', Angle),
                                  ('r', u.Quantity)])
+    _default_names = ('phi', 'theta', 'r')
+    _default_units = (u.deg, u.deg, None)
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -655,6 +686,8 @@ class CylindricalRepresentation(BaseRepresentation):
     _attr_classes = OrderedDict([('rho', u.Quantity),
                                  ('phi', Angle),
                                  ('z', u.Quantity)])
+    _default_names = ('rho', 'phi', 'z')
+    _default_units = (None, u.deg, None)
 
     def __init__(self, rho, phi, z, copy=True):
 
