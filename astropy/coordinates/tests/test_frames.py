@@ -312,7 +312,7 @@ def test_altaz_attributes():
 
 def test_preferred_representation():
     """
-    Test the getter and setter properties for `preferred_representation`
+    Test the getter and setter properties for `representation`
     """
     from ..builtin_frames import ICRS
 
