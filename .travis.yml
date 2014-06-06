@@ -45,7 +45,9 @@ matrix:
         - python: 3.3
           env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
-        # Try alternate numpy versions
+        # Try older numpy versions
+        - python: 3.2
+          env: NUMPY_VERSION=1.6 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.7 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
