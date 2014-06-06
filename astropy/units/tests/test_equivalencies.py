@@ -516,9 +516,21 @@ def test_temperature():
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
 
+
 def test_temperature_energy():
     from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
     assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)
     assert_allclose(y.to(u.K, u.temperature_energy()).value, x)
+
+
+def test_compose_equivalencies():
+    x = u.Unit("arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.pc
+
+    x = u.Unit("2 arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.Unit(0.5 * u.pc)
+
+    x = u.degree.compose(equivalencies=u.dimensionless_angles())
+    assert u.Unit(u.degree.to(u.radian)) in x

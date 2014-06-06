@@ -982,9 +982,14 @@ class UnitBase(object):
         for funit, tunit, a, b in equivalencies:
             if tunit is not None:
                 if self._is_equivalent(funit):
-                    units.append(tunit.decompose())
+                    scale = funit.decompose().scale / unit.scale
+                    units.append(Unit(a(1.0 / scale) * tunit).decompose())
                 elif self._is_equivalent(tunit):
-                    units.append(funit.decompose())
+                    scale = tunit.decompose().scale / unit.scale
+                    units.append(Unit(b(1.0 / scale) * funit).decompose())
+            else:
+                if self._is_equivalent(funit):
+                    units.append(Unit(unit.scale))
 
         # Store partial results
         partial_results = []
@@ -1133,6 +1138,10 @@ class UnitBase(object):
                             return True
                     elif unit._is_equivalent(tunit):
                         if has_bases_in_common(funit.decompose(), other):
+                            return True
+                else:
+                    if unit._is_equivalent(funit):
+                        if has_bases_in_common(dimensionless_unscaled, other):
                             return True
             return False
 
@@ -1289,12 +1298,15 @@ class UnitBase(object):
         units = set(unit_registry.get_units_with_physical_type(self))
         for funit, tunit, a, b in equivalencies:
             if tunit is not None:
-                if funit not in units:
-                    units.update(
-                        unit_registry.get_units_with_physical_type(funit))
-                if tunit not in units:
+                if self.is_equivalent(funit) and tunit not in units:
                     units.update(
                         unit_registry.get_units_with_physical_type(tunit))
+                if self._is_equivalent(tunit) and funit not in units:
+                    units.update(
+                        unit_registry.get_units_with_physical_type(funit))
+            else:
+                if self.is_equivalent(funit):
+                    units.add(dimensionless_unscaled)
         return units
 
     class EquivalentUnitsList(list):
@@ -1360,8 +1372,8 @@ class UnitBase(object):
         results = self.compose(
             equivalencies=equivalencies, units=units, max_depth=1,
             include_prefix_units=include_prefix_units)
-        results = [
-            x.bases[0] for x in results if len(x.bases) == 1]
+        results = set(
+            x.bases[0] for x in results if len(x.bases) == 1)
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):

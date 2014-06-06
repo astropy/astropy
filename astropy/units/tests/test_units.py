@@ -283,7 +283,7 @@ def test_complex_compose():
 
 def test_equiv_compose():
     composed = u.m.compose(equivalencies=u.spectral())
-    assert u.Hz in composed
+    assert any([u.Hz] == x.bases for x in composed)
 
 
 def test_empty_compose():
