@@ -310,3 +310,24 @@ def test_altaz_attributes():
     aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg,0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
 
+def test_preferred_representation():
+    """
+    Test the getter and setter properties for `preferred_representation`
+    """
+    from ..builtin_frames import ICRS
+
+    icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
+    
+    assert icrs.representation == representation.SphericalRepresentation
+    assert repr(icrs) == '<ICRS Coordinate: ra=1.0 deg, dec=1.0 deg>'
+
+    icrs.representation = representation.CartesianRepresentation
+    
+    assert icrs.representation == representation.CartesianRepresentation
+    assert repr(icrs) == '<ICRS Coordinate: x=0.99969541351 , y=0.0174497483513 , z=0.0174524064373 >'
+
+    icrs.representation = 'spherical'
+
+    assert icrs.representation == representation.SphericalRepresentation
+    assert repr(icrs) == '<ICRS Coordinate: ra=1.0 deg, dec=1.0 deg>'
+
