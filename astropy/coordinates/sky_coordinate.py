@@ -13,7 +13,7 @@ from .. import units as u
 
 from .angles import Latitude, Longitude
 from .distances import Distance
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import NoFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
@@ -123,7 +123,7 @@ class SkyCoord(object):
         frame = kwargs['frame']
         coord_kwargs = {}
         if 'representation' in kwargs:
-            coord_kwargs['representation'] = kwargs['representation']
+            coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
         for attr, value in kwargs.items():
             if value is not None and (attr in frame.representation_names
                                       or attr in frame.frame_attr_names):
@@ -178,7 +178,7 @@ class SkyCoord(object):
         # in the process.
         frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
         if 'representation' in kwargs:
-            valid_kwargs['representation'] = kwargs.pop('representation')
+            valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
 
         for attr in FRAME_ATTR_NAMES_SET():
             valid_kwargs[attr] = kwargs.pop(attr, None)
@@ -792,7 +792,7 @@ def _get_frame(args, kwargs):
                                  .format(coord_frame_cls.__name__, frame_cls.__name__))
 
     if 'representation' in kwargs:
-        frame = frame_cls(representation=kwargs['representation'])
+        frame = frame_cls(representation=_get_repr_cls(kwargs['representation']))
     else:
         frame = frame_cls()
 

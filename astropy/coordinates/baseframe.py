@@ -29,6 +29,19 @@ __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 frame_transform_graph = TransformGraph()
 
 
+def _get_repr_cls(value):
+    """Return a valid representation class from ``value`` or raise exception."""
+    if value in REPRESENTATION_CLASSES:
+        value = REPRESENTATION_CLASSES[value]
+    try:
+        issubclass(value, BaseRepresentation)  # value might not be a class, so use try
+    except:
+        raise ValueError('Representation is {0!r} but must be a Representation class '
+                         ' or one of the string aliases {1}'
+                         .format(value, list(REPRESENTATION_CLASSES)))
+    return value
+
+
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
         # somewhat hacky, but this is the best way to get the MRO according to
@@ -110,8 +123,7 @@ class BaseCoordinateFrame(object):
 
     @representation.setter
     def representation(self, value):
-        # In reality do validation of `value` and allow string input
-        self._representation = value
+        self._representation = _get_repr_cls(value)
 
     @classmethod
     def _get_representation_attrs(cls):
@@ -198,7 +210,7 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            representation = kwargs.get('representation') or cls._representation
+            representation = _get_repr_cls(kwargs.get('representation') or cls._representation)
             for key in cls._get_representation_attrs()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
