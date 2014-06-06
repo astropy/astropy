@@ -631,7 +631,7 @@ class CompImageHDU(BinTableHDU):
         self._scale_back = scale_back
 
         self._axes = [self._header.get('ZNAXIS' + str(axis + 1), 0)
-                      for axis in xrange(self._header.get('ZNAXIS', 0))]
+                      for axis in range(self._header.get('ZNAXIS', 0))]
 
         # store any scale factors from the table header
         if do_not_scale_image_data:
@@ -752,13 +752,16 @@ class CompImageHDU(BinTableHDU):
         # heuristic used by CFITSIO, so this should give consistent results.
         # And the cases where this heuristic is insufficient are extreme and
         # almost entirely contrived corner cases, so it will do for now
-        huge_hdu = self.data.nbytes > 2 ** 32
+        if self._has_data:
+            huge_hdu = self.data.nbytes > 2 ** 32
 
-        if huge_hdu and not CFITSIO_SUPPORTS_Q_FORMAT:
-            raise IOError(
-                "Astropy cannot compress images greater than 4 GB in size "
-                "(%s is %s bytes) without CFITSIO >= 3.35" %
-                ((self.name, self.ver), self.data.nbytes))
+            if huge_hdu and not CFITSIO_SUPPORTS_Q_FORMAT:
+                raise IOError(
+                    "Astropy cannot compress images greater than 4 GB in size "
+                    "(%s is %s bytes) without CFITSIO >= 3.35" %
+                    ((self.name, self.ver), self.data.nbytes))
+        else:
+            huge_hdu = False
 
         # Update the extension name in the table header
         if not name and not 'EXTNAME' in self._header:
@@ -969,7 +972,7 @@ class CompImageHDU(BinTableHDU):
                     # user specified tile size is too small
                     raise ValueError('Hcompress minimum tile dimension is '
                                      '4 pixels')
-                major_dims = len(list(filter(lambda x: x > 1, tile_size)))
+                major_dims = len([ts for ts in tile_size if ts > 1])
                 if major_dims > 2:
                     raise ValueError(
                         'HCOMPRESS can only support 2-dimensional tile sizes.'
@@ -1051,7 +1054,7 @@ class CompImageHDU(BinTableHDU):
 
         # Calculate the number of rows in the output table and
         # write the ZNAXISn and ZTILEn cards to the table header.
-        nrows = 1
+        nrows = 0
 
         for idx, axis in enumerate(self._axes):
             naxis = 'NAXIS' + str(idx + 1)
@@ -1071,7 +1074,10 @@ class CompImageHDU(BinTableHDU):
                     ts = self._header[ztile]
                 tile_size.append(ts)
 
-            nrows = nrows * ((axis - 1) // ts + 1)
+            if not nrows:
+                nrows = (axis - 1) // ts + 1
+            else:
+                nrows *= ((axis - 1) // ts + 1)
 
             if image_header and naxis in image_header:
                 self._header.set(znaxis, axis, image_header.comments[naxis],
@@ -1354,6 +1360,9 @@ class CompImageHDU(BinTableHDU):
     def data(self):
         # The data attribute is the image data (not the table data).
         data = compression.decompress_hdu(self)
+
+        if data is None:
+            return data
 
         # Scale the data if necessary
         if (self._orig_bzero != 0 or self._orig_bscale != 1):

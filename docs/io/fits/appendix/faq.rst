@@ -787,6 +787,13 @@ method::
     >>> image.header['BITPIX']
     32
 
+Alternatively, if a file is opened with ``mode='update'`` along with the
+``scale_back=True`` argument, the original BSCALE and BZERO scaling will
+be automatically re-applied to the data before saving.  Usually this is
+not desireable, especially when converting from floating point back to
+unsigned integer values.  But this may be useful in cases where the raw
+data needs to be modified corresponding to changes in the physical values.
+
 To prevent rescaling from occurring at all (good for updating headers--even if
 you don't intend for the code to access the data, it's good to err on the side
 of caution here), use the ``do_not_scale_image_data`` argument when opening

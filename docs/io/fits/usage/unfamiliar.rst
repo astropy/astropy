@@ -15,7 +15,8 @@ ASCII Tables
 
 FITS standard supports both binary and ASCII tables. In ASCII tables, all the
 data are stored in a human readable text form, so it takes up more space and
-extra processing to parse the text for numeric data.
+extra processing to parse the text for numeric data.  Depending on how the
+columns are formatted, floating point data may also lose precision.
 
 In Astropy, the interface for ASCII tables and binary tables is basically the
 same, i.e. the data is in the ``.data`` attribute and the ``field()`` method
@@ -30,15 +31,15 @@ table, Astropy will automatically detect what kind of table it is.
     FITS_rec(
     ... [(10.123000144958496, 37)],
     ... dtype=[('a', '>f4'),('b','>i4')])
-    >>> hdus[1].data.field('a')
+    >>> hdus[1].data['a']
     array([ 10.12300014, 5.19999981, 15.60999966, 0. ,
     345. ], dtype=float32)
     >>> hdus[1].data.formats
     ['E10.4', 'I5']
 
 Note that the formats in the record array refer to the raw data which are ASCII
-strings (therefore 'a11' and 'a5'), but the .formats attribute of data retains
-the original format specifications ('E10.4' and 'I5').
+strings (therefore 'a11' and 'a5'), but the ``.formats`` attribute of data
+retains the original format specifications ('E10.4' and 'I5').
 
 
 Creating an ASCII Table
@@ -67,29 +68,51 @@ syntax difference between ASCII and binary tables can be confusing. For example,
 a field of 3-character string is specified '3A' in a binary table and as 'A3' in
 an ASCII table.
 
-The other difference is the need to specify the table type when using either
-:meth:`ColDefs` or :func:`new_table`.
+The other difference is the need to specify the table type when using the
+:meth:`TableHDU.from_columns` method, and that `Column` should be provided the
+``ascii=True`` argument in order to be unambiguous.
 
-The default value for tbtype is ``BinTableHDU``.
+.. note::
 
-     >>> # Define the columns
+    Although binary tables are more common in most FITS files, earlier versions
+    of the FITS format only supported ASCII tables.  That is why the class
+    :class:`TableHDU` is used for representing ASCII tables specifically,
+    whereas :class:`BinTableHDU` is more explicit that it represents a binary
+    table.  These names come from the value ``XTENSION`` keyword in the tables'
+    headers, which is ``TABLE`` for ASCII tables and ``BINTABLE`` for binary
+    tables.
+
+:meth:`TableHDU.from_columns` can be used like so::
+
      >>> import numpy as np
      >>> from astropy.io import fits
      >>> a1 = np.array(['abcd', 'def'])
      >>> r1 = np.array([11., 12.])
-     >>> c1 = fits.Column(name='abc', format='A3', array=a1)
-     >>> c2 = fits.Column(name='def', format='E', array=r1,
-     ...                  bscale=2.3, bzero=0.6)
-     >>> c3 = fits.Column(name='t1', format='I', array=[91, 92, 93])
-     >>> # Create the table
-     >>> x = fits.ColDefs([c1, c2, c3], tbtype='TableHDU')
-     >>> hdu = fits.new_table(x, tbtype='TableHDU')
-     >>> # Or, simply,
-     >>> hdu = fits.new_table([c1, c2, c3], tbtype='TableHDU')
+     >>> c1 = fits.Column(name='abc', format='A3', array=a1, ascii=True)
+     >>> c2 = fits.Column(name='def', format='E', array=r1, bscale=2.3,
+     ...                    bzero=0.6, ascii=True)
+     >>> c3 = fits.Column(name='t1', format='I', array=[91, 92, 93],
+     ...                    ascii=True)
+     >>> hdu = fits.TableHDU.from_columns([c1, c2, c3])
      >>> hdu.writeto('ascii.fits')
      >>> hdu.data
      FITS_rec([('abcd', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
               dtype=[('abc', '|S3'), ('def', '|S14'), ('t1', '|S10')])
+
+It should be noted that when the formats of the columns are unambiguously
+specific to ASCII tables it is not necessary to specify ``ascii=True`` in
+the :class:`ColDefs` constructor.  In this case there *is* ambiguity because
+the format code ``'I'`` represents a 16-bit integer in binary tables, while in
+ASCII tables it is not technically a valid format.  ASCII table format codes
+technically require a character width for each column, such as ``'I10'`` to
+create a column that can hold integers up to 10 characters wide.
+
+However, PyFITS allows the width specification to be ommitted in some cases.
+When it is ommitted from ``'I'`` format columns the minimum width needed to
+accurately represent all integers in the column is used.  The only problem with
+using this shortcut is its ambiguity with the binary table ``'I'`` format, so
+specifying ``ascii=True`` is a good practice (though PyFITS will still figure
+out what you meant in most cases).
 
 
 Variable Length Array Tables
@@ -117,7 +140,7 @@ where r is 0, 1, or absent, t is one of the letter code for regular table data
 type (L, B, X, I, J, etc. currently, the X format is not supported for variable
 length array field in Astropy), and max is the maximum number of elements. So,
 for a variable length field of int32, The corresponding format spec is,
-e.g. 'PJ(100)'.
+e.g. 'PJ(100)'::
 
     >>> f = fits.open('variable_length_table.fits')
     >>> print f[1].header['tform5']
@@ -141,26 +164,22 @@ table. The only difference is in the creation of field definitions which are
 variable length arrays. First, the data type specification will need the 'P'
 letter, and secondly, the field data must be an objects array (as included in
 the numpy module). Here is an example of creating a table with two fields,  one
-is regular and the other variable length array.
+is regular and the other variable length array::
 
     >>> from astropy.io import fits
     >>> import numpy as np
     >>> c1 = fits.Column(name='var', format='PJ()',
     ...                  array=np.array([[45., 56]
-                                         [11, 12, 13]],
+    ...                                  [11, 12, 13]],
     ...                                 dtype=np.object))
     >>> c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
-    >>> # the rest is the same as a regular table.
-    >>> # Create the table HDU
-    >>> tbhdu = fits.new_table([c1, c2])
+    >>> tbhdu = fits.BinTableHDU.from_columns([c1, c2])
     >>> print tbhdu.data
     FITS_rec([(array([45, 56]), array([11,  3], dtype=int16)),
-              (array([11, 12, 13]), array([12,  4], dtype=int16))],
-             dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
-    >>> # write to a FITS file
+           (array([11, 12, 13]), array([12,  4], dtype=int16))],
+          dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
     >>> tbhdu.writeto('var_table.fits')
     >>> hdu = fits.open('var_table.fits')
-    >>> # Note: heap info is taken care of (PCOUNT) when written to FITS file.
     >>> hdu[1].header
     XTENSION= 'BINTABLE'       / binary table extension
     BITPIX  =                8 / array data type
@@ -210,7 +229,7 @@ Accessing the header of a Random Access Group HDU is no different from any
 other HDU. Just use the .header attribute.
 
 The content of the HDU can similarly be summarized by using the
-:meth:`HDUList.info` method:
+:meth:`HDUList.info` method::
 
     >>> f = fits.open('random_group.fits')
     >>> print f[0].header['groups']
@@ -232,7 +251,7 @@ Data: Group Parameters
 The data part of a random access group HDU is, like other HDUs, in the
 ``.data`` attribute. It includes both parameter(s) and image array(s).
 
-1. show the data in 100th group, including parameters and data
+Show the data in 100th group, including parameters and data::
 
     >>> print f[0].data[99]
     (-8.1987486677035799e-06, 1.2010923615889215e-05,
@@ -248,14 +267,14 @@ specified group(s). As a reminder, the image data in this file has the shape of
 convention.
 
 To access the parameters, first find out what the parameter names are, with the
-.parnames attribute:
+.parnames attribute::
 
     >>> f[0].data.parnames # get the parameter names
     ['uu--', 'vv--', 'ww--', 'baseline', 'date', 'date']
 
 The group parameter can be accessed by the :meth:`~GroupData.par` method. Like
 the table :meth:`~FITS_rec.field` method, the argument can be either index or
-name:
+name::
 
     >>> print f[0].data.par(0)[99] # Access group parameter by name or by index
     -8.1987486677035799e-06
@@ -263,10 +282,11 @@ name:
     -8.1987486677035799e-06
 
 Note that the parameter name 'date' appears twice. This is a feature in the
-random access group, and it means to add the values together. Thus:
+random access group, and it means to add the values together. Thus::
 
-    >>> # Duplicate group parameter name 'date' for 5th and 6th parameters
-    >>> print f[0].data.par(4)[99]
+    >>> f[0].data.parnames  # get the parameter names
+    ['uu--', 'vv--', 'ww--', 'baseline', 'date', 'date']
+    >>> print f[0].data.par(4)[99]  # Duplicate parameter name 'date'
     2445728.0
     >>> print f[0].data.par(5)[99]
     0.10
@@ -278,27 +298,27 @@ random access group, and it means to add the values together. Thus:
 The :meth:`~GroupData.par` is a method for either the entire data object or one
 data item (a group). So there are two possible ways to get a group parameter
 for a certain group, this is similar to the situation in table data (with its
-:meth:`~FITS_rec.field` method):
+:meth:`~FITS_rec.field` method)::
 
-    >>> # Access group parameter by selecting the row (group) number last
     >>> print f[0].data.par(0)[99]
     -8.1987486677035799e-06
-    >>> # Access group parameter by selecting the row (group) number first
     >>> print f[0].data[99].par(0)
     -8.1987486677035799e-06
 
 On the other hand, to modify a group parameter, we can either assign the new
 value directly (if accessing the row/group number last) or use the
-:meth:``~GroupData.setpar`` method (if accessing the row/group number first). The
-method :meth:``~GroupData.setpar`` is also needed for updating by name if the
-parameter is shared by more than one parameters:
+:meth:`~Group.setpar` method (if accessing the row/group number first). The
+method :meth:`~Group.setpar` is also needed for updating by name if the
+parameter is shared by more than one parameters::
 
     >>> # Update group parameter when selecting the row (group) number last
     >>> f[0].data.par(0)[99] = 99.
     >>> # Update group parameter when selecting the row (group) number first
     >>> f[0].data[99].setpar(0, 99.) # or setpar('uu--', 99.)
+    >>>
     >>> # Update group parameter by name when the name is shared by more than
-    >>> # one parameters, the new value must be a tuple of constants or sequences
+    >>> # one parameters, the new value must be a tuple of constants or
+    >>> # sequences
     >>> f[0].data[99].setpar('date', (2445729., 0.3))
     >>> f[0].data[:3].setpar('date', (2445729., [0.11, 0.22, 0.33]))
     >>> f[0].data[:3].par('date')
@@ -309,8 +329,8 @@ Data: Image Data
 """"""""""""""""
 
 The image array of the data portion is accessible by the
-:attr:``~GroupData.data`` attribute of the data object. A numpy array is
-returned:
+:attr:`~GroupData.data` attribute of the data object. A numpy array is
+returned::
 
     >>> print f[0].data.data[99]
     array([[[[[ 12.4308672 , 0.56860745, 3.99993873],
@@ -322,21 +342,22 @@ returned:
 Creating a Random Access Group HDU
 """"""""""""""""""""""""""""""""""
 
-To create a random access group HDU from scratch, use :meth:`GroupData` to
-encapsulate the data into the group data structure, and use :meth:`GroupsHDU`
-to create the HDU itself:
+To create a random access group HDU from scratch, use :class:`GroupData` to
+encapsulate the data into the group data structure, and use :class:`GroupsHDU`
+to create the HDU itself::
 
     >>> # Create the image arrays. The first dimension is the number of groups.
     >>> imdata = numpy.arange(100.0, shape=(10, 1, 1, 2, 5))
     >>> # Next, create the group parameter data, we'll have two parameters.
-    >>> # Note that the size of each parameter's data is also the number of groups.
+    >>> # Note that the size of each parameter's data is also the number of
+    >>> # groups.
     >>> # A parameter's data can also be a numeric constant.
     >>> pdata1 = numpy.arange(10) + 0.1
     >>> pdata2 = 42
     >>> # Create the group data object, put parameter names and parameter data
     >>> # in lists assigned to their corresponding arguments.
-    >>> # If the data type (bitpix) is not specified, the data type of the image
-    >>> # will be used.
+    >>> # If the data type (bitpix) is not specified, the data type of the
+    >>> # image will be used.
     >>> x = fits.GroupData(imdata, parnames=['abc', 'xyz'],
     ...                    pardata=[pdata1, pdata2], bitpix=-32)
     >>> # Now, create the GroupsHDU and write to a FITS file.
@@ -407,7 +428,7 @@ table HDU header and image HDU header is all performed behind the scenes.
 Since the HDU is actually a binary table, it may not appear as a primary HDU in
 a FITS file.
 
-The content of the HDU header may be accessed using the ``.header`` attribute:
+The content of the HDU header may be accessed using the ``.header`` attribute::
 
     >>> f = fits.open('compressed_image.fits')
     >>> print f[1].header
@@ -422,7 +443,7 @@ The content of the HDU header may be accessed using the ``.header`` attribute:
 
 The contents of the corresponding binary table HDU may be accessed using the
 hidden ``._header`` attribute.  However, all user interface with the HDU header
-should be accomplished through the image header (the ``.header`` attribute).
+should be accomplished through the image header (the ``.header`` attribute)::
 
     >>> f = fits.open('compressed_image.fits')
     >>> print f[1]._header
@@ -449,7 +470,7 @@ should be accomplished through the image header (the ``.header`` attribute).
     EXTNAME = 'COMPRESSED'         / name of this binary table extension
 
 The contents of the HDU can be summarized by using either the :func:`info`
-convenience function or method:
+convenience function or method::
 
     >>> fits.info('compressed_image.fits')
     Filename: compressed_image.fits
@@ -481,7 +502,8 @@ transform the raw uncompressed values back to the original image pixel values,
 and ZBLANK to hold the integer value used to represent undefined pixels (if
 any) in the image.
 
-The content of the HDU data may be accessed using the ``.data`` attribute:
+The contents of the uncompressed HDU data may be accessed using the ``.data``
+attribute::
 
     >>> f = fits.open('compressed_image.fits')
     >>> f[1].data
@@ -493,6 +515,10 @@ The content of the HDU data may be accessed using the ``.data`` attribute:
            [57, 52, 49, ..., 40, 41, 43],
            [53, 57, 57, ..., 39, 35, 45]], dtype=int16)
 
+The compressed data can be accessed via the ``.compressed_data`` attribute, but
+this rarely need be accessed directly.  It may be useful for performing direct
+copies of the compressed data without needing to decompress it first.
+
 
 Creating a Compressed Image HDU
 """""""""""""""""""""""""""""""
@@ -500,7 +526,7 @@ Creating a Compressed Image HDU
 To create a compressed image HDU from scratch, simply construct a
 :class:`CompImageHDU` object from an uncompressed image data array and its
 associated image header.  From there, the HDU can be treated just like any
-other image HDU.
+other image HDU::
 
     >>> hdu = fits.CompImageHDU(imageData, imageHeader)
     >>> hdu.writeto('compressed_image.fits')

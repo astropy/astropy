@@ -10,7 +10,7 @@ from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
-from ...extern.six import string_types, integer_types, text_type
+from ...extern.six import string_types, integer_types, text_type, binary_type
 from ...extern.six.moves import xrange
 from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -517,7 +517,8 @@ class Card(_Verify):
                     # also displayed
                     warnings.warn(
                         'Keyword name %r is greater than 8 characters or '
-                        'contains spaces; a HIERARCH card will be created.' %
+                        'contains characters not allowed by the FITS '
+                        'standard; a HIERARCH card will be created.' %
                         keyword, VerifyWarning)
             else:
                 raise ValueError('Illegal keyword name: %r.' % keyword)
@@ -564,24 +565,23 @@ class Card(_Verify):
         if oldvalue is None:
             oldvalue = ''
 
-        if not isinstance(value, (string_types, integer_types, float, complex,
-                                  bool, Undefined, np.floating, np.integer,
-                                  np.complexfloating, np.bool_)):
+        if not isinstance(value, string_types + integer_types +
+                                 (float, complex, bool, Undefined, np.floating,
+                                  np.integer, np.complexfloating, np.bool_)):
             raise ValueError('Illegal value: %r.' % value)
 
         if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
             raise ValueError(
                 "Floating point %r values are not allowed in FITS headers." %
                 value)
-
-        if isinstance(value, text_type):
+        elif isinstance(value, text_type):
             m = self._ascii_text_re.match(value)
             if not m:
                 raise ValueError(
                     'FITS header values must contain standard printable ASCII '
                     'characters; %r contains characters not representable in '
                     'ASCII or non-printable characters.' % value)
-        elif isinstance(value, bytes):
+        elif isinstance(value, binary_type):
             # Allow str, but only if they can be decoded to ASCII text; note
             # this is not even allowed on Python 3 since the `bytes` type is
             # not included in `six.string_types`.  Presently we simply don't
@@ -769,6 +769,27 @@ class Card(_Verify):
         return self._image
 
     @property
+    def is_blank(self):
+        """
+        `True` if the card is completely blank--that is, it has no keyword,
+        value, or comment.  It appears in the header as 80 spaces.
+
+        Returns `False` otherwise.
+        """
+
+        if not self._verified:
+            # The card image has not been parsed yet; compare directly with the
+            # string representation of a blank card
+            return self._image == BLANK_CARD
+
+        # If the keyword, value, and comment are all empty (for self.value
+        # explicitly check that it is a string value, since a blank value is
+        # returned as '')
+        return (not self.keyword and
+                (isinstance(self.value, string_types) and not self.value) and
+                not self.comment)
+
+    @property
     @deprecated('0.1', alternative='the `.image` attribute')
     def cardimage(self):
         return self.image
@@ -945,9 +966,6 @@ class Card(_Verify):
                     return self._keyword
 
                 keyword_upper = keyword_upper[:val_ind_idx]
-
-            if keyword_upper != keyword:
-                self._modified = True
 
             return keyword_upper
         elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
@@ -1316,18 +1334,24 @@ class Card(_Verify):
                 self._hierarch):
             pass
         else:
+            if self._image:
+                # PyFITS will auto-uppercase any standard keyword, so lowercase
+                # keywords can only occur if they came from the wild
+                keyword = self._split()[0]
+                if keyword != keyword.upper():
+                # Keyword should be uppercase unless it's a HIERARCH card
+                    errs.append(self.run_option(
+                        option,
+                        err_text='Card keyword %r is not upper case.' %
+                                  keyword,
+                        fix_text=fix_text,
+                        fix=self._fix_keyword))
+
             keyword = self.keyword
             if self.field_specifier:
                 keyword = keyword.split('.', 1)[0]
 
-            if keyword != keyword.upper():
-            # Keyword should be uppercase unless it's a HIERARCH card
-                errs.append(self.run_option(
-                    option,
-                    err_text='Card keyword %r is not upper case.' % keyword,
-                    fix_text=fix_text,
-                    fix=self._fix_keyword))
-            elif not self._keywd_FSC_RE.match(keyword):
+            if not self._keywd_FSC_RE.match(keyword):
                 errs.append(self.run_option(
                     option,
                     err_text='Illegal keyword name %s' % repr(keyword),
@@ -1351,7 +1375,7 @@ class Card(_Verify):
                 errs.append(self.run_option(
                     option,
                     err_text='Card %r is not FITS standard (invalid value '
-                             'string: %s).' % (self.keyword, valuecomment),
+                             'string: %r).' % (self.keyword, valuecomment),
                     fix_text=fix_text,
                     fix=self._fix_value))
 
@@ -1379,7 +1403,7 @@ class Card(_Verify):
 
         ncards = len(self._image) // Card.length
 
-        for idx in xrange(0, Card.length * ncards, Card.length):
+        for idx in range(0, Card.length * ncards, Card.length):
             card = Card.fromstring(self._image[idx:idx + Card.length])
             if idx > 0 and card.keyword.upper() != 'CONTINUE':
                 raise VerifyError(

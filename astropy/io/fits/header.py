@@ -12,7 +12,7 @@ import warnings
 
 from collections import defaultdict
 
-from .card import Card, CardList, _pad, BLANK_CARD, KEYWORD_LENGTH
+from .card import Card, CardList, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_closed,
                    fileobj_is_binary)
@@ -447,35 +447,58 @@ class Header(object):
             close_file = True
 
         try:
-            return cls._fromfile_internal(fileobj, sep, endcard, padding)
+            is_binary = fileobj_is_binary(fileobj)
+
+            def block_iter(nbytes):
+                while True:
+                    data = fileobj.read(nbytes)
+
+                    if data:
+                        yield data
+                    else:
+                        break
+
+            return cls._from_blocks(block_iter, is_binary, sep, endcard,
+                                    padding)[1]
         finally:
             if close_file:
                 fileobj.close()
 
     @classmethod
-    def _fromfile_internal(cls, fileobj, sep, endcard, padding):
+    def _from_blocks(cls, block_iter, is_binary, sep, endcard, padding):
         """
         The meat of `Header.fromfile`; in a separate method so that
         `Header.fromfile` itself is just responsible for wrapping file
-        handling.
+        handling.  Also used by `_BaseHDU.fromstring`.
+
+        ``block_iter`` should be a callable which, given a block size n
+        (typically 2880 bytes as used by the FITS standard) returns an iterator
+        of byte strings of that block size.
+
+        ``is_binary`` specifies whether the returned blocks are bytes or text
+
+        Returns both the entire header *string*, and the `Header` object
+        returned by Header.fromstring on that string.
         """
 
-        is_binary = fileobj_is_binary(fileobj)
         actual_block_size = _block_size(sep)
         clen = Card.length + len(sep)
 
+        blocks = block_iter(actual_block_size)
+
         # Read the first header block.
-        block = fileobj.read(actual_block_size)
+        try:
+            block = next(blocks)
+        except StopIteration:
+            raise EOFError()
+
         if not is_binary:
             # TODO: There needs to be error handling at *this* level for
             # non-ASCII characters; maybe at this stage decoding latin-1 might
             # be safer
             block = encode_ascii(block)
 
-        if not block:
-            raise EOFError()
-
-        blocks = []
+        read_blocks = []
         is_eof = False
         end_found = False
 
@@ -484,12 +507,16 @@ class Header(object):
             # find the END card
             end_found, block = cls._find_end_card(block, clen)
 
-            blocks.append(decode_ascii(block))
+            read_blocks.append(decode_ascii(block))
 
             if end_found:
                 break
 
-            block = fileobj.read(actual_block_size)
+            try:
+                block = next(blocks)
+            except StopIteration:
+                is_eof = True
+                break
 
             if not block:
                 is_eof = True
@@ -503,11 +530,11 @@ class Header(object):
             # rather than raising an exception
             raise IOError('Header missing END card.')
 
-        blocks = ''.join(blocks)
+        header_str = ''.join(read_blocks)
 
         # Strip any zero-padding (see ticket #106)
-        if blocks and blocks[-1] == '\0':
-            if is_eof and blocks.strip('\0') == '':
+        if header_str and header_str[-1] == '\0':
+            if is_eof and header_str.strip('\0') == '':
                 # TODO: Pass this warning to validation framework
                 warnings.warn(
                     'Unexpected extra padding at the end of the file.  This '
@@ -522,18 +549,18 @@ class Header(object):
                     'Header block contains null bytes instead of spaces for '
                     'padding, and is not FITS-compliant. Nulls may be '
                     'replaced with spaces upon writing.', AstropyUserWarning)
-                blocks.replace('\0', ' ')
+                header_str.replace('\0', ' ')
 
-        if padding and (len(blocks) % actual_block_size) != 0:
+        if padding and (len(header_str) % actual_block_size) != 0:
             # This error message ignores the length of the separator for
             # now, but maybe it shouldn't?
-            actual_len = len(blocks) - actual_block_size + BLOCK_SIZE
+            actual_len = len(header_str) - actual_block_size + BLOCK_SIZE
             # TODO: Pass this error to validation framework
             raise ValueError(
                 'Header size is not multiple of {0}: {1}'.format(BLOCK_SIZE,
                                                                  actual_len))
 
-        return cls.fromstring(blocks, sep=sep)
+        return header_str, cls.fromstring(header_str, sep=sep)
 
     @classmethod
     def _find_end_card(cls, block, card_len):
@@ -1206,7 +1233,7 @@ class Header(object):
                 'The value appended to a Header must be either a keyword or '
                 '(keyword, value, [comment]) tuple; got: %r' % card)
 
-        if not end and str(card) == BLANK_CARD:
+        if not end and card.is_blank:
             # Blank cards should always just be appended to the end
             end = True
 
@@ -1215,7 +1242,7 @@ class Header(object):
             idx = len(self._cards) - 1
         else:
             idx = len(self._cards) - 1
-            while idx >= 0 and str(self._cards[idx]) == BLANK_CARD:
+            while idx >= 0 and self._cards[idx].is_blank:
                 idx -= 1
 
             if not bottom and card.keyword not in Card._commentary_keywords:
@@ -1240,7 +1267,12 @@ class Header(object):
                 self._keyword_indices[keyword].sort()
 
             # Finally, if useblanks, delete a blank cards from the end
-            if useblanks:
+            if useblanks and self._countblanks():
+                # Don't do this unless there is at least one blanks at the end
+                # of the header; we need to convert the card to its string
+                # image to see how long it is.  In the vast majority of cases
+                # this will just be 80 (Card.length) but it may be longer for
+                # CONTINUE cards
                 self._useblanks(len(str(card)) // Card.length)
 
         self._modified = True
@@ -1330,7 +1362,7 @@ class Header(object):
                     extend_cards.append(card)
             else:
                 if unique or update and keyword in self:
-                    if str(card) == BLANK_CARD:
+                    if card.is_blank:
                         extend_cards.append(card)
                         continue
 
@@ -1797,13 +1829,13 @@ class Header(object):
         """Returns the number of blank cards at the end of the Header."""
 
         for idx in range(1, len(self._cards)):
-            if str(self._cards[-idx]) != BLANK_CARD:
+            if not self._cards[-idx].is_blank:
                 return idx - 1
         return 0
 
     def _useblanks(self, count):
         for _ in range(count):
-            if str(self._cards[-1]) == BLANK_CARD:
+            if self._cards[-1].is_blank:
                 del self[-1]
             else:
                 break
@@ -1819,12 +1851,12 @@ class Header(object):
         Returns a list of indices of the cards matching the given wildcard
         pattern.
 
-         * '*' matches 0 or more alphanumeric characters or _
-         * '?' matches a single alphanumeric character or _
+         * '*' matches 0 or more characters
+         * '?' matches a single character
          * '...' matches 0 or more of any non-whitespace character
         """
 
-        pattern = pattern.replace('*', r'\w*').replace('?', r'\w')
+        pattern = pattern.replace('*', r'.*').replace('?', r'.')
         pattern = pattern.replace('...', r'\S*') + '$'
         pattern_re = re.compile(pattern, re.I)
 

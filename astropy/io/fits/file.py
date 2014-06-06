@@ -480,6 +480,7 @@ class _File(object):
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
                               'disabled' % str(e), AstropyUserWarning)
                 _File._mmap_available = False
+                del exc
                 return False
             try:
                 mm.flush()

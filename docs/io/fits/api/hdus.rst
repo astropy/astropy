@@ -30,8 +30,8 @@ section on :ref:`Tables`.
    :show-inheritance:
 
 :class:`Group`
-^^^^^^^^^^^^^^
-.. autoclass:: GroupData
+==============
+.. autoclass:: Group
    :members:
    :show-inheritance:
 

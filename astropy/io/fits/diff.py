@@ -238,9 +238,9 @@ class FITSDiff(_BaseDiff):
         if isinstance(a, string_types):
             try:
                 a = fitsopen(a)
-            except Exception as e:
+            except Exception as exc:
                 raise IOError("error opening file a (%s): %s: %s" %
-                              (a, e.__class.__name__, e.args[0]))
+                              (a, exc.__class__.__name__, exc.args[0]))
             close_a = True
         else:
             close_a = False
@@ -248,9 +248,9 @@ class FITSDiff(_BaseDiff):
         if isinstance(b, string_types):
             try:
                 b = fitsopen(b)
-            except Exception as e:
+            except Exception as exc:
                 raise IOError("error opening file b (%s): %s: %s" %
-                              (b, e.__class.__name__, e.args[0]))
+                              (b, exc.__class__.__name__, exc.args[0]))
             close_b = True
         else:
             close_b = False

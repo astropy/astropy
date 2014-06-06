@@ -126,7 +126,7 @@ class TestChecksumFunctions(FitsTestCase):
         col1 = fits.Column(name='target', format='20A', array=a1)
         col2 = fits.Column(name='V_mag', format='E', array=a2)
         cols = fits.ColDefs([col1, col2])
-        tbhdu = fits.new_table(cols)
+        tbhdu = fits.BinTableHDU.from_columns(cols)
         tbhdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(tbhdu.data, hdul[1].data)
@@ -144,7 +144,7 @@ class TestChecksumFunctions(FitsTestCase):
                          array=np.array([[45.0, 56], np.array([11, 12, 13])],
                          'O'))
         c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
-        tbhdu = fits.new_table([c1, c2])
+        tbhdu = fits.BinTableHDU.from_columns([c1, c2])
         tbhdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(tbhdu.data, hdul[1].data)
@@ -166,8 +166,8 @@ class TestChecksumFunctions(FitsTestCase):
         c2 = fits.Column(name='def', format='D', array=r1, bscale=2.3,
                          bzero=0.6)
         c3 = fits.Column(name='t1', format='I', array=[91, 92, 93])
-        x = fits.ColDefs([c1, c2, c3], tbtype='TableHDU')
-        hdu = fits.new_table(x, tbtype='TableHDU')
+        x = fits.ColDefs([c1, c2, c3])
+        hdu = fits.TableHDU.from_columns(x)
         hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
         with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
@@ -337,7 +337,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_open_update_mode_preserve_checksum(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/148 where
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148 where
         checksums are being removed from headers when a file is opened in
         update mode, even though no changes were made to the file.
         """
@@ -357,7 +357,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_open_update_mode_update_checksum(self):
         """
-        Regression test for https://trac.assembla.com/pyfits/ticket/148, part
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148, part
         2.  This ensures that if a file contains a checksum, the checksum is
         updated when changes are saved to the file, even if the file was opened
         with the default of checksum=False.
