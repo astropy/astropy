@@ -859,18 +859,15 @@ def _parse_coordinate_arg(coords, frame, units):
 
         data = coords.data.represent_as(frame.representation)
 
-        for frame_attr_name, repr_attr_name, attr_class, unit in zip(
-                frame_attr_names, repr_attr_names, repr_attr_classes, units):
+        values = []  # List of values corresponding to representation attrs
+        for repr_attr_name in repr_attr_names:
             # If coords did not have an explicit distance then don't include in initializers.
             if (isinstance(coords.data, UnitSphericalRepresentation) and
                     repr_attr_name == 'distance'):
                 continue
 
-            # Get the value from `data` in the eventual representation and then validate
-            # by passing through the appropriate initializer class with a unit (which
-            # might be None).
-            value = getattr(data, repr_attr_name)
-            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
+            # Get the value from `data` in the eventual representation
+            values.append(getattr(data, repr_attr_name))
 
         for attr in FRAME_ATTR_NAMES_SET():
             value = getattr(coords, attr, None)
@@ -881,25 +878,18 @@ def _parse_coordinate_arg(coords, frame, units):
 
     elif isinstance(coords, BaseRepresentation):
         data = coords.represent_as(frame.representation)
-        for frame_attr_name, repr_attr_name, attr_class, unit in zip(
-                frame_attr_names, repr_attr_names, repr_attr_classes, units):
-            value = getattr(data, repr_attr_name)
-            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
+        values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
 
     elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
           and coords.ndim == 2 and coords.shape[1] <= 3):
         # 2-d array of coordinate values.  Handle specially for efficiency.
-
-        # Get the classes (e.g. Longitude or Quantity) that initialize a
-        # represenation data value (in order)
         values = coords.transpose()  # Iterates over repr attrs
-        for frame_attr_name, attr_class, value, unit in zip(
-                frame_attr_names, repr_attr_classes, values, units):
-            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
+        # Handles generic list-like input.
+
         # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
-        values = []
+        vals = []
         for ii, coord in enumerate(coords):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
@@ -907,10 +897,12 @@ def _parse_coordinate_arg(coords, frame, units):
                     coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
                 coord = coord1
 
-            values.append(coord)  # This assumes coord is a sequence at this point
+            vals.append(coord)  # This assumes coord is a sequence at this point
 
+        # Do some basic validation of the list elements: all have a length and all
+        # lengths the same
         try:
-            n_coords = sorted(set(len(x) for x in values))
+            n_coords = sorted(set(len(x) for x in vals))
         except:
             raise ValueError('One or more elements of input sequence does not have a length')
 
@@ -929,20 +921,24 @@ def _parse_coordinate_arg(coords, frame, units):
         # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
         # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
         # while (a1, a2, ..) doesn't work.
-        values = [list(x) for x in zip(*values)]
+        values = [list(x) for x in zip(*vals)]
 
         if is_scalar:
             values = [x[0] for x in values]
 
-        try:
-            for frame_attr_name, attr_class, value, unit in zip(
-                    frame_attr_names, repr_attr_classes, values, units):
-                valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
-        except Exception as err:
-            raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
-                             .format(err))
     else:
         raise ValueError('Cannot parse coordinates from first argument')
+
+    # Finally we have a list of values from which to create the keyword args
+    # for the frame initialization.  Validate by running through the appropriate
+    # class initializer and supply units (which might be None).
+    try:
+        for frame_attr_name, repr_attr_class, value, unit in zip(
+                frame_attr_names, repr_attr_classes, values, units):
+            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+    except Exception as err:
+        raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
+                         .format(err))
 
     return valid_kwargs
 
@@ -957,20 +953,13 @@ def _get_representation_attrs(frame, units, kwargs):
     for many equatorial spherical representations, or "w" for "x" in the
     cartesian representation of Galactic.
     """
+    frame_attr_names = frame.representation_names.keys()
+    repr_attr_classes = frame.representation._attr_classes.values()
+
     valid_kwargs = {}
-
-    attr_classes = frame.representation._attr_classes.values()
-    attr_types = frame.representation._attr_classes.keys()
-
-    for attr_cls, attr_type, unit in zip(attr_classes, attr_types, units):
-        attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                  frame.representation_names.items())
-        name = attr_name_for_type[attr_type]
-        value = kwargs.pop(name, None)
+    for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):
+        value = kwargs.pop(frame_attr_name, None)
         if value is not None:
-            attr_cls_kwargs = {}
-            if unit is not None:
-                attr_cls_kwargs['unit'] = unit
-            valid_kwargs[name] = attr_cls(value, **attr_cls_kwargs)
+            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     return valid_kwargs
