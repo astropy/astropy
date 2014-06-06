@@ -119,8 +119,10 @@ def test_converting_units():
 
     #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
-        representation_attrs = dict(
-            [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (None, None, None))])
+        _representation_attrs = {'spherical': {'names': ('ra', 'dec', 'distance'),
+                                               'units': (None, None, None)},
+                                 'unitspherical': {'names': ('ra', 'dec'),
+                                                   'units': (None, None)}}
 
 
     fi = FakeICRS(i4.data)

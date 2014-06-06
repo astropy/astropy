@@ -351,7 +351,7 @@ and |SkyCoord| (aka high-level class)::
   >>> sc.frame
   <ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>
 
-  >>> sc.representation_units is sc.frame.representation_units
+  >>> sc.has_data is sc.frame.has_data
   True
 
   >>> sc.frame.<TAB>  # doctest: +SKIP

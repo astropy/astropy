@@ -56,11 +56,6 @@ class ICRS(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     """
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
     _representation = SphericalRepresentation
 
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
@@ -108,13 +103,7 @@ class FK5(BaseCoordinateFrame):
         The equinox of this frame.
     """
 
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
     _representation = SphericalRepresentation
-
     frame_attr_names = {'equinox': _EQUINOX_J2000}
 
     @staticmethod
@@ -170,13 +159,7 @@ class FK4(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
     _representation = SphericalRepresentation
-
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -219,13 +202,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
     _representation = SphericalRepresentation
-
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -291,13 +268,12 @@ class Galactic(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
     """
 
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('l', 'b', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('l', 'b'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
+    _representation_attrs = {
+        'spherical': {'names': ('l', 'b', 'distance'), 'units': (u.deg, u.deg, None)},
+        'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
+        'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
+    }
     _representation = SphericalRepresentation
-
     frame_attr_names = {}
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -334,13 +310,11 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('az', 'alt', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('az', 'alt'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
+    _representation_attrs = {
+        'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
+        'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
+    }
     _representation = SphericalRepresentation
-
     frame_attr_names = {'obstime': None, 'location': None}
 
     def __init__(self, *args, **kwargs):
@@ -363,14 +337,7 @@ class NoFrame(BaseCoordinateFrame):
     public API.
 
     """
-
-    representation_attrs = dict(
-        [SphericalRepresentation.attr_dict(('ra', 'dec', 'distance'), (u.deg, u.deg, None)),
-         UnitSphericalRepresentation.attr_dict(('ra', 'dec'), (u.deg, u.deg)),
-         CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
-
     _representation = SphericalRepresentation
-
     frame_attr_names = {}
 
 

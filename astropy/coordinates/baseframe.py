@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import inspect
 import warnings
+from copy import deepcopy
 
 # Dependencies
 
@@ -16,9 +17,11 @@ import warnings
 from ..extern import six
 from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
+from ..utils import OrderedDict
 from .transformations import TransformGraph
-from .representation import BaseRepresentation, CartesianRepresentation, \
-                            SphericalRepresentation, UnitSphericalRepresentation
+from .representation import (BaseRepresentation, CartesianRepresentation,
+                             SphericalRepresentation, UnitSphericalRepresentation,
+                             REPRESENTATION_CLASSES)
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
@@ -110,13 +113,49 @@ class BaseCoordinateFrame(object):
         # In reality do validation of `value` and allow string input
         self._representation = value
 
+    @classmethod
+    def _get_representation_attrs(cls):
+        # This exists as a class method only to support handling frame inputs
+        # without units, which are deprecated and will be removed.  This can be
+        # moved into the property at that time.
+        repr_attrs = {}
+        for name, repr_cls in REPRESENTATION_CLASSES.items():
+            if hasattr(repr_cls, '_default_names') and hasattr(repr_cls, '_default_units'):
+                repr_attrs[name] = {'names': repr_cls._default_names,
+                                    'units': repr_cls._default_units}
+
+        # Override defaults as needed for this frame
+        repr_attrs.update(getattr(cls, '_representation_attrs', {}))
+
+        # Use the class, not the name for the key in representation_attrs
+        repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
+                          for name, attrs in repr_attrs.items())
+
+        return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
+
+    @property
+    def representation_attrs(self):
+        return self._get_representation_attrs()
+
     @property
     def representation_names(self):
-        return self.representation_attrs[self.representation]['names']
+        data_names = self.representation._attr_classes.keys()
+        repr_names = self.representation_attrs[self.representation]['names']
+        out = OrderedDict()
+        for repr_name, data_name in zip(repr_names, data_names):
+            out[repr_name] = data_name
+        return out
 
     @property
     def representation_units(self):
-        return self.representation_attrs[self.representation]['units']
+        repr_attrs = self.representation_attrs[self.representation]
+        repr_names = repr_attrs['names']
+        repr_units = repr_attrs['units']
+        out = OrderedDict()
+        for repr_name, repr_unit in zip(repr_names, repr_units):
+            if repr_unit:
+                out[repr_name] = repr_unit
+        return out
 
     _representation = None
 
@@ -160,7 +199,7 @@ class BaseCoordinateFrame(object):
 
         if not use_skycoord:
             representation = kwargs.get('representation') or cls._representation
-            for key in cls.representation_attrs[representation]['names']:
+            for key in cls._get_representation_attrs()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -340,29 +379,11 @@ class BaseCoordinateFrame(object):
             # set of names and units, then use that.
             new_attrs = self.representation_attrs.get(new_representation)
             if new_attrs and in_frame_units:
-                new_attr_names = new_attrs['names']
-                new_attr_units = new_attrs['units']
-
-                # if necessary, make a new representation with new_attr_units
-                if new_attr_units:
-                    # first figure out how to map *representation* attribute
-                    # names to units
-                    comp_to_unit = {}
-                    for attnm, unit in new_attr_units.items():
-                        if attnm not in new_attr_names:
-                            msg = ('The attribute {0} in `representation_units`'
-                                   ' is not in `representation_names`')
-                            raise ValueError(msg.format(attnm))
-                        comp_to_unit[new_attr_names[attnm]] = unit
-
-                    # Now actually create a new representation with the new units
-                    datakwargs = {}
-                    for comp in data.components:
-                        datakwargs[comp] = getattr(data, comp)
-                        newu = comp_to_unit.get(comp, None)
-                        if newu:
-                            datakwargs[comp] = datakwargs[comp].to(newu)
-                    data = data.__class__(**datakwargs)
+                datakwargs = dict((comp, getattr(data, comp)) for comp in data.components)
+                for comp, new_attr_unit in zip(data.components, new_attrs['units']):
+                    if new_attr_unit:
+                        datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
+                data = data.__class__(**datakwargs)
 
             self._rep_cache[new_representation.__name__, in_frame_units] = data
 
