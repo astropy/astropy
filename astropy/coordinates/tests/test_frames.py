@@ -316,18 +316,40 @@ def test_preferred_representation():
     """
     from ..builtin_frames import ICRS
 
+    # Create the frame object.
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
-    
-    assert icrs.representation == representation.SphericalRepresentation
-    assert repr(icrs) == '<ICRS Coordinate: ra=1.0 deg, dec=1.0 deg>'
 
+    # Create some representation objects.
+    icrs_cart = icrs.cartesian
+    icrs_spher = icrs.spherical
+
+    # Testing when `_representation` set to `CartesianRepresentation`.
     icrs.representation = representation.CartesianRepresentation
     
     assert icrs.representation == representation.CartesianRepresentation
+    assert icrs_cart.x == icrs.x
+    assert icrs_cart.y == icrs.y
+    assert icrs_cart.z == icrs.z
     assert repr(icrs) == '<ICRS Coordinate: x=0.99969541351 , y=0.0174497483513 , z=0.0174524064373 >'
 
+    # Testing when `_representation` set to `CylindricalRepresentation`.
+    icrs.representation = representation.CylindricalRepresentation
+
+    assert icrs.representation == representation.CylindricalRepresentation
+    assert repr(icrs) == '<ICRS Coordinate: rho=0.999847695156 , phi=1.0 deg, z=0.0174524064373 >'
+
+    # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
 
     assert icrs.representation == representation.SphericalRepresentation
+    assert icrs_spher.lat == icrs.lat
+    assert icrs_spher.lon == icrs.lon
+    assert icrs_spher.distance == icrs.distance
     assert repr(icrs) == '<ICRS Coordinate: ra=1.0 deg, dec=1.0 deg>'
+
+    # Testing setter input using text argument for cylindrical.
+    icrs.representation = 'cylindrical'
+
+    assert icrs.representation == representation.CylindricalRepresentation
+    assert repr(icrs) == '<ICRS Coordinate: rho=0.999847695156 , phi=1.0 deg, z=0.0174524064373 >'    
 
