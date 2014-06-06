@@ -3,6 +3,7 @@ language: python
 python:
     - 2.6
     - 2.7
+    - 3.2
     - 3.3
     - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
@@ -31,6 +32,8 @@ matrix:
         # There is a bug in pytest-xdist that prevents it from working
         # on Python 3.x.  See:
         # https://bitbucket.org/hpk42/pytest/issue/301/internal-error-during-test-collecting
+        - python: 3.2
+          env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
         - python: 3.3
           env: SETUP_CMD='test' NUMPY_VERSION=1.8 OPTIONAL_DEPS=false
         - python: 3.4
@@ -64,13 +67,13 @@ before_install:
 install:
 
     # CONDA
-    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
+    - conda create --yes -n test -c mwcraig python=$TRAVIS_PYTHON_VERSION
     - source activate test
 
     # CORE DEPENDENCIES
     # These command run pip first trying a wheel, and then falling back on
     # source build
-    - if [[ $SETUP_CMD != egg_info ]]; then conda install --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then conda install -c mwcraig --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
     - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist; fi
 
     # OPTIONAL DEPENDENCIES
