@@ -93,6 +93,11 @@ New Features
   - Included a new command-line script called ``fitsheader`` to display the
     header(s) of a FITS file from the command line. [#2092]
 
+  - Added new verification options ``fix+ignore``, ``fix+warn``,
+    ``fix+exception``, ``silentfix+ignore``, ``silentfix+warn``, and
+    ``silentfix+exception`` which give more control over how to report fixable
+    errors as opposed to unfixable errors.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -251,6 +256,80 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - The ``astropy.io.fits.new_table`` function is now fully deprecated (though
+    will not be removed for a long time, considering how widely it is used).
+
+    Instead please use the more explicit ``BinTableHDU.from_columns`` to create
+    a new binary table HDU, and the similar ``TableHDU.from_columns`` to create
+    a new ASCII table.  These otherwise accept the same arguments as
+    ``new_table`` which is now just a wrapper for these.
+
+  - The ``.fromstring`` classmethod of each HDU type has been simplified such
+    that, true to its namesake, it only initializes an HDU from a string
+    containing its header *and* data.
+
+  - Fixed an issue where header wildcard matching (for example
+    ``header['DATE*']``) can be used to match *any* characters that might
+    appear in a keyword.  Previously this only matched keywords containing
+    characters in the set ``[0-9A-Za-z_]``.  Now this can also match a hyphen
+    ``-`` and any other characters, as some conventions like ``HIERARCH`` and
+    record-valued keyword cards allow a wider range of valid characters than
+    standard FITS keywords.
+
+  - This will be the *last* release to support the following APIs that have
+    been marked deprecated since Astropy v0.1/PyFITS v3.1:
+
+    - The ``CardList`` class, which was part of the old header implementation.
+
+    - The ``Card.key`` attribute.  Use ``Card.keyword`` instead.
+
+    - The ``Card.cardimage`` and ``Card.ascardimage`` attributes.  Use simply
+      ``Card.image`` or ``str(card)`` instead.
+
+    - The ``create_card`` factory function.  Simply use the normal ``Card``
+      constructor instead.
+
+    - The ``create_card_from_string`` factory function.  Use ``Card.fromstring``
+      instead.
+
+    - The ``upper_key`` function.  Use ``Card.normalize_keyword`` method
+      instead (this is not unlikely to be used outside of PyFITS itself, but it
+      was technically public API).
+
+    - The usage of ``Header.update`` with ``Header.update(keyword, value,
+      comment)`` arguments.  ``Header.update`` should only be used analogously
+      to ``dict.update``.  Use ``Header.set`` instead.
+
+    - The ``Header.ascard`` attribute.  Use ``Header.cards`` instead for a list
+      of all the ``Card`` objects in the header.
+
+    - The ``Header.rename_key`` method.  Use ``Header.rename_keyword`` instead.
+
+    - The ``Header.get_history`` method.  Use ``header['HISTORY']`` instead
+      (normal keyword lookup).
+
+    - The ``Header.get_comment`` method.  Use ``header['COMMENT']`` instead.
+
+    - The ``Header.toTxtFile`` method.  Use ``header.totextfile`` instead.
+
+    - The ``Header.fromTxtFile`` method.  Use ``Header.fromtextfile`` instead.
+
+    - The ``tdump`` and ``tcreate`` functions.  Use ``tabledump`` and
+      ``tableload`` respectively.
+
+    - The ``BinTableHDU.tdump`` and ``tcreate`` methods.  Use
+      ``BinTableHDU.dump`` and ``BinTableHDU.load`` respectively.
+
+    - The ``txtfile`` argument to the ``Header`` constructor.  Use
+      ``Header.fromfile`` instead.
+
+    - The ``startColumn`` and ``endColumn`` arguments to the ``FITS_record``
+      constructor.  These are unlikely to be used by any user code.
+
+    These deprecated interfaces will be removed from the development version of
+    Astropy following the v0.4 release (they will still be available in any
+    v0.4.x bugfix releases, however).
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -391,6 +470,8 @@ Bug Fixes
 
   - Fixes for checksums on 32-bit platforms.  Results may be different
     if writing or checking checksums in "nonstandard" mode.  [#2484]
+
+  - Additional minor bug fixes ported from PyFITS.  [#2575]
 
 - ``astropy.io.misc``
 
