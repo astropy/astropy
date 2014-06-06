@@ -37,12 +37,18 @@ class SkyCoord(object):
     The `SkyCoord` class accepts a wide variety of inputs for initialization.
     At a minimum these must provide one or more celestial coordinate values
     with unambiguous units.  Typically one also specifies the coordinate
-    frame, though this is not required.  The general pattern is::
+    frame, though this is not required.  The general pattern is for spherical
+    representations is::
 
       SkyCoord(COORD, [FRAME], keyword_args ...)
       SkyCoord(LON, LAT, [FRAME], keyword_args ...)
-      SkyCoord(LON, LAT, frame=FRAME, unit=UNIT, keyword_args ...)
+      SkyCoord(LON, LAT, [DISTANCE], frame=FRAME, unit=UNIT, keyword_args ...)
       SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
+
+    It is also possible to input coordinate values in other representations
+    such as cartesian or cylindrical.  In this case one includes the keyword
+    argument ``representation='cartesian'`` (for example) along with data in
+    ``x``, ``y``, and ``z``.
 
     Examples
     --------
@@ -58,22 +64,24 @@ class SkyCoord(object):
     The coordinate values and frame specification can now be provided using
     positional and keyword arguments::
 
-      >>> sc = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
-      >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
+      >>> c = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
+      >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-      >>> sc = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
+      >>> c = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
 
-      >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
-      >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+      >>> c = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
+      >>> c = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
 
       >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
       >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
-      >>> sc = SkyCoord(ra, dec, frame='icrs')
-      >>> sc = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+      >>> c = SkyCoord(ra, dec, frame='icrs')
+      >>> c = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
 
       >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
-      >>> sc = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
+      >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
+
+      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
@@ -90,20 +98,29 @@ class SkyCoord(object):
         Units for supplied ``LON`` and ``LAT`` values, respectively.  If
         only one unit is supplied then it applies to both ``LON`` and
         ``LAT``.
-    ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
-        RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-        frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
-        and `FK4NoETerms`.
-    l, b : valid `~astropy.coordinates.Angle` initializer, optional
-        Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-        keys in the frame's ``representation_names``, including the
-        `Galactic` frame.
     obstime : valid `~astropy.time.Time` initializer, optional
         Time of observation
     equinox : valid `~astropy.time.Time` initializer, optional
         Coordinate frame equinox
+    representation : str or Representation class
+        Specifies the representation, e.g. 'spherical', 'cartesian', or
+        'cylindrical'.  This affects the positional args and other keyword args
+        which must correspond to the given representation.
     **keyword_args
         Other keyword arguments as applicable for user-defined coordinate frames.
+        Common options include:
+           ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
+               RA and Dec for frames where ``ra`` and ``dec`` are keys in the
+               frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
+               and `FK4NoETerms`.
+           l, b : valid `~astropy.coordinates.Angle` initializer, optional
+               Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+               keys in the frame's ``representation_names``, including the
+               `Galactic` frame.
+           x, y, z : float or `~astropy.units.Quantity`, optional
+               Cartesian coordinates values
+           w, u, v : float or `~astropy.units.Quantity`, optional
+               Cartesian coordinates values for the Galactic frame.
     """
 
     def __init__(self, *args, **kwargs):
