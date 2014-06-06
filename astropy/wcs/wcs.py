@@ -667,10 +667,8 @@ naxis kwarg.
 
     def _read_d2im_old_format(self, header, fobj, axiscorr):
         warnings.warn("The use of ``AXISCORR`` for D2IM correction has been deprecated."
-                      "The new style of this correction is described at"
-                      ""
-                      "PyWCS will read in files with ``AXISCORR`` but to_fits() will write"
-                      "out files in the new style",
+                      "`~astropy.wcs` will read in files with ``AXISCORR`` but ``to_fits()`` will write "
+                      "out files without it.",
                       AstropyDeprecationWarning)
         cpdis = [None, None]
         crpix = [0., 0.]
@@ -1396,6 +1394,9 @@ naxis kwarg.
         `SIP`_ polynomial distortion convention and `Paper IV`_
         table-lookup distortion correction.
 
+        The output is in absolute pixel coordinates, not relative to 
+        `CRPIX`.
+
         Parameters
         ----------
 
@@ -1422,6 +1423,9 @@ naxis kwarg.
         Convert pixel coordinates to focal plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
 
+        The output is in absolute pixel coordinates, not relative to 
+        `CRPIX`.
+ 
         Parameters
         ----------
 
@@ -1447,6 +1451,9 @@ naxis kwarg.
     det2im.__doc__ = """
         Convert detector coordinates to image plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
+
+        The output is in absolute pixel coordinates, not relative to 
+        `CRPIX`.
 
         Parameters
         ----------
@@ -1480,6 +1487,8 @@ naxis kwarg.
     sip_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention.
+
+        The output is in pixel coordinates, relative to `CRPIX`.
 
         `Paper IV`_ table lookup distortion correction is not applied,
         even if that information existed in the FITS file that

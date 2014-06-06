@@ -1123,21 +1123,19 @@ class SIP(Model):
         CRPIX values
     a_order : int
         SIP polynomial order for first axis
-    a_coeff : dict
-        SIP coefficients for first axis
-    coeff_prefix : str: 'a', 'b', 'A' or 'B'
-        SIP coefficient preffix
     b_order : int
         SIP order for second axis
+    a_coeff : dict
+        SIP coefficients for first axis
     b_coeff : dict
         SIP coefficients for the second axis
-    a_inv_order : int
+    ap_order : int
         order for the inverse transformation (AP coefficients)
-    a_inv_coeff : dict
-        coefficients for the inverse transform
-    b_inv_order : int
+    bp_order : int
         order for the inverse transformation (BP coefficients)
-    b_inv_coeff : dict
+    ap_coeff : dict
+        coefficients for the inverse transform
+    bp_coeff : dict
         coefficients for the inverse transform
     param_dim : int
         number of parameter sets
@@ -1150,8 +1148,8 @@ class SIP(Model):
     n_inputs = 2
     n_outputs = 2
 
-    def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
-                 ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
+    def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
+                 ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
                  param_dim=1):
         self._crpix = crpix
         self._a_order = a_order
@@ -1183,10 +1181,9 @@ class SIP(Model):
         return '\n'.join(parts)
 
     def inverse(self):
-        if (self._ap_order is not None and self._ap_coeff is not None and
-            self._bp_order is not None and self._bp_coeff is not None):
-            return InverseSIP(self._ap_order, self._ap_coeff,
-                              self._bp_order, self._bp_coeff)
+        if (self._ap_order is not None and self._bp_order is not None):
+            return InverseSIP(self._ap_order, self._bp_order,
+                              self._ap_coeff, self._bp_coeff)
         else:
             raise NotImplementedError("SIP inverse coefficients are not available.")
 
@@ -1199,11 +1196,28 @@ class SIP(Model):
 
 
 class InverseSIP(Model):
+    """
+    Inverse Simple Imaging Polynomial
+
+    Parameters
+    ----------
+    ap_order : int
+        order for the inverse transformation (AP coefficients)
+    bp_order : int
+        order for the inverse transformation (BP coefficients)
+    ap_coeff : dict
+        coefficients for the inverse transform
+    bp_coeff : dict
+        coefficients for the inverse transform
+    param_dim : int
+        number of parameter sets
+
+    """
 
     n_inputs = 2
     n_outputs = 2
 
-    def __init__(self, ap_order, ap_coeff, bp_order, bp_coeff,
+    def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
                  param_dim=1):
         self._ap_order = ap_order
         self._bp_order = bp_order

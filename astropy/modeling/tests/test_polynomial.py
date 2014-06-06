@@ -122,7 +122,7 @@ def test_sip_hst():
     b_pars = dict(**hdr['B_*'])
     a_order = a_pars.pop('A_ORDER')
     b_order = b_pars.pop('B_ORDER')
-    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars)
+    sip = SIP([crpix1, crpix2], a_order, b_order, a_pars, b_pars)
     coords = [1, 1]
     rel_coords = [1 - crpix1, 1 - crpix2]
     astwcs_result = wobj.sip_pix2foc([coords], 1)[0] - rel_coords
@@ -151,7 +151,7 @@ def test_sip_irac():
     del b_pars['B_DMAX']
     pix = [200, 200]
     rel_pix = [200 - crpix1, 200 - crpix2]
-    sip = SIP([crpix1, crpix2], a_order, a_pars, b_order, b_pars,
+    sip = SIP([crpix1, crpix2], a_order, b_order, a_pars, b_pars,
               ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
               bp_coeff=bp_pars)
     invsip = sip.inverse()
@@ -159,3 +159,11 @@ def test_sip_irac():
     newpix = wobj.sip_foc2pix(foc, 1)[0]
     utils.assert_allclose(sip(*pix), foc[0] - rel_pix)
     utils.assert_allclose(invsip(*foc[0]) + foc[0] - rel_pix, newpix - pix)
+
+
+def test_sip_no_coeff():
+    sip = SIP([10,12], 2, 2)
+    utils.assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
+    utils.assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
+    with pytest.raises(NotImplementedError):
+        invsip = sip.inverse()
