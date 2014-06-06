@@ -130,10 +130,9 @@ def test_coord_init_string():
     assert allclose(sc1.ra, Angle(120 * u.deg))
     assert allclose(sc1.dec, Angle(5 * u.deg))
 
-    sc2 = SkyCoord('8 00 -5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
-    assert isinstance(sc2, SkyCoord)
-    assert allclose(sc2.ra, Angle(120 * u.deg))
-    assert allclose(sc2.dec, Angle(-5 * u.deg))
+    with pytest.raises(ValueError) as err:
+        SkyCoord('8 00 -5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
+    assert 'coordinates have 5 values but spherical representation only accepts 3' in str(err)
 
 
 def test_coord_init_unit():
@@ -193,7 +192,7 @@ def test_coord_init_list():
 
     with pytest.raises(ValueError) as err:
         SkyCoord([1 * u.deg, 2 * u.deg])  # this list is taken as RA w/ missing dec
-    assert "Cannot parse longitude and latitude" in str(err)
+    assert "One or more elements of input sequence does not have a length" in str(err)
 
 
 def test_coord_init_array():

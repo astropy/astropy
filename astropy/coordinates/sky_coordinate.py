@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import collections
 
 import numpy as np
-import re
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -11,7 +10,6 @@ from ..extern.six.moves import zip
 from ..units import Unit
 from .. import units as u
 
-from .angles import Latitude, Longitude
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import NoFrame
@@ -88,7 +86,7 @@ class SkyCoord(object):
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         Type of coordinate frame this `SkyCoord` should represent.
-    unit : `~astropy.units.Unit`, string, or 2-tuple of :class:`~astropy.units.Unit` or str, optional
+    unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied ``LON`` and ``LAT`` values, respectively.  If
         only one unit is supplied then it applies to both ``LON`` and
         ``LAT``.
@@ -842,13 +840,10 @@ def _parse_coordinate_arg(coords, frame, units):
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
 
-    # Get the mapping of attribute type (e.g. 'lat', 'lon', 'distance')
-    # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
-    attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                              frame.representation_names.items())
-
     frame_attr_names = frame.representation_names.keys()
     repr_attr_names = frame.representation_names.values()
+    repr_attr_classes = frame.representation._attr_classes.values()
+    n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -864,7 +859,8 @@ def _parse_coordinate_arg(coords, frame, units):
 
         data = coords.data.represent_as(frame.representation)
 
-        for frame_attr_name, repr_attr_name, unit in zip(frame_attr_names, repr_attr_names, units):
+        for frame_attr_name, repr_attr_name, attr_class, unit in zip(
+                frame_attr_names, repr_attr_names, repr_attr_classes, units):
             # If coords did not have an explicit distance then don't include in initializers.
             if (isinstance(coords.data, UnitSphericalRepresentation) and
                     repr_attr_name == 'distance'):
@@ -874,7 +870,6 @@ def _parse_coordinate_arg(coords, frame, units):
             # by passing through the appropriate initializer class with a unit (which
             # might be None).
             value = getattr(data, repr_attr_name)
-            attr_class = frame.representation._attr_classes[repr_attr_name]
             valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
 
         for attr in FRAME_ATTR_NAMES_SET():
@@ -886,48 +881,68 @@ def _parse_coordinate_arg(coords, frame, units):
 
     elif isinstance(coords, BaseRepresentation):
         data = coords.represent_as(frame.representation)
-        for frame_attr_name, repr_attr_name in zip(frame_attr_names, repr_attr_names):
-            valid_kwargs[frame_attr_name] = getattr(data, repr_attr_name)
+        for frame_attr_name, repr_attr_name, attr_class, unit in zip(
+                frame_attr_names, repr_attr_names, repr_attr_classes, units):
+            value = getattr(data, repr_attr_name)
+            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
+
+    elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
+          and coords.ndim == 2 and coords.shape[1] <= 3):
+        # 2-d array of coordinate values.  Handle specially for efficiency.
+
+        # Get the classes (e.g. Longitude or Quantity) that initialize a
+        # represenation data value (in order)
+        values = coords.transpose()  # Iterates over repr attrs
+        for frame_attr_name, attr_class, value, unit in zip(
+                frame_attr_names, repr_attr_classes, values, units):
+            valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
-        # TODO: Generalize (might be difficult?)
-        # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
-        # SkyCoord(ra, dec) or SkyCoord([(ra, dec)])
-        lons = []
-        lats = []
-
-        for coord in coords:
-            # Each row must be either a 2-element iterable or a string that
-            # splits into six or two elements.
+        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+        values = []
+        for ii, coord in enumerate(coords):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
-                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif len(coord1) > 2:
-                    coord = re.split('(\+|\-)', coord)
-                    coord = (coord[0], ' '.join(coord[1:]))
-                else:
-                    coord = coord1
-            try:
-                lon, lat = coord
-            except:
-                raise ValueError('Cannot parse longitude and latitude '
-                                 'from first argument')
+                    coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                coord = coord1
 
-            lons.append(lon)
-            lats.append(lat)
-
-        if is_scalar:
-            lons, lats = lons[0], lats[0]
+            values.append(coord)  # This assumes coord is a sequence at this point
 
         try:
-            valid_kwargs[attr_name_for_type['lon']] = Longitude(lons, unit=units[0])
-            valid_kwargs[attr_name_for_type['lat']] = Latitude(lats, unit=units[1])
+            n_coords = sorted(set(len(x) for x in values))
+        except:
+            raise ValueError('One or more elements of input sequence does not have a length')
+
+        if len(n_coords) > 1:
+            raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                             .format(n_coords))
+        n_coords = n_coords[0]
+
+        # Must have no more coord inputs than representation attributes
+        if n_coords > n_attr_names:
+            raise ValueError('Input coordinates have {0} values but {1} representation '
+                             'only accepts {2}'
+                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+
+        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+        # while (a1, a2, ..) doesn't work.
+        values = [list(x) for x in zip(*values)]
+
+        if is_scalar:
+            values = [x[0] for x in values]
+
+        try:
+            for frame_attr_name, attr_class, value, unit in zip(
+                    frame_attr_names, repr_attr_classes, values, units):
+                valid_kwargs[frame_attr_name] = attr_class(value, unit=unit)
         except Exception as err:
             raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
                              .format(err))
     else:
-        raise ValueError('Cannot parse longitude and latitude from first argument')
+        raise ValueError('Cannot parse coordinates from first argument')
 
     return valid_kwargs
 
