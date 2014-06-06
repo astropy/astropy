@@ -25,6 +25,20 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
+try:
+    import astropy_helpers
+except ImportError:
+    # Building from inside the docs/ directory?
+    import os
+    import sys
+    if os.path.basename(os.getcwd()) == 'docs':
+        a_h_path = os.path.abspath(os.path.join('..', 'astropy_helpers'))
+        if os.path.isdir(a_h_path):
+            sys.path.insert(1, a_h_path)
+
+    # If that doesn't work trying to import from astropy_helpers below will
+    # still blow up
+
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
 from astropy.extern import six
