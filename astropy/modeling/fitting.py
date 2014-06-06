@@ -99,7 +99,7 @@ class Fitter(object):
 
     def objective_function(self, fps, *args):
         """
-        Function to minimize
+        Function to minimize.
 
         Parameters
         ----------
@@ -107,7 +107,8 @@ class Fitter(object):
             parameters returned by the fitter
         args : list
             [model, [other_args], [input coordinates]]
-            other_args may include weights or any other quantities specific for a statistic
+            other_args may include weights or any other quantities specific for
+            a statistic
 
         Notes
         -----
@@ -282,10 +283,12 @@ class LinearLSQFitter(object):
                 raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
                 lhs *= weights[:, np.newaxis]
-                rhs *= weights[:, np.newaxis]
+                # Don't modify in-place in case rhs was the original dependent
+                # variable array
+                rhs = rhs * weights[:, np.newaxis]
             else:
                 lhs *= weights[:, np.newaxis]
-                rhs *= weights
+                rhs = rhs * weights
 
         if not multiple and model_copy.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
@@ -364,7 +367,7 @@ class LevMarLSQFitter(object):
 
     def objective_function(self, fps, *args):
         """
-        Function to minimize
+        Function to minimize.
 
         Parameters
         ----------
@@ -520,7 +523,7 @@ class SLSQPLSQFitter(Fitter):
 
         Parameters
         ----------
-        model : `ParametricModel`
+        model : `~astropy.modeling.FittableModel`
             model to fit to x, y, z
         x : array
             input coordinates
@@ -545,8 +548,8 @@ class SLSQPLSQFitter(Fitter):
             Requested accuracy
 
         Returns
-        ------
-        model_copy : `ParametricModel`
+        -------
+        model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
 
@@ -668,6 +671,10 @@ class JointFitter(object):
 
     def objective_function(self, fps, *args):
         """
+        Function to minimize.
+
+        Parameters
+        ----------
         fps : list
             the fitted parameters - result of an one iteration of the
             fitting algorithm

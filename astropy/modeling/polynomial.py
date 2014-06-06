@@ -642,8 +642,9 @@ class Polynomial2D(PolynomialModel):
     Represents a general polynomial of degree n:
 
     .. math::
-        P(x,y) = c_{0_0} + c_{1_0}*x + ...+ c_{n_0}*x^n + c_{0_1}*y + ...+ c_{0_n}*y^n
-        + c_{1_1}*x*y + c_{1_2}*x*y^2 + ... + c_{1_(n-1)}*x*y^{n-1}+ ... + c_{(n-1)_1}*x^{n-1}*y
+
+        P(x,y) = c_{00} + c_{10}x + ...+ c_{n0}x^n + c_{01}y + ...+ c_{0n}y^n
+        + c_{11}xy + c_{12}xy^2 + ... + c_{1(n-1)}xy^{n-1}+ ... + c_{(n-1)1}x^{n-1}y
 
     Parameters
     ----------
@@ -833,7 +834,9 @@ class Chebyshev2D(OrthoPolynomialBase):
 
         This is an array with Chebyshev polynomials:
 
-        Tx0Ty0  Tx1Ty0...TxnTy0...TxnTym
+        .. math::
+
+            T_{x_0}T_{y_0}, T_{x_1}T_{y_0}...T_{x_n}T_{y_0}...T_{x_n}T_{y_m}
 
         Parameters
         ----------

@@ -12,7 +12,7 @@ import numpy as np
 from ..extern import six
 from ..utils.exceptions import AstropyUserWarning
 
-__all__ = ["SLSQP", "Simplex"]
+__all__ = ["Optimization", "SLSQP", "Simplex"]
 
 # Maximum number of iterations
 DEFAULT_MAXITER = 100
@@ -22,6 +22,8 @@ DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
 
 #Default requested accuracy
 DEFAULT_ACC = 1e-07
+
+DEFAULT_BOUNDS = (-10 ** 12, 10 ** 12)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -144,13 +146,14 @@ class SLSQP(Optimization):
         # set the values of constraints to match the requirements of fmin_slsqp
         model = fargs[0]
         pars = [getattr(model, name) for name in model.param_names]
-        bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
+        bounds = [par.bounds for par in pars if par.fixed != True and
+                  par.tied == False]
         bounds = np.asarray(bounds)
         for i in bounds:
             if i[0] is None:
-                i[0] = -10 ** 12
+                i[0] =  DEFAULT_BOUNDS[0]
             if i[1] is None:
-                i[1] = 10 ** 12
+                i[1] = DEFAULT_BOUNDS[1]
         # older versions of scipy require this array to be float
         bounds = np.asarray(bounds, dtype=np.float)
         eqcons = np.array(model.eqcons)

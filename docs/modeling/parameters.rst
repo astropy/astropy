@@ -21,10 +21,11 @@ shape ``(len(param_names), param_dim)``, where
 Typically the array is of type float but can become an object array in some
 cases. `~astropy.modeling.Model.param_sets` is used for model evaluation.
 
-In addition, fittable models maintain an attribute, ``parameters``, which is
-a flattened 1D array of parameter values. It serves as the primary storage
-of the raw values of fittable models' parameters, and is used directly by
-fitters as an efficient means of reading and updating a model's parameters.
+In addition, fittable models maintain an attribute,
+`~astropy.modeling.Model.parameters`, which is a flattened 1D array of
+parameter values. It serves as the primary storage of the raw values of
+fittable models' parameters, and is used directly by fitters as an efficient
+means of reading and updating a model's parameters.
 
 
 Parameter examples

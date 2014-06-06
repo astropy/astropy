@@ -75,7 +75,7 @@ necessary to provide the name twice.
 
 ::
 
-    from astropy.modeling import *
+    from astropy.modeling import FittableModel, Parameter
 
     class Gaussian1DModel(FittableModel):
         amplitude = Parameter()
@@ -257,7 +257,7 @@ The following import statements are needed.::
                                           _fitter_to_model_params,
                                           _model_to_fit_params, Fitter,
                                           _convert_input)
-    from astropy.modeling.optimizers import *
+    from astropy.modeling.optimizers import Simplex
 
 First one needs to define a statistic. This can be a function or a callable
 class.::

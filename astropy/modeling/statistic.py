@@ -14,16 +14,25 @@ def leastsquare(measured_vals, updated_model, weights, x, y=None):
     """
     Least square statistic with optional weights.
 
-    measured_vals : array
-        measured data values
-    updated_model : instance of `~astropy.modeling.Model`
-        model with parameters set by the current iteration of the optimizer
-    args : list
-        other arguments passed through the fitter's objective function
-    kwargs : dict
-        other keyword arguments passed through the fitter
+    Parameters
+    ----------
+    measured_vals : `~numpy.ndarray`
+        Measured data values.
+    updated_model : `~astropy.modeling.Model`
+        Model with parameters set by the current iteration of the optimizer.
+    weights : `~numpy.ndarray`
+        Array of weights to apply to each residual.
+    x : `~numpy.ndarray`
+        Independent variable "x" to evaluate the model on.
+    y : `~numpy.ndarray`, optional
+        Independent variable "y" to evaluate the model on, for 2D models.
 
+    Returns
+    -------
+    res : float
+        The sum of least squares.
     """
+
     if y is None:
         model_vals = updated_model(x)
     else:
