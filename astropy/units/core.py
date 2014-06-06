@@ -1027,8 +1027,9 @@ class UnitBase(object):
         # Do we have any minimal results?
         for final_result in final_results:
             if len(final_result):
-                cached_results[key] = final_result
-                return final_result
+                results = final_results[0].union(final_results[1])
+                cached_results[key] = results
+                return results
 
         partial_results.sort(key=lambda x: x[0])
 
