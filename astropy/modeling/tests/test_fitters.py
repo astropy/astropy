@@ -16,6 +16,7 @@ from numpy.testing.utils import assert_allclose, assert_almost_equal
 from . import irafutil
 from .. import models
 from .. import fitting
+from ..core import Fittable2DModel, Parameter
 from ..fitting import LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter
 from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
@@ -263,6 +264,27 @@ class TestNonLinearFitters(object):
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
                         rtol=10 ** (-4))
+
+    def test_simplex_lsq_fitter(self):
+        """A basic test for the `SimplexLSQ` fitter."""
+
+        class Rosenbrock(Fittable2DModel):
+            a = Parameter()
+            b = Parameter()
+
+            @staticmethod
+            def eval(x, y, a, b):
+                return (a - x) ** 2 + b * (y - x ** 2) ** 2
+
+        x = y = np.linspace(-3.0, 3.0, 100)
+        with NumpyRNGContext(0xCAFECAFE):
+            z = Rosenbrock.eval(x, y, 1.0, 100.0) + np.random.normal(0., 0.1)
+
+        fitter = SimplexLSQFitter()
+        r_i = Rosenbrock(1, 100)
+        r_f = fitter(r_i, x, y, z)
+
+        assert_allclose(r_f.parameters, [1.0, 100.0], rtol=1e-2)
 
     def test_param_cov(self):
         """
