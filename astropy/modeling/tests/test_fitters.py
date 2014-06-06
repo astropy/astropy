@@ -7,14 +7,17 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import os.path
+
+import numpy as np
+
+from numpy import linalg
+from numpy.testing.utils import assert_allclose, assert_almost_equal
+
+from . import irafutil
 from .. import models
 from .. import fitting
-from .. fitting import (LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter)
-from . import irafutil
-import numpy as np
-from numpy import linalg
-from numpy.testing import utils
-from numpy.random import RandomState
+from ..fitting import LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter
+from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
@@ -24,14 +27,13 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
 
 class TestPolynomial2D(object):
+    """Tests for 2D polynomail fitting."""
 
-    """
-    Tests for 2D polynomail fitting
-    """
     def setup_class(self):
         self.model = models.Polynomial2D(2)
         self.y, self.x = np.mgrid[:5, :5]
@@ -45,18 +47,18 @@ class TestPolynomial2D(object):
         v = self.model.fit_deriv(x=self.x, y=self.y)
         p = linalg.lstsq(v, self.z.flatten())[0]
         new_model = self.fitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(new_model.parameters, p)
+        assert_allclose(new_model.parameters, p)
 
     def test_eval(self):
         new_model = self.fitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(new_model(self.x, self.y), self.z)
+        assert_allclose(new_model(self.x, self.y), self.z)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_polynomial2D_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
         nlfitter = fitting.LevMarLSQFitter()
         new_model = nlfitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
+        assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
 
 class TestICheb2D(object):
@@ -81,12 +83,12 @@ class TestICheb2D(object):
                       128.])
         z = self.cheb2(self.x, self.y)
         model = self.fitter(self.cheb2, self.x, self.y, z)
-        utils.assert_almost_equal(model.parameters, p)
+        assert_almost_equal(model.parameters, p)
 
     def test_poly2D_cheb2D(self):
         model = self.fitter(self.cheb2, self.x, self.y, self.z)
         z1 = model(self.x, self.y)
-        utils.assert_almost_equal(self.z, z1)
+        assert_almost_equal(self.z, z1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_chebyshev2D_nonlinear_fitting(self):
@@ -96,8 +98,8 @@ class TestICheb2D(object):
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
         nlfitter = fitting.LevMarLSQFitter()
         model = nlfitter(cheb2d, self.x, self.y, z)
-        utils.assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                              atol=10**-9)
+        assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        atol=10**-9)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -120,7 +122,10 @@ class TestJointFitter(object):
         self.x = np.arange(10, 20, .1)
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
-        n = np.random.randn(100)
+
+        with NumpyRNGContext(0x01010101):
+            n = np.random.randn(100)
+
         self.ny1 = y1 + 2 * n
         self.ny2 = y2 + 2 * n
         self.jf(self.x, self.ny1, self.x, self.ny2)
@@ -129,8 +134,8 @@ class TestJointFitter(object):
         """
         Tests that the amplitude of the two models is the same
         """
-        utils.assert_allclose(self.jf.fitparams[0], self.g1.parameters[0])
-        utils.assert_allclose(self.jf.fitparams[0], self.g2.parameters[0])
+        assert_allclose(self.jf.fitparams[0], self.g1.parameters[0])
+        assert_allclose(self.jf.fitparams[0], self.g2.parameters[0])
 
     def test_joint_fitter(self):
         """
@@ -151,7 +156,7 @@ class TestJointFitter(object):
 
         coeff, _ = optimize.leastsq(errfunc, p,
                                     args=(self.x, self.ny1, self.x, self.ny2))
-        utils.assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
+        assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
 
 class TestLinearLSQFitter(object):
@@ -175,8 +180,8 @@ class TestLinearLSQFitter(object):
 
     def test_chebyshev1D(self):
         new_model = self.lf(self.model, self.x, self.y)
-        utils.assert_allclose(new_model.parameters, np.array(self.icoeff),
-                              rtol=10E-2)
+        assert_allclose(new_model.parameters, np.array(self.icoeff),
+                        rtol=10E-2)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -190,8 +195,9 @@ class TestNonLinearFitters(object):
 
         self.xdata = np.arange(0, 10, 0.1)
         sigma = 8. * np.ones_like(self.xdata)
-        rsn = RandomState(1234567890)
-        yerror = rsn.normal(0, sigma)
+
+        with NumpyRNGContext(0xDEADBEEF):
+            yerror = np.random.normal(0, sigma)
 
         def func(p, x):
             return p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
@@ -210,8 +216,7 @@ class TestNonLinearFitters(object):
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
         efitter = fitting.LevMarLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
-        utils.assert_allclose(model.parameters, emodel.parameters,
-                              rtol=10 ** (-3))
+        assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
@@ -231,7 +236,7 @@ class TestNonLinearFitters(object):
 
         result = optimize.leastsq(errfunc, self.initial_values,
                                   args=(self.xdata, self.ydata))
-        utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
+        assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
@@ -241,8 +246,8 @@ class TestNonLinearFitters(object):
         fitter = fitting.SLSQPLSQFitter()
         new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
-        utils.assert_allclose(model.parameters, new_model.parameters,
-                              rtol=10 ** (-4))
+        assert_allclose(model.parameters, new_model.parameters,
+                        rtol=10 ** (-4))
 
     def test_LSQ_SLSQP_with_constraints(self):
         """
@@ -256,22 +261,23 @@ class TestNonLinearFitters(object):
         fslsqp = fitting.SLSQPLSQFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
-        utils.assert_allclose(model.parameters, slsqp_model.parameters,
-                              rtol=10 ** (-4))
+        assert_allclose(model.parameters, slsqp_model.parameters,
+                        rtol=10 ** (-4))
 
     def test_param_cov(self):
         """
         Tests that the 'param_cov' fit_info entry gets the right answer for
         *linear* least squares, where the answer is exact
         """
-        rs = RandomState(1234567890)
 
         a = 2
         b = 100
 
-        x = np.linspace(0, 1, 100)
-        # y scatter is amplitude ~1 to make sure covarience is non-negligible
-        y = x*a + b + rs.randn(len(x))
+        with NumpyRNGContext(0x1337FACE):
+            x = np.linspace(0, 1, 100)
+            # y scatter is amplitude ~1 to make sure covarience is
+            # non-negligible
+            y = x*a + b + np.random.randn(len(x))
 
         #first compute the ordinary least squares covariance matrix
         X = np.matrix(np.vstack([x, np.ones(len(x))]).T)
@@ -285,6 +291,5 @@ class TestNonLinearFitters(object):
 
         fmod = fitter(mod, x, y)
 
-        utils.assert_allclose(fmod.parameters, beta.A.ravel())
-        utils.assert_allclose(olscov, fitter.fit_info['param_cov'])
-
+        assert_allclose(fmod.parameters, beta.A.ravel())
+        assert_allclose(olscov, fitter.fit_info['param_cov'])
