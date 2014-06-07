@@ -198,6 +198,8 @@ New Features
   - The runtime of ``astropy.units.Unit.compose`` is greatly improved
     (by a factor of 2 in most cases) [#2544]
 
+  - Added ``electron`` unit. [#2599]
+
 - ``astropy.utils``
 
   - ``timer.RunTimePredictor`` now uses ``astropy.modeling`` in its
