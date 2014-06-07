@@ -500,3 +500,12 @@ def test_table_to_coord():
 
     assert allclose(c.ra.to(u.deg), [1, 2, 3])
     assert allclose(c.dec.to(u.deg), [4, 5, 6])
+
+@pytest.mark.parametrize("input,expected", [
+        ((10*u.deg, 20*u.deg), "<SkyCoord (ICRS): ra=10.0 deg, dec=20.0 deg>"),
+        ])
+def test_frame_skycoord_positional(input, expected):
+    """
+    Tests all permutations of positional inputs with frame `ICRS` for `SkyCoord`.
+    """
+    assert repr(SkyCoord(ICRS(*input))) == expected
