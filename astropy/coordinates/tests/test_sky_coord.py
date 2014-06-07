@@ -43,7 +43,7 @@ def test_transform_to():
 
 # set up for parametrized test
 rt_sets = []
-rt_frames = [ICRS, FK4, FK5, FK4NoETerms, Galactic]
+rt_frames = [ICRS, FK4, FK5, Galactic]
 for rt_frame0 in rt_frames:
     for rt_frame1 in rt_frames:
             for equinox0 in (None, 'J1975.0'):
