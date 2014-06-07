@@ -529,4 +529,24 @@ def test_frame_skycoord_positional(input):
     else:
         assert sc.ra.value == input[0]
         assert sc.dec.value == input[1]
-        
+
+@pytest.mark.parametrize("input", positional_list)
+def test_frame_skycoord_kw(input):
+    """
+    Tests all permutations of keyword inputs for `ICRS` using `SkyCoord`.
+    """    
+    sc = SkyCoord(ra=input[0], dec=input[1], frame="icrs", unit="deg")
+    
+    assert isinstance(sc, SkyCoord)
+
+    if (isinstance(input[0], u.Quantity) and
+        isinstance(input[1], u.Quantity)):
+        assert sc.ra == input[0]
+        assert sc.dec == input[1]
+    elif (hasattr(input[0], '__iter__') and
+        hasattr(input[1], '__iter__')):
+        assert compare(sc.ra.value, input[0])
+        assert compare(sc.dec.value, input[1])
+    else:
+        assert sc.ra.value == input[0]
+        assert sc.dec.value == input[1]
