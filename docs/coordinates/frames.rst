@@ -92,6 +92,7 @@ representation class the system is typically expressed in (e.g.,
 spherical for equatorial frames), and the latter will be a dictionary
 mapping names for that frame to the attribute name on the representation
 class::
+
     >>> from astropy import units as u
     >>> icrs = ICRS(0*u.deg, 0*u.deg)
     >>> icrs.representation
