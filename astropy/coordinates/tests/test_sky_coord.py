@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import functools
+import collections
 
 import numpy as np
 from numpy import testing as npt
@@ -499,13 +500,33 @@ def test_table_to_coord():
     c = SkyCoord(t['ra'], t['dec'])
 
     assert allclose(c.ra.to(u.deg), [1, 2, 3])
-    assert allclose(c.dec.to(u.deg), [4, 5, 6])
+    assert allclose(c.dec.to(u.deg), [4, 5, 6]) 
 
-@pytest.mark.parametrize("input,expected", [
-        ((10*u.deg, 20*u.deg), "<SkyCoord (ICRS): ra=10.0 deg, dec=20.0 deg>"),
-        ])
-def test_frame_skycoord_positional(input, expected):
+compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
+input_list = [
+        ((10, 20)),
+        (([1, 2, 3], [4, 5, 6])),
+        ((np.array([1,2,3]), np.array([4,5,6]))),
+        ((10*u.deg, 20*u.deg))
+        ]
+@pytest.mark.parametrize("input", input_list)
+def test_frame_skycoord_positional(input):
     """
     Tests all permutations of positional inputs with frame `ICRS` for `SkyCoord`.
     """
-    assert repr(SkyCoord(ICRS(*input))) == expected
+    sc = SkyCoord(*input, frame="icrs", unit="deg")
+    
+    assert isinstance(sc, SkyCoord)
+
+    if (isinstance(input[0], u.Quantity) and
+        isinstance(input[1], u.Quantity)):
+        assert sc.ra == input[0]
+        assert sc.dec == input[1]
+    elif (hasattr(input[0], '__iter__') and
+        hasattr(input[1], '__iter__')):
+        assert compare(sc.ra.value, input[0])
+        assert compare(sc.dec.value, input[1])
+    else:
+        assert sc.ra.value == input[0]
+        assert sc.dec.value == input[1]
+        
