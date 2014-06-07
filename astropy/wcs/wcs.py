@@ -1395,7 +1395,7 @@ naxis kwarg.
         table-lookup distortion correction.
 
         The output is in absolute pixel coordinates, not relative to 
-        `CRPIX`.
+        ``CRPIX``.
 
         Parameters
         ----------
@@ -1424,7 +1424,7 @@ naxis kwarg.
         `Paper IV`_ table-lookup distortion correction.
 
         The output is in absolute pixel coordinates, not relative to 
-        `CRPIX`.
+        ``CRPIX``.
  
         Parameters
         ----------
@@ -1453,7 +1453,7 @@ naxis kwarg.
         `Paper IV`_ table-lookup distortion correction.
 
         The output is in absolute pixel coordinates, not relative to 
-        `CRPIX`.
+        ``CRPIX``.
 
         Parameters
         ----------
@@ -1488,7 +1488,7 @@ naxis kwarg.
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention.
 
-        The output is in pixel coordinates, relative to `CRPIX`.
+        The output is in pixel coordinates, relative to ``CRPIX``.
 
         `Paper IV`_ table lookup distortion correction is not applied,
         even if that information existed in the FITS file that
