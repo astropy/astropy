@@ -351,8 +351,8 @@ class SkyCoord(object):
             return self.transform_to(attr)
 
         # Fail
-        raise AttributeError("'{0}' object has no attribute '{1}', nor a transform."
-                             .format(self.__class__, attr))
+        raise AttributeError("'{0}' object has no attribute '{1}'"
+                             .format(self.__class__.__name__, attr))
 
     @override__dir__
     def __dir__(self):
