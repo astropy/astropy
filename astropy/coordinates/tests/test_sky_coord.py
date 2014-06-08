@@ -14,11 +14,13 @@ import collections
 
 import numpy as np
 from numpy import testing as npt
+import six
 
 from ... import units as u
 from ...tests.helper import pytest
 from ...coordinates import (ICRS, FK4, FK5, FK4NoETerms, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation)
+from ...coordinates import Latitude, Longitude
 from ...time import Time
 
 RA = 1.0 * u.deg
@@ -500,22 +502,42 @@ def test_table_to_coord():
     c = SkyCoord(t['ra'], t['dec'])
 
     assert allclose(c.ra.to(u.deg), [1, 2, 3])
-    assert allclose(c.dec.to(u.deg), [4, 5, 6]) 
+    assert allclose(c.dec.to(u.deg), [4, 5, 6])
+
+def _break_string_args(string):
+    # Proceed to break the string into arguments.
+    # Similar to _parse_coordinate_arg().
+    vals = []
+    for index, coord in enumerate(string):
+        coord1 = coord.split()
+        if len(coord1) == 6:
+            coord1 = (' '.join(coord1[3:]), ' '.join(coord1[:3]))
+        coord = coord1
+        vals.append(coord1)
+    values = [x[0] for x in [list(y) for y in zip(*vals)]]
+    return values
 
 compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
 input_list = [
         ((10, 20)),
-        (([1, 2, 3], [4, 5, 6])),
-        ((np.array([1,2,3]), np.array([4,5,6]))),
-        ((10*u.deg, 20*u.deg))
+         (([1, 2, 3], [4, 5, 6])),
+         ((np.array([1,2,3]), np.array([4,5,6]))),
+         ((10*u.deg, 20*u.deg)),
+         (("1h12m43.2s +1d12m43s"))
         ]
 @pytest.mark.parametrize("input", input_list)
 def test_frame_skycoord_positional(input):
     """
     Tests all permutations of positional inputs with frame `ICRS` for `SkyCoord`.
     """
-    sc = SkyCoord(*input, frame="icrs", unit="deg")
-    
+    # Initialize.
+    sc = None
+    if isinstance(input, six.string_types):
+        sc = SkyCoord(input, frame="icrs", unit="deg")
+    else:
+        sc = SkyCoord(*input, frame="icrs", unit="deg")
+
+    # Test.
     assert isinstance(sc, SkyCoord)
 
     if (isinstance(input[0], u.Quantity) and
@@ -526,17 +548,27 @@ def test_frame_skycoord_positional(input):
         hasattr(input[1], '__iter__')):
         assert compare(sc.ra.value, input[0])
         assert compare(sc.dec.value, input[1])
+    elif isinstance(input, six.string_types):
+        values = _break_string_args([input])
+        assert sc.ra.value == Longitude(values[0], unit="deg").value
+        assert sc.dec.value == Latitude(values[1], unit="deg").value
     else:
         assert sc.ra.value == input[0]
         assert sc.dec.value == input[1]
 
-@pytest.mark.parametrize("input", positional_list)
+@pytest.mark.parametrize("input", input_list)
 def test_frame_skycoord_kw(input):
     """
     Tests all permutations of keyword inputs for `ICRS` using `SkyCoord`.
-    """    
-    sc = SkyCoord(ra=input[0], dec=input[1], frame="icrs", unit="deg")
-    
+    """
+    # Initialize.
+    sc = None
+    if isinstance(input, six.string_types):
+        sc = SkyCoord(input, frame="icrs", unit="deg")
+    else:
+        sc = SkyCoord(ra=input[0], dec=input[1], frame="icrs", unit="deg")
+
+    # Test.
     assert isinstance(sc, SkyCoord)
 
     if (isinstance(input[0], u.Quantity) and
@@ -547,6 +579,10 @@ def test_frame_skycoord_kw(input):
         hasattr(input[1], '__iter__')):
         assert compare(sc.ra.value, input[0])
         assert compare(sc.dec.value, input[1])
+    elif isinstance(input, six.string_types):
+        values = _break_string_args([input])
+        assert sc.ra.value == Longitude(values[0], unit="deg").value
+        assert sc.dec.value == Latitude(values[1], unit="deg").value
     else:
         assert sc.ra.value == input[0]
         assert sc.dec.value == input[1]
