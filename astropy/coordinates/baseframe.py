@@ -14,6 +14,7 @@ from copy import deepcopy
 # Dependencies
 
 # Project
+from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
@@ -557,7 +558,24 @@ class BaseCoordinateFrame(object):
         else:
             raise ValueError('Cannot index a frame with no data')
 
+    @override__dir__
+    def __dir__(self):
+        """
+        Override the builtin `dir` behavior to include representation
+        names.
+
+        TODO: dynamic representation transforms (i.e. include cylindrical et al.).
+        """
+        dir_values = set(self.representation_names)
+
+        return dir_values
+
     def __getattr__(self, attr):
+        """
+        Allow access to attributes defined in self.representation_names.
+
+        TODO: dynamic representation transforms (i.e. include cylindrical et al.).
+        """
         if attr not in self.representation_names:
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
