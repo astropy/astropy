@@ -24,9 +24,13 @@ The first step is to create a new class, which we'll call
 ``Sagittarius`` and make it a subclass of
 `~astropy.coordinates.BaseCoordinateFrame`::
 
-    import astropy.coordinates as coord
+    import numpy as np
+    from numpy import cos, sin
+
     from astropy.coordinates import frame_transform_graph
     from astropy.coordinates.angles import rotation_matrix
+    import astropy.coordinates as coord
+    import astropy.units as u
 
     class Sagittarius(coord.BaseCoordinateFrame):
         """
@@ -51,19 +55,20 @@ The first step is to create a new class, which we'll call
             (`representation` must be None).
 
         """
-        representation_attrs = dict(
-            [SphericalRepresentation.attr_dict(('Lambda', 'Beta', 'distance'),
-                                               (u.deg, u.deg, None)),
-             UnitSphericalRepresentation.attr_dict(('Lambda', 'Beta'), (u.deg, u.deg)),
-             CartesianRepresentation.attr_dict(('x', 'y', 'z'), (None, None, None))])
+        _representation = coord.SphericalRepresentation
 
-        _representation = SphericalRepresentation
+        _representation_attrs = {
+            'spherical': {'names': ('Lambda', 'Beta', 'distance'),
+                          'units': (u.degree, u.degree, None)},
+            'unitspherical': {'names': ('Lambda', 'Beta'),
+                              'units': (u.degree, u.degree)}}
 
 Line by line, the first few are simply imports. Next we define the class as a
 subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include a
 descriptive docstring.  The final lines are class-level attributes that specify
-the data attribute names and units for each representation (e.g. spherical,
-cartesian) in this frame.
+the non-default data attribute names and units the available representations.
+In this case we override the names in the spherical representations but don't
+do anything with the others like cartesian or cylindrical.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions
@@ -159,7 +164,8 @@ transform from ICRS coordinates to ``Sagittarius``, we simply::
     >>> import astropy.coordinates as coord
     >>> icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
     >>> icrs.transform_to(Sagittarius)  # doctest: +SKIP
-    <Sagittarius Coordinate Lambda=346.81827... deg, Beta=-39.28367... deg>
+    <Sagittarius Coordinate: (Lambda, Beta, distance) in (deg, deg, )
+        (346.818273..., -39.283667..., 1.0)>
 
 The complete code for the above example is included below for reference.
 
