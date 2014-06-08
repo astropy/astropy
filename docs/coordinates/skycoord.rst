@@ -16,7 +16,7 @@ The key distinctions between |SkyCoord| and the low-level classes
 
 - The |SkyCoord| object can maintain the union of frame attributes for all
   built-in and user-defined coordinate frames in the
-  ``~astropy.coordinates.frame_transform_graph``.  Individual frame classes hold
+  ``astropy.coordinates.frame_transform_graph``.  Individual frame classes hold
   only the required attributes (e.g. equinox, observation time or observer
   location) for that frame.  This means that a transformation from
   `~astropy.coordinates.FK4` (with equinox and observation time) to
@@ -54,9 +54,11 @@ in the `Initialization Syntax`_ section.  Elements in square brackets like
   SkyCoord(LON, LAT, [frame=FRAME], [unit=UNIT], keyword_args ...)
   SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
 
-The examples below illustrate common ways of initializing a |SkyCoord|
-object.  For a complete description of the allowed syntax see the
-full coordinates documentation.  First some imports::
+The examples below illustrate common ways of initializing a |SkyCoord| object.
+These all reflect initializing using spherical coordinates, which is the
+default for all built-in frames.  In order to understand working with coordinates
+using a different representation such as cartesian or cylindrical, see the
+section on `Representations`_.  First some imports::
 
   >>> from astropy.coordinates import SkyCoord  # High-level coordinates
   >>> from astropy.coordinates import ICRS, Galactic, FK4, FK5  # Low-level frames
@@ -115,19 +117,26 @@ coordinate above were created with
 with a different ``equinox`` would raise an exception.
 
 Initialization Syntax
-"""""""""""""""""""""""
+"""""""""""""""""""""
 
-The syntax for |SkyCoord| is given below::
+For spherical representations, which are the most common and are the default
+input format for all built-in frames, the syntax for |SkyCoord| is given
+below::
 
   SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
-  SkyCoord(LON, LAT, [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
+  SkyCoord(LON, LAT, [DISTANCE], [FRAME | frame=FRAME], [unit=UNIT], keyword_args ...)
   SkyCoord([FRAME | frame=FRAME], <lon_name>=LON, <lat_name>=LAT, [unit=UNIT],
            keyword_args ...)
 
+In the above description, elements in all capital letters (e.g. ``FRAME``)
+describes a user input of that element type.  Elements in square brackets are
+optional.  For non-spherical inputs see the `Representations`_ section.
+
+
 **LON**, **LAT**
 
-For spherical coordinate frames, longitude and latitude values can be specified
-as separate positional arguments.  The following options are available:
+Longitude and latitude value can be specified as separate positional arguments.
+The following options are available for longitude and latitude:
 
 - Single angle value:
 
@@ -140,6 +149,19 @@ as separate positional arguments.  The following options are available:
 - |Angle|, |Longitude|, or |Latitude| object, which can be scalar or
   array-valued
 
+**DISTANCE**
+
+The distance to the object from the frame center can be optionally specified:
+
+- Single distance value:
+
+  - |Quantity| or `~astropy.coordinates.Distance` object
+  - Plain numeric value for a dimensionless distance
+  - Plain numeric value with ``unit`` keyword specifying the unit
+
+- List or |Quantity| or `~astropy.coordinates.Distance` array or numpy array of
+  angle values
+
 **COORD**
 
 This input form uses a single object to supply coordinate data.  For the case
@@ -149,11 +171,14 @@ longitude and latitude pairs in one of the following ways:
 - Single coordinate string with a LON and LAT value separated by a space.  The
   respective values can be any string which is formatted for
   :ref:`angle-creation` of |Longitude| or |Latitude| objects, respectively.
-- List or numpy array of coordinate strings
+- List or numpy array of such coordinate strings
 - List of (LON, LAT) tuples, where each LON and LAT are scalars (not arrays)
 - ``N x 2`` numpy or |Quantity| array of values where the first column is
   longitude and the second column is latitude, e.g.
   ``[[270, -30], [355, +85]] * u.deg``
+- List of (LON, LAT, DISTANCE) tuples
+- ``N x 3`` numpy or |Quantity| array of values where columns are
+  longitude, latitude, and distance respectively.
 
 The input can also be more generalized objects that are not necessarily
 represented in the standard spherical coordinates:
@@ -267,17 +292,18 @@ documentation::
 
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
-  sc.cartesian              sc.icrs                   sc.representation
-  sc.data                   sc.is_frame_attr_default  sc.representation_attrs
-  sc.equinox                sc.is_transformable_to    sc.representation_names
-  sc.fk4                    sc.isscalar               sc.representation_units
-  sc.fk4noeterms            sc.match_to_catalog_3d    sc.separation
-  sc.fk5                    sc.match_to_catalog_sky   sc.separation_3d
-  sc.frame                  sc.name                   sc.shape
-  sc.frame_attr_names       sc.obstime                sc.spherical
-  sc.from_name              sc.position_angle         sc.time_attr_names
-  sc.galactic               sc.realize_frame          sc.to_string
-  sc.has_data               sc.represent_as           sc.transform_to
+  sc.cartesian              sc.has_data               sc.represent_as
+  sc.data                   sc.icrs                   sc.representation
+  sc.dec                    sc.is_frame_attr_default  sc.representation_attrs
+  sc.distance               sc.is_transformable_to    sc.representation_names
+  sc.equinox                sc.isscalar               sc.representation_units
+  sc.fk4                    sc.match_to_catalog_3d    sc.separation
+  sc.fk4noeterms            sc.match_to_catalog_sky   sc.separation_3d
+  sc.fk5                    sc.name                   sc.shape
+  sc.frame                  sc.obstime                sc.spherical
+  sc.frame_attr_names       sc.position_angle         sc.time_attr_names
+  sc.from_name              sc.ra                     sc.to_string
+  sc.galactic               sc.realize_frame          sc.transform_to
 
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
@@ -355,13 +381,14 @@ and |SkyCoord| (aka high-level class)::
   True
 
   >>> sc.frame.<TAB>  # doctest: +SKIP
-  sc.frame.cartesian              sc.frame.name                   sc.frame.separation
-  sc.frame.data                   sc.frame.realize_frame          sc.frame.separation_3d
-  sc.frame.frame_attr_names       sc.frame.represent_as           sc.frame.shape
-  sc.frame.has_data               sc.frame.representation         sc.frame.spherical
-  sc.frame.is_frame_attr_default  sc.frame.representation_attrs   sc.frame.time_attr_names
-  sc.frame.is_transformable_to    sc.frame.representation_names   sc.frame.transform_to
-  sc.frame.isscalar               sc.frame.representation_units
+  sc.frame.cartesian              sc.frame.isscalar               sc.frame.representation_units
+  sc.frame.data                   sc.frame.name                   sc.frame.separation
+  sc.frame.dec                    sc.frame.ra                     sc.frame.separation_3d
+  sc.frame.distance               sc.frame.realize_frame          sc.frame.shape
+  sc.frame.frame_attr_names       sc.frame.represent_as           sc.frame.spherical
+  sc.frame.has_data               sc.frame.representation         sc.frame.time_attr_names
+  sc.frame.is_frame_attr_default  sc.frame.representation_attrs   sc.frame.transform_to
+  sc.frame.is_transformable_to    sc.frame.representation_names
 
   >>> sc.frame.name
   'icrs'
@@ -410,6 +437,213 @@ coordinates are in the exact same reference frame::
   >>> sc.transform_to(sc2)
   <SkyCoord (FK4): equinox=B1960.000, obstime=J1978.123, ra=0.487263... deg, dec=1.777316... deg>
 
+.. _astropy-skycoord-representations:
+
+Representations
+^^^^^^^^^^^^^^^^
+
+So far we have been using a spherical coordinate representation in the all the
+examples, and this is the default for the built-in frames.  Frequently it is
+convenient to initialize or work with a coordinate using a different
+representation such as cartesian or cylindrical.  In this section we discuss
+how to initialize an object using a different representation and how to
+change the representation of an object.  For more information about
+representation objects themselves see :ref:`astropy-coordinates-representations`.
+
+Initialization
+"""""""""""""""
+
+Most of what you need to know can be inferred from the examples below and
+by extrapolating the previous documentation for spherical representations.
+Initialization just requires setting the ``representation`` keyword and
+supplying the corresponding components for that representation::
+
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c
+    <SkyCoord (NoFrame): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    >>> c.x, c.y, c.z
+    (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
+
+Other variations include::
+
+    >>> SkyCoord(1, 2*u.deg, 3, representation='cylindrical')
+    <SkyCoord (NoFrame): rho=1.0 , phi=2.0 deg, z=3.0 >
+
+    >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation='cylindrical')
+    <SkyCoord (NoFrame): rho=1.0 km, phi=2.0 deg, z=3.0 m>
+
+    >>> SkyCoord(rho=1, phi=2, z=3, unit=(u.km, u.deg, u.m), representation='cylindrical')
+    <SkyCoord (NoFrame): rho=1.0 km, phi=2.0 deg, z=3.0 m>
+
+    >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation='cylindrical')
+    <SkyCoord (NoFrame): rho=1.0 , phi=2.0 deg, z=3.0 >
+
+In general terms, the allowed syntax is as follows::
+
+  SkyCoord(COORD, [FRAME | frame=FRAME], [unit=UNIT], [representation=REPRESENTATION],
+           keyword_args ...)
+  SkyCoord(COMP1, COMP2, [COMP3], [FRAME | frame=FRAME], [unit=UNIT],
+           [representation=REPRESENTATION], keyword_args ...)
+  SkyCoord([FRAME | frame=FRAME], <comp1_name>=COMP1, <comp2_name>=COMP2,
+           <comp3_name>=COMP3, [representation=REPRESENTATION], [unit=UNIT],
+           keyword_args ...)
+
+In this case the ``keyword_args`` now includes the element
+``representation=REPRESENTATION``.  In the above description, elements in all
+capital letters (e.g. ``FRAME``) describes a user input of that element type.
+Elements in square brackets are optional.
+
+**COMP1**, **COMP2**, **COMP3**
+
+Component values can be specified as separate positional arguments or as
+keyword arguments.  In this formalism the exact types of allowed input depend
+on the details of the representation.  In general the following input forms
+are supported:
+
+- Single value:
+
+  - Component class object
+  - Plain numeric value with ``unit`` keyword specifying the unit
+
+- List or component class array or numpy array of values
+
+Each representation component has a specified class (the "component class")
+which is used to convert generic input data into a pre-defined object
+class with a certain unit.  These component classes are expected to be
+subclasses of the `~astropy.units.Quantity` class.
+
+**COORD**
+
+This input form uses a single object to supply coordinate data.  The coordinate
+can specify one or more coordinate positions as follows:
+
+- List of ``(COMP1, .., COMP<M>)`` tuples, where each component is a scalar (not
+  array) and there are ``M`` components in the representation.  Typically
+  there are 3 components, but some
+  (e.g. `~astropy.coordinates.UnitSphericalRepresentation`)
+  can have fewer.
+- ``N x M`` numpy or |Quantity| array of values, where ``N`` is the number
+  of coordinates and ``M`` is the number of components.
+
+**REPRESENTATION**
+
+The representation can be supplied either as a
+`~astropy.coordinates.representation.BaseRepresentation` class (e.g.
+`~astropy.coordinates.CartesianRepresentation` or as a string name which is
+simply the class name in lower case and without the final ``representation``
+(e.g. ``'cartesian'``).
+
+The rest of the inputs for creating a |SkyCoord| object in the general case are
+the same as for spherical.
+
+Details
+"""""""""
+
+The available set of representations is dynamic and may change depending what
+representation classes have been defined.  The built-in representations are:
+
+=====================  =======================================================
+  Name                   Class
+=====================  =======================================================
+``spherical``          `~astropy.coordinates.SphericalRepresentation`
+``unitspherical``      `~astropy.coordinates.UnitSphericalRepresentation`
+``physicsspherical``   `~astropy.coordinates.PhysicsSphericalRepresentation`
+``cartesian``          `~astropy.coordinates.CartesianRepresentation`
+``cylindrical``        `~astropy.coordinates.CylindricalRepresentation`
+=====================  =======================================================
+
+Each frame knows about all the available representations, but different
+frames may use different names for the same components.  A common example
+is that the `~astropy.coordinates.Galactic` frame uses ``l`` and ``b``
+instead of ``ra`` and ``dec`` for the ``lon`` and ``lat`` components of
+the `~astropy.coordinates.SphericalRepresentation`.
+
+For a particular frame, in order to see the full list of representations
+and how it names all the components, first make an instance of that frame
+without any data, and then print the ``representation_attrs`` attribute::
+
+    >>> ICRS().representation_attrs  # doctest: +SKIP
+    {astropy.coordinates.representation.CartesianRepresentation:
+      {u'names': (u'x', u'y', u'z'),
+       u'units': (None, None, None)},
+     astropy.coordinates.representation.SphericalRepresentation:
+      {u'names': (u'ra', u'dec', u'distance'),
+       u'units': (Unit("deg"), Unit("deg"), None)},
+     astropy.coordinates.representation.UnitSphericalRepresentation:
+      {u'names': (u'ra', u'dec'),
+       u'units': (Unit("deg"), Unit("deg"))},
+     astropy.coordinates.representation.PhysicsSphericalRepresentation:
+      {u'names': (u'phi', u'theta', u'r'),
+       u'units': (Unit("deg"), Unit("deg"), None)},
+     astropy.coordinates.representation.CylindricalRepresentation:
+      {u'names': (u'rho', u'phi', u'z'),
+       u'units': (None, Unit("deg"), None)}
+    }
+
+This is a bit messy but it shows that for each representation there is a
+``dict`` with two keys:
+
+- ``names``: defines how each component is named in that frame
+- ``units``: defines the units of each component when output, where ``None``
+  means to not force a particular unit.
+
+For a particular coordinate instance you can use the ``representation``
+attribute in conjunction with the ``representation_names`` attribute to figure
+out what keywords are accepted by a particular class object.  The former will
+be the representation class the system is expressed in (e.g., spherical for
+equatorial frames), and the latter will be a dictionary mapping names for that
+frame to the component name on the representation class::
+
+    >>> import astropy.units as u
+    >>> icrs = ICRS(1*u.deg, 2*u.deg)
+    >>> icrs.representation
+    <class 'astropy.coordinates.representation.SphericalRepresentation'>
+    >>> icrs.representation_names
+    OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
+
+Changing representation
+""""""""""""""""""""""""""
+
+The representation of the coordinate object can be changed, as shown
+below.  This actually does *nothing* to the object internal data which
+stores the coordinate values, but it changes the external view of that
+data in two ways:
+
+- The object prints itself in accord with the new representation.
+- The available attributes change to match those of the new representation
+  (e.g. from ``ra, dec, distance`` to ``x, y, z``).
+
+Setting the ``representation`` thus changes a *property* of the object (how it
+appears) without changing the intrinsic object itself which represents a point
+in 3d space.
+::
+
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
+    >>> c
+    <SkyCoord (NoFrame): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+
+    >>> c.representation = 'cylindrical'
+    >>> c
+    <SkyCoord (NoFrame): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
+    >>> c.phi
+    <Angle 63.434948... deg>
+    >>> c.x  # doctest: +SKIP
+    ...
+    AttributeError: 'SkyCoord' object has no attribute 'x'
+
+    >>> c.representation = 'spherical'
+    >>> c
+    <SkyCoord (NoFrame): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
+
+    >>> c.representation = 'unitspherical'
+    >>> c
+    <SkyCoord (NoFrame): ra=63.434948... deg, dec=53.300774... deg>
+
+You can also use any representation class to set the representation::
+
+    >>> from astropy.coordinates import CartesianRepresentation
+    >>> c.representation = CartesianRepresentation
+
 Convenience methods
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -424,4 +658,3 @@ the available docstrings below:
 
 Addition information and examples can be found in the section on
 :ref:`astropy-coordinates-separations-matching`.
-
