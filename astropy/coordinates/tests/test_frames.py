@@ -331,27 +331,18 @@ def test_preferred_representation():
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
     assert icrs_cart.z == icrs.z
-    assert repr(icrs) == '<ICRS Coordinate: x=0.99969541351 , y=0.0174497483513 , z=0.0174524064373 >'
     assert icrs.data == data
 
     # Testing that an ICRS object in CartesianRepresentation must not have spherical attributes.
-    with pytest.raises(AttributeError) as err:
-        lat = icrs.dec
-    assert 'object has no attribute' in str(err)
-
-    with pytest.raises(AttributeError) as err:
-        lon = icrs.ra
-    assert 'object has no attribute' in str(err)
-
-    with pytest.raises(AttributeError) as err:
-        dist = icrs.distance
-    assert 'object has no attribute' in str(err)        
+    for attr in ('ra', 'dec', 'distance'):
+        with pytest.raises(AttributeError) as err:
+            getattr(icrs, attr)
+        assert 'object has no attribute' in str(err)
 
     # Testing when `_representation` set to `CylindricalRepresentation`.
     icrs.representation = representation.CylindricalRepresentation
 
     assert icrs.representation == representation.CylindricalRepresentation
-    assert repr(icrs) == '<ICRS Coordinate: rho=0.999847695156 , phi=1.0 deg, z=0.0174524064373 >'
     assert icrs.data == data
 
     # Testing setter input using text argument for spherical.
@@ -361,25 +352,16 @@ def test_preferred_representation():
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
-    assert repr(icrs) == '<ICRS Coordinate: ra=1.0 deg, dec=1.0 deg>'
     assert icrs.data == data
 
     # Testing that an ICRS object in SphericalRepresentation must not have cartesian attributes.
-    with pytest.raises(AttributeError) as err:
-        x = icrs.x
-    assert 'object has no attribute' in str(err)
-
-    with pytest.raises(AttributeError) as err:
-        y = icrs.y
-    assert 'object has no attribute' in str(err)
-
-    with pytest.raises(AttributeError) as err:
-        z = icrs.z
-    assert 'object has no attribute' in str(err)
+    for attr in ('x', 'y', 'z'):
+        with pytest.raises(AttributeError) as err:
+            getattr(icrs, attr)
+        assert 'object has no attribute' in str(err)
 
     # Testing setter input using text argument for cylindrical.
     icrs.representation = 'cylindrical'
 
     assert icrs.representation == representation.CylindricalRepresentation
-    assert repr(icrs) == '<ICRS Coordinate: rho=0.999847695156 , phi=1.0 deg, z=0.0174524064373 >'
     assert icrs.data == data
