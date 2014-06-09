@@ -72,13 +72,11 @@ before_install:
 install:
 
     # CONDA
-    - conda create --yes -n test -c mwcraig python=$TRAVIS_PYTHON_VERSION
+    - conda create --yes -n test -c astropy-ci-extras python=$TRAVIS_PYTHON_VERSION
     - source activate test
 
     # CORE DEPENDENCIES
-    # These command run pip first trying a wheel, and then falling back on
-    # source build
-    - if [[ $SETUP_CMD != egg_info ]]; then conda install -c mwcraig --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
     - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist; fi
 
     # OPTIONAL DEPENDENCIES
