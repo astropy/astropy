@@ -366,6 +366,9 @@ Bug Fixes
 
 - ``astropy.constants``
 
+  - ``astropy.constants.Contant`` objects can now be deep
+    copied. [#2601]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
