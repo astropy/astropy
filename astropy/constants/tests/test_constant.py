@@ -6,6 +6,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
+import copy
+
 from .. import Constant
 from ...units import Quantity as Q
 from ...tests.helper import pytest
@@ -114,3 +116,12 @@ def test_unit():
             # that none of the constants defined in astropy have
             # invalid unit.
             assert not isinstance(val.unit, u.UnrecognizedUnit)
+
+
+def test_copy():
+    from ... import constants as const
+    cc = copy.deepcopy(const.c)
+    assert cc == const.c
+
+    cc = copy.copy(const.c)
+    assert cc == const.c
