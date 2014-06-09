@@ -656,7 +656,7 @@ class Model(object):
 
 
 class FittableModel(Model):
-    linear = True
+    linear = False
     # derivative with respect to parameters
     fit_deriv = None
     """

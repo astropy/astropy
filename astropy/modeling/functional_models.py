@@ -407,6 +407,7 @@ class Scale(Model):
     """
 
     factors = Parameter()
+    linear = True
 
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
@@ -646,6 +647,7 @@ class Const1D(Fittable1DModel):
     """
 
     amplitude = Parameter()
+    linear = True
 
     def __init__(self, amplitude, **constraints):
         super(Const1D, self).__init__(amplitude=amplitude, **constraints)
@@ -685,6 +687,7 @@ class Const2D(Fittable2DModel):
     """
 
     amplitude = Parameter()
+    linear = True
 
     def __init__(self, amplitude, **constraints):
         super(Const2D, self).__init__(amplitude=amplitude, **constraints)
