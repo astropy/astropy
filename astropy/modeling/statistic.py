@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Statistic functions used in `~astropy.modeling.fitting.py`.
+Statistic functions used in `~astropy.modeling.fitting`.
 """
+
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 import numpy as np

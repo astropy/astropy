@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Optimization algorithms used in `~astropy.modeling.fitting.py`.
+Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
