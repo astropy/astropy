@@ -42,7 +42,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
         (`representation` must be None).
 
     """
-    _representation = coord.SphericalRepresentation
+    representation = coord.SphericalRepresentation
 
     _representation_attrs = {
         'spherical': {'names': ('Lambda', 'Beta', 'distance'),

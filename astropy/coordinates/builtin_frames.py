@@ -56,7 +56,7 @@ class ICRS(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     """
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
 
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
@@ -103,7 +103,7 @@ class FK5(BaseCoordinateFrame):
         The equinox of this frame.
     """
 
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_J2000}
 
     @staticmethod
@@ -159,7 +159,7 @@ class FK4(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -202,7 +202,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -273,7 +273,7 @@ class Galactic(BaseCoordinateFrame):
         'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
         'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
     }
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {}
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -314,7 +314,7 @@ class AltAz(BaseCoordinateFrame):
         'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
         'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
     }
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {'obstime': None, 'location': None}
 
     def __init__(self, *args, **kwargs):
@@ -337,7 +337,7 @@ class NoFrame(BaseCoordinateFrame):
     public API.
 
     """
-    _representation = SphericalRepresentation
+    default_representation = SphericalRepresentation
     frame_attr_names = {}
 
 

@@ -55,7 +55,7 @@ class FrameMeta(type):
         frame_attrs = {}
         found_pref_repr = found_frame_attrs = False
         for clsdcti in parent_clsdcts:
-            if not found_pref_repr and '_representation' in clsdcti:
+            if not found_pref_repr and 'default_representation' in clsdcti:
                 found_pref_repr = True
             if not found_frame_attrs and 'frame_attr_names' in clsdcti:
                 frame_attrs = clsdcti['frame_attr_names']
@@ -120,6 +120,8 @@ class BaseCoordinateFrame(object):
 
     @property
     def representation(self):
+        if not hasattr(self, '_representation'):
+            self._representation = self.default_representation
         return self._representation
 
     @representation.setter
@@ -174,7 +176,7 @@ class BaseCoordinateFrame(object):
                 out[repr_name] = repr_unit
         return out
 
-    _representation = None
+    default_representation = None
 
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
@@ -215,7 +217,8 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            representation = _get_repr_cls(kwargs.get('representation') or cls._representation)
+            representation = _get_repr_cls(kwargs.get('representation')
+                                           or cls.default_representation)
             for key in cls._get_representation_attrs()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
@@ -580,7 +583,10 @@ class BaseCoordinateFrame(object):
 
         TODO: dynamic representation transforms (i.e. include cylindrical et al.).
         """
-        if attr not in self.representation_names:
+        # attr == '_representation' is likely from the hasattr() test in the
+        # representation property which is used for self.representation_names.
+        # Prevent infinite recursion here.
+        if attr == '_representation' or attr not in self.representation_names:
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
