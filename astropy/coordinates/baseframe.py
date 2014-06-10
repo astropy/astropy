@@ -129,36 +129,36 @@ class BaseCoordinateFrame(object):
         self._representation = _get_repr_cls(value)
 
     @classmethod
-    def _get_representation_attrs(cls):
+    def _get_representation_info(cls):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the property at that time.
         repr_attrs = {}
         for name, repr_cls in REPRESENTATION_CLASSES.items():
-            if hasattr(repr_cls, '_default_names') and hasattr(repr_cls, '_default_units'):
-                repr_attrs[name] = {'names': repr_cls._default_names,
-                                    'units': repr_cls._default_units}
+            if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
+                repr_attrs[name] = {'names': repr_cls.default_names,
+                                    'units': repr_cls.default_units}
 
         # Override defaults as needed for this frame
-        repr_attrs.update(getattr(cls, '_representation_attrs', {}))
+        repr_attrs.update(getattr(cls, '_frame_specific_representation_info', {}))
 
-        # Use the class, not the name for the key in representation_attrs
+        # Use the class, not the name for the key in representation_info
         repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
                           for name, attrs in repr_attrs.items())
 
         return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
 
     @property
-    def representation_attrs(self):
-        return self._get_representation_attrs()
+    def representation_info(self):
+        return self._get_representation_info()
 
     @property
     def representation_names(self):
         out = OrderedDict()
         if self.representation is None:
             return out
-        data_names = self.representation._attr_classes.keys()
-        repr_names = self.representation_attrs[self.representation]['names']
+        data_names = self.representation.attr_classes.keys()
+        repr_names = self.representation_info[self.representation]['names']
         for repr_name, data_name in zip(repr_names, data_names):
             out[repr_name] = data_name
         return out
@@ -168,7 +168,7 @@ class BaseCoordinateFrame(object):
         out = OrderedDict()
         if self.representation is None:
             return out
-        repr_attrs = self.representation_attrs[self.representation]
+        repr_attrs = self.representation_info[self.representation]
         repr_names = repr_attrs['names']
         repr_units = repr_attrs['units']
         for repr_name, repr_unit in zip(repr_names, repr_units):
@@ -219,7 +219,7 @@ class BaseCoordinateFrame(object):
         if not use_skycoord:
             representation = _get_repr_cls(kwargs.get('representation')
                                            or cls.default_representation)
-            for key in cls._get_representation_attrs()[representation]['names']:
+            for key in cls._get_representation_info()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -397,7 +397,7 @@ class BaseCoordinateFrame(object):
 
             # If the new representation is known to this frame and has a defined
             # set of names and units, then use that.
-            new_attrs = self.representation_attrs.get(new_representation)
+            new_attrs = self.representation_info.get(new_representation)
             if new_attrs and in_frame_units:
                 datakwargs = dict((comp, getattr(data, comp)) for comp in data.components)
                 for comp, new_attr_unit in zip(data.components, new_attrs['units']):
@@ -596,8 +596,8 @@ class BaseCoordinateFrame(object):
 
     def __setattr__(self, attr, value):
         repr_attr_names = []
-        if hasattr(self, 'representation_attrs'):
-            for representation_attr in self.representation_attrs.values():
+        if hasattr(self, 'representation_info'):
+            for representation_attr in self.representation_info.values():
                 repr_attr_names.extend(representation_attr['names'])
         if attr in repr_attr_names:
             raise AttributeError('Cannot set any frame attribute {0}'.format(attr))

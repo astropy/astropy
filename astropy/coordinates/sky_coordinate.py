@@ -226,7 +226,7 @@ class SkyCoord(object):
                 coord_kwargs = {}
                 for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
                                                                       repr_attr_names, units):
-                    attr_class = frame.representation._attr_classes[repr_attr_name]
+                    attr_class = frame.representation.attr_classes[repr_attr_name]
                     coord_kwargs[frame_attr_name] = attr_class(arg, unit=unit)
 
             else:
@@ -859,7 +859,7 @@ def _parse_coordinate_arg(coords, frame, units):
 
     frame_attr_names = frame.representation_names.keys()
     repr_attr_names = frame.representation_names.values()
-    repr_attr_classes = frame.representation._attr_classes.values()
+    repr_attr_classes = frame.representation.attr_classes.values()
     n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
@@ -971,7 +971,7 @@ def _get_representation_attrs(frame, units, kwargs):
     cartesian representation of Galactic.
     """
     frame_attr_names = frame.representation_names.keys()
-    repr_attr_classes = frame.representation._attr_classes.values()
+    repr_attr_classes = frame.representation.attr_classes.values()
 
     valid_kwargs = {}
     for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):

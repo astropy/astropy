@@ -294,7 +294,7 @@ documentation::
   >>> sc.<TAB>  # doctest: +SKIP
   sc.cartesian              sc.has_data               sc.represent_as
   sc.data                   sc.icrs                   sc.representation
-  sc.dec                    sc.is_frame_attr_default  sc.representation_attrs
+  sc.dec                    sc.is_frame_attr_default  sc.representation_info
   sc.distance               sc.is_transformable_to    sc.representation_names
   sc.equinox                sc.isscalar               sc.representation_units
   sc.fk4                    sc.match_to_catalog_3d    sc.separation
@@ -387,7 +387,7 @@ and |SkyCoord| (aka high-level class)::
   sc.frame.distance               sc.frame.realize_frame          sc.frame.shape
   sc.frame.frame_attr_names       sc.frame.represent_as           sc.frame.spherical
   sc.frame.has_data               sc.frame.representation         sc.frame.time_attr_names
-  sc.frame.is_frame_attr_default  sc.frame.representation_attrs   sc.frame.transform_to
+  sc.frame.is_frame_attr_default  sc.frame.representation_info   sc.frame.transform_to
   sc.frame.is_transformable_to    sc.frame.representation_names
 
   >>> sc.frame.name
@@ -560,9 +560,9 @@ the `~astropy.coordinates.SphericalRepresentation`.
 
 For a particular frame, in order to see the full list of representations
 and how it names all the components, first make an instance of that frame
-without any data, and then print the ``representation_attrs`` attribute::
+without any data, and then print the ``representation_info`` property::
 
-    >>> ICRS().representation_attrs  # doctest: +SKIP
+    >>> ICRS().representation_info  # doctest: +SKIP
     {astropy.coordinates.representation.CartesianRepresentation:
       {u'names': (u'x', u'y', u'z'),
        u'units': (None, None, None)},

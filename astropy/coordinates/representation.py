@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
+from copy import deepcopy
 
 import numpy as np
 import astropy.units as u
@@ -193,11 +194,11 @@ class CartesianRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = OrderedDict([('x', u.Quantity),
-                                 ('y', u.Quantity),
-                                 ('z', u.Quantity)])
-    _default_names = ('x', 'y', 'z')
-    _default_units = (None, None, None)
+    attr_classes = OrderedDict([('x', u.Quantity),
+                                ('y', u.Quantity),
+                                ('z', u.Quantity)])
+    default_names = ('x', 'y', 'z')
+    default_units = (None, None, None)
 
     def __init__(self, x, y=None, z=None, copy=True):
 
@@ -290,11 +291,11 @@ class SphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = OrderedDict([('lon', Longitude),
-                                 ('lat', Latitude),
-                                 ('distance', u.Quantity)])
-    _default_names = ('ra', 'dec', 'distance')
-    _default_units = (u.deg, u.deg, None)
+    attr_classes = OrderedDict([('lon', Longitude),
+                                ('lat', Latitude),
+                                ('distance', u.Quantity)])
+    default_names = ('ra', 'dec', 'distance')
+    default_units = (u.deg, u.deg, None)
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -408,10 +409,10 @@ class UnitSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = OrderedDict([('lon', Longitude),
+    attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude)])
-    _default_names = ('ra', 'dec')
-    _default_units = (u.deg, u.deg)
+    default_names = ('ra', 'dec')
+    default_units = (u.deg, u.deg)
 
     def __init__(self, lon, lat, copy=True):
 
@@ -515,11 +516,11 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = OrderedDict([('phi', Angle),
-                                 ('theta', Angle),
-                                 ('r', u.Quantity)])
-    _default_names = ('phi', 'theta', 'r')
-    _default_units = (u.deg, u.deg, None)
+    attr_classes = OrderedDict([('phi', Angle),
+                                ('theta', Angle),
+                                ('r', u.Quantity)])
+    default_names = ('phi', 'theta', 'r')
+    default_units = (u.deg, u.deg, None)
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -648,11 +649,11 @@ class CylindricalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
-    _attr_classes = OrderedDict([('rho', u.Quantity),
-                                 ('phi', Angle),
-                                 ('z', u.Quantity)])
-    _default_names = ('rho', 'phi', 'z')
-    _default_units = (None, u.deg, None)
+    attr_classes = OrderedDict([('rho', u.Quantity),
+                                ('phi', Angle),
+                                ('z', u.Quantity)])
+    default_names = ('rho', 'phi', 'z')
+    default_units = (None, u.deg, None)
 
     def __init__(self, rho, phi, z, copy=True):
 
