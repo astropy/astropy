@@ -45,51 +45,44 @@ def _get_repr_cls(value):
 
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
-        # somewhat hacky, but this is the best way to get the MRO according to
-        # https://mail.python.org/pipermail/python-list/2002-December/167861.html
-        mro = super(FrameMeta, cls).__new__(cls, name, parents, clsdct).__mro__
-        parent_clsdcts = [c.__dict__ for c in mro]
-        parent_clsdcts.insert(0, clsdct)
-
-        #now look through the whole MRO for the relevant class attributes
-        frame_attrs = {}
-        found_pref_repr = found_frame_attrs = False
-        for clsdcti in parent_clsdcts:
-            if not found_pref_repr and 'default_representation' in clsdcti:
-                found_pref_repr = True
-            if not found_frame_attrs and 'frame_attr_names' in clsdcti:
-                frame_attrs = clsdcti['frame_attr_names']
-                found_frame_attrs = True
-
-            if found_pref_repr and found_frame_attrs:
-                break
-        else:
-            raise ValueError('Could not find the expected BaseCoordinateFrame '
-                             'class attributes.  Are you mis-using FrameMeta?')
-
-        # Make properties for the frame_attr_names to make them immutable
-        # after creation.
-        for attrnm in frame_attrs:
-            if attrnm in clsdct:
-                if isinstance(clsdct[attrnm], property):
-                    #means the property was defined already... so trust the
-                    #subclasser and don't make a new one
-                    continue
-                else:
-                    raise ValueError("A non-property exists that's *also* in frame_attr_names")
-            clsdct[attrnm] = property(FrameMeta.frame_attr_factory(attrnm))
-
-        # now set the name as lower-case class name, if it isn't explicit
         if 'name' not in clsdct:
             clsdct['name'] = name.lower()
 
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
-    @staticmethod
-    def frame_attr_factory(attrnm):
-        def getter(self):
-            return getattr(self, '_' + attrnm)
-        return getter
+
+class FrameAttribute(object):
+    """A data descriptor that sets and returns values
+       normally and prints a message logging their access.
+    """
+    def __init__(self, default=None, secondary_attribute=''):
+        self.default = default
+        self.secondary_attribute = secondary_attribute
+
+    def __get__(self, instance, cls=None):
+        # Find thyself
+        if not hasattr(self, 'name'):
+            for name, val in cls.__dict__.items():
+                if val is self:
+                    self.name = name
+                    break
+            else:
+                raise AttributeError('Unexpected inability to locate descriptor')
+
+        out = None
+        if instance is not None:
+            out = getattr(instance, '_' + self.name, None)
+            if out is None:
+                if self.default is None:
+                    out = getattr(instance, self.secondary_attribute, None)
+
+        if out is None:
+            out = self.default
+
+        return out
+
+    def __set__(self, instance, val):
+        raise AttributeError('Cannot set frame attribute')
 
 
 @six.add_metaclass(FrameMeta)
@@ -117,6 +110,12 @@ class BaseCoordinateFrame(object):
         `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
 
     """
+
+    @classmethod
+    def frame_attr_names(cls):
+        return dict((name, getattr(cls, name))
+                    for name, val in cls.__dict__.items()
+                    if val.__class__ is FrameAttribute)
 
     @property
     def representation(self):
@@ -178,7 +177,6 @@ class BaseCoordinateFrame(object):
 
     default_representation = None
 
-    frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     # This __new__ provides for backward-compatibility with pre-0.4 API.
@@ -244,7 +242,7 @@ class BaseCoordinateFrame(object):
 
         representation = None  # if not set below, this is a frame with no data
 
-        for fnm, fdefault in self.frame_attr_names.items():
+        for fnm, fdefault in self.frame_attr_names().items():
             # read-only properties for these attributes are made in the
             # metaclass  so we set the 'real' attrbiutes as the name prefaced
             # with an underscore
@@ -355,7 +353,7 @@ class BaseCoordinateFrame(object):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        frattrs = dict([(nm, getattr(self, nm)) for nm in self.frame_attr_names
+        frattrs = dict([(nm, getattr(self, nm)) for nm in self.frame_attr_names()
                         if nm not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
@@ -519,7 +517,7 @@ class BaseCoordinateFrame(object):
 
     def __repr__(self):
         frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
-                                for attrnm in self.frame_attr_names])
+                                for attrnm in self.frame_attr_names()])
 
         if self.has_data:
             if self.representation:
@@ -711,14 +709,23 @@ class GenericFrame(BaseCoordinateFrame):
     name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
+        super(GenericFrame, self).__setattr__('_frame_attr_names', frame_attrs)
         super(GenericFrame, self).__init__(None)
 
-        self.frame_attr_names = frame_attrs
         for attrnm, attrval in frame_attrs.items():
-            super(GenericFrame, self).__setattr__(attrnm, attrval)
+            setattr(self, '_' + attrnm, attrval)
+
+    def frame_attr_names(self):
+        return self._frame_attr_names
+
+    def __getattr__(self, name):
+        if '_' + name in self.__dict__:
+            return getattr(self, '_' + name)
+        else:
+            raise AttributeError('no {0}'.format(name))
 
     def __setattr__(self, name, value):
-        if name in self.frame_attr_names:
+        if name in self._frame_attr_names:
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)

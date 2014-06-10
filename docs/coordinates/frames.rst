@@ -35,10 +35,10 @@ is first created::
     <FK5 Frame: equinox=J2000.000>
 
 The specific names of attributes available for a particular frame (and
-their default values)  are available as the class attribute
+their default values)  are available as the instance attribute
 ``frame_attr_names``::
 
-    >>> FK5.frame_attr_names
+    >>> FK5.frame_attr_names()
     {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
 
 You can access any of the attributes on a frame by using standard Python

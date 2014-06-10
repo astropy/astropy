@@ -75,20 +75,20 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
 
     # Keep only frame attributes for frame1
     attrs1 = dict((attr, val) for attr, val in attrs1.items()
-                  if attr in frame1.frame_attr_names)
+                  if attr in frame1.frame_attr_names())
     sc2 = sc.transform_to(frame1(**attrs1))
 
     # When coming back only keep frame0 attributes for transform_to
     attrs0 = dict((attr, val) for attr, val in attrs0.items()
-                  if attr in frame0.frame_attr_names)
+                  if attr in frame0.frame_attr_names())
     # also, if any are None, fill in with defaults
-    for attrnm in frame0.frame_attr_names:
+    for attrnm in frame0.frame_attr_names():
         if attrs0.get(attrnm, None) is None:
-            if attrnm == 'obstime' and frame0.frame_attr_names[attrnm] is None:
+            if attrnm == 'obstime' and frame0.frame_attr_names()[attrnm] is None:
                 if 'equinox' in attrs0:
                     attrs0[attrnm] = attrs0['equinox']
             else:
-                attrs0[attrnm] = frame0.frame_attr_names[attrnm]
+                attrs0[attrnm] = frame0.frame_attr_names()[attrnm]
     sc_rt = sc2.transform_to(frame0(**attrs0))
 
     if frame0 is Galactic:

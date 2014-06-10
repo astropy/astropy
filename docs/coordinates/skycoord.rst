@@ -355,20 +355,16 @@ Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
-  >>> sc_fk4.frame_attr_names
+  >>> sc_fk4.frame_attr_names()
   {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
    u'obstime': None}
 
 The key values correspond to the defaults if no explicit value is provide by
 the user.  This example shows that the `~astropy.coordinates.FK4` frame has two
 attributes ``equinox`` and ``obstime`` that are required to fully define the
-frame.  These are actually a reference to the class attribute of the same
-name::
+frame.
 
-  >>> FK4.frame_attr_names is sc_fk4.frame_attr_names
-  True
-
-Further trickery is happening here because many of these attributes are
+Some trickery is happening here because many of these attributes are
 actually owned by the underlying coordinate ``frame`` object which does much of
 the real work.  This is the middle layer in the three-tiered system of objects:
 representation (spherical, cartesian, etc.), frame (aka low-level frame class),
