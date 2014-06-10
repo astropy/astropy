@@ -152,19 +152,23 @@ class BaseCoordinateFrame(object):
 
     @property
     def representation_names(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
         data_names = self.representation._attr_classes.keys()
         repr_names = self.representation_attrs[self.representation]['names']
-        out = OrderedDict()
         for repr_name, data_name in zip(repr_names, data_names):
             out[repr_name] = data_name
         return out
 
     @property
     def representation_units(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
         repr_attrs = self.representation_attrs[self.representation]
         repr_names = repr_attrs['names']
         repr_units = repr_attrs['units']
-        out = OrderedDict()
         for repr_name, repr_unit in zip(repr_names, repr_units):
             if repr_unit:
                 out[repr_name] = repr_unit
