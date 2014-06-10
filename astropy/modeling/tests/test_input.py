@@ -182,7 +182,7 @@ class TestFitting(object):
         """
         g1 = models.Gaussian1D(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
-        gfit = fitting.NonLinearLSQFitter()
+        gfit = fitting.LevMarLSQFitter()
         model = gfit(g1, self.x1, y1)
         utils.assert_allclose(model.parameters, [10, 3, .2])
 
@@ -194,7 +194,7 @@ class TestFitting(object):
         with pytest.raises(ValueError):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2])
             y1 = g1(self.x1)
-            gfit = fitting.NonLinearLSQFitter()
+            gfit = fitting.LevMarLSQFitter()
             model = gfit(g1, self.x1, y1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -204,7 +204,7 @@ class TestFitting(object):
         """
         g2 = models.Gaussian2D(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
-        gfit = fitting.NonLinearLSQFitter()
+        gfit = fitting.LevMarLSQFitter()
         model = gfit(g2, self.x, self.y, z)
         utils.assert_allclose(model.parameters, [10, 3, 4, .3, .2, 0])
 
@@ -217,7 +217,7 @@ class TestFitting(object):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0])
             z = g2(self.x.flatten(), self.y.flatten())
-            gfit = fitting.NonLinearLSQFitter()
+            gfit = fitting.LevMarLSQFitter()
             model = gfit(g2, self.x, self.y, z)
 
 

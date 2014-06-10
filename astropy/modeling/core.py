@@ -62,8 +62,9 @@ from .utils import array_repr_oneline
 from .parameters import Parameter, InputParameterError
 
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
-           'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
-           'Fittable2DModel', 'ModelDefinitionError', 'format_input']
+           'SerialCompositeModel', 'LabeledInput', 'FittableModel',
+           'Fittable1DModel', 'Fittable2DModel', 'ModelDefinitionError',
+           'format_input']
 
 
 class ModelDefinitionError(Exception):
@@ -655,9 +656,13 @@ class Model(object):
 
 
 class FittableModel(Model):
-    linear = True
+    linear = False
     # derivative with respect to parameters
     fit_deriv = None
+    """
+    Function (similar to the model's ``eval``) to compute the derivatives of
+    the model with respect to its parameters, for use by fitting algorithms.
+    """
     # Flag that indicates if the model derivatives with respect to parameters
     # are given in columns or rows
     col_fit_deriv = True
@@ -1043,6 +1048,17 @@ class Fittable1DModel(FittableModel):
         {'parameter_name': 'parameter_value'}
     """
 
+    @abc.abstractmethod
+    def eval(self):
+        """
+        A method, `classmethod`, or `staticmethod` that implements evaluation
+        of the function represented by this model.
+
+        It must take arguments of the function's independent variables,
+        followed by the function's parameters given in the same order they are
+        listed by `Model.param_names`.
+        """
+
     @format_input
     def __call__(self, x):
         """
@@ -1073,6 +1089,17 @@ class Fittable2DModel(FittableModel):
 
     n_inputs = 2
     n_outputs = 1
+
+    @abc.abstractmethod
+    def eval(self):
+        """
+        A method, `classmethod`, or `staticmethod` that implements evaluation
+        of the function represented by this model.
+
+        It must take arguments of the function's independent variables,
+        followed by the function's parameters given in the same order they are
+        listed by `Model.param_names`.
+        """
 
     @format_input
     def __call__(self, x, y):

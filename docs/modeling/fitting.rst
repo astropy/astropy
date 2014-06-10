@@ -91,21 +91,21 @@ Fitters support constrained fitting.
 
       >>> g1 = models.Gaussian1D(amplitude=10., mean=3, stddev=.5)
       >>> g1.mean.tied = tiedfunc
-      >>> gfit = fitting.NonLinearLSQFitter()
+      >>> gfit = fitting.LevMarLSQFitter()
 
 Bounded fitting is supported through the ``bounds`` arguments to models or by
-setting `~astropy.modeling.Parameter.min` and
-`~astropy.modeling.Parameter.max` attributes on a parameter.  Bounds
-for the `~astropy.modeling.fitting.NonLinearLSQFitter` are always exactly
-satisfied--if the value of the parameter is outside the fitting interval, it
-will be reset to the value at the bounds. The
-`~astropy.modeling.fitting.SLSQPFitter` handles bounds internally.
+setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
+attributes on a parameter.  Bounds for the
+`~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
+the value of the parameter is outside the fitting interval, it will be reset to
+the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` handles
+bounds internally.
 
 - Different fitters support different types of constraints::
 
     >>> fitting.LinearLSQFitter.supported_constraints
     ['fixed']
-    >>> fitting.NonLinearLSQFitter.supported_constraints
+    >>> fitting.LevMarLSQFitter.supported_constraints
     ['fixed', 'tied', 'bounds']
-    >>> fitting.SLSQPFitter.supported_constraints
+    >>> fitting.SLSQPLSQFitter.supported_constraints
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']

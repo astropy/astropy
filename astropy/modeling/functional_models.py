@@ -407,6 +407,7 @@ class Scale(Model):
     """
 
     factors = Parameter()
+    linear = True
 
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
@@ -646,6 +647,7 @@ class Const1D(Fittable1DModel):
     """
 
     amplitude = Parameter()
+    linear = True
 
     def __init__(self, amplitude, **constraints):
         super(Const1D, self).__init__(amplitude=amplitude, **constraints)
@@ -685,6 +687,7 @@ class Const2D(Fittable2DModel):
     """
 
     amplitude = Parameter()
+    linear = True
 
     def __init__(self, amplitude, **constraints):
         super(Const2D, self).__init__(amplitude=amplitude, **constraints)
@@ -1344,7 +1347,8 @@ def custom_model_1d(func, func_fit_deriv=None):
     parameters of the model will be inferred from the arguments of
     the function.
 
-    ..note ::
+    .. note::
+
         All model parameters have to be defined as keyword arguments
         with default values in the model function.
 
@@ -1359,7 +1363,7 @@ def custom_model_1d(func, func_fit_deriv=None):
         keyword arguments (the parameters).  It must return the value of the
         model (typically as an array, but can also be a scalar for scalar
         inputs).  This corresponds to the
-        ``astropy.modeling.FittableModel.eval`` method.
+        `~astropy.modeling.Fittable1DModel.eval` method.
     func_fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should

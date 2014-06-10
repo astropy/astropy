@@ -106,6 +106,13 @@ New Features
 
 - ``astropy.modeling``
 
+  - Prototype implementation of fitters that treat optimization algorithms
+    separately from fit statistics, allowing new fitters to be created by
+    mixing and matching optimizers and statistic functions. [#1914]
+
+  - Added a new ``SimplexLSQFitter`` which uses a downhill simplex optimizer
+    with a least squares statistic. [#1914]
+
   - Changed ``Gaussian2D`` model such that ``theta`` now increases
     counterclockwise. [#2199]
 
@@ -347,10 +354,21 @@ API Changes
     ``Parametric2DModel`` classes have been renamed ``FittableModel``,
     ``Fittable1DModel``, and ``Fittable2DModel`` respectively.  The base
     ``Model`` class has subsumed the functionality of the old
-    ``ParametricModel`` class so that all models support parameter
-    constraints.  The only distinction of ``FittableModel`` is that anything
-    which subclasses it is assumed "safe" to use with Astropy
-    fitters. [#2276]
+
+    ``ParametricModel`` class so that all models support parameter constraints.
+    The only distinction of ``FittableModel`` is that anything which subclasses
+    it is assumed "safe" to use with Astropy fitters. [#2276]
+
+  - ``NonLinearLSQFitter`` has been renamed ``LevMarLSQFitter`` to emphasise
+    that it uses the Levenberg-Marquardt optimization algorithm with a
+    least squares statistic function. [#1914]
+
+  - The ``SLSQPFitter`` class has been renamed ``SLSQPLSQFitter`` to emphasize
+    that it uses the Sequential Least Squares Programming optimization
+    algorithm with a least squares statistic function. [#1914]
+
+  - The ``Fitter.errorfunc`` method has been renamed to the more general
+    ``Fitter.objective_function``. [#1914]
 
 - ``astropy.nddata``
 

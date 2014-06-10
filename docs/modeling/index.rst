@@ -43,8 +43,9 @@ have been imported::
 Using Models
 ------------
 
-The `~astropy.modeling` package defines a number of models that live inside
-``astropy.modeling.models`` and behave like parametrized functions::
+The `astropy.modeling` package defines a number of models that are collected
+under a single namespace as ``astropy.modeling.models``.  Models behave like
+parametrized functions::
 
     >>> from astropy.modeling import models
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
@@ -90,7 +91,7 @@ Simple 1D model fitting
 In this section, we look at a simple example of fitting a Gaussian to a
 simulated dataset. We use the `~astropy.modeling.functional_models.Gaussian1D`
 and `~astropy.modeling.functional_models.Trapezoid1D` models and the
-`~astropy.modeling.fitting.NonLinearLSQFitter` fitter to fit the data:
+`~astropy.modeling.fitting.LevMarLSQFitter` fitter to fit the data:
 
 .. plot::
    :include-source:
@@ -106,12 +107,12 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
 
     # Fit the data using a box model
     t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
-    f1 = fitting.NonLinearLSQFitter()
+    f1 = fitting.LevMarLSQFitter()
     t = f1(t_init, x, y)
 
     # Fit the data using a Gaussian
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
-    f2 = fitting.NonLinearLSQFitter()
+    f2 = fitting.LevMarLSQFitter()
     g = f2(g_init, x, y)
 
     # Plot the data with the best-fit model
@@ -147,7 +148,7 @@ This could be used for example to fit the background in an image.
 
     # Fit the data using astropy.modeling
     p_init = models.Polynomial2D(degree=2)
-    f = fitting.NonLinearLSQFitter()
+    f = fitting.LevMarLSQFitter()
     p = f(p_init, x, y, z)
 
     # Plot the data with the best-fit model
@@ -188,7 +189,10 @@ Reference/API
 .. automodapi:: astropy.modeling
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.functional_models
+.. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.powerlaws
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
+.. automodapi:: astropy.modeling.statistic
 .. automodapi:: astropy.modeling.rotations
+

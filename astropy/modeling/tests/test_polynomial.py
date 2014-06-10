@@ -49,6 +49,7 @@ linear2d = {
                    'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3}},
     }
 
+
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting(object):
     """
@@ -65,7 +66,7 @@ class TestFitting(object):
         self.n2 = rsn.randn(self.x2.size)
         self.n2.shape = self.x2.shape
         self.linear_fitter = fitting.LinearLSQFitter()
-        self.non_linear_fitter = fitting.NonLinearLSQFitter()
+        self.non_linear_fitter = fitting.LevMarLSQFitter()
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_linear_fitter_1D(self, model_class):
@@ -79,7 +80,7 @@ class TestFitting(object):
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_non_linear_fitter_1D(self, model_class):
-        """ Test fitting with NonLinearLSQFitter"""
+        """ Test fitting with non-linear LevMarLSQFitter"""
         parameters = linear1d[model_class]['parameters']
         kwargs = linear1d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
@@ -99,7 +100,7 @@ class TestFitting(object):
 
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
-        """ Test fitting with NonLinearLSQFitter"""
+        """ Test fitting with non-linear LevMarLSQFitter"""
         parameters = linear2d[model_class]['parameters']
         kwargs = linear2d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
