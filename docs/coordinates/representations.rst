@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 .. _astropy-coordinates-representations:
 
 Using and Designing Coordinate Representations

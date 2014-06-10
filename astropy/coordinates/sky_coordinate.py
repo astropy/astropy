@@ -109,18 +109,19 @@ class SkyCoord(object):
     **keyword_args
         Other keyword arguments as applicable for user-defined coordinate frames.
         Common options include:
-           ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
-               RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-               frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
-               and `FK4NoETerms`.
-           l, b : valid `~astropy.coordinates.Angle` initializer, optional
-               Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-               keys in the frame's ``representation_names``, including the
-               `Galactic` frame.
-           x, y, z : float or `~astropy.units.Quantity`, optional
-               Cartesian coordinates values
-           w, u, v : float or `~astropy.units.Quantity`, optional
-               Cartesian coordinates values for the Galactic frame.
+
+        ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
+            RA and Dec for frames where ``ra`` and ``dec`` are keys in the
+            frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
+            and `FK4NoETerms`.
+        l, b : valid `~astropy.coordinates.Angle` initializer, optional
+            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+            keys in the frame's ``representation_names``, including the
+            `Galactic` frame.
+        x, y, z : float or `~astropy.units.Quantity`, optional
+            Cartesian coordinates values
+        w, u, v : float or `~astropy.units.Quantity`, optional
+            Cartesian coordinates values for the Galactic frame.
     """
 
     def __init__(self, *args, **kwargs):
