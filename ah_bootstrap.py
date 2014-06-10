@@ -1,3 +1,36 @@
+"""
+This bootstrap module contains code for ensuring that the astropy_helpers
+package will be importable by the time the setup.py script runs.  It also
+includes some workarounds to ensure that a recent-enough version of setuptools
+is being used for the installation.
+
+This module should be the first thing imported in the setup.py of distributions
+that make use of the utilities in astropy_helpers.  If the distribution ships
+with its own copy of astropy_helpers, this module will first attempt to import
+from the shipped copy.  However, it will also check PyPI to see if there are
+any bug-fix releases on top of the current version that may be useful to get
+past platform-specific bugs that have been fixed.  When running setup.py, use
+the ``--offline`` command-line option to disable the auto-upgrade checks.
+
+When this module is imported or otherwise executed it automatically calls a
+main function that attempts to read the project's setup.cfg file, which it
+checks for a configuration section called ``[ah_bootstrap]`` the presences of
+that section, and options therein, determine the next step taken:  If it
+contains an option called ``auto_use`` with a value of ``True``, it will
+automatically call the main function of this module called
+`use_astropy_helpers` (see that function's docstring for full details).
+Otherwise no further action is taken (however,
+``ah_bootstrap.use_astropy_helpers`` may be called manually from within the
+setup.py script).
+
+Additional options in the ``[ah_boostrap]`` section of setup.cfg have the same
+names as the arguments to `use_astropy_helpers`, and can be used to configure
+the bootstrap script when ``auto_use = True``.
+
+See https://github.com/astropy/astropy-helpers for more details, and for the
+latest version of this module.
+"""
+
 import contextlib
 import errno
 import imp
@@ -96,7 +129,9 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         If the provided filesystem path is not found an attempt will be made to
         download astropy_helpers from PyPI.  It will then be made temporarily
         available on `sys.path` as a ``.egg`` archive (using the
-        ``setup_requires`` feature of setuptools.
+        ``setup_requires`` feature of setuptools.  If the ``--offline`` option
+        is given at the command line the value of this argument is overridden
+        to `False`.
 
     index_url : str, optional
         If provided, use a different URL for the Python package index than the
@@ -104,14 +139,16 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
 
     use_git : bool, optional
         If `False` no git commands will be used--this effectively disables
-        support for git submodules.
+        support for git submodules. If the ``--no-git`` option is given at the
+        command line the value of this argument is overridden to `False`.
 
     auto_upgrade : bool, optional
         By default, when installing a package from a non-development source
         distribution ah_boostrap will try to automatically check for patch
         releases to astropy-helpers on PyPI and use the patched version over
         any bundled versions.  Setting this to `False` will disable that
-        functionality.
+        functionality. If the ``--offline`` option is given at the command line
+        the value of this argument is overridden to `False`.
     """
 
     # True by default, unless the --offline option was provided on the command
@@ -120,6 +157,10 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         download_if_needed = False
         auto_upgrade = False
         sys.argv.remove('--offline')
+
+    if '--no-git' in sys.argv:
+        use_git = False
+        sys.argv.remove('--no-git')
 
     if path is None:
         path = PACKAGE_NAME
@@ -376,10 +417,10 @@ def _update_submodule(submodule, status):
         return
     elif status == b'-':
         cmd = ['update', '--init']
-        log.info('Initializing submodule {0!r}'.format(submodule))
+        log.warn('Initializing submodule {0!r}'.format(submodule))
     elif status == b'+':
         cmd = ['update']
-        log.info('Updating submodule {0!r}'.format(submodule))
+        log.warn('Updating submodule {0!r}'.format(submodule))
     elif status == b'U':
         raise _AHBoostrapSystemExit(
             'Error: Submodule {0} contains unresolved merge conflicts.  '

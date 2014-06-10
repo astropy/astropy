@@ -1301,4 +1301,4 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype=BinTableHDU):
                              "'BinTableHDU'")
 
     # construct a table HDU of the requested type
-    return cls.from_columns(input, nrows=nrows, fill=fill)
+    return cls.from_columns(input, header=header, nrows=nrows, fill=fill)
