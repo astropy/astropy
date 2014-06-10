@@ -23,7 +23,7 @@ def test_wcsapi_extension(tmpdir):
     # Build the extension
     subprocess.check_call(
         [sys.executable, 'setup.py',
-         'install', '--install-lib={0}'.format(tmpdir)],
+         'install', '--install-lib={0}'.format(tmpdir), astropy_path],
         cwd=setup_path,
         env=env
     )
