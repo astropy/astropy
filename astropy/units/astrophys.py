@@ -130,7 +130,8 @@ def_unit((['byte', 'B'], ['byte']), namespace=_ns, prefixes=True,
          exclude_prefixes=['d'])
 def_unit(['adu'], namespace=_ns)
 def_unit(['beam'], namespace=_ns)
-
+def_unit(['electron'], doc="Number of electrons", namespace=_ns,
+         format={'latex': r'e^{-}', 'unicode': 'e⁻'})
 
 ###########################################################################
 # Logarithmic units
