@@ -361,12 +361,6 @@ class SAMPHubServer(object):
         """
         return self._id
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        self.stop()
-
     def _launch_thread(self, group=None, target=None, name=None, args=None):
 
         # Remove inactive threads

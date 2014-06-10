@@ -181,12 +181,6 @@ class SAMPClient(object):
                                                             self._port),
                                            '', '', '', ''))
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        self.stop()
-
     def start(self):
         """
         Start the client in a separate thread (non-blocking).
