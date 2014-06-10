@@ -65,9 +65,24 @@ Interface and Dependencies
   (see next bullet point).
 
 * Additional dependencies - such as SciPy_, Matplotlib_, or other
-  third-party packages - are allowed for sub-modules or in function calls,
-  but they must be noted in the package documentation and should only affect
-  the relevant component.
+  third-party packages - are allowed for sub-modules or in function
+  calls, but they must be noted in the package documentation and
+  should only affect the relevant component.  In functions and
+  methods, the optional dependency should use a normal ``import``
+  statement, which will raise an ``ImportError`` if the dependency is
+  not available.
+
+  At the module level, one can subclass a class from an optional dependency
+  like so::
+
+      try:
+          from opdep import Superclass
+      except ImportError:
+          warn(AstropyWarning('opdep is not present, so <functionality below> will not work.'))
+          Superclass = object
+
+      class Whatever(Superclass):
+          ...
 
 * General utilities necessary for but not specific to the package or
   sub-package should be placed in the ``packagename.utils`` module. These
