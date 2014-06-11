@@ -62,8 +62,8 @@ class PolynomialBase(FittableModel):
     def __getattr__(self, attr):
         if self._param_names and attr in self._param_names:
             return Parameter(attr, default=0.0, model=self)
-        else:
-            return super(PolynomialBase, self).__getattr__(attr)
+
+        raise AttributeError(attr)
 
     def __setattr__(self, attr, value):
         # TODO: Support a means of specifying default values for coefficients
