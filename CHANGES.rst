@@ -41,6 +41,10 @@ New Features
   - The deprecated functions for pre-0.3 coordinate object names like
     ``ICRSCoordinates`` have been removed. [#2422]
 
+  - The ``rotation_matrix`` and ``angle_axis`` functions in
+    ``astropy.coordinates.angles`` were made more numerically consistent and
+    are now tested explicitly [#2619]
+
 - ``astropy.cosmology``
 
   - Added ``z_at_value`` function to find the redshift at which a cosmology
