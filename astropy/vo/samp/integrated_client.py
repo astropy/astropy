@@ -92,13 +92,6 @@ class SAMPIntegratedClient(object):
                                  port, https, key_file, cert_file, cert_reqs,
                                  ca_certs, ssl_version, callable)
 
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        self.disconnect()
-
     # GENERAL
 
     @property
