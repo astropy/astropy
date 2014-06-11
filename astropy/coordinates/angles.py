@@ -735,7 +735,7 @@ def rotation_matrix(angle, axis='z', unit=None):
         return R.view(np.matrix)
 
 
-def angle_axis(matrix, unit=None):
+def angle_axis(matrix):
     """
     Computes the angle of rotation and the rotation axis for a given rotation
     matrix.
@@ -745,29 +745,20 @@ def angle_axis(matrix, unit=None):
     matrix : array-like
         A 3 x 3 unitary rotation matrix.
 
-    unit : UnitBase
-        The output unit.  If `None`, the output unit is degrees.
-
     Returns
     -------
     angle : `Angle`
         The angle of rotation for this matrix.
 
     axis : array (length 3)
-        The axis of rotation for this matrix.
+        The (normalized) axis of rotation for this matrix.
     """
-    # TODO: This doesn't handle arrays of angles
-
     m = np.asmatrix(matrix)
     if m.shape != (3, 3):
         raise ValueError('matrix is not 3x3')
 
-    angle = np.acos((m[0, 0] + m[1, 1] + m[2, 2] - 1) / 2)
-    denom = np.sqrt(2 * ((m[2, 1] - m[1, 2]) + (m[0, 2] - m[2, 0]) + (m[1, 0] - m[0, 1])))
-    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1])) / denom
-    axis /= np.sqrt(np.sum(axis ** 2))
+    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1]))
+    r = np.sqrt((axis * axis).sum())
+    angle = np.arctan2(r, np.trace(m) - 1)
 
-    angle = Angle(angle, u.radian)
-    if unit is None:
-        unit = u.degree
-    return angle.to(unit), axis
+    return Angle(angle, u.radian), -axis / r
