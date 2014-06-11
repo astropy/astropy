@@ -79,7 +79,7 @@ Interface and Dependencies
           from opdep import Superclass
       except ImportError:
           warn(AstropyWarning('opdep is not present, so <functionality below> will not work.'))
-          Superclass = object
+          class SuperClass(object): pass
 
       class Whatever(Superclass):
           ...
