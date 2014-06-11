@@ -753,3 +753,26 @@ def test_mixed_string_and_quantity():
     a2 = Angle(['1d', 1 * u.rad * np.pi, '3d'])
     assert_array_equal(a2.value, [1., 180., 3.])
     assert a2.unit == u.deg
+
+def test_rotation_matrix():
+    from ..angles import rotation_matrix
+
+    assert_array_equal(rotation_matrix(0*u.deg, 'x'), np.eye(3))
+
+    assert_allclose(rotation_matrix(90*u.deg, 'y'), [[ 0, 0,-1],
+                                                     [ 0, 1, 0],
+                                                     [ 1, 0, 0]], atol=1e-10)
+
+    assert_allclose(rotation_matrix(-90*u.deg, 'z'), [[ 0,-1, 0],
+                                                      [ 1, 0, 0],
+                                                      [ 0, 0, 1]], atol=1e-10)
+
+    assert_allclose(rotation_matrix(45*u.deg, 'x'),
+                    rotation_matrix(45*u.deg, [1, 0, 0]))
+    assert_allclose(rotation_matrix(125*u.deg, 'y'),
+                    rotation_matrix(125*u.deg, [0, 1, 0]))
+    assert_allclose(rotation_matrix(-30*u.deg, 'z'),
+                    rotation_matrix(-30*u.deg, [0, 0, 1]))
+
+    assert_allclose(np.dot(rotation_matrix(180*u.deg, [1, 1, 0]).A, [1, 0, 0]),
+                    [0, 1, 0], atol=1e-10)
