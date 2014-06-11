@@ -55,9 +55,9 @@ The first step is to create a new class, which we'll call
             (`representation` must be None).
 
         """
-        _representation = coord.SphericalRepresentation
+        default_representation = coord.SphericalRepresentation
 
-        _representation_attrs = {
+        _frame_specific_representation_info = {
             'spherical': {'names': ('Lambda', 'Beta', 'distance'),
                           'units': (u.degree, u.degree, None)},
             'unitspherical': {'names': ('Lambda', 'Beta'),
@@ -66,7 +66,8 @@ The first step is to create a new class, which we'll call
 Line by line, the first few are simply imports. Next we define the class as a
 subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include a
 descriptive docstring.  The final lines are class-level attributes that specify
-the non-default data attribute names and units the available representations.
+the default representation for the data and any data attribute names and units
+which differ from the defaults for the available representations.
 In this case we override the names in the spherical representations but don't
 do anything with the others like cartesian or cylindrical.
 

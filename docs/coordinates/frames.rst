@@ -211,14 +211,14 @@ documentation.
 Defining a New Frame
 ====================
 
-Users can add new coordinate frames by creating new classes that
-are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
-instructions for subclassing are in the docstrings for that class.  The
-key aspects are to define the class attributes ``frame_attr_names``and
-``representation_attrs``. If these are defined, there is often no need to
-define an ``__init__`` function, as the initializer in
-`~astropy.coordinates.BaseCoordinateFrame` will probably behave the way
-you want.
+Users can add new coordinate frames by creating new classes that are subclasses
+of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
+subclassing are in the docstrings for that class.  The key aspects are to
+define the class attributes ``frame_attr_names``, ``default_representation``
+and ``_frame_specific_representation_info``. If these are defined, there is
+often no need to define an ``__init__`` function, as the initializer in
+`~astropy.coordinates.BaseCoordinateFrame` will probably behave the way you
+want.
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will
