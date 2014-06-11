@@ -417,18 +417,17 @@ class Fittable1DModelTester(object):
         # add 10% noise to the amplitude
         relative_noise_amplitude = 0.01
         data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
-        fitter = fitting.NonLinearLSQFitter()
+        fitter = fitting.LevMarLSQFitter()
         new_model = fitter(model, x, data)
 
         # Only check parameters that were free in the fit
         params = [getattr(new_model, name) for name in new_model.param_names]
-        fixed = [par.fixed for par in params]
-        fitted_parameters = [val
-                             for (val, fixed) in zip(parameters, fixed)
-                             if not fixed]
-        fitparams, _ = fitter._model_to_fit_params(new_model)
-        utils.assert_allclose(fitparams, fitted_parameters,
-                              atol=self.fit_error)
+        fixed = [param.fixed for param in params]
+        expected = np.array([val for val, fixed in zip(parameters, fixed)
+                             if not fixed])
+        fitted = np.array([param.value for param in params
+                           if not param.fixed])
+        utils.assert_allclose(fitted, expected, atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_deriv_1D(self, model_class, test_parameters):
