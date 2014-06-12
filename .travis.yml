@@ -106,8 +106,8 @@ install:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_INSTALL coverage coveralls; fi
 
 script:
-   - python setup.py $SETUP_CMD
+    - python setup.py $SETUP_CMD
 
 after_success:
     # Uncomment line below if coveralls.io is set up for this package.
-    # - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
