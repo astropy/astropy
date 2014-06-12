@@ -723,7 +723,7 @@ def rotation_matrix(angle, axis='z', unit=None):
                           (0, c, s),
                           (0, -s, c)))
     else:
-        axis = np.array(axis, copy=False)
+        axis = np.asarray(axis)
         axis = axis / np.sqrt((axis * axis).sum())
 
         R = np.diag((c, c, c))
