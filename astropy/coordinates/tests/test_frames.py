@@ -328,7 +328,7 @@ def test_representation():
 
     # Testing when `_representation` set to `CartesianRepresentation`.
     icrs.representation = representation.CartesianRepresentation
-    
+
     assert icrs.representation == representation.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
@@ -393,3 +393,11 @@ def test_dynamic_attrs():
 
     c.blahblah = 1
     assert c.blahblah == 1
+
+def test_nodata_error():
+    from ..builtin_frames import ICRS
+
+    i = ICRS()
+    with pytest.raises(ValueError):
+        i.data
+
