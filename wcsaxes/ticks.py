@@ -2,6 +2,7 @@ import numpy as np
 
 from matplotlib.lines import Path, Line2D
 from matplotlib.transforms import Affine2D
+from matplotlib import rcParams
 
 
 class Ticks(Line2D):
@@ -13,14 +14,32 @@ class Ticks(Line2D):
     set_ticksize. To change the direction of the ticks (ticks are
     in opposite direction of ticklabels by default), use
     set_tick_out(False).
+
+    Note that Matplotlib's defaults dictionary :data:`~matplotlib.rcParams`
+    contains default settings (color, size, width) of the form `xtick.*` and
+    `ytick.*`. In a WCS projection, there may not be a clear relationship
+    between axes of the projection and 'x' or 'y' axes. For this reason,
+    we read defaults from `xtick.*`. The following settings affect the
+    default appearance of ticks:
+
+    * `xtick.major.size`
+    * `xtick.major.width`
+    * `xtick.color`
     """
 
-    def __init__(self, ticksize=5., tick_out=False, **kwargs):
+    def __init__(self, ticksize=None, tick_out=False, **kwargs):
+        if ticksize is None:
+            ticksize = rcParams['xtick.major.size']
         self.set_ticksize(ticksize)
         self.set_tick_out(tick_out)
+        # FIXME: tick_out is incompatible with Matplotlib tickdir option
         self.clear()
-        Line2D.__init__(self, [0.], [0.], **kwargs)
-        self.set_color('black')
+        line2d_kwargs = {
+            'color': rcParams['xtick.color'],
+            'linewidth': rcParams['xtick.major.width']
+        }
+        line2d_kwargs.update(kwargs)
+        Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
 
     def set_tick_out(self, tick_out):
@@ -92,6 +111,7 @@ class Ticks(Line2D):
         gc = renderer.new_gc()
         gc.set_foreground(self.get_color())
         gc.set_alpha(self.get_alpha())
+        gc.set_linewidth(self.get_linewidth())
 
         offset = renderer.points_to_pixels(self.get_ticksize())
         marker_scale = Affine2D().scale(offset, offset)
