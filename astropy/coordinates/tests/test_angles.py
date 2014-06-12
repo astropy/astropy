@@ -761,11 +761,11 @@ def test_rotation_matrix():
 
     assert_allclose(rotation_matrix(90*u.deg, 'y'), [[ 0, 0,-1],
                                                      [ 0, 1, 0],
-                                                     [ 1, 0, 0]], atol=1e-10)
+                                                     [ 1, 0, 0]], atol=1e-12)
 
     assert_allclose(rotation_matrix(-90*u.deg, 'z'), [[ 0,-1, 0],
                                                       [ 1, 0, 0],
-                                                      [ 0, 0, 1]], atol=1e-10)
+                                                      [ 0, 0, 1]], atol=1e-12)
 
     assert_allclose(rotation_matrix(45*u.deg, 'x'),
                     rotation_matrix(45*u.deg, [1, 0, 0]))
@@ -775,7 +775,11 @@ def test_rotation_matrix():
                     rotation_matrix(-30*u.deg, [0, 0, 1]))
 
     assert_allclose(np.dot(rotation_matrix(180*u.deg, [1, 1, 0]).A, [1, 0, 0]),
-                    [0, 1, 0], atol=1e-10)
+                    [0, 1, 0], atol=1e-12)
+
+    #make sure it also works for very small angles
+    assert_allclose(rotation_matrix(0.000001*u.deg, 'x'),
+                    rotation_matrix(0.000001*u.deg, [1, 0, 0]))
 
 def test_angle_axis():
     from ..angles import rotation_matrix, angle_axis
