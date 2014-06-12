@@ -13,7 +13,6 @@ import functools
 
 import numpy as np
 from numpy import testing as npt
-import six
 
 from ... import units as u
 from ...tests.helper import pytest
