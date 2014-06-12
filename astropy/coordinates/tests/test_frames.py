@@ -296,6 +296,7 @@ def test_is_frame_attr_default():
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
 
+
 def test_altaz_attributes():
     from ...time import Time
     from .. import EarthLocation, AltAz
@@ -307,10 +308,11 @@ def test_altaz_attributes():
     aa2 = AltAz(1*u.deg, 2*u.deg, obstime='J2000')
     assert aa2.obstime == Time('J2000')
 
-    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg,0*u.deg, 0*u.m))
+    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
 
-def test_preferred_representation():
+
+def test_representation():
     """
     Test the getter and setter properties for `representation`
     """
@@ -348,7 +350,7 @@ def test_preferred_representation():
     # Testing setter input using text argument for spherical.
     icrs.representation = 'spherical'
 
-    assert icrs.representation == representation.SphericalRepresentation
+    assert icrs.representation is representation.SphericalRepresentation
     assert icrs_spher.lat == icrs.dec
     assert icrs_spher.lon == icrs.ra
     assert icrs_spher.distance == icrs.distance
@@ -363,5 +365,31 @@ def test_preferred_representation():
     # Testing setter input using text argument for cylindrical.
     icrs.representation = 'cylindrical'
 
-    assert icrs.representation == representation.CylindricalRepresentation
+    assert icrs.representation is representation.CylindricalRepresentation
     assert icrs.data == data
+
+    with pytest.raises(ValueError) as err:
+        icrs.representation = 'WRONG'
+    assert 'but must be a BaseRepresentation class' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        icrs.representation = ICRS
+    assert 'but must be a BaseRepresentation class' in str(err)
+
+
+def test_dynamic_attrs():
+    from ..builtin_frames import ICRS
+    c = ICRS(1*u.deg, 2*u.deg)
+    assert 'ra' in dir(c)
+    assert 'dec' in dir(c)
+
+    with pytest.raises(AttributeError) as err:
+        c.blahblah
+    assert "object has no attribute 'blahblah'" in str(err)
+
+    with pytest.raises(AttributeError) as err:
+        c.ra = 1
+    assert "Cannot set any frame attribute" in str(err)
+
+    c.blahblah = 1
+    assert c.blahblah == 1

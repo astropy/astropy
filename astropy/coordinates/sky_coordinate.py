@@ -7,7 +7,7 @@ import numpy as np
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..extern.six.moves import zip
-from ..units import Unit
+from ..units import Unit, IrreducibleUnit
 from .. import units as u
 
 from .distances import Distance
@@ -831,7 +831,7 @@ def _get_units(args, kwargs):
             # Allow for input like unit='deg' or unit='m'
             if len(units) == 1:
                 units = [units[0], units[0], units[0]]
-        elif isinstance(units, Unit):
+        elif isinstance(units, (Unit, IrreducibleUnit)):
             units = [units, units, units]
 
         try:

@@ -10,7 +10,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import functools
-import collections
 
 import numpy as np
 from numpy import testing as npt
@@ -18,7 +17,8 @@ import six
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...coordinates import (ICRS, FK4, FK5, FK4NoETerms, Galactic, SkyCoord, Angle,
+from ..representation import REPRESENTATION_CLASSES
+from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation)
 from ...coordinates import Latitude, Longitude
 from ...time import Time
@@ -504,85 +504,203 @@ def test_table_to_coord():
     assert allclose(c.ra.to(u.deg), [1, 2, 3])
     assert allclose(c.dec.to(u.deg), [4, 5, 6])
 
-def _break_string_args(string):
-    # Proceed to break the string into arguments.
-    # Similar to _parse_coordinate_arg().
-    vals = []
-    for index, coord in enumerate(string):
-        coord1 = coord.split()
-        if len(coord1) == 6:
-            coord1 = (' '.join(coord1[3:]), ' '.join(coord1[:3]))
-        coord = coord1
-        vals.append(coord1)
-    values = [x[0] for x in [list(y) for y in zip(*vals)]]
-    return values
 
-compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
-input_list = [
-        ((10, 20)),
-         (([1, 2, 3], [4, 5, 6])),
-         ((np.array([1,2,3]), np.array([4,5,6]))),
-         ((10*u.deg, 20*u.deg)),
-         (("1h12m43.2s +1d12m43s"))
-        ]
-@pytest.mark.parametrize("input", input_list)
-def test_frame_skycoord_positional(input):
+def assert_quantities_allclose(coord, q1s, attrs):
     """
-    Tests all permutations of positional inputs with frame `ICRS` for `SkyCoord`.
+    Compare two tuples of quantities.  This assumes that the values in q1 are of
+    order(1) and uses atol=1e-13, rtol=0.  It also asserts that the units of the
+    two quantities are the *same*, in order to check that the representation
+    output has the expected units.
     """
-    # Initialize.
-    sc = None
-    if isinstance(input, six.string_types):
-        sc = SkyCoord(input, frame="icrs", unit="deg")
-    else:
-        sc = SkyCoord(*input, frame="icrs", unit="deg")
+    q2s = [getattr(coord, attr) for attr in attrs]
+    assert len(q1s) == len(q2s)
+    for q1, q2 in zip(q1s, q2s):
+        assert q1.shape == q2.shape
+        dq = q1 - q2
+        assert np.allclose(dq.value, 0.0, rtol=0, atol=1e-13)
 
-    # Test.
-    assert isinstance(sc, SkyCoord)
 
-    if (isinstance(input[0], u.Quantity) and
-        isinstance(input[1], u.Quantity)):
-        assert sc.ra == input[0]
-        assert sc.dec == input[1]
-    elif (hasattr(input[0], '__iter__') and
-        hasattr(input[1], '__iter__')):
-        assert compare(sc.ra.value, input[0])
-        assert compare(sc.dec.value, input[1])
-    elif isinstance(input, six.string_types):
-        values = _break_string_args([input])
-        assert sc.ra.value == Longitude(values[0], unit="deg").value
-        assert sc.dec.value == Latitude(values[1], unit="deg").value
-    else:
-        assert sc.ra.value == input[0]
-        assert sc.dec.value == input[1]
+# Sets of inputs corresponding to Galactic frame
+base_unit_attr_sets = [
+    ('spherical', u.karcsec, u.karcsec, u.kpc, Latitude, 'l', 'b', 'distance'),
+    ('unitspherical', u.karcsec, u.karcsec, None, Latitude, 'l', 'b', None),
+    ('physicsspherical', u.karcsec, u.karcsec, u.kpc, Angle, 'phi', 'theta', 'r'),
+    ('cartesian', u.km, u.km, u.km, u.Quantity, 'w', 'u', 'v'),
+    ('cylindrical', u.km, u.karcsec, u.km, Angle, 'rho', 'phi', 'z')
+]
 
-@pytest.mark.parametrize("input", input_list)
-def test_frame_skycoord_kw(input):
+units_attr_sets = []
+for base_unit_attr_set in base_unit_attr_sets:
+    repr_name = base_unit_attr_set[0]
+    for representation in (repr_name, REPRESENTATION_CLASSES[repr_name]):
+        for c1, c2, c3 in ((1, 2, 3), ([1], [2], [3])):
+            for arrayify in True, False:
+                if arrayify:
+                    c1 = np.array(c1)
+                    c2 = np.array(c2)
+                    c3 = np.array(c3)
+                units_attr_sets.append(base_unit_attr_set + (representation, c1, c2, c3))
+units_attr_args = 'repr_name,unit1,unit2,unit3,cls2,attr1,attr2,attr3,representation,c1,c2,c3'
+
+
+@pytest.mark.parametrize(units_attr_args,
+                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
+                                   representation, c1, c2, c3):
     """
-    Tests all permutations of keyword inputs for `ICRS` using `SkyCoord`.
+    Tests positional inputs using components (COMP1, COMP2, COMP3)
+    and various representations.  Use weird units and Galactic frame.
     """
-    # Initialize.
-    sc = None
-    if isinstance(input, six.string_types):
-        sc = SkyCoord(input, frame="icrs", unit="deg")
-    else:
-        sc = SkyCoord(ra=input[0], dec=input[1], frame="icrs", unit="deg")
+    sc = SkyCoord(Galactic, c1, c2, c3, unit=(unit1, unit2, unit3),
+                  representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
 
-    # Test.
-    assert isinstance(sc, SkyCoord)
+    sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
+                  1000*c3*u.Unit(unit3/1000), Galactic,
+                  unit=(unit1, unit2, unit3), representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
 
-    if (isinstance(input[0], u.Quantity) and
-        isinstance(input[1], u.Quantity)):
-        assert sc.ra == input[0]
-        assert sc.dec == input[1]
-    elif (hasattr(input[0], '__iter__') and
-        hasattr(input[1], '__iter__')):
-        assert compare(sc.ra.value, input[0])
-        assert compare(sc.dec.value, input[1])
-    elif isinstance(input, six.string_types):
-        values = _break_string_args([input])
-        assert sc.ra.value == Longitude(values[0], unit="deg").value
-        assert sc.dec.value == Latitude(values[1], unit="deg").value
-    else:
-        assert sc.ra.value == input[0]
-        assert sc.dec.value == input[1]
+    kwargs = {attr3: c3}
+    sc = SkyCoord(Galactic, c1, c2, unit=(unit1, unit2, unit3),
+                  representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
+
+    kwargs = {attr1: c1, attr2: c2, attr3: c3}
+    sc = SkyCoord(Galactic, unit=(unit1, unit2, unit3),
+                  representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
+
+
+@pytest.mark.parametrize(units_attr_args,
+                         (x for x in units_attr_sets
+                          if x[0] in ('spherical', 'unitspherical')))
+def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
+                                           attr1, attr2, attr3, representation, c1, c2, c3):
+    """
+    Tests positional inputs using components (COMP1, COMP2) for spherical
+    representations.  Use weird units and Galactic frame.
+    """
+    sc = SkyCoord(Galactic, c1, c2, unit=(unit1, unit2),
+                  representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
+                               (attr1, attr2))
+
+    sc = SkyCoord(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
+                  Galactic,
+                  unit=(unit1, unit2, unit3), representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
+                               (attr1, attr2))
+
+    kwargs = {attr1: c1, attr2: c2}
+    sc = SkyCoord(Galactic, unit=(unit1, unit2),
+                  representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2),
+                               (attr1, attr2))
+
+
+@pytest.mark.parametrize(units_attr_args,
+                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
+                                   representation, c1, c2, c3):
+    """
+    Tests positional inputs using components (COMP1, COMP2, COMP3)
+    and various representations.  Use weird units and Galactic frame.
+    """
+    sc = Galactic(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2),
+                  1000*c3*u.Unit(unit3/1000), representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
+
+    kwargs = {attr3: c3*unit3}
+    sc = Galactic(c1*unit1, c2*unit2,
+                  representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
+
+    kwargs = {attr1: c1*unit1, attr2: c2*unit2, attr3: c3*unit3}
+    sc = Galactic(representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2, c3*unit3),
+                               (attr1, attr2, attr3))
+
+
+@pytest.mark.parametrize(units_attr_args,
+                         (x for x in units_attr_sets
+                          if x[0] in ('spherical', 'unitspherical')))
+def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
+                                           attr1, attr2, attr3, representation, c1, c2, c3):
+    """
+    Tests positional inputs using components (COMP1, COMP2) for spherical
+    representations.  Use weird units and Galactic frame.
+    """
+
+    sc = Galactic(1000*c1*u.Unit(unit1/1000), cls2(c2, unit=unit2), representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
+
+    sc = Galactic(c1*unit1, c2*unit2, representation=representation)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
+
+    kwargs = {attr1: c1*unit1, attr2: c2*unit2}
+    sc = Galactic(representation=representation, **kwargs)
+    assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
+
+
+@pytest.mark.parametrize('repr_name,unit1,unit2,unit3,cls2,attr1,attr2,attr3',
+                         (x for x in base_unit_attr_sets if x[0] != 'unitspherical'))
+def test_skycoord_coordinate_input(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3):
+    c1, c2, c3 = 1, 2, 3
+    sc = SkyCoord([(c1, c2, c3)], unit=(unit1, unit2, unit3), representation=repr_name,
+                  frame='galactic')
+    assert_quantities_allclose(sc, ([c1]*unit1, [c2]*unit2, [c3]*unit3), (attr1, attr2, attr3))
+
+    c1, c2, c3 = 1*unit1, 2*unit2, 3*unit3
+    sc = SkyCoord([(c1, c2, c3)], representation=repr_name, frame='galactic')
+    assert_quantities_allclose(sc, ([1]*unit1, [2]*unit2, [3]*unit3), (attr1, attr2, attr3))
+
+
+def test_skycoord_string_coordinate_input():
+    sc = SkyCoord('01 02 03 +02 03 04', unit='deg', representation='unitspherical')
+    assert_quantities_allclose(sc, (Angle('01:02:03', unit='deg'),
+                                    Angle('02:03:04', unit='deg')),
+                               ('ra', 'dec'))
+    sc = SkyCoord(['01 02 03 +02 03 04'], unit='deg', representation='unitspherical')
+    assert_quantities_allclose(sc, (Angle(['01:02:03'], unit='deg'),
+                                    Angle(['02:03:04'], unit='deg')),
+                               ('ra', 'dec'))
+
+
+def test_units():
+    sc = SkyCoord(1, 2, 3, unit='m', representation='cartesian')  # All get meters
+    assert sc.x.unit is u.m
+    assert sc.y.unit is u.m
+    assert sc.z.unit is u.m
+
+    sc = SkyCoord(1, 2*u.km, 3, unit='m', representation='cartesian')  # All get u.m
+    assert sc.x.unit is u.m
+    assert sc.y.unit is u.m
+    assert sc.z.unit is u.m
+
+    sc = SkyCoord(1, 2, 3, unit=u.m, representation='cartesian')  # All get u.m
+    assert sc.x.unit is u.m
+    assert sc.y.unit is u.m
+    assert sc.z.unit is u.m
+
+    sc = SkyCoord(1, 2, 3, unit='m, km, pc', representation='cartesian')
+    assert_quantities_allclose(sc, (1*u.m, 2*u.km, 3*u.pc), ('x', 'y', 'z'))
+
+    with pytest.raises(u.UnitsError) as err:
+        SkyCoord(1, 2, 3, unit=(u.m, u.m), representation='cartesian')
+    assert 'should have matching physical types' in str(err)
+
+    SkyCoord(1, 2, 3, unit=(u.m, u.km, u.pc), representation='cartesian')
+    assert_quantities_allclose(sc, (1*u.m, 2*u.km, 3*u.pc), ('x', 'y', 'z'))
+
+
+@pytest.mark.xfail
+def test_units_known_fail():
+    # should fail but doesn't => corner case oddity
+    with pytest.raises(u.UnitsError):
+        SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
