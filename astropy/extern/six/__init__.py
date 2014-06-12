@@ -1,4 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+Handle loading six package from system or from the bundled copy
 
+"""
 import sys
 
 # Trying to load alternate six packages
@@ -25,18 +29,27 @@ _dest_root = 'astropy.extern.six'
 
 try:
     import six
-    # handle 'moves'
-    _base_moves = 'six.moves'
-    _load_six_moves(_base_moves, _dest_moves)
-    sys.modules[_dest_root] = six
-    six_system_package = True
+    _system_package = True
 except ImportError:
-    pass
+    _system_package = False
 
-if not six_system_package:
+if _system_package:
+    # Check six version
+    _valid_version = True
+    if _valid_version:
+        # handle 'moves'
+        _base_moves = 'six.moves'
+        _load_six_moves(_base_moves, _dest_moves)
+        six.system_package = True
+        six.bundled_package = False
+        sys.modules[_dest_root] = six
+
+if not _system_package:
     import astropy.extern.bundled.six as six
     # handle 'moves'
     _base_moves = 'astropy.extern.bundled.six.moves'
     _load_six_moves(_base_moves, _dest_moves)
+    six.system_package = False
+    six.bundled_package = True
     sys.modules[_dest_root] = six
 
