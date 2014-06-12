@@ -61,7 +61,7 @@ from ..extern.six.moves import range
 from ..table import Table
 from ..utils import deprecated
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import array_repr_oneline, check_broadcast
+from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
 
 from .parameters import Parameter, InputParameterError
 
@@ -719,19 +719,19 @@ class Model(object):
                 all_shapes.append(param_shape)
 
         # Now check mutual broadcastability of all shapes
-        incompatible = len(all_shapes) > 1 and check_broadcast(*all_shapes)
-        if incompatible:
-            param_a = self.param_names[incompatible[0]]
-            shape_a = np.shape(params[param_a])
-            param_b = self.param_names[incompatible[1]]
-            shape_b = np.shape(params[param_b])
+        try:
+            broadcast = check_broadcast(*all_shapes)
+        except IncompatibleShapeError as exc:
+            shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+            param_a = self.param_names[shape_a_idx]
+            param_b = self.param_names[shape_b_idx]
 
             raise InputParameterError(
                 "Parameter {0!r} of shape {1!r} cannot be broadcast with "
-                "parameter {2!r} of shape {3!r}.  All parameter arrays must "
-                "have shapes that are mutually compatible according to the "
-                "broadcasting rules.".format(param_a, shape_a,
-                                             param_b, shape_b))
+                "parameter {2!r} of shape {3!r}.  All parameter arrays "
+                "must have shapes that are mutually compatible according "
+                "to the broadcasting rules.".format(param_a, shape_a,
+                                                    param_b, shape_b))
 
         return broadcast_shapes
 
