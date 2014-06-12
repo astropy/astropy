@@ -7,18 +7,20 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from itertools import izip_longest
+
 import numpy as np
 
-from ..extern.six.moves import xrange, zip
+from ..extern.six.moves import xrange
 
-__all__ = ['can_broadcast', 'poly_map_domain', 'comb']
+__all__ = ['check_broadcast', 'poly_map_domain', 'comb']
 
 
 
-def can_broadcast(shape_a, shape_b):
+def check_broadcast(shape_a, shape_b, *shapes):
     """
-    Determines whether two Numpy arrays can be broadcast with each other
-    based on their shape tuple alone.
+    Determines whether two or more Numpy arrays can be broadcast with each
+    other based on their shape tuple alone.
 
     Parameters
     ----------
@@ -26,19 +28,35 @@ def can_broadcast(shape_a, shape_b):
         The shape tuple of the first array.
     shape_b : tuple
         The shape tuple of the second array.
+    *shapes : tuple
+        Any subsequent shapes to include in the comparison.
 
     Returns
     -------
-    can_broadcast : bool
-        `True` if two arrays with the given shapes can be broadcast against
-        each other.
+    can_broadcast : `tuple`, `None`
+        If all the supplied shapes can broadcast with each other, returns
+        `None`, otherwise returns a two-tuple of the indices of the first two
+        shapes that were determined not to broadcast with each other.
     """
 
-    for dim_a, dim_b in zip(reversed(shape_a), reversed(shape_b)):
-        if not (dim_a == 1 or dim_b == 1 or dim_a == dim_b):
-            return False
+    all_shapes = ((reversed(shape_a), reversed(shape_b)) +
+                  tuple(reversed(shape) for shape in shapes))
 
-    return True
+    for dims in izip_longest(*all_shapes, fillvalue=1):
+        max_dim = None
+        max_dim_idx = None
+        for idx, dim in enumerate(dims):
+            if dim == 1:
+                continue
+
+            if max_dim is None:
+                # The first dimension of size greater than 1
+                max_dim = dim
+                max_dim_idx = idx
+            elif dim != max_dim:
+                return (max_dim_idx, idx)
+
+    return None
 
 
 def poly_map_domain(oldx, domain, window):

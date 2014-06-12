@@ -6,6 +6,8 @@ Tests models.parameters
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import itertools
+
 import numpy as np
 from numpy.testing import utils
 
@@ -579,3 +581,28 @@ class TestParameterInitialization(object):
         assert np.issubdtype(t4.param_sets.dtype, object)
         assert np.all(t4.param_sets[0] == [[1, 2], [3, 4]])
         assert np.all(t4.param_sets[1] == [5, 6])
+
+
+def test_non_broadcasting_parameters():
+    """
+    Tests that in a model with 3 parameters that do not all mutually broadcast,
+    this is determined correctly regardless of what order the parameters are
+    in.
+    """
+
+    a = 3
+    b = np.array([[1, 2, 3], [4, 5, 6]])
+    c = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
+
+    class TestModel(Model):
+        p1 = Parameter()
+        p2 = Parameter()
+        p3 = Parameter()
+
+        def __call__(self):
+            pass
+
+    # a broadcasts with both b and c, but b does not broadcast with c
+    for args in itertools.permutations((a, b, c)):
+        with pytest.raises(InputParameterError):
+            TestModel(*args)

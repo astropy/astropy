@@ -61,7 +61,7 @@ from ..extern.six.moves import range
 from ..table import Table
 from ..utils import deprecated
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import array_repr_oneline, can_broadcast
+from .utils import array_repr_oneline, check_broadcast
 
 from .parameters import Parameter, InputParameterError
 
@@ -633,6 +633,8 @@ class Model(object):
             n_models = 1
             self._param_broadcast_shapes = self._check_param_broadcast(
                     params, None, None)
+        else:
+            self._param_broadcast_shapes = {}
 
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
@@ -683,24 +685,7 @@ class Model(object):
         """
 
         broadcast_shapes = {}
-
-        # Compare all the parameter values off the first--broadcastability
-        # should be transitive so the choice is really arbitrary
-        first_name = first_value = None
-        for param_name in self.param_names:
-            if param_name in params:
-                first_name, first_value = param_name, params[param_name]
-                break
-        first_shape = np.shape(first_value)
-
-        if model_set_axis is not None and model_set_axis < 0:
-            # This is necessary for the arithmetic to work sensibly for
-            # negative model_set_axis
-            reverse = True
-            model_set_axis = abs(model_set_axis) - 1
-            first_shape = first_shape[::-1]
-        else:
-            reverse = False
+        all_shapes = []
 
         for name, value in six.iteritems(params):
             # We've already checked that each parameter array is compatible in
@@ -709,39 +694,9 @@ class Model(object):
             # Split the array dimensions into the axes before model_set_axis
             # and after model_set_axis
             param_shape = np.shape(value)
-            if reverse:
-                param_shape = param_shape[::-1]
-
-            if model_set_axis is None:
-                shape_a = first_shape
-                shape_b = param_shape
-            else:
-                shape_a_front = first_shape[:model_set_axis]
-                shape_b_front = param_shape[:model_set_axis]
-                shape_a_back = first_shape[model_set_axis + 1:]
-                shape_b_back = param_shape[model_set_axis + 1:]
-
-                shape_a = shape_a_front + shape_a_back
-                shape_b = shape_b_front + shape_b_back
-
-                if reverse:
-                    shape_a = shape_a[::-1]
-                    shape_b = shape_b[::-1]
-
-            if name != first_name and not can_broadcast(shape_a, shape_b):
-                raise InputParameterError(
-                    "Parameter {0!r} of shape {1!r} cannot be broadcast with "
-                    "parameter {2!r} of shape {3!r}.  All parameter arrays "
-                    "must have shapes that are mutually compatible according "
-                    "to the Numpy broadcasting rules.".format(
-                        first_name, first_shape, name, param_shape))
-
-            if model_set_axis is None:
-                continue
 
             param_ndim = len(param_shape)
-
-            if param_ndim < max_ndim:
+            if max_ndim is not None and param_ndim < max_ndim:
                 # All arrays have the same number of dimensions up to the
                 # model_set_axis dimension, but after that they may have a
                 # different number of trailing axes.  The number of trailing
@@ -749,15 +704,34 @@ class Model(object):
                 # if max_ndim = 3 and model_set_axis = 0, an array with the
                 # shape (2, 2) must be extended to (2, 1, 2).  However, an
                 # array with shape (2,) is extended to (2, 1).
-                n_new_axes = max_ndim - param_ndim
-                if reverse:
-                    broadcast_shape = (param_shape[:model_set_axis + 1] +
-                                       shape_b_back + (1,) * n_new_axes)
-                    broadcast_shape = broadcast_shape[::-1]
+                new_axes = (1,) * (max_ndim - param_ndim)
+
+                if model_set_axis < 0:
+                    # Just need to prepend axes to make up the difference
+                    broadcast_shape = new_axes + param_shape
                 else:
                     broadcast_shape = (param_shape[:model_set_axis + 1] +
-                                       (1,) * n_new_axes + shape_b_back)
+                                       new_axes +
+                                       param_shape[model_set_axis + 1:])
                 broadcast_shapes[name] = broadcast_shape
+                all_shapes.append(broadcast_shape)
+            else:
+                all_shapes.append(param_shape)
+
+        # Now check mutual broadcastability of all shapes
+        incompatible = len(all_shapes) > 1 and check_broadcast(*all_shapes)
+        if incompatible:
+            param_a = self.param_names[incompatible[0]]
+            shape_a = np.shape(params[param_a])
+            param_b = self.param_names[incompatible[1]]
+            shape_b = np.shape(params[param_b])
+
+            raise InputParameterError(
+                "Parameter {0!r} of shape {1!r} cannot be broadcast with "
+                "parameter {2!r} of shape {3!r}.  All parameter arrays must "
+                "have shapes that are mutually compatible according to the "
+                "broadcasting rules.".format(param_a, shape_a,
+                                             param_b, shape_b))
 
         return broadcast_shapes
 
