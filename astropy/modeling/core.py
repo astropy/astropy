@@ -87,65 +87,113 @@ def format_input(func):
 
     @functools.wraps(func)
     def wrapped_call(self, *inputs, **kwargs):
-        converted = []
-        broadcasts = []
-        params = [getattr(self, name) for name in self.param_names]
-        scalar_params = all(param.shape == () for param in params)
         model_set_axis = kwargs.get('model_set_axis', None)
+
+        if model_set_axis is None:
+            # By default the model_set_axis for the input is assumed to be the
+            # same as that for the parameters the model was defined with
+            # TODO: Ensure that negative model_set_axis arguments are respected
+            model_set_axis = self.model_set_axis
+
+        _validate_input_shapes(inputs, argspec.args[1:], len(self),
+                               model_set_axis)
+
+        params = [getattr(self, name) for name in self.param_names]
+        inputs = [np.asarray(_input, dtype=float) for _input in inputs]
+
+        if not params:
+            # Special escape clause for parameterless models (currently I don't
+            # think we have any but they could exist in principle)
+            return func(self, *inputs, **kwargs)
+
+        broadcasts = []
+        reshaped = []
+        pivots = []
 
         for idx, _input in enumerate(inputs):
             _input = np.asarray(_input, dtype=np.float)
-            orig_input = _input
 
-            if model_set_axis is None or model_set_axis is False:
-                # Just append the input with enough axes to broadcast with
-                # the parameter values (which are all normalized to the
-                # same ndim)
-                new_shape = _input.shape + (1,) * params[0].value.ndim
-                _input = _input.reshape(new_shape)
-            elif model_set_axis != self.model_set_axis:
-                # Now roll the input's model_set_axis to match up with the
-                # model_set_axis defined on the model
-                _input = np.swapaxes(_input, model_set_axis,
-                                     self.model_set_axis)
+            max_broadcast = ()
+            max_param_shape = ()
 
-            # Now check that the input can broadcast correctly with all
-            # parameter arrays
+            if len(self) > 1 and model_set_axis is not False:
+                # Use the shape of the input *excluding* the model axis
+                input_shape = (_input.shape[:model_set_axis] +
+                               _input.shape[model_set_axis + 1:])
+            else:
+                input_shape = _input.shape
+
             for param in params:
                 try:
-                    broadcasts.append(np.broadcast(param.value, _input))
-                except ValueError:
+                    broadcast = check_broadcast(input_shape, param.shape)
+                except IncompatibleShapeError:
                     raise ValueError(
                         "Model input argument {0!r} of shape {1!r} cannot be "
                         "broadcast with parameter {2!r} of shape "
-                        "{3!r}.".format(argspec.args[idx + 1],
-                                        orig_input.shape, param.name,
-                                        param.value.shape))
+                        "{3!r}.".format(argspec.args[idx + 1], input_shape,
+                                        param.name, param.shape))
 
-            converted.append(_input)
+                if len(broadcast) > len(max_broadcast):
+                    max_broadcast = broadcast
+                elif len(broadcast) == len(max_broadcast):
+                    max_broadcast = max(max_broadcast, broadcast)
 
-        results = func(self, *converted, **kwargs)
+                if len(param.shape) > len(max_param_shape):
+                    max_param_shape = param.shape
+
+            broadcasts.append(max_broadcast)
+            # We've now determined that, excluding the model_set_axis, the
+            # input can broadcast with all the parameters
+            if len(self) > 1:
+                if model_set_axis is False:
+                    if len(max_param_shape) >= _input.ndim:
+                        # Just needs to prepend new axes to the input
+                        n_new_axes = 1 + len(max_param_shape) - _input.ndim
+                        new_axes = (1,) * n_new_axes
+                        new_shape = new_axes + _input.shape
+                        pivot = self.model_set_axis
+                    else:
+                        pivot = _input.ndim - len(max_param_shape)
+                        new_shape = (_input.shape[:pivot] + (1,) +
+                                     _input.shape[pivot:])
+                    new_input = _input.reshape(new_shape)
+                else:
+                    input_ndim = len(input_shape) # ndim excluding model axis
+                    if len(max_param_shape) >= input_ndim:
+                        n_new_axes = len(max_param_shape) - input_ndim
+                        new_axes = (1,) * n_new_axes
+                        new_shape = _input.shape + new_axes
+                        pivot = self.model_set_axis
+                        new_input = _input.reshape(new_shape)
+                    else:
+                        pivot = _input.ndim - len(max_param_shape) - 1
+                        new_input = np.rollaxis(_input, model_set_axis,
+                                                pivot + 1)
+
+                pivots.append(pivot)
+                reshaped.append(new_input)
+            else:
+                reshaped.append(_input)
+
+        results = func(self, *reshaped, **kwargs)
 
         if self.n_outputs == 1:
             results = [results]
+        else:
+            results = list(results)
 
         for idx, result in enumerate(results):
-            if broadcasts[idx].shape == ():
-                results[idx] = np.asscalar(result)
-                continue
+            if len(self) > 1:
+                pivot = pivots[idx]
+                if pivot < result.ndim and pivot != self.model_set_axis:
+                    results[idx] = np.rollaxis(result, pivot,
+                                               self.model_set_axis)
+            else:
+                if broadcasts[idx] == ():
+                    results[idx] = np.asscalar(result)
+                    continue
 
-            if (model_set_axis is not None and
-                    model_set_axis is not False and
-                    model_set_axis != self.model_set_axis):
-                result = np.swapaxes(result, model_set_axis,
-                                     self.model_set_axis)
-
-            result = result.reshape(broadcasts[idx].shape)
-            results[idx] = result
-
-            #elif len(self) == 1:
-                # Drop the extra axis that is prepended by param_sets
-            #    results[idx] = result.reshape(result.shape[1:])
+                results[idx] = result.reshape(broadcasts[idx])
 
         if self.n_outputs == 1:
             return results[0]
@@ -629,12 +677,12 @@ class Model(object):
 
             self._param_broadcast_shapes = self._check_param_broadcast(
                     params, max_ndim, model_set_axis)
-        elif n_models is None:
-            n_models = 1
+        else:
+            if n_models is None:
+                n_models = 1
+
             self._param_broadcast_shapes = self._check_param_broadcast(
                     params, None, None)
-        else:
-            self._param_broadcast_shapes = {}
 
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
@@ -720,7 +768,7 @@ class Model(object):
 
         # Now check mutual broadcastability of all shapes
         try:
-            broadcast = check_broadcast(*all_shapes)
+            check_broadcast(*all_shapes)
         except IncompatibleShapeError as exc:
             shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
             param_a = self.param_names[shape_a_idx]
@@ -1263,3 +1311,48 @@ class Fittable2DModel(FittableModel):
         """
 
         return self.eval(x, y, *self.param_sets)
+
+
+def _validate_input_shapes(inputs, argnames, n_models, model_set_axis):
+    """
+    Perform basic validation of model inputs--that they are mutually
+    broadcastable and that they have the minimum dimensions for the given
+    model_set_axis.
+
+    If validation succeeds, returns the total shape that will result from
+    broadcasting the input arrays with each other.
+    """
+
+    all_shapes = []
+
+    for idx, _input in enumerate(inputs):
+        input_shape = np.shape(_input)
+        # Ensure that the input's model_set_axis matches the model's
+        # n_models
+        if n_models > 1 and model_set_axis is not False:
+            if len(input_shape) < model_set_axis + 1:
+                raise ValueError(
+                    "For model_set_axis={0}, all inputs must be at "
+                    "least {1}-dimensional.".format(
+                        model_set_axis, model_set_axis + 1))
+            elif input_shape[model_set_axis] != n_models:
+                raise ValueError(
+                    "Input argument {0!r} does not have the correct "
+                    "dimesions in model_set_axis={1} for a model set with "
+                    "n_models={2}.".format(argnames[idx], model_set_axis,
+                                           n_models))
+        all_shapes.append(input_shape)
+
+    try:
+        input_broadcast = check_broadcast(*all_shapes)
+    except IncompatibleShapesError as exc:
+        shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+        arg_a = argnames[shape_a_idx]
+        arg_b = argnames[shape_b_idx]
+
+        raise ValueError(
+            "Model input argument {0!r} of shape {1!r} cannot "
+            "be broadcast with input {2!r} of shape {3!r}".format(
+                arg_a, shape_a, arg_b, shape_b))
+
+    return input_broadcast
