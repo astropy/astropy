@@ -64,15 +64,15 @@ The examples here assume this import statement was executed::
 
   Evaluate the model on one data set::
 
-      >>> y = g1(x)
+      >>> y = g1(x, model_set_axis=False)
       >>> print(y.shape)
-      (90, 2)
+      (2, 90)
 
-  or two data sets (any other number would be an error)::
+  or two data sets::
 
-      >>> y = g1(np.array([x, x]).T)
+      >>> y = g1(np.array([x, x]))
       >>> print(y.shape)
-      (90, 2)
+      (2, 90)
 
 .. plot::
 

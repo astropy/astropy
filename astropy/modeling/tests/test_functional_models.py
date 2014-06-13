@@ -104,4 +104,4 @@ def test_Redshift():
 
     inv_m = m.inverse()
     assert_allclose(inv_m(m([1, 2], model_set_axis=False)),
-                    [[-0.5, -0.5], [0, 0], [0.5, 0.5]])
+                    [[1, 2], [1, 2], [1, 2]])

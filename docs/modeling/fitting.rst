@@ -68,7 +68,7 @@ Fitters support constrained fitting.
       array([[ 1.,  1.],
              [ 2.,  2.],
              [ 3.,  3.]])
-      >>> y = p1(x)
+      >>> y = p1(x, model_set_axis=False)
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p1, x, y)  # doctest: +SKIP
