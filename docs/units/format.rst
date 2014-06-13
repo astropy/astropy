@@ -152,6 +152,20 @@ following formats:
 
        \mathrm{\frac{erg}{s\,cm^{2}}}
 
+  - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
+    `IAU Style Manual
+    <http://www.iau.org/static/publications/stylemanual1989.pdf>`__
+    recommendations for unit presentation, using negative powers instead of
+    fractions, as required by some journals (e.g., `Apj and AJ
+    <http://aas.org/authors/manuscript-preparation-aj-apj-author-instructions#_Toc2.2>`_.)
+    Best suited for unit representation inline with text::
+
+      >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP
+
+    .. math::
+
+       \mathrm{erg\,s^{-1}\,cm^{-2}}
+
   - ``"console"``: Writes a multi-line representation of the unit
     useful for display in a text console::
 
