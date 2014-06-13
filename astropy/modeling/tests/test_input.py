@@ -616,6 +616,7 @@ class TestSingleInputSingleOutputTwoModel(object):
                              [144, 255, 366]])
 
 
+
 class TestInputFormatter(Model):
     """
     A toy model to test format_input

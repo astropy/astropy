@@ -498,6 +498,7 @@ class AffineTransformation2D(Model):
 
     n_inputs = 2
     n_outputs = 2
+    standard_broadcasting = False
 
     matrix = Parameter(
         setter=lambda m: AffineTransformation2D._validate_matrix(m),
