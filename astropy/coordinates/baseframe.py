@@ -52,8 +52,37 @@ class FrameMeta(type):
 
 
 class FrameAttribute(object):
-    """A data descriptor that sets and returns values
-       normally and prints a message logging their access.
+    """A non-mutable data descriptor to hold a frame attribute.
+
+    This class must be used to define frame attributes (e.g. ``equinox`` or
+    ``obstime``) that are included in a frame class definition.
+
+    Example
+    -------
+    The `~astropy.coordinates.FK4` class uses the following class attributes::
+
+      class FK4(BaseCoordinateFrame):
+          equinox = FrameAttribute(default=_EQUINOX_B1950)
+          obstime = FrameAttribute(default=None, secondary_attribute='equinox')
+
+    This means that ``equinox`` and ``obstime`` are available to be set as
+    keyword arguments when creating an ``FK4`` class instance and are then
+    accessible as instance attributes.  The instance value for the attribute is
+    assumed to be stored in ``'_' + <attribute_name>`` by the frame
+    ``__init__`` method.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value
+        if ``default is None`` and no value was supplied during initialization.
+
+    Returns
+    -------
+    frame_attr : descriptor
+        A new data descriptor to hold a frame attribute
     """
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
@@ -72,9 +101,8 @@ class FrameAttribute(object):
         out = None
         if instance is not None:
             out = getattr(instance, '_' + self.name, None)
-            if out is None:
-                if self.default is None:
-                    out = getattr(instance, self.secondary_attribute, None)
+            if out is None and self.default is None:
+                out = getattr(instance, self.secondary_attribute, None)
 
         if out is None:
             out = self.default
