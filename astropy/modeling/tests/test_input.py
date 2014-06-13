@@ -504,10 +504,7 @@ class TestSingleInputSingleOutputTwoModel(object):
 
         t = TestModel_1_1([1, 2], [10, 20], n_models=2)
 
-        with pytest.raises(ValueError):
-            y = t(100)
-
-        y = t(100, model_set_axis=False)
+        y = t(100)
         assert np.shape(y) == (2,)
         assert np.all(y == [111, 122])
 
@@ -586,10 +583,7 @@ class TestSingleInputSingleOutputTwoModel(object):
         t = TestModel_1_1([[1, 2, 3], [4, 5, 6]],
                           [[10, 20, 30], [40, 50, 60]], n_models=2)
 
-        with pytest.raises(ValueError):
-            y = t(100)
-
-        y = t(100, model_set_axis=False)
+        y = t(100)
         assert np.shape(y) == (2, 3)
         assert np.all(y == [[111, 122, 133], [144, 155, 166]])
 

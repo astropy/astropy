@@ -4,7 +4,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 from .. import models
 from astropy.coordinates import Angle
 
@@ -91,15 +91,17 @@ def test_Redshift():
     # Scale by a scalar
     m = models.Redshift(0.4)
     assert m(0) == 0
-    np.testing.assert_array_equal(m([1, 2]), [1.4, 2.8])
+    assert_array_equal(m([1, 2]), [1.4, 2.8])
 
     inv_m = m.inverse()
-    np.testing.assert_allclose(inv_m(m([1, 2])), [1, 2])
+    assert_allclose(inv_m(m([1, 2])), [1, 2])
 
     # Scale by a list
     m = models.Redshift([-0.5, 0, 0.5], model_set_axis=0)
-    np.testing.assert_array_equal(m(0), 0)
-    np.testing.assert_array_equal(m([1, 2]), [[0.5, 1, 1.5], [1, 2, 3]])
+    assert_array_equal(m(0), 0)
+    assert_array_equal(m([1, 2], model_set_axis=False),
+                       [[0.5, 1], [1, 2], [1.5, 3]])
 
     inv_m = m.inverse()
-    np.testing.assert_allclose(inv_m(m([1, 2])), [[1, 1, 1], [2, 2, 2]])
+    assert_allclose(inv_m(m([1, 2], model_set_axis=False)),
+                    [[-0.5, -0.5], [0, 0], [0.5, 0.5]])

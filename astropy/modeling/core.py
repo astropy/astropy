@@ -1329,7 +1329,8 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis):
         input_shape = np.shape(_input)
         # Ensure that the input's model_set_axis matches the model's
         # n_models
-        if n_models > 1 and model_set_axis is not False:
+        if n_models > 1 and input_shape and model_set_axis is not False:
+            # Note: Scalar inputs *only* get a pass on this
             if len(input_shape) < model_set_axis + 1:
                 raise ValueError(
                     "For model_set_axis={0}, all inputs must be at "

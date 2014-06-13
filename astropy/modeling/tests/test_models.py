@@ -479,7 +479,8 @@ def test_ShiftModel():
     # Shift by a list
     m = models.Shift([42, 43], n_models=2)
     utils.assert_equal(m(0), [42, 43])
-    utils.assert_equal(m([1, 2]), [[43,  44], [44,  45]])
+    utils.assert_equal(m([1, 2], model_set_axis=False),
+                       [[ 43,  44], [ 44,  45]])
 
 
 def test_ScaleModel():
@@ -491,7 +492,8 @@ def test_ScaleModel():
     # Scale by a list
     m = models.Scale([42, 43], n_models=2)
     utils.assert_equal(m(0), [0, 0])
-    utils.assert_equal(m([1, 2]), [[42,  43], [84,  86]])
+    utils.assert_equal(m([1, 2], model_set_axis=False),
+                       [[ 42,  84], [ 43,  86]])
 
 
 def test_parametric_model_repr():
