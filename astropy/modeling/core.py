@@ -1323,25 +1323,26 @@ def _format_model_set_input(func, model, params, inputs, input_names,
 
         # We've now determined that, excluding the model_set_axis, the
         # input can broadcast with all the parameters
+        input_ndim = len(input_shape)
         if model_set_axis is False:
-            if len(max_param_shape) >= _input.ndim:
+            if len(max_param_shape) > input_ndim:
                 # Just needs to prepend new axes to the input
-                n_new_axes = 1 + len(max_param_shape) - _input.ndim
+                n_new_axes = 1 + len(max_param_shape) - input_ndim
                 new_axes = (1,) * n_new_axes
                 new_shape = new_axes + _input.shape
                 pivot = model.model_set_axis
             else:
-                pivot = _input.ndim - len(max_param_shape)
+                pivot = input_ndim - len(max_param_shape)
                 new_shape = (_input.shape[:pivot] + (1,) +
                              _input.shape[pivot:])
             new_input = _input.reshape(new_shape)
         else:
-            input_ndim = len(input_shape) # ndim excluding model axis
             if len(max_param_shape) >= input_ndim:
                 n_new_axes = len(max_param_shape) - input_ndim
-                new_axes = (1,) * n_new_axes
-                new_shape = _input.shape + new_axes
                 pivot = model.model_set_axis
+                new_axes = (1,) * n_new_axes
+                new_shape = (_input.shape[:pivot + 1] + new_axes +
+                             _input.shape[pivot + 1:])
                 new_input = _input.reshape(new_shape)
             else:
                 pivot = _input.ndim - len(max_param_shape) - 1

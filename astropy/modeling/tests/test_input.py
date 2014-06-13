@@ -615,6 +615,35 @@ class TestSingleInputSingleOutputTwoModel(object):
         assert np.all(y2 == [[111, 222, 333],
                              [144, 255, 366]])
 
+    def test_2d_array_parameters_2d_array_input(self):
+        t = TestModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                          [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+                          n_models=2)
+        y1 = t([[100, 200], [300, 400]])
+        assert np.shape(y1) == (2, 2, 2)
+        assert np.all(y1 == [[[111, 222], [133, 244]],
+                             [[355, 466], [377, 488]]])
+
+        with pytest.raises(ValueError):
+            y2 = t([[100, 200, 300], [400, 500, 600]])
+
+        y2 = t([[[100, 200], [300, 400]], [[500, 600], [700, 800]]])
+        assert np.shape(y2) == (2, 2, 2)
+        assert np.all(y2 == [[[111, 222], [333, 444]],
+                             [[555, 666], [777, 888]]])
+
+    def test_mixed_array_parameters_1d_array_input(self):
+        t = TestModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
+                           [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
+                          [[1, 2, 3], [4, 5, 6]], n_models=2)
+
+        with pytest.raises(ValueError):
+            y = t([10, 20, 30])
+
+        y = t([10, 20, 30], model_set_axis=False)
+        assert np.shape(y) == (2, 2, 3)
+        assert_allclose(y, [[[11.01, 22.02, 33.03], [11.04, 22.05, 33.06]],
+                            [[14.07, 25.08, 36.09], [14.10, 25.11, 36.12]]])
 
 
 class TestInputFormatter(Model):
