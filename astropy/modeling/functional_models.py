@@ -1189,7 +1189,7 @@ class AiryDisk2D(Fittable2DModel):
                 self.__class__._j1 = j1
                 self.__class__._rz = jn_zeros(1, 1)[0] / np.pi
             # add a ValueError here for python3 + scipy < 0.12
-            except (ValueError, ImportError):
+            except ValueError:
                 raise ImportError("AiryDisk2D model requires scipy > 0.11.")
 
         super(AiryDisk2D, self).__init__(amplitude=amplitude, x_0=x_0,

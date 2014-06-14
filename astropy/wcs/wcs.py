@@ -1232,12 +1232,7 @@ naxis kwarg.
                    __.RETURNS('world coordinates, in degrees', 8))
 
     def _all_world2pix(self, world, origin, tolerance, **kwargs):
-        try:
-            import scipy.optimize
-        except ImportError:
-            raise ImportError(
-                "You must have Scipy installed to use this method. " +
-                "See <http://www.scipy.org>.")
+        import scipy.optimize
         pix = []
         for i in range(len(world)):
             x0 = self.wcs_world2pix(np.atleast_2d(world[i]), origin,
@@ -1394,7 +1389,7 @@ naxis kwarg.
         `SIP`_ polynomial distortion convention and `Paper IV`_
         table-lookup distortion correction.
 
-        The output is in absolute pixel coordinates, not relative to 
+        The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
 
         Parameters
@@ -1423,9 +1418,9 @@ naxis kwarg.
         Convert pixel coordinates to focal plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
 
-        The output is in absolute pixel coordinates, not relative to 
+        The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
- 
+
         Parameters
         ----------
 
@@ -1452,7 +1447,7 @@ naxis kwarg.
         Convert detector coordinates to image plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
 
-        The output is in absolute pixel coordinates, not relative to 
+        The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
 
         Parameters
