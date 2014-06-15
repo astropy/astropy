@@ -122,6 +122,32 @@ because it will be *much* faster than applying the operation to each
     <SkyCoord (NoFrame): (ra, dec) in deg
         [(10.0, 41.0), (11.0, -5.0)]>
 
+So far we have been using a spherical coordinate representation in the all the
+examples, and this is the default for the built-in frames.  Frequently it is
+convenient to initialize or work with a coordinate using a different
+representation such as cartesian or cylindrical.  This can be done by setting
+the ``representation`` for either |SkyCoord| objects or low-level frame
+coordinate objects::
+
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', frame='icrs', representation='cartesian')
+    >>> c
+    <SkyCoord (ICRS): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    >>> c.x, c.y, c.z
+    (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
+
+    >>> c.representation = 'cylindrical'
+    >>> c
+    <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
+    >>> c.phi
+    <Angle 63.43494882292201 deg>
+
+    >>> c.representation = 'spherical'
+    >>> c
+    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
+
+    >>> c.representation = 'unitspherical'
+    >>> c
+    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg>
 
 |skycoord| defines a number of convenience methods as well, like on-sky
 separation between two coordinates and catalog matching (detailed in

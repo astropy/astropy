@@ -18,7 +18,8 @@ from ..utils.compat.odict import OrderedDict
 from .. import units as u
 from ..time import Time
 from .angles import Angle
-from .representation import SphericalRepresentation
+from .representation import (SphericalRepresentation, CartesianRepresentation,
+                             UnitSphericalRepresentation)
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
@@ -55,11 +56,8 @@ class ICRS(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     """
+    default_representation = SphericalRepresentation
 
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
     frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
     @staticmethod
@@ -105,10 +103,7 @@ class FK5(BaseCoordinateFrame):
         The equinox of this frame.
     """
 
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_J2000}
 
     @staticmethod
@@ -164,10 +159,7 @@ class FK4(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -210,10 +202,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         ``equinox``.
     """
 
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
+    default_representation = SphericalRepresentation
     frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
 
     @property
@@ -279,10 +268,12 @@ class Galactic(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
     """
 
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('l', 'lon'), ('b', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'l': u.degree, 'b': u.degree}
+    _frame_specific_representation_info = {
+        'spherical': {'names': ('l', 'b', 'distance'), 'units': (u.deg, u.deg, None)},
+        'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
+        'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
+    }
+    default_representation = SphericalRepresentation
     frame_attr_names = {}
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -319,11 +310,11 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
-
-    preferred_representation = SphericalRepresentation
-    preferred_attr_names = OrderedDict([('az', 'lon'), ('alt', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'az': u.degree, 'alt': u.degree}
+    _frame_specific_representation_info = {
+        'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
+        'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
+    }
+    default_representation = SphericalRepresentation
     frame_attr_names = {'obstime': None, 'location': None}
 
     def __init__(self, *args, **kwargs):
@@ -346,16 +337,11 @@ class NoFrame(BaseCoordinateFrame):
     public API.
 
     """
-
-    preferred_representation = SphericalRepresentation
-    # the preferred_attr_names here are necessary for the SkyCoord initializer
-    preferred_attr_names = OrderedDict([('ra', 'lon'), ('dec', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'ra': u.degree, 'dec': u.degree}
+    default_representation = SphericalRepresentation
     frame_attr_names = {}
 
 
-#<--------------------------------transformations------------------------------>
+# <--------------------------------transformations------------------------------>
 # Transformations are defined here instead of in the classes themselves, because
 # we need references to the various objects to give to the decorators.
 

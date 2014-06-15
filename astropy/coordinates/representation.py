@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
+from copy import deepcopy
 
 import numpy as np
 import astropy.units as u
@@ -15,10 +16,16 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
+from ..utils import OrderedDict
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
+
+# Module-level dict mapping representation string alias names to class.
+# This is populated by the metaclass init so all representation classes
+# get registered automatically.
+REPRESENTATION_CLASSES = {}
 
 
 def broadcast_quantity(*args, **kwargs):
@@ -32,7 +39,18 @@ def broadcast_quantity(*args, **kwargs):
     return tuple(new_quantities)
 
 
-@six.add_metaclass(abc.ABCMeta)
+class MetaBaseRepresentation(type):
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
+
+        # Register representation name (except for BaseRepresentation)
+        if cls.__name__ == 'BaseRepresentation':
+            return
+
+        REPRESENTATION_CLASSES[cls.get_name()] = cls
+
+
+@six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(object):
     """
     Base Representation object, for representing a point in a 3D coordinate
@@ -73,6 +91,13 @@ class BaseRepresentation(object):
     def components(self):
         """Return tuple with the names of the coordinate components"""
         raise NotImplementedError()
+
+    @classmethod
+    def get_name(cls):
+        name = cls.__name__.lower()
+        if name.endswith('representation'):
+            name = name[:-14]
+        return name
 
     def __getitem__(self, view):
         return self.__class__(*[getattr(self, component)[view]
@@ -169,6 +194,12 @@ class CartesianRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
+    attr_classes = OrderedDict([('x', u.Quantity),
+                                ('y', u.Quantity),
+                                ('z', u.Quantity)])
+    default_names = ('x', 'y', 'z')
+    default_units = (None, None, None)
+
     def __init__(self, x, y=None, z=None, copy=True):
 
         if y is None and z is None:
@@ -259,6 +290,12 @@ class SphericalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    attr_classes = OrderedDict([('lon', Longitude),
+                                ('lat', Latitude),
+                                ('distance', u.Quantity)])
+    default_names = ('ra', 'dec', 'distance')
+    default_units = (u.deg, u.deg, None)
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -372,6 +409,11 @@ class UnitSphericalRepresentation(BaseRepresentation):
         If True arrays will be copied rather than referenced.
     """
 
+    attr_classes = OrderedDict([('lon', Longitude),
+                                 ('lat', Latitude)])
+    default_names = ('ra', 'dec')
+    default_units = (u.deg, u.deg)
+
     def __init__(self, lon, lat, copy=True):
 
         if not isinstance(lon, u.Quantity) or isinstance(lon, Latitude):
@@ -473,6 +515,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    attr_classes = OrderedDict([('phi', Angle),
+                                ('theta', Angle),
+                                ('r', u.Quantity)])
+    default_names = ('phi', 'theta', 'r')
+    default_units = (u.deg, u.deg, None)
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -600,6 +648,12 @@ class CylindricalRepresentation(BaseRepresentation):
     copy : bool, optional
         If True arrays will be copied rather than referenced.
     """
+
+    attr_classes = OrderedDict([('rho', u.Quantity),
+                                ('phi', Angle),
+                                ('z', u.Quantity)])
+    default_names = ('rho', 'phi', 'z')
+    default_units = (None, u.deg, None)
 
     def __init__(self, rho, phi, z, copy=True):
 

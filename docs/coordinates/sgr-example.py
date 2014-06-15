@@ -6,10 +6,6 @@ from __future__ import division, print_function
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
-# Standard library
-import os
-import sys
-
 # Third-party
 import numpy as np
 from numpy import cos, sin
@@ -18,9 +14,6 @@ from astropy.coordinates import frame_transform_graph
 from astropy.coordinates.angles import rotation_matrix
 import astropy.coordinates as coord
 import astropy.units as u
-
-# this is an OrderedDict for use on py 2.6 where it's not in the stdlib
-from astropy.utils.compat.odict import OrderedDict
 
 
 __all__ = ["Sagittarius"]
@@ -49,11 +42,13 @@ class Sagittarius(coord.BaseCoordinateFrame):
         (`representation` must be None).
 
     """
+    default_representation = coord.SphericalRepresentation
 
-    preferred_representation = coord.SphericalRepresentation
-    preferred_attr_names = OrderedDict([('Lambda', 'lon'), ('Beta', 'lat'),
-                                        ('distance', 'distance')])
-    preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
+    _frame_specific_representation_info = {
+        'spherical': {'names': ('Lambda', 'Beta', 'distance'),
+                      'units': (u.degree, u.degree, None)},
+        'unitspherical': {'names': ('Lambda', 'Beta'),
+                          'units': (u.degree, u.degree)}}
 
 # Define the Euler angles (from Law & Majewski 2010)
 phi = np.radians(180+3.75)

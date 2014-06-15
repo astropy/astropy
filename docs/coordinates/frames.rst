@@ -85,19 +85,49 @@ These same attributes can be used to access the data in the frames, as
     >>> coo.ra.to(u.hourangle)
     <Longitude 0.0733... hourangle>
 
-You can use the ``preferred_representation`` attribute in conjunction
-with the ``preferred_attr_names`` attribute to figure out what keywords
-are accepted by a particular class.  The former will be the
-representation  class the system is typically expressed in (e.g.,
+You can use the ``representation`` attribute in conjunction
+with the ``representation_names`` attribute to figure out what keywords
+are accepted by a particular class object.  The former will be the
+representation class the system is expressed in (e.g.,
 spherical for equatorial frames), and the latter will be a dictionary
 mapping names for that frame to the attribute name on the representation
 class::
 
-    >>> ICRS.preferred_representation
+    >>> import astropy.units as u
+    >>> icrs = ICRS(1*u.deg, 2*u.deg)
+    >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
-    >>> ICRS.preferred_attr_names
+    >>> icrs.representation_names
     OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
 
+The representation of the coordinate object can be changed, as shown
+below.  This actually does *nothing* to the object internal data which
+stores the coordinate values, but it changes the external view of that
+data in two ways: (1) the object prints itself in accord with the
+new representation, and (2) the available attributes change to match
+those of the new representation (e.g. from ``ra, dec, distance`` to
+``x, y, z``).  Setting the ``representation`` thus changes a *property*
+of the object (how it appears) without changing the intrinsic object
+itself which represents a point in 3d space.
+::
+
+    >>> from astropy.coordinates import CartesianRepresentation
+    >>> icrs.representation = CartesianRepresentation
+    >>> icrs
+    <ICRS Coordinate: x=0.999238... , y=0.017441... , z=0.034899... >
+    >>> icrs.x
+    <Quantity 0.999238...>
+
+The representation can also be set at the time of creating a coordinate
+and affects the set of keywords used to supply the coordinate data.  For
+example to create a coordinate with cartesian data do::
+
+    >>> ICRS(x=1*u.kpc, y=2*u.kpc, z=3*u.kpc, representation=CartesianRepresentation)
+    <ICRS Coordinate: x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+
+For more information about the use of representations in coordinates see the
+:ref:`astropy-skycoord-representations` section, and for details about the
+representations themselves see :ref:`astropy-coordinates-representations`.
 
 There are two other ways to create frame classes with coordinates.  A
 representation class can be passed in directly at creation, along with
@@ -181,15 +211,14 @@ documentation.
 Defining a New Frame
 ====================
 
-Users can add new coordinate frames by creating new classes that
-are subclasses of  `~astropy.coordinates.BaseCoordinateFrame`.  Detailed
-instructions for subclassing are in the docstrings for that class.  The
-key aspects are to define the class attributes ``frame_attr_names``,
-``preferred_representation``, ``preferred_attr_names``, and possibly
-``preferred_attr_units``. If these are defined, there is often no need to
-define an ``__init__`` function, as the initializer in
-`~astropy.coordinates.BaseCoordinateFrame` will probably behave the way
-you want.
+Users can add new coordinate frames by creating new classes that are subclasses
+of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
+subclassing are in the docstrings for that class.  The key aspects are to
+define the class attributes ``frame_attr_names``, ``default_representation``
+and ``_frame_specific_representation_info``. If these are defined, there is
+often no need to define an ``__init__`` function, as the initializer in
+`~astropy.coordinates.BaseCoordinateFrame` will probably behave the way you
+want.
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will

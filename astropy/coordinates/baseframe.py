@@ -9,21 +9,38 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import inspect
 import warnings
+from copy import deepcopy
 
 # Dependencies
 
 # Project
+from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
+from ..utils import OrderedDict
 from .transformations import TransformGraph
-from .representation import BaseRepresentation, CartesianRepresentation, \
-                            SphericalRepresentation, UnitSphericalRepresentation
+from .representation import (BaseRepresentation, CartesianRepresentation,
+                             SphericalRepresentation, UnitSphericalRepresentation,
+                             REPRESENTATION_CLASSES)
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
+
+
+def _get_repr_cls(value):
+    """Return a valid representation class from ``value`` or raise exception."""
+    if value in REPRESENTATION_CLASSES:
+        value = REPRESENTATION_CLASSES[value]
+    try:
+        assert issubclass(value, BaseRepresentation)  # value might not be a class, so use try
+    except:
+        raise ValueError('representation is {0!r} but must be a BaseRepresentation class '
+                         ' or one of the string aliases {1}'
+                         .format(value, list(REPRESENTATION_CLASSES)))
+    return value
 
 
 class FrameMeta(type):
@@ -35,33 +52,23 @@ class FrameMeta(type):
         parent_clsdcts.insert(0, clsdct)
 
         #now look through the whole MRO for the relevant class attributes
-        pref_repr = None
-        pref_attrs = frame_attrs = {}
-        found_pref_repr = found_pref_attrs = found_frame_attrs = False
+        frame_attrs = {}
+        found_pref_repr = found_frame_attrs = False
         for clsdcti in parent_clsdcts:
-            if not found_pref_repr and 'preferred_representation' in clsdcti:
-                pref_repr = clsdcti['preferred_representation']
+            if not found_pref_repr and 'default_representation' in clsdcti:
                 found_pref_repr = True
-            if not found_pref_attrs and 'preferred_attr_names' in clsdcti:
-                pref_attrs = clsdcti['preferred_attr_names']
-                found_pref_attrs = True
             if not found_frame_attrs and 'frame_attr_names' in clsdcti:
                 frame_attrs = clsdcti['frame_attr_names']
                 found_frame_attrs = True
 
-            if found_pref_repr and found_pref_attrs and found_frame_attrs:
+            if found_pref_repr and found_frame_attrs:
                 break
         else:
             raise ValueError('Could not find the expected BaseCoordinateFrame '
                              'class attributes.  Are you mis-using FrameMeta?')
 
-        if pref_repr:
-            # create properties for the preferred_attr_names
-            for propnm, reprnm in pref_attrs.items():
-                clsdct[propnm] = property(FrameMeta.repr_getter_factory(reprnm, propnm))
-
-        #also make properties for the frame_attr_names to make them immutible
-        #after creation
+        # Make properties for the frame_attr_names to make them immutable
+        # after creation.
         for attrnm in frame_attrs:
             if attrnm in clsdct:
                 if isinstance(clsdct[attrnm], property):
@@ -79,17 +86,6 @@ class FrameMeta(type):
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
     @staticmethod
-    def repr_getter_factory(reprnm, propertynm):
-        def getter(self):
-            rep = self.represent_as(self.preferred_representation)
-            val = getattr(rep, reprnm)
-            if propertynm in self.preferred_attr_units:
-                return val.to(self.preferred_attr_units[propertynm])
-            else:
-                return val
-        return getter
-
-    @staticmethod
     def frame_attr_factory(attrnm):
         def getter(self):
             return getattr(self, '_' + attrnm)
@@ -104,19 +100,10 @@ class BaseCoordinateFrame(object):
     This class is intended to be subclassed to create instances of specific
     systems.  Subclasses can implement the following attributes.
 
-    * `preferred_representation`
+    * `default_representation`
         A subclass of `~astropy.coordinates.BaseRepresentation` that will be
-        treated as the "standard" representation of this frame, or None to have
-        no special representation.
-
-    * `preferred_attr_names`
-        A dictionary mapping attribute names to be created on *this* class to
-        names of attributes on the `preferred_representation`. If
-        `preferred_representation` is None, this does nothing.
-
-    * `preferred_attr_units`
-        A dictionary mapping attribute names to their preferred human-readable
-        units. Keys must also be keys in `preferred_attr_names`.
+        treated as the default representation of this frame.  This is the
+        representation assumed by default when the frame is created.
 
     * `frame_attr_names`
         A dictionary with keys that are the additional attributes necessary to
@@ -131,9 +118,66 @@ class BaseCoordinateFrame(object):
 
     """
 
-    preferred_representation = None
-    preferred_attr_names = {}  # maps preferred name to "real" name on repr obj
-    preferred_attr_units = {}  # maps preferred name to the "standard" unit/string repr
+    @property
+    def representation(self):
+        if not hasattr(self, '_representation'):
+            self._representation = self.default_representation
+        return self._representation
+
+    @representation.setter
+    def representation(self, value):
+        self._representation = _get_repr_cls(value)
+
+    @classmethod
+    def _get_representation_info(cls):
+        # This exists as a class method only to support handling frame inputs
+        # without units, which are deprecated and will be removed.  This can be
+        # moved into the property at that time.
+        repr_attrs = {}
+        for name, repr_cls in REPRESENTATION_CLASSES.items():
+            if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
+                repr_attrs[name] = {'names': repr_cls.default_names,
+                                    'units': repr_cls.default_units}
+
+        # Override defaults as needed for this frame
+        repr_attrs.update(getattr(cls, '_frame_specific_representation_info', {}))
+
+        # Use the class, not the name for the key in representation_info
+        repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
+                          for name, attrs in repr_attrs.items())
+
+        return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
+
+    @property
+    def representation_info(self):
+        return self._get_representation_info()
+
+    @property
+    def representation_names(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
+        data_names = self.representation.attr_classes.keys()
+        repr_names = self.representation_info[self.representation]['names']
+        for repr_name, data_name in zip(repr_names, data_names):
+            out[repr_name] = data_name
+        return out
+
+    @property
+    def representation_units(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
+        repr_attrs = self.representation_info[self.representation]
+        repr_names = repr_attrs['names']
+        repr_units = repr_attrs['units']
+        for repr_name, repr_unit in zip(repr_names, repr_units):
+            if repr_unit:
+                out[repr_name] = repr_unit
+        return out
+
+    default_representation = None
+
     frame_attr_names = {}  # maps attribute to default value
     time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
@@ -173,7 +217,9 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            for key in cls.preferred_attr_names:
+            representation = _get_repr_cls(kwargs.get('representation')
+                                           or cls.default_representation)
+            for key in cls._get_representation_info()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):
                         warnings.warn("Initializing frames using non-Quantity "
@@ -193,6 +239,9 @@ class BaseCoordinateFrame(object):
     def __init__(self, *args, **kwargs):
         self._attr_names_with_defaults = []
 
+        if 'representation' in kwargs:
+            self.representation = kwargs.pop('representation')
+
         representation = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in self.frame_attr_names.items():
@@ -211,7 +260,7 @@ class BaseCoordinateFrame(object):
                 setattr(self, '_' + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
 
-        pref_rep = self.preferred_representation
+        pref_rep = self.representation
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
                                 args[0] is None):
@@ -222,7 +271,7 @@ class BaseCoordinateFrame(object):
 
         elif pref_rep:
             pref_kwargs = {}
-            for nmkw, nmrep in self.preferred_attr_names.items():
+            for nmkw, nmrep in self.representation_names.items():
                 if len(args) > 0:
                     #first gather up positional args
                     pref_kwargs[nmrep] = args.pop(0)
@@ -252,7 +301,7 @@ class BaseCoordinateFrame(object):
 
         if self._data:
             self._rep_cache = dict()
-            self._rep_cache[representation.__class__.__name__] = representation
+            self._rep_cache[representation.__class__.__name__, False] = representation
 
     @property
     def data(self):
@@ -310,7 +359,7 @@ class BaseCoordinateFrame(object):
                         if nm not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
-    def represent_as(self, new_representation):
+    def represent_as(self, new_representation, in_frame_units=False):
         """
         Generate and return a new representation of this frame's `data`.
 
@@ -319,6 +368,10 @@ class BaseCoordinateFrame(object):
         new_representation : subclass of BaseRepresentation
             The type of representation to generate, as a *class* (not an
             instance).
+
+        in_frame_units : bool
+            Force the representation units to match the specified units
+            particular to this frame
 
         Returns
         -------
@@ -338,11 +391,23 @@ class BaseCoordinateFrame(object):
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
         """
-        cached_repr = self._rep_cache.get(new_representation.__name__, None)
+        cached_repr = self._rep_cache.get((new_representation.__name__, in_frame_units))
         if not cached_repr:
-            rep = self.data.represent_as(new_representation)
-            self._rep_cache[new_representation.__name__] = rep
-        return self._rep_cache[new_representation.__name__]
+            data = self.data.represent_as(new_representation)
+
+            # If the new representation is known to this frame and has a defined
+            # set of names and units, then use that.
+            new_attrs = self.representation_info.get(new_representation)
+            if new_attrs and in_frame_units:
+                datakwargs = dict((comp, getattr(data, comp)) for comp in data.components)
+                for comp, new_attr_unit in zip(data.components, new_attrs['units']):
+                    if new_attr_unit:
+                        datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
+                data = data.__class__(**datakwargs)
+
+            self._rep_cache[new_representation.__name__, in_frame_units] = data
+
+        return self._rep_cache[new_representation.__name__, in_frame_units]
 
     def transform_to(self, new_frame):
         """
@@ -457,35 +522,15 @@ class BaseCoordinateFrame(object):
                                 for attrnm in self.frame_attr_names])
 
         if self.has_data:
-            if self.preferred_representation:
-                if (self.preferred_representation == SphericalRepresentation and
-                    isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation)
+            if self.representation:
+                if (self.representation == SphericalRepresentation and
+                        isinstance(self.data, UnitSphericalRepresentation)):
+                    data = self.represent_as(UnitSphericalRepresentation, in_frame_units=True)
                 else:
-                    data = self.represent_as(self.preferred_representation)
-                # if necessary, make a new representation with preferred units
-                if self.preferred_attr_units:
-                    # first figure out how to map *representation* attribute
-                    # names to units
-                    comp_to_unit = {}
-                    for attnm, unit in self.preferred_attr_units.items():
-                        if attnm not in self.preferred_attr_names:
-                            msg = ('The attribute {0} in `preferred_attr_units`'
-                                   ' is not in `preferred_attr_names`')
-                            raise ValueError(msg.format(attnm))
-                        comp_to_unit[self.preferred_attr_names[attnm]] = unit
-
-                    #now actually create a new representation with the new units
-                    datakwargs = {}
-                    for comp in data.components:
-                        datakwargs[comp] = getattr(data, comp)
-                        newu = comp_to_unit.get(comp, None)
-                        if newu:
-                            datakwargs[comp] = datakwargs[comp].to(newu)
-                    data = data.__class__(**datakwargs)
+                    data = self.represent_as(self.representation, in_frame_units=True)
 
                 data_repr = repr(data)
-                for nmpref, nmrepr in self.preferred_attr_names.items():
+                for nmpref, nmrepr in self.representation_names.items():
                     data_repr = data_repr.replace(nmrepr, nmpref)
 
             else:
@@ -498,7 +543,7 @@ class BaseCoordinateFrame(object):
                     frameattrs = frameattrs + ', '
 
                 #remove both the leading "<" and the space after the name
-                data_repr = data_repr[(len(self.data.__class__.__name__) + 2):]
+                data_repr = data_repr[(len(data.__class__.__name__) + 2):]
 
                 return '<{0} Coordinate: {1}{2}'.format(self.__class__.__name__,
                                                         frameattrs, data_repr)
@@ -519,6 +564,45 @@ class BaseCoordinateFrame(object):
             return self.realize_frame(self.data[view])
         else:
             raise ValueError('Cannot index a frame with no data')
+
+    @override__dir__
+    def __dir__(self):
+        """
+        Override the builtin `dir` behavior to include representation
+        names.
+
+        TODO: dynamic representation transforms (i.e. include cylindrical et al.).
+        """
+        dir_values = set(self.representation_names)
+
+        return dir_values
+
+    def __getattr__(self, attr):
+        """
+        Allow access to attributes defined in self.representation_names.
+
+        TODO: dynamic representation transforms (i.e. include cylindrical et al.).
+        """
+        # attr == '_representation' is likely from the hasattr() test in the
+        # representation property which is used for self.representation_names.
+        # Prevent infinite recursion here.
+        if attr == '_representation' or attr not in self.representation_names:
+            raise AttributeError("'{0}' object has no attribute '{1}'"
+                                 .format(self.__class__.__name__, attr))
+
+        rep = self.represent_as(self.representation, in_frame_units=True)
+        val = getattr(rep, self.representation_names[attr])
+        return val
+
+    def __setattr__(self, attr, value):
+        repr_attr_names = []
+        if hasattr(self, 'representation_info'):
+            for representation_attr in self.representation_info.values():
+                repr_attr_names.extend(representation_attr['names'])
+        if attr in repr_attr_names:
+            raise AttributeError('Cannot set any frame attribute {0}'.format(attr))
+        else:
+            super(BaseCoordinateFrame, self).__setattr__(attr, value)
 
     def separation(self, other):
         """
@@ -600,7 +684,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(CartesianRepresentation)
+        return self.represent_as(CartesianRepresentation, in_frame_units=True)
 
     @property
     def spherical(self):
@@ -609,7 +693,7 @@ class BaseCoordinateFrame(object):
         """
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
-        return self.represent_as(SphericalRepresentation)
+        return self.represent_as(SphericalRepresentation, in_frame_units=True)
 
 
 class GenericFrame(BaseCoordinateFrame):

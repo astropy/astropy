@@ -12,8 +12,10 @@ al. 2003).  The Sgr coordinate system is often referred to in terms of two
 angular coordinates, :math:`\Lambda,B`.
 
 We need to define a subclass of `~astropy.coordinates.BaseCoordinateFrame`
-that knows the preferred names and units of the coordinate system angles.
-In this case, these are "Lambda" and "Beta. Then we have to define the
+that knows the names and units of the coordinate system angles in each of
+the supported representations.  In this case we support
+`~astropy.coordinates.SphericalRepresentation` with "Lambda" and "Beta".
+Then we have to define the
 transformation from this coordinate system to some other built-in system.
 Here we will use Galactic coordinates, represented by the
 `~astropy.coordinates.Galactic` class.
@@ -22,9 +24,13 @@ The first step is to create a new class, which we'll call
 ``Sagittarius`` and make it a subclass of
 `~astropy.coordinates.BaseCoordinateFrame`::
 
-    import astropy.coordinates as coord
+    import numpy as np
+    from numpy import cos, sin
+
     from astropy.coordinates import frame_transform_graph
     from astropy.coordinates.angles import rotation_matrix
+    import astropy.coordinates as coord
+    import astropy.units as u
 
     class Sagittarius(coord.BaseCoordinateFrame):
         """
@@ -49,17 +55,21 @@ The first step is to create a new class, which we'll call
             (`representation` must be None).
 
         """
+        default_representation = coord.SphericalRepresentation
 
-        preferred_representation = coord.SphericalRepresentation
-        preferred_attr_names = OrderedDict([('Lambda', 'lon'), ('Beta', 'lat'),
-                                            ('distance', 'distance')])
-        preferred_attr_units = {'Lambda': u.degree, 'Beta': u.degree}
+        _frame_specific_representation_info = {
+            'spherical': {'names': ('Lambda', 'Beta', 'distance'),
+                          'units': (u.degree, u.degree, None)},
+            'unitspherical': {'names': ('Lambda', 'Beta'),
+                              'units': (u.degree, u.degree)}}
 
-Line by line, the first few are simply imports. Next we define the class
-as a subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include
-a descriptive docstring. The final three lines are class-level attributes
-that specify the preferred representation -- e.g., spherical, cartesian, etc.
--- the names of the individual coordinates, and the preferred units.
+Line by line, the first few are simply imports. Next we define the class as a
+subclass of `~astropy.coordinates.BaseCoordinateFrame`. Then we include a
+descriptive docstring.  The final lines are class-level attributes that specify
+the default representation for the data and any data attribute names and units
+which differ from the defaults for the available representations.
+In this case we override the names in the spherical representations but don't
+do anything with the others like cartesian or cylindrical.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions
@@ -155,7 +165,8 @@ transform from ICRS coordinates to ``Sagittarius``, we simply::
     >>> import astropy.coordinates as coord
     >>> icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
     >>> icrs.transform_to(Sagittarius)  # doctest: +SKIP
-    <Sagittarius Coordinate Lambda=346.81827... deg, Beta=-39.28367... deg>
+    <Sagittarius Coordinate: (Lambda, Beta, distance) in (deg, deg, )
+        (346.818273..., -39.283667..., 1.0)>
 
 The complete code for the above example is included below for reference.
 

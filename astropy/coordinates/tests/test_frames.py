@@ -99,6 +99,7 @@ def test_frame_repr():
 def test_converting_units():
     import re
     from ..builtin_frames import ICRS, FK5
+    from ..representation import SphericalRepresentation
 
     # this is a regular expression that with split (see below) removes what's
     # the decimal point  to fix rounding problems
@@ -116,9 +117,14 @@ def test_converting_units():
     assert ri2 == ri4
     assert i2.data.lon.unit != i4.data.lon.unit  # Internal repr changed
 
-    #but that *shouldn't* hold if we turn off preferred_attr_units
+    #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
-        preferred_attr_units = {}
+        _frame_specific_representation_info = {
+            'spherical': {'names': ('ra', 'dec', 'distance'),
+                          'units': (None, None, None)},
+            'unitspherical': {'names': ('ra', 'dec'),
+                              'units': (None, None)}}
+
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
@@ -128,7 +134,7 @@ def test_converting_units():
 
     # the attributes should also get the right units
     assert i2.ra.unit == i4.ra.unit
-    # unless no preferred_attr_units
+    # unless no units
     assert i2.ra.unit != fi.ra.unit
 
 
@@ -290,6 +296,7 @@ def test_is_frame_attr_default():
     assert c4.is_frame_attr_default('equinox')
     assert not c5.is_frame_attr_default('equinox')
 
+
 def test_altaz_attributes():
     from ...time import Time
     from .. import EarthLocation, AltAz
@@ -301,6 +308,88 @@ def test_altaz_attributes():
     aa2 = AltAz(1*u.deg, 2*u.deg, obstime='J2000')
     assert aa2.obstime == Time('J2000')
 
-    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg,0*u.deg, 0*u.m))
+    aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
 
+
+def test_representation():
+    """
+    Test the getter and setter properties for `representation`
+    """
+    from ..builtin_frames import ICRS
+
+    # Create the frame object.
+    icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
+    data = icrs.data
+
+    # Create some representation objects.
+    icrs_cart = icrs.cartesian
+    icrs_spher = icrs.spherical
+
+    # Testing when `_representation` set to `CartesianRepresentation`.
+    icrs.representation = representation.CartesianRepresentation
+    
+    assert icrs.representation == representation.CartesianRepresentation
+    assert icrs_cart.x == icrs.x
+    assert icrs_cart.y == icrs.y
+    assert icrs_cart.z == icrs.z
+    assert icrs.data == data
+
+    # Testing that an ICRS object in CartesianRepresentation must not have spherical attributes.
+    for attr in ('ra', 'dec', 'distance'):
+        with pytest.raises(AttributeError) as err:
+            getattr(icrs, attr)
+        assert 'object has no attribute' in str(err)
+
+    # Testing when `_representation` set to `CylindricalRepresentation`.
+    icrs.representation = representation.CylindricalRepresentation
+
+    assert icrs.representation == representation.CylindricalRepresentation
+    assert icrs.data == data
+
+    # Testing setter input using text argument for spherical.
+    icrs.representation = 'spherical'
+
+    assert icrs.representation is representation.SphericalRepresentation
+    assert icrs_spher.lat == icrs.dec
+    assert icrs_spher.lon == icrs.ra
+    assert icrs_spher.distance == icrs.distance
+    assert icrs.data == data
+
+    # Testing that an ICRS object in SphericalRepresentation must not have cartesian attributes.
+    for attr in ('x', 'y', 'z'):
+        with pytest.raises(AttributeError) as err:
+            getattr(icrs, attr)
+        assert 'object has no attribute' in str(err)
+
+    # Testing setter input using text argument for cylindrical.
+    icrs.representation = 'cylindrical'
+
+    assert icrs.representation is representation.CylindricalRepresentation
+    assert icrs.data == data
+
+    with pytest.raises(ValueError) as err:
+        icrs.representation = 'WRONG'
+    assert 'but must be a BaseRepresentation class' in str(err)
+
+    with pytest.raises(ValueError) as err:
+        icrs.representation = ICRS
+    assert 'but must be a BaseRepresentation class' in str(err)
+
+
+def test_dynamic_attrs():
+    from ..builtin_frames import ICRS
+    c = ICRS(1*u.deg, 2*u.deg)
+    assert 'ra' in dir(c)
+    assert 'dec' in dir(c)
+
+    with pytest.raises(AttributeError) as err:
+        c.blahblah
+    assert "object has no attribute 'blahblah'" in str(err)
+
+    with pytest.raises(AttributeError) as err:
+        c.ra = 1
+    assert "Cannot set any frame attribute" in str(err)
+
+    c.blahblah = 1
+    assert c.blahblah == 1

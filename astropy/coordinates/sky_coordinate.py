@@ -3,17 +3,15 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import collections
 
 import numpy as np
-import re
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..extern.six.moves import zip
-from ..units import Unit
+from ..units import Unit, IrreducibleUnit
 from .. import units as u
 
-from .angles import Latitude, Longitude
 from .distances import Distance
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
+from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import NoFrame
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
@@ -39,12 +37,18 @@ class SkyCoord(object):
     The `SkyCoord` class accepts a wide variety of inputs for initialization.
     At a minimum these must provide one or more celestial coordinate values
     with unambiguous units.  Typically one also specifies the coordinate
-    frame, though this is not required.  The general pattern is::
+    frame, though this is not required.  The general pattern is for spherical
+    representations is::
 
       SkyCoord(COORD, [FRAME], keyword_args ...)
       SkyCoord(LON, LAT, [FRAME], keyword_args ...)
-      SkyCoord(LON, LAT, frame=FRAME, unit=UNIT, keyword_args ...)
+      SkyCoord(LON, LAT, [DISTANCE], frame=FRAME, unit=UNIT, keyword_args ...)
       SkyCoord([FRAME], <lon_attr>=LON, <lat_attr>=LAT, keyword_args ...)
+
+    It is also possible to input coordinate values in other representations
+    such as cartesian or cylindrical.  In this case one includes the keyword
+    argument ``representation='cartesian'`` (for example) along with data in
+    ``x``, ``y``, and ``z``.
 
     Examples
     --------
@@ -60,22 +64,24 @@ class SkyCoord(object):
     The coordinate values and frame specification can now be provided using
     positional and keyword arguments::
 
-      >>> sc = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
-      >>> sc = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
+      >>> c = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
+      >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-      >>> sc = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
+      >>> c = SkyCoord(coords, FK4, unit=(u.deg, u.hourangle), obstime="J1992.21")
 
-      >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
-      >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+      >>> c = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
+      >>> c = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
 
       >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
       >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
-      >>> sc = SkyCoord(ra, dec, frame='icrs')
-      >>> sc = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+      >>> c = SkyCoord(ra, dec, frame='icrs')
+      >>> c = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
 
       >>> c = FK4(1 * u.deg, 2 * u.deg)  # Uses defaults for obstime, equinox
-      >>> sc = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
+      >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
+
+      >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
@@ -88,24 +94,34 @@ class SkyCoord(object):
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         Type of coordinate frame this `SkyCoord` should represent.
-    unit : `~astropy.units.Unit`, string, or 2-tuple of :class:`~astropy.units.Unit` or str, optional
+    unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied ``LON`` and ``LAT`` values, respectively.  If
         only one unit is supplied then it applies to both ``LON`` and
         ``LAT``.
-    ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
-        RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-        frame's ``preferred_attr_names``, including `ICRS`, `FK5`, `FK4`,
-        and `FK4NoETerms`.
-    l, b : valid `~astropy.coordinates.Angle` initializer, optional
-        Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-        keys in the frame's ``preferred_attr_names``, including the
-        `Galactic` frame.
     obstime : valid `~astropy.time.Time` initializer, optional
         Time of observation
     equinox : valid `~astropy.time.Time` initializer, optional
         Coordinate frame equinox
+    representation : str or Representation class
+        Specifies the representation, e.g. 'spherical', 'cartesian', or
+        'cylindrical'.  This affects the positional args and other keyword args
+        which must correspond to the given representation.
     **keyword_args
         Other keyword arguments as applicable for user-defined coordinate frames.
+        Common options include:
+
+        ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
+            RA and Dec for frames where ``ra`` and ``dec`` are keys in the
+            frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
+            and `FK4NoETerms`.
+        l, b : valid `~astropy.coordinates.Angle` initializer, optional
+            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+            keys in the frame's ``representation_names``, including the
+            `Galactic` frame.
+        x, y, z : float or `~astropy.units.Quantity`, optional
+            Cartesian coordinates values
+        w, u, v : float or `~astropy.units.Quantity`, optional
+            Cartesian coordinates values for the Galactic frame.
     """
 
     def __init__(self, *args, **kwargs):
@@ -120,23 +136,29 @@ class SkyCoord(object):
         for attr in FRAME_ATTR_NAMES_SET():
             setattr(self, '_' + attr, kwargs[attr])
 
-        # Set up the keyword args for creating the internal coordinate object.
-        frame_cls = frame_transform_graph.lookup_name(kwargs['frame'])
-        if frame_cls is None:
-            frame_cls = NoFrame
-
+        frame = kwargs['frame']
         coord_kwargs = {}
+        if 'representation' in kwargs:
+            coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame_cls.preferred_attr_names
-                                      or attr in frame_cls.frame_attr_names):
+            if value is not None and (attr in frame.representation_names
+                                      or attr in frame.frame_attr_names):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
-        self._sky_coord_frame = frame_cls(**coord_kwargs)
+        self._sky_coord_frame = frame.__class__(**coord_kwargs)
 
     @property
     def frame(self):
         return self._sky_coord_frame
+
+    @property
+    def representation(self):
+        return self.frame.representation
+
+    @representation.setter
+    def representation(self, value):
+        self.frame.representation = value
 
     def __len__(self):
         return len(self.frame)
@@ -170,18 +192,19 @@ class SkyCoord(object):
         # set valid_kwargs['frame'] accordingly.  The others must be specified
         # by keyword args or else get a None default.  Pop them off of kwargs
         # in the process.
-        frame = valid_kwargs['frame'] = _get_frame_name(args, kwargs)
-        if frame is None:
-            frame = NoFrame
+        frame = valid_kwargs['frame'] = _get_frame(args, kwargs)
+        if 'representation' in kwargs:
+            valid_kwargs['representation'] = _get_repr_cls(kwargs.pop('representation'))
+
         for attr in FRAME_ATTR_NAMES_SET():
             valid_kwargs[attr] = kwargs.pop(attr, None)
 
-        # Get latitude and longitude units
-        lon_unit, lat_unit = _get_units(args, kwargs)
+        # Get units
+        units = _get_units(args, kwargs)
 
         # Grab any frame-specific attr names like `ra` or `l` or `distance` from kwargs
         # and migrate to valid_kwargs.
-        valid_kwargs.update(_get_preferred_attrs(frame, lon_unit, lat_unit, kwargs))
+        valid_kwargs.update(_get_representation_attrs(frame, units, kwargs))
 
         # Error if anything is still left in kwargs
         if kwargs:
@@ -196,20 +219,19 @@ class SkyCoord(object):
                 # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, lon_unit, lat_unit)
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
-            elif len(args) == 2:
-                # Must be longitude, latitude.
-                frame_cls = frame_transform_graph.lookup_name(frame)
-                if frame_cls is None:
-                    frame_cls = NoFrame
-                attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                          frame_cls.preferred_attr_names.items())
+            elif len(args) <= 3:
+                frame_attr_names = frame.representation_names.keys()
+                repr_attr_names = frame.representation_names.values()
                 coord_kwargs = {}
-                coord_kwargs[attr_name_for_type['lon']] = Longitude(args[0], unit=lon_unit)
-                coord_kwargs[attr_name_for_type['lat']] = Latitude(args[1], unit=lat_unit)
+                for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
+                                                                      repr_attr_names, units):
+                    attr_class = frame.representation.attr_classes[repr_attr_name]
+                    coord_kwargs[frame_attr_name] = attr_class(arg, unit=unit)
+
             else:
-                raise ValueError('Must supply no more than two positional arguments, got {}'
+                raise ValueError('Must supply no more than three positional arguments, got {}'
                                  .format(len(args)))
 
             # Copy the coord_kwargs into the final valid_kwargs dict.  For each
@@ -330,8 +352,8 @@ class SkyCoord(object):
             return self.transform_to(attr)
 
         # Fail
-        raise AttributeError("'{0}' object has no attribute '{1}', nor a transform."
-                             .format(self.__class__, attr))
+        raise AttributeError("'{0}' object has no attribute '{1}'"
+                             .format(self.__class__.__name__, attr))
 
     @override__dir__
     def __dir__(self):
@@ -737,7 +759,7 @@ def _get_frame_class(frame):
     return frame_cls
 
 
-def _get_frame_name(args, kwargs):
+def _get_frame(args, kwargs):
     """
     Determine the coordinate frame from input SkyCoord args and kwargs.  This
     modifies args and/or kwargs in-place to remove the item that provided
@@ -746,14 +768,13 @@ def _get_frame_name(args, kwargs):
 
     This allows for frame to be specified as a string like 'icrs' or a frame
     class like ICRS, but not an instance ICRS() since the latter could have
-    non-default preferred attributes which would require a three-way merge.
+    non-default representation attributes which would require a three-way merge.
     """
     frame = kwargs.pop('frame', None)
 
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
-        frame_name = frame_cls.name
     else:
         # Look for the frame in args
         for arg in args:
@@ -762,32 +783,36 @@ def _get_frame_name(args, kwargs):
             except ValueError:
                 pass
             else:
-                frame_name = frame_cls.name
                 args.remove(arg)
                 break
         else:
             # Not in args nor kwargs
-            frame_name = None
+            frame_cls = NoFrame
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
     # been set by this point and a coordinate was supplied, then use that frame.
     for arg in args:
-        coord_frame_name = None
+        coord_frame_cls = None
         if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_name = arg.__class__.name
+            coord_frame_cls = arg.__class__
         elif isinstance(arg, SkyCoord):
-            coord_frame_name = arg.frame.name
+            coord_frame_cls = arg.frame.__class__
 
-        if coord_frame_name is not None:
-            if frame_name is None:
-                frame_name = coord_frame_name
-            elif frame_name != coord_frame_name:
+        if coord_frame_cls is not None:
+            if frame_cls is NoFrame:
+                frame_cls = coord_frame_cls
+            elif frame_cls is not coord_frame_cls:
                 raise ValueError("Cannot override frame='{0}' of input coordinate with "
                                  "new frame='{1}'.  Instead transform the coordinate."
-                                 .format(coord_frame_name, frame_name))
+                                 .format(coord_frame_cls.__name__, frame_cls.__name__))
 
-    return frame_name
+    if 'representation' in kwargs:
+        frame = frame_cls(representation=_get_repr_cls(kwargs['representation']))
+    else:
+        frame = frame_cls()
+
+    return frame
 
 
 def _get_units(args, kwargs):
@@ -796,29 +821,32 @@ def _get_units(args, kwargs):
     is to allow input from args as well.
     """
     if 'unit' not in kwargs:
-        lon_unit, lat_unit = None, None
+        units = [None, None, None]
 
     else:
         units = kwargs.pop('unit')
 
         if isinstance(units, six.string_types):
             units = [x.strip() for x in units.split(',')]
-            # Allow for input like `unit='deg'`
+            # Allow for input like unit='deg' or unit='m'
             if len(units) == 1:
-                units = (units[0], units[0])
-        elif isinstance(units, Unit):
-            units = (units, units)
+                units = [units[0], units[0], units[0]]
+        elif isinstance(units, (Unit, IrreducibleUnit)):
+            units = [units, units, units]
 
         try:
-            lon_unit, lat_unit = [Unit(x) for x in units]
+            units = [(Unit(x) if x else None) for x in units]
+            units.extend(None for x in range(3 - len(units)))
+            if len(units) > 3:
+                raise ValueError()
         except:
-            raise ValueError('Unit keyword must have one unit value or two unit values as '
+            raise ValueError('Unit keyword must have one to three unit values as '
                              'tuple or comma-separated string')
 
-    return lon_unit, lat_unit
+    return units
 
 
-def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
+def _parse_coordinate_arg(coords, frame, units):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
@@ -830,13 +858,10 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
 
-    # Get the mapping of attribute type (e.g. 'lat', 'lon', 'distance')
-    # to corresponding class attribute name ('ra', 'dec', 'distance') for frame.
-    frame_cls = frame_transform_graph.lookup_name(frame)
-    if frame_cls is None:
-        frame_cls = NoFrame
-    attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                              frame_cls.preferred_attr_names.items())
+    frame_attr_names = frame.representation_names.keys()
+    repr_attr_names = frame.representation_names.values()
+    repr_attr_classes = frame.representation.attr_classes.values()
+    n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -850,18 +875,17 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
         if not coords.has_data:
             raise ValueError('Cannot initialize from a frame without coordinate data')
 
-        for attr, attr_type in coords.preferred_attr_names.items():
-            value = getattr(coords, attr)
-            if attr_type == 'lon':
-                valid_kwargs[attr] = Longitude(value, unit=lon_unit)
-            elif attr_type == 'lat':
-                valid_kwargs[attr] = Latitude(value, unit=lat_unit)
-            elif attr_type == 'distance':
-                # don't pass on a distance if no distance was initially given
-                if not isinstance(coords.data, UnitSphericalRepresentation):
-                    valid_kwargs[attr] = value
-            else:
-                raise ValueError("Unexpected attribute type '{0}'".format(attr_type))
+        data = coords.data.represent_as(frame.representation)
+
+        values = []  # List of values corresponding to representation attrs
+        for repr_attr_name in repr_attr_names:
+            # If coords did not have an explicit distance then don't include in initializers.
+            if (isinstance(coords.data, UnitSphericalRepresentation) and
+                    repr_attr_name == 'distance'):
+                continue
+
+            # Get the value from `data` in the eventual representation
+            values.append(getattr(data, repr_attr_name))
 
         for attr in FRAME_ATTR_NAMES_SET():
             value = getattr(coords, attr, None)
@@ -871,75 +895,89 @@ def _parse_coordinate_arg(coords, frame, lon_unit, lat_unit):
                 valid_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
-        sph_coords = coords.represent_as(SphericalRepresentation)
-        valid_kwargs[attr_name_for_type['lon']] = sph_coords.lon
-        valid_kwargs[attr_name_for_type['lat']] = sph_coords.lat
-        valid_kwargs[attr_name_for_type['distance']] = sph_coords.distance
+        data = coords.represent_as(frame.representation)
+        values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+
+    elif (isinstance(coords, np.ndarray) and coords.dtype.kind in 'if'
+          and coords.ndim == 2 and coords.shape[1] <= 3):
+        # 2-d array of coordinate values.  Handle specially for efficiency.
+        values = coords.transpose()  # Iterates over repr attrs
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
-        # NOTE: we do not support SkyCoord((ra, dec)).  It has to be
-        # SkyCoord(ra, dec) or SkyCoord([(ra, dec)])
-        lons = []
-        lats = []
+        # Handles generic list-like input.
 
-        for coord in coords:
-            # Each row must be either a 2-element iterable or a string that
-            # splits into six or two elements.
+        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+        vals = []
+        for ii, coord in enumerate(coords):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
-                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif len(coord1) > 2:
-                    coord = re.split('(\+|\-)', coord)
-                    coord = (coord[0], ' '.join(coord[1:]))
-                else:
-                    coord = coord1
-            try:
-                lon, lat = coord
-            except:
-                raise ValueError('Cannot parse longitude and latitude '
-                                 'from first argument')
+                    coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                coord = coord1
 
-            lons.append(lon)
-            lats.append(lat)
+            vals.append(coord)  # This assumes coord is a sequence at this point
+
+        # Do some basic validation of the list elements: all have a length and all
+        # lengths the same
+        try:
+            n_coords = sorted(set(len(x) for x in vals))
+        except:
+            raise ValueError('One or more elements of input sequence does not have a length')
+
+        if len(n_coords) > 1:
+            raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                             .format(n_coords))
+        n_coords = n_coords[0]
+
+        # Must have no more coord inputs than representation attributes
+        if n_coords > n_attr_names:
+            raise ValueError('Input coordinates have {0} values but {1} representation '
+                             'only accepts {2}'
+                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+
+        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+        # while (a1, a2, ..) doesn't work.
+        values = [list(x) for x in zip(*vals)]
 
         if is_scalar:
-            lons, lats = lons[0], lats[0]
+            values = [x[0] for x in values]
 
-        try:
-            valid_kwargs[attr_name_for_type['lon']] = Longitude(lons, unit=lon_unit)
-            valid_kwargs[attr_name_for_type['lat']] = Latitude(lats, unit=lat_unit)
-        except Exception as err:
-            raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
-                             .format(err))
     else:
-        raise ValueError('Cannot parse longitude and latitude from first argument')
+        raise ValueError('Cannot parse coordinates from first argument')
+
+    # Finally we have a list of values from which to create the keyword args
+    # for the frame initialization.  Validate by running through the appropriate
+    # class initializer and supply units (which might be None).
+    try:
+        for frame_attr_name, repr_attr_class, value, unit in zip(
+                frame_attr_names, repr_attr_classes, values, units):
+            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+    except Exception as err:
+        raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
+                         .format(err))
 
     return valid_kwargs
 
 
-def _get_preferred_attrs(frame, lon_unit, lat_unit, kwargs):
+def _get_representation_attrs(frame, units, kwargs):
     """
-    Find instances of the "preferred attributes" for specifying longitude,
-    latitude, and distance for this frame.  Pop them off of kwargs, run
-    through the appropriate class constructor (to validate and apply unit), and
-    put into the output valid_kwargs.
+    Find instances of the "representation attributes" for specifying data
+    for this frame.  Pop them off of kwargs, run through the appropriate class
+    constructor (to validate and apply unit), and put into the output
+    valid_kwargs.  "Representation attributes" are the frame-specific aliases
+    for the underlying data values in the representation, e.g. "ra" for "lon"
+    for many equatorial spherical representations, or "w" for "x" in the
+    cartesian representation of Galactic.
     """
+    frame_attr_names = frame.representation_names.keys()
+    repr_attr_classes = frame.representation.attr_classes.values()
+
     valid_kwargs = {}
-    frame_cls = frame_transform_graph.lookup_name(frame)
-    if frame_cls is None:
-        frame_cls = NoFrame
-    for attr_cls, attr_type, unit in ((Longitude, 'lon', lon_unit),
-                                      (Latitude, 'lat', lat_unit),
-                                      (Distance, 'distance', None)):
-        attr_name_for_type = dict((attr_type, name) for name, attr_type in
-                                  frame_cls.preferred_attr_names.items())
-        name = attr_name_for_type[attr_type]
-        value = kwargs.pop(name, None)
+    for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):
+        value = kwargs.pop(frame_attr_name, None)
         if value is not None:
-            attr_cls_kwargs = {}
-            if unit is not None:
-                attr_cls_kwargs['unit'] = unit
-            valid_kwargs[name] = attr_cls(value, **attr_cls_kwargs)
+            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     return valid_kwargs
