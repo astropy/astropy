@@ -703,3 +703,7 @@ def test_units_known_fail():
     # should fail but doesn't => corner case oddity
     with pytest.raises(u.UnitsError):
         SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
+
+def test_nodata_failure():
+    with pytest.raises(ValueError):
+        SkyCoord()

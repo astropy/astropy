@@ -148,6 +148,9 @@ class SkyCoord(object):
         # Finally make the internal coordinate object.
         self._sky_coord_frame = frame.__class__(**coord_kwargs)
 
+        if not self._sky_coord_frame.has_data:
+            raise ValueError('Cannot create a SkyCoord without data')
+
     @property
     def frame(self):
         return self._sky_coord_frame
