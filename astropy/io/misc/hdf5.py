@@ -64,9 +64,10 @@ def read_table_hdf5(input, path=None):
 
     Parameters
     ----------
-    input : str or :class:`h5py:File` or :class:`h5py:Group` or :class:`h5py:Dataset`
-        If a string, the filename to read the table from. If an h5py object,
-        either the file or the group object to read the table from.
+    input : str or :class:`h5py:File` or :class:`h5py:Group` or
+        :class:`h5py:Dataset` If a string, the filename to read the table from.
+        If an h5py object, either the file or the group object to read the
+        table from.
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
@@ -98,12 +99,14 @@ def read_table_hdf5(input, path=None):
             arrays = _find_all_structured_arrays(input)
 
             if len(arrays) == 0:
-                raise ValueError("no table found in HDF5 group {0}".format(path))
+                raise ValueError("no table found in HDF5 group {0}".
+                                 format(path))
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
                 warnings.warn("path= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (path={0})".format(path), AstropyUserWarning)
+                              " table (path={0})".format(path),
+                              AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.highlevel.Dataset):
@@ -215,7 +218,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     else:
 
-        raise TypeError('output should be a string or an h5py File or Group object')
+        raise TypeError('output should be a string or an h5py File or '
+                        'Group object')
 
     # Check whether table already exists
     if name in output_group:
@@ -225,7 +229,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
     if compression:
         if compression is True:
             compression = 'gzip'
-        dset = output_group.create_dataset(name, data=table._data, compression=compression)
+        dset = output_group.create_dataset(name, data=table._data,
+                                           compression=compression)
     else:
         dset = output_group.create_dataset(name, data=table._data)
 
@@ -236,4 +241,5 @@ def write_table_hdf5(table, output, path=None, compression=False,
             dset.attrs[key] = val
         except TypeError:
             warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)), AstropyUserWarning)
+                          "HDF5 files - skipping".format(key, type(val)),
+                          AstropyUserWarning)
