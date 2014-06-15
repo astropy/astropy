@@ -46,6 +46,52 @@ def _get_repr_cls(value):
 
 class FrameMeta(type):
     def __new__(cls, name, parents, clsdct):
+        if 'default_representation' in clsdct:
+            def_repr = clsdct.pop('default_representation')
+            found_def_repr = True
+        else:
+            def_repr = None
+            found_def_repr = False
+
+        if 'frame_specific_representation_info' in clsdct:
+            repr_info = clsdct.pop('frame_specific_representation_info')
+            found_repr_info = True
+        else:
+            repr_info = None
+            found_repr_info = False
+
+        # somewhat hacky, but this is the best way to get the MRO according to
+        # https://mail.python.org/pipermail/python-list/2002-December/167861.html
+        mro = super(FrameMeta, cls).__new__(cls, name, parents, clsdct).__mro__
+        parent_clsdcts = [c.__dict__ for c in mro]
+
+        #now look through the whole MRO for the class attributes, raw
+        # for frame_attr_names, and leading underscore for others
+        for clsdcti in parent_clsdcts:
+            if not found_def_repr and '_default_representation' in clsdcti:
+                def_repr = clsdcti['_default_representation']
+                found_def_repr = True
+            if not found_repr_info and '_frame_specific_representation_info' in clsdcti:
+                repr_info = clsdcti['_frame_specific_representation_info']
+                found_repr_info = True
+
+            if found_def_repr and found_repr_info:
+                break
+        else:
+            raise ValueError('Could not find all expected BaseCoordinateFrame '
+                             'class attributes.  Are you mis-using FrameMeta?')
+
+        # Make read-only properties for the frame class attributes that should
+        # be read-only to make them immutable after creation.
+        # We copy attributes instead of linking to make sure there's no
+        # accidental cross-talk between classes
+        clsdct['_default_representation'] = def_repr
+        clsdct['default_representation'] = FrameMeta.readonly_prop_factory('default_representation')
+
+        clsdct['_frame_specific_representation_info'] = deepcopy(repr_info)
+        clsdct['frame_specific_representation_info'] = FrameMeta.readonly_prop_factory('frame_specific_representation_info')
+
+        # now set the frame name as lower-case class name, if it isn't explicit
         if 'name' not in clsdct:
             clsdct['name'] = name.lower()
 
@@ -225,6 +271,12 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
+    @staticmethod
+    def readonly_prop_factory(attrnm):
+        def getter(self):
+            return getattr(self, '_' + attrnm)
+        return property(getter)
+
 
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
@@ -281,7 +333,7 @@ class BaseCoordinateFrame(object):
                                     'units': repr_cls.default_units}
 
         # Override defaults as needed for this frame
-        repr_attrs.update(getattr(cls, '_frame_specific_representation_info', {}))
+        repr_attrs.update(cls._frame_specific_representation_info)
 
         # Use the class, not the name for the key in representation_info
         repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
@@ -328,6 +380,10 @@ class BaseCoordinateFrame(object):
 
     default_representation = None
 
+    frame_attr_names = {}  # maps attribute to default value
+    frame_specific_representation_info = {}  # specifies special names/units for representation attributes
+    time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
+
     # This __new__ provides for backward-compatibility with pre-0.4 API.
     # TODO: remove in 1.0
     def __new__(cls, *args, **kwargs):
@@ -364,8 +420,8 @@ class BaseCoordinateFrame(object):
             use_skycoord = True
 
         if not use_skycoord:
-            representation = _get_repr_cls(kwargs.get('representation')
-                                           or cls.default_representation)
+            representation = _get_repr_cls(kwargs.get('representation',
+                                                      cls._default_representation))
             for key in cls._get_representation_info()[representation]['names']:
                 if key in kwargs:
                     if not isinstance(kwargs[key], u.Quantity):

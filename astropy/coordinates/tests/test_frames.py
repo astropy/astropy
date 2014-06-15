@@ -183,7 +183,7 @@ def test_converting_units():
 
     #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
-        _frame_specific_representation_info = {
+        frame_specific_representation_info = {
             'spherical': {'names': ('ra', 'dec', 'distance'),
                           'units': (None, None, None)},
             'unitspherical': {'names': ('ra', 'dec'),

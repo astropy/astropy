@@ -255,7 +255,7 @@ class Galactic(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
     """
 
-    _frame_specific_representation_info = {
+    frame_specific_representation_info = {
         'spherical': {'names': ('l', 'b', 'distance'), 'units': (u.deg, u.deg, None)},
         'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
         'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
@@ -296,7 +296,7 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
-    _frame_specific_representation_info = {
+    frame_specific_representation_info = {
         'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
         'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
     }
