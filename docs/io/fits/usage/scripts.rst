@@ -15,6 +15,8 @@ fitscheck
 With Astropy installed, please run ``fitscheck --help`` to see the full program
 usage documentation.
 
+.. _fitsdiff:
+
 fitsdiff
 ^^^^^^^^
 
