@@ -237,10 +237,6 @@ the way you want.  As an example::
       equinox = FrameAttribute(default=_EQUINOX_B1950)
       obstime = FrameAttribute(default=None, secondary_attribute='equinox')
 
-One minor note is that the frame attributes defined above are not
-inherited if you then subclass ``MyFrame``.  In this case you must
-explicitly redefine the attributes in the new frame class definition.
-
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will
 be available in any |skycoord| that is created using your user-defined

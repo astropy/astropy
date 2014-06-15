@@ -13,6 +13,7 @@ from .. import representation
 
 
 def test_frame_attribute_descriptor():
+    """ Unit tests of the FrameAttribute descriptor """
     from ..baseframe import FrameAttribute
 
     class TestFrameAttributes(object):
@@ -47,6 +48,30 @@ def test_frame_attribute_descriptor():
     with pytest.raises(AttributeError) as err:
         t.attr_none = 5
     assert 'Cannot set frame attribute' in str(err)
+
+
+def test_frame_subclass_attribute_descriptor():
+    from ..builtin_frames import FK4
+    from ..baseframe import FrameAttribute
+    from astropy.time import Time
+
+    _EQUINOX_B1980 = Time('B1980', scale='tai')
+
+    class MyFK4(FK4):
+        # equinox inherited from FK4, obstime overridden, and newattr is new
+        obstime = FrameAttribute(default=_EQUINOX_B1980)
+        newattr = FrameAttribute(default='newattr')
+
+    mfk4 = MyFK4()
+    assert mfk4.equinox.value == 'B1950.000'
+    assert mfk4.obstime.value == 'B1980.000'
+    assert mfk4.newattr == 'newattr'
+    assert set(mfk4.frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
+
+    mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')
+    assert mfk4.equinox.value == 'J1980.000'
+    assert mfk4.obstime.value == 'J1990.000'
+    assert mfk4.newattr == 'world'
 
 
 def test_create_data_frames():

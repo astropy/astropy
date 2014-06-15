@@ -89,11 +89,14 @@ class FrameAttribute(object):
         self.secondary_attribute = secondary_attribute
 
     def __get__(self, instance, cls=None):
-        # Find thyself
+        # Find thyself in host class or any parents
         if not hasattr(self, 'name'):
-            for name, val in cls.__dict__.items():
-                if val is self:
-                    self.name = name
+            for mro_cls in cls.__mro__:
+                for name, val in mro_cls.__dict__.items():
+                    if val is self:
+                        self.name = name
+                        break
+                if hasattr(self, 'name'):  # Can't nicely break out of two loops
                     break
             else:
                 # Cannot think of a way to actually raise this exception.  This instance
@@ -122,17 +125,12 @@ class BaseCoordinateFrame(object):
     The base class for coordinate frames.
 
     This class is intended to be subclassed to create instances of specific
-    systems.  Subclasses can implement the following attributes.
+    systems.  Subclasses can implement the following attributes:
 
     * `default_representation`
         A subclass of `~astropy.coordinates.BaseRepresentation` that will be
         treated as the default representation of this frame.  This is the
         representation assumed by default when the frame is created.
-
-    * `frame_attr_names`
-        A dictionary with keys that are the additional attributes necessary to
-        specify the frame, and values that are the default values of those
-        attributes.
 
     * `time_attr_names`
         A sequence of attribute names that must be `~astropy.time.Time` objects.
@@ -140,13 +138,20 @@ class BaseCoordinateFrame(object):
         possible (e.g. from the string 'J2000' to the appropriate
         `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
 
+    * `~astropy.coordinates.FrameAttribute` class attributes
+       Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
+       using a descriptor class.  See the narrative documentation or
+       built-in classes code for details.
     """
 
     @classmethod
     def frame_attr_names(cls):
-        return dict((name, getattr(cls, name))
-                    for name, val in cls.__dict__.items()
-                    if val.__class__ is FrameAttribute)
+        out = {}
+        for mro_cls in cls.__mro__:
+            for name, val in mro_cls.__dict__.items():
+                if val.__class__ is FrameAttribute:
+                    out[name] = getattr(mro_cls, name)
+        return out
 
     @property
     def representation(self):
