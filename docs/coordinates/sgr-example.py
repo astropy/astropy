@@ -44,7 +44,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
     """
     default_representation = coord.SphericalRepresentation
 
-    _frame_specific_representation_info = {
+    frame_specific_representation_info = {
         'spherical': {'names': ('Lambda', 'Beta', 'distance'),
                       'units': (u.degree, u.degree, None)},
         'unitspherical': {'names': ('Lambda', 'Beta'),
