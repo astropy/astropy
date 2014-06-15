@@ -328,7 +328,7 @@ def test_representation():
 
     # Testing when `_representation` set to `CartesianRepresentation`.
     icrs.representation = representation.CartesianRepresentation
-    
+
     assert icrs.representation == representation.CartesianRepresentation
     assert icrs_cart.x == icrs.x
     assert icrs_cart.y == icrs.y
@@ -375,6 +375,19 @@ def test_representation():
     with pytest.raises(ValueError) as err:
         icrs.representation = ICRS
     assert 'but must be a BaseRepresentation class' in str(err)
+
+
+def test_represent_as():
+    from ..builtin_frames import ICRS
+
+    icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
+
+    cart1 = icrs.represent_as('cartesian')
+    cart2 = icrs.represent_as(representation.CartesianRepresentation)
+
+    cart1.x == cart2.x
+    cart1.y == cart2.y
+    cart1.z == cart2.z
 
 
 def test_dynamic_attrs():
