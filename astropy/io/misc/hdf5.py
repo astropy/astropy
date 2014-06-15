@@ -170,6 +170,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         Whether to append the table to an existing HDF5 file.
     overwrite : bool
         Whether to overwrite any existing file without warning.
+        If ``append=True`` and ``overwrite=True`` then only the dataset will be
+        replaced; the file/group will not be overwritten.
     """
 
     try:
@@ -200,7 +202,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     elif isinstance(output, six.string_types):
 
         if os.path.exists(output) and not append:
-            if overwrite:
+            if overwrite and not append:
                 os.remove(output)
             else:
                 raise IOError("File exists: {0}".format(output))
@@ -223,7 +225,11 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     # Check whether table already exists
     if name in output_group:
-        raise IOError("Table {0} already exists".format(path))
+        if append and overwrite:
+            # Delete only the dataset itself
+            del output_group[name]
+        else:
+            raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
     if compression:

@@ -190,6 +190,11 @@ Bug Fixes
 
 - ``astropy.io.misc``
 
+  - An existing table within an HDF5 file can be overwritten without affecting
+    other datasets in the same HDF5 file by simultaneously using
+    ``overwrite=True`` and ``append=True`` arguments to the ``Table.write``
+    method. [#2624]
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
