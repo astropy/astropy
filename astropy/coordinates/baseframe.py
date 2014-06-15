@@ -96,6 +96,9 @@ class FrameAttribute(object):
                     self.name = name
                     break
             else:
+                # Cannot think of a way to actually raise this exception.  This instance
+                # containing this code must be in the class dict in order to get excecuted
+                # by attribute access.  But leave this here just in case...
                 raise AttributeError('Unexpected inability to locate descriptor')
 
         out = None

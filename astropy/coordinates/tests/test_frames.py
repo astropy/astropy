@@ -11,6 +11,44 @@ from ... import units as u
 from ...tests.helper import pytest
 from .. import representation
 
+
+def test_frame_attribute_descriptor():
+    from ..baseframe import FrameAttribute
+
+    class TestFrameAttributes(object):
+        attr_none = FrameAttribute()
+        attr_2 = FrameAttribute(default=2)
+        attr_3_attr2 = FrameAttribute(default=3, secondary_attribute='attr_2')
+        attr_none_attr2 = FrameAttribute(default=None, secondary_attribute='attr_2')
+        attr_none_nonexist = FrameAttribute(default=None, secondary_attribute='nonexist')
+
+    t = TestFrameAttributes()
+
+    # Defaults
+    assert t.attr_none is None
+    assert t.attr_2 == 2
+    assert t.attr_3_attr2 == 3
+    assert t.attr_none_attr2 == t.attr_2
+    assert t.attr_none_nonexist is None  # No default and non-existent secondary attr
+
+    # Setting values via '_'-prefixed internal vars (as would normally done in __init__)
+    t._attr_none = 10
+    assert t.attr_none == 10
+
+    t._attr_2 = 20
+    assert t.attr_2 == 20
+    assert t.attr_3_attr2 == 3
+    assert t.attr_none_attr2 == t.attr_2
+
+    t._attr_none_attr2 = 40
+    assert t.attr_none_attr2 == 40
+
+    # Make sure setting values via public attribute fails
+    with pytest.raises(AttributeError) as err:
+        t.attr_none = 5
+    assert 'Cannot set frame attribute' in str(err)
+
+
 def test_create_data_frames():
     from ..builtin_frames import ICRS
 
