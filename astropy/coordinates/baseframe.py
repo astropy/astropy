@@ -297,87 +297,6 @@ class BaseCoordinateFrame(object):
        built-in classes code for details.
     """
 
-    @classmethod
-    def get_frame_attr_names(cls):
-        out = {}
-        for mro_cls in cls.__mro__:
-            for name, val in mro_cls.__dict__.items():
-                if issubclass(val.__class__, FrameAttribute) and name not in out:
-                    out[name] = getattr(mro_cls, name)
-        return out
-
-    @property
-    def representation(self):
-        """
-        The representation of the data in this frame, as a class that is
-        subclassed from `~astropy.coordinates.BaseRepresentation`.  Can
-        also be *set* using the string name of the representation.
-        """
-        if not hasattr(self, '_representation'):
-            self._representation = self.default_representation
-        return self._representation
-
-    @representation.setter
-    def representation(self, value):
-        self._representation = _get_repr_cls(value)
-
-    @classmethod
-    def _get_representation_info(cls):
-        # This exists as a class method only to support handling frame inputs
-        # without units, which are deprecated and will be removed.  This can be
-        # moved into the representation_info property at that time.
-        repr_attrs = {}
-        for name, repr_cls in REPRESENTATION_CLASSES.items():
-            if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
-                repr_attrs[name] = {'names': repr_cls.default_names,
-                                    'units': repr_cls.default_units}
-
-        # Override defaults as needed for this frame
-        repr_attrs.update(cls._frame_specific_representation_info)
-
-        # Use the class, not the name for the key in representation_info
-        repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
-                          for name, attrs in repr_attrs.items())
-
-        return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
-
-    @property
-    def representation_info(self):
-        """
-        A dictionary with the information of what attribute names for this frame
-        apply to particular representations.
-        """
-        return self._get_representation_info()
-
-    @property
-    def representation_names(self):
-        """
-        The representation of the data in this frame, as a class that is
-        subclassed from `~astropy.coordinates.BaseRepresentation`.  Can
-        also be *set* using the string name of the representation.
-        """
-        out = OrderedDict()
-        if self.representation is None:
-            return out
-        data_names = self.representation.attr_classes.keys()
-        repr_names = self.representation_info[self.representation]['names']
-        for repr_name, data_name in zip(repr_names, data_names):
-            out[repr_name] = data_name
-        return out
-
-    @property
-    def representation_units(self):
-        out = OrderedDict()
-        if self.representation is None:
-            return out
-        repr_attrs = self.representation_info[self.representation]
-        repr_names = repr_attrs['names']
-        repr_units = repr_attrs['units']
-        for repr_name, repr_unit in zip(repr_names, repr_units):
-            if repr_unit:
-                out[repr_name] = repr_unit
-        return out
-
     default_representation = None
 
     frame_attr_names = {}  # maps attribute to default value
@@ -543,6 +462,83 @@ class BaseCoordinateFrame(object):
     @property
     def isscalar(self):
         return self.data.isscalar
+
+    @classmethod
+    def get_frame_attr_names(cls):
+        out = {}
+        for mro_cls in cls.__mro__:
+            for name, val in mro_cls.__dict__.items():
+                if issubclass(val.__class__, FrameAttribute) and name not in out:
+                    out[name] = getattr(mro_cls, name)
+        return out
+
+    @property
+    def representation(self):
+        """
+        The representation of the data in this frame, as a class that is
+        subclassed from `~astropy.coordinates.BaseRepresentation`.  Can
+        also be *set* using the string name of the representation.
+        """
+        if not hasattr(self, '_representation'):
+            self._representation = self.default_representation
+        return self._representation
+
+    @representation.setter
+    def representation(self, value):
+        self._representation = _get_repr_cls(value)
+
+    @classmethod
+    def _get_representation_info(cls):
+        # This exists as a class method only to support handling frame inputs
+        # without units, which are deprecated and will be removed.  This can be
+        # moved into the representation_info property at that time.
+        repr_attrs = {}
+        for name, repr_cls in REPRESENTATION_CLASSES.items():
+            if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
+                repr_attrs[name] = {'names': repr_cls.default_names,
+                                    'units': repr_cls.default_units}
+
+        # Override defaults as needed for this frame
+        repr_attrs.update(cls._frame_specific_representation_info)
+
+        # Use the class, not the name for the key in representation_info
+        repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
+                          for name, attrs in repr_attrs.items())
+
+        return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
+
+    @property
+    def representation_info(self):
+        """
+        A dictionary with the information of what attribute names for this frame
+        apply to particular representations.
+        """
+        return self._get_representation_info()
+
+    @property
+    def representation_names(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
+        data_names = self.representation.attr_classes.keys()
+        repr_names = self.representation_info[self.representation]['names']
+        for repr_name, data_name in zip(repr_names, data_names):
+            out[repr_name] = data_name
+        return out
+
+    @property
+    def representation_units(self):
+        out = OrderedDict()
+        if self.representation is None:
+            return out
+        repr_attrs = self.representation_info[self.representation]
+        repr_names = repr_attrs['names']
+        repr_units = repr_attrs['units']
+        for repr_name, repr_unit in zip(repr_names, repr_units):
+            if repr_unit:
+                out[repr_name] = repr_unit
+        return out
+
 
     def realize_frame(self, representation):
         """
