@@ -216,7 +216,7 @@ of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
 define the class attributes ``default_representation`` and
 ``_frame_specific_representation_info`` along with frame attributes as
-`~astropy.coordinates.baseframe.FrameAttribute` class instances.  If these are
+`~astropy.coordinates.FrameAttribute` class instances.  If these are
 defined, there is often no need to define an ``__init__`` function, as the
 initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::

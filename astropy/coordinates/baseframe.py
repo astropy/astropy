@@ -24,7 +24,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation, UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
 
-__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame']
+__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame', 'FrameAttribute']
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -57,8 +57,8 @@ class FrameAttribute(object):
     This class must be used to define frame attributes (e.g. ``equinox`` or
     ``obstime``) that are included in a frame class definition.
 
-    Example
-    -------
+    Examples
+    --------
     The `~astropy.coordinates.FK4` class uses the following class attributes::
 
       class FK4(BaseCoordinateFrame):
