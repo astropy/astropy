@@ -100,10 +100,10 @@ class BaseCoordinateFrame(object):
     This class is intended to be subclassed to create instances of specific
     systems.  Subclasses can implement the following attributes.
 
-    * `representation`
+    * `default_representation`
         A subclass of `~astropy.coordinates.BaseRepresentation` that will be
-        treated as the "standard" representation of this frame, or None to have
-        no special representation.
+        treated as the default representation of this frame.  This is the
+        representation assumed by default when the frame is created.
 
     * `frame_attr_names`
         A dictionary with keys that are the additional attributes necessary to

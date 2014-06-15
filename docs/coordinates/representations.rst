@@ -116,7 +116,7 @@ To create your own representation class, your class must inherit from the
   Returns a tuple of the names of the coordinate components (such as ``x``,
   ``lon``, and so on).
 
-``_attr_classes`` class attribute (``OrderedDict``):
+``attr_classes`` class attribute (``OrderedDict``):
 
   Defines the initializer class for each component.  In most cases this
   class should be derived from `~astropy.units.Quantity`.  In
@@ -124,7 +124,7 @@ To create your own representation class, your class must inherit from the
   and accept a ``unit`` keyword which takes a `~astropy.units.Unit` initializer
   or ``None`` to indicate no unit.
 
-``_default_names`` class attribute (tuple of string):
+``default_names_default_names`` class attribute (tuple of string):
 
   Provides the default names that frames will use for referring to the
   representation components.  For instance the
@@ -134,7 +134,7 @@ To create your own representation class, your class must inherit from the
   is free to override these defaults, but this reduces boilerplate code when
   defining custom frames.
 
-``_default_units`` class attribute (tuple of `~astropy.units.Unit`)
+``default_units`` class attribute (tuple of `~astropy.units.Unit`)
 
   Provides the default units that frames will use for outputting representation
   components.  For instance the `~astropy.coordinates.SphericalRepresentation`
@@ -146,11 +146,11 @@ In pseudo-code, this means that your class will look like::
 
     class MyRepresentation(BaseRepresentation):
 
-        _attr_classes = OrderedDict([('comp1', ComponentClass1),
+        attr_classes = OrderedDict([('comp1', ComponentClass1),
                                      ('comp2', ComponentClass2),
                                      ('comp3', ComponentClass3)])
-        _default_names = (name1, name2, name3)
-        _default_units = (unit1, unit2, unit3)
+        default_names = (name1, name2, name3)
+        default_units = (unit1, unit2, unit3)
 
         def __init__(self, ...):
             ...
