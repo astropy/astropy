@@ -644,6 +644,18 @@ You can also use any representation class to set the representation::
     >>> from astropy.coordinates import CartesianRepresentation
     >>> c.representation = CartesianRepresentation
 
+Note that if all you want is a particular representation without changing the
+state of the |SkyCoord| object, you should instead use the 
+``astropy.coordinates.SkyCoord.represent_as()`` method::
+
+    >>> c.representation = 'spherical'
+    >>> cart = c.represent_as(CartesianRepresentation)
+    >>> cart
+    <CartesianRepresentation x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    >>> c.representation
+    <class 'astropy.coordinates.representation.SphericalRepresentation'>
+
+
 Convenience methods
 ^^^^^^^^^^^^^^^^^^^^
 
