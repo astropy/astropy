@@ -256,6 +256,11 @@ class BaseCoordinateFrame(object):
 
     @property
     def representation(self):
+        """
+        The representation of the data in this frame, as a class that is
+        subclassed from `~astropy.coordinates.BaseRepresentation`.  Can
+        also be *set* using the string name of the representation.
+        """
         if not hasattr(self, '_representation'):
             self._representation = self.default_representation
         return self._representation
@@ -286,10 +291,19 @@ class BaseCoordinateFrame(object):
 
     @property
     def representation_info(self):
+        """
+        A dictionary with the information of what attribute names for this frame
+        apply to particular representations.
+        """
         return self._get_representation_info()
 
     @property
     def representation_names(self):
+        """
+        The representation of the data in this frame, as a class that is
+        subclassed from `~astropy.coordinates.BaseRepresentation`.  Can
+        also be *set* using the string name of the representation.
+        """
         out = OrderedDict()
         if self.representation is None:
             return out
