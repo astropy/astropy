@@ -97,6 +97,12 @@ class FrameMeta(type):
 
         return super(FrameMeta, cls).__new__(cls, name, parents, clsdct)
 
+    @staticmethod
+    def readonly_prop_factory(attrnm):
+        def getter(self):
+            return getattr(self, '_' + attrnm)
+        return property(getter)
+
 
 class FrameAttribute(object):
     """A non-mutable data descriptor to hold a frame attribute.
@@ -271,12 +277,6 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
-    @staticmethod
-    def readonly_prop_factory(attrnm):
-        def getter(self):
-            return getattr(self, '_' + attrnm)
-        return property(getter)
-
 
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
@@ -325,7 +325,7 @@ class BaseCoordinateFrame(object):
     def _get_representation_info(cls):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
-        # moved into the property at that time.
+        # moved into the representation_info property at that time.
         repr_attrs = {}
         for name, repr_cls in REPRESENTATION_CLASSES.items():
             if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
@@ -445,7 +445,7 @@ class BaseCoordinateFrame(object):
         if 'representation' in kwargs:
             self.representation = kwargs.pop('representation')
 
-        representation = None  # if not set below, this is a frame with no data
+        representation_data = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in self.get_frame_attr_names().items():
             # Read-only frame attributes are defined as FrameAttribue
@@ -463,34 +463,35 @@ class BaseCoordinateFrame(object):
             getattr(self, fnm)
 
         pref_rep = self.representation
+
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], BaseRepresentation) or
                                 args[0] is None):
-            representation = args.pop(0)
+            representation_data = args.pop(0)
             if len(args) > 0:
                 raise TypeError('Cannot create a frame with both a '
                                 'representation and other positional arguments')
 
-        elif pref_rep:
-            pref_kwargs = {}
+        elif self.representation:
+            repr_kwargs = {}
             for nmkw, nmrep in self.representation_names.items():
                 if len(args) > 0:
                     #first gather up positional args
-                    pref_kwargs[nmrep] = args.pop(0)
+                    repr_kwargs[nmrep] = args.pop(0)
                 elif nmkw in kwargs:
-                    pref_kwargs[nmrep] = kwargs.pop(nmkw)
+                    repr_kwargs[nmrep] = kwargs.pop(nmkw)
 
             #special-case the Spherical->UnitSpherical if no `distance`
             #TODO: possibly generalize this somehow?
 
-            if pref_kwargs:
-                if pref_kwargs.get('distance', True) is None:
-                    del pref_kwargs['distance']
-                if (pref_rep == SphericalRepresentation and
-                        'distance' not in pref_kwargs):
-                    representation = UnitSphericalRepresentation(**pref_kwargs)
+            if repr_kwargs:
+                if repr_kwargs.get('distance', True) is None:
+                    del repr_kwargs['distance']
+                if (self.representation == SphericalRepresentation and
+                        'distance' not in repr_kwargs):
+                    representation_data = UnitSphericalRepresentation(**repr_kwargs)
                 else:
-                    representation = pref_rep(**pref_kwargs)
+                    representation_data = self.representation(**repr_kwargs)
 
         if len(args) > 0:
             raise TypeError(self.__class__.__name__ + '.__init__ had {0} '
@@ -499,13 +500,13 @@ class BaseCoordinateFrame(object):
             raise TypeError('Coordinate frame got unexpected keywords: ' +
                             str(kwargs.keys()))
 
-        self._data = representation
+        self._data = representation_data
 
         # We do ``is not None`` because self._data might evaluate to false for
         # empty arrays or data == 0
         if self._data is not None:
             self._rep_cache = dict()
-            self._rep_cache[representation.__class__.__name__, False] = representation
+            self._rep_cache[self._data.__class__.__name__, False] = self._data
 
     @property
     def data(self):
