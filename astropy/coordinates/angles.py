@@ -701,54 +701,41 @@ def rotation_matrix(angle, axis='z', unit=None):
     rmat: `numpy.matrix`
         A unitary rotation matrix.
     """
-    # TODO: This doesn't handle arrays of angles
-
     if unit is None:
         unit = u.degree
 
     angle = Angle(angle, unit=unit)
 
+    s = np.sin(angle)
+    c = np.cos(angle)
+
+    # use optimized implementations for x/y/z
     if axis == 'z':
-        s = np.sin(angle)
-        c = np.cos(angle)
         return np.matrix(((c, s, 0),
                           (-s, c, 0),
                           (0, 0, 1)))
     elif axis == 'y':
-        s = np.sin(angle)
-        c = np.cos(angle)
         return np.matrix(((c, 0, -s),
                           (0, 1, 0),
                           (s, 0, c)))
     elif axis == 'x':
-        s = np.sin(angle)
-        c = np.cos(angle)
         return np.matrix(((1, 0, 0),
                           (0, c, s),
                           (0, -s, c)))
     else:
-        x, y, z = axis
-        w = np.cos(angle / 2)
+        axis = np.asarray(axis)
+        axis = axis / np.sqrt((axis * axis).sum())
 
-        # normalize
-        if w == 1:
-            x = y = z = 0
-        else:
-            l = np.sqrt((x * x + y * y + z * z) / (1 - w * w))
-            x /= l
-            y /= l
-            z /= l
-
-        wsq = w * w
-        xsq = x * x
-        ysq = y * y
-        zsq = z * z
-        return np.matrix(((wsq + xsq - ysq - zsq, 2 * x * y - 2 * w * z, 2 * x * z + 2 * w * y),
-                          (2 * x * y + 2 * w * z, wsq - xsq + ysq - zsq, 2 * y * z - 2 * w * x),
-                          (2 * x * z - 2 * w * y, 2 * y * z + 2 * w * x, wsq - xsq - ysq + zsq)))
+        R = np.diag((c, c, c))
+        R += np.outer(axis, axis) * (1. - c)
+        axis *= s
+        R += np.array([[0., axis[2], -axis[1]],
+                       [-axis[2], 0., axis[0]],
+                       [axis[1], -axis[0], 0.]])
+        return R.view(np.matrix)
 
 
-def angle_axis(matrix, unit=None):
+def angle_axis(matrix):
     """
     Computes the angle of rotation and the rotation axis for a given rotation
     matrix.
@@ -758,29 +745,20 @@ def angle_axis(matrix, unit=None):
     matrix : array-like
         A 3 x 3 unitary rotation matrix.
 
-    unit : UnitBase
-        The output unit.  If `None`, the output unit is degrees.
-
     Returns
     -------
     angle : `Angle`
         The angle of rotation for this matrix.
 
     axis : array (length 3)
-        The axis of rotation for this matrix.
+        The (normalized) axis of rotation for this matrix.
     """
-    # TODO: This doesn't handle arrays of angles
-
     m = np.asmatrix(matrix)
     if m.shape != (3, 3):
         raise ValueError('matrix is not 3x3')
 
-    angle = np.acos((m[0, 0] + m[1, 1] + m[2, 2] - 1) / 2)
-    denom = np.sqrt(2 * ((m[2, 1] - m[1, 2]) + (m[0, 2] - m[2, 0]) + (m[1, 0] - m[0, 1])))
-    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1])) / denom
-    axis /= np.sqrt(np.sum(axis ** 2))
+    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1]))
+    r = np.sqrt((axis * axis).sum())
+    angle = np.arctan2(r, np.trace(m) - 1)
 
-    angle = Angle(angle, u.radian)
-    if unit is None:
-        unit = u.degree
-    return angle.to(unit), axis
+    return Angle(angle, u.radian), -axis / r
