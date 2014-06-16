@@ -5,6 +5,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
+from matplotlib import rc_context
 from astropy.wcs import WCS
 from astropy.io import fits
 from wcsaxes import WCSAxes
@@ -154,3 +155,21 @@ class TestImages(object):
         ax.coords[1].set_ticklabel_position('r')
 
         self.generate_or_test(generate, fig, 'ticks_labels.png')
+
+    # Test default style (matplotlib.rcParams) for ticks and gridlines
+    def test_rcparams(self, generate):
+        with rc_context({
+                'xtick.color': 'red',
+                'xtick.major.size': 20,
+                'xtick.major.width': 2,
+                'grid.color': 'blue',
+                'grid.linestle': ':.',
+                'grid.linewidth': 1,
+                'grid.alpha': 0.5}):
+            fig = plt.figure(figsize=(6, 6))
+            ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+            fig.add_axes(ax)
+            ax.set_xlim(-0.5, 2)
+            ax.set_ylim(-0.5, 2)
+            ax.grid()
+            self.generate_or_test(generate, fig, 'rcparams.png')
