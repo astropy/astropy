@@ -760,7 +760,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         else:
             baseurl = version + '/'
     elif version == 'dev' or version == 'latest':
-        baseurl = 'http://devdocs.astropy.org/'
+        baseurl = 'http://docs.astropy.org/en/latest/'
     else:
         baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
 

@@ -148,7 +148,7 @@ def test_api_lookup():
     objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
 
     assert strurl == objurl
-    assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'
+    assert strurl == 'http://docs.astropy.org/en/latest/utils/index.html#module-astropy.utils.misc'
 
 
 def test_skip_hidden():
