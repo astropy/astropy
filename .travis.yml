@@ -30,12 +30,9 @@ matrix:
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test --parallel=8'
+          env: SETUP_CMD='test'
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8'
-        # There is a bug in pytest-xdist that prevents it from working
-        # on Python 3.x.  See:
-        # https://bitbucket.org/hpk42/pytest/issue/301/internal-error-during-test-collecting
+          env: SETUP_CMD='test'
         - python: 3.2
           env: SETUP_CMD='test'
         - python: 3.3
@@ -45,7 +42,7 @@ matrix:
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+          env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
         - python: 3.3
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
@@ -53,11 +50,11 @@ matrix:
         - python: 3.2
           env: NUMPY_VERSION=1.6 SETUP_CMD='test'
         - python: 2.7
-          env: NUMPY_VERSION=1.7 SETUP_CMD='test --parallel=8'
+          env: NUMPY_VERSION=1.7 SETUP_CMD='test'
         - python: 2.7
-          env: NUMPY_VERSION=1.6 SETUP_CMD='test --parallel=8'
+          env: NUMPY_VERSION=1.6 SETUP_CMD='test'
         - python: 2.7
-          env: NUMPY_VERSION=1.5 SETUP_CMD='test --parallel=8'
+          env: NUMPY_VERSION=1.5 SETUP_CMD='test'
 
 before_install:
 
@@ -81,7 +78,6 @@ install:
 
     # CORE DEPENDENCIES
     - if [[ $SETUP_CMD != egg_info ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then conda install --yes numpy=$NUMPY_VERSION scipy h5py; fi
