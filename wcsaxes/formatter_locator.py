@@ -261,9 +261,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 sep = None
             else:
                 if unit == u.degree:
-                    sep=(six.u('\xb0'), "'", '"')[:fields]
+                    sep=(six.u('\xb0'), "'", '"')
                 else:
-                    sep=('h', 'm', 's')[:fields]
+                    sep=('h', 'm', 's')
 
             angles = Angle(np.asarray(values), unit=u.deg)
             string = angles.to_string(unit=unit,

@@ -98,7 +98,7 @@ class RectangularFrame(OrderedDict):
         for axis in self:
             self[axis].transform = value
 
-    def update(self):
+    def update_limits(self):
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
@@ -110,7 +110,7 @@ class RectangularFrame(OrderedDict):
 
     def sample(self, n_samples):
 
-        self.update()
+        self.update_limits()
 
         spines = OrderedDict()
 
