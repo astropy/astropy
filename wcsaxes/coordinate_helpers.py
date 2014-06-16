@@ -148,7 +148,7 @@ class CoordinateHelper(object):
                             "instance")
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  color=None, alpha=None):
+                  width=None, color=None, alpha=None):
         """
         Set the location and properties of the ticks.
 
@@ -182,6 +182,9 @@ class CoordinateHelper(object):
 
         if size is not None:
             self.ticks.set_ticksize(size)
+
+        if width is not None:
+            self.ticks.set_linewidth(width)
 
         if color is not None:
             self.ticks.set_color(color)
