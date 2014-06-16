@@ -393,7 +393,7 @@ class BaseCoordinateFrame(object):
 
         elif self.representation:
             repr_kwargs = {}
-            for nmkw, nmrep in self.representation_names.items():
+            for nmkw, nmrep in self.representation_component_names.items():
                 if len(args) > 0:
                     #first gather up positional args
                     repr_kwargs[nmrep] = args.pop(0)
@@ -516,7 +516,7 @@ class BaseCoordinateFrame(object):
         return self._get_representation_info()
 
     @property
-    def representation_names(self):
+    def representation_component_names(self):
         out = OrderedDict()
         if self.representation is None:
             return out
@@ -527,7 +527,7 @@ class BaseCoordinateFrame(object):
         return out
 
     @property
-    def representation_units(self):
+    def representation_component_units(self):
         out = OrderedDict()
         if self.representation is None:
             return out
@@ -734,7 +734,7 @@ class BaseCoordinateFrame(object):
                     data = self.represent_as(self.representation, in_frame_units=True)
 
                 data_repr = repr(data)
-                for nmpref, nmrepr in self.representation_names.items():
+                for nmpref, nmrepr in self.representation_component_names.items():
                     data_repr = data_repr.replace(nmrepr, nmpref)
 
             else:
@@ -777,25 +777,25 @@ class BaseCoordinateFrame(object):
 
         TODO: dynamic representation transforms (i.e. include cylindrical et al.).
         """
-        dir_values = set(self.representation_names)
+        dir_values = set(self.representation_component_names)
 
         return dir_values
 
     def __getattr__(self, attr):
         """
-        Allow access to attributes defined in self.representation_names.
+        Allow access to attributes defined in self.representation_component_names.
 
         TODO: dynamic representation transforms (i.e. include cylindrical et al.).
         """
         # attr == '_representation' is likely from the hasattr() test in the
-        # representation property which is used for self.representation_names.
+        # representation property which is used for self.representation_component_names.
         # Prevent infinite recursion here.
-        if attr == '_representation' or attr not in self.representation_names:
+        if attr == '_representation' or attr not in self.representation_component_names:
             raise AttributeError("'{0}' object has no attribute '{1}'"
                                  .format(self.__class__.__name__, attr))
 
         rep = self.represent_as(self.representation, in_frame_units=True)
-        val = getattr(rep, self.representation_names[attr])
+        val = getattr(rep, self.representation_component_names[attr])
         return val
 
     def __setattr__(self, attr, value):

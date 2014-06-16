@@ -86,8 +86,8 @@ These same attributes can be used to access the data in the frames, as
     <Longitude 0.0733... hourangle>
 
 You can use the ``representation`` attribute in conjunction
-with the ``representation_names`` attribute to figure out what keywords
-are accepted by a particular class object.  The former will be the
+with the ``representation_component_names`` attribute to figure out what 
+keywords are accepted by a particular class object.  The former will be the
 representation class the system is expressed in (e.g.,
 spherical for equatorial frames), and the latter will be a dictionary
 mapping names for that frame to the attribute name on the representation
@@ -97,7 +97,7 @@ class::
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
-    >>> icrs.representation_names
+    >>> icrs.representation_component_names
     OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
 
 The representation of the coordinate object can be changed, as shown

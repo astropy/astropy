@@ -295,8 +295,8 @@ documentation::
   sc.cartesian                 sc.has_data                  sc.represent_as
   sc.data                      sc.icrs                      sc.representation
   sc.dec                       sc.is_frame_attr_default     sc.representation_info
-  sc.default_representation    sc.is_transformable_to       sc.representation_names
-  sc.distance                  sc.isscalar                  sc.representation_units
+  sc.default_representation    sc.is_transformable_to       sc.representation_component_names
+  sc.distance                  sc.isscalar                  sc.representation_component_units
   sc.equinox                   sc.match_to_catalog_3d       sc.separation
   sc.fk4                       sc.match_to_catalog_sky      sc.separation_3d
   sc.fk4noeterms               sc.name                      sc.shape
@@ -305,7 +305,6 @@ documentation::
   sc.from_name                 sc.preferred_representation  sc.to_string
   sc.galactic                  sc.ra                        sc.transform_to
   sc.get_frame_attr_names      sc.realize_frame
-
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
 which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
@@ -337,10 +336,10 @@ labeled ``l`` and ``b``, following the normal convention for Galactic
 coordinates.  How does the object know what to call its values?  The answer
 lies in some less-obvious attributes::
 
-  >>> sc_gal.representation_names
+  >>> sc_gal.representation_component_names
   OrderedDict([(u'l', u'lon'), (u'b', u'lat'), (u'distance', u'distance')])
 
-  >>> sc_gal.representation_units
+  >>> sc_gal.representation_component_units
   OrderedDict([(u'l', Unit("deg")), (u'b', Unit("deg"))])
 
   >>> sc_gal.representation
@@ -349,7 +348,7 @@ lies in some less-obvious attributes::
 Together these tell the object that ``l`` and ``b`` are the longitude and
 latitude, and that they should both be displayed in units of degrees as
 a spherical-type coordinate (and not, e.g. a cartesian coordinate).
-Furthermore the frame's ``representation_names`` attribute defines
+Furthermore the frame's ``representation_component_names`` attribute defines
 the coordinate keyword arguments that |SkyCoord| will accept.
 
 Another important attribute is ``frame_attr_names``, which defines the
@@ -382,8 +381,8 @@ and |SkyCoord| (aka high-level class)::
   sc.frame.data                      sc.frame.represent_as
   sc.frame.dec                       sc.frame.representation
   sc.frame.default_representation    sc.frame.representation_info
-  sc.frame.distance                  sc.frame.representation_names
-  sc.frame.get_frame_attr_names      sc.frame.representation_units
+  sc.frame.distance                  sc.frame.representation_component_names
+  sc.frame.get_frame_attr_names      sc.frame.representation_component_units
   sc.frame.has_data                  sc.frame.separation
   sc.frame.is_frame_attr_default     sc.frame.separation_3d
   sc.frame.is_transformable_to       sc.frame.shape
@@ -391,7 +390,6 @@ and |SkyCoord| (aka high-level class)::
   sc.frame.name                      sc.frame.time_attr_names
   sc.frame.preferred_representation  sc.frame.transform_to
   sc.frame.ra
-
   >>> sc.frame.name
   'icrs'
 
@@ -590,17 +588,17 @@ This is a bit messy but it shows that for each representation there is a
   means to not force a particular unit.
 
 For a particular coordinate instance you can use the ``representation``
-attribute in conjunction with the ``representation_names`` attribute to figure
-out what keywords are accepted by a particular class object.  The former will
-be the representation class the system is expressed in (e.g., spherical for
-equatorial frames), and the latter will be a dictionary mapping names for that
-frame to the component name on the representation class::
+attribute in conjunction with the ``representation_component_names`` attribute
+to figure out what keywords are accepted by a particular class object.  The
+former will be the representation class the system is expressed in (e.g.,
+spherical for equatorial frames), and the latter will be a dictionary mapping
+names for that frame to the component name on the representation class::
 
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
-    >>> icrs.representation_names
+    >>> icrs.representation_component_names
     OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
 
 Changing representation
@@ -647,7 +645,7 @@ You can also use any representation class to set the representation::
     >>> c.representation = CartesianRepresentation
 
 Note that if all you want is a particular representation without changing the
-state of the |SkyCoord| object, you should instead use the 
+state of the |SkyCoord| object, you should instead use the
 ``astropy.coordinates.SkyCoord.represent_as()`` method::
 
     >>> c.representation = 'spherical'
