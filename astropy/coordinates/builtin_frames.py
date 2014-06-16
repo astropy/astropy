@@ -21,7 +21,7 @@ from .angles import Angle
 from .representation import (SphericalRepresentation, CartesianRepresentation,
                              UnitSphericalRepresentation)
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute)
+                        FrameAttribute, TimeFrameAttribute)
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
 
@@ -103,7 +103,7 @@ class FK5(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    equinox = FrameAttribute(default=_EQUINOX_J2000)
+    equinox = TimeFrameAttribute(default=_EQUINOX_J2000)
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -159,8 +159,8 @@ class FK4(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    equinox = FrameAttribute(default=_EQUINOX_B1950)
-    obstime = FrameAttribute(default=None, secondary_attribute='equinox')
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
 
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
@@ -196,8 +196,8 @@ class FK4NoETerms(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    equinox = FrameAttribute(default=_EQUINOX_B1950)
-    obstime = FrameAttribute(default=None, secondary_attribute='equinox')
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -301,9 +301,9 @@ class AltAz(BaseCoordinateFrame):
         'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
     }
     default_representation = SphericalRepresentation
-    equinox = FrameAttribute(default=_EQUINOX_B1950)
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
     location = FrameAttribute(default=None)
-    obstime = FrameAttribute(default=None)
+    obstime = TimeFrameAttribute(default=None)
 
     def __init__(self, *args, **kwargs):
         from warnings import warn

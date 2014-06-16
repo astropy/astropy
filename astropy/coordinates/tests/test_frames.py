@@ -52,14 +52,14 @@ def test_frame_attribute_descriptor():
 
 def test_frame_subclass_attribute_descriptor():
     from ..builtin_frames import FK4
-    from ..baseframe import FrameAttribute
+    from ..baseframe import FrameAttribute, TimeFrameAttribute
     from astropy.time import Time
 
     _EQUINOX_B1980 = Time('B1980', scale='tai')
 
     class MyFK4(FK4):
         # equinox inherited from FK4, obstime overridden, and newattr is new
-        obstime = FrameAttribute(default=_EQUINOX_B1980)
+        obstime = TimeFrameAttribute(default=_EQUINOX_B1980)
         newattr = FrameAttribute(default='newattr')
 
     mfk4 = MyFK4()

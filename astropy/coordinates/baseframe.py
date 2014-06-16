@@ -24,7 +24,8 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation, UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
 
-__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame', 'FrameAttribute']
+__all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame', 'FrameAttribute',
+           'TimeFrameAttribute']
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -62,14 +63,19 @@ class FrameAttribute(object):
     The `~astropy.coordinates.FK4` class uses the following class attributes::
 
       class FK4(BaseCoordinateFrame):
-          equinox = FrameAttribute(default=_EQUINOX_B1950)
-          obstime = FrameAttribute(default=None, secondary_attribute='equinox')
+          equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+          obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
     This means that ``equinox`` and ``obstime`` are available to be set as
     keyword arguments when creating an ``FK4`` class instance and are then
-    accessible as instance attributes.  The instance value for the attribute is
-    assumed to be stored in ``'_' + <attribute_name>`` by the frame
-    ``__init__`` method.
+    accessible as instance attributes.  The instance value for the attribute
+    must be stored in ``'_' + <attribute_name>`` by the frame ``__init__``
+    method.
+
+    Note in this example that ``equinox`` and ``obstime`` are time attributes
+    and use the ``TimeAttributeFrame`` class.  This subclass overrides the
+    ``convert_input`` method to validate and convert inputs into a ``Time``
+    object.
 
     Parameters
     ----------
@@ -84,14 +90,47 @@ class FrameAttribute(object):
     frame_attr : descriptor
         A new data descriptor to hold a frame attribute
     """
+
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
 
-    def __get__(self, instance, cls=None):
-        # Find thyself in host class or any parents
+    def convert_input(self, value):
+        """
+        Validate the input ``value`` and convert to expected attribute class.
+
+        The base method here does nothing, but subclasses can implement this
+        as needed.  The method should catch any internal exceptions and raise
+        ValueError with an informative message.
+
+        The method returns the validated input along with a boolean that indicates
+        whether the input value was actually converted.  If the input value was
+        already the correct type then the ``converted`` return value should be
+        ``False``.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        return value, False
+
+    def __get__(self, instance, frame_cls=None):
         if not hasattr(self, 'name'):
-            for mro_cls in cls.__mro__:
+            # Find attribute name of self by finding this object in the frame class
+            # which is requesting this attribute or any of its superclasses.
+            for mro_cls in frame_cls.__mro__:
                 for name, val in mro_cls.__dict__.items():
                     if val is self:
                         self.name = name
@@ -105,6 +144,7 @@ class FrameAttribute(object):
                 raise AttributeError('Unexpected inability to locate descriptor')
 
         out = None
+
         if instance is not None:
             out = getattr(instance, '_' + self.name, None)
             if out is None and self.default is None:
@@ -113,10 +153,77 @@ class FrameAttribute(object):
         if out is None:
             out = self.default
 
+        out, converted = self.convert_input(out)
+        if instance is not None and converted:
+            setattr(instance, '_' + self.name, out)
+
         return out
 
     def __set__(self, instance, val):
         raise AttributeError('Cannot set frame attribute')
+
+
+class TimeFrameAttribute(FrameAttribute):
+    """
+    Frame attribute descriptor for quantities that are Time objects.
+    See the `~astropy.coordinates.FrameAttribute` API doc for further
+    information.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value
+        if ``default is None`` and no value was supplied during initialization.
+
+    Returns
+    -------
+    frame_attr : descriptor
+        A new data descriptor to hold a frame attribute
+    """
+    def convert_input(self, value):
+        """
+        Convert input value to a Time object and validate by running through the
+        Time constructor.  Also check that the input was a scalar.
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        from ..time import Time
+
+        if value is None:
+            return None, False
+
+        if isinstance(value, Time):
+            out = value
+            converted = False
+        else:
+            try:
+                out = Time(value)
+            except Exception as err:
+                raise ValueError('Invalid time input {0}={1!r}\n{2}'
+                                 .format(self.name, value, err))
+            converted = True
+
+        if not out.isscalar:
+            raise ValueError('Time input {0}={1!r} must be a single (scalar) value'
+                             .format(self.name, value))
+
+        return out, converted
 
 
 @six.add_metaclass(FrameMeta)
@@ -132,12 +239,6 @@ class BaseCoordinateFrame(object):
         treated as the default representation of this frame.  This is the
         representation assumed by default when the frame is created.
 
-    * `time_attr_names`
-        A sequence of attribute names that must be `~astropy.time.Time` objects.
-        When given as keywords in the initializer, these will be converted if
-        possible (e.g. from the string 'J2000' to the appropriate
-        `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
-
     * `~astropy.coordinates.FrameAttribute` class attributes
        Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
        using a descriptor class.  See the narrative documentation or
@@ -149,7 +250,7 @@ class BaseCoordinateFrame(object):
         out = {}
         for mro_cls in cls.__mro__:
             for name, val in mro_cls.__dict__.items():
-                if val.__class__ is FrameAttribute:
+                if issubclass(val.__class__, FrameAttribute) and name not in out:
                     out[name] = getattr(mro_cls, name)
         return out
 
@@ -212,8 +313,6 @@ class BaseCoordinateFrame(object):
         return out
 
     default_representation = None
-
-    time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     # This __new__ provides for backward-compatibility with pre-0.4 API.
     # TODO: remove in 1.0
@@ -279,20 +378,19 @@ class BaseCoordinateFrame(object):
         representation = None  # if not set below, this is a frame with no data
 
         for fnm, fdefault in self.get_frame_attr_names().items():
-            # read-only properties for these attributes are made in the
-            # metaclass  so we set the 'real' attrbiutes as the name prefaced
-            # with an underscore
+            # Read-only frame attributes are defined as FrameAttribue
+            # descriptors which are not settable, so set 'real' attributes as
+            # the name prefaced with an underscore.
 
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
-                # If attribute is a time (equinox, obstime) then validate and force
-                # into a Time object by running through the Time constructor
-                if fnm in self.time_attr_names:
-                    value = _convert_to_time(fnm, value)
                 setattr(self, '_' + fnm, value)
             else:
                 setattr(self, '_' + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
+
+            # Validate input by getting the attribute here.
+            getattr(self, fnm)
 
         pref_rep = self.representation
         args = list(args)  # need to be able to pop them
@@ -767,20 +865,3 @@ class GenericFrame(BaseCoordinateFrame):
             super(GenericFrame, self).__setattr__(name, value)
 
 
-def _convert_to_time(attr, value):
-    """
-    Convert input value to a Time object and validate by running through the
-    Time constructor.  Also check that the input was a scalar.
-    """
-    from ..time import Time
-    try:
-        out = Time(value)
-    except Exception as err:
-        raise ValueError('Invalid time input {0}={1!r}\n{2}'
-                         .format(attr, value, err))
-
-    if not out.isscalar:
-        raise ValueError('Time input {0}={1!r} must be a single (scalar) value'
-                         .format(attr, value))
-
-    return out

@@ -216,7 +216,8 @@ of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
 define the class attributes ``default_representation`` and
 ``_frame_specific_representation_info`` along with frame attributes as
-`~astropy.coordinates.FrameAttribute` class instances.  If these are
+`~astropy.coordinates.FrameAttribute` class instances (or subclasses like
+`~astropy.coordinates.TimeFrameAttribute`).  If these are
 defined, there is often no need to define an ``__init__`` function, as the
 initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::
@@ -234,8 +235,9 @@ the way you want.  As an example::
       }
 
       # Specify frame attributes required to fully specify the frame
-      equinox = FrameAttribute(default=_EQUINOX_B1950)
-      obstime = FrameAttribute(default=None, secondary_attribute='equinox')
+      location = FrameAttribute(default=None)
+      equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will
