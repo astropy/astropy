@@ -190,7 +190,7 @@ class CoordinateHelper(object):
                              "be specified")
 
         if values is not None:
-            if not isinstance(values, u.Quantity) and (not isinstance(values.value, np.ndarray)) :
+            if not isinstance(values, u.Quantity) or (not values.ndim == 1):
                 raise TypeError("values should be an astropy.units.Quantity array")
             self._formatter_locator.values = values
         elif spacing is not None:
@@ -404,10 +404,10 @@ class CoordinateHelper(object):
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
             if self.coord_type == 'longitude':
-                tick_world_coordinates_values = tick_world_coordinates.value
-                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
-                                                    tick_world_coordinates_values + 360.])
-                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates.unit
+                # tick_world_coordinates_values = tick_world_coordinates.value
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates.to(u.degree).value,
+                                                    tick_world_coordinates.to(u.degree).value + 360.])
+                tick_world_coordinates = tick_world_coordinates_values * u.degree
 
             for t in tick_world_coordinates:
 

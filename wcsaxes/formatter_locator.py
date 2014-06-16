@@ -50,7 +50,7 @@ class BaseFormatterLocator(object):
 
     @values.setter
     def values(self, values):
-        if not isinstance(values, u.Quantity) and (not values.ndim ==1):
+        if not isinstance(values, u.Quantity) or (not values.ndim == 1):
             raise TypeError("values should be an astropy.units.Quantity array")
         self._number = None
         self._spacing = None
