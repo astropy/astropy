@@ -196,7 +196,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values) * u.arcsec, 1.1 * u.arcsec
+            return np.asarray(self.values) * u.degree, 1.1 * u.arcsec
 
         else:
 
@@ -269,6 +269,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     sep=('h', 'm', 's')
 
             angles = Angle(values)
+            print values
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
@@ -305,7 +306,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @format_unit.setter
     def format_unit(self, unit):
-        if (not issubclass(unit.__class__, u.UnitBase)) :
+        if (not issubclass(unit.__class__, u.UnitBase)):
             raise TypeError("unit should be an astropy UnitBase subclass")
         self._format_unit = unit
 
