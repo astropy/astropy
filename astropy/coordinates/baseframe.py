@@ -282,8 +282,9 @@ class TimeFrameAttribute(FrameAttribute):
 class RepresentationMapping(namedtuple('RepresentationMapping',
                             ['reprname', 'framename', 'defaultunit'])):
     """
-    This `namedtuple` is used with `frame_specific_representation_info` to
-    tell frames what attribute names (and default units) to use for a particular
+    This `~collections.namedtuple` is used with the
+    ``frame_specific_representation_info`` attribute to tell frames what
+    attribute names (and default units) to use for a particular
     representation.
     """
     def __new__(cls, reprname, framename, defaultunit=None):
@@ -523,35 +524,33 @@ class BaseCoordinateFrame(object):
         # This exists as a class method only to support handling frame inputs
         # without units, which are deprecated and will be removed.  This can be
         # moved into the representation_info property at that time.
+
         repr_attrs = {}
-        for name, repr_cls in REPRESENTATION_CLASSES.items():
-            if hasattr(repr_cls, 'default_names') and hasattr(repr_cls, 'default_units'):
-                repr_attrs[name] = {'names': repr_cls.default_names,
-                                    'units': repr_cls.default_units}
+        for repr_cls in REPRESENTATION_CLASSES.values():
+            repr_attrs[repr_cls] = {'names': [], 'units': []}
+            for c in repr_cls.components.__get__(1):
+                repr_attrs[repr_cls]['names'].append(c)
+                repr_attrs[repr_cls]['units'].append(None)
 
-        # Use the class, not the name for the key in representation_info
-        repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
-                          for name, attrs in repr_attrs.items())
-
-        for rcls, mappings in cls._frame_specific_representation_info.items():
+        for repr_cls, mappings in cls._frame_specific_representation_info.items():
             # keys may be a class object or a name
-            rcls = _get_repr_cls(rcls)
+            repr_cls = _get_repr_cls(repr_cls)
 
-            # take the 'names' and 'units' tuples from repr_attrs, recast as
-            # lists to allow updating.  Then use the RepresentationMapping
-            # objects to update as needed for this frame.  Finally, convert back
+            # take the 'names' and 'units' tuples from repr_attrs,
+            # and then use the RepresentationMapping objects
+            # to update as needed for this frame.  Finally, convert
             # to tuples.
-            nms = list(repr_attrs[rcls]['names'])
-            uns = list(repr_attrs[rcls]['units'])
+            nms = repr_attrs[repr_cls]['names']
+            uns = repr_attrs[repr_cls]['units']
             comptomap = dict([(m.reprname, m) for m in mappings])
             # this trick with components.__get__(1) is very hacky...
-            for i, c in enumerate(rcls.components.__get__(1)):
+            for i, c in enumerate(repr_cls.components.__get__(1)):
                 if c in comptomap:
                     mapp = comptomap[c]
                     nms[i] = mapp.framename
                     uns[i] = mapp.defaultunit
-            repr_attrs[rcls]['names'] = tuple(nms)
-            repr_attrs[rcls]['units'] = tuple(uns)
+            repr_attrs[repr_cls]['names'] = tuple(nms)
+            repr_attrs[repr_cls]['units'] = tuple(uns)
 
         return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
 

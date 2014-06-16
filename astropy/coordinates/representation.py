@@ -200,8 +200,6 @@ class CartesianRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('x', u.Quantity),
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
-    default_names = ('x', 'y', 'z')
-    default_units = (None, None, None)
 
     def __init__(self, x, y=None, z=None, copy=True):
 
@@ -297,8 +295,6 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    default_names = ('ra', 'dec', 'distance')
-    default_units = (u.deg, u.deg, None)
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -414,8 +410,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude)])
-    default_names = ('ra', 'dec')
-    default_units = (u.deg, u.deg)
 
     def __init__(self, lon, lat, copy=True):
 
@@ -522,8 +516,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    default_names = ('phi', 'theta', 'r')
-    default_units = (u.deg, u.deg, None)
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -655,8 +647,6 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    default_names = ('rho', 'phi', 'z')
-    default_units = (None, u.deg, None)
 
     def __init__(self, rho, phi, z, copy=True):
 
