@@ -528,7 +528,7 @@ class BaseCoordinateFrame(object):
         repr_attrs = {}
         for repr_cls in REPRESENTATION_CLASSES.values():
             repr_attrs[repr_cls] = {'names': [], 'units': []}
-            for c in repr_cls.components.__get__(1):
+            for c in repr_cls.attr_classes.keys():
                 repr_attrs[repr_cls]['names'].append(c)
                 repr_attrs[repr_cls]['units'].append(None)
 
@@ -543,8 +543,7 @@ class BaseCoordinateFrame(object):
             nms = repr_attrs[repr_cls]['names']
             uns = repr_attrs[repr_cls]['units']
             comptomap = dict([(m.reprname, m) for m in mappings])
-            # this trick with components.__get__(1) is very hacky...
-            for i, c in enumerate(repr_cls.components.__get__(1)):
+            for i, c in enumerate(repr_cls.attr_classes.keys()):
                 if c in comptomap:
                     mapp = comptomap[c]
                     nms[i] = mapp.framename

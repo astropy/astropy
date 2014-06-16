@@ -43,6 +43,10 @@ class MetaBaseRepresentation(type):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
+        if name != 'BaseRepresentation' and 'attr_classes' not in dct:
+            raise NotImplementedError('Representations must have an '
+                                      '"attr_classes" class attribute.')
+
         # Register representation name (except for BaseRepresentation)
         if cls.__name__ == 'BaseRepresentation':
             return
@@ -63,11 +67,9 @@ class BaseRepresentation(object):
     ``from_cartesian`` class method. By default, transformations are done via
     the cartesian system, but classes that want to define a smarter
     transformation path can overload the ``represent_as`` method.
-    Furthermore, all classes should define a ``components`` property, which
-    returns a tuple with the names of the coordinate components, an
-    ``attr_classes`` `~collections.OrderedDict`, which maps component names to
-    the class that creates them, and ``default_names``/``default_units`` tuples
-    with the default names for these representations to be used in frames.
+    Furthermore, all classes must define an ``attr_classes`` attribute, an
+    `~collections.OrderedDict` which maps component names to
+    the class that creates them.
     """
 
     def represent_as(self, other_class):
@@ -90,10 +92,10 @@ class BaseRepresentation(object):
     def to_cartesian(self):
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
     def components(self):
-        """Return tuple with the names of the coordinate components"""
-        raise NotImplementedError()
+        """A tuple with the in-order names of the coordinate components"""
+        return self.attr_classes.keys()
 
     @classmethod
     def get_name(cls):
@@ -265,10 +267,6 @@ class CartesianRepresentation(BaseRepresentation):
     def to_cartesian(self):
         return self
 
-    @property
-    def components(self):
-        return 'x', 'y', 'z'
-
 
 class SphericalRepresentation(BaseRepresentation):
     """
@@ -386,10 +384,6 @@ class SphericalRepresentation(BaseRepresentation):
 
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
-    @property
-    def components(self):
-        return 'lon', 'lat', 'distance'
-
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """
@@ -472,10 +466,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lat = np.arctan2(cart.z, s)
 
         return UnitSphericalRepresentation(lon=lon, lat=lat)
-
-    @property
-    def components(self):
-        return 'lon', 'lat'
 
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
@@ -618,10 +608,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
         return PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r)
 
-    @property
-    def components(self):
-        return 'phi', 'theta', 'r'
-
 
 class CylindricalRepresentation(BaseRepresentation):
     """
@@ -713,7 +699,3 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z)
-
-    @property
-    def components(self):
-        return 'rho', 'phi', 'z'
