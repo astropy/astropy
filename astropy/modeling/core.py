@@ -213,6 +213,9 @@ __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'format_input']
 
 
+__doctest_skip__ = ['.']
+
+
 class ModelDefinitionError(Exception):
     """Used for incorrect models definitions"""
 

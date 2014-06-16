@@ -7,11 +7,9 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from itertools import izip_longest
-
 import numpy as np
 
-from ..extern.six.moves import xrange
+from ..extern.six.moves import xrange, zip_longest
 
 __all__ = ['check_broadcast', 'poly_map_domain', 'comb']
 
@@ -50,7 +48,7 @@ def check_broadcast(*shapes):
 
     full_shape = []
 
-    for dims in izip_longest(*reversed_shapes, fillvalue=1):
+    for dims in zip_longest(*reversed_shapes, fillvalue=1):
         max_dim = 1
         max_dim_idx = None
         for idx, dim in enumerate(dims):
