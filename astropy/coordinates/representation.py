@@ -64,7 +64,10 @@ class BaseRepresentation(object):
     the cartesian system, but classes that want to define a smarter
     transformation path can overload the ``represent_as`` method.
     Furthermore, all classes should define a ``components`` property, which
-    returns a tuple with the names of the coordinate components.
+    returns a tuple with the names of the coordinate components, an
+    ``attr_classes`` `~collections.OrderedDict`, which maps component names to
+    the class that creates them, and ``default_names``/``default_units`` tuples
+    with the default names for these representations to be used in frames.
     """
 
     def represent_as(self, other_class):
