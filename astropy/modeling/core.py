@@ -1404,7 +1404,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
             elif input_shape[model_set_axis] != n_models:
                 raise ValueError(
                     "Input argument {0!r} does not have the correct "
-                    "dimesions in model_set_axis={1} for a model set with "
+                    "dimensions in model_set_axis={1} for a model set with "
                     "n_models={2}.".format(argnames[idx], model_set_axis,
                                            n_models))
         all_shapes.append(input_shape)
