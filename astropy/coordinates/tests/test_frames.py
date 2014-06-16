@@ -162,6 +162,7 @@ def test_frame_repr():
 
 def test_converting_units():
     import re
+    from ..baseframe import RepresentationMapping
     from ..builtin_frames import ICRS, FK5
     from ..representation import SphericalRepresentation
 
@@ -187,7 +188,16 @@ def test_converting_units():
             'spherical': {'names': ('ra', 'dec', 'distance'),
                           'units': (None, None, None)},
             'unitspherical': {'names': ('ra', 'dec'),
-                              'units': (None, None)}}
+                              'units': (None, None)}
+        }
+
+        frame_specific_representation_info = {
+            'spherical': [RepresentationMapping('lon', 'ra', None),
+                          RepresentationMapping('lat', 'dec', None),
+                          RepresentationMapping('distance', 'distance', None)]
+        }
+        frame_specific_representation_info['unitspherical'] = \
+            frame_specific_representation_info['spherical']
 
 
     fi = FakeICRS(i4.data)

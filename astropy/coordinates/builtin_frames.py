@@ -21,7 +21,8 @@ from .angles import Angle
 from .representation import (SphericalRepresentation, CartesianRepresentation,
                              UnitSphericalRepresentation)
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute)
+                        FrameAttribute, TimeFrameAttribute,
+                        RepresentationMapping)
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
 
@@ -256,10 +257,15 @@ class Galactic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': {'names': ('l', 'b', 'distance'), 'units': (u.deg, u.deg, None)},
-        'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
-        'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
+        'spherical': [RepresentationMapping('lon', 'l', u.deg),
+                      RepresentationMapping('lat', 'b', u.deg)],
+        'cartesian': [RepresentationMapping('x', 'w', None),
+                      RepresentationMapping('y', 'u', None),
+                      RepresentationMapping('z', 'v', None)]
     }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
+
     default_representation = SphericalRepresentation
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -296,10 +302,14 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
+
     frame_specific_representation_info = {
-        'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
-        'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
+        'spherical': [RepresentationMapping('lon', 'az', u.deg),
+                      RepresentationMapping('lat', 'alt', u.deg)],
     }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
+
     default_representation = SphericalRepresentation
     equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
     location = FrameAttribute(default=None)

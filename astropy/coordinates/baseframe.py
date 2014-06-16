@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 import warnings
 from copy import deepcopy
+from collections import namedtuple
 
 # Dependencies
 
@@ -25,7 +26,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              REPRESENTATION_CLASSES)
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame', 'FrameAttribute',
-           'TimeFrameAttribute']
+           'TimeFrameAttribute', 'RepresentationMapping']
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -278,6 +279,19 @@ class TimeFrameAttribute(FrameAttribute):
         return out, converted
 
 
+class RepresentationMapping(namedtuple('RepresentationMapping',
+                            ['reprname', 'framename', 'defaultunit'])):
+    """
+    This `namedtuple` is used with `frame_specific_representation_info` to
+    tell frames what attribute names (and default units) to use for a particular
+    representation.
+    """
+    def __new__(cls, reprname, framename, defaultunit=None):
+        # this trick just provides some defaults
+        return super(RepresentationMapping, cls).__new__(cls, reprname,
+                                                         framename, defaultunit)
+
+
 @six.add_metaclass(FrameMeta)
 class BaseCoordinateFrame(object):
     """
@@ -295,6 +309,23 @@ class BaseCoordinateFrame(object):
        Frame attributes such as ``FK4.equinox`` or ``FK4.obstime`` are defined
        using a descriptor class.  See the narrative documentation or
        built-in classes code for details.
+
+    * `frame_specific_representation_info`
+        A dictionary mapping the name or class of a representation to a list
+        of `~astropy.coordinates.RepresentationMapping` objects that tell what
+        names and default units should be used on this frame for the components
+        of that representation.
+
+    * `frame_attr_names`
+        A dictionary with keys that are the additional attributes necessary to
+        specify the frame, and values that are the default values of those
+        attributes.
+
+    * `time_attr_names`
+        A sequence of attribute names that must be `~astropy.time.Time` objects.
+        When given as keywords in the initializer, these will be converted if
+        possible (e.g. from the string 'J2000' to the appropriate
+        `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
     """
 
     default_representation = None
@@ -498,12 +529,29 @@ class BaseCoordinateFrame(object):
                 repr_attrs[name] = {'names': repr_cls.default_names,
                                     'units': repr_cls.default_units}
 
-        # Override defaults as needed for this frame
-        repr_attrs.update(cls._frame_specific_representation_info)
-
         # Use the class, not the name for the key in representation_info
         repr_attrs = dict((REPRESENTATION_CLASSES[name], attrs)
                           for name, attrs in repr_attrs.items())
+
+        for rcls, mappings in cls._frame_specific_representation_info.items():
+            # keys may be a class object or a name
+            rcls = _get_repr_cls(rcls)
+
+            # take the 'names' and 'units' tuples from repr_attrs, recast as
+            # lists to allow updating.  Then use the RepresentationMapping
+            # objects to update as needed for this frame.  Finally, convert back
+            # to tuples.
+            nms = list(repr_attrs[rcls]['names'])
+            uns = list(repr_attrs[rcls]['units'])
+            comptomap = dict([(m.reprname, m) for m in mappings])
+            # this trick with components.__get__(1) is very hacky...
+            for i, c in enumerate(rcls.components.__get__(1)):
+                if c in comptomap:
+                    mapp = comptomap[c]
+                    nms[i] = mapp.framename
+                    uns[i] = mapp.defaultunit
+            repr_attrs[rcls]['names'] = tuple(nms)
+            repr_attrs[rcls]['units'] = tuple(uns)
 
         return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
 
