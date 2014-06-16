@@ -85,7 +85,7 @@ to open a Python interpreter. These utilities include:
 
 - :ref:`samp_hub <vo-samp-example_hub>`: starts a :ref:`SAMP <vo-samp>` hub.
 
-- `volint`: checks a :ref:`VOTable <astropy-io-votable>`
+- ``volint``: checks a :ref:`VOTable <astropy-io-votable>`
   file for compliance against the standards.
 
 - :ref:`wcslint <wcslint>`: checks the :ref:`WCS <astropy-wcs>` keywords in a
