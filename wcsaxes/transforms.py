@@ -4,7 +4,7 @@
 # coordinates, but also world-to-world).
 
 import abc
-
+import astropy
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
@@ -184,7 +184,10 @@ class CoordinateTransform(CurvedTransform):
 
         c_out = c_in.transform_to(self.output_system)
 
-        return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
+        if astropy.__version__ < '0.4':
+            return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
+        else:
+            return np.concatenate((c_out.spherical.lon.deg[:, np.newaxis], c_out.spherical.lat.deg[:, np.newaxis]), 1)
 
     transform_non_affine = transform
 

@@ -25,7 +25,7 @@ matrix:
         # development version of Astropy, which fixes some issues with
         # coverage testing in affiliated packages.
         - python: 2.7
-          env: ASTROPY_VERSION=development SETUP_CMD='test --coverage'
+          env: ASTROPY_VERSION=development SETUP_CMD='test --coverage --remote-data'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
@@ -34,27 +34,27 @@ matrix:
 
         # Try Astropy development version
         - python: 2.7
-          env: ASTROPY_VERSION=development SETUP_CMD='test'
+          env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
         - python: 3.3
-          env: ASTROPY_VERSION=development SETUP_CMD='test'
+          env: ASTROPY_VERSION=development SETUP_CMD='test --remote-data'
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --remote-data'
         - python: 2.7
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --remote-data'
         - python: 3.3
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --remote-data'
         - python: 3.4
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --remote-data'
 
         # Try older numpy versions
         - python: 2.7
-          env: NUMPY_VERSION=1.7 SETUP_CMD='test'
+          env: NUMPY_VERSION=1.7 SETUP_CMD='test --remote-data'
         - python: 2.7
-          env: NUMPY_VERSION=1.6 SETUP_CMD='test'
+          env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
         - python: 2.7
-          env: NUMPY_VERSION=1.5 SETUP_CMD='test'
+          env: NUMPY_VERSION=1.5 SETUP_CMD='test --remote-data'
 
 before_install:
 
@@ -93,7 +93,7 @@ install:
     # conda for packages available through conda, or pip for any other
     # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda` 
     # install since this ensures Numpy does not get automatically upgraded.
-    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION matplotlib ; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION nose matplotlib ; fi
     # - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL ...; fi
 
     # DOCUMENTATION DEPENDENCIES
@@ -103,11 +103,11 @@ install:
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx matplotlib; fi
 
     # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_INSTALL coverage coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage coveralls; fi
 
 script:
     - python setup.py $SETUP_CMD
 
 after_success:
     # Uncomment line below if coveralls.io is set up for this package.
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then coveralls; fi
