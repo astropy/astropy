@@ -66,7 +66,7 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == 'B1950.000'
     assert mfk4.obstime.value == 'B1980.000'
     assert mfk4.newattr == 'newattr'
-    assert set(mfk4.frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
+    assert set(mfk4.get_frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
 
     mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')
     assert mfk4.equinox.value == 'J1980.000'
@@ -130,17 +130,17 @@ def test_create_nodata_frames():
     from ..builtin_frames import ICRS, FK4, FK5
 
     i = ICRS()
-    assert len(i.frame_attr_names()) == 0
+    assert len(i.get_frame_attr_names()) == 0
 
     f5 = FK5()
-    assert f5.equinox == FK5.frame_attr_names()['equinox']
+    assert f5.equinox == FK5.get_frame_attr_names()['equinox']
 
     f4 = FK4()
-    assert f4.equinox == FK4.frame_attr_names()['equinox']
+    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
 
     #obstime is special because it's a property that uses equinox if obstime is not set
-    assert f4.obstime in (FK4.frame_attr_names()['obstime'],
-                          FK4.frame_attr_names()['equinox'])
+    assert f4.obstime in (FK4.get_frame_attr_names()['obstime'],
+                          FK4.get_frame_attr_names()['equinox'])
 
 
 def test_frame_repr():
@@ -221,7 +221,7 @@ def test_realizing():
     assert f2.has_data
 
     assert f2.equinox == f.equinox
-    assert f2.equinox != FK5.frame_attr_names()['equinox']
+    assert f2.equinox != FK5.get_frame_attr_names()['equinox']
 
 
 def test_getitem():
@@ -269,7 +269,7 @@ def test_transform():
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
     #make sure attributes are copied over correctly
-    assert f4.equinox == FK4.frame_attr_names()['equinox']
+    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
     assert f4_2.equinox == f.equinox
 
 
@@ -344,7 +344,7 @@ def test_is_frame_attr_default():
     from ..builtin_frames import FK5
 
     c1 = FK5(ra=1*u.deg, dec=1*u.deg)
-    c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.frame_attr_names()['equinox'])
+    c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.get_frame_attr_names()['equinox'])
     c3 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=Time('J2001.5'))
 
     assert c1.equinox == c2.equinox

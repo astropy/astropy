@@ -596,8 +596,8 @@ class CoordinateTransform(object):
                 hasattr(tosys, 'frame_attr_names')):
             #the if statement is there so that non-frame things might be usable
             #if it makes sense
-            for from_nm in fromsys.frame_attr_names():
-                if from_nm in tosys.frame_attr_names():
+            for from_nm in fromsys.get_frame_attr_names():
+                if from_nm in tosys.get_frame_attr_names():
                     overlap.append(from_nm)
 
     def register(self, graph):
@@ -908,7 +908,7 @@ class CompositeTransform(CoordinateTransform):
             #TODO: caching this information when creating the transform may
             # speed things up a lot
             frattrs = {}
-            for inter_frame_attr_nm in t.tosys.frame_attr_names():
+            for inter_frame_attr_nm in t.tosys.get_frame_attr_names():
                 if hasattr(toframe, inter_frame_attr_nm):
                     attr = getattr(toframe, inter_frame_attr_nm)
                     frattrs[inter_frame_attr_nm] = attr

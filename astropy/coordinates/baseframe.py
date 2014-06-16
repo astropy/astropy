@@ -145,7 +145,7 @@ class BaseCoordinateFrame(object):
     """
 
     @classmethod
-    def frame_attr_names(cls):
+    def get_frame_attr_names(cls):
         out = {}
         for mro_cls in cls.__mro__:
             for name, val in mro_cls.__dict__.items():
@@ -278,7 +278,7 @@ class BaseCoordinateFrame(object):
 
         representation = None  # if not set below, this is a frame with no data
 
-        for fnm, fdefault in self.frame_attr_names().items():
+        for fnm, fdefault in self.get_frame_attr_names().items():
             # read-only properties for these attributes are made in the
             # metaclass  so we set the 'real' attrbiutes as the name prefaced
             # with an underscore
@@ -389,7 +389,7 @@ class BaseCoordinateFrame(object):
             A new object with the same frame attributes as this one, but
             with the ``representation`` as the data.
         """
-        frattrs = dict([(nm, getattr(self, nm)) for nm in self.frame_attr_names()
+        frattrs = dict([(nm, getattr(self, nm)) for nm in self.get_frame_attr_names()
                         if nm not in self._attr_names_with_defaults])
         return self.__class__(representation, **frattrs)
 
@@ -553,7 +553,7 @@ class BaseCoordinateFrame(object):
 
     def __repr__(self):
         frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
-                                for attrnm in self.frame_attr_names()])
+                                for attrnm in self.get_frame_attr_names()])
 
         if self.has_data:
             if self.representation:
@@ -751,7 +751,7 @@ class GenericFrame(BaseCoordinateFrame):
         for attrnm, attrval in frame_attrs.items():
             setattr(self, '_' + attrnm, attrval)
 
-    def frame_attr_names(self):
+    def get_frame_attr_names(self):
         return self._frame_attr_names
 
     def __getattr__(self, name):
