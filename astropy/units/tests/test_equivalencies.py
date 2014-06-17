@@ -515,3 +515,11 @@ def test_temperature():
     t_k = 0 * u.K
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
+
+def test_temperature_energy():
+    x = 1000 * u.K
+    y = 8.617332384960954e-05 * u.keV
+    assert_allclose(x.to(u.keV, u.temperature_energy()).value, 
+                         8.617332384960954e-05)
+    assert_allclose(y.to(u.K, u.temperature_energy()).value,
+                         1000)
