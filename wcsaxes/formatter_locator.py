@@ -264,12 +264,11 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 sep = None
             else:
                 if unit == u.degree:
-                    sep=(six.u('\xb0'), "'", '"')
+                    sep = (six.u('\xb0'), "'", '"')
                 else:
-                    sep=('h', 'm', 's')
+                    sep = ('h', 'm', 's')
 
             angles = Angle(values)
-            print values
             string = angles.to_string(unit=unit,
                                       precision=precision,
                                       decimal=decimal,
@@ -285,7 +284,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None, unit = None):
+    def __init__(self, values=None, number=None, spacing=None, format=None, unit=None):
         if unit is not None:
             self._unit = unit
             self._format_unit = unit
