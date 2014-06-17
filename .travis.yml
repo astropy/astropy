@@ -91,7 +91,7 @@ install:
     # OPTIONAL DEPENDENCIES
     # Here you can add any dependencies your package may have. You can use
     # conda for packages available through conda, or pip for any other
-    # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda` 
+    # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda`
     # install since this ensures Numpy does not get automatically upgraded.
     - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION nose matplotlib ; fi
     # - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL ...; fi
@@ -109,5 +109,7 @@ script:
     - python setup.py $SETUP_CMD
 
 after_success:
-    # Uncomment line below if coveralls.io is set up for this package.
-    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then coveralls; fi
+    # If coveralls.io is set up for this package, uncomment the line
+    # below and replace "packagename" with the name of your package.
+    # The coveragerc file may be customized as needed for your package.
+    - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then coveralls --rcfile='wcsaxes/tests/coveragerc'; fi
