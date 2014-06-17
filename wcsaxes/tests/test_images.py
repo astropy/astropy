@@ -12,7 +12,7 @@ from matplotlib import cbook
 from astropy.tests.helper import pytest
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
-import wcsaxes.datasets as datasets
+from wcsaxes import datasets
 
 
 class TestImages(object):
