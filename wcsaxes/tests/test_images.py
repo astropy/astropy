@@ -125,6 +125,7 @@ class TestImages(object):
 
         self.generate_or_test(generate, fig, 'curvlinear_grid_patches_image.png')
 
+    # Test for cube slicing
     @remote_data
     def test_cube_slice_image(self, generate):
         image = self._cube_hdu.data
@@ -136,6 +137,21 @@ class TestImages(object):
         ax.coords[2].set_axislabel('Velocity m/s')
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
+
+    # Test to see if changing the units of axis works
+    @remote_data
+    def test_changed_axis_units(self, generate):
+        image = fits.getdata(self._data_cube)
+        w = WCS(self._data_cube)
+        fig = plt.figure()
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'))
+        fig.add_axes(ax)
+        ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat)
+        ax.coords[2].set_major_formatter('x.xx')
+        ax.coords[2].set_format_unit(u.km / u.s)
+        ax.coords[2].set_axislabel('Velocity km/s')
+
+        self.generate_or_test(generate, fig, 'changed_axis_units.png')
 
     # Test for axes and ticks sizes, labels etc
     def test_ticks_labels(self, generate):
