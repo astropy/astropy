@@ -18,6 +18,6 @@ def twoMASS_k():
     return download_file("http://astrofrog.github.io/wcsaxes-datasets/2MASS_k.fits", cache=True)
 
 
-def cube():
+def l1448_co():
     return download_file("http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits", cache=True)
 
