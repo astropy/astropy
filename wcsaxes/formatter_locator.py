@@ -82,8 +82,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None):
+    def __init__(self, values=None, number=None, spacing=None, format=None, unit=None):
         self._unit = u.degree
+        self._initial_unit = unit
         super(AngleFormatterLocator, self).__init__(values=values,
                                                     number=number,
                                                     spacing=spacing,
@@ -196,7 +197,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values) * u.degree, 1.1 * u.arcsec
+            return np.asarray(self.values) * self._initial_unit, 1.1 * u.arcsec
 
         else:
 
@@ -231,7 +232,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             imin = np.ceil(value_min / spacing_deg)
             imax = np.floor(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            return values * u.degree, spacing_deg * u.degree
+            return values * self._initial_unit, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
