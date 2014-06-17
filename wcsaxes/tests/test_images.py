@@ -32,10 +32,10 @@ class TestImages(object):
 
         cls._tolerance = 1
 
-        cls._image1 = datasets.image1
-        cls._image2 = datasets.image2
-        cls._image3 = datasets.image3
-        cls._data_cube = datasets.data_cube
+        cls._image1 = datasets.msx()
+        cls._image2 = datasets.rosat()
+        cls._image3 = datasets.twoMASS_k()
+        cls._data_cube = datasets.cube()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
