@@ -32,9 +32,9 @@ class TestImages(object):
 
         cls._tolerance = 1
 
-        cls._image1 = datasets.msx()
-        cls._image2 = datasets.rosat()
-        cls._image3 = datasets.twoMASS_k()
+        cls._image1_hdu = datasets.msx_hdu()
+        cls._image2_hdu = datasets.rosat_hdu()
+        cls._image3_hdu = datasets.twoMASS_k_hdu()
         cls._data_cube = datasets.l1448_co()
 
     # method to create baseline or test images
@@ -52,7 +52,7 @@ class TestImages(object):
     # Test for plotting image and also setting values of ticks
     @remote_data
     def test_image_plot(self, generate):
-        hdu = fits.open(self._image1)[0]
+        hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
         fig.add_axes(ax)
@@ -64,9 +64,9 @@ class TestImages(object):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
-        hdu = fits.open(self._image3)[0]
+        hdu = self._image3_hdu
 
-        hdu_msx = fits.open(self._image1)[0]
+        hdu_msx = self._image1_hdu
         wcs_msx = WCS(hdu_msx.header)
 
         fig = plt.figure(figsize=(6, 6))
@@ -83,7 +83,7 @@ class TestImages(object):
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     @remote_data
     def test_overlay_features_image(self, generate):
-        hdu = fits.open(self._image1)[0]
+        hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header))
         fig.add_axes(ax)
@@ -107,7 +107,7 @@ class TestImages(object):
     # Overlay curvilinear grid and patches on image
     @remote_data
     def test_curvilinear_grid_patches_image(self, generate):
-        hdu = fits.open(self._image2)[0]
+        hdu = self._image2_hdu
         fig = plt.figure(figsize=(8, 8))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
         fig.add_axes(ax)
