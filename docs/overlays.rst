@@ -10,8 +10,7 @@ For the example in the following page we start from the example introduced in
    :nofigs:
 
     from astropy.wcs import WCS
-    from astropy.io import fits
-    import wcsaxes.datasets as datasets
+    from wcsaxes import datasets
     hdu = datasets.msx_hdu()
     wcs = WCS(hdu.header)
 
