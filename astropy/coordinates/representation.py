@@ -95,7 +95,7 @@ class BaseRepresentation(object):
     @property
     def components(self):
         """A tuple with the in-order names of the coordinate components"""
-        return self.attr_classes.keys()
+        return tuple(self.attr_classes)
 
     @classmethod
     def get_name(cls):
