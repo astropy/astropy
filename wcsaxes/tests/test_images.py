@@ -35,7 +35,7 @@ class TestImages(object):
         cls._image1_hdu = datasets.msx_hdu()
         cls._image2_hdu = datasets.rosat_hdu()
         cls._image3_hdu = datasets.twoMASS_k_hdu()
-        cls._data_cube = datasets.l1448_co()
+        cls._cube_hdu = datasets.l1448_co_hdu()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
@@ -124,8 +124,8 @@ class TestImages(object):
 
     @remote_data
     def test_cube_slice_image(self, generate):
-        image = fits.getdata(self._data_cube)
-        w = WCS(self._data_cube)
+        image = self._cube_hdu.data
+        w = WCS(self._cube_hdu.header)
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'))
         fig.add_axes(ax)
