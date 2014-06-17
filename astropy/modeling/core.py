@@ -651,8 +651,9 @@ class Model(object):
                 raise TypeError(
                     "param_dim and n_models cannot both be specified; use "
                     "n_models, as param_dim is deprecated")
+        else:
+            n_models = kwargs.pop('n_models', None)
 
-        n_models = kwargs.pop('n_models', None)
         if not (isinstance(n_models, (type(None), int)) or
                 n_models >= 1):
             raise ValueError(
