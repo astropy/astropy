@@ -20,24 +20,24 @@ class TestAngleFormatterLocator(object):
     def test_too_many_options(self):
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], number=5)
+            AngleFormatterLocator(values=[1.,2.], number=5, unit=u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], spacing=5. * u.deg)
+            AngleFormatterLocator(values=[1.,2.], spacing=5. * u.deg, unit=u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(number=5, spacing=5. * u.deg)
+            AngleFormatterLocator(number=5, spacing=5. * u.deg, unit=u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.deg)
+            AngleFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.deg, unit=u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
     def test_values(self):
 
-        fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree)
+        fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree, unit=u.deg)
         assert fl.values.value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
@@ -47,7 +47,7 @@ class TestAngleFormatterLocator(object):
 
     def test_number(self):
 
-        fl = AngleFormatterLocator(number=7)
+        fl = AngleFormatterLocator(number=7, unit=u.arcsec)
         assert fl.values is None
         assert fl.number == 7
         assert fl.spacing is None
@@ -65,10 +65,10 @@ class TestAngleFormatterLocator(object):
     def test_spacing(self):
 
         with pytest.raises(TypeError) as exc:
-            AngleFormatterLocator(spacing=3.)
+            AngleFormatterLocator(spacing=3., unit=u.arcmin)
         assert exc.value.args[0] == "spacing should be an astropy.units.Quantity instance with units of angle"
 
-        fl = AngleFormatterLocator(spacing=3. * u.degree)
+        fl = AngleFormatterLocator(spacing=3. * u.degree, unit=u.deg)
         assert fl.values is None
         assert fl.number is None
         assert fl.spacing == 3. * u.degree
@@ -106,12 +106,12 @@ class TestAngleFormatterLocator(object):
                                                     ('s.ss', '55412.03'),
                                                     ])
     def test_format(self, format, string):
-        fl = AngleFormatterLocator(number=5, format=format)
+        fl = AngleFormatterLocator(number=5, format=format, unit=u.deg)
         assert fl.formatter([15.392231] * u.degree, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
-        fl = AngleFormatterLocator(number=5)
+        fl = AngleFormatterLocator(number=5, unit=u.deg)
         with pytest.raises(ValueError) as exc:
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
@@ -135,7 +135,7 @@ class TestAngleFormatterLocator(object):
                                                           ('s.s', 0.1 * u.arcsec),
                                                           ('s.ss', 0.01 * u.arcsec),
                                                           ])
-    def test_base_spacing(self, format, base_spacing):
+    def test_base_spacing(self, format, base_spacing, unit=u.arcmin):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
 
@@ -144,7 +144,7 @@ class TestScalarFormatterLocator(object):
 
     def test_no_options(self):
 
-        fl = ScalarFormatterLocator(unit = u.m)
+        fl = ScalarFormatterLocator(unit=u.m)
         assert fl.values is None
         assert fl.number == 5
         assert fl.spacing is None
@@ -169,7 +169,7 @@ class TestScalarFormatterLocator(object):
 
     def test_values(self):
 
-        fl = ScalarFormatterLocator(values=[0.1, 1., 14.] * u.m ,unit = u.m)
+        fl = ScalarFormatterLocator(values=[0.1, 1., 14.] * u.m, unit=u.m)
         assert fl.values.value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
@@ -179,7 +179,7 @@ class TestScalarFormatterLocator(object):
 
     def test_number(self):
 
-        fl = ScalarFormatterLocator(number=7, unit = u.m)
+        fl = ScalarFormatterLocator(number=7, unit=u.m)
         assert fl.values is None
         assert fl.number == 7
         assert fl.spacing is None
@@ -217,7 +217,7 @@ class TestScalarFormatterLocator(object):
                                                     ('x.xx', '15.39'),
                                                     ('x.xxx', '15.392')])
     def test_format(self, format, string):
-        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         assert fl.formatter([15.392231] * u.m, None)[0] == string
 
     @pytest.mark.parametrize(('format', 'string'), [('x', '1539'),
@@ -225,13 +225,13 @@ class TestScalarFormatterLocator(object):
                                                     ('x.xx', '1539.22'),
                                                     ('x.xxx', '1539.223')])
     def test_format_unit(self, format, string):
-        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         fl.format_unit = u.cm
         assert fl.formatter([15.392231] * u.m, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['dd', 'dd:mm', 'xx:mm', 'mx.xxx'])
     def test_invalid_formats(self, format):
-        fl = ScalarFormatterLocator(number=5, unit = u.m)
+        fl = ScalarFormatterLocator(number=5, unit=u.m)
         with pytest.raises(ValueError) as exc:
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
@@ -240,5 +240,5 @@ class TestScalarFormatterLocator(object):
                                                           ('x.x', 0.1 * u.m),
                                                           ('x.xxx', 0.001 * u.m)])
     def test_base_spacing(self, format, base_spacing):
-        fl = ScalarFormatterLocator(number=5, format=format, unit = u.m)
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         assert fl.base_spacing == base_spacing

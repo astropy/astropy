@@ -51,7 +51,7 @@ class CoordinateHelper(object):
         if coord_type == 'scalar':
             self._formatter_locator = ScalarFormatterLocator(unit=coord_unit)
         elif coord_type in ['longitude', 'latitude']:
-            self._formatter_locator = AngleFormatterLocator()
+            self._formatter_locator = AngleFormatterLocator(unit=coord_unit)
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
