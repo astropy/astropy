@@ -12,6 +12,7 @@ from matplotlib import cbook
 from astropy.tests.helper import pytest
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
+import wcsaxes.datasets as datasets
 
 
 class TestImages(object):
@@ -31,10 +32,10 @@ class TestImages(object):
 
         cls._tolerance = 1
 
-        cls._image1 = download_file("http://astrofrog.github.io/wcsaxes-datasets/msx.fits", timeout=10)
-        cls._image2 = download_file("http://astrofrog.github.io/wcsaxes-datasets/rosat.fits", timeout=10)
-        cls._image3 = download_file("http://astrofrog.github.io/wcsaxes-datasets/2MASS_k.fits", timeout=10)
-        cls._data_cube = download_file("http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits", timeout=10)
+        cls._image1 = datasets.image1
+        cls._image2 = datasets.image2
+        cls._image3 = datasets.image3
+        cls._data_cube = datasets.data_cube
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
