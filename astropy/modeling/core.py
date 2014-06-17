@@ -243,7 +243,7 @@ def format_input(func):
         n_models = len(self)
 
         params = [getattr(self, name) for name in self.param_names]
-        inputs = [np.asarray(_input, dtype=float) for _input in inputs]
+        inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
 
         scalar_params = all(not param.shape for param in params)
         scalar_inputs = all(not np.shape(_input) for _input in inputs)
@@ -654,8 +654,8 @@ class Model(object):
         else:
             n_models = kwargs.pop('n_models', None)
 
-        if not (isinstance(n_models, (type(None), int)) or
-                n_models >= 1):
+        if not (n_models is None or
+                    (isinstance(n_models, int) and n_models >=1)):
             raise ValueError(
                 "n_models must be either None (in which case it is "
                 "determined from the model_set_axis of the parameter initial "
@@ -694,7 +694,7 @@ class Model(object):
             if arg is None:
                 # A value of None implies using the default value, if exists
                 continue
-            params[self.param_names[idx]] = np.asarray(arg, dtype=np.float)
+            params[self.param_names[idx]] = np.asanyarray(arg, dtype=np.float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -707,7 +707,7 @@ class Model(object):
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
-                params[param_name] = np.asarray(value, dtype=np.float)
+                params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1396,7 +1396,7 @@ def _format_single_model_input(func, model, params, inputs, input_names,
     broadcasts = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asarray(_input, dtype=np.float)
+        _input = np.asanyarray(_input, dtype=np.float)
         input_shape = _input.shape
         max_broadcast = ()
 
@@ -1443,7 +1443,7 @@ def _format_model_set_input(func, model, params, inputs, input_names,
     pivots = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asarray(_input, dtype=np.float)
+        _input = np.asanyarray(_input, dtype=np.float)
 
         max_param_shape = ()
 
