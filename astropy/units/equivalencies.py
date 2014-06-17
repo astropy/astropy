@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 
 # THIRD-PARTY
 import numpy as np
+from scipy.constants import constants
 
 # LOCAL
 from ..constants import si as _si
@@ -17,7 +18,7 @@ from . import dimensionless_unscaled
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature']
+           'logarithmic', 'temperature', 'keV_kelvin']
 
 
 def dimensionless_angles():
@@ -469,3 +470,8 @@ def temperature():
         (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
          lambda x: ((x - 32.0) / 1.8) + 273.15)]
+
+def keV_kelvin():
+    return [
+        (si.K, si.keV, lambda x: x / (constants.e / constants.k * 1000.0),
+         lambda x: x * (constants.e / constants.k * 1000.0))]
