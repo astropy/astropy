@@ -35,7 +35,7 @@ class TestImages(object):
         cls._image1 = datasets.msx()
         cls._image2 = datasets.rosat()
         cls._image3 = datasets.twoMASS_k()
-        cls._data_cube = datasets.cube()
+        cls._data_cube = datasets.l1448_co()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
