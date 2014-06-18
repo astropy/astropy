@@ -5,6 +5,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
+from matplotlib import rc_context
 from astropy.wcs import WCS
 from astropy.io import fits
 from wcsaxes import WCSAxes
@@ -57,7 +58,7 @@ class TestImages(object):
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
         fig.add_axes(ax)
         ax.imshow(hdu.data, vmin=-1e-5, vmax=1e-4, origin='lower')
-        ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree)
+        ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
 
         self.generate_or_test(generate, fig, 'image_plot.png')
 
@@ -75,6 +76,8 @@ class TestImages(object):
         ax.imshow(hdu.data, vmin=-100, vmax=3000, origin='lower')
         # Overplot contour
         ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx), colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
+        ax.coords[0].set_ticks(size=5, width=1)
+        ax.coords[1].set_ticks(size=5, width=1)
         ax.set_xlim(0., 720.)
         ax.set_ylim(0., 720.)
 
@@ -95,9 +98,9 @@ class TestImages(object):
         ax.grid(color='red', alpha=1.0, lw=1, linestyle='dashed')
 
         # Set the spacing of ticks on the 'glon' axis to 4 arcsec
-        ax.coords['glon'].set_ticks(spacing=4 * u.arcsec)
+        ax.coords['glon'].set_ticks(spacing=4 * u.arcsec, size=5, width=1)
         # Set the number of ticks on the 'glat' axis to 9
-        ax.coords['glat'].set_ticks(number=9)
+        ax.coords['glat'].set_ticks(number=9, size=5, width=1)
         # Set labels on axes
         ax.coords['glon'].set_axislabel('Galactic Longitude')
         ax.coords['glat'].set_axislabel('Galactic Latitude')
@@ -141,8 +144,8 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, 2)
         ax.set_ylim(-0.5, 2)
-        ax.coords[0].set_ticks(size=10, color='blue', alpha=0.2)
-        ax.coords[1].set_ticks(size=20, color='red', alpha=0.9)
+        ax.coords[0].set_ticks(size=10, color='blue', alpha=0.2, width=1)
+        ax.coords[1].set_ticks(size=20, color='red', alpha=0.9, width=1)
         ax.coords[0].set_ticks_position('all')
         ax.coords[1].set_ticks_position('all')
         ax.coords[0].set_axislabel('X-axis', size=20)
@@ -155,3 +158,21 @@ class TestImages(object):
         ax.coords[1].set_ticklabel_position('r')
 
         self.generate_or_test(generate, fig, 'ticks_labels.png')
+
+    # Test default style (matplotlib.rcParams) for ticks and gridlines
+    def test_rcparams(self, generate):
+        with rc_context({
+                'xtick.color': 'red',
+                'xtick.major.size': 20,
+                'xtick.major.width': 2,
+                'grid.color': 'blue',
+                'grid.linestle': ':.',
+                'grid.linewidth': 1,
+                'grid.alpha': 0.5}):
+            fig = plt.figure(figsize=(6, 6))
+            ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+            fig.add_axes(ax)
+            ax.set_xlim(-0.5, 2)
+            ax.set_ylim(-0.5, 2)
+            ax.grid()
+            self.generate_or_test(generate, fig, 'rcparams.png')

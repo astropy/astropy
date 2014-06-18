@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
+from matplotlib import rcParams
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -68,8 +69,28 @@ class CoordinateHelper(object):
 
         # Initialize container for the grid lines
         self.grid_lines = []
+
+        # Initialize grid style. Take defaults from matplotlib.rcParams.
+        # Based on matplotlib.axis.YTick._get_gridline.
+        #
+        # Matplotlib's gridlines use Line2D, but ours use PathPatch.
+        # Patches take a slightly different format of linestyle argument.
+        lines_to_patches_linestyle = {
+            '-': 'solid',
+            '--': 'dashed',
+            '-.': 'dashdot',
+            ':': 'dotted',
+            'none': 'none',
+            'None': 'none',
+            ' ': 'none',
+            '': 'none'
+        }
         self.grid_lines_kwargs = {'visible':False,
                                   'facecolor':'none',
+                                  'edgecolor': rcParams['grid.color'],
+                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                  'linewidth': rcParams['grid.linewidth'],
+                                  'alpha': rcParams['grid.alpha'],
                                   'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
@@ -127,7 +148,7 @@ class CoordinateHelper(object):
                             "instance")
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  color=None, alpha=None):
+                  width=None, color=None, alpha=None):
         """
         Set the location and properties of the ticks.
 
@@ -161,6 +182,9 @@ class CoordinateHelper(object):
 
         if size is not None:
             self.ticks.set_ticksize(size)
+
+        if width is not None:
+            self.ticks.set_linewidth(width)
 
         if color is not None:
             self.ticks.set_color(color)
