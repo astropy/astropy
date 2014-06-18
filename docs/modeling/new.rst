@@ -8,10 +8,10 @@ function to compute the derivatives with respect to parameters is required
 if a linear fitting algorithm is to be used and optional if a non-linear fitter is to be used.
 
 
-Custom 1D models
-----------------
+Custom 1-D models
+-----------------
 
-For 1D models, the `~astropy.modeling.functional_models.custom_model_1d`
+For 1-D models, the `~astropy.modeling.functional_models.custom_model_1d`
 decorator is provided to make it very easy to define new models. The following
 example demonstrates how to set up a model consisting of two Gaussians:
 
@@ -45,12 +45,12 @@ example demonstrates how to set up a model consisting of two Gaussians:
     plt.plot(x, y, 'o', color='k')
     plt.plot(x, m(x), color='r', lw=2)
 
-A step by step definition of a 1D Gaussian model
-------------------------------------------------
+A step by step definition of a 1-D Gaussian model
+-------------------------------------------------
 
-The example described in `Custom 1D models`_ can be used for most 1D cases, but
-the following section described how to construct model classes in general.
-The details are explained below with a 1D Gaussian model as an example.  There
+The example described in `Custom 1-D models`_ can be used for most 1-D cases,
+but the following section described how to construct model classes in general.
+The details are explained below with a 1-D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
 from `~astropy.modeling.FittableModel`; if not it should subclass
 `~astropy.modeling.Model`.
@@ -65,13 +65,6 @@ Parameter.  As such, Parameters take their name from this attribute by default.
 In other words, ``amplitude = Parameter('amplitude')`` is equivalent to
 ``amplitude = Parameter()``.  This differs from Astropy v0.3.x, where it was
 necessary to provide the name twice.
-
-.. note::
-
-    If the method which evaluates the model cannot work with multiple parameter
-    sets, `~astropy.modeling.Model.param_dim` should not be given as an
-    argument in the ``__init__`` method. The default for
-    `~astropy.modeling.Model.param_dim` is set in the base class to 1.
 
 ::
 
@@ -171,9 +164,6 @@ A full example of a LineModel
     def __init__(self, slope, intercept, **kwargs):
         super(LineModel, self).__init__(slope=slope, intercept=intercept,
                                         **kwargs)
-        self.domain = [-1, 1]
-        self.window = [-1, 1]
-        self._order = 2
 
     @staticmethod
     def eval(x, slope, intercept):

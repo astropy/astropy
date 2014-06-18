@@ -18,16 +18,16 @@ fitting, this array is directly modified by a subclass of
 parameter values simultaneously.  When fitting nonlinear models, the values of
 the parameters are used as initial guesses by the fitting class.
 
-Models have an `~astropy.modeling.Model.n_inputs` attribute, which shows
-how many coordinates the model expects as an input. All models expect
-coordinates as separate arguments.  For example a 2D model expects x and y to
-be passed separately, e.g. as two arrays or two lists. When a model has
-multiple parameter sets and x, y are 2D arrays, the model is evaluated with
-each of the parameter sets and the same x, y as input. The shape of the output
-array is ``(param_dim, x_shape, y_shape)`` where param_dim is the number of
-parameter sets and ``x_shape, y_shape`` is the shape of the input array.  In
-all other cases the shape of the output array is the same as the shape of the
-input arrays.
+Models have an `~astropy.modeling.Model.n_inputs` attribute, which shows how
+many coordinates the model expects as an input. All models expect coordinates
+as separate arguments.  For example a 2-D model expects x and y to be passed
+separately, e.g. as two arrays or two lists. When a model has multiple
+parameter sets and x, y are 2-D arrays, the model is evaluated with each of the
+parameter sets and the same x, y as input. The shape of the output array is
+``(param_dim, x_shape, y_shape)`` where param_dim is the number of parameter
+sets and ``x_shape, y_shape`` is the shape of the input array.  In all other
+cases the shape of the output array is the same as the shape of the input
+arrays.
 
 Models also have an attribute `~astropy.modeling.Model.n_outputs`, which
 shows the number of output coordinates. The
@@ -50,7 +50,7 @@ The examples here assume this import statement was executed::
     >>> from astropy.modeling import *
     >>> import numpy as np
 
-- Create a 1D Gaussian with 2 parameter sets::
+- Create a 1-D Gaussian with 2 parameter sets::
 
     >>> x = np.arange(1, 10, .1)
     >>> models.Gaussian1D.param_names
@@ -128,7 +128,7 @@ The examples here assume this import statement was executed::
    plt.title("Polynomial1D model with 5 parameter sets")
    plt.show()
 
-- When passed a 2D array, the same polynomial will map parameter sets to array
+- When passed a 2-D array, the same polynomial will map parameter sets to array
   columns::
 
     >>> x = np.ones((10,5))
@@ -168,7 +168,7 @@ In more complex cases the input and output may be mapped to transformations::
     ...     [off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
 The above composite transform will apply an inplace shift to x, followed by a
-2D polynomial and will save the result in an array, labeled 'z'.  To evaluate
+2-D polynomial and will save the result in an array, labeled 'z'.  To evaluate
 this model use a `~astropy.modeling.LabeledInput` object::
 
     >>> labeled_data = LabeledInput([x, y], ['x', 'y'])

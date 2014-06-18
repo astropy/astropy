@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Implements sky projections defined in WCS Paper II [1]_
+Implements projections--particularly sky projections defined in WCS Paper II
+[1]_
 
-All angles are set and reported in deg but internally the code works and keeps
-all angles in radians.
+All angles are set and and displayed in degrees but internally computations are
+performed in radians.
 
 References
 ----------

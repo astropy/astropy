@@ -932,6 +932,11 @@ class Model(object):
 
 
 class FittableModel(Model):
+    """
+    Base class for models that can be fitted using the built-in fitting
+    algorithms.
+    """
+
     linear = False
     # derivative with respect to parameters
     fit_deriv = None
@@ -947,10 +952,11 @@ class FittableModel(Model):
 
 class LabeledInput(dict):
     """
-    Create a container with all input data arrays, assigning labels for
-    each one.
+    Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
+    data using labels.
 
-    Used by CompositeModel to choose input data using labels.
+    This is a container assigning labels (names) to all input data arrays to a
+    composite model.
 
     Parameters
     ----------
@@ -958,11 +964,6 @@ class LabeledInput(dict):
         List of all input data
     labels : list of strings
         names matching each coordinate in data
-
-    Returns
-    -------
-    data : LabeledData
-        a dict of input data and their assigned labels
 
     Examples
     --------
@@ -1312,16 +1313,10 @@ class SummedCompositeModel(_CompositeModel):
 
 class Fittable1DModel(FittableModel):
     """
-    Base class for one dimensional parametric models.
+    Base class for one-dimensional fittable models.
 
     This class provides an easier interface to defining new models.
-    Examples can be found in functional_models.py
-
-    Parameters
-    ----------
-    parameters : dictionary
-        Dictionary of model parameters with initialisation values
-        {'parameter_name': 'parameter_value'}
+    Examples can be found in `astropy.modeling.functional_models`.
     """
 
     @abc.abstractmethod
@@ -1342,8 +1337,15 @@ class Fittable1DModel(FittableModel):
 
         Parameters
         ----------
-        x : array like or a number
-            input
+        x : array-like or numeric value
+            Input coordinate values.
+
+        model_set_axis : `int` or `False`, optional
+            For `Model` instances representing a multiple-model set, this picks
+            out which axis of the input array is used to map inputs to specific
+            models in the set.  If `False`, this indicates that the input array
+            has no such axis, and instead the same input should be broadcast to
+            all models in the set.
         """
 
         return self.eval(x, *self.param_sets)
@@ -1351,16 +1353,10 @@ class Fittable1DModel(FittableModel):
 
 class Fittable2DModel(FittableModel):
     """
-    Base class for two dimensional parametric models.
+    Base class for one-dimensional fittable models.
 
     This class provides an easier interface to defining new models.
-    Examples can be found in functional_models.py
-
-    Parameters
-    ----------
-    parameter_dict : dictionary
-        Dictionary of model parameters with initialization values
-        {'parameter_name': 'parameter_value'}
+    Examples can be found in `astropy.modeling.functional_models`.
     """
 
     n_inputs = 2
@@ -1384,8 +1380,18 @@ class Fittable2DModel(FittableModel):
 
         Parameters
         ----------
-        x : array like or a number
-            input
+        x : array-like or numeric value
+            First input coordinate values.
+
+        y : array-like or numeric value
+            Second input coordinate values.
+
+        model_set_axis : `int` or `False`, optional
+            For `Model` instances representing a multiple-model set, this picks
+            out which axis of the input array is used to map inputs to specific
+            models in the set.  If `False`, this indicates that the input array
+            has no such axis, and instead the same input should be broadcast to
+            all models in the set.
         """
 
         return self.eval(x, y, *self.param_sets)

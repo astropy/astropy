@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Implements spherical rotations, defined in WCS Paper II [1]_
+Implements roations, including spherical rotations as defined in WCS Paper II
+[1]_
 
-RotateNative2Celestial and RotateCelestial2Native follow the convention
-in WCS paper II to rotate to/from a native sphere and the celestial sphere.
+`RotateNative2Celestial` and `RotateCelestial2Native` follow the convention in
+WCS Paper II to rotate to/from a native sphere and the celestial sphere.
 
-The user interface uses angles in degrees but the values are stored internally
-in radians.  This is managed through the parameter setters/getters.
+The user interface sets and displays angles in degrees but the values are
+stored internally in radians.  This is managed through the parameter
+setters/getters.
 
 References
 ----------

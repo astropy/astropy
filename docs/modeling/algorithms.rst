@@ -5,9 +5,9 @@ Algorithms
 Univariate polynomial evaluation
 ================================
 
-* The evaluation of 1D polynomials uses Horner's algorithm.
+* The evaluation of 1-D polynomials uses Horner's algorithm.
 
-* The evaluation of 1D Chebyshev and Legendre polynomials uses Clenshaw's
+* The evaluation of 1-D Chebyshev and Legendre polynomials uses Clenshaw's
   algorithm.
 
 
@@ -34,7 +34,7 @@ Multivariate polynomial evaluation
 
     Algorithm:
 
-    1. Set *di* to the max number of variables (2 for a 2D polynomial).
+    1. Set *di* to the max number of variables (2 for a 2-D polynomials).
 
     2. Set :math:`r_0` to :math:`c_{\alpha(0)}`, where c is a list of
        coeeficients for each multiindex in inverse lexical order.
