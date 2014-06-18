@@ -36,7 +36,7 @@ class TestImages(object):
         cls._image1_hdu = datasets.msx_hdu()
         cls._image2_hdu = datasets.rosat_hdu()
         cls._image3_hdu = datasets.twoMASS_k_hdu()
-        cls._cube_hdu = datasets.l1448_co_hdu()
+        cls._cube_hdu = datasets.l1448_co_hdu(cache=False)
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
@@ -135,14 +135,16 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat)
         ax.coords[2].set_axislabel('Velocity m/s')
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
     # Test to see if changing the units of axis works
     @remote_data
     def test_changed_axis_units(self, generate):
-        image = fits.getdata(self._data_cube)
-        w = WCS(self._data_cube)
+        image = self._cube_hdu.data
+        w = WCS(self._cube_hdu.header)
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'))
         fig.add_axes(ax)
@@ -150,6 +152,8 @@ class TestImages(object):
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
 
         self.generate_or_test(generate, fig, 'changed_axis_units.png')
 
