@@ -51,7 +51,7 @@ class CoordinateHelper(object):
         if coord_type == 'scalar':
             self._formatter_locator = ScalarFormatterLocator(unit=coord_unit)
         elif coord_type in ['longitude', 'latitude']:
-            self._formatter_locator = AngleFormatterLocator(unit=coord_unit)
+            self._formatter_locator = AngleFormatterLocator()
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
 
@@ -190,8 +190,6 @@ class CoordinateHelper(object):
                              "be specified")
 
         if values is not None:
-            if not isinstance(values, u.Quantity) or (not values.ndim == 1):
-                raise TypeError("values should be an astropy.units.Quantity array")
             self._formatter_locator.values = values
         elif spacing is not None:
             self._formatter_locator.spacing = spacing
@@ -403,16 +401,17 @@ class CoordinateHelper(object):
             # since the above can produce pairs such as 359 to 361 or 0.5 to
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
+            tick_world_coordinates_unit = tick_world_coordinates.unit
+            tick_world_coordinates_values = tick_world_coordinates.value
             if self.coord_type == 'longitude':
-                # tick_world_coordinates_values = tick_world_coordinates.value
-                tick_world_coordinates_values = np.hstack([tick_world_coordinates.to(u.degree).value,
-                                                    tick_world_coordinates.to(u.degree).value + 360.])
-                tick_world_coordinates = tick_world_coordinates_values * u.degree
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values, 
+                                                    tick_world_coordinates_values + 360])
+                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates_unit
 
-            for t in tick_world_coordinates:
+            for t in tick_world_coordinates_values:
 
                 # Find steps where a tick is present
-                intersections = np.nonzero(((t.value - w1) * (t.value - w2)) < 0)[0]
+                intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
 
                 # Loop over ticks, and find exact pixel coordinates by linear
                 # interpolation
@@ -420,7 +419,7 @@ class CoordinateHelper(object):
 
                     imax = imin + 1
 
-                    frac = (t.value - w1[imin]) / (w2[imin] - w1[imin])
+                    frac = (t - w1[imin]) / (w2[imin] - w1[imin])
                     x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
                     y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
                     x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
@@ -433,9 +432,9 @@ class CoordinateHelper(object):
                     angle_i = tick_angle[imin] + frac * delta_angle
 
                     if self.coord_type == 'longitude':
-                        world = wrap_angle_at(t.value, self.coord_wrap)
+                        world = wrap_angle_at(t, self.coord_wrap)
                     else:
-                        world = t.value
+                        world = t
 
                     self.ticks.add(axis=axis,
                                    pixel=(x_data_i, y_data_i),
@@ -454,7 +453,7 @@ class CoordinateHelper(object):
                     lbl_world.append(world)
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates.unit, spacing=spacing)
+        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates_unit, spacing=spacing)
         for kwargs, txt in zip(lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
@@ -471,15 +470,16 @@ class CoordinateHelper(object):
         coord_range = self.parent_axes.get_coord_range(self.transform)
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates_values = tick_world_coordinates.value
 
         self.grid_lines = []
-        for w in tick_world_coordinates:
+        for w in tick_world_coordinates_values:
             if self.coord_index == 0:
-                x_world = np.repeat(w.value, 1000)
+                x_world = np.repeat(w, 1000)
                 y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
             else:
                 x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                y_world = np.repeat(w.value, 1000)
+                y_world = np.repeat(w, 1000)
             xy_world = np.vstack([x_world, y_world]).transpose()
             self.grid_lines.append(self._get_gridline(xy_world))
 
@@ -501,11 +501,11 @@ class CoordinateHelper(object):
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
+        
+        # tick_world_coordinates is a Quantities array and we only needs its values
+        tick_world_coordinates_values = tick_world_coordinates.value
 
         if self.coord_type == 'longitude':
-            # tick_world_coordinates is a Quantities array and we only needs its values
-            tick_world_coordinates_values = tick_world_coordinates.value
-
             # Find biggest gap in tick_world_coordinates and wrap in  middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
@@ -519,4 +519,4 @@ class CoordinateHelper(object):
             field[:-1,1:][reset] = np.nan
             field[1:,1:][reset] = np.nan
 
-        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates.values)
+        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)

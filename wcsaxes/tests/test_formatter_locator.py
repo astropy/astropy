@@ -20,69 +20,69 @@ class TestAngleFormatterLocator(object):
     def test_too_many_options(self):
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], number=5, unit=u.deg)
+            AngleFormatterLocator(values=[1.,2.], number=5)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], spacing=5. * u.deg, unit=u.deg)
+            AngleFormatterLocator(values=[1.,2.], spacing=5. * u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(number=5, spacing=5. * u.deg, unit=u.deg)
+            AngleFormatterLocator(number=5, spacing=5. * u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            AngleFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.deg, unit=u.deg)
+            AngleFormatterLocator(values=[1.,2.], number=5, spacing=5. * u.deg)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
     def test_values(self):
 
-        fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree, unit=u.deg)
-        assert fl.values.value.tolist() == [0.1, 1., 14.]
+        fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree)
+        assert fl.values.to(u.degree).value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.value, [0.1, 1., 14.])
+        assert_almost_equal(values.to(u.degree).value, [0.1, 1., 14.])
 
     def test_number(self):
 
-        fl = AngleFormatterLocator(number=7, unit=u.arcsec)
+        fl = AngleFormatterLocator(number=7)
         assert fl.values is None
         assert fl.number == 7
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.value, [35., 40., 45., 50., 55.])
+        assert_almost_equal(values.to(u.degree).value, [35., 40., 45., 50., 55.])
 
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.value, [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
+        assert_almost_equal(values.to(u.degree).value, [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.value, [35., 36.])
+        assert_almost_equal(values.to(u.degree).value, [35., 36.])
 
     def test_spacing(self):
 
         with pytest.raises(TypeError) as exc:
-            AngleFormatterLocator(spacing=3., unit=u.arcmin)
+            AngleFormatterLocator(spacing=3.)
         assert exc.value.args[0] == "spacing should be an astropy.units.Quantity instance with units of angle"
 
-        fl = AngleFormatterLocator(spacing=3. * u.degree, unit=u.deg)
+        fl = AngleFormatterLocator(spacing=3. * u.degree)
         assert fl.values is None
         assert fl.number is None
         assert fl.spacing == 3. * u.degree
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values.value, [36., 39., 42., 45., 48., 51., 54.])
+        assert_almost_equal(values.to(u.degree).value, [36., 39., 42., 45., 48., 51., 54.])
 
         fl.spacing = 30. * u.arcmin
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.value, [34.5, 35., 35.5, 36.])
+        assert_almost_equal(values.to(u.degree).value, [34.5, 35., 35.5, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values.value, [35., 36.])
+        assert_almost_equal(values.to(u.degree).value, [35., 36.])
 
     @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
                                                     ('dd:mm', six.u('15\xb024\'')),
@@ -106,12 +106,12 @@ class TestAngleFormatterLocator(object):
                                                     ('s.ss', '55412.03'),
                                                     ])
     def test_format(self, format, string):
-        fl = AngleFormatterLocator(number=5, format=format, unit=u.deg)
+        fl = AngleFormatterLocator(number=5, format=format)
         assert fl.formatter([15.392231] * u.degree, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
-        fl = AngleFormatterLocator(number=5, unit=u.deg)
+        fl = AngleFormatterLocator(number=5)
         with pytest.raises(ValueError) as exc:
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
@@ -135,7 +135,7 @@ class TestAngleFormatterLocator(object):
                                                           ('s.s', 0.1 * u.arcsec),
                                                           ('s.ss', 0.01 * u.arcsec),
                                                           ])
-    def test_base_spacing(self, format, base_spacing, unit=u.arcmin):
+    def test_base_spacing(self, format, base_spacing):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
 
