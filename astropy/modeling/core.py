@@ -821,8 +821,10 @@ class Model(object):
 
         broadcast_shapes = {}
         all_shapes = []
+        param_names = []
 
         for name, value in six.iteritems(params):
+            param_names.append(name)
             # We've already checked that each parameter array is compatible in
             # the model_set_axis dimension, but now we need to check the
             # dimensions excluding that axis
@@ -858,8 +860,8 @@ class Model(object):
             check_broadcast(*all_shapes)
         except IncompatibleShapeError as exc:
             shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
-            param_a = self.param_names[shape_a_idx]
-            param_b = self.param_names[shape_b_idx]
+            param_a = param_names[shape_a_idx]
+            param_b = param_names[shape_b_idx]
 
             raise InputParameterError(
                 "Parameter {0!r} of shape {1!r} cannot be broadcast with "
