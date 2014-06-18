@@ -11,7 +11,7 @@ Like the example introduced in :doc:`getting_started`, we will read in the data 
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS information. 
 
 .. plot::
-   :context:
+   :context: reset
    :nofigs:
    :include-source:
    :align: center
@@ -67,7 +67,7 @@ Here, ``image_data`` is a `Numpy ndarry
 If we don't want to reverse the dimensions plotted, we can simply do:
 
 .. plot::
-   :context:
+   :context: reset
    :include-source:
    :align: center
 
