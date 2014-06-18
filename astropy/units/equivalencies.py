@@ -472,7 +472,6 @@ def temperature():
 
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
-    from .. import constants
     return [
-        (si.K, si.keV, lambda x: x / (constants.e.value / constants.k_B * 1000.0),
-         lambda x: x * (constants.e.value / constants.k_B * 1000.0))]
+        (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
+         lambda x: x * (_si.e.value / _si.k_B))]
