@@ -176,3 +176,23 @@ class TestImages(object):
             ax.set_ylim(-0.5, 2)
             ax.grid()
             self.generate_or_test(generate, fig, 'rcparams.png')
+
+    # Test that tick marks point in the correct direction, even when the
+    # axes limits extend only over a few FITS pixels. Addresses #45, #46.
+    def test_tick_angles(self, generate):
+        w = WCS()
+        w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+        w.wcs.crval = [90, 70]
+        w.wcs.cdelt = [16, 16]
+        w.wcs.crpix = [1, 1]
+        w.wcs.radesys = 'ICRS'
+        w.wcs.equinox = 2000.0
+        fig = plt.figure(figsize=(3, 3))
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=w)
+        fig.add_axes(ax)
+        ax.set_xlim(1, -1)
+        ax.set_ylim(-1, 1)
+        ax.grid(color='gray', alpha=0.5, linestyle='solid')
+        ax.coords['ra'].set_ticks(color='red', size=20)
+        ax.coords['dec'].set_ticks(color='red', size=20)
+        self.generate_or_test(generate, fig, 'tick_angles.png')
