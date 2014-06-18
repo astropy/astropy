@@ -1477,7 +1477,7 @@ class Table(object):
         python3_only : bool
             Only do this operation for Python 3
         """
-        self._convert_string_dtype('S', 'U', python3_only)
+        self._convert_string_dtype('U', 'S', python3_only)
 
     def keep_columns(self, names):
         '''
