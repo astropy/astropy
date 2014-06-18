@@ -29,7 +29,7 @@ constraints on their values and documentation.
 
 Parameter values may be scalars *or* array values.  Some parameters are
 required by their very nature to be arrays (such as the transformation matrix
-for an `~astropy.modeling.models.AffineTransformation2D`).  In most other
+for an `~astropy.modeling.projections.AffineTransformation2D`).  In most other
 cases, however, array-valued parameters have no meaning specific to the model,
 and are simply combined with input arrays during model evaluation according to
 the standard `Numpy broadcasting rules`_.
@@ -76,9 +76,10 @@ Parameter examples
       >>> p1
       <Polynomial1D(3, c0=1.0, c1=0.0, c2=2.0, c3=3.0)>
 
-  For the basic `~astropy.modeling.models.Polynomial1D` class the parameters
-  are named ``c0`` through ``cN`` where ``N`` is the degree of the polynomial.
-  The above example represents the polynomial :math:`3x^3 + 2x^2 + 1`.
+  For the basic `~astropy.modeling.polynomial.Polynomial1D` class the
+  parameters are named ``c0`` through ``cN`` where ``N`` is the degree of the
+  polynomial.  The above example represents the polynomial :math:`3x^3 + 2x^2 +
+  1`.
 
 - Some models also have default values for one or more of their parameters.
   For polynomial models, for example, the default value of all coefficients is
@@ -92,55 +93,76 @@ Parameter examples
 - Parameters can the be set/updated by accessing attributes on the model of
   the same names as the parameters::
 
-    >>> p2.c4 = 1
-    >>> p2.c2 = 3.5
-    >>> p2.c0 = 2.0
-    >>> p2
-    <Polynomial1D(4, c0=2.0, c1=0.0, c2=3.5, c3=0.0, c4=1.0)>
+      >>> p2.c4 = 1
+      >>> p2.c2 = 3.5
+      >>> p2.c0 = 2.0
+      >>> p2
+      <Polynomial1D(4, c0=2.0, c1=0.0, c2=3.5, c3=0.0, c4=1.0)>
 
   This example now represents the polynomial :math:`x^4 + 3.5x^2 + 2`.
 
-- It is possible to set the coefficients passing the parameters in a
-  dictionary::
+- It is possible to set the coefficients of a polynomial by passing the
+  parameters in a dictionary, since all parameters can be provided as keyword
+  arguments::
 
-    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, n_models=2)
-    >>> coeffs = dict((name, [idx, idx + 10])
-    ...               for idx, name in enumerate(ch2.param_names))
-    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, n_models=2, **coeffs)
-    >>> ch2.param_sets
-    array([[  0.,  10.],
-           [  1.,  11.],
-           [  2.,  12.],
-           [  3.,  13.],
-           [  4.,  14.],
-           [  5.,  15.],
-           [  6.,  16.],
-           [  7.,  17.],
-           [  8.,  18.],
-           [  9.,  19.],
-           [ 10.,  20.],
-           [ 11.,  21.]])
+      >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3)
+      >>> coeffs = dict((name, [idx, idx + 10])
+      ...               for idx, name in enumerate(ch2.param_names))
+      >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3, n_models=2,
+      ...                          **coeffs)
+      >>> ch2.param_sets
+      array([[  0.,  10.],
+             [  1.,  11.],
+             [  2.,  12.],
+             [  3.,  13.],
+             [  4.,  14.],
+             [  5.,  15.],
+             [  6.,  16.],
+             [  7.,  17.],
+             [  8.,  18.],
+             [  9.,  19.],
+             [ 10.,  20.],
+             [ 11.,  21.]])
 
-- or directly, using keyword arguments::
+- Or directly, using keyword arguments::
 
-    >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3,
-    ...                          c0_0=[0, 10], c0_1=[3, 13],
-    ...                          c0_2=[6, 16], c0_3=[9, 19],
-    ...                          c1_0=[1, 11], c1_1=[4, 14],
-    ...                          c1_2=[7, 17], c1_3=[10, 20,],
-    ...                          c2_0=[2, 12], c2_1=[5, 15],
-    ...                          c2_2=[8, 18], c2_3=[11, 21],
-    ...                          n_models=2)
+      >>> ch2 = models.Chebyshev2D(x_degree=2, y_degree=3,
+      ...                          c0_0=[0, 10], c0_1=[3, 13],
+      ...                          c0_2=[6, 16], c0_3=[9, 19],
+      ...                          c1_0=[1, 11], c1_1=[4, 14],
+      ...                          c1_2=[7, 17], c1_3=[10, 20,],
+      ...                          c2_0=[2, 12], c2_1=[5, 15],
+      ...                          c2_2=[8, 18], c2_3=[11, 21])
 
-- It is possible to change a single parameter::
+- Individual parameters values may be arrays of different sizes and shapes::
 
-    >>> ch2.c0_0
-    Parameter('c0_0', value=[  0.  10.])
-    >>> ch2.c0_0[0] = -34.2
-    >>> ch2.c0_0
-    Parameter('c0_0', value=[-34.2  10. ])
+      >>> p3 = models.Polynomial1D(degree=2, c0=1.0, c1=[2.0, 3.0],
+      ...                          c2=[[4.0, 5.0], [6.0, 7.0], [8.0, 9.0]])
+      >>> p3(2.0)
+      array([[ 21.,  27.],
+             [ 29.,  35.],
+             [ 37.,  43.]])
 
-- The number of parameter sets is given by the length of the model::
+  This is equivalent to evaluating the Numpy expression::
 
-    >>> len(ch2)
-    2
+      >>> import numpy as np
+      >>> c2 = np.array([[4.0, 5.0],
+      ...                [6.0, 7.0],
+      ...                [8.0, 9.0]])
+      >>> c1 = np.array([2.0, 3.0])
+      >>> c2 * 2.0**2 + c1 * 2.0 + 1.0
+      array([[ 21.,  27.],
+             [ 29.,  35.],
+             [ 37.,  43.]])
+
+  Note that in most cases, when using array-valued parameters, the parameters
+  must obey the standard broadcasting rules for Numpy arrays with respect to
+  each other::
+
+      >>> models.Polynomial1D(degree=2, c0=1.0, c1=[2.0, 3.0],
+      ...                     c2=[4.0, 5.0, 6.0])
+      Traceback (most recent call last):
+      ...
+      InputParameterError: Parameter u'c0' of shape (3,) cannot be broadcast
+      with parameter u'c1' of shape (2,).  All parameter arrays must have
+      shapes that are mutually compatible according to the broadcasting rules.

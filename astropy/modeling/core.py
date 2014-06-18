@@ -422,6 +422,15 @@ class Model(object):
     model_constraints = ['eqcons', 'ineqcons']
 
     param_names = []
+    """
+    List of names of the parameters that describe models of this type.
+
+    The parameters in this list are in the same order they should be passed in
+    when initializing a model of a specific type.  Some types of models, such
+    as polynomial models, have a different number of parameters depending on
+    some other property of the model, such as the degree.
+    """
+
     n_inputs = 1
     n_outputs = 1
     standard_broadcasting = True

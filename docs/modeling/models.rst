@@ -47,16 +47,14 @@ Model examples
 
 The examples here assume this import statement was executed::
 
-    >>> from astropy.modeling import *
+    >>> from astropy.modeling.models import Gaussian1D
     >>> import numpy as np
 
 - Create a 1-D Gaussian with 2 parameter sets::
 
     >>> x = np.arange(1, 10, .1)
-    >>> models.Gaussian1D.param_names
-    ['amplitude', 'mean', 'stddev']
-    >>> g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2, 3],
-    ...                        stddev=[0.15, .1], n_models=2)
+    >>> g1 = Gaussian1D(amplitude=[10, 9], mean=[2, 3],
+    ...                 stddev=[0.15, .1], n_models=2)
     >>> g1.param_sets
     array([[ 10.  ,   9.  ],
            [  2.  ,   3.  ],
@@ -70,7 +68,7 @@ The examples here assume this import statement was executed::
 
   or two data sets::
 
-      >>> y = g1(np.array([x, x]))
+      >>> y = g1([x, x + 3])
       >>> print(y.shape)
       (2, 90)
 
@@ -82,7 +80,7 @@ The examples here assume this import statement was executed::
    x = np.arange(1, 10, .1)
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
                           n_models=2)
-   y = g1(x)
+   y = g1(x, model_set_axis=False)
    plt.plot(x, y)
    plt.title('Evaluate a Gaussian1D model with 2 parameter sets and 1 set of '
              'input data')
@@ -95,9 +93,9 @@ The examples here assume this import statement was executed::
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
-                          model_set_axis=0)
-   y = g1(np.array([x, x]).T)
-   plt.plot(x, y)
+                          n_models=2)
+   y = g1([x, x + 3])
+   plt.plot(x, y.T)
    plt.title('Evaluating a Gaussian1D model with 2 parameter sets and 2 sets '
              'of input data')
    plt.show()
@@ -123,8 +121,8 @@ The examples here assume this import statement was executed::
    x = np.arange(1, 10, .1)
    p1 = models.Polynomial1D(1, n_models=5)
    p1.c1 = [0, 1, 2, 3, 4]
-   y = p1(x)
-   plt.plot(x, y)
+   y = p1(x, model_set_axis=False)
+   plt.plot(x, y.T)
    plt.title("Polynomial1D model with 5 parameter sets")
    plt.show()
 
@@ -149,9 +147,11 @@ The examples here assume this import statement was executed::
 
 - Create and evaluate a parallel composite model::
 
+    >>> from astropy.modeling import SummedCompositeModel
+    >>> from astropy.modeling.models import Polynomial1D, Gaussian1D
     >>> x = np.arange(1,10,.1)
-    >>> p1 = models.Polynomial1D(1)
-    >>> g1 = models.Gaussian1D(amplitude=10., stddev=2.1, mean=4.2)
+    >>> p1 = Polynomial1D(1)
+    >>> g1 = Gaussian1D(amplitude=10., stddev=2.1, mean=4.2)
     >>> sum_of_models = SummedCompositeModel([g1, p1])
     >>> y = sum_of_models(x)
 
@@ -161,9 +161,11 @@ The examples here assume this import statement was executed::
 
 In more complex cases the input and output may be mapped to transformations::
 
+    >>> from astropy.modeling import SerialCompositeModel
+    >>> from astropy.modeling.models import Polynomial2D, Shift
     >>> y, x = np.mgrid[:5, :5]
-    >>> off = models.Shift(-3.2)
-    >>> poly2 = models.Polynomial2D(2)
+    >>> off = Shift(-3.2)
+    >>> poly2 = Polynomial2D(2)
     >>> serial_composite_model = SerialCompositeModel(
     ...     [off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
@@ -171,6 +173,7 @@ The above composite transform will apply an inplace shift to x, followed by a
 2-D polynomial and will save the result in an array, labeled 'z'.  To evaluate
 this model use a `~astropy.modeling.LabeledInput` object::
 
+    >>> from astropy.modeling import LabeledInput
     >>> labeled_data = LabeledInput([x, y], ['x', 'y'])
     >>> result = serial_composite_model(labeled_data)
 
