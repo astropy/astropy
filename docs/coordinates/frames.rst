@@ -222,22 +222,29 @@ defined, there is often no need to define an ``__init__`` function, as the
 initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::
 
-  class MyFrame(BaseCoordinateFrame):
-      # Specify how coordinate values are represented when outputted
-      default_representation = SphericalRepresentation
+  >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute
+  >>> class MyFrame(BaseCoordinateFrame):
+  ...     # Specify how coordinate values are represented when outputted
+  ...      default_representation = SphericalRepresentation
+  ...
+  ...      # Specify overrides to the default names and units for all available
+  ...      # representations (subclasses of BaseRepresentation).
+  ...      _frame_specific_representation_info = {
+  ...          'spherical': {'names': ('R', 'D', 'DIST'), 'units': (u.rad, u.rad, None)},
+  ...          'unitspherical': {'names': ('R', 'D'), 'units': (u.rad, u.rad)},
+  ...          'cartesian': {'names': ('X', 'Y', 'Z'), 'units': (None, None, None)}
+  ...      }
+  ...
+  ...      # Specify frame attributes required to fully specify the frame
+  ...      location = FrameAttribute(default=None)
+  ...      equinox = TimeFrameAttribute(default='B1950')
+  ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
-      # Specify overrides to the default names and units for all available
-      # representations (subclasses of BaseRepresentation).
-      _frame_specific_representation_info = {
-          'spherical': {'names': ('R', 'D', 'DIST'), 'units': (u.rad, u.rad, None)},
-          'unitspherical': {'names': ('R', 'D'), 'units': (u.rad, u.rad)},
-          'cartesian': {'names': ('X', 'Y', 'Z'), 'units': (None, None, None)}
-      }
-
-      # Specify frame attributes required to fully specify the frame
-      location = FrameAttribute(default=None)
-      equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
-      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+  >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
+  >>> c
+  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c.equinox
+  <Time object: scale='utc' format='byear_str' value=B1950.000>
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will
