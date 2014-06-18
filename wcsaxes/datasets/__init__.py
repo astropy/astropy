@@ -23,5 +23,5 @@ def twoMASS_k_hdu(cache=True):
 
 
 def l1448_co_hdu(cache=True):
-    filename = download_file("http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits", cache=cache)
+    filename = download_file("http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO_subset.fits", cache=cache)
     return fits.open(filename)[0]
