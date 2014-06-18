@@ -8,7 +8,7 @@ Initialization
 To make a plot using :class:`~wcsaxes.wcsaxes.WCSAxes`, we first read in the data
 using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
-information:
+information. In this example, we will use a FITS file from the ``wcsaxes.datasets`` module:
 
 .. plot::
    :context:
@@ -17,9 +17,16 @@ information:
    :align: center
 
     from astropy.wcs import WCS
+    from wcsaxes import datasets
+    hdu = datasets.msx_hdu()
+    wcs = WCS(hdu.header)
+
+If you have the original FITS file, this is equivalent to doing::
+
     from astropy.io import fits
     hdu = fits.open('msx.fits')[0]
     wcs = WCS(hdu.header)
+
 
 We then create a figure using Matplotlib and instantiate the
 :class:`~wcsaxes.wcsaxes.WCSAxes` class using the :class:`~astropy.wcs.WCS` object
