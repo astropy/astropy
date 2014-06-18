@@ -12,6 +12,7 @@ from matplotlib import cbook
 from astropy.tests.helper import pytest
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
+from wcsaxes import datasets
 
 
 class TestImages(object):
@@ -31,10 +32,10 @@ class TestImages(object):
 
         cls._tolerance = 1
 
-        cls._image1 = download_file("http://astrofrog.github.io/wcsaxes-datasets/msx.fits", timeout=10)
-        cls._image2 = download_file("http://astrofrog.github.io/wcsaxes-datasets/rosat.fits", timeout=10)
-        cls._image3 = download_file("http://astrofrog.github.io/wcsaxes-datasets/2MASS_k.fits", timeout=10)
-        cls._data_cube = download_file("http://astrofrog.github.io/wcsaxes-datasets/L1448_13CO.fits", timeout=10)
+        cls._image1_hdu = datasets.msx_hdu()
+        cls._image2_hdu = datasets.rosat_hdu()
+        cls._image3_hdu = datasets.twoMASS_k_hdu()
+        cls._cube_hdu = datasets.l1448_co_hdu()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
@@ -51,7 +52,7 @@ class TestImages(object):
     # Test for plotting image and also setting values of ticks
     @remote_data
     def test_image_plot(self, generate):
-        hdu = fits.open(self._image1)[0]
+        hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
         fig.add_axes(ax)
@@ -63,9 +64,9 @@ class TestImages(object):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
-        hdu = fits.open(self._image3)[0]
+        hdu = self._image3_hdu
 
-        hdu_msx = fits.open(self._image1)[0]
+        hdu_msx = self._image1_hdu
         wcs_msx = WCS(hdu_msx.header)
 
         fig = plt.figure(figsize=(6, 6))
@@ -82,7 +83,7 @@ class TestImages(object):
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     @remote_data
     def test_overlay_features_image(self, generate):
-        hdu = fits.open(self._image1)[0]
+        hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header))
         fig.add_axes(ax)
@@ -106,7 +107,7 @@ class TestImages(object):
     # Overlay curvilinear grid and patches on image
     @remote_data
     def test_curvilinear_grid_patches_image(self, generate):
-        hdu = fits.open(self._image2)[0]
+        hdu = self._image2_hdu
         fig = plt.figure(figsize=(8, 8))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
         fig.add_axes(ax)
@@ -123,8 +124,8 @@ class TestImages(object):
 
     @remote_data
     def test_cube_slice_image(self, generate):
-        image = fits.getdata(self._data_cube)
-        w = WCS(self._data_cube)
+        image = self._cube_hdu.data
+        w = WCS(self._cube_hdu.header)
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'))
         fig.add_axes(ax)
