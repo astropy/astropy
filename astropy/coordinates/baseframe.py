@@ -366,7 +366,7 @@ class BaseCoordinateFrame(object):
         Parameters
         ----------
         new_representation : subclass of BaseRepresentation or string
-            The type of representation to generate.  Maybe be a *class*
+            The type of representation to generate.  May be a *class*
             (not an instance), or the string name of the representation
             class.
 
