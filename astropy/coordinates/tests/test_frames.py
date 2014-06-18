@@ -401,3 +401,10 @@ def test_nodata_error():
     with pytest.raises(ValueError):
         i.data
 
+def test_len0_data():
+    from ..builtin_frames import ICRS
+
+    i = ICRS([]*u.deg, []*u.deg)
+    assert i.has_data
+    repr(i)
+

@@ -299,7 +299,9 @@ class BaseCoordinateFrame(object):
 
         self._data = representation
 
-        if self._data:
+        # We do ``is not None`` because self._data might evaluate to false for
+        # empty arrays or data == 0
+        if self._data is not None:
             self._rep_cache = dict()
             self._rep_cache[representation.__class__.__name__, False] = representation
 
