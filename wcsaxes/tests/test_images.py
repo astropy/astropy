@@ -36,7 +36,7 @@ class TestImages(object):
         cls._image1_hdu = datasets.msx_hdu()
         cls._image2_hdu = datasets.rosat_hdu()
         cls._image3_hdu = datasets.twoMASS_k_hdu()
-        cls._cube_hdu = datasets.l1448_co_hdu(cache=False)
+        cls._cube_hdu = datasets.l1448_co_hdu()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
