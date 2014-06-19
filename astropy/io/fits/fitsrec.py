@@ -852,6 +852,20 @@ class FITS_rec(np.recarray):
         hdu = new_table(self._coldefs, nrows=shape[0])
         return hdu.data
 
+    def _get_heap_data(self):
+        """
+        Returns a pointer into the table's raw data to its heap (if present).
+
+        This is returned as a numpy byte array.
+        """
+
+        if self._heapsize:
+            raw_data = self._get_raw_data().view(np.ubyte)
+            heap_end = self._heapoffset + self._heapsize
+            return raw_data[self._heapoffset:heap_end]
+        else:
+            return np.array([], dtype=np.ubyte)
+
     def _get_raw_data(self):
         """
         Returns the base array of self that "raw data array" that is the
@@ -907,9 +921,16 @@ class FITS_rec(np.recarray):
 
         return (_str, _bool, _number, _scale, _zero, bscale, bzero, dim)
 
-    def _scale_back(self):
+    def _scale_back(self, update_heap_pointers=True):
         """
         Update the parent array, using the (latest) scaled array.
+
+        If ``update_heap_pointers`` is `False`, this will leave all the heap
+        pointers in P/Q columns as they are verbatim--it only makes sense to do
+        this if there is already data on the heap and it can be guaranteed that
+        that data has not been modified, and there is not new data to add to
+        the heap.  Currently this is only used as an optimization for
+        CompImageHDU that does its own handling of the heap.
         """
 
         # Running total for the new heap size
@@ -928,7 +949,7 @@ class FITS_rec(np.recarray):
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 
-                if self._convert[indx] is not None:
+                if update_heap_pointers and self._convert[indx] is not None:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     field[:] = 0  # reset
@@ -940,8 +961,9 @@ class FITS_rec(np.recarray):
                     field[:, 1][:] += heapsize
 
                 heapsize += field[:, 0].sum() * dtype.itemsize
-                # Even if this VLA has not been read, we need to include
-                # the size of its constituent arrays in the heap size total
+                # Even if this VLA has not been read or updated, we need to
+                # include the size of its constituent arrays in the heap size
+                # total
 
             if self._convert[indx] is None:
                 continue

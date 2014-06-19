@@ -358,6 +358,8 @@ class CompImageHeader(Header):
         return idx
 
 
+# TODO: Fix this class so that it doesn't actually inherit from BinTableHDU,
+# but instead has an internal BinTableHDU reference
 class CompImageHDU(BinTableHDU):
     """
     Compressed Image HDU class.
@@ -369,6 +371,15 @@ class CompImageHDU(BinTableHDU):
         'hcompScale': 'hcomp_scale', 'hcompSmooth': 'hcomp_smooth',
         'quantizeLevel': 'quantize_level'
     }
+
+    _manages_own_heap = True
+    """
+    The calls to CFITSIO lay out the heap data in memory, and we write it out
+    the same way CFITSIO organizes it.  In principle this would break if a user
+    manually changes the underlying compressed data by hand, but there is no
+    reason they would want to do that (and if they do that's their
+    responsibility).
+    """
 
     def __init__(self, data=None, header=None, name=None,
                  compression_type=DEFAULT_COMPRESSION_TYPE,
@@ -1645,69 +1656,15 @@ class CompImageHDU(BinTableHDU):
         self.compressed_data._heapsize = heapsize
         self.compressed_data.formats = self.columns.formats
 
-        # Update the table header cards to match the compressed data.
-        self._update_header()
-
-    @deprecated('0.3', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3', alternative='(refactor your code)')
     def updateCompressedData(self):
         self._update_compressed_data()
 
-    def _update_header(self):
-        """
-        Update the table header cards to match the compressed data.
-        """
-
-        # Get the _heapsize attribute to match the data.
-        self.compressed_data._scale_back()
-
-        # Check that TFIELDS and NAXIS2 match the data.
-        self._header['TFIELDS'] = self.compressed_data._nfields
-        self._header['NAXIS2'] = self.compressed_data.shape[0]
-
-        # Calculate PCOUNT, for variable length tables.
-        _tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
-        _heapstart = self._header.get('THEAP', _tbsize)
-        self.compressed_data._gap = _heapstart - _tbsize
-        _pcount = self.compressed_data._heapsize + self.compressed_data._gap
-
-        if _pcount > 0:
-            self._header['PCOUNT'] = _pcount
-
-        # Update TFORM for variable length columns.
-        for idx in range(self.compressed_data._nfields):
-            format = self.compressed_data._coldefs._recformats[idx]
-            if isinstance(format, _FormatP):
-                _max = self.compressed_data.field(idx).max
-                format_cls = format.__class__
-                format = format_cls(format.dtype, repeat=format.repeat,
-                                    max=_max)
-                self._header['TFORM' + str(idx + 1)] = format.tform
-        # Insure that for RICE_1 that the BLOCKSIZE and BYTEPIX cards
-        # are present and set to the hard coded values used by the
-        # compression algorithm.
-        if self._header['ZCMPTYPE'] == 'RICE_1':
-            self._header.set('ZNAME1', 'BLOCKSIZE', 'compression block size',
-                             after='ZCMPTYPE')
-            self._header.set('ZVAL1', DEFAULT_BLOCK_SIZE, 'pixels per block',
-                             after='ZNAME1')
-
-            self._header.set('ZNAME2', 'BYTEPIX',
-                             'bytes per pixel (1, 2, 4, or 8)', after='ZVAL1')
-
-            if self._header['ZBITPIX'] == 8:
-                bytepix = 1
-            elif self._header['ZBITPIX'] == 16:
-                bytepix = 2
-            else:
-                bytepix = DEFAULT_BYTE_PIX
-
-            self._header.set('ZVAL2', bytepix,
-                             'bytes per pixel (1, 2, 4, or 8)',
-                             after='ZNAME2')
-
-    @deprecated('0.3', alternative='(refactor your code)', pending=True)
+    @deprecated('0.3',
+                alternative='(refactor your code; this function no '
+                            'longer does anything)')
     def updateHeader(self):
-        self._update_header()
+        pass
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -1813,8 +1770,6 @@ class CompImageHDU(BinTableHDU):
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
 
-    # TODO: Fix this class so that it doesn't actually inherit from
-    # BinTableHDU, but instead has an internal BinTableHDU reference
     def _prewriteto(self, checksum=False, inplace=False):
         if self._scale_back:
             self.scale(_ImageBaseHDU.NumCode[self._orig_bitpix])
@@ -1848,10 +1803,8 @@ class CompImageHDU(BinTableHDU):
             # handles it propertly
             self.__dict__['data'] = self.compressed_data
 
-        # Doesn't call the super's _prewriteto, since it calls
-        # self.data._scale_back(), which is meaningless here.
-        return ExtensionHDU._prewriteto(self, checksum=checksum,
-                                        inplace=inplace)
+        return super(CompImageHDU, self)._prewriteto(checksum=checksum,
+                                                     inplace=inplace)
 
     def _writeheader(self, fileobj):
         """

@@ -187,6 +187,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     FITS table extension base HDU class.
     """
 
+    _manages_own_heap = False
+    """
+    This flag implies that when writing VLA tables (P/Q format) the heap
+    pointers that go into P/Q table columns should not be reordered or
+    rearranged in any way by the default heap management code.
+
+    This is included primarily as an optimization for compressed image HDUs
+    which perform their own heap maintenance.
+    """
+
     def __init__(self, data=None, header=None, name=None, uint=False):
         """
         Parameters
@@ -432,18 +442,19 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     def _prewriteto(self, checksum=False, inplace=False):
         if self._has_data:
-            self.data._scale_back()
+            self.data._scale_back(
+                update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
             self._header['TFIELDS'] = len(self.data._coldefs)
             self._header['NAXIS2'] = self.data.shape[0]
 
             # calculate PCOUNT, for variable length tables
-            tbsize = self.header['NAXIS1'] * self.header['NAXIS2']
-            heapstart = self.header.get('THEAP', tbsize)
+            tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
+            heapstart = self._header.get('THEAP', tbsize)
             self.data._gap = heapstart - tbsize
             pcount = self.data._heapsize + self.data._gap
             if pcount > 0:
-                self.header['PCOUNT'] = pcount
+                self._header['PCOUNT'] = pcount
 
             # update the other T****n keywords
             self._populate_table_keywords()
@@ -637,6 +648,7 @@ class BinTableHDU(_TableBaseHDU):
     _extension = 'BINTABLE'
     _ext_comment = 'binary table extension'
 
+
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
@@ -705,17 +717,28 @@ class BinTableHDU(_TableBaseHDU):
 
                 nbytes = self.data._gap
 
-                for idx in range(self.data._nfields):
-                    if not isinstance(self.data.columns._recformats[idx],
-                                      _FormatP):
-                        continue
+                if not self._manages_own_heap:
+                    # Write the heap data one column at a time, in the order
+                    # that the data pointers appear in the column (regardless
+                    # if that data pointer has a different, previous heap
+                    # offset listed)
+                    for idx in range(self.data._nfields):
+                        if not isinstance(self.data.columns._recformats[idx],
+                                          _FormatP):
+                            continue
 
-                    field = self.data.field(idx)
-                    for row in field:
-                        if len(row) > 0:
-                            nbytes += row.nbytes
-                            if not fileobj.simulateonly:
-                                fileobj.writearray(row)
+                        field = self.data.field(idx)
+                        for row in field:
+                            if len(row) > 0:
+                                nbytes += row.nbytes
+                                if not fileobj.simulateonly:
+                                    fileobj.writearray(row)
+                else:
+                    heap_data = self.data._get_heap_data()
+                    if len(heap_data) > 0:
+                        nbytes += len(heap_data)
+                        if not fileobj.simulateonly:
+                            fileobj.writearray(heap_data)
 
                 self.data._heapsize = nbytes - self.data._gap
                 size += nbytes
