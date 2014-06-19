@@ -1,3 +1,4 @@
+-e git+http://github.com/astropy/astropy-helpers.git#egg=astropy_helpers
 numpy
 matplotlib
 astropy
