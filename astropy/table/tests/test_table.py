@@ -1251,3 +1251,28 @@ def test_unicode_policy():
                           ' 1 a 1.0 7',
                          ], format='ascii')
     assert_follows_unicode_guidelines(t)
+
+
+def test_unicode_bytestring_conversion(table_types):
+    t = table_types.Table([['abc'], ['def'], [1]], dtype=('S', 'U', 'i'))
+    assert t['col0'].dtype.kind == 'S'
+    assert t['col1'].dtype.kind == 'U'
+    assert t['col2'].dtype.kind == 'i'
+
+    t1 = t.copy()
+    t1.convert_unicode_to_bytestring()
+    assert t1['col0'].dtype.kind == 'S'
+    assert t1['col1'].dtype.kind == 'S'
+    assert t1['col2'].dtype.kind == 'i'
+    assert t1['col0'][0] == 'abc'.encode('ascii')
+    assert t1['col1'][0] == 'def'.encode('ascii')
+    assert t1['col2'][0] == 1
+
+    t1 = t.copy()
+    t1.convert_bytestring_to_unicode()
+    assert t1['col0'].dtype.kind == 'U'
+    assert t1['col1'].dtype.kind == 'U'
+    assert t1['col2'].dtype.kind == 'i'
+    assert t1['col0'][0] == six.text_type('abc')
+    assert t1['col1'][0] == six.text_type('def')
+    assert t1['col2'][0] == 1
