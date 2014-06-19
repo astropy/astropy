@@ -2,6 +2,7 @@
 
 from . import core
 from ...extern import six
+from cparser import CParser
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
@@ -15,13 +16,15 @@ class FastBasic(object):
     _description = 'Fast C reader for basic tables with custom delimiters'
 
     def __init__(self, **kwargs):
-        self.delimiter = str(kwargs.get('delimiter', ' '))
-        self.comment = kwargs.get('comment', '#')
+        self.delimiter = str(kwargs.pop('delimiter', ' '))
+        self.comment = kwargs.pop('comment', '#')
         if self.comment is not None:
             self.comment = str(self.comment)
+        self.header_start = kwargs.pop('header_start', 0)
+        self.data_start = kwargs.pop('data_start', 1)
         self.kwargs = kwargs
 
-    def read_header(self):
+    def _read_header(self):
         self.engine.read_header()
         if self.engine.header is not None:
             self.names = list(self.engine.header)
@@ -30,7 +33,9 @@ class FastBasic(object):
 
     def read(self, table):
         if len(self.comment) != 1:
-            raise ParameterError("The C reader only supports length-1 comments")
+            raise ParameterError("The C reader does not support a comment regex")
+        elif len(self.delimiter) != 1:
+            raise ParameterError("The C reader only supports 1-char delimiters")
         elif 'converters' in self.kwargs:
             raise ParameterError("The C reader does not support passing "
                                  "specialized converters")
@@ -41,7 +46,8 @@ class FastBasic(object):
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise ParameterError("The C reader does not use a Splitter class")
 
-        self.engine = parser.CParser(**self.kwargs)
-        self.read_header()
+        self.engine = CParser(table, delimiter=self.delimiter,
+                                     comment=self.comment, **self.kwargs)
+        self._read_header()
         data = self.engine.read()
         return Table(data, names=self.names) # TODO: add masking, units, etc.
