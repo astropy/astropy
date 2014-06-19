@@ -358,7 +358,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return np.asarray(self.values) * self._unit, 1.1 * self._unit
+            return self.values, 1.1 * self._unit
 
         else:
 
