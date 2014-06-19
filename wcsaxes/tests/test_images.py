@@ -55,9 +55,11 @@ class TestImages(object):
     def test_image_plot(self, generate):
         hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
-        ax.imshow(hdu.data, vmin=-1e-5, vmax=1e-4, origin='lower')
+        ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
+        ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
+#        ax.imshow(hdu.data, vmin=-1e-5, vmax=1e-4, origin='lower')
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
 
         self.generate_or_test(generate, fig, 'image_plot.png')
@@ -71,9 +73,11 @@ class TestImages(object):
         wcs_msx = WCS(hdu_msx.header)
 
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.15, 0.15, 0.8, 0.8], wcs=WCS(hdu.header))
+        ax = WCSAxes(fig, [0.15, 0.15, 0.8, 0.8], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
-        ax.imshow(hdu.data, vmin=-100, vmax=3000, origin='lower')
+        ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
+        ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
+        #ax.imshow(hdu.data, vmin=-100, vmax=3000, origin='lower')
         # Overplot contour
         ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx), colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
@@ -88,7 +92,7 @@ class TestImages(object):
     def test_overlay_features_image(self, generate):
         hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header))
+        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
         # Change the format of the ticks
         ax.coords[0].set_major_formatter('dd:mm:ss')
@@ -112,10 +116,12 @@ class TestImages(object):
     def test_curvilinear_grid_patches_image(self, generate):
         hdu = self._image2_hdu
         fig = plt.figure(figsize=(8, 8))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header))
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
-        ax.imshow(hdu.data, vmax=1000, origin='lower')
-        ax.grid(color='white', alpha=1.0, lw=1, linestyle='dashed')
+        ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
+        ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
+        #ax.imshow(hdu.data, vmax=1000, origin='lower')
+        ax.grid(color='black', alpha=1.0, lw=1, linestyle='dashed')
         p = Circle((300, 100), radius=40, ec='yellow', fc='none')
         ax.add_patch(p)
         p = Circle((30., 20.), radius=20., ec='orange', fc='none', transform=ax.get_transform('world'))
@@ -125,17 +131,41 @@ class TestImages(object):
 
         self.generate_or_test(generate, fig, 'curvlinear_grid_patches_image.png')
 
+    # Test for cube slicing
     @remote_data
     def test_cube_slice_image(self, generate):
         image = self._cube_hdu.data
         w = WCS(self._cube_hdu.header)
         fig = plt.figure()
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'))
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
         fig.add_axes(ax)
-        ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat)
+        ax.set_xlim(-0.5, image.shape[0] - 0.5)
+        ax.set_ylim(-0.5, image.shape[1] - 0.5)
+        #ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat, origin='lower')
         ax.coords[2].set_axislabel('Velocity m/s')
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
+
+    # Test to see if changing the units of axis works
+    @remote_data
+    def test_changed_axis_units(self, generate):
+        image = self._cube_hdu.data
+        w = WCS(self._cube_hdu.header)
+        fig = plt.figure()
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
+        fig.add_axes(ax)
+        ax.set_xlim(-0.5, image.shape[0] - 0.5)
+        ax.set_ylim(-0.5, image.shape[1] - 0.5)
+        #ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat, origin='lower')
+        ax.coords[2].set_major_formatter('x.xx')
+        ax.coords[2].set_format_unit(u.km / u.s)
+        ax.coords[2].set_axislabel('Velocity km/s')
+        ax.coords[1].set_ticks(width=1)
+        ax.coords[2].set_ticks(width=1)
+
+        self.generate_or_test(generate, fig, 'changed_axis_units.png')
 
     # Test for axes and ticks sizes, labels etc
     def test_ticks_labels(self, generate):

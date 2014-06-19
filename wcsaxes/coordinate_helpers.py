@@ -4,6 +4,7 @@ axes, ticks, tick labels, and grid lines.
 """
 
 import numpy as np
+from astropy import units as u
 
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
@@ -29,13 +30,14 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, transform=None, coord_index=None,
-                 coord_type='scalar', coord_wrap=None, frame=None):
+                 coord_type='scalar',coord_unit=None, coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
         self.transform = transform
         self.coord_index = coord_index
         self.coord_type = coord_type
+        self.coord_unit = coord_unit
         self.frame = frame
 
         if coord_type == 'longitude' and coord_wrap is None:
@@ -47,7 +49,7 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
-            self._formatter_locator = ScalarFormatterLocator()
+            self._formatter_locator = ScalarFormatterLocator(unit=coord_unit)
         elif coord_type in ['longitude', 'latitude']:
             self._formatter_locator = AngleFormatterLocator()
         else:
@@ -146,6 +148,20 @@ class CoordinateHelper(object):
         else:
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
+
+    def set_format_unit(self, unit):
+        """
+        Set the unit for the major tick labels.
+
+        Parameters
+        ----------
+        unit : class:`~astropy.units.Unit`
+            The unit to which the tick labels should be converted to.
+        """
+        if (not issubclass(unit.__class__, u.UnitBase)) :
+            raise TypeError("unit should be an astropy UnitBase subclass")
+        self._formatter_locator.format_unit = unit
+
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None):
@@ -385,11 +401,13 @@ class CoordinateHelper(object):
             # since the above can produce pairs such as 359 to 361 or 0.5 to
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
+            tick_world_coordinates_unit = tick_world_coordinates.unit
+            tick_world_coordinates_values = tick_world_coordinates.value
             if self.coord_type == 'longitude':
-                tick_world_coordinates = np.hstack([tick_world_coordinates,
-                                                    tick_world_coordinates + 360.])
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values, 
+                                                    tick_world_coordinates_values + 360])
 
-            for t in tick_world_coordinates:
+            for t in tick_world_coordinates_values:
 
                 # Find steps where a tick is present
                 intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
@@ -434,7 +452,7 @@ class CoordinateHelper(object):
                     lbl_world.append(world)
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world, spacing=spacing)
+        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates_unit, spacing=spacing)
         for kwargs, txt in zip(lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
@@ -451,9 +469,10 @@ class CoordinateHelper(object):
         coord_range = self.parent_axes.get_coord_range(self.transform)
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates_values = tick_world_coordinates.value
 
         self.grid_lines = []
-        for w in tick_world_coordinates:
+        for w in tick_world_coordinates_values:
             if self.coord_index == 0:
                 x_world = np.repeat(w, 1000)
                 y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
@@ -481,14 +500,16 @@ class CoordinateHelper(object):
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
+        
+        # tick_world_coordinates is a Quantities array and we only needs its values
+        tick_world_coordinates_values = tick_world_coordinates.value
 
         if self.coord_type == 'longitude':
-
             # Find biggest gap in tick_world_coordinates and wrap in  middle
             # For now just assume spacing is equal, so any mid-point will do
-            mid = 0.5 * (tick_world_coordinates[0] + tick_world_coordinates[1])
+            mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
             field = wrap_angle_at(field, mid)
-            tick_world_coordinates = wrap_angle_at(tick_world_coordinates, mid)
+            tick_world_coordinates_values = wrap_angle_at(tick_world_coordinates_values, mid)
 
             # Replace wraps by NaN
             reset = (np.abs(np.diff(field[:,:-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1,:], axis=1)) > 180)
@@ -497,4 +518,4 @@ class CoordinateHelper(object):
             field[:-1,1:][reset] = np.nan
             field[1:,1:][reset] = np.nan
 
-        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates)
+        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
