@@ -37,13 +37,13 @@ class TestAngleFormatterLocator(object):
 
     def test_values(self):
 
-        fl = AngleFormatterLocator(values=[0.1, 1., 14.])
-        assert fl.values == [0.1, 1., 14.]
+        fl = AngleFormatterLocator(values=[0.1, 1., 14.] * u.degree)
+        assert fl.values.to(u.degree).value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, [0.1, 1., 14.])
+        assert_almost_equal(values.to(u.degree).value, [0.1, 1., 14.])
 
     def test_number(self):
 
@@ -53,14 +53,14 @@ class TestAngleFormatterLocator(object):
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, [35., 40., 45., 50., 55.])
+        assert_almost_equal(values.to(u.degree).value, [35., 40., 45., 50., 55.])
 
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
+        assert_almost_equal(values.to(u.degree).value, [34.5, 34.75, 35., 35.25, 35.5, 35.75, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [35., 36.])
+        assert_almost_equal(values.to(u.degree).value, [35., 36.])
 
     def test_spacing(self):
 
@@ -74,15 +74,15 @@ class TestAngleFormatterLocator(object):
         assert fl.spacing == 3. * u.degree
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, [36., 39., 42., 45., 48., 51., 54.])
+        assert_almost_equal(values.to(u.degree).value, [36., 39., 42., 45., 48., 51., 54.])
 
         fl.spacing = 30. * u.arcmin
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [34.5, 35., 35.5, 36.])
+        assert_almost_equal(values.to(u.degree).value, [34.5, 35., 35.5, 36.])
 
         fl.format = 'dd'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [35., 36.])
+        assert_almost_equal(values.to(u.degree).value, [35., 36.])
 
     @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
                                                     ('dd:mm', six.u('15\xb024\'')),
@@ -107,7 +107,7 @@ class TestAngleFormatterLocator(object):
                                                     ])
     def test_format(self, format, string):
         fl = AngleFormatterLocator(number=5, format=format)
-        assert fl.formatter([15.392231], None)[0] == string
+        assert fl.formatter([15.392231] * u.degree, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
@@ -144,7 +144,7 @@ class TestScalarFormatterLocator(object):
 
     def test_no_options(self):
 
-        fl = ScalarFormatterLocator()
+        fl = ScalarFormatterLocator(unit=u.m)
         assert fl.values is None
         assert fl.number == 5
         assert fl.spacing is None
@@ -152,84 +152,93 @@ class TestScalarFormatterLocator(object):
     def test_too_many_options(self):
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], number=5)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, number=5)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], spacing=5.)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(number=5, spacing=5.)
+            ScalarFormatterLocator(number=5, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
         with pytest.raises(ValueError) as exc:
-            ScalarFormatterLocator(values=[1.,2.], number=5, spacing=5.)
+            ScalarFormatterLocator(values=[1.,2.] * u.m, number=5, spacing=5. * u.m)
         assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
 
     def test_values(self):
 
-        fl = ScalarFormatterLocator(values=[0.1, 1., 14.])
-        assert fl.values == [0.1, 1., 14.]
+        fl = ScalarFormatterLocator(values=[0.1, 1., 14.] * u.m, unit=u.m)
+        assert fl.values.value.tolist() == [0.1, 1., 14.]
         assert fl.number is None
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, [0.1, 1., 14.])
+        assert_almost_equal(values.value, [0.1, 1., 14.])
 
     def test_number(self):
 
-        fl = ScalarFormatterLocator(number=7)
+        fl = ScalarFormatterLocator(number=7, unit=u.m)
         assert fl.values is None
         assert fl.number == 7
         assert fl.spacing is None
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, np.linspace(36., 54., 10))
+        assert_almost_equal(values.value, np.linspace(36., 54., 10))
 
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, np.linspace(34.4, 36, 9))
+        assert_almost_equal(values.value, np.linspace(34.4, 36, 9))
 
         fl.format = 'x'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [35., 36.])
+        assert_almost_equal(values.value, [35., 36.])
 
     def test_spacing(self):
 
-        fl = ScalarFormatterLocator(spacing=3.)
+        fl = ScalarFormatterLocator(spacing=3. * u.m)
         assert fl.values is None
         assert fl.number is None
-        assert fl.spacing == 3.
+        assert fl.spacing == 3. * u.m
 
         values, spacing = fl.locator(34.3, 55.4)
-        assert_almost_equal(values, [36., 39., 42., 45., 48., 51., 54.])
+        assert_almost_equal(values.value, [36., 39., 42., 45., 48., 51., 54.])
 
-        fl.spacing = 0.5
+        fl.spacing = 0.5 * u.m
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [34.5, 35., 35.5, 36.])
+        assert_almost_equal(values.value, [34.5, 35., 35.5, 36.])
 
         fl.format = 'x'
         values, spacing = fl.locator(34.3, 36.1)
-        assert_almost_equal(values, [35., 36.])
+        assert_almost_equal(values.value, [35., 36.])
 
     @pytest.mark.parametrize(('format', 'string'), [('x', '15'),
                                                     ('x.x', '15.4'),
                                                     ('x.xx', '15.39'),
                                                     ('x.xxx', '15.392')])
     def test_format(self, format, string):
-        fl = ScalarFormatterLocator(number=5, format=format)
-        assert fl.formatter([15.392231], None)[0] == string
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
+        assert fl.formatter([15.392231] * u.m, None)[0] == string
+
+    @pytest.mark.parametrize(('format', 'string'), [('x', '1539'),
+                                                    ('x.x', '1539.2'),
+                                                    ('x.xx', '1539.22'),
+                                                    ('x.xxx', '1539.223')])
+    def test_format_unit(self, format, string):
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
+        fl.format_unit = u.cm
+        assert fl.formatter([15.392231] * u.m, None)[0] == string
 
     @pytest.mark.parametrize(('format'), ['dd', 'dd:mm', 'xx:mm', 'mx.xxx'])
     def test_invalid_formats(self, format):
-        fl = ScalarFormatterLocator(number=5)
+        fl = ScalarFormatterLocator(number=5, unit=u.m)
         with pytest.raises(ValueError) as exc:
             fl.format = format
         assert exc.value.args[0] == "Invalid format: " + format
 
-    @pytest.mark.parametrize(('format', 'base_spacing'), [('x', 1.),
-                                                          ('x.x', 0.1),
-                                                          ('x.xxx', 0.001)])
+    @pytest.mark.parametrize(('format', 'base_spacing'), [('x', 1. * u.m),
+                                                          ('x.x', 0.1 * u.m),
+                                                          ('x.xxx', 0.001 * u.m)])
     def test_base_spacing(self, format, base_spacing):
-        fl = ScalarFormatterLocator(number=5, format=format)
+        fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         assert fl.base_spacing == base_spacing
