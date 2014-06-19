@@ -406,7 +406,6 @@ class CoordinateHelper(object):
             if self.coord_type == 'longitude':
                 tick_world_coordinates_values = np.hstack([tick_world_coordinates_values, 
                                                     tick_world_coordinates_values + 360])
-                tick_world_coordinates = tick_world_coordinates_values * tick_world_coordinates_unit
 
             for t in tick_world_coordinates_values:
 
