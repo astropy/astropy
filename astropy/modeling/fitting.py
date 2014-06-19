@@ -889,7 +889,7 @@ def _validate_model(model, supported_constraints):
         warnings.warn('Model is linear in parameters; '
                       'consider using linear fitting methods.',
                       AstropyUserWarning)
-    if model.param_dim != 1:
+    elif len(model) != 1:
         # for now only single data sets ca be fitted
         raise ValueError("Non-linear fitters can only fit "
                          "one data set at a time.")

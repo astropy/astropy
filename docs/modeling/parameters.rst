@@ -1,5 +1,7 @@
 .. include:: links.inc
 
+.. _modeling-parameters:
+
 **********
 Parameters
 **********
