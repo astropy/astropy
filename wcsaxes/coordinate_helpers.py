@@ -350,6 +350,15 @@ class CoordinateHelper(object):
         lblinfo = []
         lbl_world = []
 
+        # Look up parent axes' transform from data coordinates to axes,
+        # where (0, 0) is the bottom left corner of the axes and (1, 1) is
+        # the top right.
+        #
+        # See:
+        # http://matplotlib.org/users/transforms_tutorial.html#the-transformation-pipeline
+        transLimits = self.parent_axes.transLimits
+        invertedTransLimits = transLimits.inverted()
+
         for axis, spine in frame.iteritems():
 
             # Determine tick rotation in display coordinates and compare to
@@ -358,13 +367,18 @@ class CoordinateHelper(object):
             pixel0 = spine.data
             world0 = spine.world[:,self.coord_index]
             world0 = self.transform.transform(pixel0)[:,self.coord_index]
+            axes0 = transLimits.transform(pixel0)
 
-            pixel1 = pixel0.copy()
-            pixel1[:,0] += 1
+            # Advance 1/100th of dimensions of axes
+            pixel1 = axes0.copy()
+            pixel1[:,0] += 0.01
+            pixel1 = invertedTransLimits.transform(pixel1)
             world1 = self.transform.transform(pixel1)[:,self.coord_index]
 
-            pixel2 = pixel0.copy()
-            pixel2[:,1] += 1 if self.frame.origin == 'lower' else -1
+            # Advance 1/100th of dimensions of axes
+            pixel2 = axes0.copy()
+            pixel2[:,1] += 0.01 if self.frame.origin == 'lower' else -0.01
+            pixel2 = invertedTransLimits.transform(pixel2)
             world2 = self.transform.transform(pixel2)[:,self.coord_index]
 
             dx = (world1 - world0)
