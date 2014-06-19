@@ -35,10 +35,10 @@ is first created::
     <FK5 Frame: equinox=J2000.000>
 
 The specific names of attributes available for a particular frame (and
-their default values)  are available as the class attribute
-``frame_attr_names``::
+their default values)  are available as the class method
+``get_frame_attr_names``::
 
-    >>> FK5.frame_attr_names
+    >>> FK5.get_frame_attr_names()
     {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
 
 You can access any of the attributes on a frame by using standard Python
@@ -214,11 +214,37 @@ Defining a New Frame
 Users can add new coordinate frames by creating new classes that are subclasses
 of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
-define the class attributes ``frame_attr_names``, ``default_representation``
-and ``_frame_specific_representation_info``. If these are defined, there is
-often no need to define an ``__init__`` function, as the initializer in
-`~astropy.coordinates.BaseCoordinateFrame` will probably behave the way you
-want.
+define the class attributes ``default_representation`` and
+``_frame_specific_representation_info`` along with frame attributes as
+`~astropy.coordinates.FrameAttribute` class instances (or subclasses like
+`~astropy.coordinates.TimeFrameAttribute`).  If these are
+defined, there is often no need to define an ``__init__`` function, as the
+initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
+the way you want.  As an example::
+
+  >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute
+  >>> class MyFrame(BaseCoordinateFrame):
+  ...     # Specify how coordinate values are represented when outputted
+  ...      default_representation = SphericalRepresentation
+  ...
+  ...      # Specify overrides to the default names and units for all available
+  ...      # representations (subclasses of BaseRepresentation).
+  ...      _frame_specific_representation_info = {
+  ...          'spherical': {'names': ('R', 'D', 'DIST'), 'units': (u.rad, u.rad, None)},
+  ...          'unitspherical': {'names': ('R', 'D'), 'units': (u.rad, u.rad)},
+  ...          'cartesian': {'names': ('X', 'Y', 'Z'), 'units': (None, None, None)}
+  ...      }
+  ...
+  ...      # Specify frame attributes required to fully specify the frame
+  ...      location = FrameAttribute(default=None)
+  ...      equinox = TimeFrameAttribute(default='B1950')
+  ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
+
+  >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
+  >>> c
+  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c.equinox
+  <Time object: scale='utc' format='byear_str' value=B1950.000>
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that's unique to that frame.  These methods will

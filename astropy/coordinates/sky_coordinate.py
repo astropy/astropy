@@ -25,7 +25,7 @@ def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
     out = set()
     for frame_cls in frame_transform_graph.frame_set:
-        for attr in frame_cls.frame_attr_names.keys():
+        for attr in frame_cls.get_frame_attr_names().keys():
             out.add(attr)
     return out
 
@@ -142,7 +142,7 @@ class SkyCoord(object):
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
         for attr, value in kwargs.items():
             if value is not None and (attr in frame.representation_names
-                                      or attr in frame.frame_attr_names):
+                                      or attr in frame.get_frame_attr_names()):
                 coord_kwargs[attr] = value
 
         # Finally make the internal coordinate object.
@@ -339,7 +339,7 @@ class SkyCoord(object):
         # here. If the attr is relevant for the current frame then delegate
         # to self.frame otherwise get it from self._<attr>.
         if attr in FRAME_ATTR_NAMES_SET():
-            if attr in self.frame.frame_attr_names:
+            if attr in self.frame.get_frame_attr_names():
                 return getattr(self.frame, attr)
             else:
                 return getattr(self, '_' + attr)

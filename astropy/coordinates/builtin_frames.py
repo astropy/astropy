@@ -20,7 +20,8 @@ from ..time import Time
 from .angles import Angle
 from .representation import (SphericalRepresentation, CartesianRepresentation,
                              UnitSphericalRepresentation)
-from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame
+from .baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
+                        FrameAttribute, TimeFrameAttribute)
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
 
@@ -57,8 +58,6 @@ class ICRS(BaseCoordinateFrame):
         (``representation`` must be None).
     """
     default_representation = SphericalRepresentation
-
-    frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
     @staticmethod
     def _icrs_to_fk5_matrix():
@@ -104,7 +103,7 @@ class FK5(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    frame_attr_names = {'equinox': _EQUINOX_J2000}
+    equinox = TimeFrameAttribute(default=_EQUINOX_J2000)
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -160,14 +159,8 @@ class FK4(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
-
-    @property
-    def obstime(self):
-        if self._obstime is None:
-            return self.equinox
-        else:
-            return self._obstime
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
 
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
@@ -203,14 +196,8 @@ class FK4NoETerms(BaseCoordinateFrame):
     """
 
     default_representation = SphericalRepresentation
-    frame_attr_names = {'equinox': _EQUINOX_B1950, 'obstime': None}
-
-    @property
-    def obstime(self):
-        if self._obstime is None:
-            return self.equinox
-        else:
-            return self._obstime
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -274,7 +261,6 @@ class Galactic(BaseCoordinateFrame):
         'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
     }
     default_representation = SphericalRepresentation
-    frame_attr_names = {}
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     # transformations to/from FK4/5
@@ -315,7 +301,9 @@ class AltAz(BaseCoordinateFrame):
         'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
     }
     default_representation = SphericalRepresentation
-    frame_attr_names = {'obstime': None, 'location': None}
+    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    location = FrameAttribute(default=None)
+    obstime = TimeFrameAttribute(default=None)
 
     def __init__(self, *args, **kwargs):
         from warnings import warn
@@ -338,7 +326,6 @@ class NoFrame(BaseCoordinateFrame):
 
     """
     default_representation = SphericalRepresentation
-    frame_attr_names = {}
 
 
 # <--------------------------------transformations------------------------------>
