@@ -351,4 +351,4 @@ def test_scaled_dimensionless():
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('vounit')
-\
+
