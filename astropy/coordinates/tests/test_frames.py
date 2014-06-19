@@ -441,6 +441,19 @@ def test_representation():
     assert 'but must be a BaseRepresentation class' in str(err)
 
 
+def test_represent_as():
+    from ..builtin_frames import ICRS
+
+    icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
+
+    cart1 = icrs.represent_as('cartesian')
+    cart2 = icrs.represent_as(representation.CartesianRepresentation)
+
+    cart1.x == cart2.x
+    cart1.y == cart2.y
+    cart1.z == cart2.z
+
+
 def test_dynamic_attrs():
     from ..builtin_frames import ICRS
     c = ICRS(1*u.deg, 2*u.deg)

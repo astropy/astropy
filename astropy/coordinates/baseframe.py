@@ -499,9 +499,10 @@ class BaseCoordinateFrame(object):
 
         Parameters
         ----------
-        new_representation : subclass of BaseRepresentation
-            The type of representation to generate, as a *class* (not an
-            instance).
+        new_representation : subclass of BaseRepresentation or string
+            The type of representation to generate.  May be a *class*
+            (not an instance), or the string name of the representation
+            class.
 
         in_frame_units : bool
             Force the representation units to match the specified units
@@ -525,6 +526,8 @@ class BaseCoordinateFrame(object):
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
         """
+        new_representation = _get_repr_cls(new_representation)
+
         cached_repr = self._rep_cache.get((new_representation.__name__, in_frame_units))
         if not cached_repr:
             data = self.data.represent_as(new_representation)
