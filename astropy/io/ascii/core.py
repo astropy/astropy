@@ -29,6 +29,7 @@ from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
 from . import connect
+from .fastbasic import FastBasic
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
@@ -65,6 +66,14 @@ class OptionalTableImportError(ImportError):
     an ImportError.
     """
 
+class ParameterError(NotImplementedError):
+    """
+    Indicates that a reader cannot handle a passed parameter.
+
+    The C-based fast readers in ``io.ascii`` raise an instance of
+    this error class upon encountering a parameter that the
+    C engine cannot handle.
+    """
 
 class NoType(object):
     """
@@ -1024,6 +1033,9 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 
+    if isinstance(reader, FastBasic): # Specialized readers handle args separately
+        return reader
+
     if Inputter is not None:
         reader.inputter = Inputter()
     reader.outputter = TableOutputter()
@@ -1104,6 +1116,9 @@ def _get_writer(Writer, **kwargs):
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)
+
+    if isinstance(writer, FastBasic): # Specialized readers handle args separately
+        return writer
 
     if 'delimiter' in kwargs:
         writer.header.splitter.delimiter = kwargs['delimiter']
