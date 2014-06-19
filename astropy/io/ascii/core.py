@@ -29,7 +29,6 @@ from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
 from . import connect
-from .fastbasic import FastBasic
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
@@ -1032,6 +1031,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
+    from .fastbasic import FastBasic
 
     if isinstance(reader, FastBasic): # Specialized readers handle args separately
         return reader
@@ -1116,6 +1116,7 @@ def _get_writer(Writer, **kwargs):
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)
+    from .fastbasic import FastBasic
 
     if isinstance(writer, FastBasic): # Specialized readers handle args separately
         return writer
