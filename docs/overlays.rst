@@ -30,10 +30,13 @@ Transforms
 ==========
 
 Apart from the handling of the ticks, tick labels, and grid lines, the
-:class:`wcsaxes.wcsaxes.WCSAxes` class behaves like a normal Matplotlib ``Axes``
-instance, and methods such as :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow`, :meth:`~wcsaxes.wcsaxes.WCSAxes.contour`, :meth:`~wcsaxes.wcsaxes.WCSAxes.plot`,
-:meth:`~wcsaxes.wcsaxes.WCSAxes.scatter`, and so on will work and plot the data in
-pixel coordinates. However, all such Matplotlib commands allow a
+:class:`wcsaxes.wcsaxes.WCSAxes` class behaves like a normal Matplotlib
+``Axes`` instance, and methods such as
+:meth:`~wcsaxes.wcsaxes.WCSAxes.imshow`,
+:meth:`~wcsaxes.wcsaxes.WCSAxes.contour`,
+:meth:`~wcsaxes.wcsaxes.WCSAxes.plot`,
+:meth:`~wcsaxes.wcsaxes.WCSAxes.scatter`, and so on will work and plot the
+data in pixel coordinates. However, all such Matplotlib commands allow a
 ``transform=`` argument to be passed, and the
 :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method can be used to get the
 appropriate transformation object.
@@ -83,7 +86,8 @@ coordinates:
     r = Rectangle((60., 20.), 10., 12., edgecolor='yellow', facecolor='none')
     ax.add_patch(r)
 
-but we can use the :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method above to plot for example in FK5 equatorial coordinates:
+but we can use the :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method above
+to plot for example in FK5 equatorial coordinates:
 
 .. plot::
    :context:
