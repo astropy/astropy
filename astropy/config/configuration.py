@@ -174,7 +174,7 @@ class ConfigItem(object):
 
         class _Conf(config.ConfigNamespace):
             unicode_output = config.ConfigItem(
-                'unicode_output', False,
+                False,
                 'Use Unicode characters when outputting values, and writing widgets '
                 'to the console.')
         conf = _Conf()
