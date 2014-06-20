@@ -80,8 +80,8 @@ Fitters support constrained fitting.
       >>> y = p1(x, model_set_axis=False)
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
-      >>> new_model = pfit(p1, x, y)  # doctest: +SKIP
-      >>> print(new_model)  # doctest: +SKIP
+      >>> new_model = pfit(p1, x, y)
+      >>> print(new_model)
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1
@@ -89,9 +89,9 @@ Fitters support constrained fitting.
       Degree: 2
       Parameters:
            c0     c1         c2    
-          --- ---------- ----------
-          1.0 2.38641216 2.96827886
-          1.0 2.38641216 2.96827886
+          --- ------------- -------------
+          1.0 2.38641216243 2.96827885742
+          1.0 2.38641216243 2.96827885742
 
 - A parameter can be `~astropy.modeling.Parameter.tied` (linked to
   another parameter). This can be done in two ways::

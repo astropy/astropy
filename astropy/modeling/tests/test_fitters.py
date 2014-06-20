@@ -197,6 +197,25 @@ class TestLinearLSQFitter(object):
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
                         rtol=1e-1)
 
+    def test_linear_fit_2d_model_set(self):
+        """Tests fitted multiple 2-D models simultaneously."""
+
+        init_model = models.Polynomial2D(degree=2, c0_0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y = np.arange(10)
+        z_expected = init_model(x, y, model_set_axis=False)
+        assert z_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(0x01010101):
+            z = z_expected + np.random.normal(0, 0.01, size=z_expected.shape)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, z)
+        assert_allclose(fitted_model(x, y, model_set_axis=False), z_expected,
+                        rtol=1e-1)
+
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestNonLinearFitters(object):

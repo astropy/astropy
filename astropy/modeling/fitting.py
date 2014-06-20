@@ -25,8 +25,10 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
-import warnings
 import inspect
+import operator
+import warnings
+
 from functools import reduce
 
 import numpy as np
@@ -227,7 +229,6 @@ class LinearLSQFitter(object):
 
         _validate_constraints(self.supported_constraints, model)
 
-        multiple = False
         model_copy = model.copy()
         _, fitparam_indices = _model_to_fit_params(model_copy)
 
@@ -251,13 +252,10 @@ class LinearLSQFitter(object):
                 lhs = model_copy.fit_deriv(x, *model_copy.parameters)
             if len(y.shape) == 2:
                 rhs = y
-                multiple = y.shape[1]
             else:
                 rhs = y
         else:
             x, y, z = farg
-            if x.shape[-1] != z.shape[-1]:
-                raise ValueError("x and z should have equal last dimensions")
 
             # map domain into window
             if hasattr(model_copy, 'x_domain'):
@@ -269,9 +267,18 @@ class LinearLSQFitter(object):
             else:
                 lhs = model_copy.fit_deriv(x, y, *model_copy.parameters)
 
-            if len(z.shape) == 3:
-                rhs = np.array([i.flatten() for i in z]).T
-                multiple = z.shape[0]
+            if len(model_copy) > 1:
+                if z.ndim > 2:
+                    # Basically this code here is making the assumption that if
+                    # z has 3 dimensions it represents multiple models where
+                    # the value of z is one plane per model.  It's then
+                    # flattening each plane and transposing so that the model
+                    # axis is *last*.  That's fine, but this could be
+                    # generalized for other dimensionalities of z.
+                    # TODO: See above comment
+                    rhs = np.array([i.flatten() for i in z]).T
+                else:
+                    rhs = z.T
             else:
                 rhs = z.flatten()
 
@@ -292,9 +299,6 @@ class LinearLSQFitter(object):
                 lhs *= weights[:, np.newaxis]
                 rhs = rhs * weights
 
-        if not multiple and len(model_copy) > 1:
-            raise ValueError("Attempting to fit a 1D data set to a model "
-                             "with multiple parameter sets")
         if rcond is None:
             rcond = len(x) * np.finfo(x.dtype).eps
 
@@ -782,29 +786,31 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
-    if n_models > 1 and z is None:
-        if y.shape[model_set_axis] != n_models:
-            raise ValueError(
-                "Number of data sets (y array is expected to equal "
-                "the number of parameter sets)")
-        # For a 1-D model the y coordinate's model-set-axis is expected to be
-        # last, so that its first dimension is the same length as the x
-        # coordinates.  This is in line with the expectations of
-        # numpy.linalg.lstsq:
-        # http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.lstsq.html
-        # That is, each model should be represented by a column.
-        # TODO: Obviously this is a detail of np.linalg.lstsq and should be
-        # handled specifically by any fitters that use it...
-        y = np.rollaxis(y, model_set_axis, y.ndim)
+    if n_models > 1:
+        if z is None:
+            if y.shape[model_set_axis] != n_models:
+                raise ValueError(
+                    "Number of data sets (y array is expected to equal "
+                    "the number of parameter sets)")
+            # For a 1-D model the y coordinate's model-set-axis is expected to
+            # be last, so that its first dimension is the same length as the x
+            # coordinates.  This is in line with the expectations of
+            # numpy.linalg.lstsq:
+            # http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.lstsq.html
+            # That is, each model should be represented by a column.  TODO:
+            # Obviously this is a detail of np.linalg.lstsq and should be
+            # handled specifically by any fitters that use it...
+            y = np.rollaxis(y, model_set_axis, y.ndim)
+        else:
+            # Shape of z excluding model_set_axis
+            z_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1:]
 
-    if x.shape[0] != y.shape[0]:
-        raise ValueError("x and y should have the same shape")
+            if not (x.shape == y.shape == z_shape):
+                raise ValueError("x, y and z should have the same shape")
 
     if z is None:
         farg = (x, y)
     else:
-        if x.shape != z.shape:
-            raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
 
@@ -815,31 +821,59 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # distinction (and the fact that these are not necessarily applicable to any
 # arbitrary fitter--as evidenced for example by the fact that JointFitter has
 # its own versions of these)
+# TODO: Most of this code should be entirely rewritten; it should not be as
+# inefficient as it is.
 def _fitter_to_model_params(model, fps):
     """
     Constructs the full list of model parameters from the fitted and
     constrained parameters.
     """
 
-    _fit_params, _fit_param_indices = _model_to_fit_params(model)
-    if any(model.fixed.values()) or any(model.tied.values()):
-        model.parameters[_fit_param_indices] = fps
+    _, fit_param_indices = _model_to_fit_params(model)
+
+    has_tied = any(model.tied.values())
+    has_fixed = any(model.fixed.values())
+    has_bound = any(b != (None, None) for b in model.bounds.values())
+
+    if not (has_tied or has_fixed or has_bound):
+        # We can just assign directly
+        model.parameters = fps
+        return
+
+    fit_param_indices = set(fit_param_indices)
+    offset = 0
+    for idx, name in enumerate(model.param_names):
+        if idx not in fit_param_indices:
+            continue
+
+        slice_, shape = model._param_metrics[name]
+        # This is determining which range of fps (the fitted parameters) maps
+        # to parameters of the model
+        size = reduce(operator.mul, shape, 1)
+
+        values = fps[offset:offset + size]
+
+        # Check bounds constraints
+        if model.bounds[name] != (None, None):
+            _min, _max = model.bounds[name]
+            if _min is not None:
+                values = np.fmax(values, _min)
+            if _max is not None:
+                values = np.fmin(values, _max)
+
+        model.parameters[slice_] = values
+        offset += size
+
+    # This has to be done in a separate loop due to how tied parameters are
+    # currently evaluated (the fitted parameters need to actually be *set* on
+    # the model first, for use in evaluating the "tied" expression--it might be
+    # better to change this at some point
+    if has_tied:
         for idx, name in enumerate(model.param_names):
             if model.tied[name] != False:
                 value = model.tied[name](model)
                 slice_ = model._param_metrics[name][0]
                 model.parameters[slice_] = value
-    elif any([tuple(b) != (None, None) for b in model.bounds.values()]):
-        for name, par in zip(model.param_names, _fit_params):
-            if model.bounds[name] != (None, None):
-                b = model.bounds[name]
-                if b[0] is not None:
-                    par = max(par, model.bounds[name][0])
-                    if b[1] is not None:
-                        par = min(par, model.bounds[name][1])
-                    setattr(model, name, par)
-    else:
-        model.parameters = fps
 
 
 def _model_to_fit_params(model):
