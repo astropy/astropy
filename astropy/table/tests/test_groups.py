@@ -466,6 +466,58 @@ def test_table_aggregate():
                              '  2 22.0   6']
 
 
+def test_table_aggregate_reduceat():
+    """
+    Aggregate table with functions which have a reduceat method
+    """
+    # Comparison functions without reduceat
+    def np_mean(x):
+        return np.mean(x)
+    def np_sum(x):
+        return np.sum(x)
+    def np_add(x):
+        return np.add(x)
+
+    # Table with only summable cols
+    t1 = T1['a', 'c', 'd']
+    tg = t1.group_by('a')
+    # Comparison
+    tga_r = tg.groups.aggregate(np.sum)
+    tga_a = tg.groups.aggregate(np.add)
+    tga_n = tg.groups.aggregate(np_sum)
+
+    assert np.all(tga_r == tga_n)
+    assert np.all(tga_a == tga_n)
+    assert tga_n.pformat() == [' a   c    d ',
+                               '--- ---- ---',
+                               '  0  0.0   4',
+                               '  1  6.0  18',
+                               '  2 22.0   6']
+
+    tga_r = tg.groups.aggregate(np.mean)
+    tga_n = tg.groups.aggregate(np_mean)
+    assert np.all(tga_r == tga_n)
+    assert tga_n.pformat() == [' a   c   d ',
+                               '--- --- ---',
+                               '  0 0.0 4.0',
+                               '  1 2.0 6.0',
+                               '  2 5.5 1.5']
+
+    # Binary ufunc np_add should raise warning without reduceat
+    t2 = T1['a', 'c']
+    tg = t2.group_by('a')
+
+    with catch_warnings(Warning) as warning_lines:
+        tga = tg.groups.aggregate(np_add)
+        assert warning_lines[0].category == AstropyUserWarning
+        assert "Cannot aggregate column" in str(warning_lines[0].message)
+    assert tga.pformat() == [' a ',
+                             '---',
+                             '  0',
+                             '  1',
+                             '  2']
+
+
 def test_column_aggregate():
     """
     Aggregate a single table column
