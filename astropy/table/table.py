@@ -60,7 +60,9 @@ class TableColumns(OrderedDict):
 
     def __init__(self, cols={}):
         if isinstance(cols, (list, tuple)):
-            cols = [(col.name, col) for col in cols]
+            # check for Columns in the list
+            cols = [((col.name, col) if hasattr(col, 'name') else col)
+                    for col in cols]
         super(TableColumns, self).__init__(cols)
 
     def __getitem__(self, item):
