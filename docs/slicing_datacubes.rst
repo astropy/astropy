@@ -67,12 +67,11 @@ We then add the axes to the image and plot it using the matplotlib method :meth:
     fig.add_axes(ax)
     ax.imshow(image_data[:, :, 50].transpose(), cmap=plt.cm.gist_heat)
 
-Here, ``image_data`` is a `Numpy ndarry
-<http://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`_. In Numpy, 
+Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, 
 the order of the axes is reversed so the first dimension in the FITS file 
 appears last, the last dimension appears first and so on. Therefore the index 
 passed to :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow` should be the same as passed
-to ``slices`` but in reversed order. We also need to :meth:`~numpy.numpy.ndarray.transpose` ``image_data`` as we have reversed the dimensions plotted on the x and y axes in the slice.
+to ``slices`` but in reversed order. We also need to :meth:`~numpy.ndarray.transpose` ``image_data`` as we have reversed the dimensions plotted on the x and y axes in the slice.
 
 If we don't want to reverse the dimensions plotted, we can simply do:
 

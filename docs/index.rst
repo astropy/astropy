@@ -18,6 +18,7 @@ intended for inclusion in the Astropy package once stable.
    ticks_labels_grid.rst
    overlays.rst
    slicing_datacubes.rst
+   changing_axis_unit.rst
 
 
 Reference/API
