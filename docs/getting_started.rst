@@ -5,10 +5,11 @@ Getting started
 Initialization
 ==============
 
-To make a plot using :class:`~wcsaxes.wcsaxes.WCSAxes`, we first read in the data
-using `astropy.io.fits
+To make a plot using :class:`~wcsaxes.wcsaxes.WCSAxes`, we first read in the
+data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
-information. In this example, we will use a FITS file from the ``wcsaxes.datasets`` module:
+information. In this example, we will use a FITS file from the
+``wcsaxes.datasets`` module:
 
 .. plot::
    :context:
@@ -45,7 +46,12 @@ created above:
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
     fig.add_axes(ax)  # note that the axes have to be added to the figure
 
-By default, the field of view shown is, as for standard matplotlib axes, 0 to 1 in both directions, in pixel coordinates. The :meth:`~wcsaxes.wcsaxes.WCSAxes.set_xlim` and :meth:`~wcsaxes.wcsaxes.WCSAxes.set_ylim` methods can be used to re-set the pixel coordinates. For example, we can set the limits to the edge of the FITS image in pixel coordinates:
+By default, the field of view shown is, as for standard matplotlib axes, 0 to
+1 in both directions, in pixel coordinates. The
+:meth:`~wcsaxes.wcsaxes.WCSAxes.set_xlim` and
+:meth:`~wcsaxes.wcsaxes.WCSAxes.set_ylim` methods can be used to re-set the
+pixel coordinates. For example, we can set the limits to the edge of the FITS
+image in pixel coordinates:
 
 .. plot::
    :context:
@@ -61,8 +67,10 @@ identity, meaning that the world coordinates will match the pixel coordinates.
 Plotting images and contours
 ============================
 
-Plotting images as bitmaps or contours should be done via the usual
-matplotlib methods such as :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow` or :meth:`~wcsaxes.wcsaxes.WCSAxes.contour`. For example, to plot the data from the file read in `Initialization`_, you can do:
+Plotting images as bitmaps or contours should be done via the usual matplotlib
+methods such as :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow` or
+:meth:`~wcsaxes.wcsaxes.WCSAxes.contour`. For example, to plot the data from
+the file read in `Initialization`_, you can do:
 
 .. plot::
    :context:
@@ -81,4 +89,5 @@ and we can also add contours corresponding to the same image using:
 
     ax.contour(hdu.data, levels=np.logspace(-4.7, -3., 10), colors='white', alpha=0.5)
 
-To show contours for an image in a different coordinate system, see :doc:`overlays`.
+To show contours for an image in a different coordinate system, see
+:doc:`overlays`.
