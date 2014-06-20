@@ -73,6 +73,8 @@ Axis labels can be added using the :meth:`~wcsaxes.coordinate_helpers.Coordinate
     lon.set_axislabel('Galactic Longitude')
     lat.set_axislabel('Galactic Latitude')
 
+.. _tick_label_format:
+
 Tick label format
 =================
 
@@ -121,25 +123,21 @@ want to be able to manually specify the spacing. This can be done using the
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method. There are different
 options that can be used:
 
-* Set the tick positions manually::
+* Set the tick positions manually as an Astropy :class:`~astropy.units.quantity.Quantity`::
 
-      lon.set_ticks([242.2, 242.3, 242.4])
+      from astropy import units as u
+      lon.set_ticks([242.2, 242.3, 242.4] * u.degree)
 
-* Set the spacing between ticks::
+* Set the spacing between ticks also as an Astropy :class:`~astropy.units.quantity.Quantity`::
 
-      lon.set_ticks(spacing=0.1)
+      lon.set_ticks(spacing=5. * u.arcmin)
 
 * Set the approximate number of ticks::
 
       lon.set_ticks(number=4)
 
-In the case of angular axes, you should specify the spacing as an Astropy
-:class:`~astropy.units.quantity.Quantity`::
-
-      from astropy import units as u
-      lon.set_ticks(spacing=5. * u.arcmin)
-
-This is to avoid roundoff errors. The
+In the case of angular axes, specifying the spacing as an Astropy :class:`~astropy.units.quantity.Quantity`
+avoids roundoff errors. The
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also be used to set the
 appearance (color and size) of the ticks, using the ``color=`` and ``size=``
 options.
