@@ -31,7 +31,15 @@ information. The original FITS file can be downloaded from `here
 This is a three-dimensional dataset which you can check by looking at the 
 header information by::
     
-    hdu.header
+    >>> hdu.header
+    ...
+    NAXIS = 3 /number of axes
+    CTYPE1  = 'RA---SFL'           /
+    CTYPE2  = 'DEC--SFL'           /
+    CTYPE3  = 'VELO-LSR'           /
+    ...
+
+The header keyword 'NAXIS' gives the number of dimensions of the dataset. The keywords 'CTYPE1', 'CTYPE2' and 'CTYPE3' give the data type of these dimensions to be right ascension, declination and velocity respectively.
 
 We then instantiate the :class:`~wcsaxes.wcsaxes.WCSAxes` using the 
 :class:`~astropy.wcs.WCS` object and select the slices we want to plot:
