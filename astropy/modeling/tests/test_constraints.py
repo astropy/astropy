@@ -328,3 +328,73 @@ def test_default_constraints():
     assert m.b.fixed is False
     assert m.bounds == {'a': (1, None), 'b': (2, None)}
     assert m.fixed == {'a': True, 'b': False}
+
+
+def test_fit_with_fixed_and_bound_constraints():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/2235
+
+    Currently doesn't test that the fit is any *good*--just that parameters
+    stay within their given constraints.
+    """
+
+    m = models.Gaussian1D(amplitude=3, mean=4, stddev=1,
+                          bounds={'mean': (4, 5)},
+                          fixed={'amplitude': True})
+    x = np.linspace(0, 10, 10)
+    y = np.exp(-x ** 2 / 2)
+
+    f = fitting.LevMarLSQFitter()
+    fitted_1 = f(m, x, y)
+    assert fitted_1.mean >= 4
+    assert fitted_1.mean <= 5
+    assert fitted_1.amplitude == 3.0
+
+    m.amplitude.fixed = False
+    fitted_2 = f(m, x, y)
+    # It doesn't matter anymore what the amplitude ends up as so long as the
+    # bounds constraint was still obeyed
+    assert fitted_1.mean >= 4
+    assert fitted_1.mean <= 5
+
+
+def test_fit_with_bound_constraints_estimate_jacobian():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/2400
+
+    Checks that bounds constraints are obeyed on a custom model that does not
+    define fit_deriv (and thus its Jacobian must be estimated for non-linear
+    fitting).
+    """
+
+    class MyModel(Fittable1DModel):
+        a = Parameter(default=1)
+        b = Parameter(default=2)
+
+        @staticmethod
+        def eval(x, a, b):
+            return a * x + b
+
+    m_real = MyModel(a=1.5, b=-3)
+    x = np.arange(100)
+    y = m_real(x)
+
+    m = MyModel()
+    f = fitting.LevMarLSQFitter()
+    fitted_1 = f(m, x, y)
+
+    # This fit should be trivial so even without constraints on the bounds it
+    # should be right
+    assert np.allclose(fitted_1.a, 1.5)
+    assert np.allclose(fitted_1.b, -3)
+
+    m2 = MyModel()
+    m2.a.bounds = (-2, 2)
+    f2 = fitting.LevMarLSQFitter()
+    fitted_2 = f2(m2, x, y)
+    assert np.allclose(fitted_1.a, 1.5)
+    assert np.allclose(fitted_1.b, -3)
+
+    # Check that the estimated Jacobian was computed (it doesn't matter what
+    # the values are so long as they're not all zero.
+    assert np.any(f2.fit_info['fjac'] != 0)
