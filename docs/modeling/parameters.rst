@@ -165,6 +165,6 @@ Parameter examples
       ...                     c2=[4.0, 5.0, 6.0])
       Traceback (most recent call last):
       ...
-      InputParameterError: Parameter u'c2' of shape (3,) cannot be broadcast
-      with parameter u'c1' of shape (2,).  All parameter arrays must have
+      InputParameterError: Parameter u'c1' of shape (2,) cannot be broadcast
+      with parameter u'c2' of shape (3,).  All parameter arrays must have
       shapes that are mutually compatible according to the broadcasting rules.

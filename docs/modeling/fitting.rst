@@ -32,7 +32,7 @@ Fitting examples
       >>> p1 = models.Polynomial1D(3)
       >>> p1.c0 = 1
       >>> p1.c1 = 2
-      >>> print p1
+      >>> print(p1)
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1
@@ -44,11 +44,11 @@ Fitting examples
           1.0 2.0 0.0 0.0
       >>> x = np.arange(10)
       >>> y = p1(x)
-      >>> yy = np.array([y, y]).T
+      >>> yy = np.array([y, y])
       >>> p2 = models.Polynomial1D(3, n_models=2)
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p2, x, yy)
-      >>> print(new_model)  # doctest: +SKIP
+      >>> print(new_model)
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1

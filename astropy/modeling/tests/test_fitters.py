@@ -160,28 +160,42 @@ class TestJointFitter(object):
 
 
 class TestLinearLSQFitter(object):
-
-    def setup_class(self):
+    def test_chebyshev1D(self):
+        """Tests fitting a 1D Chebyshev polynomial to some real world data."""
         test_file = get_pkg_data_filename(os.path.join('data',
                                                        'idcompspec.fits'))
-        f = open(test_file)
-        lines = f.read()
-        reclist = lines.split('begin')
-        f.close()
-        record = irafutil.IdentifyRecord(reclist[1])
-        self.icoeff = record.coeff
-        order = int(record.fields['order'])
-        self.model = models.Chebyshev1D(order - 1)
-        self.model.domain = record.get_range()
-        self.lf = LinearLSQFitter()
-        self.x = record.x
-        self.y = record.z
-        self.yy = np.array([record.z, record.z])
+        with open(test_file) as f:
+            lines = f.read()
+            reclist = lines.split('begin')
 
-    def test_chebyshev1D(self):
-        new_model = self.lf(self.model, self.x, self.y)
-        assert_allclose(new_model.parameters, np.array(self.icoeff),
-                        rtol=10E-2)
+        record = irafutil.IdentifyRecord(reclist[1])
+        coeffs = record.coeff
+        order = int(record.fields['order'])
+
+        initial_model = models.Chebyshev1D(order - 1,
+                                           domain=record.get_range())
+        fitter = LinearLSQFitter()
+
+        fitted_model = fitter(initial_model, record.x, record.z)
+        assert_allclose(fitted_model.parameters, np.array(coeffs),
+                        rtol=10e-2)
+
+    def test_linear_fit_model_set(self):
+        """Tests fitting multiple models simultaneously."""
+
+        init_model = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y_expected = init_model(x, model_set_axis=False)
+        assert y_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(0x01010101):
+            y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+        assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                        rtol=1e-1)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

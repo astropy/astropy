@@ -104,7 +104,7 @@ class TestFitting(object):
         p1 = models.Polynomial1D(3, model_set_axis=0, **params)
         y1 = p1(self.x1, model_set_axis=False)
         pfit = fitting.LinearLSQFitter()
-        model = pfit(p1, self.x1, y1.T)
+        model = pfit(p1, self.x1, y1)
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     def test_linear_fitter_1dcheb(self):
@@ -182,7 +182,7 @@ class TestFitting(object):
         p1 = models.Polynomial1D(5, model_set_axis=0, **params)
         y1 = p1(self.x1, model_set_axis=False)
         pfit = fitting.LinearLSQFitter()
-        model = pfit(p1, self.x1, y1.T)
+        model = pfit(p1, self.x1, y1)
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     @pytest.mark.skipif('not HAS_SCIPY')

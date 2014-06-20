@@ -651,7 +651,14 @@ class Model(object):
         all_shapes = []
         param_names = []
 
-        for name, value in six.iteritems(params):
+        for name in self.param_names:
+            # Previously this just used iteritems(params), but we loop over all
+            # param_names instead just to ensure some determinism in the
+            # ordering behavior
+            if name not in params:
+                continue
+
+            value = params[name]
             param_names.append(name)
             # We've already checked that each parameter array is compatible in
             # the model_set_axis dimension, but now we need to check the

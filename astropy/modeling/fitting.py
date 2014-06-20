@@ -217,32 +217,29 @@ class LinearLSQFitter(object):
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
         """
+
         if not model.fittable:
             raise ValueError("Model must be a subclass of FittableModel")
+
         if not model.linear:
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
 
-        if any(model.tied.values()) \
-                or any([tuple(b) != (None, None) for b in model.bounds.values()]) \
-                or model.eqcons or model.ineqcons:
-            raise ValueError("LinearFitter supports only fixed constraints.")
+        _validate_constraints(self.supported_constraints, model)
+
         multiple = False
         model_copy = model.copy()
         _, fitparam_indices = _model_to_fit_params(model_copy)
+
         if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
-        farg = _convert_input(x, y, z)
+        farg = _convert_input(x, y, z, n_models=len(model_copy),
+                              model_set_axis=model_copy.model_set_axis)
 
-        # TODO: This code needs to respect model_set_axis
         if len(farg) == 2:
             x, y = farg
-            if y.ndim == 2:
-                if y.shape[1] != len(model_copy):
-                    raise ValueError(
-                        "Number of data sets (y array is expected to equal "
-                        "the number of parameter sets)")
+
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
@@ -271,14 +268,17 @@ class LinearLSQFitter(object):
                                                    fitparam_indices, x=x, y=y)
             else:
                 lhs = model_copy.fit_deriv(x, y, *model_copy.parameters)
+
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]
             else:
                 rhs = z.flatten()
+
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
             lhs = np.asarray(lhs).T
+
         if weights is not None:
             weights = np.asarray(weights, dtype=np.float)
             if len(x) != len(weights):
@@ -305,20 +305,15 @@ class LinearLSQFitter(object):
         self.fit_info['rank'] = rank
         self.fit_info['singular_values'] = sval
 
-        # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
-        # of several 1D arrays. Otherwise the model is 2D.
-        # if y.n_inputs > self.model.n_inputs:
-        if multiple and len(model_copy) != multiple:
-            # TODO: This should be reworked so that model_copy has the correct
-            # number of model instances to begin with
-            model_copy._n_models = multiple
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
+
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
         if hasattr(model_copy, '_order') and rank != model_copy._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
+
         _fitter_to_model_params(model_copy, lacoef.flatten())
         return model_copy
 
@@ -776,17 +771,38 @@ class JointFitter(object):
             model.parameters = np.array(mparams)
 
 
-def _convert_input(x, y, z=None):
+def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
 
     x = np.asarray(x, dtype=np.float)
     y = np.asarray(y, dtype=np.float)
+
+    if z is not None:
+        z = np.asarray(z, dtype=np.float)
+
+    # For compatibility with how the linear fitter code currently expects to
+    # work, shift the dependent variable's axes to the expected locations
+    if n_models > 1 and z is None:
+        if y.shape[model_set_axis] != n_models:
+            raise ValueError(
+                "Number of data sets (y array is expected to equal "
+                "the number of parameter sets)")
+        # For a 1-D model the y coordinate's model-set-axis is expected to be
+        # last, so that its first dimension is the same length as the x
+        # coordinates.  This is in line with the expectations of
+        # numpy.linalg.lstsq:
+        # http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.lstsq.html
+        # That is, each model should be represented by a column.
+        # TODO: Obviously this is a detail of np.linalg.lstsq and should be
+        # handled specifically by any fitters that use it...
+        y = np.rollaxis(y, model_set_axis, y.ndim)
+
     if x.shape[0] != y.shape[0]:
         raise ValueError("x and y should have the same shape")
+
     if z is None:
         farg = (x, y)
     else:
-        z = np.asarray(z, dtype=np.float)
         if x.shape != z.shape:
             raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)

@@ -59,9 +59,9 @@ error::
     >>> g = Gaussian1D(amplitude=1, mean=[1, 2], stddev=[1, 2, 3])
     Traceback (most recent call last):
     ...
-    InputParameterError: Parameter 'stddev' of shape (3,) cannot be broadcast
-    with parameter 'mean' of shape (2,).  All parameter arrays must have shapes
-    that are mutually compatible according to the broadcasting rules.
+    InputParameterError: Parameter 'mean' of shape (2,) cannot be broadcast
+    with parameter 'stddev' of shape (3,).  All parameter arrays must have
+    shapes that are mutually compatible according to the broadcasting rules.
 
 
 Model Sets
