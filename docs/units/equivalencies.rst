@@ -189,10 +189,10 @@ This equivalency allows conversion between temperature and energy. Primarily it
 helps to convert between eV and kelvin which is generally used in high energy
 solar, X-ray astronomy. Example::
 
-    >>> import astropy units as u
-    >>> t_k = 1 * u.K
-    >>> t_K.to(u.eV, equivalencies=u.temperature_energy())
-    <Quantity 8.617332384960955e-05 eV>
+    >>> import astropy.units as u
+    >>> t_k = 1e6 * u.K
+    >>> t_K.to(u.eV, u.temperature_energy())
+    <Quantity 86.17332384... eV>
 
 Writing new equivalencies
 -------------------------
