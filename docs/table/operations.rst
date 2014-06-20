@@ -296,6 +296,12 @@ A single column of data can be aggregated as well::
   Sum for foo = 8
   Sum for qux = 11
 
+If the specified function has a reduceat method, this will be called instead.
+This not only improves the performance but also allows for functions to be used,
+which normally take more than one input array, like `numpy.add`.
+As special cases `numpy.sum` and `numpy.mean` are substituted with their
+respective reduceat methods.
+
 
 Filtering
 ~~~~~~~~~~
