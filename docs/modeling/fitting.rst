@@ -48,7 +48,7 @@ Fitting examples
       >>> p2 = models.Polynomial1D(3, n_models=2)
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p2, x, yy)
-      >>> print(new_model)
+      >>> print(new_model)  # doctest: +SKIP
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1
@@ -81,7 +81,7 @@ Fitters support constrained fitting.
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p1, x, y)
-      >>> print(new_model)
+      >>> print(new_model)  # doctest: +SKIP
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1

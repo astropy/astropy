@@ -53,7 +53,7 @@ Parameter examples
 
       >>> g = models.Gaussian1D(1.0, 0.0, 0.1)
       >>> g
-      <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.1)>
+      <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.1...)>
 
   However, parameters may also be given as keyword arguments (in any order)::
 

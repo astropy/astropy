@@ -207,7 +207,7 @@ The examples here assume this import statement was executed::
     >>> from astropy.modeling.models import Gaussian1D, Polynomial1D
     >>> import numpy as np
 
-- Create a 1-D Gaussian with 2 parameter sets::
+- Create a model set of two 1-D Gaussians::
 
       >>> x = np.arange(1, 10, .1)
       >>> g1 = Gaussian1D(amplitude=[10, 9], mean=[2, 3],
@@ -263,8 +263,8 @@ The examples here assume this import statement was executed::
    plt.show()
 
 
-- Evaluating polynomial models with multiple parameter sets with one input data
-  set creates multiple output data sets::
+- Evaluating a set of multiple polynomial models with one input data set
+  creates multiple output data sets::
 
       >>> p1 = Polynomial1D(degree=1, n_models=5)
       >>> p1.c1 = [0, 1, 2, 3, 4]
