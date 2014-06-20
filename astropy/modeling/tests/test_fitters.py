@@ -15,9 +15,8 @@ from numpy.testing.utils import assert_allclose, assert_almost_equal
 
 from . import irafutil
 from .. import models
-from .. import fitting
 from ..core import Fittable2DModel, Parameter
-from ..fitting import LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter
+from ..fitting import *
 from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -42,7 +41,7 @@ class TestPolynomial2D(object):
         def poly2(x, y):
             return 1 + 2 * x + 3 * x ** 2 + 4 * y + 5 * y ** 2 + 6 * x * y
         self.z = poly2(self.x, self.y)
-        self.fitter = fitting.LinearLSQFitter()
+        self.fitter = LinearLSQFitter()
 
     def test_poly2D_fitting(self):
         v = self.model.fit_deriv(x=self.x, y=self.y)
@@ -57,7 +56,7 @@ class TestPolynomial2D(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_polynomial2D_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
-        nlfitter = fitting.LevMarLSQFitter()
+        nlfitter = LevMarLSQFitter()
         new_model = nlfitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
@@ -76,7 +75,7 @@ class TestICheb2D(object):
         self.y, self.x = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
         self.cheb2 = models.Chebyshev2D(2, 2)
-        self.fitter = fitting.LinearLSQFitter()
+        self.fitter = LinearLSQFitter()
 
     def test_default_params(self):
         self.cheb2.parameters = np.arange(9)
@@ -97,7 +96,7 @@ class TestICheb2D(object):
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
-        nlfitter = fitting.LevMarLSQFitter()
+        nlfitter = LevMarLSQFitter()
         model = nlfitter(cheb2d, self.x, self.y, z)
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
@@ -117,7 +116,7 @@ class TestJointFitter(object):
         """
         self.g1 = models.Gaussian1D(10, mean=14.9, stddev=.3)
         self.g2 = models.Gaussian1D(10, mean=13, stddev=.4)
-        self.jf = fitting.JointFitter([self.g1, self.g2],
+        self.jf = JointFitter([self.g1, self.g2],
                                       {self.g1: ['amplitude'],
                                        self.g2: ['amplitude']}, [9.8])
         self.x = np.arange(10, 20, .1)
@@ -174,7 +173,7 @@ class TestLinearLSQFitter(object):
         order = int(record.fields['order'])
         self.model = models.Chebyshev1D(order - 1)
         self.model.domain = record.get_range()
-        self.lf = fitting.LinearLSQFitter()
+        self.lf = LinearLSQFitter()
         self.x = record.x
         self.y = record.z
         self.yy = np.array([record.z, record.z])
@@ -212,10 +211,10 @@ class TestNonLinearFitters(object):
         `Gaussian1D`.
         """
 
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
-        efitter = fitting.LevMarLSQFitter()
+        efitter = LevMarLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
@@ -225,7 +224,7 @@ class TestNonLinearFitters(object):
         Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`.
         """
 
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata,
                        estimate_jacobian=True)
 
@@ -243,8 +242,8 @@ class TestNonLinearFitters(object):
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
 
-        levmar = fitting.LevMarLSQFitter()
-        fitter = fitting.SLSQPLSQFitter()
+        levmar = LevMarLSQFitter()
+        fitter = SLSQPLSQFitter()
         new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
@@ -258,8 +257,8 @@ class TestNonLinearFitters(object):
 
         g1 = models.Gaussian1D(100, 5, stddev=1)
         g1.mean.fixed = True
-        fitter = fitting.LevMarLSQFitter()
-        fslsqp = fitting.SLSQPLSQFitter()
+        fitter = LevMarLSQFitter()
+        fslsqp = SLSQPLSQFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
@@ -309,7 +308,7 @@ class TestNonLinearFitters(object):
 
         #now do the non-linear least squares fit
         mod = models.Linear1D(a, b)
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
 
         fmod = fitter(mod, x, y)
 
