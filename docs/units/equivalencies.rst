@@ -191,7 +191,7 @@ solar, X-ray astronomy. Example::
 
     >>> import astropy.units as u
     >>> t_k = 1e6 * u.K
-    >>> t_k.to(u.eV, u.temperature_energy())
+    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())
     <Quantity 86.17332384... eV>
 
 Writing new equivalencies
