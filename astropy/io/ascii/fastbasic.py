@@ -2,6 +2,7 @@
 
 from . import core
 from ...extern import six
+from ...table import Table
 from cparser import CParser
 
 @six.add_metaclass(core.MetaBaseReader)
@@ -26,8 +27,8 @@ class FastBasic(object):
 
     def _read_header(self):
         self.engine.read_header()
-        if self.engine.header is not None:
-            self.names = list(self.engine.header)
+        if self.engine.names is not None:
+            self.names = list(self.engine.names)
         else:
             self.names = ['col{}'.format(i + 1) for i in range(self.engine.width)]
 
