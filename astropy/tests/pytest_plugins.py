@@ -29,6 +29,7 @@ import types
 from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
+from .output_checker import AstropyOutputChecker, FIX, FLOAT_COMPARISON
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -60,127 +61,10 @@ def pytest_addoption(parser):
                   default=False)
 
 
-class OutputCheckerFix(doctest.OutputChecker):
-    """
-    A special doctest OutputChecker that normalizes a number of things common
-    to astropy doctests.
-
-    - Removes u'' prefixes on string literals
-    - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
-      'S9'.  Numpy 1.7 no longer includes it in display.
-    - Supports the FLOAT_COMPARISON flag, which parses floating point values
-      out of the output and compares their numerical values rather than their
-      string representation.  This naturally supports complex numbers as well
-      (simply by comparing their real and imaginary parts separately).  Note,
-      +FLOAT_COMPARISON is currently incompatible with +ELLIPSIS, so tests
-      with the +FLOAT_COMPARISON flag automatically disable +ELLIPSIS
-    """
-
-    _literal_re = re.compile(
-        r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
-    _remove_byteorder = re.compile(
-        r"([\'\"])[|<>]([biufcSaUV][0-9]+)([\'\"])", re.UNICODE)
-    _fix_32bit = re.compile(
-        r"([\'\"])([iu])[48]([\'\"])", re.UNICODE)
-    _ignore_long_int = re.compile(
-        r"([0-9]+)L", re.UNICODE)
-
-    # Translated to a regexp right from the Python language grammar, but
-    # including the option for a leading sign
-    # http://docs.python.org/2/reference/lexical_analysis.html#floating-point-literals
-    _point_float_re = r'\d*(?:\.\d+|\d+\.)'
-    _float_re = re.compile(r'[+-]?(?:(?:\d+|{0})[eE][+-]?\d+|{0})'.format(
-        _point_float_re))
-
-    _original_output_checker = doctest.OutputChecker
-
-    def do_fixes(self, want, got):
-        want = re.sub(self._literal_re, r'\1\2', want)
-        want = re.sub(self._remove_byteorder, r'\1\2\3', want)
-        want = re.sub(self._fix_32bit, r'\1\2\3', want)
-        want = re.sub(self._ignore_long_int, r'\1', want)
-
-        got = re.sub(self._literal_re, r'\1\2', got)
-        got = re.sub(self._remove_byteorder, r'\1\2\3', got)
-        got = re.sub(self._fix_32bit, r'\1\2\3', got)
-        got = re.sub(self._ignore_long_int, r'\1', got)
-
-        return want, got
-
-    def normalize_floats(self, want, got):
-        """
-        Find all floating point values in the 'want' (expected) string, and
-        replace corresponding floats in the 'got' string with the string
-        representation from the expected string *if* the numerical values
-        compare equal.
-
-        Obviously if the two strings do not have the same number of floating
-        point values the output will not compare equal overall.  It should also
-        be noted that this could hide subtle float representation bugs; there
-        should be separate regression tests in cases where we need to test for
-        that though--doctests ought to be more flexible.
-        """
-
-        want = want.splitlines()
-        got = got.splitlines()
-
-        if len(want) != len(got):
-            # Don't bother
-            return
-
-        def repl(m):
-            want = want_floats.pop(0)
-            got = m.group(0)
-
-            if float(want) == float(got):
-                return want
-            else:
-                return got
-
-        for idx in range(len(want)):
-            wline = want[idx]
-            gline = got[idx]
-
-            want_floats = self._float_re.findall(wline)
-            gline = self._float_re.sub(repl, gline)
-
-            # If the 'got' line did not contain the same number of floats then
-            # want_floats will be left non-empty, in which case we can assume
-            # the results are "not equal"
-            if not want_floats:
-                got[idx] = gline
-            else:
-                break
-
-        return '\n'.join(want), '\n'.join(got)
-
-    def check_output(self, want, got, flags):
-        if flags & FIX:
-            want, got = self.do_fixes(want, got)
-
-        if flags & FLOAT_COMPARISON:
-            flags = flags & ~doctest.ELLIPSIS
-            want, got = self.normalize_floats(want, got)
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.check_output(
-            self, want, got, flags)
-
-    def output_difference(self, want, got, flags):
-        if flags & FIX:
-            want, got = self.do_fixes(want, got)
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.output_difference(
-            self, want, got, flags)
-
-
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when
 # using doctest.testfile, unfortunately.
-FIX = doctest.register_optionflag('FIX')
-FLOAT_COMPARISON = doctest.register_optionflag('FLOAT_COMPARISON')
-doctest.OutputChecker = OutputCheckerFix
+doctest.OutputChecker = AstropyOutputChecker
 
 
 REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
