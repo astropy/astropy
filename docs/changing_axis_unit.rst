@@ -3,7 +3,7 @@ Changing Axis Unit
 ==================
 
 WCSAxes also allows users to change the units of the axes of an image. In the 
-example in :doc:`slicing_datacubes`, the x axis represents velocity in m/s. We 
+example in :doc:`slicing_datacubes`, the x axis represents velocity in m/s. We
 can change the unit to an equivalent one by:
 
 
@@ -38,4 +38,5 @@ can change the unit to an equivalent one by:
     ax.coords[2].set_format_unit(u.km / u.s)
 
 
-This feature is only for non-angular coordinate axes. To change the format of angles, refer to :ref:`tick_label_format`.
+This feature is only for non-angular coordinate axes. To change the format of 
+angles, refer to :ref:`tick_label_format`.
