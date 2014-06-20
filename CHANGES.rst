@@ -162,6 +162,11 @@ New Features
 
 - ``astropy.table``
 
+  - Improved grouped table aggregation by using the numpy ``reduceat()`` method
+    when possible. This can speed up the operation by a factor of at least 10
+    to 100 for large unmasked tables and columns with relatively small
+    group sizes.  [#2625]
+
   - Allow row-oriented data input using a new ``rows`` keyword argument.
     [#850]
 
