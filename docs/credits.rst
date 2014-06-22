@@ -13,6 +13,7 @@ Astropy Project Coordinators
 Core Package Contributors
 =========================
 
+* Shailesh Ahuja
 * Tom Aldcroft
 * Kyle Barbary
 * Geert Barentsen
@@ -20,10 +21,13 @@ Core Package Contributors
 * Andreas Baumbach
 * Chris Beaumont
 * Daniel Bell
+* Francesco Biscani
+* Médéric Boquien
 * Larry Bradley
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
+* Mabry Cervin
 * Alex Conley
 * Jean Connelly
 * Simon Conseil
@@ -33,14 +37,18 @@ Core Package Contributors
 * Matt Davis
 * Christoph Deil
 * Nadia Dencheva
+* Jörg Dietrich
 * Axel Donath
 * Michael Droettboom
 * Zach Edwards
 * Thomas Erben
 * Henry Ferguson
+* Jonathan Foster
 * Ryan Fox
+* Lehman Garrison
 * Adam Ginsburg
 * Perry Greenfield
+* Dylan Gregersen
 * Frédéric Grollier
 * Hans Moritz Günther
 * Alex Hagen
@@ -52,25 +60,38 @@ Core Package Contributors
 * Kacper Kowalik
 * Roban Kramer
 * Pey Lian Lim
+* Serge Montagnac
+* José Sabater Montes
+* Michael Mueller
 * Stuart Mumford
 * Demitri Muna
 * Prasanth Nair
 * Miruna Oprescu
+* Luigi Paioro
 * Madhura Parikh
 * Sergio Pascual
+* Rohit Patil
+* Ray Plante
 * Adrian Price-Whelan
+* Tanuj Rastogi
 * Thomas Robitaille
+* Juan Luis Cano Rodríguez
+* Evert Rol
 * Alex Rudy
 * Joseph Ryan
+* Eloy Salinas
 * David Shiga
 * David Shupe
 * Leo Singer
+* Brigitta Sipocz
 * James Taylor
 * Jeff Taylor
+* Kirill Tchernyshyov
 * Víctor Terrón
 * Erik Tollerud
 * James Turner
 * Miguel de Val-Borro
+* Jonathan Whitmore
 * Benjamin Alan Weaver
 * Julien Woillez
 * Victor Zabalza
