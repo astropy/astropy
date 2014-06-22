@@ -146,6 +146,8 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+	- Fixed the multiplication of ``Kernel`` with numpy floats. [#2174] 
+
 - ``astropy.coordinates``
 
   - ``Distance`` can now take a list of quantities. [#2261]

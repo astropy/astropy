@@ -32,6 +32,10 @@ KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
                 MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
 
+
+NUMS = [1, 1., np.float(1.), np.float32(1.), np.float64(1.)]
+
+
 # Test data
 delta_pulse_1D = np.zeros(81)
 delta_pulse_1D[40] = 1
@@ -180,12 +184,32 @@ class TestKernels(object):
         gauss_3 = convolve(gauss_1, gauss_2)
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
-    def test_multiply_scalar(self):
+    @pytest.mark.parametrize(('number'), NUMS)
+    def test_multiply_scalar(self, number):
         """
-        Check if multiplying two kernels with each other works correctly.
+        Check if multiplying a kernel with a scalar works correctly.
         """
-        gauss = 1 * Gaussian1DKernel(3)
-        assert np.all(np.abs(3 * gauss.array - gauss * 3) < 0.000001)
+        gauss = Gaussian1DKernel(3)
+        gauss_new = number * gauss
+        assert_almost_equal(gauss_new.array, gauss.array * number, decimal=12)
+
+    @pytest.mark.parametrize(('number'), NUMS)
+    def test_multiply_scalar_type(self, number):
+        """
+        Check if multiplying a kernel with a scalar works correctly.
+        """
+        gauss = Gaussian1DKernel(3)
+        gauss_new = number * gauss
+        assert type(gauss_new) == Gaussian1DKernel
+
+    @pytest.mark.parametrize(('number'), NUMS)
+    def test_rmultiply_scalar_type(self, number):
+        """
+        Check if multiplying a kernel with a scalar works correctly.
+        """
+        gauss = Gaussian1DKernel(3)
+        gauss_new = gauss * number
+        assert type(gauss_new) == Gaussian1DKernel
 
     def test_model_1D_kernel(self):
         """
