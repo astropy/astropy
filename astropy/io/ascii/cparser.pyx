@@ -9,6 +9,10 @@ cdef extern from "src/tokenizer.h":
 		START_LINE
 		FIELD
 
+	ctypedef enum err_code:
+		NO_ERROR
+		INVALID_LINE
+
 	ctypedef struct tokenizer_t:
 		char *source		# single string containing all of the input
 		int source_len 		# length of the input
@@ -24,7 +28,7 @@ cdef extern from "src/tokenizer.h":
 		int num_cols		# number of table columns
 		int num_rows		# number of table rows
 		tokenizer_state state   # current state of the tokenizer
-		int err_code		# represents the latest error that has occurred
+		err_code code		# represents the latest error that has occurred
 		# Example input/output
 		# --------------------
 		# source: "A,B,C\n10,5.,6\n1,2,3"
@@ -33,7 +37,7 @@ cdef extern from "src/tokenizer.h":
 
 	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
 	void delete_tokenizer(tokenizer_t *tokenizer)
-	int tokenize(tokenizer_t *self, int header)
+	int tokenize(tokenizer_t *self, int line, int header)
 
 class CParserError(Exception):
 	"""
@@ -42,6 +46,7 @@ class CParserError(Exception):
 	"""
 
 ERR_CODES = {0: "no error",
+			 1: "invalid line supplied"
              }
 
 cdef class CParser:
@@ -53,7 +58,7 @@ cdef class CParser:
 	cdef:
 		tokenizer_t *tokenizer
 		object source
-		int header_start
+		object header_start
 		int data_start
 		object include_names
 		object exclude_names
@@ -94,7 +99,7 @@ cdef class CParser:
 		delete_tokenizer(self.tokenizer)
 
 	cdef raise_error(self, msg):
-		err_msg = ERR_CODES.get(self.tokenizer.err_code, "unknown error")
+		err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
 		raise CParserError("{}: {}".format(msg, err_msg))
 
 	cdef setup_tokenizer(self, source):
@@ -124,10 +129,9 @@ cdef class CParser:
 			self.tokenizer.num_cols = self.width
 		# header_start is a valid line number
 		elif self.header_start is not None and self.header_start >= 0:
-			if tokenize(self.tokenizer, 1) != 0: #todo: use header_start, data_start
+			if tokenize(self.tokenizer, self.header_start, 1) != 0:
 				self.raise_error("An error occurred while tokenizing the header line")
 			self.names = []
-			i = 0
 			name = ''
 			for i in range(self.tokenizer.output_len):
 				c = self.tokenizer.header_output[i]
@@ -141,10 +145,22 @@ cdef class CParser:
 					name += chr(c)
 			self.width = len(self.names)
 			self.tokenizer.num_cols = self.width
+		else:
+			# Get number of columns from first data row
+			if tokenize(self.tokenizer, 0, 1) != 0:
+				self.raise_error("An error occurred while tokenizing the first line of data")
+			self.width = 0
+			for i in range(self.tokenizer.output_len):
+				if not self.tokenizer.header_output[i]:
+					if i > 0 and self.tokenizer.header_output[i - 1]:
+						self.width += 1
+					else:
+						break
+			self.tokenizer.num_cols = self.width
+			self.names = ['col{}'.format(i + 1) for i in range(self.width)]
 			
 	def read(self):
-		# TODO: use data_start
-		if tokenize(self.tokenizer, 0) != 0:
+		if tokenize(self.tokenizer, self.data_start, 0) != 0:
 			self.raise_error("An error occurred while tokenizing data")
 		return self._convert_data()
 

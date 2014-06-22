@@ -7,9 +7,15 @@
 
 typedef enum
 {
-    START_LINE,
+    START_LINE = 0,
     FIELD
 } tokenizer_state;
+
+typedef enum
+{
+    NO_ERROR,
+    INVALID_LINE
+} err_code;
 
 typedef struct
 {
@@ -27,7 +33,7 @@ typedef struct
     int num_cols;          // number of table columns
     int num_rows;          // number of table rows
     tokenizer_state state; // current state of the tokenizer
-    int err_code;          // represents the latest error that has occurred
+    err_code code;         // represents the latest error that has occurred
 } tokenizer_t;
 
 /*
@@ -47,6 +53,6 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void resize_cols(tokenizer_t *self);
 void resize_rows(tokenizer_t *self);
-int tokenize(tokenizer_t *self, int header);
+int tokenize(tokenizer_t *self, int line, int header);
 
 #endif

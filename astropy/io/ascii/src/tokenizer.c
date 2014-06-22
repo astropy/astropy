@@ -19,7 +19,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
     tokenizer->num_cols = 0;
     tokenizer->num_rows = 0;
     tokenizer->state = START_LINE;
-    tokenizer->err_code = 0; //TODO: make const int ERR_* = ... declarations for clarity
+    tokenizer->code = NO_ERROR;
     return tokenizer;
 }
 
@@ -85,7 +85,7 @@ void resize_rows(tokenizer_t *self)
     if (header) \
 	done = 1;
 
-int tokenize(tokenizer_t *self, int header)
+int tokenize(tokenizer_t *self, int line, int header)
 {
     char c; // input character
     int col = 0; // current column
@@ -94,7 +94,17 @@ int tokenize(tokenizer_t *self, int header)
     int curr_row_pos = 0; // first index of the current row in output_cols[0]
     int output_len = INITIAL_HEADER_SIZE;
     int output_pos = 0;
+    int i = 0;
+    self->source_pos = 0;
     self->num_rows = 0;
+
+    while (i < line)
+    {
+	if (self->source_pos >= self->source_len)
+	    return INVALID_LINE;
+	if (self->source[self->source_pos++] == '\n')
+	    ++i;
+    }
 
     if (header)
 	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE * sizeof(char));
@@ -160,5 +170,5 @@ int tokenize(tokenizer_t *self, int header)
 	++self->source_pos;
     }
 
-    return 0;
+    return NO_ERROR;
 }

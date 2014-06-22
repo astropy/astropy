@@ -28,14 +28,13 @@ class FastBasic(object):
 
     def _read_header(self):
         self.engine.read_header()
-        if self.engine.names is not None:
-            self.names = list(self.engine.names)
-        else:
-            self.names = ['col{}'.format(i + 1) for i in range(self.engine.width)]
+        self.names = list(self.engine.names)
 
     def read(self, table):
         if len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
+        elif self.data_start is None:
+            raise core.ParameterError("The C reader does not allow data_start to be None")
         elif len(self.delimiter) != 1:
             raise core.ParameterError("The C reader only supports 1-char delimiters")
         elif 'converters' in self.kwargs:
@@ -48,8 +47,8 @@ class FastBasic(object):
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
-        self.engine = CParser(table, delimiter=self.delimiter,
-                                     comment=self.comment, **self.kwargs)
+        self.engine = CParser(table, delimiter=self.delimiter, header_start=self.header_start,
+                                     comment=self.comment, data_start=self.data_start, **self.kwargs)
         self._read_header()
         data = self.engine.read()
         return Table(data, names=self.names) # TODO: add masking, units, etc.
