@@ -130,6 +130,10 @@ Bug Fixes
   image to a file (in this case there is nothing to compress, hence the
   quotes, but trying to do so caused a crash). (spacetelescope/PyFITS#69)
 
+- Fixed a regression that may have been introduced in v3.2.1 with writing
+  compressed image HDUs, particularly compressed images using a non-empty
+  GZIP_COMPRESSED_DATA column. (spacetelescope/#71)
+
 
 3.2.4 (unreleased)
 ------------------

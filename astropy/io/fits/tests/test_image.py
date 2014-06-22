@@ -1299,3 +1299,27 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(self.temp('test.fits')) as hdul:
             assert hdul[1].header['COMMENT'] == ['hello world']
+
+    def test_compression_with_gzip_column(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/71
+        """
+
+        arr = np.zeros((2, 7000), dtype='float32')
+
+        # The first row (which will be the first compressed tile) has a very
+        # wide range of values that will be difficult to quantize, and should
+        # result in use of a GZIP_COMPRESSED_DATA column
+        arr[0] = np.linspace(0, 1, 7000)
+        arr[1] = np.random.normal(size=7000)
+
+        hdu = fits.CompImageHDU(data=arr)
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            comp_hdu = hdul[1]
+
+            # GZIP-compressed tile should compare exactly
+            assert np.all(comp_hdu.data[0] == arr[0])
+            # The second tile uses lossy compression and may be somewhat off,
+            # so we don't bother comparing it exactly
