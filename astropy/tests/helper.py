@@ -642,8 +642,8 @@ class astropy_test(Command, object):
                 # We create a coveragerc that is specific to the version
                 # of Python we're running, so that we can mark branches
                 # as being specifically for Python 2 or Python 3
-                with open(coveragerc, 'r') as fd:
-                    coveragerc_content = fd.read()
+                with open(coveragerc, 'rb') as fd:
+                    coveragerc_content = fd.read().decode('utf-8')
                 if six.PY3:
                     ignore_python_version = '2'
                 elif six.PY2:
