@@ -3,6 +3,8 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
+#include <stdlib.h>
+
 typedef enum
 {
     START_LINE,
@@ -17,6 +19,7 @@ typedef struct
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character
+    char *header_output;   // string containing header data
     char **output_cols;    // array of output strings for each column
     int output_len;        // length of each output column string
     int *row_positions;    // array of indices specifying where each row begins
@@ -38,12 +41,12 @@ row_positions: [0, 1, 3]
 
 #define INITIAL_ROW_SIZE 20
 #define INITIAL_COL_SIZE 50
+#define INITIAL_HEADER_SIZE 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar);
 void delete_tokenizer(tokenizer_t *tokenizer);
-int tokenize_header(tokenizer_t *self);
 void resize_cols(tokenizer_t *self);
 void resize_rows(tokenizer_t *self);
-int tokenize(tokenizer_t *self);
+int tokenize(tokenizer_t *self, int header);
 
 #endif

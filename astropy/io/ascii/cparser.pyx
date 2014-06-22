@@ -16,6 +16,7 @@ cdef extern from "src/tokenizer.h":
 		char delimiter		# delimiter character
 		char comment		# comment character
 		char quotechar		# quote character
+		char *header_output # string containing header data
 		char **output_cols	# array of output strings for each column
 		int output_len		# length of each output column string
 		int *row_positions	# array of indices specifying where each row begins
@@ -32,8 +33,7 @@ cdef extern from "src/tokenizer.h":
 
 	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
 	void delete_tokenizer(tokenizer_t *tokenizer)
-	int tokenize_header(tokenizer_t *self)
-	int tokenize(tokenizer_t *self)
+	int tokenize(tokenizer_t *self, int header)
 
 class CParserError(Exception):
 	"""
@@ -119,19 +119,32 @@ cdef class CParser:
 		self.tokenizer.source_len = len(self.source)
 
 	def read_header(self):
-		# header_start is a valid line number
 		if self.names:
 			self.width = len(self.names)
 			self.tokenizer.num_cols = self.width
+		# header_start is a valid line number
 		elif self.header_start is not None and self.header_start >= 0:
-			if tokenize_header(self.tokenizer) != 0:
+			if tokenize(self.tokenizer, 1) != 0: #todo: use header_start, data_start
 				self.raise_error("An error occurred while tokenizing the header line")
-                        # TODO: self.names = ...
-			self.width = self.tokenizer.num_cols
+			self.names = []
+			i = 0
+			name = ''
+			for i in range(self.tokenizer.output_len):
+				c = self.tokenizer.header_output[i]
+				if not c:
+					if name:
+						self.names.append(name)
+						name = ''
+					else:
+						break # end of string
+				else:
+					name += chr(c)
+			self.width = len(self.names)
+			self.tokenizer.num_cols = self.width
 			
 	def read(self):
 		# TODO: use data_start
-		if tokenize(self.tokenizer) != 0:
+		if tokenize(self.tokenizer, 0) != 0:
 			self.raise_error("An error occurred while tokenizing data")
 		return self._convert_data()
 

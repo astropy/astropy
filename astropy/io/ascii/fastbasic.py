@@ -7,14 +7,15 @@ from cparser import CParser
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
-    """This class is intended to handle the same format addressed by the
-    ordinary `Basic` writer, but it acts as a wrapper for underlying C
+    """
+	This class is intended to handle the same format addressed by the
+    ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
     code and is therefore much faster. Unlike the other readers and writers
     in `io.ascii`, this class is not very extensible and is restricted
     by optimization requirements.
     """
     _format_name = 'fast_basic'
-    _description = 'Fast C reader for basic tables with custom delimiters'
+    _description = 'Basic table with custom delimiter using the fast C engine'
 
     def __init__(self, **kwargs):
         self.delimiter = str(kwargs.pop('delimiter', ' '))
@@ -52,3 +53,44 @@ class FastBasic(object):
         self._read_header()
         data = self.engine.read()
         return Table(data, names=self.names) # TODO: add masking, units, etc.
+
+class FastCsv(FastBasic):
+	"""
+	A faster version of the ordinary :class:`Csv` writer that uses the optimized
+	C parsing engine.
+	"""
+	_format_name = 'fast_csv'
+	_io_registry_suffix = '.csv'
+	_description = 'Comma-separated values table using the fast C engine'
+
+	def __init__(self, **kwargs):
+		delimiter = kwargs.pop('delimiter', ',')
+		FastBasic.__init__(delimiter=delimiter, **kwargs)
+
+class FastTab(FastBasic):
+	"""
+	A faster version of the ordinary :class:`Tab` writer that uses the optimized
+	C parsing engine.
+	"""
+	_format_name = 'fast_tab'
+	_description = 'Tab-separated values table using the fast C engine'
+
+	def __init__(self, **kwargs):
+		delimiter = kwargs.pop('delimiter', '\t')
+		FastBasic.__init__(delimiter=delimiter, **kwargs)
+
+class FastNoHeader(FastBasic):
+	"""
+	This class uses the fast C engine to read tables with no header line. If the
+	names parameter is unspecified, the columns will be autonamed with "col%d".
+	"""
+	_format_name = 'fast_no_header'
+	_description = 'Basic table with no headers using the fast C engine'
+
+	def __init__(self, **kwargs):
+		header_start = kwargs.pop('header_start', None)
+		FastBasic.__init__(header_start=header_start, **kwargs)
+
+# TODO: write FastRdb, FastCommentedHeader...will require some changes to tokenizer
+
+
