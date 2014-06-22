@@ -34,18 +34,18 @@ class FastBasic(object):
 
     def read(self, table):
         if len(self.comment) != 1:
-            raise ParameterError("The C reader does not support a comment regex")
+            raise core.ParameterError("The C reader does not support a comment regex")
         elif len(self.delimiter) != 1:
-            raise ParameterError("The C reader only supports 1-char delimiters")
+            raise core.ParameterError("The C reader only supports 1-char delimiters")
         elif 'converters' in self.kwargs:
-            raise ParameterError("The C reader does not support passing "
-                                 "specialized converters")
+            raise core.ParameterError("The C reader does not support passing "
+									  "specialized converters")
         elif 'Outputter' in self.kwargs:
-            raise ParameterError("The C reader does not use the Outputter parameter")
+            raise core.ParameterError("The C reader does not use the Outputter parameter")
         elif 'Inputter' in self.kwargs:
-            raise ParameterError("The C reader does not use the Inputter parameter")
+            raise core.ParameterError("The C reader does not use the Inputter parameter")
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
-            raise ParameterError("The C reader does not use a Splitter class")
+            raise core.ParameterError("The C reader does not use a Splitter class")
 
         self.engine = CParser(table, delimiter=self.delimiter,
                                      comment=self.comment, **self.kwargs)

@@ -1,9 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import six
+import numpy as np
 from ...utils.data import get_readable_fileobj
 
 cdef extern from "src/tokenizer.h":
+	ctypedef enum tokenizer_state:
+		START_LINE
+		FIELD
+
 	ctypedef struct tokenizer_t:
 		char *source		# single string containing all of the input
 		int source_len 		# length of the input
@@ -12,8 +17,12 @@ cdef extern from "src/tokenizer.h":
 		char comment		# comment character
 		char quotechar		# quote character
 		char **output_cols	# array of output strings for each column
+		int output_len		# length of each output column string
 		int *row_positions	# array of indices specifying where each row begins
+		int row_pos_len		# length of row_positions array
 		int num_cols		# number of table columns
+		int num_rows		# number of table rows
+		tokenizer_state state   # current state of the tokenizer
 		int err_code		# represents the latest error that has occurred
 		# Example input/output
 		# --------------------
@@ -121,11 +130,26 @@ cdef class CParser:
 			self.width = self.tokenizer.num_cols
 			
 	def read(self):
+		# TODO: use data_start
 		if tokenize(self.tokenizer) != 0:
 			self.raise_error("An error occurred while tokenizing data")
 		return self._convert_data()
 
+	cdef _trim(self, s): # TODO: probably move this to C using strlen
+		for i, ch in enumerate(s):
+			if ch == '\x00':
+				return s[:i]
+		return s
+
 	cdef _convert_data(self):
-		data = {}
 		# TODO: implement conversion
-		return data
+		cols = {}
+		for i in range(self.tokenizer.num_cols):
+			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype=np.object_)
+			for j in range(self.tokenizer.num_rows):
+				if j != self.tokenizer.num_rows - 1:
+					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j] : 
+																					  self.tokenizer.row_positions[j + 1]])
+				else:
+					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j]:])
+		return cols
