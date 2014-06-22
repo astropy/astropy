@@ -182,6 +182,19 @@ requires the beam area and frequency as arguments.  Example::
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
     7.052588858...
 
+Temperature Energy Equivalency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This equivalency allows conversion between temperature and its equivalent 
+in energy (i.e., the temperature multiplied by the Boltzmann constant),
+usually expressed in electronvolts. This is used frequently for
+observations at high-energy, be it for solar or X-ray astronomy. Example::
+
+    >>> import astropy.units as u
+    >>> t_k = 1e6 * u.K
+    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())
+    <Quantity 86.17332384... eV>
+
 Writing new equivalencies
 -------------------------
 

@@ -17,7 +17,7 @@ from . import dimensionless_unscaled
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
            'brightness_temperature', 'dimensionless_angles',
-           'logarithmic', 'temperature']
+           'logarithmic', 'temperature', 'temperature_energy']
 
 
 def dimensionless_angles():
@@ -469,3 +469,9 @@ def temperature():
         (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
         (si.K, deg_F, lambda x: (x - 273.15) * 1.8 + 32.0,
          lambda x: ((x - 32.0) / 1.8) + 273.15)]
+
+def temperature_energy():
+    """Convert between Kelvin and keV(eV) to an equivalent amount."""
+    return [
+        (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
+         lambda x: x * (_si.e.value / _si.k_B))]
