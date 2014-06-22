@@ -22,18 +22,22 @@ Core Package Contributors
 * Chris Beaumont
 * Daniel Bell
 * Francesco Biscani
+* Christopher Bonnett
 * Médéric Boquien
 * Larry Bradley
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
 * Mabry Cervin
+* Pritish Chakraborty
 * Alex Conley
 * Jean Connelly
 * Simon Conseil
+* Ryan Cooke
 * Matt Craig
 * Steven Crawford
 * Neil Crighton
+* Kelle Cruz
 * Matt Davis
 * Christoph Deil
 * Nadia Dencheva
@@ -47,9 +51,11 @@ Core Package Contributors
 * Ryan Fox
 * Lehman Garrison
 * Adam Ginsburg
+* Christoph Gohlke
 * Perry Greenfield
 * Dylan Gregersen
 * Frédéric Grollier
+* Karan Grover
 * Hans Moritz Günther
 * Alex Hagen
 * Emma Hogan
@@ -57,8 +63,10 @@ Core Package Contributors
 * JC Hsu
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
+* Lennard Kiehl
 * Kacper Kowalik
 * Roban Kramer
+* Simon Liedtke
 * Pey Lian Lim
 * Serge Montagnac
 * José Sabater Montes
@@ -66,11 +74,14 @@ Core Package Contributors
 * Stuart Mumford
 * Demitri Muna
 * Prasanth Nair
+* Bogdan Nicula
 * Miruna Oprescu
 * Luigi Paioro
+* Asish Panda
 * Madhura Parikh
 * Sergio Pascual
 * Rohit Patil
+* David Perez-Suarez
 * Ray Plante
 * Adrian Price-Whelan
 * Tanuj Rastogi
@@ -84,6 +95,7 @@ Core Package Contributors
 * David Shupe
 * Leo Singer
 * Brigitta Sipocz
+* Shantanu Srivastava
 * James Taylor
 * Jeff Taylor
 * Kirill Tchernyshyov
