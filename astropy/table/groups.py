@@ -216,10 +216,24 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
+        from .column import MaskedColumn
+        
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
+        masked = isinstance(par_col, MaskedColumn)
+        reduceat = hasattr(func, 'reduceat')
+        sum_case = func is np.sum
+        mean_case = func is np.mean
         try:
-            vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
+            if not masked and (reduceat or sum_case or mean_case):
+                if mean_case:
+                    vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
+                else:
+                    if sum_case:
+                        func = np.add
+                    vals = func.reduceat(par_col, i0s)
+            else:
+                vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
         except Exception:
             raise TypeError("Cannot aggregate column '{0}'"
                             .format(par_col.name))

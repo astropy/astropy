@@ -296,6 +296,24 @@ A single column of data can be aggregated as well::
   Sum for foo = 8
   Sum for qux = 11
 
+If the specified function has a `numpy.ufunc.reduceat` method, this will be called instead.
+This can improve the performance by a factor of 10 to 100 (or more) for large unmasked
+tables or columns with many relatively small groups.  It also allows for the use of
+certain numpy functions which normally take more than one input array but also work as
+reduction functions, like `numpy.add`.  The numpy functions which should take advantage of
+using `numpy.ufunc.reduceat` include:
+
+`numpy.add`, `numpy.arctan2`, `numpy.bitwise_and`, `numpy.bitwise_or`, `numpy.bitwise_xor`,
+`numpy.copysign`, `numpy.divide`, `numpy.equal`, `numpy.floor_divide`, `numpy.fmax`,
+`numpy.fmin`, `numpy.fmod`, `numpy.greater_equal`, `numpy.greater`, `numpy.hypot`,
+`numpy.left_shift`, `numpy.less_equal`, `numpy.less`, `numpy.logaddexp2`,
+`numpy.logaddexp`, `numpy.logical_and`, `numpy.logical_or`, `numpy.logical_xor`,
+`numpy.maximum`, `numpy.minimum`, `numpy.mod`, `numpy.multiply`, `numpy.not_equal`,
+`numpy.power`, `numpy.remainder`, `numpy.right_shift`, `numpy.subtract` and `numpy.true_divide`.
+
+As special cases `numpy.sum` and `numpy.mean` are substituted with their
+respective reduceat methods.
+
 
 Filtering
 ~~~~~~~~~~
