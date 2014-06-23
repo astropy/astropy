@@ -48,7 +48,7 @@ class CParserError(Exception):
 	during C parsing.
 	"""
 
-ERR_CODES = list(enumerate(["no error",
+ERR_CODES = dict(enumerate(["no error",
 	    		"invalid line supplied",
 			"too many columns found in data"
 			]))
@@ -166,7 +166,8 @@ cdef class CParser:
 	def read(self):
 		if tokenize(self.tokenizer, self.data_start, 0) != 0:
 			self.raise_error("An error occurred while tokenizing data")
-		return self._convert_data()
+		else:
+			return self._convert_data()
 
 	cdef _convert_data(self):
 		cols = {}

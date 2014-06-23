@@ -13,6 +13,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
     tokenizer->quotechar = quotechar;
     tokenizer->header_output = 0;
     tokenizer->output_cols = 0;
+    tokenizer->col_ptrs = 0;
     tokenizer->header_len = 0;
     tokenizer->output_len = 0;
     tokenizer->num_cols = 0;
@@ -22,15 +23,25 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
     return tokenizer;
 }
 
-void delete_tokenizer(tokenizer_t *tokenizer)
+void delete_data(tokenizer_t *tokenizer)
 {
     // Don't free tokenizer->source because it points to part of an already freed Python object
     free(tokenizer->header_output);
     int i;
-    for (i = 0; i < tokenizer->num_cols; ++i)
-	free(tokenizer->output_cols[i]);
+    if (tokenizer->output_cols)
+	for (i = 0; i < tokenizer->num_cols; ++i)
+	    free(tokenizer->output_cols[i]);
+
     free(tokenizer->output_cols);
     free(tokenizer->col_ptrs);
+    tokenizer->header_output = 0;
+    tokenizer->output_cols = 0;
+    tokenizer->col_ptrs = 0;
+}
+
+void delete_tokenizer(tokenizer_t *tokenizer)
+{
+    delete_data(tokenizer);
     free(tokenizer);
 }
 
@@ -87,6 +98,7 @@ void resize_col(tokenizer_t *self, int index)
 
 int tokenize(tokenizer_t *self, int line, int header)
 {
+    delete_data(self); // clear old reading data
     char c; // input character
     int col = 0; // current column
     int output_pos = 0; // current position in header output string
@@ -108,23 +120,16 @@ int tokenize(tokenizer_t *self, int line, int header)
 	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE * sizeof(char));
     else
     {
-	if (!self->output_cols)
-	{
-	    self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
-	    for (i = 0; i < self->num_cols; ++i)
-		self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE * sizeof(char));
-	}
-
-	if (!self->output_len)
-	{
-	    self->output_len = (int *) malloc(self->num_cols * sizeof(int));
-	    for (i = 0; i < self->num_cols; ++i)
-		self->output_len[i] = INITIAL_COL_SIZE;
-	}
-
+	self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
 	self->col_ptrs = (char **) malloc(self->num_cols * sizeof(char *));
+	self->output_len = (int *) malloc(self->num_cols * sizeof(int));
+
 	for (i = 0; i < self->num_cols; ++i)
+	{
+	    self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE * sizeof(char));
 	    self->col_ptrs[i] = self->output_cols[i];
+	    self->output_len[i] = INITIAL_COL_SIZE;
+	}
     }
 
     int done = 0;

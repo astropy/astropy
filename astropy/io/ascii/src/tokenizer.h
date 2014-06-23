@@ -53,6 +53,7 @@ row_positions: [0, 1, 3]
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar);
 void delete_tokenizer(tokenizer_t *tokenizer);
+void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
 int tokenize(tokenizer_t *self, int line, int header);
 
