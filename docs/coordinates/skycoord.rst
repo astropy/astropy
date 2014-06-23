@@ -292,19 +292,27 @@ documentation::
 
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
-  sc.cartesian                 sc.has_data                  sc.represent_as
-  sc.data                      sc.icrs                      sc.representation
-  sc.dec                       sc.is_frame_attr_default     sc.representation_info
-  sc.default_representation    sc.is_transformable_to       sc.representation_component_names
-  sc.distance                  sc.isscalar                  sc.representation_component_units
-  sc.equinox                   sc.match_to_catalog_3d       sc.separation
-  sc.fk4                       sc.match_to_catalog_sky      sc.separation_3d
-  sc.fk4noeterms               sc.name                      sc.shape
-  sc.fk5                       sc.obstime                   sc.spherical
-  sc.frame                     sc.position_angle            sc.time_attr_names
-  sc.from_name                 sc.preferred_representation  sc.to_string
-  sc.galactic                  sc.ra                        sc.transform_to
-  sc.get_frame_attr_names      sc.realize_frame
+  sc.cartesian                           sc.match_to_catalog_3d
+  sc.data                                sc.match_to_catalog_sky
+  sc.dec                                 sc.name
+  sc.default_representation              sc.obstime
+  sc.distance                            sc.position_angle
+  sc.equinox                             sc.ra
+  sc.fk4                                 sc.realize_frame
+  sc.fk4noeterms                         sc.represent_as
+  sc.fk5                                 sc.representation
+  sc.frame                               sc.representation_component_names
+  sc.frame_attr_names                    sc.representation_component_units
+  sc.frame_specific_representation_info  sc.representation_info
+  sc.from_name                           sc.separation
+  sc.galactic                            sc.separation_3d
+  sc.get_frame_attr_names                sc.shape
+  sc.has_data                            sc.spherical
+  sc.icrs                                sc.time_attr_names
+  sc.is_frame_attr_default               sc.to_string
+  sc.is_transformable_to                 sc.transform_to
+  sc.isscalar
+
 Here we see a bunch of stuff there but much of it should be recognizable or
 easily guessed.  The most obvious may be the longitude and latitude attributes
 which are named ``ra`` and ``dec`` for the ``ICRS`` frame::
@@ -377,19 +385,19 @@ and |SkyCoord| (aka high-level class)::
   True
 
   >>> sc.frame.<TAB>  # doctest: +SKIP
-  sc.frame.cartesian                 sc.frame.realize_frame
-  sc.frame.data                      sc.frame.represent_as
-  sc.frame.dec                       sc.frame.representation
-  sc.frame.default_representation    sc.frame.representation_info
-  sc.frame.distance                  sc.frame.representation_component_names
-  sc.frame.get_frame_attr_names      sc.frame.representation_component_units
-  sc.frame.has_data                  sc.frame.separation
-  sc.frame.is_frame_attr_default     sc.frame.separation_3d
-  sc.frame.is_transformable_to       sc.frame.shape
-  sc.frame.isscalar                  sc.frame.spherical
-  sc.frame.name                      sc.frame.time_attr_names
-  sc.frame.preferred_representation  sc.frame.transform_to
-  sc.frame.ra
+  sc.frame.cartesian                           sc.frame.ra
+  sc.frame.data                                sc.frame.realize_frame
+  sc.frame.dec                                 sc.frame.represent_as
+  sc.frame.default_representation              sc.frame.representation
+  sc.frame.distance                            sc.frame.representation_component_names
+  sc.frame.frame_attr_names                    sc.frame.representation_component_units
+  sc.frame.frame_specific_representation_info  sc.frame.representation_info
+  sc.frame.get_frame_attr_names                sc.frame.separation
+  sc.frame.has_data                            sc.frame.separation_3d
+  sc.frame.is_frame_attr_default               sc.frame.shape
+  sc.frame.is_transformable_to                 sc.frame.spherical
+  sc.frame.isscalar                            sc.frame.time_attr_names
+  sc.frame.name                                sc.frame.transform_to
   >>> sc.frame.name
   'icrs'
 
