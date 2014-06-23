@@ -330,6 +330,7 @@ def test_default_constraints():
     assert m.fixed == {'a': True, 'b': False}
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fit_with_fixed_and_bound_constraints():
     """
     Regression test for https://github.com/astropy/astropy/issues/2235
@@ -358,6 +359,7 @@ def test_fit_with_fixed_and_bound_constraints():
     assert fitted_1.mean <= 5
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_fit_with_bound_constraints_estimate_jacobian():
     """
     Regression test for https://github.com/astropy/astropy/issues/2400

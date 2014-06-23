@@ -251,7 +251,6 @@ class TestNonLinearFitters(object):
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
         """
         Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`.
