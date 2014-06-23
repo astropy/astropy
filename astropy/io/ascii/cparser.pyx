@@ -7,6 +7,7 @@ from ...utils.data import get_readable_fileobj
 cdef extern from "src/tokenizer.h":
 	ctypedef enum tokenizer_state:
 		START_LINE
+		START_FIELD
 		FIELD
 		COMMENT_LINE
 		COMMENT
@@ -14,6 +15,7 @@ cdef extern from "src/tokenizer.h":
 	ctypedef enum err_code:
 		NO_ERROR
 		INVALID_LINE
+		TOO_MANY_COLS
 
 	ctypedef struct tokenizer_t:
 		char *source		# single string containing all of the input
@@ -47,9 +49,10 @@ class CParserError(Exception):
 	during C parsing.
 	"""
 
-ERR_CODES = {0: "no error",
-			 1: "invalid line supplied"
-             }
+ERR_CODES = list(enumerate(["no error",
+	    		"invalid line supplied",
+			"too many columns found in data"
+			]))
 
 cdef class CParser:
 	"""
@@ -175,14 +178,16 @@ cdef class CParser:
 	cdef _convert_data(self):
 		# TODO: implement conversion
 		cols = {}
+
 		for i in range(self.tokenizer.num_cols):
-			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype=np.object_)
+			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype=np.str_)
 			for j in range(self.tokenizer.num_rows):
 				if j != self.tokenizer.num_rows - 1:
 					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j] : 
-																					  self.tokenizer.row_positions[j + 1]])
+													self.tokenizer.row_positions[j + 1]])
 				else:
 					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j]:])
+
 		for name in self.names:
 			for dtype in (np.int_, np.float_):
 				try:

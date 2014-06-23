@@ -76,14 +76,25 @@ void resize_rows(tokenizer_t *self)
         if (field_len > max_field_len) \
 	    max_field_len = field_len; \
         field_len = 0; \
-        ++col; \
+        if (++col > self->num_cols) \
+	    RETURN(TOO_MANY_COLS); \
     }
 
 #define END_LINE() \
+    if (header) \
+	done = 1; \
+    else \
+    { \
+	while (col < self->num_cols) \
+	{ \
+            PUSH(' '); \
+	    END_FIELD(); \
+	} \
+    } \
     curr_row_pos += max_field_len; \
     ++self->num_rows; \
-    if (header) \
-	done = 1;
+
+#define RETURN(c) { self->code = c; return c; }
 
 int tokenize(tokenizer_t *self, int line, int header)
 {
@@ -98,10 +109,11 @@ int tokenize(tokenizer_t *self, int line, int header)
     self->source_pos = 0;
     self->num_rows = 0;
 
+    //TODO: fix this for empty/comment lines, different error for no data, etc.
     while (i < line)
     {
 	if (self->source_pos >= self->source_len)
-	    return INVALID_LINE;
+	    RETURN(INVALID_LINE);
 	if (self->source[self->source_pos++] == '\n')
 	    ++i;
     }
@@ -146,12 +158,33 @@ int tokenize(tokenizer_t *self, int line, int header)
 		max_field_len = 0;
 		col = 0;
 	    }
+	    self->state = START_FIELD;
+	
+	case START_FIELD:
+	    if (c == self->delimiter)
+	    {
+		PUSH(' ');
+		END_FIELD();
+		break;
+	    }
+	    else if (c == '\n')
+	    {
+		END_LINE();
+		self->state = START_LINE;
+		break;
+	    }
+	    else if (c == self->comment)
+	    {
+		self->state = COMMENT;
+		break;
+	    }
 	    self->state = FIELD;
 
 	case FIELD:
 	    if (c == self->delimiter)
 	    {
 		END_FIELD();
+		self->state = START_FIELD;
 	    }
 	    else if (c == '\n')
 	    {
@@ -176,7 +209,7 @@ int tokenize(tokenizer_t *self, int line, int header)
 	    }
 	    break;
 
-	case COMMENT:
+	case COMMENT: //TODO: figure out whether this should be here (old readers don't support non-line comments)
 	    if (c == '\n')
 	    {
 		END_LINE();
@@ -193,5 +226,5 @@ int tokenize(tokenizer_t *self, int line, int header)
 	++self->source_pos;
     }
 
-    return NO_ERROR;
+    RETURN(0);
 }

@@ -8,6 +8,7 @@
 typedef enum
 {
     START_LINE = 0,
+    START_FIELD,
     FIELD,
     COMMENT,
     COMMENT_LINE
@@ -16,7 +17,8 @@ typedef enum
 typedef enum
 {
     NO_ERROR,
-    INVALID_LINE
+    INVALID_LINE,
+    TOO_MANY_COLS
 } err_code;
 
 typedef struct
