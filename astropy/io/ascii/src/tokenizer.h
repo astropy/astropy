@@ -30,9 +30,9 @@ typedef struct
     char quotechar;        // quote character
     char *header_output;   // string containing header data
     char **output_cols;    // array of output strings for each column
-    int output_len;        // length of each output column string
-    int *row_positions;    // array of indices specifying where each row begins
-    int row_pos_len;       // length of row_positions array
+    char **col_ptrs;       // array of pointers to current output position for each col
+    int *output_len;       // length of each output column string
+    int header_len;        // length of the header output string
     int num_cols;          // number of table columns
     int num_rows;          // number of table rows
     tokenizer_state state; // current state of the tokenizer
@@ -48,14 +48,12 @@ output_cols: ["A101", "B5.2", "C6 3"]
 row_positions: [0, 1, 3]
 */
 
-#define INITIAL_ROW_SIZE 20
 #define INITIAL_COL_SIZE 50
 #define INITIAL_HEADER_SIZE 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar);
 void delete_tokenizer(tokenizer_t *tokenizer);
-void resize_cols(tokenizer_t *self);
-void resize_rows(tokenizer_t *self);
+void resize_col(tokenizer_t *self, int index);
 int tokenize(tokenizer_t *self, int line, int header);
 
 #endif

@@ -25,9 +25,9 @@ cdef extern from "src/tokenizer.h":
 		char quotechar		# quote character
 		char *header_output # string containing header data
 		char **output_cols	# array of output strings for each column
-		int output_len		# length of each output column string
-		int *row_positions	# array of indices specifying where each row begins
-		int row_pos_len		# length of row_positions array
+		char **col_ptrs     # array of pointers to current output position for each col
+		int *output_len		# length of each output column string
+		int header_len      # length of the header output string
 		int num_cols		# number of table columns
 		int num_rows		# number of table rows
 		tokenizer_state state   # current state of the tokenizer
@@ -137,7 +137,7 @@ cdef class CParser:
 				self.raise_error("An error occurred while tokenizing the header line")
 			self.names = []
 			name = ''
-			for i in range(self.tokenizer.output_len):
+			for i in range(self.tokenizer.header_len):
 				c = self.tokenizer.header_output[i]
 				if not c:
 					if name:
@@ -154,7 +154,7 @@ cdef class CParser:
 			if tokenize(self.tokenizer, 0, 1) != 0:
 				self.raise_error("An error occurred while tokenizing the first line of data")
 			self.width = 0
-			for i in range(self.tokenizer.output_len):
+			for i in range(self.tokenizer.header_len):
 				if not self.tokenizer.header_output[i]:
 					if i > 0 and self.tokenizer.header_output[i - 1]:
 						self.width += 1
@@ -168,24 +168,25 @@ cdef class CParser:
 			self.raise_error("An error occurred while tokenizing data")
 		return self._convert_data()
 
-	cdef _trim(self, s): # TODO: probably move this to C using strlen
-		for i, ch in enumerate(s):
-			if ch == '\x00':
-				return s[:i]
-		return s
-
 	cdef _convert_data(self):
-		# TODO: implement conversion
 		cols = {}
+		cdef int row
 
 		for i in range(self.tokenizer.num_cols):
 			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype=np.str_)
-			for j in range(self.tokenizer.num_rows):
-				if j != self.tokenizer.num_rows - 1:
-					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j] : 
-													self.tokenizer.row_positions[j + 1]])
+			el = ''
+			row = 0
+
+			for j in range(self.tokenizer.output_len[i]):
+				c = self.tokenizer.output_cols[i][j]
+				if not c:
+					if not el:
+						break
+					cols[self.names[i]][row] = el
+					el = ''
+					row += 1
 				else:
-					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j]:])
+					el += chr(c)
 
 		for name in self.names:
 			for dtype in (np.int_, np.float_):
