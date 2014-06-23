@@ -90,6 +90,7 @@ class DaophotHeader(core.BaseHeader):
     def __init__(self):
         core.BaseHeader.__init__(self)
         self.comment = r'\s*#K'
+        self.aperture_values = ''
 
     def update_meta(self, lines, meta):
         """
@@ -114,6 +115,7 @@ class DaophotHeader(core.BaseHeader):
                                     'format': vals[-1]}
                     keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
                     table_meta['keywords'][m.group('name')] = keyword_dict
+                    if m.group('name') == 'APERTURES': self.aperture_values = keyword_dict['value']
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -135,6 +137,7 @@ class DaophotHeader(core.BaseHeader):
         col_width = []
         col_len_def = re.compile(r'[0-9]+')
         re_colformat_def = re.compile(r'#F([^#]+)')
+        last_coldef_line = ['', '', '']
         for line in lines:
             if not line.startswith('#'):
                 break  # End of header lines
@@ -147,11 +150,32 @@ class DaophotHeader(core.BaseHeader):
                     # and filled with spaces
                     width[-1] = 80 - sum(width[:-1])
                     col_width.extend(width)
+                    last_width=width
                 for i, start in enumerate(starts):
                     if line.startswith(start):
                         line_stripped = line[2:]
                         coldef_lines[i] = coldef_lines[i] + line_stripped
+                        last_coldef_line[i] = line_stripped
                         break
+
+        # We need to check wheter daophot file has multiple aperture data, in its keywords
+        if (',' in self.aperture_values) or (':' in self.aperture_values):
+            apertures=[]
+            for aper in self.aperture_values.split(','):
+                if ':' in aper:
+                    # Generate list of apertures from daophot's closed interval range 
+                    # syntax ap1:apN:apstep
+                    ap1,apN,apstep=(float(i) for i in aper.split(':'))
+                    apertures.extend(list(np.arange(ap1,apN,apstep)))
+                    if (apN-ap1)%apstep == 0 : apertures.append(apN)
+                else:
+                    apertures.append(float(aper))
+            # We shall now append the last header multiple times
+            for j in range(1,len(apertures)):
+                col_width.extend(last_width)
+                coldef_lines[0] = coldef_lines[0] +' '+' '.join([name+str(j+1) for name in last_coldef_line[0].split()])
+                for i in range(1,len(coldef_lines)):
+                    coldef_lines[i] = coldef_lines[i] + last_coldef_line[i]
 
         # At this point colddef_lines has three lines corresponding to column
         # names, unit, and format.  Get the column names by splitting the
