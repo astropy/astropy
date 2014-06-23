@@ -9,7 +9,6 @@ cdef extern from "src/tokenizer.h":
 		START_LINE
 		START_FIELD
 		FIELD
-		COMMENT_LINE
 		COMMENT
 
 	ctypedef enum err_code:

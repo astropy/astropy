@@ -147,7 +147,7 @@ int tokenize(tokenizer_t *self, int line, int header)
 		break;
 	    else if (c == self->comment)
 	    {
-		self->state = COMMENT_LINE;
+		self->state = COMMENT;
 		break;
 	    }
 	    else if (!header)
@@ -173,11 +173,6 @@ int tokenize(tokenizer_t *self, int line, int header)
 		self->state = START_LINE;
 		break;
 	    }
-	    else if (c == self->comment)
-	    {
-		self->state = COMMENT;
-		break;
-	    }
 	    self->state = FIELD;
 
 	case FIELD:
@@ -192,11 +187,6 @@ int tokenize(tokenizer_t *self, int line, int header)
 		END_LINE();
 		self->state = START_LINE;
 	    }
-	    else if (c == self->comment)
-	    {
-		END_FIELD();
-		self->state = COMMENT;
-	    }
 	    else
 	    {
 		PUSH(c);
@@ -209,15 +199,7 @@ int tokenize(tokenizer_t *self, int line, int header)
 	    }
 	    break;
 
-	case COMMENT: //TODO: figure out whether this should be here (old readers don't support non-line comments)
-	    if (c == '\n')
-	    {
-		END_LINE();
-		self->state = START_LINE;
-	    }
-	    break;
-
-	case COMMENT_LINE:
+	case COMMENT:
 	    if (c == '\n')
 		self->state = START_LINE;
 	    break;

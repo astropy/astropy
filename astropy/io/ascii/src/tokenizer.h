@@ -10,8 +10,7 @@ typedef enum
     START_LINE = 0,
     START_FIELD,
     FIELD,
-    COMMENT,
-    COMMENT_LINE
+    COMMENT
 } tokenizer_state;
 
 typedef enum
