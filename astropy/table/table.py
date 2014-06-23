@@ -48,9 +48,9 @@ class TableColumns(OrderedDict):
     by name or index, including slice access.  It also handles renaming
     of columns.
 
-    The initialization argument ``cols`` can be any structure that is valid
-    for initializing a Python dict.  This includes a dict, list of
-    (key, val) tuple pairs, list of [key, val] lists, etc.
+    The initialization argument ``cols`` can be a list of ``Column`` objects
+    or any structure that is valid for initializing a Python dict.  This
+    includes a dict, list of (key, val) tuples or [key, val] lists, etc.
 
     Parameters
     ----------
@@ -60,7 +60,9 @@ class TableColumns(OrderedDict):
 
     def __init__(self, cols={}):
         if isinstance(cols, (list, tuple)):
-            cols = [(col.name, col) for col in cols]
+            # check for Columns in the list
+            cols = [((col.name, col) if hasattr(col, 'name') else col)
+                    for col in cols]
         super(TableColumns, self).__init__(cols)
 
     def __getitem__(self, item):

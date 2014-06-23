@@ -574,6 +574,8 @@ Bug Fixes
   - Fixed a problem on 64 bit windows that caused errors
     "expected 'DTYPE_t' but got 'long long'" [#2490]
 
+  - Fix initialisation of ``TableColumns`` with lists or tuples.  [#2647]
+
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is
