@@ -9,6 +9,9 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
+from .utils import get_coordinate_system
+from astropy.wcs import WCS
+
 
 
 class CurvedTransform(Transform):
@@ -166,33 +169,127 @@ class WCSPixel2WorldTransform(CurvedTransform):
         return WCSWorld2PixelTransform(self.wcs, slice=self.slice)
 
 
-class CoordinateTransform(CurvedTransform):
+if astropy.__version__ >= '0.4':
+    from astropy.coordinates import frame_transform_graph
 
-    def __init__(self, input_system, output_system):
-        super(CoordinateTransform, self).__init__()
-        self.input_system = input_system
-        self.output_system = output_system
+    class CoordinateTransform(CurvedTransform):
 
-    def transform(self, input_coords):
-        """
-        Transform one set of coordinates to another
-        """
+        def __init__(self, wcs, frame, inverted=False):
 
-        x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+            output_system = frame_transform_graph.lookup_name(frame)
+            input_system = get_coordinate_system(wcs)
+            if output_system == input_system:
+                self._same_frames = True
+            else:
+                self._same_frames = False
 
-        c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+            super(CoordinateTransform, self).__init__()
 
-        c_out = c_in.transform_to(self.output_system)
+            self.wcs = wcs
+            self.frame = frame
+            if output_system is None:
+                try:
+                    output_system = get_coordinate_system(frame)
+                except:
+                    raise ValueError("frame {0} not found".format(self.frame))
 
-        if astropy.__version__ < '0.4':
-            return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
-        else:
+            # input_system = get_coordinate_system(wcs)
+
+            if not inverted:
+                self.input_system = input_system
+                self.output_system = output_system
+            else:
+                self.input_system = output_system
+                self.output_system = input_system
+
+        @property
+        def same_frames(self):
+            return self._same_frames
+
+        @same_frames.setter
+        def same_frames(self, same_frames):
+            self._same_frames = same_frames
+
+        def transform(self, input_coords):
+            """
+            Transform one set of coordinates to another
+            """
+
+            x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+
+            c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+
+            c_out = c_in.transform_to(self.output_system)
+
             return np.concatenate((c_out.spherical.lon.deg[:, np.newaxis], c_out.spherical.lat.deg[:, np.newaxis]), 1)
 
-    transform_non_affine = transform
+        transform_non_affine = transform
 
-    def inverted(self):
-        """
-        Return the inverse of the transform
-        """
-        return CoordinateTransform(self.output_system, self.input_system)
+        def inverted(self):
+            """
+            Return the inverse of the transform
+            """
+            return CoordinateTransform(self.wcs, self.frame, inverted=True)
+
+else:
+
+    class CoordinateTransform(CurvedTransform):
+
+        def __init__(self, wcs, frame, inverted=False):
+            super(CoordinateTransform, self).__init__()
+            from astropy.coordinates import FK5, Galactic
+
+            self.wcs = wcs
+            self.frame = frame
+
+            input_system = get_coordinate_system(self.wcs)
+
+            if self.frame == 'fk5':
+                output_system = FK5
+            elif self.frame == 'galactic':
+                output_system = Galactic
+            elif isinstance(self.frame, WCS):
+                output_system = get_coordinate_system(frame)
+            else:
+                raise NotImplemented("frame {0} not implemented".format(frame))
+
+            if output_system == input_system:
+                self._same_frames = True
+            else:
+                self._same_frames = False
+
+            if not inverted:
+                self.input_system = input_system
+                self.output_system = output_system
+            else:
+                self.input_system = output_system
+                self.output_system = input_system
+
+        @property
+        def same_frames(self):
+            return self._same_frames
+
+        @same_frames.setter
+        def same_frames(self, same_frames):
+            self._same_frames = same_frames
+
+        def transform(self, input_coords):
+            """
+            Transform one set of coordinates to another
+            """
+
+            x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+
+            c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+
+            c_out = c_in.transform_to(self.output_system)
+
+            return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
+
+        transform_non_affine = transform
+
+        def inverted(self):
+            """
+            Return the inverse of the transform
+            """
+            return CoordinateTransform(self.wcs, self.frame, inverted=True)

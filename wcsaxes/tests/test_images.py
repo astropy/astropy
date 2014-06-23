@@ -15,7 +15,7 @@ from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
-
+@remote_data
 class TestImages(object):
 
     @classmethod
@@ -51,7 +51,7 @@ class TestImages(object):
             assert msg is None
 
     # Test for plotting image and also setting values of ticks
-    @remote_data
+    # @remote_data
     def test_image_plot(self, generate):
         hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
@@ -65,7 +65,7 @@ class TestImages(object):
         self.generate_or_test(generate, fig, 'image_plot.png')
 
     # Test for overlaying contours on images
-    @remote_data
+    # @remote_data
     def test_contour_overlay(self, generate):
         hdu = self._image3_hdu
 
@@ -88,7 +88,7 @@ class TestImages(object):
         self.generate_or_test(generate, fig, 'contour_overlay.png')
 
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
-    @remote_data
+    # @remote_data
     def test_overlay_features_image(self, generate):
         hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
@@ -112,7 +112,7 @@ class TestImages(object):
         self.generate_or_test(generate, fig, 'overlay_features_image.png')
 
     # Overlay curvilinear grid and patches on image
-    @remote_data
+    # @remote_data
     def test_curvilinear_grid_patches_image(self, generate):
         hdu = self._image2_hdu
         fig = plt.figure(figsize=(8, 8))
@@ -128,11 +128,13 @@ class TestImages(object):
         ax.add_patch(p)
         p = Circle((60., 50.), radius=20., ec='red', fc='none', transform=ax.get_transform('fk5'))
         ax.add_patch(p)
+        p = Circle((40., 60.), radius=20., ec='green', fc='none', transform=ax.get_transform('galactic'))
+        ax.add_patch(p)
 
         self.generate_or_test(generate, fig, 'curvlinear_grid_patches_image.png')
 
     # Test for cube slicing
-    @remote_data
+    # @remote_data
     def test_cube_slice_image(self, generate):
         image = self._cube_hdu.data
         w = WCS(self._cube_hdu.header)
@@ -149,7 +151,7 @@ class TestImages(object):
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
     # Test to see if changing the units of axis works
-    @remote_data
+    # @remote_data
     def test_changed_axis_units(self, generate):
         image = self._cube_hdu.data
         w = WCS(self._cube_hdu.header)
