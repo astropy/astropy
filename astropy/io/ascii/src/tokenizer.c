@@ -133,6 +133,11 @@ int tokenize(tokenizer_t *self, int line, int header)
 	case START_LINE:
 	    if (c == '\n')
 		break;
+	    else if (c == self->comment)
+	    {
+		self->state = COMMENT_LINE;
+		break;
+	    }
 	    else if (!header)
 	    {
 		if (self->num_rows >= self->row_pos_len)
@@ -154,6 +159,11 @@ int tokenize(tokenizer_t *self, int line, int header)
 		END_LINE();
 		self->state = START_LINE;
 	    }
+	    else if (c == self->comment)
+	    {
+		END_FIELD();
+		self->state = COMMENT;
+	    }
 	    else
 	    {
 		PUSH(c);
@@ -164,6 +174,19 @@ int tokenize(tokenizer_t *self, int line, int header)
 		    END_LINE();
 		}
 	    }
+	    break;
+
+	case COMMENT:
+	    if (c == '\n')
+	    {
+		END_LINE();
+		self->state = START_LINE;
+	    }
+	    break;
+
+	case COMMENT_LINE:
+	    if (c == '\n')
+		self->state = START_LINE;
 	    break;
 	}   
 

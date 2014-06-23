@@ -8,7 +8,9 @@
 typedef enum
 {
     START_LINE = 0,
-    FIELD
+    FIELD,
+    COMMENT,
+    COMMENT_LINE
 } tokenizer_state;
 
 typedef enum

@@ -8,6 +8,8 @@ cdef extern from "src/tokenizer.h":
 	ctypedef enum tokenizer_state:
 		START_LINE
 		FIELD
+		COMMENT_LINE
+		COMMENT
 
 	ctypedef enum err_code:
 		NO_ERROR
@@ -181,4 +183,11 @@ cdef class CParser:
 																					  self.tokenizer.row_positions[j + 1]])
 				else:
 					cols[self.names[i]][j] = self._trim(self.tokenizer.output_cols[i][self.tokenizer.row_positions[j]:])
+		for name in self.names:
+			for dtype in (np.int_, np.float_):
+				try:
+					cols[name] = cols[name].astype(dtype)
+					break
+				except ValueError:
+					continue
 		return cols
