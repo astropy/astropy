@@ -22,11 +22,11 @@ def _load_six_moves(base, dest):
                 modname = dest + trail
                 sys.modules[modname] = mod
 
-six_system_package = False
 
 _dest_moves = 'astropy.extern.six.moves'
 _dest_root = 'astropy.extern.six'
 
+_system_package = False
 try:
     import six
     _system_package = True
@@ -43,6 +43,9 @@ if _system_package:
         six.system_package = True
         six.bundled_package = False
         sys.modules[_dest_root] = six
+    else:
+        _system_package = False
+
 
 if not _system_package:
     import astropy.extern.bundled.six as six
