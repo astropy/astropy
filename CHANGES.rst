@@ -180,6 +180,9 @@ New Features
     ``MaskedColumn`` arguments ``name`` and ``data`` from Astropy 0.2
     to 0.3. [#2511]
 
+  - Change HTML table representation in IPython notebook to show all
+    table columns instead of restricting to 80 column width.  [#2651]
+
 - ``astropy.time``
 
   - Mean and apparent sidereal time can now be calculated using the

@@ -863,7 +863,7 @@ class Table(object):
     def _repr_html_(self):
         # Since the user cannot provide input, need a sensible default
         tableid = 'table{id}'.format(id=id(self))
-        lines = self.pformat(html=True, tableid=tableid)
+        lines = self.pformat(html=True, tableid=tableid, max_width=-1)
         return ''.join(lines)
 
     def __getitem__(self, item):
