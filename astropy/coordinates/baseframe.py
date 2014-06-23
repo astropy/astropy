@@ -168,9 +168,11 @@ class FrameAttribute(object):
 
         Returns
         -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
+        output_value
+            The ``value`` converted to the correct type (or just ``value`` if
+            ``converted`` is False)
+        converted : bool
+            True if the conversion was actually performed, False otherwise.
 
         Raises
         ------
