@@ -150,7 +150,7 @@ class DaophotHeader(core.BaseHeader):
                     # and filled with spaces
                     width[-1] = 80 - sum(width[:-1])
                     col_width.extend(width)
-                    last_width=width
+                    last_width = width
                 for i, start in enumerate(starts):
                     if line.startswith(start):
                         line_stripped = line[2:]
@@ -165,16 +165,17 @@ class DaophotHeader(core.BaseHeader):
                 if ':' in aper:
                     # Generate list of apertures from daophot's closed interval range 
                     # syntax ap1:apN:apstep
-                    ap1,apN,apstep=(float(i) for i in aper.split(':'))
-                    apertures.extend(list(np.arange(ap1,apN,apstep)))
-                    if (apN-ap1)%apstep == 0 : apertures.append(apN)
+                    ap1, apN, apstep = (float(i) for i in aper.split(':'))
+                    apertures.extend(list(np.arange(ap1, apN, apstep)))
+                    if (apN-ap1)%apstep == 0 : 
+                        apertures.append(apN)
                 else:
                     apertures.append(float(aper))
             # We shall now append the last header multiple times
-            for j in range(1,len(apertures)):
+            for j in range(1, len(apertures)):
                 col_width.extend(last_width)
-                coldef_lines[0] = coldef_lines[0] +' '+' '.join([name+str(j+1) for name in last_coldef_line[0].split()])
-                for i in range(1,len(coldef_lines)):
+                coldef_lines[0] = coldef_lines[0] + ' ' + ' '.join([name+str(j+1) for name in last_coldef_line[0].split()])
+                for i in range(1, len(coldef_lines)):
                     coldef_lines[i] = coldef_lines[i] + last_coldef_line[i]
 
         # At this point colddef_lines has three lines corresponding to column
