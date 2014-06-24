@@ -56,7 +56,7 @@ def test_doctest_float_replacement(tmpdir):
         places::
 
             >>> 1.0 / 3.0
-            0.33333333333333331
+            0.333333333333333311
     """)
 
     test2 = dedent("""
@@ -64,7 +64,7 @@ def test_doctest_float_replacement(tmpdir):
         +FLOAT_COMPARISON::
 
             >>> 1.0 / 3.0  # doctest: +FLOAT_COMPARISON
-            0.33333333333333331
+            0.333333333333333311
     """)
 
     test1_rst = tmpdir.join('test1.rst')
