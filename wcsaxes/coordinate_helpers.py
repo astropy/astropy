@@ -64,6 +64,9 @@ class CoordinateHelper(object):
         self.ticklabels = TickLabels(transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
+        # Get sizes of ticks and tick labels
+        ticks_size = self.ticks.get_ticksize()
+
         # Initialize axis labels
         self.axislabels = AxisLabels(self.frame,
                                      transform=None,  # display coordinates
@@ -249,7 +252,7 @@ class CoordinateHelper(object):
         """
         self.ticklabels.set_visible_axes(position)
 
-    def set_axislabel(self, text, **kwargs):
+    def set_axislabel(self, text, minpad=1, **kwargs):
         """
         Set the text and optionally visual properties for the axis label.
 
@@ -257,13 +260,19 @@ class CoordinateHelper(object):
         ----------
         text : str
             The axis label text.
+        minpad : int
+            The padding for the label in terms of axis label font size.
         kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
+        ticks_size = self.ticks.get_ticksize()
+
         self.axislabels.set_text(text)
+        self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
+
 
     def set_axislabel_position(self, position):
         """
@@ -322,7 +331,12 @@ class CoordinateHelper(object):
 
         renderer.open_group('axis labels')
 
-        self.axislabels.draw(renderer, bboxes=bboxes)
+        visible_ticks = self.ticklabels.get_visible_axes()
+
+        ticklabels_bbox_list = self.ticklabels.get_ticklabels_bbox_list()
+
+        self.axislabels.draw(renderer, bboxes=bboxes,
+            ticklabels_bbox_list=ticklabels_bbox_list, visible_ticks=visible_ticks)
 
         renderer.close_group('axis labels')
 
