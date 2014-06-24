@@ -61,9 +61,9 @@ def test_doctest_float_replacement(tmpdir):
 
     test2 = dedent("""
         This is the same test, but it should pass with use of
-        +FLOAT_COMPARISON::
+        +FLOAT_CMP::
 
-            >>> 1.0 / 3.0  # doctest: +FLOAT_COMPARISON
+            >>> 1.0 / 3.0  # doctest: +FLOAT_CMP
             0.333333333333333311
     """)
 

@@ -15,7 +15,7 @@ import re
 # for the full SymPy license.
 
 FIX = doctest.register_optionflag('FIX')
-FLOAT_COMPARISON = doctest.register_optionflag('FLOAT_COMPARISON')
+FLOAT_CMP = doctest.register_optionflag('FLOAT_CMP')
 
 
 class AstropyOutputChecker(doctest.OutputChecker):
@@ -24,7 +24,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
     - Ignores the 'L' suffix on long integers
     - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
       'S9'.  Numpy 1.7 no longer includes it in display.
-    - Supports the FLOAT_COMPARISON flag, which parses floating point values
+    - Supports the FLOAT_CMP flag, which parses floating point values
       out of the output and compares their numerical values rather than their
       string representation.  This naturally supports complex numbers as well
       (simply by comparing their real and imaginary parts separately).
@@ -81,7 +81,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         string representations.
 
         This requires rewriting enough of the basic check_output that, when
-        FLOAT_COMPARISON is enabled, it totally takes over for check_output.
+        FLOAT_CMP is enabled, it totally takes over for check_output.
         """
 
         # Handle the common case first, for efficiency:
@@ -148,7 +148,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         if flags & FIX:
             want, got = self.do_fixes(want, got)
 
-        if flags & FLOAT_COMPARISON:
+        if flags & FLOAT_CMP:
             return self.normalize_floats(want, got, flags)
 
         # Can't use super here because doctest.OutputChecker is not a
