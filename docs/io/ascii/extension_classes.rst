@@ -19,6 +19,7 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.FixedWidthNoHeader`: table with fixed-width columns and no header
 * :class:`~astropy.io.ascii.FixedWidthTwoLine`: table with fixed-width columns and a two-line header
+* :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.NoHeader`: basic table with no header where columns are auto-named
