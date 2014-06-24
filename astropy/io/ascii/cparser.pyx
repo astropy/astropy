@@ -100,7 +100,8 @@ cdef class CParser:
 		self.fill_exclude_names = fill_exclude_names
 	
 	def __dealloc__(self):
-		delete_tokenizer(self.tokenizer)
+		if self.tokenizer:
+			delete_tokenizer(self.tokenizer)
 
 	cdef raise_error(self, msg):
 		err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
