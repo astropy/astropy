@@ -206,8 +206,8 @@ def doppler_radio(rest):
     >>> radio_CO_equiv = u.doppler_radio(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> radio_velocity = measured_freq.to(u.km/u.s, equivalencies=radio_CO_equiv)
-    >>> radio_velocity
-    <Quantity -31.209092... km / s>
+    >>> radio_velocity  # doctest: +FLOAT_CMP
+    <Quantity -31.209092088877583 km / s>
     """
 
     ckms = _si.c.to('km/s').value
@@ -271,8 +271,8 @@ def doppler_optical(rest):
     >>> optical_CO_equiv = u.doppler_optical(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> optical_velocity = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
-    >>> optical_velocity
-    <Quantity -31.205843... km / s>
+    >>> optical_velocity  # doctest: +FLOAT_CMP
+    <Quantity -31.20584348799674 km / s>
     """
 
     ckms = _si.c.to('km/s').value
@@ -337,15 +337,15 @@ def doppler_relativistic(rest):
     >>> relativistic_CO_equiv = u.doppler_relativistic(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> relativistic_velocity = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
-    >>> relativistic_velocity
-    <Quantity -31.207467619...
+    >>> relativistic_velocity  # doctest: +FLOAT_CMP
+    <Quantity -31.207467619351537 km / s>
     >>> measured_velocity = 1250 * u.km/u.s
     >>> relativistic_frequency = measured_velocity.to(u.GHz, equivalencies=relativistic_CO_equiv)
-    >>> relativistic_frequency
-    <Quantity 114.7915686...
+    >>> relativistic_frequency  # doctest: +FLOAT_CMP
+    <Quantity 114.79156866993588 GHz>
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
-    >>> relativistic_wavelength
-    <Quantity 2.6116243681...
+    >>> relativistic_wavelength  # doctest: +FLOAT_CMP
+    <Quantity 2.6116243681798923 mm>
     """
 
     ckms = _si.c.to('km/s').value
@@ -433,17 +433,19 @@ def brightness_temperature(beam_area, disp):
         >>> from astropy import units as u
         >>> beam_area = np.pi*(50*u.arcsec)**2
         >>> freq = 5*u.GHz
-        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
-        7.052588858...
-        >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
-        <Quantity 7.05258...
+        >>> equiv = u.brightness_temperature(beam_area, freq)
+        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        7.052588858846446
+        >>> (1*u.Jy).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        <Quantity 7.052588858846446 K>
 
     VLA synthetic beam::
 
         >>> beam_area = np.pi*(15*u.arcsec)**2
         >>> freq = 5*u.GHz
-        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
-        78.36209843...
+        >>> equiv = u.brightness_temperature(beam_area, freq)
+        >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
+        78.36209843162719
     """
     beam = beam_area.to(si.sr).value
     nu = disp.to(si.GHz, spectral())

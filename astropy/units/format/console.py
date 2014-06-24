@@ -20,10 +20,10 @@ class Console(base.Base):
     For example::
 
       >>> import astropy.units as u
-      >>> print(u.Ry.decompose().to_string('console'))
-                    m^2 kg
-      2.1...*10^-18 ------
-                     s^2
+      >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
+                       m^2 kg
+      2.1798721*10^-18 ------
+                        s^2
     """
     def __init__(self):
         pass

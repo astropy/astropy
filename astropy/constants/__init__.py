@@ -9,8 +9,8 @@ A typical use case might be::
     >>> # ... define the mass of something you want the rest energy of as m ...
     >>> m = m_e
     >>> E = m * c**2
-    >>> E.to('MeV')
-    <Quantity 0.51099... MeV>
+    >>> E.to('MeV')  # doctest: +FLOAT_CMP
+    <Quantity 0.510998927603161 MeV>
 
 """
 from __future__ import (absolute_import, division, print_function,
