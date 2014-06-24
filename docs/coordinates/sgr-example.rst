@@ -55,11 +55,11 @@ The first step is to create a new class, which we'll call
         default_representation = coord.SphericalRepresentation
 
         frame_specific_representation_info = {
-            'spherical': [coord.RepresentationMapping('lon', 'Lambda', u.deg),
-                          coord.RepresentationMapping('lat', 'Beta', u.deg),
-                          coord.RepresentationMapping('distance', 'distance', None)],
-            'unitspherical': [coord.RepresentationMapping('lon', 'Lambda', u.deg),
-                              coord.RepresentationMapping('lat', 'Beta', u.deg)]
+            'spherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                          coord.RepresentationMapping('lat', 'Beta'),
+                          coord.RepresentationMapping('distance', 'distance')],
+            'unitspherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                              coord.RepresentationMapping('lat', 'Beta')]
         }
 
 Line by line, the first few are simply imports. Next we define the class
@@ -69,7 +69,7 @@ attributes that specify the default representation for the data and
 mappings from the attribute names used by representation objects to the
 names that are to be used by ``Sagittarius``.  In this case we override
 the names in the spherical representations but don't do anything with
-the others like cartesian or cylindrical.
+other representations like cartesian or cylindrical.
 
 Next we have to define the transformation to some other built-in coordinate
 system; we will use Galactic coordinates. We can do this by defining functions

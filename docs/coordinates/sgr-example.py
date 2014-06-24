@@ -42,11 +42,11 @@ class Sagittarius(coord.BaseCoordinateFrame):
     default_representation = coord.SphericalRepresentation
 
     frame_specific_representation_info = {
-        'spherical': [coord.RepresentationMapping('lon', 'Lambda', u.deg),
-                      coord.RepresentationMapping('lat', 'Beta', u.deg),
-                      coord.RepresentationMapping('distance', 'distance', None)],
-        'unitspherical': [coord.RepresentationMapping('lon', 'Lambda', u.deg),
-                          coord.RepresentationMapping('lat', 'Beta', u.deg)]
+        'spherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                      coord.RepresentationMapping('lat', 'Beta'),
+                      coord.RepresentationMapping('distance', 'distance')],
+        'unitspherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                          coord.RepresentationMapping('lat', 'Beta')]
     }
 
 # Define the Euler angles (from Law & Majewski 2010)
