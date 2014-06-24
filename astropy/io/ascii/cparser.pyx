@@ -122,8 +122,8 @@ cdef class CParser:
 				raise TypeError('Input "table" must be a file-like object, a string (filename'
 			  			   'or data), or an iterable')
 		# Create a reference to the Python object so its char * pointer remains valid
-		self.source = source
-		src = source
+		self.source = source + '\n' # add newline to simplify handling last line of data
+		src = self.source
 		self.tokenizer.source = src
 		self.tokenizer.source_len = len(self.source)
 

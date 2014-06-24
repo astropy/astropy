@@ -64,7 +64,7 @@ class FastCsv(FastBasic):
 
 	def __init__(self, **kwargs):
 		delimiter = kwargs.pop('delimiter', ',')
-		FastBasic.__init__(delimiter=delimiter, **kwargs)
+		FastBasic.__init__(self, delimiter=delimiter, **kwargs)
 
 class FastTab(FastBasic):
 	"""
@@ -76,7 +76,7 @@ class FastTab(FastBasic):
 
 	def __init__(self, **kwargs):
 		delimiter = kwargs.pop('delimiter', '\t')
-		FastBasic.__init__(delimiter=delimiter, **kwargs)
+		FastBasic.__init__(self, delimiter=delimiter, **kwargs)
 
 class FastNoHeader(FastBasic):
 	"""
@@ -88,7 +88,7 @@ class FastNoHeader(FastBasic):
 
 	def __init__(self, **kwargs):
 		header_start = kwargs.pop('header_start', None)
-		FastBasic.__init__(header_start=header_start, **kwargs)
+		FastBasic.__init__(self, header_start=header_start, **kwargs)
 
 # TODO: write FastRdb, FastCommentedHeader...will require some changes to tokenizer
 

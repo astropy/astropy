@@ -48,7 +48,7 @@ void delete_tokenizer(tokenizer_t *tokenizer)
 void resize_col(tokenizer_t *self, int index)
 {
     self->output_len[index] *= 2;
-    self->output_cols[index] = (char *)realloc(self->output_cols[index], self->output_len[index] * sizeof(char));
+    self->output_cols[index] = (char *) realloc(self->output_cols[index], self->output_len[index] * sizeof(char));
 }
 
 #define PUSH(c)								\
@@ -62,24 +62,19 @@ void resize_col(tokenizer_t *self, int index)
         }								\
 	self->header_output[output_pos++] = c;				\
     }									\
-    else								\
+    else if (col < self->num_cols)					\
     {									\
 	if (self->col_ptrs[col] - self->output_cols[col] >= self->output_len[col]) \
+	{								\
 	    resize_col(self, col);					\
+	}								\
         *self->col_ptrs[col]++ = c;					\
     }
 
 #define END_FIELD()				\
-    if (header)					\
-    {						\
-	PUSH('\x00');				\
-    }						\
-    else					\
-    {						\
-	PUSH('\x00');				\
-        if (++col > self->num_cols)		\
-	    RETURN(TOO_MANY_COLS);		\
-    }
+    PUSH('\x00');				\
+    if (!header && ++col > self->num_cols)	\
+	RETURN(TOO_MANY_COLS);
 
 #define END_LINE()				\
     if (header)					\
@@ -106,14 +101,28 @@ int tokenize(tokenizer_t *self, int line, int header)
     self->source_pos = 0;
     self->num_rows = 0;
     int i = 0;
+    int empty = 1;
+    int comment = 0;
 
-    //TODO: fix this for empty/comment lines, different error for no data, etc.
+    //TODO: different error for no data
+    //TODO: decide what to do about whitespace delimiter here
     while (i < line)
     {
 	if (self->source_pos >= self->source_len)
 	    RETURN(INVALID_LINE);
-	if (self->source[self->source_pos++] == '\n')
-	    ++i;
+	if (self->source[self->source_pos] != '\n' && empty)
+	{
+	    empty = 0;
+	    if (self->source[self->source_pos] == self->comment)
+		comment = 1;
+	}
+	else if (self->source[self->source_pos++] == '\n')
+	{
+	    if (!empty && !comment)
+		++i;
+	    empty = 1;
+	    comment = 0;
+	}
     }
 
     if (header)
@@ -182,12 +191,6 @@ int tokenize(tokenizer_t *self, int line, int header)
 	    else
 	    {
 		PUSH(c);
-
-		if (self->source_pos == self->source_len - 1)
-		{
-		    END_FIELD();
-		    END_LINE();
-		}
 	    }
 	    break;
 

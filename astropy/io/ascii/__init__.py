@@ -24,7 +24,7 @@ from .basic import (Basic, BasicHeader, BasicData,
                     Tab,
                     NoHeader,
                     CommentedHeader)
-from .fastbasic import FastBasic
+from .fastbasic import FastBasic, FastCsv, FastTab, FastNoHeader
 from .cds import Cds
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML
