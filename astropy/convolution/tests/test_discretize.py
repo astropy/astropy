@@ -35,7 +35,7 @@ def test_pixel_sum_1D(model_class, mode):
     """
     if model_class == Box1D and mode == "center":
         pytest.skip("Non integrating mode. Skip integral test.")
-    parameters = models_1D[model_class]['parameters']
+    parameters = models_1D[model_class]
     model = create_model(model_class, parameters)
 
     values = discretize_model(model, models_1D[model_class]['x_lim'], mode=mode)
@@ -63,7 +63,7 @@ def test_pixel_sum_2D(model_class, mode):
     if model_class == Box2D and mode == "center":
         pytest.skip("Non integrating mode. Skip integral test.")
 
-    parameters = models_2D[model_class]['parameters']
+    parameters = models_2D[model_class]
     model = create_model(model_class, parameters)
 
     values = discretize_model(model, models_2D[model_class]['x_lim'],

@@ -220,16 +220,17 @@ def test_custom_model_defaults():
     assert sin_model.frequency == 1
 
 
-class TestFittableModels(object):
+class Fittable2DModelTester(object):
     """
-    Test class for all parametric models.
+    Test class for all two dimensional parametric models.
 
     Test values have to be defined in example_models.py. It currently test the model
     with different input types, evaluates the model at different positions and
     assures that it gives the correct values. And tests if the  model works with
     the NonLinearFitter.
-    """
 
+    This can be used as a base class for user defined model testing.
+    """
     def setup_class(self):
         self.N = 100
         self.M = 100
@@ -241,104 +242,41 @@ class TestFittableModels(object):
         self.y1 = np.arange(1, 10, .1)
         self.y2, self.x2 = np.mgrid[:10, :8]
 
-    @pytest.mark.parametrize(('model_class'), models_1D.keys())
-    def test_input1D(self, model_class):
+    def test_input2D(self, model_class, test_parameters):
         """
         Test model with different input types.
         """
-        parameters = models_1D[model_class]['parameters']
-        model = create_model(model_class, parameters)
-        model(self.x)
-        model(self.x1)
-        model(self.x2)
-
-    @pytest.mark.parametrize(('model_class'), models_1D.keys())
-    def test_eval1D(self, model_class):
-        """
-        Test model values at certain given points
-        """
-        parameters = models_1D[model_class]['parameters']
-        model = create_model(model_class, parameters)
-        x = models_1D[model_class]['x_values']
-        y = models_1D[model_class]['y_values']
-        utils.assert_allclose(model(x), y, atol=self.eval_error)
-
-    @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('model_class'), models_1D.keys())
-    def test_fitter1D(self, model_class):
-        """
-        Test if the parametric model works with the fitter.
-        """
-        x_lim = models_1D[model_class]['x_lim']
-        parameters = models_1D[model_class]['parameters']
-        model = create_model(model_class, parameters)
-
-        if isinstance(parameters, dict):
-            parameters = [parameters[name] for name in model.param_names]
-
-        if "log_fit" in models_1D[model_class]:
-            if models_1D[model_class]['log_fit']:
-                x = np.logspace(x_lim[0], x_lim[1], self.N)
-        else:
-            x = np.linspace(x_lim[0], x_lim[1], self.N)
-
-        np.random.seed(0)
-        # add 10% noise to the amplitude
-        relative_noise_amplitude = 0.01
-        data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
-        fitter = fitting.LevMarLSQFitter()
-        new_model = fitter(model, x, data)
-
-        # Only check parameters that were free in the fit
-        params = [getattr(new_model, name) for name in new_model.param_names]
-        fixed = [param.fixed for param in params]
-        expected = np.array([val for val, fixed in zip(parameters, fixed)
-                             if not fixed])
-        fitted = np.array([param.value for param in params
-                           if not param.fixed])
-        utils.assert_allclose(fitted, expected,
-                              atol=self.fit_error)
-
-    @pytest.mark.parametrize(('model_class'), models_2D.keys())
-    def test_input2D(self, model_class):
-        """
-        Test model with different input types.
-        """
-        parameters = models_2D[model_class]['parameters']
-        model = create_model(model_class, parameters)
+        model = create_model(model_class, test_parameters)
         model(self.x, self.y)
         model(self.x1, self.y1)
         model(self.x2, self.y2)
 
-    @pytest.mark.parametrize(('model_class'), models_2D.keys())
-    def test_eval2D(self, model_class):
+    def test_eval2D(self, model_class, test_parameters):
         """
         Test model values add certain given points
         """
-        parameters = models_2D[model_class]['parameters']
-        model = create_model(model_class, parameters)
-        x = models_2D[model_class]['x_values']
-        y = models_2D[model_class]['y_values']
-        z = models_2D[model_class]['z_values']
+        model = create_model(model_class, test_parameters)
+        x = test_parameters['x_values']
+        y = test_parameters['y_values']
+        z = test_parameters['z_values']
         assert np.all((np.abs(model(x, y) - z) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('model_class'), models_2D.keys())
-    def test_fitter2D(self, model_class):
+    def test_fitter2D(self, model_class, test_parameters):
         """
         Test if the parametric model works with the fitter.
         """
-        x_lim = models_2D[model_class]['x_lim']
-        y_lim = models_2D[model_class]['y_lim']
+        x_lim = test_parameters['x_lim']
+        y_lim = test_parameters['y_lim']
 
-        parameters = models_2D[model_class]['parameters']
-        model = create_model(model_class, parameters)
+        parameters = test_parameters['parameters']
+        model = create_model(model_class, test_parameters)
 
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
 
-        if "log_fit" in models_2D[model_class]:
-            if models_2D[model_class]['log_fit']:
+        if "log_fit" in test_parameters:
+            if test_parameters['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
                 y = np.logspace(y_lim[0], y_lim[1], self.N)
         else:
@@ -363,22 +301,21 @@ class TestFittableModels(object):
                               atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('model_class'), list(models_2D.keys()))
-    def test_deriv_2D(self, model_class):
+    def test_deriv_2D(self, model_class, test_parameters):
         """
         Test the derivative of a model by fitting with an estimated and
         analytical derivative
         """
-        x_lim = models_2D[model_class]['x_lim']
-        y_lim = models_2D[model_class]['y_lim']
+        x_lim = test_parameters['x_lim']
+        y_lim = test_parameters['y_lim']
 
         if model_class.fit_deriv is None:
             pytest.skip("Derivative function is not defined for model.")
         if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
-        if "log_fit" in models_2D[model_class]:
-            if models_2D[model_class]['log_fit']:
+        if "log_fit" in test_parameters:
+            if test_parameters['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
                 y = np.logspace(y_lim[0], y_lim[1], self.M)
         else:
@@ -387,19 +324,21 @@ class TestFittableModels(object):
         xv, yv = np.meshgrid(x, y)
 
         try:
-            parameters = models_2D[model_class]['deriv_parameters']
-            init_vals = models_2D[model_class]['deriv_initial']
+            model_with_deriv = create_model(model_class, test_parameters,
+                                    use_constraints=False, parameter_key='deriv_initial')
+            model_no_deriv = create_model(model_class, test_parameters,
+                                    use_constraints=False, parameter_key='deriv_initial')
+            model = create_model(model_class, test_parameters, use_constraints=False,
+                                 parameter_key='deriv_initial')
         except KeyError:
-            parameters = models_2D[model_class]['parameters']
-            init_vals = parameters[:]
-        model_with_deriv = create_model(model_class, init_vals, use_constraints=False)
-        model_no_deriv = create_model(model_class, init_vals, use_constraints=False)
+            model_with_deriv = create_model(model_class, test_parameters, use_constraints=False)
+            model_no_deriv = create_model(model_class, test_parameters, use_constraints=False)
+            model = create_model(model_class, test_parameters, use_constraints=False)
 
         # add 10% noise to the amplitude
         rsn = np.random.RandomState(1234567890)
-        n = 0.1 * parameters[0] * (rsn.rand(self.M, self.N)-0.5)
+        n = 0.1 * test_parameters['parameters'][0] * (rsn.rand(self.M, self.N) - 0.5)
 
-        model = create_model(model_class, parameters, use_constraints=False)
         data = model(xv, yv) + n
         fitter_with_deriv = fitting.LevMarLSQFitter()
         new_model_with_deriv = fitter_with_deriv(model_with_deriv, xv, yv, data)
@@ -408,28 +347,109 @@ class TestFittableModels(object):
         utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters,
                               rtol=0.1)
 
+
+class Fittable1DModelTester(object):
+    """
+    Test class for all one dimensional parametric models.
+
+    Test values have to be defined in example_models.py. It currently test the model
+    with different input types, evaluates the model at different positions and
+    assures that it gives the correct values. And tests if the  model works with
+    the NonLinearFitter.
+
+    This can be used as a base class for user defined model testing.
+    """
+
+    def setup_class(self):
+        self.N = 100
+        self.M = 100
+        self.eval_error = 0.0001
+        self.fit_error = 0.1
+        self.x = 5.3
+        self.y = 6.7
+        self.x1 = np.arange(1, 10, .1)
+        self.y1 = np.arange(1, 10, .1)
+        self.y2, self.x2 = np.mgrid[:10, :8]
+
+    def test_input1D(self, model_class, test_parameters):
+        """
+        Test model with different input types.
+        """
+        model = create_model(model_class, test_parameters)
+        model(self.x)
+        model(self.x1)
+        model(self.x2)
+
+    def test_dict(self, model_class, test_parameters):
+        """
+        Test type of test_parameters and model_class
+        """
+        assert type(test_parameters) == dict
+
+    def test_eval1D(self, model_class, test_parameters):
+        """
+        Test model values at certain given points
+        """
+        model = create_model(model_class, test_parameters)
+        x = test_parameters['x_values']
+        y = test_parameters['y_values']
+        utils.assert_allclose(model(x), y, atol=self.eval_error)
+
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('model_class'), list(models_1D.keys()))
-    def test_deriv_1D(self, model_class):
+    def test_fitter1D(self, model_class, test_parameters):
+        """
+        Test if the parametric model works with the fitter.
+        """
+        x_lim = test_parameters['x_lim']
+        parameters = test_parameters['parameters']
+        model = create_model(model_class, test_parameters)
+
+        if isinstance(parameters, dict):
+            parameters = [parameters[name] for name in model.param_names]
+
+        if "log_fit" in test_parameters:
+            if test_parameters['log_fit']:
+                x = np.logspace(x_lim[0], x_lim[1], self.N)
+        else:
+            x = np.linspace(x_lim[0], x_lim[1], self.N)
+
+        np.random.seed(0)
+        # add 10% noise to the amplitude
+        relative_noise_amplitude = 0.01
+        data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
+        fitter = fitting.LevMarLSQFitter()
+        new_model = fitter(model, x, data)
+
+        # Only check parameters that were free in the fit
+        params = [getattr(new_model, name) for name in new_model.param_names]
+        fixed = [param.fixed for param in params]
+        expected = np.array([val for val, fixed in zip(parameters, fixed)
+                             if not fixed])
+        fitted = np.array([param.value for param in params
+                           if not param.fixed])
+        utils.assert_allclose(fitted, expected, atol=self.fit_error)
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_deriv_1D(self, model_class, test_parameters):
         """
         Test the derivative of a model by comparing results with an estimated derivative
         """
-        x_lim = models_1D[model_class]['x_lim']
+        x_lim = test_parameters['x_lim']
 
         if model_class.fit_deriv is None:
             pytest.skip("Derivative function is not defined for model.")
         if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
-        if "log_fit" in models_1D[model_class]:
-            if models_1D[model_class]['log_fit']:
+        if "log_fit" in test_parameters:
+            if test_parameters['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
         else:
             x = np.linspace(x_lim[0], x_lim[1], self.N)
 
-        parameters = models_1D[model_class]['parameters']
-        model_with_deriv = create_model(model_class, parameters, use_constraints=False)
-        model_no_deriv = create_model(model_class, parameters, use_constraints=False)
+        parameters = test_parameters['parameters']
+        model_with_deriv = create_model(model_class, test_parameters, use_constraints=False)
+        model_no_deriv = create_model(model_class, test_parameters, use_constraints=False)
 
         # add 10% noise to the amplitude
         rsn = np.random.RandomState(1234567890)
@@ -440,34 +460,34 @@ class TestFittableModels(object):
         new_model_with_deriv = fitter_with_deriv(model_with_deriv, x, data)
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, x, data, estimate_jacobian=True)
-        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters,
-
-                              atol=0.1)
+        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.1)
 
 
-def create_model(model_class, parameters, use_constraints=True):
+def create_model(model_class, test_parameters, use_constraints=True, parameter_key='parameters'):
     """
     Create instance of model class.
     """
+
     constraints = {}
-    if issubclass(model_class, Fittable1DModel):
-        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+    if issubclass(model_class, Fittable1DModel) or issubclass(model_class, Fittable2DModel): 
+        if "requires_scipy" in test_parameters and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if use_constraints:
-            if 'constraints' in models_1D[model_class]:
-                constraints = models_1D[model_class]['constraints']
-        return model_class(*parameters, **constraints)
-
-    elif issubclass(model_class, Fittable2DModel):
-        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
-            pytest.skip("SciPy not found")
-        if use_constraints:
-            if 'constraints' in models_2D[model_class]:
-                constraints = models_2D[model_class]['constraints']
-        return model_class(*parameters, **constraints)
-
+            if 'constraints' in test_parameters:
+                constraints = test_parameters['constraints']
+        return model_class(*test_parameters[parameter_key], **constraints)
     elif issubclass(model_class, PolynomialModel):
-        return model_class(**parameters)
+        return model_class(**test_parameters[parameter_key])
+
+
+@pytest.mark.parametrize(('model_class', 'test_parameters'), list(models_1D.items()))
+class TestFittable1DModels(Fittable1DModelTester):
+    pass
+
+
+@pytest.mark.parametrize(('model_class', 'test_parameters'), list(models_2D.items()))
+class TestFittable2DModels(Fittable2DModelTester):
+    pass
 
 
 def test_ShiftModel():
