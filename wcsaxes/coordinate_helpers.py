@@ -64,9 +64,6 @@ class CoordinateHelper(object):
         self.ticklabels = TickLabels(transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
-        # Get sizes of ticks and tick labels
-        ticks_size = self.ticks.get_ticksize()
-
         # Initialize axis labels
         self.axislabels = AxisLabels(self.frame,
                                      transform=None,  # display coordinates
@@ -260,15 +257,13 @@ class CoordinateHelper(object):
         ----------
         text : str
             The axis label text.
-        minpad : int
+        minpad : float, optional
             The padding for the label in terms of axis label font size.
         kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
-        ticks_size = self.ticks.get_ticksize()
-
         self.axislabels.set_text(text)
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
