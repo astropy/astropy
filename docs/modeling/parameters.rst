@@ -59,7 +59,7 @@ Parameter examples
 
       >>> g = models.Gaussian1D(mean=0.0, amplitude=2.0, stddev=0.2)
       >>> g
-      <Gaussian1D(amplitude=2.0, mean=0.0, stddev=0.2)>
+      <Gaussian1D(amplitude=2.0, mean=0.0, stddev=0.2...)>
 
   So all that really matters is knowing the names (and meanings) of the
   parameters that each model accepts.  More information about an individual
