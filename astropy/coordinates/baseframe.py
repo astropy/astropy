@@ -286,10 +286,13 @@ class RepresentationMapping(namedtuple('RepresentationMapping',
     """
     This `~collections.namedtuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
-    attribute names (and default units) to use for a particular
-    representation.
+    attribute names (and default units) to use for a particular representation.
+    ``reprname`` and ``framename`` should be strings, while ``defaultunit`` can
+    be either an astropy unit, the string ``'recommended'`` (to use whatever the
+    representation's ``recommended_units`` is), or None (to indicate that no
+    unit mapping should be done).
     """
-    def __new__(cls, reprname, framename, defaultunit=None):
+    def __new__(cls, reprname, framename, defaultunit='recommended'):
         # this trick just provides some defaults
         return super(RepresentationMapping, cls).__new__(cls, reprname,
                                                          framename, defaultunit)
@@ -532,7 +535,8 @@ class BaseCoordinateFrame(object):
             repr_attrs[repr_cls] = {'names': [], 'units': []}
             for c in repr_cls.attr_classes.keys():
                 repr_attrs[repr_cls]['names'].append(c)
-                repr_attrs[repr_cls]['units'].append(None)
+                rec_unit = repr_cls.recommended_units.get(c, None)
+                repr_attrs[repr_cls]['units'].append(rec_unit)
 
         for repr_cls, mappings in cls._frame_specific_representation_info.items():
             # keys may be a class object or a name
@@ -540,8 +544,7 @@ class BaseCoordinateFrame(object):
 
             # take the 'names' and 'units' tuples from repr_attrs,
             # and then use the RepresentationMapping objects
-            # to update as needed for this frame.  Finally, convert
-            # to tuples.
+            # to update as needed for this frame.
             nms = repr_attrs[repr_cls]['names']
             uns = repr_attrs[repr_cls]['units']
             comptomap = dict([(m.reprname, m) for m in mappings])
@@ -549,11 +552,17 @@ class BaseCoordinateFrame(object):
                 if c in comptomap:
                     mapp = comptomap[c]
                     nms[i] = mapp.framename
-                    uns[i] = mapp.defaultunit
+                    # need the isinstance because otherwise if it's a unit it
+                    # will try to compare to the unit string representation
+                    if not (isinstance(mapp.defaultunit, six.string_types) and
+                            mapp.defaultunit == 'recommended'):
+                        uns[i] = mapp.defaultunit
+                        # else we just leave it as recommended_units says above
+            # Convert to tuples so that this can't mess with frame internals
             repr_attrs[repr_cls]['names'] = tuple(nms)
             repr_attrs[repr_cls]['units'] = tuple(uns)
 
-        return deepcopy(repr_attrs)  # Don't let upstream mess with frame internals
+        return repr_attrs
 
     @property
     def representation_info(self):

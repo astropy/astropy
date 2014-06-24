@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
-from copy import deepcopy
 
 import numpy as np
 import astropy.units as u
@@ -68,9 +67,13 @@ class BaseRepresentation(object):
     the cartesian system, but classes that want to define a smarter
     transformation path can overload the ``represent_as`` method.
     Furthermore, all classes must define an ``attr_classes`` attribute, an
-    `~collections.OrderedDict` which maps component names to
-    the class that creates them.
+    `~collections.OrderedDict` which maps component names to the class that
+    creates them.  They can also define a `recommended_units` dictionary, which
+    maps component names to the units they are best presented to users in.  Note
+    that frame classes may override this with their own preferred units.
     """
+
+    recommended_units = {}  # subclasses can override
 
     def represent_as(self, other_class):
         if other_class == self.__class__:
@@ -293,6 +296,7 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
+    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -404,6 +408,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude)])
+    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     def __init__(self, lon, lat, copy=True):
 
@@ -506,6 +511,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
+    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -633,6 +639,7 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
+    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, copy=True):
 

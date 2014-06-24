@@ -60,8 +60,8 @@ class ICRS(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra', u.deg),
-                      RepresentationMapping('lat', 'dec', u.deg)]
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -112,8 +112,8 @@ class FK5(BaseCoordinateFrame):
         The equinox of this frame.
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra', u.deg),
-                      RepresentationMapping('lat', 'dec', u.deg)]
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -174,8 +174,8 @@ class FK4(BaseCoordinateFrame):
         ``equinox``.
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra', u.deg),
-                      RepresentationMapping('lat', 'dec', u.deg)]
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -217,8 +217,8 @@ class FK4NoETerms(BaseCoordinateFrame):
         ``equinox``.
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra', u.deg),
-                      RepresentationMapping('lat', 'dec', u.deg)]
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -284,11 +284,11 @@ class Galactic(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'l', u.deg),
-                      RepresentationMapping('lat', 'b', u.deg)],
-        'cartesian': [RepresentationMapping('x', 'w', None),
-                      RepresentationMapping('y', 'u', None),
-                      RepresentationMapping('z', 'v', None)]
+        'spherical': [RepresentationMapping('lon', 'l'),
+                      RepresentationMapping('lat', 'b')],
+        'cartesian': [RepresentationMapping('x', 'w'),
+                      RepresentationMapping('y', 'u'),
+                      RepresentationMapping('z', 'v')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -331,8 +331,8 @@ class AltAz(BaseCoordinateFrame):
     """
 
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'az', u.deg),
-                      RepresentationMapping('lat', 'alt', u.deg)],
+        'spherical': [RepresentationMapping('lon', 'az'),
+                      RepresentationMapping('lat', 'alt')],
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']
@@ -363,8 +363,8 @@ class NoFrame(BaseCoordinateFrame):
 
     """
     frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra', u.deg),
-                      RepresentationMapping('lat', 'dec', u.deg)]
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
     }
     frame_specific_representation_info['unitspherical'] = \
         frame_specific_representation_info['spherical']

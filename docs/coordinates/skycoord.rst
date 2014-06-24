@@ -632,7 +632,7 @@ in 3d space.
 
     >>> c.representation = 'cylindrical'
     >>> c
-    <SkyCoord (NoFrame): rho=2.236067... kpc, phi=1.1071487... rad, z=3.0 kpc>
+    <SkyCoord (NoFrame): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
     >>> c.phi.to(u.deg)
     <Angle 63.434948... deg>
     >>> c.x  # doctest: +SKIP

@@ -137,7 +137,7 @@ coordinate objects::
 
     >>> c.representation = 'cylindrical'
     >>> c
-    <SkyCoord (ICRS): rho=2.236067... kpc, phi=1.1071487... rad, z=3.0 kpc>
+    <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
     >>> c.phi.to(u.deg)
     <Angle 63.43494882292201 deg>
 
