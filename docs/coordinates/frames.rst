@@ -215,7 +215,7 @@ Users can add new coordinate frames by creating new classes that are subclasses
 of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
 define the class attributes ``default_representation`` and
-``_frame_specific_representation_info`` along with frame attributes as
+``frame_specific_representation_info`` along with frame attributes as
 `~astropy.coordinates.FrameAttribute` class instances (or subclasses like
 `~astropy.coordinates.TimeFrameAttribute`).  If these are
 defined, there is often no need to define an ``__init__`` function, as the
@@ -235,9 +235,9 @@ the way you want.  As an example::
   ...                        RepresentationMapping(reprname='distance', framename='DIST', defaultunit=None)],
   ...          'unitspherical': [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
   ...                            RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad)],
-  ...          'cartesian': [RepresentationMapping(reprname='x', framename='X', defaultunit=None),
-  ...                        RepresentationMapping(reprname='y', framename='Y', defaultunit=None),
-  ...                        RepresentationMapping(reprname='z', framename='Z', defaultunit=None)]
+  ...          'cartesian': [RepresentationMapping(reprname='x', framename='X'),
+  ...                        RepresentationMapping(reprname='y', framename='Y'),
+  ...                        RepresentationMapping(reprname='z', framename='Z')]
   ...      }
   ...
   ...      # Specify frame attributes required to fully specify the frame
