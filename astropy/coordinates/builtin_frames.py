@@ -353,25 +353,6 @@ class AltAz(BaseCoordinateFrame):
         super(AltAz, self).__init__(*args, **kwargs)
 
 
-class NoFrame(BaseCoordinateFrame):
-    """
-    A "Fake" frame that is not meant to be transformed to/from.  Acts like a
-    standard equatorial coordinate system with no extra attributes.
-
-    Used primarily internally in `SkyCoord`, which is why it is not in the
-    public API.
-
-    """
-    frame_specific_representation_info = {
-        'spherical': [RepresentationMapping('lon', 'ra'),
-                      RepresentationMapping('lat', 'dec')]
-    }
-    frame_specific_representation_info['unitspherical'] = \
-        frame_specific_representation_info['spherical']
-
-    default_representation = SphericalRepresentation
-
-
 # <--------------------------------transformations------------------------------>
 # Transformations are defined here instead of in the classes themselves, because
 # we need references to the various objects to give to the decorators.

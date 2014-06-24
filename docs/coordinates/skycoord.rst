@@ -70,17 +70,18 @@ The coordinate values and frame specification can now be provided using
 positional and keyword arguments.  First we show positional arguments for
 RA and Dec::
 
-  >>> SkyCoord(10, 20, unit="deg")  # No frame (no transform to other frames)
-  <SkyCoord (NoFrame): ra=10.0 deg, dec=20.0 deg>
+  >>> SkyCoord(10, 20, unit="deg")  # Defaults to ICRS
+  <SkyCoord (ICRS): ra=10.0 deg, dec=20.0 deg>
 
   >>> SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")
   <SkyCoord (ICRS): (ra, dec) in deg
       [(1.0, -30.0), (2.0, 45.0), (3.0, 8.0)]>
 
-Notice that the first example above does not specify a frame.  This object
-can be used for displaying the coordinates in different formats but cannot
-be used in transformations, matching catalogs, nor in computing coordinate
-separations.
+Notice that the first example above does not explicitly give a frame.  In
+this case, the default is taken to be the ICRS system (approximately
+correct for "J2000" equatorial coordinates).  It is always better to
+explicitly specify the frame when it is known to be ICRS, however, as
+anyone reading the code will be better able to understand the intent.
 
 String inputs in common formats are acceptable, and the frame can be supplied
 as either a class type like `~astropy.coordinates.FK4` or the lower-case
@@ -199,7 +200,7 @@ to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
 `~astropy.coordinates.Galactic`, and `~astropy.coordinates.AltAz`.
 The string aliases are simply lower-case versions of the class name.
 
-If the frame is not supplied then you will see a special ``NoFrame``
+If the frame is not supplied then you will see a special ``ICRS``
 identifer.  This indicates that the frame is unspecified and operations
 that require comparing coordinates (even within that object) are not allowed.
 
@@ -468,23 +469,23 @@ supplying the corresponding components for that representation::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
     >>> c
-    <SkyCoord (NoFrame): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    <SkyCoord (ICRS): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
     >>> c.x, c.y, c.z
     (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
 
 Other variations include::
 
     >>> SkyCoord(1, 2*u.deg, 3, representation='cylindrical')
-    <SkyCoord (NoFrame): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
 
     >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation='cylindrical')
-    <SkyCoord (NoFrame): rho=1.0 km, phi=2.0 deg, z=3.0 m>
+    <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
 
     >>> SkyCoord(rho=1, phi=2, z=3, unit=(u.km, u.deg, u.m), representation='cylindrical')
-    <SkyCoord (NoFrame): rho=1.0 km, phi=2.0 deg, z=3.0 m>
+    <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
 
     >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation='cylindrical')
-    <SkyCoord (NoFrame): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
 
 In general terms, the allowed syntax is as follows::
 
@@ -628,11 +629,11 @@ in 3d space.
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
     >>> c
-    <SkyCoord (NoFrame): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    <SkyCoord (ICRS): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
 
     >>> c.representation = 'cylindrical'
     >>> c
-    <SkyCoord (NoFrame): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
+    <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
     >>> c.phi.to(u.deg)
     <Angle 63.434948... deg>
     >>> c.x  # doctest: +SKIP
@@ -641,11 +642,11 @@ in 3d space.
 
     >>> c.representation = 'spherical'
     >>> c
-    <SkyCoord (NoFrame): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
+    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
 
     >>> c.representation = 'unitspherical'
     >>> c
-    <SkyCoord (NoFrame): ra=63.434948... deg, dec=53.300774... deg>
+    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg>
 
 You can also use any representation class to set the representation::
 

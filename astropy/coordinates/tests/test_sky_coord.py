@@ -408,8 +408,8 @@ def test_repr():
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.25, 1.0), (0.25, 2.5)]>')
 
-    sc_noframe = SkyCoord(0 * u.deg, 1 * u.deg)
-    assert repr(sc_noframe) == '<SkyCoord (NoFrame): ra=0.0 deg, dec=1.0 deg>'
+    sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
+    assert repr(sc_default) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
 
 
 def test_ops():
@@ -441,20 +441,21 @@ def test_ops():
 
 def test_none_transform():
     """
-    Ensure that transforming from a SkyCoord with no frame provided always fails
+    Ensure that transforming from a SkyCoord with no frame provided works like
+    ICRS
     """
     sc = SkyCoord(0 * u.deg, 1 * u.deg)
     sc_arr = SkyCoord(0 * u.deg, [1, 2] * u.deg)
 
-    with pytest.raises(ValueError):
-        sc.transform_to(ICRS)
-    with pytest.raises(ValueError):
-        sc.transform_to('fk5')
+    sc2 = sc.transform_to(ICRS)
+    assert sc.ra == sc2.ra and sc.dec == sc2.dec
 
-    with pytest.raises(ValueError):
-        sc_arr.transform_to(ICRS)
-    with pytest.raises(ValueError):
-        sc_arr.transform_to('fk5')
+    sc5 = sc.transform_to('fk5')
+    assert sc5.ra == sc2.transform_to('fk5').ra
+
+    sc_arr2 = sc_arr.transform_to(ICRS)
+    sc_arr5 = sc_arr.transform_to('fk5')
+    npt.assert_array_equal(sc_arr5.ra, sc_arr2.transform_to('fk5').ra)
 
 
 def test_position_angle():

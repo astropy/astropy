@@ -12,7 +12,7 @@ from .. import units as u
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import NoFrame
+from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -64,7 +64,7 @@ class SkyCoord(object):
     The coordinate values and frame specification can now be provided using
     positional and keyword arguments::
 
-      >>> c = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
+      >>> c = SkyCoord(10, 20, unit="deg")  # defaults to ICRS frame
       >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
@@ -93,7 +93,8 @@ class SkyCoord(object):
     Parameters
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
-        Type of coordinate frame this `SkyCoord` should represent.
+        Type of coordinate frame this `SkyCoord` should represent. Defaults to
+        to ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied ``LON`` and ``LAT`` values, respectively.  If
         only one unit is supplied then it applies to both ``LON`` and
@@ -271,10 +272,6 @@ class SkyCoord(object):
             If there is no possible transformation route.
         """
         from astropy.coordinates.errors import ConvertError
-
-        if frame is None or isinstance(self.frame, NoFrame):
-            raise ValueError('Cannot transform to/from this SkyCoord because '
-                             'the frame was not specified at creation.')
 
         frame_kwargs = {}
 
@@ -778,19 +775,22 @@ def _get_frame(args, kwargs):
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
+        frame_specified_explicitly = True
     else:
         # Look for the frame in args
         for arg in args:
             try:
                 frame_cls = _get_frame_class(arg)
+                frame_specified_explicitly = True
             except ValueError:
                 pass
             else:
                 args.remove(arg)
                 break
         else:
-            # Not in args nor kwargs
-            frame_cls = NoFrame
+            # Not in args nor kwargs - default to icrs
+            frame_cls = ICRS
+            frame_specified_explicitly = False
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
@@ -803,7 +803,7 @@ def _get_frame(args, kwargs):
             coord_frame_cls = arg.frame.__class__
 
         if coord_frame_cls is not None:
-            if frame_cls is NoFrame:
+            if not frame_specified_explicitly:
                 frame_cls = coord_frame_cls
             elif frame_cls is not coord_frame_cls:
                 raise ValueError("Cannot override frame='{0}' of input coordinate with "
