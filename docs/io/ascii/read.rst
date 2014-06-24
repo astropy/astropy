@@ -286,7 +286,7 @@ look like a number.
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Rdb, Tab, Cds, Daophot, SExtractor, Ipac):
+  for Reader in (Rdb, Tab, Cds, Daophot, SExtractor, Ipac, Latex, AASTex, HTML):
       read(Reader=Reader)
   for Reader in (CommentedHeader, Basic, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):

@@ -150,7 +150,7 @@ indicates which support write functionality.
 ``ascii.fixed_width_no_header``          Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
 ``ascii.fixed_width_two_line``           Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
 ``ascii.ipac``                           Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
-``ascii.html``                    .html  Yes :class:`~astropy.io.ascii.HTML`: HTML table
+``ascii.html``                   .html   Yes :class:`~astropy.io.ascii.HTML`: HTML table
 ``ascii.latex``                   .tex   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
 ``ascii.no_header``                      Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
 ``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
