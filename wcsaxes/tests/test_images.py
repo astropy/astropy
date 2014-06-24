@@ -138,10 +138,9 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, image.shape[0] - 0.5)
         ax.set_ylim(-0.5, image.shape[1] - 0.5)
+        ax.coords[2].set_axislabel('Velocity m/s')
         ax.coords[1].set_ticks(width=1)
         ax.coords[2].set_ticks(width=1)
-
-        ax.coords[2].set_axislabel('Velocity m/s')
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
@@ -157,9 +156,9 @@ class TestImages(object):
         ax.set_ylim(-0.5, image.shape[1] - 0.5)
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
+        ax.coords[2].set_axislabel('Velocity km/s')
         ax.coords[1].set_ticks(width=1)
         ax.coords[2].set_ticks(width=1)
-        ax.coords[2].set_axislabel('Velocity km/s')
 
         self.generate_or_test(generate, fig, 'changed_axis_units.png')
 

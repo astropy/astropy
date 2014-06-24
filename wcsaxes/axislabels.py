@@ -14,7 +14,6 @@ class AxisLabels(Text):
         self.set_ha('center')
         self.set_va('center')
         self._minpad = minpad
-        # self._pad = None
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
@@ -31,7 +30,7 @@ class AxisLabels(Text):
     def draw(self, renderer, bboxes, ticklabels_bbox_list, visible_ticks):
 
         text_size = renderer.points_to_pixels(self.get_size())
-        self.pad = text_size * self._minpad
+        padding = text_size * self._minpad
 
         for axis in self.get_visible_axes():
 
@@ -54,9 +53,9 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
 
-            # Find label position by looking at the bouding box of ticks'
-            # labels and the image. It places the label 1 font size away
-            # from the axis, which can also be changed by setting
+            # Find label position by looking at the bounding box of ticks'
+            # labels and the image. It sets the default padding at 1 times the
+            # axis label font size which can also be changed by setting
             # the minpad parameter.
 
             ticklabels_bbox = mtransforms.Bbox.union(ticklabels_bbox_list)
@@ -66,7 +65,7 @@ class AxisLabels(Text):
                     left = ticklabels_bbox.xmin
                 else:
                     left = xcen
-                xpos = left - (self.pad)
+                xpos = left - padding
                 self.set_position((xpos, ycen))
 
             elif axis == 'r':
@@ -74,7 +73,7 @@ class AxisLabels(Text):
                     right = ticklabels_bbox.x1
                 else:
                     right = xcen
-                xpos = right + (self.pad)
+                xpos = right + padding
                 self.set_position((xpos, ycen))
 
             elif axis == 'b':
@@ -82,7 +81,7 @@ class AxisLabels(Text):
                     bottom = ticklabels_bbox.ymin
                 else:
                     bottom = ycen
-                ypos = bottom - (self.pad)
+                ypos = bottom - padding
                 self.set_position((xcen, ypos))
 
             elif axis == 't':
@@ -90,7 +89,7 @@ class AxisLabels(Text):
                     top = ticklabels_bbox.y1
                 else:
                     top = ycen
-                ypos = top + (self.pad)
+                ypos = top + padding
                 self.set_position((xcen, ypos))
 
             super(AxisLabels, self).draw(renderer)
