@@ -30,7 +30,7 @@ class FastBasic(object):
         self.engine.read_header()
         self.names = list(self.engine.names)
 
-    def read(self, table):
+    def read(self, table): # TODO: actually take the parameters from _get_reader()
         if len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
         elif self.data_start is None:

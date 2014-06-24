@@ -108,7 +108,7 @@ int tokenize(tokenizer_t *self, int line, int header)
     //TODO: decide what to do about whitespace delimiter here
     while (i < line)
     {
-	if (self->source_pos >= self->source_len)
+	if (self->source_pos >= self->source_len - 1) // ignore final newline
 	    RETURN(INVALID_LINE);
 	if (self->source[self->source_pos] != '\n' && empty)
 	{

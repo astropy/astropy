@@ -49,8 +49,8 @@ class CParserError(Exception):
 	"""
 
 ERR_CODES = dict(enumerate(["no error",
-	    		"invalid line supplied",
-			"too many columns found in data"
+							"invalid line supplied",
+							lambda t: "too many columns found in line {} of data".format(t)
 			]))
 
 cdef class CParser:
@@ -104,17 +104,17 @@ cdef class CParser:
 
 	cdef raise_error(self, msg):
 		err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
+		if callable(err_msg):
+			err_msg = err_msg(self.tokenizer.num_rows + 1)
 		raise CParserError("{}: {}".format(msg, err_msg))
 
 	cdef setup_tokenizer(self, source):
 		cdef char *src
 
-		if isinstance(source, six.string_types):
-			if '\n' not in source and '\r' not in source + '': #todo: check else case
-				with get_readable_fileobj(source) as file_obj:
-					source = file_obj.read()
-		elif hasattr(source, 'read'): # file-like object
-			source = source.read()
+		if isinstance(source, six.string_types) or hasattr(source, 'read'):
+			#todo: handle the case where source is the actual data (includes newline)
+			with get_readable_fileobj(source) as file_obj:
+				source = file_obj.read()
 		else:
 			try:
 				source = '\n'.join(source) # iterable sequence of lines
