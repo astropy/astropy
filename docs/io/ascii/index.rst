@@ -20,6 +20,7 @@ The following shows a few of the ASCII formats that are available, while the sec
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+* :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
@@ -139,6 +140,7 @@ functionality.
 ``fixed_width``             Yes :class:`~astropy.io.ascii.FixedWidth`: Fixed width
 ``fixed_width_no_header``   Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
 ``fixed_width_two_line``    Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+``html``                    Yes :class:`~astropy.io.ascii.HTML`: HTML format table
 ``ipac``                    Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
 ``latex``                   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
 ``no_header``               Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers

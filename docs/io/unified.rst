@@ -73,6 +73,7 @@ The full list of built-in readers and writers is shown in the table below:
           ascii.fixed_width  Yes   Yes            No
 ascii.fixed_width_no_header  Yes   Yes            No
  ascii.fixed_width_two_line  Yes   Yes            No
+                 ascii.html  Yes   Yes           Yes
                  ascii.ipac  Yes   Yes            No
                 ascii.latex  Yes   Yes           Yes
             ascii.no_header  Yes   Yes            No
@@ -84,6 +85,7 @@ ascii.fixed_width_no_header  Yes   Yes            No
                     daophot  Yes    No            No        Yes
                        fits  Yes   Yes           Yes
                        hdf5  Yes   Yes           Yes
+                       html  Yes   Yes            No        Yes
                        ipac  Yes   Yes            No        Yes
                       latex  Yes   Yes            No        Yes
                         rdb  Yes   Yes            No        Yes
@@ -148,6 +150,7 @@ indicates which support write functionality.
 ``ascii.fixed_width_no_header``          Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
 ``ascii.fixed_width_two_line``           Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
 ``ascii.ipac``                           Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
+``ascii.html``                    .html  Yes :class:`~astropy.io.ascii.HTML`: HTML table
 ``ascii.latex``                   .tex   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
 ``ascii.no_header``                      Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
 ``ascii.rdb``                     .rdb   Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
@@ -167,7 +170,7 @@ indicates which support write functionality.
      >>> dat = Table.read('file.dat', format='ascii.daophot')
 
    For compatibility with astropy version 0.2 and earlier, the following format
-   values are also allowed in ``Table.read()``: ``daophot``, ``ipac``, ``latex``, and ``rdb``.
+   values are also allowed in ``Table.read()``: ``daophot``, ``ipac``, ``html``, ``latex``, and ``rdb``.
 
 .. _table_io_fits:
 
