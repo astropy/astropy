@@ -10,6 +10,8 @@ import warnings
 
 import numpy as np
 
+from matplotlib import rcParams
+
 from astropy import units as u
 from astropy.coordinates import Angle
 
@@ -264,7 +266,11 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 sep = None
             else:
                 if unit == u.degree:
-                    sep = (six.u('\xb0'), "'", '"')
+                    if rcParams['text.usetex']:
+                        deg = r'$^\circ$'
+                    else:
+                        deg = six.u('\xb0')
+                    sep = (deg, "'", '"')
                 else:
                     sep = ('h', 'm', 's')
 
