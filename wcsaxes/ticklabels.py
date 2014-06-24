@@ -14,6 +14,7 @@ class TickLabels(Text):
         super(TickLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
+        self._bbox_list = []
 
     def clear(self):
         self.world = {}
@@ -80,6 +81,13 @@ class TickLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self.world]
 
+
+    def get_ticklabels_bbox_list(self):
+        """
+        Returns the bounding box list of all the ticklabels
+        """
+        return self._bbox_list
+
     def draw(self, renderer, bboxes):
 
         self.simplify_labels()
@@ -129,3 +137,4 @@ class TickLabels(Text):
                 if bb.count_overlaps(bboxes) == 0:
                     super(TickLabels, self).draw(renderer)
                     bboxes.append(bb)
+                    self._bbox_list.append(bb)
