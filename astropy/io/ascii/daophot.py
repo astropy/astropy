@@ -66,6 +66,17 @@ class Daophot(core.BaseReader):
 
     Any column values of INDEF are interpreted as a missing value and will be
     masked out in the resultant table.
+
+    In case of multi-aperture daophot files containing repeated entries for last 
+    row of fields, extra unique column names will be created by suffixing 
+    corresponding field names with numbers starting from 2 to N (where N is the 
+    total number of apertures).
+    For example, 
+    first aperture radius will be RAPERT and corresponding magnitude will be MAG, 
+    second aperture radius will be RAPERT2 and corresponding magnitude will be MAG2, 
+    third aperture radius will be RAPERT3 and corresponding magnitude will be MAG3, 
+    and so on.
+
     """
     _format_name = 'daophot'
     _io_registry_format_aliases = ['daophot']
@@ -115,7 +126,8 @@ class DaophotHeader(core.BaseHeader):
                                     'format': vals[-1]}
                     keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
                     table_meta['keywords'][m.group('name')] = keyword_dict
-                    if m.group('name') == 'APERTURES': self.aperture_values = keyword_dict['value']
+                    if m.group('name') == 'APERTURES': 
+                        self.aperture_values = keyword_dict['value']
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -167,7 +179,7 @@ class DaophotHeader(core.BaseHeader):
                     # syntax ap1:apN:apstep
                     ap1, apN, apstep = (float(i) for i in aper.split(':'))
                     apertures.extend(list(np.arange(ap1, apN, apstep)))
-                    if (apN-ap1)%apstep == 0 : 
+                    if (apN-ap1)%apstep == 0: 
                         apertures.append(apN)
                 else:
                     apertures.append(float(aper))

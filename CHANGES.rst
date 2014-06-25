@@ -92,6 +92,8 @@ New Features
 
   - Provide a mechanism to select how masked values are printed. [#2424]
 
+  - Added support for reading multi-aperture daophot file. [#2656]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
