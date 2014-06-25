@@ -67,7 +67,6 @@ class ICRS(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    frame_attr_names = {}  # not necessary if empty, but this makes it clearer
 
     @staticmethod
     def _icrs_to_fk5_matrix():

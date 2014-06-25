@@ -373,7 +373,7 @@ class SkyCoord(object):
         # Add public attributes of self.frame
         dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
 
-        # Add all possible frame_attr_names
+        # Add all possible frame attributes
         dir_values.update(FRAME_ATTR_NAMES_SET())
 
         return dir_values
