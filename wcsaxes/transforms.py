@@ -175,25 +175,22 @@ if astropy.__version__ >= '0.4':
     class CoordinateTransform(CurvedTransform):
 
         def __init__(self, wcs, frame, inverted=False):
-
-            output_system = frame_transform_graph.lookup_name(frame)
-            input_system = get_coordinate_system(wcs)
-            if output_system == input_system:
-                self._same_frames = True
-            else:
-                self._same_frames = False
-
             super(CoordinateTransform, self).__init__()
 
             self.wcs = wcs
             self.frame = frame
+            output_system = frame_transform_graph.lookup_name(frame)
+            input_system = get_coordinate_system(wcs)
             if output_system is None:
                 try:
                     output_system = get_coordinate_system(frame)
                 except:
                     raise ValueError("frame {0} not found".format(self.frame))
 
-            # input_system = get_coordinate_system(wcs)
+            if output_system == input_system:
+                self.same_frames = True
+            else:
+                self.same_frames = False
 
             if not inverted:
                 self.input_system = input_system
@@ -254,9 +251,9 @@ else:
                 raise NotImplemented("frame {0} not implemented".format(frame))
 
             if output_system == input_system:
-                self._same_frames = True
+                self.same_frames = True
             else:
-                self._same_frames = False
+                self.same_frames = False
 
             if not inverted:
                 self.input_system = input_system

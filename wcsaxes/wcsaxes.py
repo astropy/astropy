@@ -202,70 +202,19 @@ class WCSAxes(Axes):
 
         else:
 
-            # from astropy.coordinates import FK5, Galactic
-
             pixel2world = WCSPixel2WorldTransform(self.wcs)
 
-            if frame == 'world':  # HAVE TO TEST FOR WHERE "coord_class is Galactic" OR  "coord_class is FK5"
+            if frame == 'world':
 
                 return pixel2world
 
             else:
                 coordinate_transform = CoordinateTransform(self.wcs, frame)
+
                 if coordinate_transform.same_frames:
                     return pixel2world
                 else:
                     return pixel2world + CoordinateTransform(self.wcs, frame)
-
-            # transform_frame = frame_transform_graph.lookup_name(frame)
-
-            # coord_class = get_coordinate_system(self.wcs)
-
-            # if transform_frame is None:
-            #     raise NotImplemented("frame {0} not implemented".format(frame))
-
-            # if frame == 'world' or coord_class is transform_frame:
-
-            #     return pixel2world
-
-            # else:
-            #     return (pixel2world
-            #             + CoordinateTransform(coord_class, transform_frame))
-
-
-
-
-                # coord_class = get_coordinate_system(self.wcs)
-
-                # if coord_class is transform_frame:
-                #     return pixel2world
-                # else:
-                #     return (pixel2world
-                #             + CoordinateTransform(coord_class, transform_frame))
-
-            # elif frame == 'fk5':
-
-            #     coord_class = get_coordinate_system(self.wcs)
-
-            #     if coord_class is FK5:
-            #         return pixel2world
-            #     else:
-            #         return (pixel2world
-            #                 + CoordinateTransform(coord_class, FK5))
-
-            # elif frame == 'galactic':
-
-            #     coord_class = get_coordinate_system(self.wcs)
-
-            #     if coord_class is Galactic:
-            #         return pixel2world
-            #     else:
-            #         return (pixel2world
-            #                 + CoordinateTransform(coord_class, Galactic))
-
-            # else:
-
-            #     raise NotImplemented("frame {0} not implemented".format(frame))
 
     def get_tightbbox(self, renderer):
 
