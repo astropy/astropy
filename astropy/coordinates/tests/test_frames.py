@@ -162,6 +162,7 @@ def test_frame_repr():
 
 def test_converting_units():
     import re
+    from ..baseframe import RepresentationMapping
     from ..builtin_frames import ICRS, FK5
     from ..representation import SphericalRepresentation
 
@@ -183,12 +184,20 @@ def test_converting_units():
 
     #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
-        _frame_specific_representation_info = {
+        frame_specific_representation_info = {
             'spherical': {'names': ('ra', 'dec', 'distance'),
                           'units': (None, None, None)},
             'unitspherical': {'names': ('ra', 'dec'),
-                              'units': (None, None)}}
+                              'units': (None, None)}
+        }
 
+        frame_specific_representation_info = {
+            'spherical': [RepresentationMapping('lon', 'ra', u.hourangle),
+                          RepresentationMapping('lat', 'dec', None),
+                          RepresentationMapping('distance', 'distance')]  # should fall back to default of None unit
+        }
+        frame_specific_representation_info['unitspherical'] = \
+            frame_specific_representation_info['spherical']
 
     fi = FakeICRS(i4.data)
     ri2 = ''.join(rexrepr.split(repr(i2)))
@@ -197,9 +206,11 @@ def test_converting_units():
     assert ri2 != rfi
 
     # the attributes should also get the right units
-    assert i2.ra.unit == i4.ra.unit
-    # unless no units
+    assert i2.dec.unit == i4.dec.unit
+    # unless no/explicitly given units
+    assert i2.dec.unit != fi.dec.unit
     assert i2.ra.unit != fi.ra.unit
+    assert fi.ra.unit == u.hourangle
 
 
 def test_realizing():
@@ -484,4 +495,3 @@ def test_len0_data():
     i = ICRS([]*u.deg, []*u.deg)
     assert i.has_data
     repr(i)
-

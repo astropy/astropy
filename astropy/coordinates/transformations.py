@@ -592,8 +592,8 @@ class CoordinateTransform(object):
                 raise TypeError('fromsys and tosys must be classes')
 
         self.overlapping_frame_attr_names = overlap = []
-        if (hasattr(fromsys, 'frame_attr_names') and
-                hasattr(tosys, 'frame_attr_names')):
+        if (hasattr(fromsys, 'get_frame_attr_names') and
+                hasattr(tosys, 'get_frame_attr_names')):
             #the if statement is there so that non-frame things might be usable
             #if it makes sense
             for from_nm in fromsys.get_frame_attr_names():
@@ -642,9 +642,9 @@ class CoordinateTransform(object):
         toframe : object
             An object that has the attributes necessary to fully specify the
             frame.  That is, it must have attributes with names that match the
-            keys of ``tosys.frame_attr_names``. Typically this is of class
-            ``tosys``, but it *might* be some other class as long as it has the
-            appropriate attributes.
+            keys of the dictionary that ``tosys.get_frame_attr_names()``
+            returns. Typically this is of class ``tosys``, but it *might* be
+            some other class as long as it has the appropriate attributes.
 
         Returns
         -------

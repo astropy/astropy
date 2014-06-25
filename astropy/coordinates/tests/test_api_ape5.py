@@ -183,9 +183,11 @@ def test_frame_api():
     # There is also a class-level attribute that lists the attributes needed to
     # identify the frame.  These include attributes like `equinox` shown above.
     assert all([nm in ('equinox', 'obstime') for nm in fk5.get_frame_attr_names()])
-    # `frame_attr_names` will mainly be used by the high-level class (discussed
-    # below) to allow round-tripping between various frames.  It is also part of the
-    # public API for other similar developer / advanced users' use.
+
+    # the result of `get_frame_attr_names` is called for particularly in  the
+    # high-level class (discussed below) to allow round-tripping between various
+    # frames.  It is also part of the public API for other similar developer /
+    # advanced users' use.
 
     # The actual position information is accessed via the representation objects
     npt.assert_allclose(icrs.represent_as(SphericalRepresentation).lat.to(u.deg), 5*u.deg)

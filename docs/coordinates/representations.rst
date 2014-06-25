@@ -97,50 +97,42 @@ Creating your own representations
 To create your own representation class, your class must inherit from the
 ``BaseRepresentation`` class.  In addition the following must be defined:
 
-``__init__`` method:
+* ``__init__`` method:
 
   Has a signature like ``__init__(self, comp1, comp2, comp3, copy=True)``
   for inputting the representation component values.
 
-``from_cartesian`` class method:
+* ``from_cartesian`` class method:
 
   Takes a `~astropy.coordinates.CartesianRepresentation` object and
   returns an instance of your class.
 
-``to_cartesian`` method:
+* ``to_cartesian`` method:
 
   Returns a `~astropy.coordinates.CartesianRepresentation` object.
 
-``components`` property:
+* ``components`` property:
 
   Returns a tuple of the names of the coordinate components (such as ``x``,
   ``lon``, and so on).
 
-``attr_classes`` class attribute (``OrderedDict``):
+* ``attr_classes`` class attribute (``OrderedDict``):
 
-  Defines the initializer class for each component.  In most cases this
-  class should be derived from `~astropy.units.Quantity`.  In
-  particular these class initializers must take the value as the first argument
-  and accept a ``unit`` keyword which takes a `~astropy.units.Unit` initializer
-  or ``None`` to indicate no unit.
+  Defines the initializer class for each component.In most cases this
+  class should be derived from `~astropy.units.Quantity`. In particular
+  these class initializers must take the value as the first argument and
+  accept a ``unit`` keyword which takes a `~astropy.units.Unit`
+  initializer or ``None`` to indicate no unit. Also not that the keys of
+  this dictionary are treated as the names of the components for this
+  representation, with the default ordered given in the order they
+  appear as keys.
 
-``default_names_default_names`` class attribute (tuple of string):
+* ``recommended_units`` dictionary (optional):
 
-  Provides the default names that frames will use for referring to the
-  representation components.  For instance the
-  `~astropy.coordinates.SphericalRepresentation` class uses
-  ``('ra', 'dec', 'distance')`` since this is the most common ways of referring
-  to the ``lon``, ``lat`` and ``distance`` components, respectively.  Any frame
-  is free to override these defaults, but this reduces boilerplate code when
-  defining custom frames.
-
-``default_units`` class attribute (tuple of `~astropy.units.Unit`)
-
-  Provides the default units that frames will use for outputting representation
-  components.  For instance the `~astropy.coordinates.SphericalRepresentation`
-  class uses ``(u.degree, u.degree, None)``.  A value must be supplied for each
-  of the components, but a value of ``None`` indicates that there is no
-  preferred default unit.
+  Maps component names to the recommended unit to convert the values of
+  that component to.  Can be ``None`` (or missing) to indicate there is
+  no preferred unit.  If this dictionary is not defined, no conversion
+  of components to particular units will occur.
 
 In pseudo-code, this means that your class will look like::
 
@@ -149,8 +141,9 @@ In pseudo-code, this means that your class will look like::
         attr_classes = OrderedDict([('comp1', ComponentClass1),
                                      ('comp2', ComponentClass2),
                                      ('comp3', ComponentClass3)])
-        default_names = (name1, name2, name3)
-        default_units = (unit1, unit2, unit3)
+
+        # recommended_units is optional
+        recommended_units = {'comp1': u.unit1, 'comp2': u.unit2, 'comp3': u.unit3}
 
         def __init__(self, ...):
             ...

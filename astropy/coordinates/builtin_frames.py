@@ -21,7 +21,8 @@ from .angles import Angle
 from .representation import (SphericalRepresentation, CartesianRepresentation,
                              UnitSphericalRepresentation)
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute)
+                        FrameAttribute, TimeFrameAttribute,
+                        RepresentationMapping)
 from .transformations import FunctionTransform, DynamicMatrixTransform
 
 
@@ -57,6 +58,14 @@ class ICRS(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
     """
+
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
+    }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
+
     default_representation = SphericalRepresentation
 
     @staticmethod
@@ -101,6 +110,12 @@ class FK5(BaseCoordinateFrame):
     equinox : `~astropy.time.Time`, optional, must be keyword
         The equinox of this frame.
     """
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
+    }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
     equinox = TimeFrameAttribute(default=_EQUINOX_J2000)
@@ -157,6 +172,12 @@ class FK4(BaseCoordinateFrame):
         The time this frame was observed.  If None, will be the same as
         ``equinox``.
     """
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
+    }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
     equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
@@ -194,6 +215,12 @@ class FK4NoETerms(BaseCoordinateFrame):
         The time this frame was observed.  If None, will be the same as
         ``equinox``.
     """
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'ra'),
+                      RepresentationMapping('lat', 'dec')]
+    }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
     equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
@@ -255,11 +282,16 @@ class Galactic(BaseCoordinateFrame):
         The Distance for this object along the line-of-sight.
     """
 
-    _frame_specific_representation_info = {
-        'spherical': {'names': ('l', 'b', 'distance'), 'units': (u.deg, u.deg, None)},
-        'unitspherical': {'names': ('l', 'b'), 'units': (u.deg, u.deg)},
-        'cartesian': {'names': ('w', 'u', 'v'), 'units': (None, None, None)}
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'l'),
+                      RepresentationMapping('lat', 'b')],
+        'cartesian': [RepresentationMapping('x', 'w'),
+                      RepresentationMapping('y', 'u'),
+                      RepresentationMapping('z', 'v')]
     }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
+
     default_representation = SphericalRepresentation
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
@@ -296,10 +328,14 @@ class AltAz(BaseCoordinateFrame):
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
     """
-    _frame_specific_representation_info = {
-        'spherical': {'names': ('az', 'alt', 'distance'), 'units': (u.deg, u.deg, None)},
-        'unitspherical': {'names': ('az', 'alt'), 'units': (u.deg, u.deg)}
+
+    frame_specific_representation_info = {
+        'spherical': [RepresentationMapping('lon', 'az'),
+                      RepresentationMapping('lat', 'alt')],
     }
+    frame_specific_representation_info['unitspherical'] = \
+        frame_specific_representation_info['spherical']
+
     default_representation = SphericalRepresentation
     equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
     location = FrameAttribute(default=None)
@@ -314,18 +350,6 @@ class AltAz(BaseCoordinateFrame):
                             'support the standard IAU2000 AltAz<->ICRS '
                             'transformations.'))
         super(AltAz, self).__init__(*args, **kwargs)
-
-
-class NoFrame(BaseCoordinateFrame):
-    """
-    A "Fake" frame that is not meant to be transformed to/from.  Acts like a
-    standard equatorial coordinate system with no extra attributes.
-
-    Used primarily internally in `SkyCoord`, which is why it is not in the
-    public API.
-
-    """
-    default_representation = SphericalRepresentation
 
 
 # <--------------------------------transformations------------------------------>

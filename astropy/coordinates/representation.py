@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
-from copy import deepcopy
 
 import numpy as np
 import astropy.units as u
@@ -43,6 +42,10 @@ class MetaBaseRepresentation(type):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
+        if name != 'BaseRepresentation' and 'attr_classes' not in dct:
+            raise NotImplementedError('Representations must have an '
+                                      '"attr_classes" class attribute.')
+
         # Register representation name (except for BaseRepresentation)
         if cls.__name__ == 'BaseRepresentation':
             return
@@ -63,9 +66,14 @@ class BaseRepresentation(object):
     ``from_cartesian`` class method. By default, transformations are done via
     the cartesian system, but classes that want to define a smarter
     transformation path can overload the ``represent_as`` method.
-    Furthermore, all classes should define a ``components`` property, which
-    returns a tuple with the names of the coordinate components.
+    Furthermore, all classes must define an ``attr_classes`` attribute, an
+    `~collections.OrderedDict` which maps component names to the class that
+    creates them.  They can also define a `recommended_units` dictionary, which
+    maps component names to the units they are best presented to users in.  Note
+    that frame classes may override this with their own preferred units.
     """
+
+    recommended_units = {}  # subclasses can override
 
     def represent_as(self, other_class):
         if other_class == self.__class__:
@@ -87,10 +95,10 @@ class BaseRepresentation(object):
     def to_cartesian(self):
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
     def components(self):
-        """Return tuple with the names of the coordinate components"""
-        raise NotImplementedError()
+        """A tuple with the in-order names of the coordinate components"""
+        return tuple(self.attr_classes)
 
     @classmethod
     def get_name(cls):
@@ -197,8 +205,6 @@ class CartesianRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('x', u.Quantity),
                                 ('y', u.Quantity),
                                 ('z', u.Quantity)])
-    default_names = ('x', 'y', 'z')
-    default_units = (None, None, None)
 
     def __init__(self, x, y=None, z=None, copy=True):
 
@@ -264,10 +270,6 @@ class CartesianRepresentation(BaseRepresentation):
     def to_cartesian(self):
         return self
 
-    @property
-    def components(self):
-        return 'x', 'y', 'z'
-
 
 class SphericalRepresentation(BaseRepresentation):
     """
@@ -294,8 +296,7 @@ class SphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('lon', Longitude),
                                 ('lat', Latitude),
                                 ('distance', u.Quantity)])
-    default_names = ('ra', 'dec', 'distance')
-    default_units = (u.deg, u.deg, None)
+    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     def __init__(self, lon, lat, distance, copy=True):
 
@@ -387,10 +388,6 @@ class SphericalRepresentation(BaseRepresentation):
 
         return SphericalRepresentation(lon=lon, lat=lat, distance=r)
 
-    @property
-    def components(self):
-        return 'lon', 'lat', 'distance'
-
 
 class UnitSphericalRepresentation(BaseRepresentation):
     """
@@ -411,8 +408,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     attr_classes = OrderedDict([('lon', Longitude),
                                  ('lat', Latitude)])
-    default_names = ('ra', 'dec')
-    default_units = (u.deg, u.deg)
+    recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     def __init__(self, lon, lat, copy=True):
 
@@ -476,10 +472,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         return UnitSphericalRepresentation(lon=lon, lat=lat)
 
-    @property
-    def components(self):
-        return 'lon', 'lat'
-
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
         if other_class is PhysicsSphericalRepresentation:
@@ -519,8 +511,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('phi', Angle),
                                 ('theta', Angle),
                                 ('r', u.Quantity)])
-    default_names = ('phi', 'theta', 'r')
-    default_units = (u.deg, u.deg, None)
+    recommended_units = {'phi': u.deg, 'theta': u.deg}
 
     def __init__(self, phi, theta, r, copy=True):
 
@@ -623,10 +614,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
         return PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r)
 
-    @property
-    def components(self):
-        return 'phi', 'theta', 'r'
-
 
 class CylindricalRepresentation(BaseRepresentation):
     """
@@ -652,8 +639,7 @@ class CylindricalRepresentation(BaseRepresentation):
     attr_classes = OrderedDict([('rho', u.Quantity),
                                 ('phi', Angle),
                                 ('z', u.Quantity)])
-    default_names = ('rho', 'phi', 'z')
-    default_units = (None, u.deg, None)
+    recommended_units = {'phi': u.deg}
 
     def __init__(self, rho, phi, z, copy=True):
 
@@ -720,7 +706,3 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z)
-
-    @property
-    def components(self):
-        return 'rho', 'phi', 'z'

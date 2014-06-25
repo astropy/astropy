@@ -119,7 +119,7 @@ because it will be *much* faster than applying the operation to each
 |skycoord| in a for loop.
 
     >>> SkyCoord(ra=[10, 11]*u.degree, dec=[41, -5]*u.degree)
-    <SkyCoord (NoFrame): (ra, dec) in deg
+    <SkyCoord (ICRS): (ra, dec) in deg
         [(10.0, 41.0), (11.0, -5.0)]>
 
 So far we have been using a spherical coordinate representation in the all the
@@ -139,7 +139,9 @@ coordinate objects::
     >>> c
     <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
     >>> c.phi
-    <Angle 63.43494882292201 deg>
+    <Angle 63.434948... deg>
+    >>> c.phi.to(u.radian)
+    <Angle 1.107148... rad>
 
     >>> c.representation = 'spherical'
     >>> c

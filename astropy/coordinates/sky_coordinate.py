@@ -12,7 +12,7 @@ from .. import units as u
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
-from .builtin_frames import NoFrame
+from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
@@ -64,7 +64,7 @@ class SkyCoord(object):
     The coordinate values and frame specification can now be provided using
     positional and keyword arguments::
 
-      >>> c = SkyCoord(10, 20, unit="deg")  # No frame (cannot transform to other frames)
+      >>> c = SkyCoord(10, 20, unit="deg")  # defaults to ICRS frame
       >>> c = SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")  # 3 coords
 
       >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
@@ -93,7 +93,8 @@ class SkyCoord(object):
     Parameters
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
-        Type of coordinate frame this `SkyCoord` should represent.
+        Type of coordinate frame this `SkyCoord` should represent. Defaults to
+        to ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied ``LON`` and ``LAT`` values, respectively.  If
         only one unit is supplied then it applies to both ``LON`` and
@@ -112,12 +113,12 @@ class SkyCoord(object):
 
         ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-            frame's ``representation_names``, including `ICRS`, `FK5`, `FK4`,
-            and `FK4NoETerms`.
+            frame's ``representation_component_names``, including `ICRS`,
+            `FK5`, `FK4`, and `FK4NoETerms`.
         l, b : valid `~astropy.coordinates.Angle` initializer, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-            keys in the frame's ``representation_names``, including the
-            `Galactic` frame.
+            keys in the frame's ``representation_component_names``, including
+            the `Galactic` frame.
         x, y, z : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values
         w, u, v : float or `~astropy.units.Quantity`, optional
@@ -141,7 +142,7 @@ class SkyCoord(object):
         if 'representation' in kwargs:
             coord_kwargs['representation'] = _get_repr_cls(kwargs['representation'])
         for attr, value in kwargs.items():
-            if value is not None and (attr in frame.representation_names
+            if value is not None and (attr in frame.representation_component_names
                                       or attr in frame.get_frame_attr_names()):
                 coord_kwargs[attr] = value
 
@@ -225,8 +226,8 @@ class SkyCoord(object):
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
             elif len(args) <= 3:
-                frame_attr_names = frame.representation_names.keys()
-                repr_attr_names = frame.representation_names.values()
+                frame_attr_names = frame.representation_component_names.keys()
+                repr_attr_names = frame.representation_component_names.values()
                 coord_kwargs = {}
                 for arg, frame_attr_name, repr_attr_name, unit in zip(args, frame_attr_names,
                                                                       repr_attr_names, units):
@@ -271,10 +272,6 @@ class SkyCoord(object):
             If there is no possible transformation route.
         """
         from astropy.coordinates.errors import ConvertError
-
-        if frame is None or isinstance(self.frame, NoFrame):
-            raise ValueError('Cannot transform to/from this SkyCoord because '
-                             'the frame was not specified at creation.')
 
         frame_kwargs = {}
 
@@ -376,7 +373,7 @@ class SkyCoord(object):
         # Add public attributes of self.frame
         dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
 
-        # Add all possible frame_attr_names
+        # Add all possible frame attributes
         dir_values.update(FRAME_ATTR_NAMES_SET())
 
         return dir_values
@@ -778,19 +775,22 @@ def _get_frame(args, kwargs):
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
+        frame_specified_explicitly = True
     else:
         # Look for the frame in args
         for arg in args:
             try:
                 frame_cls = _get_frame_class(arg)
+                frame_specified_explicitly = True
             except ValueError:
                 pass
             else:
                 args.remove(arg)
                 break
         else:
-            # Not in args nor kwargs
-            frame_cls = NoFrame
+            # Not in args nor kwargs - default to icrs
+            frame_cls = ICRS
+            frame_specified_explicitly = False
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
@@ -803,7 +803,7 @@ def _get_frame(args, kwargs):
             coord_frame_cls = arg.frame.__class__
 
         if coord_frame_cls is not None:
-            if frame_cls is NoFrame:
+            if not frame_specified_explicitly:
                 frame_cls = coord_frame_cls
             elif frame_cls is not coord_frame_cls:
                 raise ValueError("Cannot override frame='{0}' of input coordinate with "
@@ -861,8 +861,8 @@ def _parse_coordinate_arg(coords, frame, units):
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
 
-    frame_attr_names = frame.representation_names.keys()
-    repr_attr_names = frame.representation_names.values()
+    frame_attr_names = frame.representation_component_names.keys()
+    repr_attr_names = frame.representation_component_names.values()
     repr_attr_classes = frame.representation.attr_classes.values()
     n_attr_names = len(repr_attr_names)
 
@@ -974,7 +974,7 @@ def _get_representation_attrs(frame, units, kwargs):
     for many equatorial spherical representations, or "w" for "x" in the
     cartesian representation of Galactic.
     """
-    frame_attr_names = frame.representation_names.keys()
+    frame_attr_names = frame.representation_component_names.keys()
     repr_attr_classes = frame.representation.attr_classes.values()
 
     valid_kwargs = {}

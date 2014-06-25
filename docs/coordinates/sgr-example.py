@@ -32,23 +32,22 @@ class Sagittarius(coord.BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
     Lambda : `Angle`, optional, must be keyword
-        The longitude for this object (`Beta` must also be given and `representation`
-        must be None).
+        The longitude-like angle corresponding to Sagittarius' orbit.
     Beta : `Angle`, optional, must be keyword
-        The Declination for this object (`Lambda` must also be given and
-        `representation` must be None).
+        The latitude-like angle corresponding to Sagittarius' orbit.
     distance : `Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
-        (`representation` must be None).
 
     """
     default_representation = coord.SphericalRepresentation
 
-    _frame_specific_representation_info = {
-        'spherical': {'names': ('Lambda', 'Beta', 'distance'),
-                      'units': (u.degree, u.degree, None)},
-        'unitspherical': {'names': ('Lambda', 'Beta'),
-                          'units': (u.degree, u.degree)}}
+    frame_specific_representation_info = {
+        'spherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                      coord.RepresentationMapping('lat', 'Beta'),
+                      coord.RepresentationMapping('distance', 'distance')],
+        'unitspherical': [coord.RepresentationMapping('lon', 'Lambda'),
+                          coord.RepresentationMapping('lat', 'Beta')]
+    }
 
 # Define the Euler angles (from Law & Majewski 2010)
 phi = np.radians(180+3.75)

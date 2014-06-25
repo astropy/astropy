@@ -86,8 +86,8 @@ These same attributes can be used to access the data in the frames, as
     <Longitude 0.0733... hourangle>
 
 You can use the ``representation`` attribute in conjunction
-with the ``representation_names`` attribute to figure out what keywords
-are accepted by a particular class object.  The former will be the
+with the ``representation_component_names`` attribute to figure out what
+keywords are accepted by a particular class object.  The former will be the
 representation class the system is expressed in (e.g.,
 spherical for equatorial frames), and the latter will be a dictionary
 mapping names for that frame to the attribute name on the representation
@@ -97,7 +97,7 @@ class::
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
-    >>> icrs.representation_names
+    >>> icrs.representation_component_names
     OrderedDict([(u'ra', u'lon'), (u'dec', u'lat'), (u'distance', u'distance')])
 
 The representation of the coordinate object can be changed, as shown
@@ -215,24 +215,29 @@ Users can add new coordinate frames by creating new classes that are subclasses
 of `~astropy.coordinates.BaseCoordinateFrame`.  Detailed instructions for
 subclassing are in the docstrings for that class.  The key aspects are to
 define the class attributes ``default_representation`` and
-``_frame_specific_representation_info`` along with frame attributes as
+``frame_specific_representation_info`` along with frame attributes as
 `~astropy.coordinates.FrameAttribute` class instances (or subclasses like
 `~astropy.coordinates.TimeFrameAttribute`).  If these are
 defined, there is often no need to define an ``__init__`` function, as the
 initializer in `~astropy.coordinates.BaseCoordinateFrame` will probably behave
 the way you want.  As an example::
 
-  >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute
+  >>> from astropy.coordinates import BaseCoordinateFrame, FrameAttribute, TimeFrameAttribute, RepresentationMapping
   >>> class MyFrame(BaseCoordinateFrame):
   ...     # Specify how coordinate values are represented when outputted
   ...      default_representation = SphericalRepresentation
   ...
   ...      # Specify overrides to the default names and units for all available
   ...      # representations (subclasses of BaseRepresentation).
-  ...      _frame_specific_representation_info = {
-  ...          'spherical': {'names': ('R', 'D', 'DIST'), 'units': (u.rad, u.rad, None)},
-  ...          'unitspherical': {'names': ('R', 'D'), 'units': (u.rad, u.rad)},
-  ...          'cartesian': {'names': ('X', 'Y', 'Z'), 'units': (None, None, None)}
+  ...      frame_specific_representation_info = {
+  ...          'spherical': [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
+  ...                        RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad),
+  ...                        RepresentationMapping(reprname='distance', framename='DIST', defaultunit=None)],
+  ...          'unitspherical': [RepresentationMapping(reprname='lon', framename='R', defaultunit=u.rad),
+  ...                            RepresentationMapping(reprname='lat', framename='D', defaultunit=u.rad)],
+  ...          'cartesian': [RepresentationMapping(reprname='x', framename='X'),
+  ...                        RepresentationMapping(reprname='y', framename='Y'),
+  ...                        RepresentationMapping(reprname='z', framename='Z')]
   ...      }
   ...
   ...      # Specify frame attributes required to fully specify the frame
