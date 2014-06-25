@@ -142,7 +142,6 @@ class AstropyOutputChecker(doctest.OutputChecker):
                 return True
 
         # We didn't find any match; return false.
-        assert False
         return False
 
     def check_output(self, want, got, flags):
