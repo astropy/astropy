@@ -237,7 +237,7 @@ int compress_type_from_string(char* zcmptype) {
 // conversion function (eg. PyString_AsString) an argument to a macro or
 // something, but I'm not sure yet how easy it is to generalize the error
 // handling
-int get_header_string(PyObject* header, char* keyword, char** val, char* def) {
+int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     PyObject* keystr;
     PyObject* keyval;
 #ifdef IS_PY3K
@@ -253,10 +253,10 @@ int get_header_string(PyObject* header, char* keyword, char** val, char* def) {
         // FITS header values should always be ASCII, but Latin1 is on the
         // safe side
         tmp = PyUnicode_AsLatin1String(keyval);
-        *val = PyBytes_AsString(tmp);
+        strncpy(val, PyBytes_AsString(tmp), 72);
         Py_DECREF(tmp);
 #else
-        *val = PyString_AsString(keyval);
+        strncpy(val, PyString_AsString(keyval), 72);
 #endif
         retval = 0;
     }
@@ -423,8 +423,8 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
     unsigned int idx;
 
     int tfields;
-    char* ttype;
-    char* tform;
+    char ttype[72];
+    char tform[72];
     int dtcode;
     long trepeat;
     long twidth;
@@ -450,12 +450,12 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
         column->twidth = 0;
 
         snprintf(tkw, 9, "TTYPE%u", idx);
-        get_header_string(header, tkw, &ttype, "");
+        get_header_string(header, tkw, ttype, "");
         strncpy(column->ttype, ttype, 69);
         column->ttype[69] = '\0';
 
         snprintf(tkw, 9, "TFORM%u", idx);
-        get_header_string(header, tkw, &tform, "");
+        get_header_string(header, tkw, tform, "");
         strncpy(column->tform, tform, 9);
         column->tform[9] = '\0';
         fits_binary_tform(tform, &dtcode, &trepeat, &twidth, &status);
@@ -503,9 +503,9 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     tcolumn* columns;
 
     char keyword[9];
-    char* zname;
+    char zname[72];
     int znaxis;
-    char* tmp;
+    char tmp[72];
     float version;
 
     unsigned int idx;
@@ -572,7 +572,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     }
     Fptr->cn_bzero = Fptr->zzero;
 
-    get_header_string(header, "ZCMPTYPE", &tmp, DEFAULT_COMPRESSION_TYPE);
+    get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE);
     strncpy(Fptr->zcmptype, tmp, 11);
     Fptr->zcmptype[strlen(tmp)] = '\0';
 
@@ -613,7 +613,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         // Assumes there are no gaps in the ZNAMEn keywords; this same
         // assumption was made in the Python code.  This could be done slightly
         // more flexibly by using a wildcard slice of the header
-        if (0 != get_header_string(header, keyword, &zname, "")) {
+        if (0 != get_header_string(header, keyword, zname, "")) {
             break;
         }
         snprintf(keyword, 9, "ZVAL%u", idx);
@@ -647,7 +647,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 
     /* The ZQUANTIZ keyword determines the quantization algorithm; NO_QUANTIZE
        implies lossless compression */
-    if (0 == get_header_string(header, "ZQUANTIZ", &tmp, "")) {
+    if (0 == get_header_string(header, "ZQUANTIZ", tmp, "")) {
         /* Ugh; the fact that cfitsio defines its version as a float makes
            preprocessor comparison impossible */
         fits_get_version(&version);
@@ -711,7 +711,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
 
     PyObject* header = NULL;
     char keyword[9];
-    char* tmp;
+    char tmp[72];
     int znaxis;
     int idx;
     int compress_type;
@@ -738,7 +738,7 @@ void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
         maxtilelen *= tilelen;
     }
 
-    get_header_string(header, "ZCMPTYPE", &tmp, DEFAULT_COMPRESSION_TYPE);
+    get_header_string(header, "ZCMPTYPE", tmp, DEFAULT_COMPRESSION_TYPE);
     compress_type = compress_type_from_string(tmp);
     if (compress_type == RICE_1) {
         get_header_int(header, "ZVAL1", &rice_blocksize, 0);
