@@ -67,7 +67,7 @@ class Daophot(core.BaseReader):
     Any column values of INDEF are interpreted as a missing value and will be
     masked out in the resultant table.
 
-    In case of multi-aperture daophot files containing repeated entries for last 
+    In case of multi-aperture daophot files containing repeated entries for the last 
     row of fields, extra unique column names will be created by suffixing 
     corresponding field names with numbers starting from 2 to N (where N is the 
     total number of apertures).
