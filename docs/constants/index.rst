@@ -64,8 +64,8 @@ cannot be used in expressions without specifying a system::
     TypeError: Constant u'e' does not have physically compatible units
     across all systems of units and cannot be combined with other
     values without specifying a system (eg. e.emu)
-    >>> 100 * const.e.esu
-    <Quantity 4.80320450571...e-08 Fr>
+    >>> 100 * const.e.esu  # doctest: +FLOAT_CMP
+    <Quantity 4.8032045057134676e-08 Fr>
 
 Reference/API
 =============

@@ -330,8 +330,8 @@ properties, accessing these attributes calls the object
 new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic
-  >>> sc_gal
-  <SkyCoord (Galactic): l=99.637943... deg, b=-58.709605... deg>
+  >>> sc_gal  # doctest: +FLOAT_CMP
+  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
 
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
@@ -430,21 +430,21 @@ name, frame class, frame instance, or |SkyCoord|::
 
   >>> from astropy.coordinates import FK5
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg')
-  >>> sc.galactic
-  <SkyCoord (Galactic): l=99.637943... deg, b=-58.709605... deg>
+  >>> sc.galactic  # doctest: +FLOAT_CMP
+  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
 
-  >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)
-  <SkyCoord (FK5): equinox=J2000.000, ra=1.00000655... deg, dec=2.00000243... deg>
+  >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)  # doctest: +FLOAT_CMP
+  <SkyCoord (FK5): equinox=J2000.000, ra=1.00000655566 deg, dec=2.00000243092 deg>
 
-  >>> sc.transform_to(FK5(equinox='J1975'))  # Transform to FK5 with a different equinox
-  <SkyCoord (FK5): equinox=J1975.000, ra=0.679672... deg, dec=1.860830... deg>
+  >>> sc.transform_to(FK5(equinox='J1975'))  # Transform to FK5 with a different equinox  # doctest: +FLOAT_CMP
+  <SkyCoord (FK5): equinox=J1975.000, ra=0.679672818323 deg, dec=1.86083014099 deg>
 
 Transforming to a |SkyCoord| instance is an easy way of ensuring that two
 coordinates are in the exact same reference frame::
 
   >>> sc2 = SkyCoord(3, 4, 'fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
   >>> sc.transform_to(sc2)
-  <SkyCoord (FK4): equinox=B1960.000, obstime=J1978.123, ra=0.487263... deg, dec=1.777316... deg>
+  <SkyCoord (FK4): equinox=B1960.000, obstime=J1978.123, ra=0.48726331438 deg, dec=1.77731617297 deg>
 
 .. _astropy-skycoord-representations:
 
@@ -632,21 +632,21 @@ in 3d space.
     <SkyCoord (ICRS): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
 
     >>> c.representation = 'cylindrical'
-    >>> c
-    <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
-    >>> c.phi.to(u.deg)
-    <Angle 63.434948... deg>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): rho=2.2360679775 kpc, phi=63.4349488229 deg, z=3.0 kpc>
+    >>> c.phi.to(u.deg)  # doctest: +FLOAT_CMP
+    <Angle 63.43494882292201 deg>
     >>> c.x  # doctest: +SKIP
     ...
     AttributeError: 'SkyCoord' object has no attribute 'x'
 
     >>> c.representation = 'spherical'
-    >>> c
-    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg, distance=3.74165738677 kpc>
 
     >>> c.representation = 'unitspherical'
-    >>> c
-    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg>
 
 You can also use any representation class to set the representation::
 

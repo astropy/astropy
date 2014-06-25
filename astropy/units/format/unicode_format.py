@@ -20,10 +20,10 @@ class Unicode(console.Console):
     For example::
 
       >>> import astropy.units as u
-      >>> print(u.Ry.decompose().to_string('unicode'))
-                   m² kg
-      2.1...×10⁻¹⁸ ─────
-                    s²
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
+                      m² kg
+      2.1798721×10⁻¹⁸ ─────
+                       s²
     """
 
     def __init__(self):

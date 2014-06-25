@@ -804,3 +804,27 @@ This doctest expects an exception with a traceback, but the text of the
 traceback is skipped in the example output--only the first and last lines
 of the output are checked.  See the :mod:``doctest`` documentation for
 more examples of skipping output.
+
+
+Handling float output
+---------------------
+
+Some doctests may produce output that contains string representations of
+floating point values.  Floating point representations are often not exact and
+contain roundoffs in their least significant digits.  Depending on the platform
+the tests are being run on (different Python versions, different OS, etc.) the
+exact number of digits shown can differ.  Because doctests work by comparing
+strings this can cause such tests to fail.
+
+To address this issue Astropy's test framework includes support for a
+``FLOAT_CMP`` flag that can be used with doctests.  For example::
+
+    >>> 1.0 / 3.0  # doctest: +FLOAT_CMP
+    0.333333333333333311
+
+When this flag is used, the expected and actual outputs are both parsed to find
+any floating point values in the strings.  Those are then converted to actual
+Python `float` objects and compared numerically.  This means that small
+differences in representation of roundoff digits will be ignored by the
+doctest.  The values are otherwise compared exactly, so more significant
+(albeit possibly small) differences will still be caught by these tests.
