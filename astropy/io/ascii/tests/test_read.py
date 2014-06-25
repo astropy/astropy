@@ -188,6 +188,14 @@ def test_daophot_header_keywords():
         assert_equal(keyword['format'], format_)
 
 
+def test_daophot_multiple_aperture():
+    table = ascii.read('t/daophot3.dat', Reader=ascii.Daophot)
+    assert 'MAG5' in table.colnames  # MAG5 is one of the newly created column name
+    assert table['MAG5'][4] == 22.13  # A sample entry in daophot3.dat file
+    assert table['MERR2'][0] == 1.171
+    assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
+
+
 @raises(ascii.InconsistentTableError)
 def test_empty_table_no_header():
     table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
