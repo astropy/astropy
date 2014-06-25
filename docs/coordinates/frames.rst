@@ -78,12 +78,12 @@ These same attributes can be used to access the data in the frames, as
 |Angle| objects (or |Angle| subclasses)::
 
     >>> coo = ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
-    >>> coo.ra
-    <Longitude 1.1... deg>
-    >>> coo.ra.value
-    1.1...
-    >>> coo.ra.to(u.hourangle)
-    <Longitude 0.0733... hourangle>
+    >>> coo.ra  # doctest: +FLOAT_CMP
+    <Longitude 1.1 deg>
+    >>> coo.ra.value  # doctest: +FLOAT_CMP
+    1.1
+    >>> coo.ra.to(u.hourangle)  # doctest: +FLOAT_CMP
+    <Longitude 0.07333333333333335 hourangle>
 
 You can use the ``representation`` attribute in conjunction
 with the ``representation_component_names`` attribute to figure out what
@@ -113,10 +113,10 @@ itself which represents a point in 3d space.
 
     >>> from astropy.coordinates import CartesianRepresentation
     >>> icrs.representation = CartesianRepresentation
-    >>> icrs
-    <ICRS Coordinate: x=0.999238... , y=0.017441... , z=0.034899... >
-    >>> icrs.x
-    <Quantity 0.999238...>
+    >>> icrs  # doctest: +FLOAT_CMP
+    <ICRS Coordinate: x=0.999238614955 , y=0.0174417749028 , z=0.0348994967025 >
+    >>> icrs.x  # doctest: +FLOAT_CMP
+    <Quantity 0.9992386149554826>
 
 The representation can also be set at the time of creating a coordinate
 and affects the set of keywords used to supply the coordinate data.  For
@@ -180,8 +180,8 @@ an ICRS coordinate::
 
     >>> from astropy.coordinates import CartesianRepresentation
     >>> cooi = ICRS(ra=0*u.deg, dec=45*u.deg, distance=10*u.pc)
-    >>> cooi.represent_as(CartesianRepresentation)
-    <CartesianRepresentation x=7.07106781... pc, y=0.0 pc, z=7.07106781... pc>
+    >>> cooi.represent_as(CartesianRepresentation)  # doctest: +FLOAT_CMP
+    <CartesianRepresentation x=7.07106781187 pc, y=0.0 pc, z=7.07106781187 pc>
 
 Transforming between Frames
 ===========================
@@ -193,10 +193,10 @@ the default attributes will be used, or a frame object (with or without
 data)::
 
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
-    >>> cooi.transform_to(FK5)
-    <FK5 Coordinate: equinox=J2000.000, ra=1.500006605... deg, dec=2.500002382... deg>
-    >>> cooi.transform_to(FK5(equinox='J1975'))
-    <FK5 Coordinate: equinox=J1975.000, ra=1.179603481... deg, dec=2.360853208... deg>
+    >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
+    <FK5 Coordinate: equinox=J2000.000, ra=1.50000660527 deg, dec=2.50000238221 deg>
+    >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP
+    <FK5 Coordinate: equinox=J1975.000, ra=1.17960348105 deg, dec=2.36085320826 deg>
 
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
