@@ -322,23 +322,10 @@ class BaseCoordinateFrame(object):
         names and default units should be used on this frame for the components
         of that representation.
 
-    * `frame_attr_names`
-        A dictionary with keys that are the additional attributes necessary to
-        specify the frame, and values that are the default values of those
-        attributes.
-
-    * `time_attr_names`
-        A sequence of attribute names that must be `~astropy.time.Time` objects.
-        When given as keywords in the initializer, these will be converted if
-        possible (e.g. from the string 'J2000' to the appropriate
-        `~astropy.time.Time` object).  Defaults to ``('equinox', 'obstime')``.
     """
 
     default_representation = None
-
-    frame_attr_names = {}  # maps attribute to default value
     frame_specific_representation_info = {}  # specifies special names/units for representation attributes
-    time_attr_names = ('equinox', 'obstime')  # Attributes that must be Time objects
 
     # This __new__ provides for backward-compatibility with pre-0.4 API.
     # TODO: remove in 1.0
