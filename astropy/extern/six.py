@@ -5,6 +5,10 @@ Handle loading six package from system or from the bundled copy
 """
 
 import imp
+from distutils.version import StrictVersion
+
+
+_SIX_MIN_VERSION = StrictVersion('1.5.0')
 
 
 def _find_module(name, path=None):
@@ -23,10 +27,25 @@ def _find_module(name, path=None):
     return fh, path, descr
 
 
-try:
-    six_info = _find_module('six')
-except ImportError:
-    six_info = _find_module('astropy.extern.bundled.six')
+for mod_name in ['astropy.extern.bundled._six', 'six']:
+    try:
+        mod_info = _find_module(mod_name)
+    except ImportError:
+        continue
 
+    mod = imp.load_module(__name__, *mod_info)
 
-imp.load_module(__name__, *six_info)
+    try:
+        if StrictVersion(mod.__version__) >= _SIX_MIN_VERSION:
+            break
+    except (AttributeError, ValueError):
+        # Attribute error if the six module isn't what it should be and doesn't
+        # have a .__version__; ValueError if the version string exists but is
+        # somehow bogus/unparseable
+        continue
+else:
+    raise ImportError(
+        "Astropy requires the 'six' module of minimum version {0}; "
+        "normally this is bundled with the astropy package so if you get "
+        "this warning consult the packager of your Astropy "
+        "distribution.".format(_SIX_MIN_VERSION))
