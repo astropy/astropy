@@ -17,13 +17,9 @@ class NonFittableModel(Model):
 
     a = Parameter()
 
-    def __init__(self, a):
-        if not isinstance(a, collections.Sequence):
-            param_dim = 1
-        else:
-            param_dim = len(a)
-
-        super(NonFittableModel, self).__init__(a, param_dim=param_dim)
+    def __init__(self, a, model_set_axis=None):
+        super(NonFittableModel, self).__init__(
+            a, model_set_axis=model_set_axis)
 
     def __call__(self):
         pass
@@ -37,16 +33,13 @@ def test_Model():
         "Model: NonFittableModel\n"
         "Inputs: 1\n"
         "Outputs: 1\n"
-        "Parameter sets: 1\n"
+        "Model set size: 1\n"
         "Parameters:\n"
         "     a  \n"
         "    ----\n"
         "    42.0")
 
-    assert m.param_dim == 1
-
-    with pytest.raises(AttributeError):
-        m.param_dim = 42
+    assert len(m) == 1
 
 
 def test_Model_array_parameter():

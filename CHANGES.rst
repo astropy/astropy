@@ -116,6 +116,11 @@ New Features
     separately from fit statistics, allowing new fitters to be created by
     mixing and matching optimizers and statistic functions. [#1914]
 
+  - Slight overhaul to how inputs to and outputs from models are handled with
+    respect to array-valued parameters and variables, as well as sets of
+    multiple models.  See the associated PR and the modeling section of the
+    v0.4 documentation for more details. [#2634]
+
   - Added a new ``SimplexLSQFitter`` which uses a downhill simplex optimizer
     with a least squares statistic. [#1914]
 

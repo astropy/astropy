@@ -7,48 +7,20 @@ the base class for all fittable models. Fittable models can be linear or
 nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in
-a purely mathematical way, i.e. the models are unitless. In addition, when
-possible the transformation is done using multiple parameter sets,
-`param_sets`.  The number of parameter sets is stored in an attribute
-`param_dim`.
-
-Fittable models also store a flat list of all parameters as an instance of
-`~astropy.modeling.Parameter`. When fitting, this list-like object is
-modified by a subclass of `~astropy.modeling.fitting.Fitter`. When fitting
-nonlinear models, the values of the parameters are used as initial guesses
-by the fitting class. Normally users will not have to use the
-`~astropy.modeling.parameters` module directly.
-
-Input Format For Model Evaluation and Fitting
-
-Input coordinates are passed in separate arguments, for example 2D models
-expect x and y coordinates to be passed separately as two scalars or array-like
-objects.
-The evaluation depends on the input dimensions and the number of parameter
-sets but in general normal broadcasting rules apply.
-For example:
-
-- A model with one parameter set works with input in any dimensionality
-
-- A model with N parameter sets works with 2D arrays of shape (M, N).
-  A parameter set is applied to each column.
-
-- A model with N parameter sets works with multidimensional arrays if the
-  shape of the input array is (N, M, P). A parameter set is applied to each
-  plane.
-
-In all these cases the output has the same shape as the input.
-
-- A model with N parameter sets works with 1D input arrays. The shape
-  of the output is (M, N)
+a purely mathematical way, i.e. the models are unitless.  Model instances can
+represent either a single model, or a "model set" representing multiple copies
+of the same type of model, but with potentially different values of the
+parameters in each model making up the set.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
-import functools
 import copy
+import functools
+import inspect
+import warnings
 
 import numpy as np
 
@@ -57,7 +29,9 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from .utils import array_repr_oneline
+from ..utils import deprecated
+from ..utils.exceptions import AstropyDeprecationWarning
+from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
 
 from .parameters import Parameter, InputParameterError
 
@@ -65,6 +39,9 @@ __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'FittableModel',
            'Fittable1DModel', 'Fittable2DModel', 'ModelDefinitionError',
            'format_input']
+
+
+__doctest_skip__ = ['.']
 
 
 class ModelDefinitionError(Exception):
@@ -79,58 +56,53 @@ def format_input(func):
     Wraps the result to match the shape of the last input array.
     """
 
+    argspec = inspect.getargspec(func)
+
     @functools.wraps(func)
-    def wrapped_call(self, *args):
-        converted = []
+    def wrapped_call(self, *inputs, **kwargs):
+        model_set_axis = kwargs.pop('model_set_axis', None)
 
-        for arg in args:
-            # Reset these flags; their value only matters for the last
-            # argument
-            transposed = False
-            scalar = False
+        if model_set_axis is None:
+            # By default the model_set_axis for the input is assumed to be the
+            # same as that for the parameters the model was defined with
+            # TODO: Ensure that negative model_set_axis arguments are respected
+            model_set_axis = self.model_set_axis
 
-            arg = np.asarray(arg) + 0.
-            if self.param_dim == 1:
-                if arg.ndim == 0:
-                    scalar = True
-                converted.append(arg)
-                continue
+        n_models = len(self)
 
-            if arg.ndim < 2:
-                converted.append(np.array([arg]).T)
-            elif arg.ndim == 2:
-                if arg.shape[-1] != self.param_dim:
-                    raise ValueError("Cannot broadcast with shape ({0}, {1})".
-                                     format(arg.shape[0], arg.shape[1]))
-                converted.append(arg)
-            elif arg.ndim > 2:
-                if arg.shape[0] != self.param_dim:
-                    raise ValueError("Cannot broadcast with shape ({0}, {1}, "
-                                     "{2})".format(arg.shape[0],
-                                                   arg.shape[1], arg.shape[2]))
-                transposed = True
-                converted.append(arg.T)
+        params = [getattr(self, name) for name in self.param_names]
+        inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
 
-        result = func(self, *converted)
+        scalar_params = all(not param.shape for param in params)
+        scalar_inputs = all(not np.shape(_input) for _input in inputs)
 
-        if transposed:
-            if self.n_outputs > 1:
-                result = [r.T for r in result]
+        if n_models == 1 and scalar_params and scalar_inputs:
+            # Simplest case is either a parameterless models (currently I don't
+            # think we have any but they could exist in principle) or a single
+            # model (not a model set) with all scalar paramaters and all scalar
+            # inputs
+            outputs = func(self, *inputs, **kwargs)
+
+            if self.n_outputs == 1:
+                return np.asscalar(outputs)
             else:
-                return result.T
-        elif scalar:
-            if self.n_outputs > 1:
-                try:
-                    result = [np.asscalar(r) for r in result]
-                except TypeError:
-                    pass
-                return tuple(result)
-            else:
-                try:
-                    result = result[0]
-                except (IndexError, TypeError):
-                    pass
-        return result
+                return tuple(np.asscalar(output) for output in outputs)
+
+        input_names = argspec.args[1:1 + len(inputs)]
+
+        _validate_input_shapes(inputs, input_names, n_models,
+                               model_set_axis, self.standard_broadcasting)
+
+        # The input formatting required for single models versus a multiple
+        # model set are different enough that they've been split into separate
+        # subroutines
+        if n_models == 1:
+            return _format_single_model_input(func, self, params, inputs,
+                                              input_names, **kwargs)
+        else:
+            return _format_model_set_input(func, self, params, inputs,
+                                           input_names, n_models,
+                                           model_set_axis, **kwargs)
 
     return wrapped_call
 
@@ -183,6 +155,8 @@ class _ModelMeta(abc.ABCMeta):
                            sorted(parameters.values(),
                                   key=lambda p: p._order)]
             members['param_names'] = param_names
+            members['_param_orders'] = \
+                    dict((name, idx) for idx, name in enumerate(param_names))
 
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
@@ -276,8 +250,18 @@ class Model(object):
     model_constraints = ['eqcons', 'ineqcons']
 
     param_names = []
+    """
+    List of names of the parameters that describe models of this type.
+
+    The parameters in this list are in the same order they should be passed in
+    when initializing a model of a specific type.  Some types of models, such
+    as polynomial models, have a different number of parameters depending on
+    some other property of the model, such as the degree.
+    """
+
     n_inputs = 1
     n_outputs = 1
+    standard_broadcasting = True
     fittable = False
     linear = True
 
@@ -295,15 +279,21 @@ class Model(object):
     def __str__(self):
         return self._format_str()
 
+    def __len__(self):
+        return self._n_models
+
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
 
     @property
+    @deprecated('0.4', alternative='len(model)')
     def param_dim(self):
-        """Number of parameter sets in a model."""
+        return self._n_models
 
-        return self._param_dim
+    @property
+    def model_set_axis(self):
+        return self._model_set_axis
 
     @property
     def param_sets(self):
@@ -313,20 +303,34 @@ class Model(object):
         This is an array where each column represents one parameter set.
         """
 
-        parameters = [getattr(self, attr) for attr in self.param_names]
-        values = [par.value for par in parameters]
-        shapes = [par.shape for par in parameters]
-        n_dims = np.asarray([len(p.shape) for p in parameters])
+        values = [getattr(self, name).value for name in self.param_names]
 
-        if (n_dims > 1).any():
-            if () in shapes:
-                psets = np.asarray(values, dtype=np.object)
-            else:
-                psets = np.asarray(values)
-        else:
-            psets = np.asarray(values)
-            psets.shape = (len(self.param_names), self.param_dim)
-        return psets
+        # Ensure parameter values are broadcastable
+        for name, shape in six.iteritems(self._param_broadcast_shapes):
+            idx = self._param_orders[name]
+            values[idx] = values[idx].reshape(shape)
+
+        shapes = [np.shape(value) for value in values]
+
+        if len(self) == 1:
+            # Add a single param set axis to the parameter's value (thus
+            # converting scalars to shape (1,) array values) for consistency
+            values = [np.array([value]) for value in values]
+
+        if len(set(shapes)) != 1:
+            # If the parameters are not all the same shape, converting to an
+            # array is going to produce an object array
+            # However the way Numpy creates object arrays is tricky in that it
+            # will recurse into array objects in the list and break them up
+            # into separate objects.  Doing things this way ensures a 1-D
+            # object array the elements of which are the individual parameter
+            # arrays.  There's not much reason to do this over returning a list
+            # except for consistency
+            psets = np.empty(len(values), dtype=object)
+            psets[:] = values
+            return psets
+
+        return np.array(values)
 
     @property
     def parameters(self):
@@ -471,8 +475,47 @@ class Model(object):
         slices of this array.
         """
 
-        # Pop off the param_dims
-        param_dim = kwargs.pop('param_dim', None)
+        n_models = None
+        # Pop off param_dim and handle backwards compatibility
+        if 'param_dim' in kwargs:
+            n_models = kwargs.pop('param_dim')
+            warnings.warn(
+                'The param_dim argument to {0}.__init__ is deprecated; '
+                'use n_models instead.  See also the model_set_axis argument '
+                'and related discussion in the docstring for Model.'.format(
+                    self.__class__.__name__), AstropyDeprecationWarning)
+            if 'n_models' in kwargs:
+                raise TypeError(
+                    "param_dim and n_models cannot both be specified; use "
+                    "n_models, as param_dim is deprecated")
+        else:
+            n_models = kwargs.pop('n_models', None)
+
+        if not (n_models is None or
+                    (isinstance(n_models, int) and n_models >=1)):
+            raise ValueError(
+                "n_models must be either None (in which case it is "
+                "determined from the model_set_axis of the parameter initial "
+                "values) or it must be a positive integer "
+                "(got {0!r})".format(n_models))
+
+        model_set_axis = kwargs.pop('model_set_axis', None)
+        if model_set_axis is None:
+            if n_models is not None and n_models > 1:
+                # Default to zero
+                model_set_axis = 0
+            else:
+                # Otherwise disable
+                model_set_axis = False
+        else:
+            if not (model_set_axis is False or
+                    (isinstance(model_set_axis, int) and
+                        not isinstance(model_set_axis, bool))):
+                raise ValueError(
+                    "model_set_axis must be either False or an integer "
+                    "specifying the parameter array axis to map to each "
+                    "model in a set of models (got {0!r}).".format(
+                        model_set_axis))
 
         # Process positional arguments by matching them up with the
         # corresponding parameters in self.param_names--if any also appear as
@@ -485,7 +528,10 @@ class Model(object):
                                 len(args)))
 
         for idx, arg in enumerate(args):
-            params[self.param_names[idx]] = arg
+            if arg is None:
+                # A value of None implies using the default value, if exists
+                continue
+            params[self.param_names[idx]] = np.asanyarray(arg, dtype=np.float)
 
         # At this point the only remaining keyword arguments should be
         # parameter names; any others are in error.
@@ -495,7 +541,10 @@ class Model(object):
                     raise TypeError(
                         "{0}.__init__() got multiple values for parameter "
                         "{1!r}".format(self.__class__.__name__, param_name))
-                params[param_name] = kwargs.pop(param_name)
+                value = kwargs.pop(param_name)
+                if value is None:
+                    continue
+                params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -507,29 +556,59 @@ class Model(object):
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
 
-        # Determine the number of parameter sets: This will be based
-        # on the size of any parameters whose values have been specified
-        # or the default of 1 is used
-        if param_dim is None:
-            max_param_dim = 1
-            for name, value in params.items():
-                # Determine the best param_dims, if not already specified,
-                # based on the sizes of the input parameter values
-                max_param_dim = max(max_param_dim, np.size(value))
+        # Determine the number of model sets: If the model_set_axis is
+        # None then there is just one parameter set; otherwise it is determined
+        # by the size of that axis on the first parameter--if the other
+        # parameters don't have the right number of axes or the sizes of their
+        # model_set_axis don't match an error is raised
+        if model_set_axis is not False and n_models != 1 and params:
+            max_ndim = 0
+            if model_set_axis < 0:
+                min_ndim = abs(model_set_axis)
+            else:
+                min_ndim = model_set_axis + 1
 
-            param_dim = max_param_dim
+            for name, value in six.iteritems(params):
+                param_ndim = np.ndim(value)
+                if param_ndim < min_ndim:
+                    raise InputParameterError(
+                        "All parameter values must be arrays of dimension "
+                        "at least {0} for model_set_axis={1} (the value "
+                        "given for {2!r} is only {3}-dimensional)".format(
+                            min_ndim, model_set_axis, name, param_ndim))
+
+                max_ndim = max(max_ndim, param_ndim)
+
+                if n_models is None:
+                    # Use the dimensions of the first parameter to determine
+                    # the number of model sets
+                    n_models = value.shape[model_set_axis]
+                elif value.shape[model_set_axis] != n_models:
+                    raise InputParameterError(
+                        "Inconsistent dimensions for parameter {0!r} for "
+                        "{1} model sets.  The length of axis {2} must be the "
+                        "same for all input parameter values".format(
+                        name, n_models, model_set_axis))
+
+            self._param_broadcast_shapes = self._check_param_broadcast(
+                    params, max_ndim, model_set_axis)
+        else:
+            if n_models is None:
+                n_models = 1
+
+            self._param_broadcast_shapes = self._check_param_broadcast(
+                    params, None, None)
 
         # First we need to determine how much array space is needed by all the
         # parameters based on the number of parameters, the shape each input
         # parameter, and the param_dim
-        self._param_dim = param_dim
+        self._n_models = n_models
+        self._model_set_axis = model_set_axis
         self._param_metrics = {}
         total_size = 0
+
         for name in self.param_names:
             if params.get(name) is None:
-                # parameters that were not supplied at all or that have
-                # defaults of None should attempt to use the default provided
-                # by their Parameter descriptor
                 default = getattr(self, name).default
 
                 if default is None:
@@ -539,43 +618,13 @@ class Model(object):
                     raise TypeError(
                         "{0}.__init__() requires a value for parameter "
                         "{1!r}".format(self.__class__.__name__, name))
-                else:
-                    params[name] = default
 
-            value = params[name]
+                value = params[name] = default
+            else:
+                value = params[name]
 
             param_size = np.size(value)
             param_shape = np.shape(value)
-
-            if param_dim == 1:
-                pass
-            elif param_dim > 1:
-                if param_size == 1:
-                    param_size = param_dim
-                    # Update the value for this param to the new repeated
-                    # version
-                    value = params[name] = np.repeat(value, param_size)
-                    param_shape = value.shape
-            else:
-                raise ValueError("Model param_dim must be 1 or greater.")
-
-            if param_size > 1 and param_dim > 1 and len(value) != param_dim:
-                # The len(value) == self.param_dim case is a special case
-                # (see #1680) where the parameter has compound values (like [1,
-                # 2]) but we're passing in two (or more) param sets, so we want
-                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
-                # having values for 2 param sets, not 4.
-
-                # For now all parameter values must have a number of elements
-                # equal to param_dim (the number of param sets) or it is
-                # invalid.  The *only* exception is, again, a scalar value is
-                # allowed to be repeated across param sets
-                raise InputParameterError(
-                    "The input value for {0!r} has too many elements for "
-                    "param_dim={1}.  Parameter values must either match the "
-                    "model's param_dim in size, or may be a scalar value, in "
-                    "which case the value is repeated accross parameter "
-                    "sets.".format(name, param_dim))
 
             param_slice = slice(total_size, total_size + param_size)
             self._param_metrics[name] = (param_slice, param_shape)
@@ -587,6 +636,77 @@ class Model(object):
         for name, value in params.items():
             setattr(self, name, value)
 
+    def _check_param_broadcast(self, params, max_ndim, model_set_axis):
+        """
+        This subroutine checks that all parameter arrays can be broadcast
+        against each other, and determimes the shapes parameters must have in
+        order to broadcast correctly.
+
+        If model_set_axis is None this merely checks that the parameters
+        broadcast and returns an empty dict if so.  This mode is only used for
+        single model sets.
+        """
+
+        broadcast_shapes = {}
+        all_shapes = []
+        param_names = []
+
+        for name in self.param_names:
+            # Previously this just used iteritems(params), but we loop over all
+            # param_names instead just to ensure some determinism in the
+            # ordering behavior
+            if name not in params:
+                continue
+
+            value = params[name]
+            param_names.append(name)
+            # We've already checked that each parameter array is compatible in
+            # the model_set_axis dimension, but now we need to check the
+            # dimensions excluding that axis
+            # Split the array dimensions into the axes before model_set_axis
+            # and after model_set_axis
+            param_shape = np.shape(value)
+
+            param_ndim = len(param_shape)
+            if max_ndim is not None and param_ndim < max_ndim:
+                # All arrays have the same number of dimensions up to the
+                # model_set_axis dimension, but after that they may have a
+                # different number of trailing axes.  The number of trailing
+                # axes must be extended for mutual compatibility.  For example
+                # if max_ndim = 3 and model_set_axis = 0, an array with the
+                # shape (2, 2) must be extended to (2, 1, 2).  However, an
+                # array with shape (2,) is extended to (2, 1).
+                new_axes = (1,) * (max_ndim - param_ndim)
+
+                if model_set_axis < 0:
+                    # Just need to prepend axes to make up the difference
+                    broadcast_shape = new_axes + param_shape
+                else:
+                    broadcast_shape = (param_shape[:model_set_axis + 1] +
+                                       new_axes +
+                                       param_shape[model_set_axis + 1:])
+                broadcast_shapes[name] = broadcast_shape
+                all_shapes.append(broadcast_shape)
+            else:
+                all_shapes.append(param_shape)
+
+        # Now check mutual broadcastability of all shapes
+        try:
+            check_broadcast(*all_shapes)
+        except IncompatibleShapeError as exc:
+            shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+            param_a = param_names[shape_a_idx]
+            param_b = param_names[shape_b_idx]
+
+            raise InputParameterError(
+                "Parameter {0!r} of shape {1!r} cannot be broadcast with "
+                "parameter {2!r} of shape {3!r}.  All parameter arrays "
+                "must have shapes that are mutually compatible according "
+                "to the broadcasting rules.".format(param_a, shape_a,
+                                                    param_b, shape_b))
+
+        return broadcast_shapes
+
     def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
         Internal implementation of ``__repr__``.
@@ -595,6 +715,8 @@ class Model(object):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+
+        # TODO: I think this could be reworked to preset model sets better
 
         parts = ['<{0}('.format(self.__class__.__name__)]
 
@@ -613,8 +735,8 @@ class Model(object):
                 continue
             parts.append(', {0}={1!r}'.format(kwarg, value))
 
-        if self.param_dim > 1:
-            parts.append(", param_dim={0}".format(self.param_dim))
+        if len(self) > 1:
+            parts.append(", n_models={0}".format(len(self)))
 
         parts.append(')>')
 
@@ -633,7 +755,7 @@ class Model(object):
             ('Model', self.__class__.__name__),
             ('Inputs', self.n_inputs),
             ('Outputs', self.n_outputs),
-            ('Parameter sets', self.param_dim)
+            ('Model set size', len(self))
         ]
 
         parts = ['{0}: {1}'.format(keyword, value)
@@ -641,7 +763,7 @@ class Model(object):
 
         parts.append('Parameters:')
 
-        if self.param_dim == 1:
+        if len(self) == 1:
             columns = [[getattr(self, name).value]
                        for name in self.param_names]
         else:
@@ -656,6 +778,11 @@ class Model(object):
 
 
 class FittableModel(Model):
+    """
+    Base class for models that can be fitted using the built-in fitting
+    algorithms.
+    """
+
     linear = False
     # derivative with respect to parameters
     fit_deriv = None
@@ -671,10 +798,11 @@ class FittableModel(Model):
 
 class LabeledInput(dict):
     """
-    Create a container with all input data arrays, assigning labels for
-    each one.
+    Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
+    data using labels.
 
-    Used by CompositeModel to choose input data using labels.
+    This is a container assigning labels (names) to all input data arrays to a
+    composite model.
 
     Parameters
     ----------
@@ -682,11 +810,6 @@ class LabeledInput(dict):
         List of all input data
     labels : list of strings
         names matching each coordinate in data
-
-    Returns
-    -------
-    data : LabeledData
-        a dict of input data and their assigned labels
 
     Examples
     --------
@@ -1036,16 +1159,10 @@ class SummedCompositeModel(_CompositeModel):
 
 class Fittable1DModel(FittableModel):
     """
-    Base class for one dimensional parametric models.
+    Base class for one-dimensional fittable models.
 
     This class provides an easier interface to defining new models.
-    Examples can be found in functional_models.py
-
-    Parameters
-    ----------
-    parameters : dictionary
-        Dictionary of model parameters with initialisation values
-        {'parameter_name': 'parameter_value'}
+    Examples can be found in `astropy.modeling.functional_models`.
     """
 
     @abc.abstractmethod
@@ -1060,14 +1177,21 @@ class Fittable1DModel(FittableModel):
         """
 
     @format_input
-    def __call__(self, x):
+    def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
 
         Parameters
         ----------
-        x : array like or a number
-            input
+        x : array-like or numeric value
+            Input coordinate values.
+
+        model_set_axis : `int` or `False`, optional
+            For `Model` instances representing a multiple-model set, this picks
+            out which axis of the input array is used to map inputs to specific
+            models in the set.  If `False`, this indicates that the input array
+            has no such axis, and instead the same input should be broadcast to
+            all models in the set.
         """
 
         return self.eval(x, *self.param_sets)
@@ -1075,16 +1199,10 @@ class Fittable1DModel(FittableModel):
 
 class Fittable2DModel(FittableModel):
     """
-    Base class for two dimensional parametric models.
+    Base class for one-dimensional fittable models.
 
     This class provides an easier interface to defining new models.
-    Examples can be found in functional_models.py
-
-    Parameters
-    ----------
-    parameter_dict : dictionary
-        Dictionary of model parameters with initialization values
-        {'parameter_name': 'parameter_value'}
+    Examples can be found in `astropy.modeling.functional_models`.
     """
 
     n_inputs = 2
@@ -1102,14 +1220,206 @@ class Fittable2DModel(FittableModel):
         """
 
     @format_input
-    def __call__(self, x, y):
+    def __call__(self, x, y, model_set_axis=None):
         """
         Transforms data using this model.
 
         Parameters
         ----------
-        x : array like or a number
-            input
+        x : array-like or numeric value
+            First input coordinate values.
+
+        y : array-like or numeric value
+            Second input coordinate values.
+
+        model_set_axis : `int` or `False`, optional
+            For `Model` instances representing a multiple-model set, this picks
+            out which axis of the input array is used to map inputs to specific
+            models in the set.  If `False`, this indicates that the input array
+            has no such axis, and instead the same input should be broadcast to
+            all models in the set.
         """
 
         return self.eval(x, y, *self.param_sets)
+
+
+def _format_single_model_input(func, model, params, inputs, input_names,
+                               **kwargs):
+    broadcasts = []
+
+    for idx, _input in enumerate(inputs):
+        _input = np.asanyarray(_input, dtype=np.float)
+        input_shape = _input.shape
+        max_broadcast = ()
+
+        for param in params:
+            try:
+                if model.standard_broadcasting:
+                    broadcast = check_broadcast(input_shape, param.shape)
+                else:
+                    broadcast = input_shape
+            except IncompatibleShapeError:
+                raise ValueError(
+                    "Model input argument {0!r} of shape {1!r} cannot be "
+                    "broadcast with parameter {2!r} of shape "
+                    "{3!r}.".format(input_names[idx], input_shape,
+                                    param.name, param.shape))
+
+            if len(broadcast) > len(max_broadcast):
+                max_broadcast = broadcast
+            elif len(broadcast) == len(max_broadcast):
+                max_broadcast = max(max_broadcast, broadcast)
+
+        broadcasts.append(max_broadcast)
+
+    outputs = func(model, *inputs, **kwargs)
+
+    if model.n_outputs == 1:
+        outputs = [outputs]
+    else:
+        outputs = list(outputs)
+
+    for idx, output in enumerate(outputs):
+        if broadcasts[idx]:
+            outputs[idx] = output.reshape(broadcasts[idx])
+
+    if model.n_outputs == 1:
+        return outputs[0]
+    else:
+        return tuple(outputs)
+
+
+def _format_model_set_input(func, model, params, inputs, input_names,
+                            n_models, model_set_axis, **kwargs):
+    reshaped = []
+    pivots = []
+
+    for idx, _input in enumerate(inputs):
+        _input = np.asanyarray(_input, dtype=np.float)
+
+        max_param_shape = ()
+
+        if n_models > 1 and model_set_axis is not False:
+            # Use the shape of the input *excluding* the model axis
+            input_shape = (_input.shape[:model_set_axis] +
+                           _input.shape[model_set_axis + 1:])
+        else:
+            input_shape = _input.shape
+
+        for param in params:
+            try:
+                check_broadcast(input_shape, param.shape)
+            except IncompatibleShapeError:
+                raise ValueError(
+                    "Model input argument {0!r} of shape {1!r} cannot be "
+                    "broadcast with parameter {2!r} of shape "
+                    "{3!r}.".format(input_names[idx], input_shape,
+                                    param.name, param.shape))
+
+            if len(param.shape) > len(max_param_shape):
+                max_param_shape = param.shape
+
+        # We've now determined that, excluding the model_set_axis, the
+        # input can broadcast with all the parameters
+        input_ndim = len(input_shape)
+        if model_set_axis is False:
+            if len(max_param_shape) > input_ndim:
+                # Just needs to prepend new axes to the input
+                n_new_axes = 1 + len(max_param_shape) - input_ndim
+                new_axes = (1,) * n_new_axes
+                new_shape = new_axes + _input.shape
+                pivot = model.model_set_axis
+            else:
+                pivot = input_ndim - len(max_param_shape)
+                new_shape = (_input.shape[:pivot] + (1,) +
+                             _input.shape[pivot:])
+            new_input = _input.reshape(new_shape)
+        else:
+            if len(max_param_shape) >= input_ndim:
+                n_new_axes = len(max_param_shape) - input_ndim
+                pivot = model.model_set_axis
+                new_axes = (1,) * n_new_axes
+                new_shape = (_input.shape[:pivot + 1] + new_axes +
+                             _input.shape[pivot + 1:])
+                new_input = _input.reshape(new_shape)
+            else:
+                pivot = _input.ndim - len(max_param_shape) - 1
+                new_input = np.rollaxis(_input, model_set_axis,
+                                        pivot + 1)
+
+        pivots.append(pivot)
+        reshaped.append(new_input)
+
+    outputs = func(model, *reshaped, **kwargs)
+
+    if model.n_outputs == 1:
+        outputs = [outputs]
+    else:
+        outputs = list(outputs)
+
+    for idx, output in enumerate(outputs):
+        pivot = pivots[idx]
+        if pivot < output.ndim and pivot != model.model_set_axis:
+            outputs[idx] = np.rollaxis(output, pivot,
+                                       model.model_set_axis)
+
+    if model.n_outputs == 1:
+        return outputs[0]
+    else:
+        return tuple(outputs)
+
+
+def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
+                           validate_broadcasting):
+    """
+    Perform basic validation of model inputs--that they are mutually
+    broadcastable and that they have the minimum dimensions for the given
+    model_set_axis.
+
+    If validation succeeds, returns the total shape that will result from
+    broadcasting the input arrays with each other.
+    """
+
+    check_model_set_axis = n_models > 1 and model_set_axis is not False
+
+    if not (validate_broadcasting or check_model_set_axis):
+        # Nothing else needed here
+        return
+
+    all_shapes = []
+
+    for idx, _input in enumerate(inputs):
+        input_shape = np.shape(_input)
+        # Ensure that the input's model_set_axis matches the model's
+        # n_models
+        if input_shape and check_model_set_axis:
+            # Note: Scalar inputs *only* get a pass on this
+            if len(input_shape) < model_set_axis + 1:
+                raise ValueError(
+                    "For model_set_axis={0}, all inputs must be at "
+                    "least {1}-dimensional.".format(
+                        model_set_axis, model_set_axis + 1))
+            elif input_shape[model_set_axis] != n_models:
+                raise ValueError(
+                    "Input argument {0!r} does not have the correct "
+                    "dimensions in model_set_axis={1} for a model set with "
+                    "n_models={2}.".format(argnames[idx], model_set_axis,
+                                           n_models))
+        all_shapes.append(input_shape)
+
+    if not validate_broadcasting:
+        return
+
+    try:
+        input_broadcast = check_broadcast(*all_shapes)
+    except IncompatibleShapesError as exc:
+        shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+        arg_a = argnames[shape_a_idx]
+        arg_b = argnames[shape_b_idx]
+
+        raise ValueError(
+            "Model input argument {0!r} of shape {1!r} cannot "
+            "be broadcast with input {2!r} of shape {3!r}".format(
+                arg_a, shape_a, arg_b, shape_b))
+
+    return input_broadcast
