@@ -175,7 +175,7 @@ cdef class CParser:
 		cdef int row
 
 		for i in range(self.tokenizer.num_cols):
-			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype=np.str_)
+			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
 			el = ''
 			row = 0
 

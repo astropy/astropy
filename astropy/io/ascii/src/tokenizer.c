@@ -71,9 +71,9 @@ void resize_col(tokenizer_t *self, int index)
         *self->col_ptrs[col]++ = c;					\
     }
 
-#define END_FIELD()				\
-    PUSH('\x00');				\
-    if (!header && ++col > self->num_cols)	\
+#define END_FIELD()							\
+    PUSH('\x00');							\
+    if (!header && ++col > self->num_cols)				\
 	RETURN(TOO_MANY_COLS);
 
 #define END_LINE()				\
@@ -151,7 +151,7 @@ int tokenize(tokenizer_t *self, int line, int header)
 	switch (self->state)
 	{
 	case START_LINE:
-	    if (c == '\n')
+	    if (c == '\n' || c == ' ' || c == '\t') // TODO: make an option not to strip whitespace (for tab-delimited, etc.)
 		break;
 	    else if (c == self->comment)
 	    {
@@ -162,7 +162,9 @@ int tokenize(tokenizer_t *self, int line, int header)
 	    self->state = START_FIELD;
 	
 	case START_FIELD:
-	    if (c == self->delimiter)
+	    if (c == ' ' || c == '\t') // TODO: strip whitespace at the end of fields as well
+		break;
+	    else if (c == self->delimiter)
 	    {
 		PUSH(' ');
 		END_FIELD();
