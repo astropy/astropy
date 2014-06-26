@@ -27,7 +27,7 @@ def _find_module(name, path=None):
     return fh, path, descr
 
 
-for mod_name in ['astropy.extern.bundled._six', 'six']:
+for mod_name in ['astropy.extern.bundled.six', 'six']:
     try:
         mod_info = _find_module(mod_name)
     except ImportError:
