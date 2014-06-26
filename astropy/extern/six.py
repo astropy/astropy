@@ -22,7 +22,6 @@ def _load_six_moves(base, dest):
                 modname = dest + trail
                 sys.modules[modname] = mod
 
-
 _dest_moves = 'astropy.extern.six.moves'
 _dest_root = 'astropy.extern.six'
 
@@ -35,24 +34,22 @@ except ImportError:
 
 if _system_package:
     # Check six version
-    _valid_version = True
+    from distutils.version import StrictVersion
+    _valid_version = False
+    if StrictVersion(six.__version__) >= StrictVersion('1.5.0'):
+        _valid_version = True
+
     if _valid_version:
         # handle 'moves'
         _base_moves = 'six.moves'
-        _load_six_moves(_base_moves, _dest_moves)
-        six.system_package = True
-        six.bundled_package = False
-        sys.modules[_dest_root] = six
     else:
         _system_package = False
-
 
 if not _system_package:
     import astropy.extern.bundled.six as six
     # handle 'moves'
     _base_moves = 'astropy.extern.bundled.six.moves'
-    _load_six_moves(_base_moves, _dest_moves)
-    six.system_package = False
-    six.bundled_package = True
-    sys.modules[_dest_root] = six
+
+_load_six_moves(_base_moves, _dest_moves)
+sys.modules[_dest_root] = six
 
