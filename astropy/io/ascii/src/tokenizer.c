@@ -62,7 +62,7 @@ void resize_col(tokenizer_t *self, int index)
         }								\
 	self->header_output[output_pos++] = c;				\
     }									\
-    else if (col < self->num_cols)					\
+    else if (col < self->num_cols && use_cols[real_col])		\
     {									\
 	if (self->col_ptrs[col] - self->output_cols[col] >= self->output_len[col]) \
 	{								\
@@ -72,9 +72,13 @@ void resize_col(tokenizer_t *self, int index)
     }
 
 #define END_FIELD()							\
-    PUSH('\x00');							\
-    if (!header && ++col > self->num_cols)				\
-	RETURN(TOO_MANY_COLS);
+    if (header || use_cols[real_col])					\
+    {									\
+	PUSH('\x00');							\
+	if (!header && ++col > self->num_cols)				\
+	    RETURN(TOO_MANY_COLS);					\
+    }									\
+    ++real_col;
 
 #define END_LINE()				\
     if (header)					\
@@ -91,11 +95,12 @@ void resize_col(tokenizer_t *self, int index)
 
 #define RETURN(c) { self->code = c; return c; }
 
-int tokenize(tokenizer_t *self, int line, int header)
+int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 {
     delete_data(self); // clear old reading data
     char c; // input character
-    int col = 0; // current column
+    int col = 0; // current column ignoring possibly excluded columns
+    int real_col = 0; // current column taking excluded columns into account
     int output_pos = 0; // current position in header output string
     self->header_len = INITIAL_HEADER_SIZE;
     self->source_pos = 0;
@@ -159,6 +164,7 @@ int tokenize(tokenizer_t *self, int line, int header)
 		break;
 	    }
 	    col = 0;
+	    real_col = 0;
 	    self->state = START_FIELD;
 	
 	case START_FIELD:
@@ -206,4 +212,9 @@ int tokenize(tokenizer_t *self, int line, int header)
     }
 
     RETURN(0);
+}
+
+int int_size()
+{
+    return 8 * sizeof(int);
 }

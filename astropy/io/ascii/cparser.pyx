@@ -2,6 +2,7 @@
 
 import six
 import numpy as np
+cimport numpy as np
 from ...utils.data import get_readable_fileobj
 
 cdef extern from "src/tokenizer.h":
@@ -40,7 +41,8 @@ cdef extern from "src/tokenizer.h":
 
 	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
 	void delete_tokenizer(tokenizer_t *tokenizer)
-	int tokenize(tokenizer_t *self, int line, int header)
+	int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
+	int int_size()
 
 class CParserError(Exception):
 	"""
@@ -69,6 +71,7 @@ cdef class CParser:
 		object fill_values
 		object fill_include_names
 		object fill_exclude_names
+		np.ndarray use_cols
 
 	cdef public:
 		int width
@@ -131,10 +134,9 @@ cdef class CParser:
 	def read_header(self):
 		if self.names:
 			self.width = len(self.names)
-			self.tokenizer.num_cols = self.width
 		# header_start is a valid line number
 		elif self.header_start is not None and self.header_start >= 0:
-			if tokenize(self.tokenizer, self.header_start, 1) != 0:
+			if tokenize(self.tokenizer, self.header_start, 1, <int *> 0) != 0:
 				self.raise_error("An error occurred while tokenizing the header line")
 			self.names = []
 			name = ''
@@ -149,10 +151,9 @@ cdef class CParser:
 				else:
 					name += chr(c)
 			self.width = len(self.names)
-			self.tokenizer.num_cols = self.width
 		else:
 			# Get number of columns from first data row
-			if tokenize(self.tokenizer, 0, 1) != 0:
+			if tokenize(self.tokenizer, 0, 1, <int *> 0) != 0:
 				self.raise_error("An error occurred while tokenizing the first line of data")
 			self.width = 0
 			for i in range(self.tokenizer.header_len):
@@ -161,11 +162,32 @@ cdef class CParser:
 						self.width += 1
 					else:
 						break
-			self.tokenizer.num_cols = self.width
-			self.names = ['col{}'.format(i + 1) for i in range(self.width)]
+			self.names = ['col{}'.format(i + 1) for i in range(self.width)] # auto-generate names
+
+		size = int_size()
+		dtype = np.int16 #TODO: maybe find a better way to do this?
+		if size == 64:
+			dtype = np.int64
+		elif size == 32:
+			dtype = np.int32
+		self.use_cols = np.ones(self.width, dtype)
+		if self.include_names is not None:
+			for i, name in enumerate(self.names):
+				if name not in self.include_names:
+					self.use_cols[i] = 0
+		if self.exclude_names is not None:
+			for name in self.exclude_names:
+				try:
+					self.use_cols[self.names.index(name)] = 0
+				except ValueError: # supplied name is invalid, ignore
+					continue
+
+		self.names = [self.names[i] for i, should_use in enumerate(self.use_cols) if should_use]
+		self.width = len(self.names)
+		self.tokenizer.num_cols = self.width
 			
 	def read(self):
-		if tokenize(self.tokenizer, self.data_start, 0) != 0:
+		if tokenize(self.tokenizer, self.data_start, 0, <int *> self.use_cols.data) != 0:
 			self.raise_error("An error occurred while tokenizing data")
 		else:
 			return self._convert_data()

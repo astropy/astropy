@@ -108,3 +108,47 @@ A B C D E
 	assert_true(np.issubdtype(table['D'].dtype, np.float_))
 	assert_true(np.issubdtype(table['E'].dtype, np.str_))
 
+def test_delimiter():
+	"""
+	Make sure that different delimiters work as expected.
+	"""
+	text = """
+COL1 COL2 COL3
+1 A -1
+2 B -2
+"""
+	expected = Table([[1, 2], ['A', 'B'], [-1, -2]], names=('COL1', 'COL2', 'COL3'))
+
+	for sep in ' ,\t#;':
+		table = read_basic(StringIO(text.replace(' ', sep)), delimiter=sep)
+		assert_table_equal(table, expected)
+
+def test_include_names():
+	"""
+	If include_names is not None, the parser should read only those columns in include_names.
+	"""
+	table = read_basic(StringIO("A B C D\n1 2 3 4\n5 6 7 8"), include_names=['A', 'D'])
+	expected = Table([[1, 5], [4, 8]], names=('A', 'D'))
+	assert_table_equal(table, expected)
+
+def test_exclude_names():
+	"""
+	If exclude_names is not None, the parser should exclude the columns in exclude_names.
+	"""
+	table = read_basic(StringIO("A B C D\n1 2 3 4\n5 6 7 8"), exclude_names=['A', 'D'])
+	expected = Table([[2, 6], [3, 7]], names=('B', 'C'))
+	assert_table_equal(table, expected)
+
+def test_include_exclude_names():
+	"""
+	Make sure that include_names is applied before exclude_names if both are specified.
+	"""
+	text = """
+A B C D E F G H
+1 2 3 4 5 6 7 8
+9 10 11 12 13 14 15 16
+"""
+	table = read_basic(StringIO(text), include_names=['A', 'B', 'D', 'F', 'H'],
+					exclude_names=['B', 'F'])
+	expected = Table([[1, 9], [4, 12], [8, 16]], names=('A', 'D', 'H'))
+	assert_table_equal(table, expected)
