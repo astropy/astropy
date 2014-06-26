@@ -1,55 +1,51 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Handle loading six package from system or from the bundled copy
-
 """
-import sys
 
-# Trying to load alternate six packages
-sys.modules['astropy.extern.six'] = None
+import imp
+from distutils.version import StrictVersion
 
-# We have removed everything we already imported
-# Importing again
 
-import sys 
+_SIX_MIN_VERSION = StrictVersion('1.5.0')
 
-def _load_six_moves(base, dest):
-    _cur_sys_modules = list(sys.modules.items())
-    for i,mod in _cur_sys_modules:
-        if i.startswith(base):
-            pre, full, trail = i.partition(base)
-            if not pre:
-                modname = dest + trail
-                sys.modules[modname] = mod
 
-_dest_moves = 'astropy.extern.six.moves'
-_dest_root = 'astropy.extern.six'
+def _find_module(name, path=None):
+    """
+    Alternative to `imp.find_module` that can also search in subpackages.
+    """
 
-_system_package = False
-try:
-    import six
-    _system_package = True
-except ImportError:
-    _system_package = False
+    parts = name.split('.')
 
-if _system_package:
-    # Check six version
-    from distutils.version import StrictVersion
-    _valid_version = False
-    if StrictVersion(six.__version__) >= StrictVersion('1.5.0'):
-        _valid_version = True
+    for part in parts:
+        if path is not None:
+            path = [path]
 
-    if _valid_version:
-        # handle 'moves'
-        _base_moves = 'six.moves'
-    else:
-        _system_package = False
+        fh, path, descr = imp.find_module(part, path)
 
-if not _system_package:
-    import astropy.extern.bundled.six as six
-    # handle 'moves'
-    _base_moves = 'astropy.extern.bundled.six.moves'
+    return fh, path, descr
 
-_load_six_moves(_base_moves, _dest_moves)
-sys.modules[_dest_root] = six
 
+for mod_name in ['astropy.extern.bundled._six', 'six']:
+    try:
+        mod_info = _find_module(mod_name)
+    except ImportError:
+        continue
+
+    mod = imp.load_module(__name__, *mod_info)
+
+    try:
+        if StrictVersion(mod.__version__) >= _SIX_MIN_VERSION:
+            break
+    except (AttributeError, ValueError):
+        # Attribute error if the six module isn't what it should be and doesn't
+        # have a .__version__; ValueError if the version string exists but is
+        # somehow bogus/unparseable
+        continue
+else:
+    raise ImportError(
+        "Astropy requires the 'six' module of minimum version {0}; "
+        "normally this is bundled with the astropy package so if you get "
+        "this warning consult the packager of your Astropy "
+        "distribution.".format(_SIX_MIN_VERSION))
