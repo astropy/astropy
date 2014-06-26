@@ -152,6 +152,8 @@ New Features
 
 - ``astropy.sphinx``
 
+  - Note, the following new features are included in astropy-helpers as well:
+
   - The ``automodapi`` and ``automodsumm`` extensions now include sphinx
     configuration options to write out what ``automodapi`` and ``automodsumm``
     generate, mainly for debugging purposes. [#1975, #2022]
@@ -258,6 +260,17 @@ New Features
 
   - New ``astropy.wcs.utils`` module, with a handful of tools for manipulating
     WCS objects, including dropping, swapping, and adding axes.
+
+- Misc
+
+  - Includes the new astropy-helpers package which separates some of Astropy's
+    build, installation, and documentation infrastructure out into an
+    independent package, making it easier for Affiliated Packages to depend on
+    these features.  astropy-helpers replaces/deprecates some of the submodules
+    in the ``astropy`` package (see API Changes below).  See also
+    `APE 4 <https://github.com/astropy/astropy-APEs/blob/master/APE4.rst>`_
+    for more details on the motivation behind and implementation of
+    astropy-helpers.  [#1563]
 
 
 API Changes
@@ -401,6 +414,14 @@ API Changes
     be set with any array-like object instead of requiring that they be set
     with a ``numpy.ndarray``. [#2419]
 
+- ``astropy.sphinx``
+
+  - Use of the ``astropy.sphinx`` module is deprecated; all new development of
+    this module is in ``astropy_helpers.sphinx`` which should be used instead
+    (therefore documentation builds that made use of any of the utilities in
+    ``astropy.sphinx`` now have ``astropy_helpers`` as a documentation
+    dependency).
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -483,6 +504,15 @@ API Changes
     method of ``astropy.wcs.WCS``, which were deprecated in astropy
     0.2, have been removed.  Use the shape of the underlying FITS data
     array instead.  [#2386]
+
+- Misc
+
+  - The ``astropy.setup_helpers`` and ``astropy.version_helpers`` modules are
+    deprecated; any non-critical fixes and development to those modules should
+    be in ``astropy_helpers`` instead.  Packages that use these modules in
+    their ``setup.py`` should depend on ``astropy_helpers`` following the same
+    pattern as in the Astropy package template.
+
 
 Bug Fixes
 ^^^^^^^^^
@@ -706,6 +736,7 @@ Other Changes and Additions
   ``nitpick`` Sphinx option is now used to avoid broken links in future.
   [#1221, #2019, #2109, #2161, #2162, #2192, #2200, #2296, #2448, #2456,
   #2460, #2467, #2476, #2508, #2509]
+
 
 0.3.2 (2014-05-13)
 ------------------
