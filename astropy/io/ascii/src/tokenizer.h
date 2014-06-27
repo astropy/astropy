@@ -9,7 +9,10 @@ typedef enum
 {
     START_LINE = 0,
     START_FIELD,
+    START_QUOTED_FIELD,
     FIELD,
+    QUOTED_FIELD,
+    QUOTED_FIELD_NEWLINE,
     COMMENT
 } tokenizer_state;
 

@@ -9,7 +9,10 @@ cdef extern from "src/tokenizer.h":
 	ctypedef enum tokenizer_state:
 		START_LINE
 		START_FIELD
+		START_QUOTED_FIELD
 		FIELD
+		QUOTED_FIELD
+		QUOTED_FIELD_NEWLINE
 		COMMENT
 
 	ctypedef enum err_code:

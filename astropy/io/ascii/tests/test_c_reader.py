@@ -152,3 +152,20 @@ A B C D E F G H
 					exclude_names=['B', 'F'])
 	expected = Table([[1, 9], [4, 12], [8, 16]], names=('A', 'D', 'H'))
 	assert_table_equal(table, expected)
+
+def test_quoted_fields():
+	"""
+	The character quotechar (default '"') should denote the start of a field which can
+	contain the field delimiter and newlines.
+	"""
+	text = """
+"A B" C D
+1.5 2.1 -37.1
+a b "c
+ d"
+"""
+	table = read_basic(StringIO(text))
+	expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'cd']], names=('A B', 'C', 'D'))
+	assert_table_equal(table, expected)
+	table = read_basic(StringIO(text.replace('"', "'")), quotechar="'")
+	assert_table_equal(table, expected)

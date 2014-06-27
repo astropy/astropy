@@ -7,51 +7,54 @@ from cparser import CParser
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
-    """
+	"""
 	This class is intended to handle the same format addressed by the
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
     code and is therefore much faster. Unlike the other readers and writers
     in `io.ascii`, this class is not very extensible and is restricted
     by optimization requirements.
     """
-    _format_name = 'fast_basic'
-    _description = 'Basic table with custom delimiter using the fast C engine'
+	_format_name = 'fast_basic'
+	_description = 'Basic table with custom delimiter using the fast C engine'
 
-    def __init__(self, **kwargs):
-        self.delimiter = str(kwargs.pop('delimiter', ' '))
-        self.comment = kwargs.pop('comment', '#')
-        if self.comment is not None:
-            self.comment = str(self.comment)
-        self.header_start = kwargs.pop('header_start', 0)
-        self.data_start = kwargs.pop('data_start', 1)
-        self.kwargs = kwargs
+	def __init__(self, **kwargs):
+		self.delimiter = str(kwargs.pop('delimiter', ' '))
+		self.comment = kwargs.pop('comment', '#')
+		if self.comment is not None:
+			self.comment = str(self.comment)
+			self.quotechar = str(kwargs.pop('quotechar', '"'))
+			self.header_start = kwargs.pop('header_start', 0)
+			self.data_start = kwargs.pop('data_start', 1)
+			self.kwargs = kwargs
 
-    def _read_header(self):
-        self.engine.read_header()
-        self.names = list(self.engine.names)
+	def _read_header(self):
+		self.engine.read_header()
+		self.names = list(self.engine.names)
 
-    def read(self, table): # TODO: actually take the parameters from _get_reader()
-        if len(self.comment) != 1:
-            raise core.ParameterError("The C reader does not support a comment regex")
-        elif self.data_start is None:
-            raise core.ParameterError("The C reader does not allow data_start to be None")
-        elif len(self.delimiter) != 1:
-            raise core.ParameterError("The C reader only supports 1-char delimiters")
-        elif 'converters' in self.kwargs:
-            raise core.ParameterError("The C reader does not support passing "
+	def read(self, table): # TODO: actually take the parameters from _get_reader()
+		if len(self.comment) != 1:
+			raise core.ParameterError("The C reader does not support a comment regex")
+		elif self.data_start is None:
+			raise core.ParameterError("The C reader does not allow data_start to be None")
+		elif len(self.delimiter) != 1:
+			raise core.ParameterError("The C reader only supports 1-char delimiters")
+		elif len(self.quotechar) != 1:
+			raise core.ParameterError("The C reader only supports a length-1 quote character")
+		elif 'converters' in self.kwargs:
+			raise core.ParameterError("The C reader does not support passing "
 									  "specialized converters")
-        elif 'Outputter' in self.kwargs:
-            raise core.ParameterError("The C reader does not use the Outputter parameter")
-        elif 'Inputter' in self.kwargs:
-            raise core.ParameterError("The C reader does not use the Inputter parameter")
-        elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
-            raise core.ParameterError("The C reader does not use a Splitter class")
+		elif 'Outputter' in self.kwargs:
+			raise core.ParameterError("The C reader does not use the Outputter parameter")
+		elif 'Inputter' in self.kwargs:
+			raise core.ParameterError("The C reader does not use the Inputter parameter")
+		elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
+			raise core.ParameterError("The C reader does not use a Splitter class")
 
-        self.engine = CParser(table, delimiter=self.delimiter, header_start=self.header_start,
-                                     comment=self.comment, data_start=self.data_start, **self.kwargs)
-        self._read_header()
-        data = self.engine.read()
-        return Table(data, names=self.names) # TODO: add masking, units, etc.
+		self.engine = CParser(table, delimiter=self.delimiter, header_start=self.header_start,
+							  comment=self.comment, quotechar=self.quotechar, data_start=self.data_start, **self.kwargs)
+		self._read_header()
+		data = self.engine.read()
+		return Table(data, names=self.names) # TODO: add masking, units, etc.
 
 class FastCsv(FastBasic):
 	"""

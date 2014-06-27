@@ -31,7 +31,7 @@ void delete_data(tokenizer_t *tokenizer)
     if (tokenizer->output_cols)
 	for (i = 0; i < tokenizer->num_cols; ++i)
 	    free(tokenizer->output_cols[i]);
-
+    
     free(tokenizer->output_cols);
     free(tokenizer->col_ptrs);
     tokenizer->header_output = 0;
@@ -58,7 +58,7 @@ void resize_col(tokenizer_t *self, int index)
         {								\
             self->header_len *= 2;					\
             self->header_output = (char *) realloc(self->header_output, \
-				      self->header_len * sizeof(char)); \
+						   self->header_len * sizeof(char)); \
         }								\
 	self->header_output[output_pos++] = c;				\
     }									\
@@ -92,7 +92,7 @@ void resize_col(tokenizer_t *self, int index)
 	}					\
     }						\
     ++self->num_rows;				\
-
+    
 #define RETURN(c) { self->code = c; return c; }
 
 int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
@@ -108,7 +108,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
     int i = 0;
     int empty = 1;
     int comment = 0;
-
+    
     //TODO: different error for no data
     //TODO: decide what to do about whitespace delimiter here
     while (i < line)
@@ -129,7 +129,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 	    comment = 0;
 	}
     }
-
+    
     if (header)
 	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE * sizeof(char));
     else
@@ -137,7 +137,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 	self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
 	self->col_ptrs = (char **) malloc(self->num_cols * sizeof(char *));
 	self->output_len = (int *) malloc(self->num_cols * sizeof(int));
-
+	
 	for (i = 0; i < self->num_cols; ++i)
 	{
 	    self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE * sizeof(char));
@@ -145,72 +145,125 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 	    self->output_len[i] = INITIAL_COL_SIZE;
 	}
     }
-
+    
     int done = 0;
+    int repeat;
     self->state = START_LINE;
-
+    
     while (self->source_pos < self->source_len && !done)
     {
 	c = self->source[self->source_pos];
-
-	switch (self->state)
-	{
-	case START_LINE:
-	    if (c == '\n' || c == ' ' || c == '\t') // TODO: make an option not to strip whitespace (for tab-delimited, etc.)
-		break;
-	    else if (c == self->comment)
-	    {
-		self->state = COMMENT;
-		break;
-	    }
-	    col = 0;
-	    real_col = 0;
-	    self->state = START_FIELD;
+	repeat = 1;
 	
-	case START_FIELD:
-	    if (c == ' ' || c == '\t') // TODO: strip whitespace at the end of fields as well
-		break;
-	    else if (c == self->delimiter)
-	    {
-		PUSH(' ');
-		END_FIELD();
-		break;
-	    }
-	    else if (c == '\n')
-	    {
-		END_LINE();
-		self->state = START_LINE;
-		break;
-	    }
-	    self->state = FIELD;
+	while (repeat)
+	{
+	    repeat = 0;
 
-	case FIELD:
-	    if (c == self->delimiter)
+	    switch (self->state)
 	    {
-		END_FIELD();
+	    case START_LINE:
+		// TODO: make an option not to strip whitespace (for tab-delimited, etc.)
+		if (c == '\n' || c == ' ' || c == '\t')
+		    break;
+		else if (c == self->comment)
+		{
+		    self->state = COMMENT;
+		    break;
+		}
+		col = 0;
+		real_col = 0;
 		self->state = START_FIELD;
-	    }
-	    else if (c == '\n')
-	    {
-		END_FIELD();
-		END_LINE();
-		self->state = START_LINE;
-	    }
-	    else
-	    {
-		PUSH(c);
-	    }
-	    break;
+		repeat = 1;
+		break;
+		
+	    case START_FIELD:
+		if (c == ' ' || c == '\t') // TODO: strip whitespace at the end of fields as well
+		    ;
+		else if (c == self->delimiter)
+		{
+		    PUSH(' ');
+		    END_FIELD();
+		}
+		else if (c == '\n')
+		{
+		    END_LINE();
+		    self->state = START_LINE;
+		}
+		else if (c == self->quotechar)
+		    self->state = START_QUOTED_FIELD;
+		else
+		{
+		    repeat = 1;
+		    self->state = FIELD;
+		}
+		break;
+		
+	    case START_QUOTED_FIELD:
+		if (c == ' ' || c == '\t')
+		    ;
+		else if (c == self->quotechar)
+		{
+		    PUSH(' ');
+		    END_FIELD();
+		}
+		else
+		{
+		    self->state = QUOTED_FIELD;
+		    repeat = 1;
+		}
+		break;
+		
+	    case FIELD:
+		if (c == self->delimiter)
+		{
+		    END_FIELD();
+		    self->state = START_FIELD;
+		}
+		else if (c == '\n')
+		{
+		    END_FIELD();
+		    END_LINE();
+		    self->state = START_LINE;
+		}
+		else
+		{
+		    PUSH(c);
+		}
+		break;
+		
+	    case QUOTED_FIELD:
+		if (c == self->quotechar)
+		    self->state = FIELD;
+		else if (c == '\n')
+		    self->state = QUOTED_FIELD_NEWLINE;
+		else
+		{
+		    PUSH(c);
+		}
+		break;
 
-	case COMMENT:
-	    if (c == '\n')
-		self->state = START_LINE;
-	    break;
-	}   
-
+	    case QUOTED_FIELD_NEWLINE:
+		if (c == ' ' || c == '\t' || c == '\n')
+		    ;
+		else if (c == self->quotechar)
+		    self->state = FIELD; // TODO: fix this for empty data
+		else
+		{
+		    repeat = 1;
+		    self->state = QUOTED_FIELD;
+		}
+		break;
+		
+	    case COMMENT:
+		if (c == '\n')
+		    self->state = START_LINE;
+		break;
+	    }
+	} while (0);
+	
 	++self->source_pos;
     }
-
+    
     RETURN(0);
 }
 
