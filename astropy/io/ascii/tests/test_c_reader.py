@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from ....table import Table
+from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
@@ -9,13 +9,19 @@ from .common import assert_equal, assert_true
 from ....tests.helper import pytest
 from cStringIO import StringIO
 import numpy as np
+from numpy import ma
+import six
 
 def assert_table_equal(t1, t2):
 	assert_equal(len(t1), len(t2))
 	assert_equal(t1.colnames, t2.colnames)
 	for name in t1.colnames:
-		for i, el in enumerate(t1[name]):
-			assert_equal(el, t2[name][i])
+		if not isinstance(t1[name], MaskedColumn):
+			for i, el in enumerate(t1[name]):
+				if not isinstance(el, six.string_types) and np.isnan(el):
+					assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
+				else:
+					assert_equal(el, t2[name][i])
 
 def read_basic(table, **kwargs):
 	reader = FastBasic(**kwargs)
@@ -234,3 +240,76 @@ A B C
 	# data_end supports negative indexing
 	table = read_basic(StringIO(text), data_end=-2)
 	assert_table_equal(table, expected)
+
+def test_fill_values():
+	"""
+	Make sure that the parameter fill_values works as intended. If fill_values
+	is not specified, the default behavior should be to convert '' to 0.
+	"""
+	text = """
+A, B, C
+, 2, nan
+a, -999, -3.4
+nan, 5, -9999
+8, nan, 7.6e12
+"""
+	table = read_basic(StringIO(text), delimiter=',')
+	# The empty value in row A should become a masked '0'
+	assert isinstance(table['A'], MaskedColumn)
+	assert table['A'][0] is ma.masked
+	# '0' rather than 0 because there is a string in the column
+	assert_equal(table['A'].data.data[0], '0')
+	assert table['A'][1] is not ma.masked
+
+	table = read_basic(StringIO(text), delimiter=',', fill_values=('-999', '0'))
+	assert isinstance(table['B'], MaskedColumn)
+	assert table['A'][0] is not ma.masked # empty value unaffected
+	assert table['C'][2] is not ma.masked # -9999 is not an exact match
+	assert table['B'][1] is ma.masked
+	# Integer because the rest of the column contains integer data
+	assert_equal(table['B'].data.data[1], 0)
+	assert table['B'][0] is not ma.masked
+
+	table = read_basic(StringIO(text), delimiter=',', fill_values=[])
+	# None of the columns should be masked
+	for name in 'ABC':
+		assert not isinstance(table[name], MaskedColumn)
+	
+	table = read_basic(StringIO(text), delimiter=',', fill_values=[('', '0', 'A'),
+								('nan', '999', 'A', 'C')])
+	assert table['B'][3] is not ma.masked # nan filling skips column B
+	assert table['A'][0] is ma.masked
+	assert table['A'][2] is ma.masked
+	assert_equal(table['A'].data.data[0], '0')
+	assert_equal(table['A'].data.data[2], '999')
+	assert table['C'][0] is ma.masked
+	assert_equal(table['C'].data.data[0], 999.0)
+	assert_equal(table['C'][1], -3.4) # column is still of type float
+
+def test_fill_include_exclude_names():
+	"""
+	fill_include_names and fill_exclude_names should filter missing/empty value handling
+	in the same way that include_names and exclude_names filter output columns.
+	"""
+	text = """
+A, B, C
+, 1, 2
+3, , 4
+5, 5,
+"""
+	table = read_basic(StringIO(text), delimiter=',', fill_include_names=['A', 'B'])
+	assert table['A'][0] is ma.masked
+	assert table['B'][1] is ma.masked
+	assert table['C'][2] is not ma.masked # C not in fill_include_names
+
+	table = read_basic(StringIO(text), delimiter=',', fill_exclude_names=['A', 'B'])
+	assert table['C'][2] is ma.masked
+	assert table['A'][0] is not ma.masked
+	assert table['B'][1] is not ma.masked # A and B excluded from fill handling
+
+	table = read_basic(StringIO(text), delimiter=',', fill_include_names=['A', 'B'],
+					   fill_exclude_names=['B'])
+	assert table['A'][0] is ma.masked
+	assert table['B'][1] is not ma.masked # fill_exclude_names applies after fill_include_names
+	assert table['C'][2] is not ma.masked
+

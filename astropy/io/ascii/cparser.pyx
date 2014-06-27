@@ -3,6 +3,7 @@
 import six
 import numpy as np
 cimport numpy as np
+from numpy import ma
 from ...utils.data import get_readable_fileobj
 
 cdef extern from "src/tokenizer.h":
@@ -77,6 +78,7 @@ cdef class CParser:
 		object fill_values
 		object fill_include_names
 		object fill_exclude_names
+		object fill_names
 		np.ndarray use_cols
 
 	cdef public:
@@ -109,7 +111,16 @@ cdef class CParser:
 		self.names = names
 		self.include_names = include_names
 		self.exclude_names = exclude_names
-		self.fill_values = fill_values
+		if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types):
+			self.fill_values = [fill_values]
+		else:
+			self.fill_values = fill_values
+		try:
+			# Create a dict with the values to be replaced as keys
+			self.fill_values = dict([(l[0], l[1:]) for l in self.fill_values])
+		except IndexError:
+			raise ValueError("Format of fill_values must be "
+							 "(<bad>, <fill>, <optional col1>, ...)")
 		self.fill_include_names = fill_include_names
 		self.fill_exclude_names = fill_exclude_names
 	
@@ -202,7 +213,15 @@ cdef class CParser:
 					<int *> self.use_cols.data) != 0:
 			self.raise_error("an error occurred while tokenizing data")
 		else:
+			self._set_fill_names()
 			return self._convert_data()
+
+	cdef _set_fill_names(self):
+		self.fill_names = set(self.names)
+		if self.fill_include_names is not None:
+			self.fill_names.intersection_update(self.fill_include_names)
+		if self.fill_exclude_names is not None:
+			self.fill_names.difference_update(self.fill_exclude_names)
 
 	cdef _convert_data(self):
 		cols = {}
@@ -215,6 +234,7 @@ cdef class CParser:
 			cols[self.names[i]] = np.empty(num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
 			el = ''
 			row = 0
+			masked = False
 
 			for j in range(self.tokenizer.output_len[i]):
 				if row >= num_rows:
@@ -223,7 +243,24 @@ cdef class CParser:
 				if not c:
 					if not el:
 						break
-					cols[self.names[i]][row] = el
+					if el == '\x01':
+						el = ''
+					if el in self.fill_values: #TODO: tighten this bit up clarity-wise
+						new_val = str(self.fill_values[el][0])
+						if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
+						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
+							if not masked:
+								masked = True
+								# change from ndarray to MaskedArray
+								cols[self.names[i]] = cols[self.names[i]].view(ma.MaskedArray)
+								# by default, values are not masked
+								cols[self.names[i]].mask = np.zeros(num_rows)
+							cols[self.names[i]][row] = new_val
+							cols[self.names[i]].mask[row] = True
+						else:
+							cols[self.names[i]][row] = el
+					else:
+						cols[self.names[i]][row] = el
 					el = ''
 					row += 1
 				else:
