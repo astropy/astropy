@@ -44,7 +44,7 @@ cdef extern from "src/tokenizer.h":
 
 	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
 	void delete_tokenizer(tokenizer_t *tokenizer)
-	int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
+	int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
 	int int_size()
 
 class CParserError(Exception):
@@ -53,10 +53,11 @@ class CParserError(Exception):
 	during C parsing.
 	"""
 
-ERR_CODES = dict(enumerate(["no error",
-							"invalid line supplied",
-							lambda t: "too many columns found in line {} of data".format(t)
-			]))
+ERR_CODES = dict(enumerate([
+	"no error",
+	"invalid line supplied",
+	lambda line: "too many columns found in line {} of data".format(line)
+	]))
 
 cdef class CParser:
 	"""
@@ -69,6 +70,8 @@ cdef class CParser:
 		object source
 		object header_start
 		int data_start
+		int data_end
+		object data_end_obj
 		object include_names
 		object exclude_names
 		object fill_values
@@ -86,6 +89,7 @@ cdef class CParser:
 				  quotechar='"',
 				  header_start=0,
 				  data_start=1,
+				  data_end=None,
 				  names=None,
 				  include_names=None,
 				  exclude_names=None,
@@ -98,6 +102,10 @@ cdef class CParser:
 		self.setup_tokenizer(source)
 		self.header_start = header_start
 		self.data_start = data_start
+		self.data_end = -1 # keep reading data until the end
+		if data_end is not None and data_end >= 0:
+			self.data_end = data_end
+		self.data_end_obj = data_end
 		self.names = names
 		self.include_names = include_names
 		self.exclude_names = exclude_names
@@ -139,15 +147,15 @@ cdef class CParser:
 			self.width = len(self.names)
 		# header_start is a valid line number
 		elif self.header_start is not None and self.header_start >= 0:
-			if tokenize(self.tokenizer, self.header_start, 1, <int *> 0) != 0:
-				self.raise_error("An error occurred while tokenizing the header line")
+			if tokenize(self.tokenizer, self.header_start, -1, 1, <int *> 0) != 0:
+				self.raise_error("an error occurred while tokenizing the header line")
 			self.names = []
 			name = ''
 			for i in range(self.tokenizer.header_len):
 				c = self.tokenizer.header_output[i]
 				if not c:
 					if name:
-						self.names.append(name)
+						self.names.append(name.replace('\x01', ''))
 						name = ''
 					else:
 						break # end of string
@@ -156,8 +164,8 @@ cdef class CParser:
 			self.width = len(self.names)
 		else:
 			# Get number of columns from first data row
-			if tokenize(self.tokenizer, 0, 1, <int *> 0) != 0:
-				self.raise_error("An error occurred while tokenizing the first line of data")
+			if tokenize(self.tokenizer, 0, -1, 1, <int *> 0) != 0:
+				self.raise_error("an error occurred while tokenizing the first line of data")
 			self.width = 0
 			for i in range(self.tokenizer.header_len):
 				if not self.tokenizer.header_output[i]:
@@ -190,21 +198,27 @@ cdef class CParser:
 		self.tokenizer.num_cols = self.width
 			
 	def read(self):
-		if tokenize(self.tokenizer, self.data_start, 0, <int *> self.use_cols.data) != 0:
-			self.raise_error("An error occurred while tokenizing data")
+		if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
+					<int *> self.use_cols.data) != 0:
+			self.raise_error("an error occurred while tokenizing data")
 		else:
 			return self._convert_data()
 
 	cdef _convert_data(self):
 		cols = {}
 		cdef int row
+		cdef int num_rows = self.tokenizer.num_rows
+		if self.data_end_obj is not None and self.data_end_obj < 0:
+			num_rows += self.data_end_obj
 
 		for i in range(self.tokenizer.num_cols):
-			cols[self.names[i]] = np.empty(self.tokenizer.num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
+			cols[self.names[i]] = np.empty(num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
 			el = ''
 			row = 0
 
 			for j in range(self.tokenizer.output_len[i]):
+				if row >= num_rows:
+					break
 				c = self.tokenizer.output_cols[i][j]
 				if not c:
 					if not el:

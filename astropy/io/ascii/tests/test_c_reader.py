@@ -2,8 +2,11 @@
 
 from ....table import Table
 from ... import ascii
+from ...ascii.core import ParameterError
+from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic
 from .common import assert_equal, assert_true
+from ....tests.helper import pytest
 from cStringIO import StringIO
 import numpy as np
 
@@ -161,11 +164,73 @@ def test_quoted_fields():
 	text = """
 "A B" C D
 1.5 2.1 -37.1
-a b "c
+a b "   c
  d"
 """
 	table = read_basic(StringIO(text))
 	expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'cd']], names=('A B', 'C', 'D'))
 	assert_table_equal(table, expected)
 	table = read_basic(StringIO(text.replace('"', "'")), quotechar="'")
+	assert_table_equal(table, expected)
+
+def test_invalid_parameters():
+	"""
+	Make sure the C reader raises a ParameterError if passed parameters it can't handle.
+	"""
+	with pytest.raises(ParameterError):
+		table = FastBasic(delimiter=',,').read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		table = FastBasic(comment='##').read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		table = FastBasic(data_start=None).read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		table = FastBasic(quotechar='""').read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		int_converter = ascii.convert_numpy(np.uint)
+		converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
+		table = FastBasic(converters=converters).read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		table = FastBasic(Outputter=ascii.TableOutputter).read(StringIO('1 2 3\n4 5 6'))
+	with pytest.raises(ParameterError):
+		table = FastBasic(Inputter=ascii.ContinuationLinesInputter).read(StringIO('1 2 3\n4 5 6'))
+	for arg in ('header_Splitter', 'data_Splitter'):
+		with pytest.raises(ParameterError):
+			table = FastBasic(**{arg: ascii.DefaultSplitter}).read(StringIO('1 2 3\n4 5 6'))
+	# unexpected argument
+	with pytest.raises(TypeError):
+		table = FastBasic(foo=7).read(StringIO('1 2 3\n4 5 6'))
+
+def test_too_many_cols(): #TODO: write test for not enough cols once fill_values is implemented
+	"""
+	If a row contains too many columns, the C reader should raise an error.
+	"""
+	text = """
+A B C
+1 2 3
+4 5 6
+7 8 9 10
+11 12 13
+"""
+	with pytest.raises(CParserError) as e:
+		table = FastBasic().read(StringIO(text))
+	assert 'CParserError: an error occurred while tokenizing data: too many ' \
+		'columns found in line 3 of data' in str(e)
+
+def test_data_end():
+	"""
+	The parameter data_end should specify where data reading ends.
+	"""
+	text = """
+A B C
+1 2 3
+4 5 6
+7 8 9
+10 11 12
+"""
+	table = read_basic(StringIO(text), data_end=3)
+	expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
+	assert_table_equal(table, expected)
+
+	# data_end supports negative indexing
+	table = read_basic(StringIO(text), data_end=-2)
 	assert_table_equal(table, expected)

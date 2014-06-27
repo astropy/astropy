@@ -80,22 +80,24 @@ void resize_col(tokenizer_t *self, int index)
     }									\
     ++real_col;
 
-#define END_LINE()				\
-    if (header)					\
-	done = 1;				\
-    else					\
-    {						\
-	while (col < self->num_cols)		\
-	{					\
-            PUSH(' ');				\
-	    END_FIELD();			\
-	}					\
-    }						\
-    ++self->num_rows;				\
+#define END_LINE()					\
+    if (header)						\
+	done = 1;					\
+    else						\
+    {							\
+	while (col < self->num_cols)			\
+	{						\
+            PUSH('\x01');				\
+	    END_FIELD();				\
+	}						\
+    }							\
+    ++self->num_rows;					\
+    if (end != -1 && self->num_rows == end - start)	\
+	done = 1;
     
 #define RETURN(c) { self->code = c; return c; }
 
-int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
+int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
 {
     delete_data(self); // clear old reading data
     char c; // input character
@@ -111,7 +113,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
     
     //TODO: different error for no data
     //TODO: decide what to do about whitespace delimiter here
-    while (i < line)
+    while (i < start)
     {
 	if (self->source_pos >= self->source_len - 1) // ignore final newline
 	    RETURN(INVALID_LINE);
@@ -146,7 +148,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 	}
     }
     
-    int done = 0;
+    int done = (end != -1 && end <= start);
     int repeat;
     self->state = START_LINE;
     
@@ -155,7 +157,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 	c = self->source[self->source_pos];
 	repeat = 1;
 	
-	while (repeat)
+	while (repeat && !done)
 	{
 	    repeat = 0;
 
@@ -181,7 +183,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 		    ;
 		else if (c == self->delimiter)
 		{
-		    PUSH(' ');
+		    PUSH('\x01'); // indicates empty field
 		    END_FIELD();
 		}
 		else if (c == '\n')
@@ -203,7 +205,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 		    ;
 		else if (c == self->quotechar)
 		{
-		    PUSH(' ');
+		    PUSH('\x01'); // indicates empty field
 		    END_FIELD();
 		}
 		else
@@ -259,7 +261,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
 		    self->state = START_LINE;
 		break;
 	    }
-	} while (0);
+	}
 	
 	++self->source_pos;
     }
@@ -267,7 +269,7 @@ int tokenize(tokenizer_t *self, int line, int header, int *use_cols)
     RETURN(0);
 }
 
-int int_size()
+int int_size(void)
 {
     return 8 * sizeof(int);
 }
