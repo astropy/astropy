@@ -21,7 +21,25 @@ from os import path
 
 # -- General configuration ----------------------------------------------------
 
-needs_sphinx = '1.2.1'
+# The version check in Sphinx itself can only compare the major and
+# minor parts of the version number, not the micro.  To do a more
+# specific version check, call check_sphinx_version("x.y.z.") from
+# your project's conf.py
+needs_sphinx = '1.2'
+
+
+def check_sphinx_version(expected_version):
+    import sphinx
+    from distutils import version
+
+    sphinx_version = version.LooseVersion(sphinx.__version__)
+    expected_version = version.LooseVersion(expected_version)
+    if sphinx_version < expected_version:
+        raise RuntimeError(
+            "At least Sphinx version {0} is required to build this "
+            "documentation.  Found {1}.".format(
+                expected_version, sphinx_version))
+
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {

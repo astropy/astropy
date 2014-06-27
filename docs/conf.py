@@ -51,6 +51,9 @@ import astropy
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.1'
 
+# To perform a Sphinx version check that needs to be more specific than
+# major.minor, call `check_sphinx_version("x.y.z")` here.
+check_sphinx_version("1.2.1")
 
 # The intersphinx_mapping in astropy_helpers.sphinx.conf refers to astropy for
 # the benefit of affiliated packages who want to refer to objects in the
