@@ -331,6 +331,9 @@ set_unit_list(
   }
 
   proxy = PyUnitListProxy_New(owner, len, dest);
+  if (proxy == NULL) {
+      return -1;
+  }
 
   for (i = 0; i < len; ++i) {
     unit = PySequence_GetItem(value, i);
