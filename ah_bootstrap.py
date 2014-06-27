@@ -34,15 +34,16 @@ latest version of this module.
 import contextlib
 import errno
 import imp
+import io
 import os
 import re
 import subprocess as sp
 import sys
 
 try:
-    from ConfigParser import ConfigParser
+    from ConfigParser import ConfigParser, RawConfigParser
 except ImportError:
-    from configparser import ConfigParser
+    from configparser import ConfigParser, RawConfigParser
 
 
 if sys.version_info[0] < 3:
@@ -193,7 +194,7 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
     elif not os.path.exists(path) or os.path.isdir(path):
         # Even if the given path does not exist on the filesystem, if it *is* a
         # submodule, `git submodule init` will create it
-        is_submodule = use_git and _check_submodule(path)
+        is_submodule = _check_submodule(path, use_git=use_git)
 
         if is_submodule or os.path.isdir(path):
             log.info(
@@ -264,7 +265,9 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         # Just activate the found distribibution on sys.path--if we did a
         # download this usually happens automatically but do it again just to
         # be sure
-        return dist.activate()
+        # Note: Adding the dist to the global working set also activates it by
+        # default
+        pkg_resources.working_set.add(dist)
 
 
 def _do_download(version='', find_links=None, index_url=None):
@@ -302,6 +305,8 @@ def _do_download(version='', find_links=None, index_url=None):
             with _silence():
                 dist = _Distribution(attrs=attrs)
 
+        # If the setup_requires succeeded it will have added the new dist to
+        # the main working_set
         return pkg_resources.working_set.by_key.get(DIST_NAME)
     except Exception as e:
         if DEBUG:
@@ -347,8 +352,13 @@ def _directory_import(path):
     # Return True on success, False on failure but download is allowed, and
     # otherwise raise SystemExit
     path = os.path.abspath(path)
-    pkg_resources.working_set.add_entry(path)
-    dist = pkg_resources.working_set.by_key.get(DIST_NAME)
+
+    # Use an empty WorkingSet rather than the man pkg_resources.working_set,
+    # since on older versions of setuptools this will invoke a VersionConflict
+    # when trying to install an upgrade
+    ws = pkg_resources.WorkingSet([])
+    ws.add_entry(path)
+    dist = ws.by_key.get(DIST_NAME)
 
     if dist is None:
         # We didn't find an egg-info/dist-info in the given path, but if a
@@ -360,13 +370,34 @@ def _directory_import(path):
 
             for dist in pkg_resources.find_distributions(path, True):
                 # There should be only one...
-                pkg_resources.working_set.add(dist, path, False)
-                break
+                return dist
 
     return dist
 
 
-def _check_submodule(path):
+def _check_submodule(path, use_git=True):
+    """
+    Check if the given path is a git submodule.
+
+    See the docstrings for ``_check_submodule_using_git`` and
+    ``_check_submodule_no_git`` for futher details.
+    """
+
+    if use_git:
+        return _check_submodule_using_git(path)
+    else:
+        return _check_submodule_no_git(path)
+
+
+def _check_submodule_using_git(path):
+    """
+    Check if the given path is a git submodule.  If so, attempt to initialize
+    and/or update the submodule if needed.
+
+    This function makes calls to the ``git`` command in subprocesses.  The
+    ``_check_submodule_no_git`` option uses pure Python to check if the given
+    path looks like a git submodule, but it cannot perform updates.
+    """
     try:
         p = sp.Popen(['git', 'submodule', 'status', '--', path],
                      stdout=sp.PIPE, stderr=sp.PIPE)
@@ -409,6 +440,65 @@ def _check_submodule(path):
                 'Will attempt import from {1!r} regardless.'.format(
                     stdout, path))
             return False
+
+
+def _check_submodule_no_git(path):
+    """
+    Like ``_check_submodule_using_git``, but simply parses the .gitmodules file
+    to determine if the supplied path is a git submodule, and does not exec any
+    subprocesses.
+
+    This can only determine if a path is a submodule--it does not perform
+    updates, etc.  This function may need to be updated if the format of the
+    .gitmodules file is changed between git versions.
+    """
+
+    gitmodules_path = os.path.abspath('.gitmodules')
+
+    if not os.path.isfile(gitmodules_path):
+        return False
+
+    # This is a minimal reader for gitconfig-style files.  It handles a few of
+    # the quirks that make gitconfig files incompatible with ConfigParser-style
+    # files, but does not support the full gitconfig syntaix (just enough
+    # needed to read a .gitmodules file).
+    gitmodules_fileobj = io.StringIO()
+
+    # Must use io.open for cross-Python-compatible behavior wrt unicode
+    with io.open(gitmodules_path) as f:
+        for line in f:
+            # gitconfig files are more flexible with leading whitespace; just
+            # go ahead and remove it
+            line = line.lstrip()
+
+            # comments can start with either # or ;
+            if line and line[0] in (':', ';'):
+                continue
+
+            gitmodules_fileobj.write(line)
+
+    gitmodules_fileobj.seek(0)
+
+    cfg = RawConfigParser()
+
+    try:
+        cfg.readfp(gitmodules_fileobj)
+    except Exception as exc:
+        log.warning('Malformatted .gitmodules file: {0}\n'
+                    '{1} cannot be assumed to be a git submodule.'.format(
+                        exc, path))
+        return False
+
+    for section in cfg.sections():
+        if not cfg.has_option(section, 'path'):
+            continue
+
+        submodule_path = cfg.get(section, 'path').rstrip(os.sep)
+
+        if submodule_path == path.rstrip(os.sep):
+            return True
+
+    return False
 
 
 def _update_submodule(submodule, status):
@@ -455,6 +545,7 @@ class _DummyFile(object):
     """A noop writeable object."""
 
     errors = ''  # Required for Python 3.x
+    encoding = 'utf-8'
 
     def write(self, s):
         pass
@@ -506,6 +597,45 @@ class _AHBootstrapSystemExit(SystemExit):
         super(_AHBootstrapSystemExit, self).__init__(msg, *args[1:])
 
 
+if sys.version_info[:2] < (2, 7):
+    # In Python 2.6 the distutils log does not log warnings, errors, etc. to
+    # stderr so we have to wrap it to ensure consistency at least in this
+    # module
+    import distutils
+
+    class log(object):
+        def __getattr__(self, attr):
+            return getattr(distutils.log, attr)
+
+        def warn(self, msg, *args):
+            self._log_to_stderr(distutils.log.WARN, msg, *args)
+
+        def error(self, msg):
+            self._log_to_stderr(distutils.log.ERROR, msg, *args)
+
+        def fatal(self, msg):
+            self._log_to_stderr(distutils.log.FATAL, msg, *args)
+
+        def log(self, level, msg, *args):
+            if level in (distutils.log.WARN, distutils.log.ERROR,
+                         distutils.log.FATAL):
+                self._log_to_stderr(level, msg, *args)
+            else:
+                distutils.log.log(level, msg, *args)
+
+        def _log_to_stderr(self, level, msg, *args):
+            # This is the only truly 'public' way to get the current threshold
+            # of the log
+            current_threshold = distutils.log.set_threshold(distutils.log.WARN)
+            distutils.log.set_threshold(current_threshold)
+            if level >= current_threshold:
+                if args:
+                    msg = msg % args
+                sys.stderr.write('%s\n' % msg)
+                sys.stderr.flush()
+
+    log = log()
+
 # Output of `git submodule status` is as follows:
 #
 # 1: Status indicator: '-' for submodule is uninitialized, '+' if submodule is
@@ -527,7 +657,7 @@ _git_submodule_status_re = re.compile(
 # at import-time automatically so long as the correct options are specified in
 # setup.cfg
 _CFG_OPTIONS = [('auto_use', bool), ('path', str),
-                ('download_if_needed', bool), ('index_ur', str),
+                ('download_if_needed', bool), ('index_url', str),
                 ('use_git', bool), ('auto_upgrade', bool)]
 
 def _main():
