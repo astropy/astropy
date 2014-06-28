@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 typedef enum
 {
@@ -22,7 +23,8 @@ typedef enum
     NO_ERROR,
     INVALID_LINE,
     TOO_MANY_COLS,
-    NOT_ENOUGH_COLS
+    NOT_ENOUGH_COLS,
+    CONVERSION_ERROR
 } err_code;
 
 typedef struct
@@ -62,5 +64,7 @@ void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
 int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols);
 int int_size(void);
+int str_to_int(tokenizer_t *self, char *str);
+float str_to_float(tokenizer_t *self, char *str);
 
 #endif

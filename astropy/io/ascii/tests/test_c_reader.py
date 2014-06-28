@@ -5,7 +5,7 @@ from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv
-from .common import assert_equal, assert_true
+from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 from cStringIO import StringIO
 import numpy as np
@@ -20,8 +20,10 @@ def assert_table_equal(t1, t2):
 			for i, el in enumerate(t1[name]):
 				if not isinstance(el, six.string_types) and np.isnan(el):
 					assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
-				else:
+				elif isinstance(el, six.string_types):
 					assert_equal(el, t2[name][i])
+				else:
+					assert_almost_equal(el, t2[name][i])
 
 def read_basic(table, **kwargs):
 	reader = FastBasic(**kwargs)
@@ -121,10 +123,11 @@ A B C D E
 """
 	table = read_basic(StringIO(text))
 	assert_true(np.issubdtype(table['A'].dtype, np.float_))
-	assert_true(np.issubdtype(table['B'].dtype, np.str_))
+	assert_true(np.issubdtype(table['B'].dtype, np.object_))
+	print(table['C'].dtype) # hm?
 	assert_true(np.issubdtype(table['C'].dtype, np.int_))
 	assert_true(np.issubdtype(table['D'].dtype, np.float_))
-	assert_true(np.issubdtype(table['E'].dtype, np.str_))
+	assert_true(np.issubdtype(table['E'].dtype, np.object_))
 
 def test_delimiter():
 	"""
@@ -310,8 +313,8 @@ nan, 5, -9999
 	assert_equal(table['A'].data.data[0], '0')
 	assert_equal(table['A'].data.data[2], '999')
 	assert table['C'][0] is ma.masked
-	assert_equal(table['C'].data.data[0], 999.0)
-	assert_equal(table['C'][1], -3.4) # column is still of type float
+	assert_almost_equal(table['C'].data.data[0], 999.0)
+	assert_almost_equal(table['C'][1], -3.4) # column is still of type float
 
 def test_fill_include_exclude_names():
 	"""

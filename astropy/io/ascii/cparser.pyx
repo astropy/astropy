@@ -21,6 +21,7 @@ cdef extern from "src/tokenizer.h":
 		INVALID_LINE
 		TOO_MANY_COLS
 		NOT_ENOUGH_COLS
+		CONVERSION_ERROR
 
 	ctypedef struct tokenizer_t:
 		char *source		# single string containing all of the input
@@ -48,6 +49,8 @@ cdef extern from "src/tokenizer.h":
 	void delete_tokenizer(tokenizer_t *tokenizer)
 	int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
 	int int_size()
+	int str_to_int(tokenizer_t *self, char *str)
+	float str_to_float(tokenizer_t *self, char *str)
 
 class CParserError(Exception):
 	"""
@@ -59,7 +62,8 @@ ERR_CODES = dict(enumerate([
 	"no error",
 	"invalid line supplied",
 	lambda line: "too many columns found in line {} of data".format(line),
-	lambda line: "not enough columns found in line {} of data".format(line)
+	lambda line: "not enough columns found in line {} of data".format(line),
+	"type conversion error"
 	]))
 
 cdef class CParser:
@@ -235,7 +239,7 @@ cdef class CParser:
 		if self.data_end_obj is not None and self.data_end_obj < 0:
 			num_rows += self.data_end_obj
 
-		for i in range(self.tokenizer.num_cols):
+		"""for i in range(self.tokenizer.num_cols):
 			cols[self.names[i]] = np.empty(num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
 			el = ''
 			row = 0
@@ -269,13 +273,129 @@ cdef class CParser:
 					el = ''
 					row += 1
 				else:
-					el += chr(c)
+					el += chr(c)"""
 
-		for name in self.names:
-			for dtype in (np.int_, np.float_):
+		for i, name in enumerate(self.names):
+			try:
+				cols[name] = self.convert_int(i, num_rows)
+			except ValueError:
 				try:
-					cols[name] = cols[name].astype(dtype)
-					break
+					cols[name] = self.convert_float(i, num_rows)
 				except ValueError:
-					continue
+					cols[name] = self.convert_str(i, num_rows)
+
 		return cols
+
+	cdef convert_int(self, i, num_rows):
+		cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
+		cdef int converted
+		data = <int *> col.data
+		el = ''
+		row = 0
+		mask = set()
+
+		for j in range(self.tokenizer.output_len[i]):
+			if row >= num_rows:
+				break
+			c = self.tokenizer.output_cols[i][j]
+			if not c:
+				if not el:
+					break
+				if el == '\x01':
+					el = ''
+				if el in self.fill_values:
+					new_val = str(self.fill_values[el][0])
+					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
+						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
+						mask.add(row)
+					converted = str_to_int(self.tokenizer, new_val)
+				else:
+					converted = str_to_int(self.tokenizer, el)
+
+				if self.tokenizer.code == CONVERSION_ERROR:
+					self.tokenizer.code = NO_ERROR
+					raise ValueError()
+				col[row] = converted
+				el = ''
+				row += 1
+			else:
+				el += chr(c)
+		
+		if mask:
+			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
+		else:
+			return col
+
+	cdef convert_float(self, i, num_rows):
+		cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
+		cdef float converted
+		data = <float *> col.data
+		el = ''
+		row = 0
+		mask = set()
+
+		for j in range(self.tokenizer.output_len[i]):
+			if row >= num_rows:
+				break
+			c = self.tokenizer.output_cols[i][j]
+			if not c:
+				if not el:
+					break
+				if el == '\x01':
+					el = ''
+				if el in self.fill_values:
+					new_val = str(self.fill_values[el][0])
+					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
+						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
+						mask.add(row)
+					converted = str_to_float(self.tokenizer, new_val)
+				else:
+					converted = str_to_float(self.tokenizer, el)
+
+				if self.tokenizer.code == CONVERSION_ERROR:
+					self.tokenizer.code = NO_ERROR
+					raise ValueError()
+				col[row] = converted
+				el = ''
+				row += 1
+			else:
+				el += chr(c)
+		
+		if mask:
+			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
+		else:
+			return col
+
+	cdef convert_str(self, i, num_rows):
+		cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
+		el = ''
+		row = 0
+		mask = set()
+
+		for j in range(self.tokenizer.output_len[i]):
+			if row >= num_rows:
+				break
+			c = self.tokenizer.output_cols[i][j]
+			if not c:
+				if not el:
+					break
+				if el == '\x01':
+					el = ''
+				if el in self.fill_values:
+					new_val = str(self.fill_values[el][0])
+					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
+						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
+						mask.add(row)
+						col[row] = new_val
+				else:
+					col[row] = el
+
+				el = ''
+				row += 1
+			else:
+				el += chr(c)
+		
+		if mask:
+			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
+		else:
+			return col

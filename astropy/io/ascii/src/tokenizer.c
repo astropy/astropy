@@ -282,3 +282,26 @@ int int_size(void)
 {
     return 8 * sizeof(int);
 }
+
+int str_to_int(tokenizer_t *self, char *str)
+{
+    errno = 0;
+    char *tmp;
+    int ret = strtol(str, &tmp, 0); // TODO: see if there are problems with long->int conversion
+
+    if (tmp == str || *tmp != '\0' || errno == ERANGE)
+ 	self->code = CONVERSION_ERROR;
+
+    return ret;
+}
+
+float str_to_float(tokenizer_t *self, char *str)
+{
+    char *tmp;
+    float ret = strtod(str, &tmp); // TODO: same here with double->float
+
+    if (ret == 0.0f && tmp == str)
+	self->code = CONVERSION_ERROR;
+
+    return ret;
+}
