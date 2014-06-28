@@ -48,8 +48,18 @@ void delete_tokenizer(tokenizer_t *tokenizer)
 
 void resize_col(tokenizer_t *self, int index)
 {
+    int diff = self->col_ptrs[index] - self->output_cols[index];
+    self->output_cols[index] = (char *) realloc(self->output_cols[index], 2 * self->output_len[index] * sizeof(char));
+    memset(self->output_cols[index] + self->output_len[index] * sizeof(char), 0, self->output_len[index] * sizeof(char));
     self->output_len[index] *= 2;
-    self->output_cols[index] = (char *) realloc(self->output_cols[index], self->output_len[index] * sizeof(char));
+    self->col_ptrs[index] = self->output_cols[index] + diff;
+}
+
+void resize_header(tokenizer_t *self)
+{
+    self->header_output = (char *) realloc(self->header_output, 2 * self->header_len * sizeof(char));
+    memset(self->header_output + self->header_len * sizeof(char), 0, self->header_len * sizeof(char));
+    self->header_len *= 2;
 }
 
 #define PUSH(c)								\
@@ -57,15 +67,13 @@ void resize_col(tokenizer_t *self, int index)
     {									\
         if (output_pos >= self->header_len)				\
         {								\
-            self->header_len *= 2;					\
-            self->header_output = (char *) realloc(self->header_output, \
-						   self->header_len * sizeof(char)); \
-        }								\
+	    resize_header(self);					\
+	}								\
 	self->header_output[output_pos++] = c;				\
     }									\
     else if (col < self->num_cols && use_cols[real_col])		\
     {									\
-	if (self->col_ptrs[col] - self->output_cols[col] >= self->output_len[col]) \
+	if (self->col_ptrs[col] - self->output_cols[col] >= self->output_len[col] * sizeof(char)) \
 	{								\
 	    resize_col(self, col);					\
 	}								\

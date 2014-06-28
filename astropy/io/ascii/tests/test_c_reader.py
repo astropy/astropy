@@ -340,3 +340,28 @@ A, B, C
 	assert table['B'][1] is not ma.masked # fill_exclude_names applies after fill_include_names
 	assert table['C'][2] is not ma.masked
 
+def test_many_rows():
+	"""
+	Make sure memory reallocation works okay when the number of rows
+	is large (so that each column string is longer than INITIAL_COL_SIZE).
+	"""
+	text = 'A B C\n'
+	for i in range(500): # create 500 rows
+		text += ' '.join([str(i) for i in range(3)])
+		text += '\n'
+
+	table = read_basic(StringIO(text))
+	expected = Table([[0] * 500, [1] * 500, [2] * 500], names=('A', 'B', 'C'))
+	assert_table_equal(table, expected)
+
+def test_many_columns():
+	"""
+	Make sure memory reallocation works okay when the number of columns
+	is large (so that each hedaer string is longer than INITIAL_HEADER_SIZE).
+	"""
+	# create a string with 500 columns and two data rows
+	text = ' '.join([str(i) for i in range(500)])
+	text += ('\n' + text + '\n' + text)
+	table = read_basic(StringIO(text))
+	expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
+	assert_table_equal(table, expected)
