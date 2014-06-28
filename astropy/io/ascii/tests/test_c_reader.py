@@ -4,7 +4,7 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic
+from ..fastbasic import FastBasic, FastCsv
 from .common import assert_equal, assert_true
 from ....tests.helper import pytest
 from cStringIO import StringIO
@@ -28,6 +28,15 @@ def read_basic(table, **kwargs):
 	t1 = reader.read(table)
 	t2 = ascii.read(table, format='fast_basic', guess=False, **kwargs)
 	t3 = ascii.read(table, format='basic', guess=False, **kwargs)
+	assert_table_equal(t1, t2)
+	assert_table_equal(t2, t3)
+	return t1
+
+def read_csv(table, **kwargs):
+	reader = FastCsv(**kwargs)
+	t1 = reader.read(table)
+	t2 = ascii.read(table, format='fast_csv', guess=False, **kwargs)
+	t3 = ascii.read(table, format='csv', guess=False, **kwargs)
 	assert_table_equal(t1, t2)
 	assert_table_equal(t2, t3)
 	return t1
@@ -206,7 +215,7 @@ def test_invalid_parameters():
 	with pytest.raises(TypeError):
 		table = FastBasic(foo=7).read(StringIO('1 2 3\n4 5 6'))
 
-def test_too_many_cols(): #TODO: write test for not enough cols once fill_values is implemented
+def test_too_many_cols():
 	"""
 	If a row contains too many columns, the C reader should raise an error.
 	"""
@@ -221,6 +230,24 @@ A B C
 		table = FastBasic().read(StringIO(text))
 	assert 'CParserError: an error occurred while tokenizing data: too many ' \
 		'columns found in line 3 of data' in str(e)
+
+def test_not_enough_cols():
+	"""
+	If a row does not have enough columns, the FastCsv reader should add empty
+	fields while the FastBasic reader should raise an error.
+	"""
+	text = """
+A,B,C
+1,2,3
+4,5
+6,7,8
+"""
+	table = read_csv(StringIO(text))
+	assert table['B'][1] is not ma.masked
+	assert table['C'][1] is ma.masked
+
+	with pytest.raises(CParserError) as e:
+		table = FastBasic(delimiter=',').read(StringIO(text)) #TODO: maybe make error types the same as the old ones
 
 def test_data_end():
 	"""
@@ -296,18 +323,18 @@ A, B, C
 , 1, 2
 3, , 4
 5, 5,
-"""
-	table = read_basic(StringIO(text), delimiter=',', fill_include_names=['A', 'B'])
+""" #TODO: fix issue with empty final field (read_basic doesn't work here)
+	table = read_csv(StringIO(text), fill_include_names=['A', 'B'])
 	assert table['A'][0] is ma.masked
 	assert table['B'][1] is ma.masked
 	assert table['C'][2] is not ma.masked # C not in fill_include_names
 
-	table = read_basic(StringIO(text), delimiter=',', fill_exclude_names=['A', 'B'])
+	table = read_csv(StringIO(text), fill_exclude_names=['A', 'B'])
 	assert table['C'][2] is ma.masked
 	assert table['A'][0] is not ma.masked
 	assert table['B'][1] is not ma.masked # A and B excluded from fill handling
 
-	table = read_basic(StringIO(text), delimiter=',', fill_include_names=['A', 'B'],
+	table = read_csv(StringIO(text), fill_include_names=['A', 'B'],
 					   fill_exclude_names=['B'])
 	assert table['A'][0] is ma.masked
 	assert table['B'][1] is not ma.masked # fill_exclude_names applies after fill_include_names

@@ -20,7 +20,8 @@ typedef enum
 {
     NO_ERROR,
     INVALID_LINE,
-    TOO_MANY_COLS
+    TOO_MANY_COLS,
+    NOT_ENOUGH_COLS
 } err_code;
 
 typedef struct
@@ -38,6 +39,7 @@ typedef struct
     int header_len;        // length of the header output string
     int num_cols;          // number of table columns
     int num_rows;          // number of table rows
+    int fill_extra_cols;   // represents whether or not to fill rows with too few values
     tokenizer_state state; // current state of the tokenizer
     err_code code;         // represents the latest error that has occurred
 } tokenizer_t;
@@ -47,14 +49,13 @@ Example input/output
 --------------------
 
 source: "A,B,C\n10,5.,6\n1,2,3"
-output_cols: ["A101", "B5.2", "C6 3"]
-row_positions: [0, 1, 3]
+output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 */
 
 #define INITIAL_COL_SIZE 50
 #define INITIAL_HEADER_SIZE 50
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar);
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);

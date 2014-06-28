@@ -20,6 +20,7 @@ cdef extern from "src/tokenizer.h":
 		NO_ERROR
 		INVALID_LINE
 		TOO_MANY_COLS
+		NOT_ENOUGH_COLS
 
 	ctypedef struct tokenizer_t:
 		char *source		# single string containing all of the input
@@ -35,15 +36,15 @@ cdef extern from "src/tokenizer.h":
 		int header_len      # length of the header output string
 		int num_cols		# number of table columns
 		int num_rows		# number of table rows
+		int fill_extra_cols # represents whether or not to fill rows with too few values
 		tokenizer_state state   # current state of the tokenizer
 		err_code code		# represents the latest error that has occurred
 		# Example input/output
 		# --------------------
 		# source: "A,B,C\n10,5.,6\n1,2,3"
-		# output_cols: ["A101", "B5.2", "C6 3"]
-		# row_positions: [0, 1, 3]
+		# output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 
-	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
+	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols)
 	void delete_tokenizer(tokenizer_t *tokenizer)
 	int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
 	int int_size()
@@ -57,7 +58,8 @@ class CParserError(Exception):
 ERR_CODES = dict(enumerate([
 	"no error",
 	"invalid line supplied",
-	lambda line: "too many columns found in line {} of data".format(line)
+	lambda line: "too many columns found in line {} of data".format(line),
+	lambda line: "not enough columns found in line {} of data".format(line)
 	]))
 
 cdef class CParser:
@@ -79,6 +81,7 @@ cdef class CParser:
 		object fill_include_names
 		object fill_exclude_names
 		object fill_names
+		int fill_extra_cols
 		np.ndarray use_cols
 
 	cdef public:
@@ -97,9 +100,10 @@ cdef class CParser:
 				  exclude_names=None,
 				  fill_values=('', '0'),
 				  fill_include_names=None,
-				  fill_exclude_names=None):
+				  fill_exclude_names=None,
+				  fill_extra_cols=0):
 
-		self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar))
+		self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar), fill_extra_cols)
 		self.source = None
 		self.setup_tokenizer(source)
 		self.header_start = header_start
@@ -123,6 +127,7 @@ cdef class CParser:
 							 "(<bad>, <fill>, <optional col1>, ...)")
 		self.fill_include_names = fill_include_names
 		self.fill_exclude_names = fill_exclude_names
+		self.fill_extra_cols = fill_extra_cols
 	
 	def __dealloc__(self):
 		if self.tokenizer:

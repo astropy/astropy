@@ -16,6 +16,7 @@ class FastBasic(object):
     """
 	_format_name = 'fast_basic'
 	_description = 'Basic table with custom delimiter using the fast C engine'
+	fill_extra_cols = False
 
 	def __init__(self, **kwargs):
 		self.delimiter = str(kwargs.pop('delimiter', ' '))
@@ -51,7 +52,8 @@ class FastBasic(object):
 			raise core.ParameterError("The C reader does not use a Splitter class")
 
 		self.engine = CParser(table, delimiter=self.delimiter, header_start=self.header_start,
-							  comment=self.comment, quotechar=self.quotechar, data_start=self.data_start, **self.kwargs)
+							  comment=self.comment, quotechar=self.quotechar, data_start=self.data_start,
+							  fill_extra_cols=self.fill_extra_cols, **self.kwargs)
 		self._read_header()
 		data = self.engine.read()
 		return Table(data, names=self.names) # TODO: add masking, units, etc.
@@ -59,11 +61,14 @@ class FastBasic(object):
 class FastCsv(FastBasic):
 	"""
 	A faster version of the ordinary :class:`Csv` writer that uses the optimized
-	C parsing engine.
+	C parsing engine. Note that this reader will append empty field values to
+	the end of any row with not enough columns, while :class:`FastBasic` simply
+	raises an error.
 	"""
 	_format_name = 'fast_csv'
 	_io_registry_suffix = '.csv'
 	_description = 'Comma-separated values table using the fast C engine'
+	fill_extra_cols = True
 
 	def __init__(self, **kwargs):
 		delimiter = kwargs.pop('delimiter', ',')

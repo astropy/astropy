@@ -2,7 +2,7 @@
 
 #include "tokenizer.h"
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols)
 {
     tokenizer_t *tokenizer = (tokenizer_t *) malloc(sizeof(tokenizer_t));
     tokenizer->source = 0;
@@ -18,6 +18,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar)
     tokenizer->output_len = 0;
     tokenizer->num_cols = 0;
     tokenizer->num_rows = 0;
+    tokenizer->fill_extra_cols = fill_extra_cols;
     tokenizer->state = START_LINE;
     tokenizer->code = NO_ERROR;
     return tokenizer;
@@ -83,14 +84,14 @@ void resize_col(tokenizer_t *self, int index)
 #define END_LINE()					\
     if (header)						\
 	done = 1;					\
-    else						\
-    {							\
+    else if (self->fill_extra_cols)			\
 	while (col < self->num_cols)			\
 	{						\
             PUSH('\x01');				\
 	    END_FIELD();				\
 	}						\
-    }							\
+    else if (col < self->num_cols)			\
+	RETURN(NOT_ENOUGH_COLS);			\
     ++self->num_rows;					\
     if (end != -1 && self->num_rows == end - start)	\
 	done = 1;
