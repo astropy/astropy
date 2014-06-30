@@ -30,6 +30,8 @@ except ImportError:
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
+_RANDOM_SEED = 0x1337
+
 
 class TestPolynomial2D(object):
     """Tests for 2D polynomail fitting."""
@@ -123,7 +125,7 @@ class TestJointFitter(object):
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
 
-        with NumpyRNGContext(0x01010101):
+        with NumpyRNGContext(_RANDOM_SEED):
             n = np.random.randn(100)
 
         self.ny1 = y1 + 2 * n
@@ -189,7 +191,7 @@ class TestLinearLSQFitter(object):
         assert y_expected.shape == (2, 10)
 
         # Add a bit of random noise
-        with NumpyRNGContext(0x01010101):
+        with NumpyRNGContext(_RANDOM_SEED):
             y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
 
         fitter = LinearLSQFitter()
@@ -207,7 +209,7 @@ class TestLinearLSQFitter(object):
         assert z_expected.shape == (2, 10)
 
         # Add a bit of random noise
-        with NumpyRNGContext(0x01010101):
+        with NumpyRNGContext(_RANDOM_SEED):
             z = z_expected + np.random.normal(0, 0.01, size=z_expected.shape)
 
         fitter = LinearLSQFitter()
@@ -229,7 +231,7 @@ class TestNonLinearFitters(object):
         self.xdata = np.arange(0, 10, 0.1)
         sigma = 8. * np.ones_like(self.xdata)
 
-        with NumpyRNGContext(0xDEADBEEF):
+        with NumpyRNGContext(_RANDOM_SEED):
             yerror = np.random.normal(0, sigma)
 
         def func(p, x):
@@ -308,7 +310,7 @@ class TestNonLinearFitters(object):
                 return (a - x) ** 2 + b * (y - x ** 2) ** 2
 
         x = y = np.linspace(-3.0, 3.0, 100)
-        with NumpyRNGContext(0xCAFECAFE):
+        with NumpyRNGContext(_RANDOM_SEED):
             z = Rosenbrock.eval(x, y, 1.0, 100.0) + np.random.normal(0., 0.1)
 
         fitter = SimplexLSQFitter()
@@ -326,7 +328,7 @@ class TestNonLinearFitters(object):
         a = 2
         b = 100
 
-        with NumpyRNGContext(0x1337FACE):
+        with NumpyRNGContext(_RANDOM_SEED):
             x = np.linspace(0, 1, 100)
             # y scatter is amplitude ~1 to make sure covarience is
             # non-negligible
