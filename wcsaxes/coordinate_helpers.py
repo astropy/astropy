@@ -350,14 +350,12 @@ class CoordinateHelper(object):
         lblinfo = []
         lbl_world = []
 
-        # Look up parent axes' transform from data coordinates to axes,
-        # where (0, 0) is the bottom left corner of the axes and (1, 1) is
-        # the top right.
+        # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
         # http://matplotlib.org/users/transforms_tutorial.html#the-transformation-pipeline
-        transLimits = self.parent_axes.transLimits
-        invertedTransLimits = transLimits.inverted()
+        transData = self.parent_axes.transData
+        invertedTransLimits = transData.inverted()
 
         for axis, spine in frame.iteritems():
 
@@ -367,17 +365,17 @@ class CoordinateHelper(object):
             pixel0 = spine.data
             world0 = spine.world[:,self.coord_index]
             world0 = self.transform.transform(pixel0)[:,self.coord_index]
-            axes0 = transLimits.transform(pixel0)
+            axes0 = transData.transform(pixel0)
 
-            # Advance 1/100th of dimensions of axes
+            # Advance 2 pixels in figure coordinates
             pixel1 = axes0.copy()
-            pixel1[:,0] += 0.01
+            pixel1[:,0] += 2.0
             pixel1 = invertedTransLimits.transform(pixel1)
             world1 = self.transform.transform(pixel1)[:,self.coord_index]
 
-            # Advance 1/100th of dimensions of axes
+            # Advance 2 pixels in figure coordinates
             pixel2 = axes0.copy()
-            pixel2[:,1] += 0.01 if self.frame.origin == 'lower' else -0.01
+            pixel2[:,1] += 2.0 if self.frame.origin == 'lower' else -2.0
             pixel2 = invertedTransLimits.transform(pixel2)
             world2 = self.transform.transform(pixel2)[:,self.coord_index]
 
