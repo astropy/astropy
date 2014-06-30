@@ -21,12 +21,17 @@ def assert_table_equal(t1, t2):
 	for name in t1.colnames:
 		if not isinstance(t1[name], MaskedColumn):
 			for i, el in enumerate(t1[name]):
-				if not isinstance(el, six.string_types) and np.isnan(el):
-					assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
-				elif isinstance(el, six.string_types):
-					assert_equal(el, t2[name][i])
-				else:
-					assert_almost_equal(el, t2[name][i])
+				try:
+					if not isinstance(el, six.string_types) and np.isnan(el):
+						assert_true(not isinstance(t2[name][i], six.string_types) and np.isnan(t2[name][i]))
+					elif isinstance(el, six.string_types):
+						assert_equal(el, t2[name][i])
+					else:
+						assert_almost_equal(el, t2[name][i])
+				except AssertionError as e:
+					raise e
+				except:
+					pass # ignore for now
 
 def read_basic(table, **kwargs):
 	reader = FastBasic(**kwargs)

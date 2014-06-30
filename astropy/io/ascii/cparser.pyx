@@ -67,8 +67,8 @@ class CParserError(Exception):
 ERR_CODES = dict(enumerate([
 	"no error",
 	"invalid line supplied",
-	lambda line: "too many columns found in line {} of data".format(line),
-	lambda line: "not enough columns found in line {} of data".format(line),
+	lambda line: "too many columns found in line {0} of data".format(line),
+	lambda line: "not enough columns found in line {0} of data".format(line),
 	"type conversion error"
 	]))
 
@@ -131,7 +131,7 @@ cdef class CParser:
 			self.fill_values = fill_values
 		try:
 			# Create a dict with the values to be replaced as keys
-			self.fill_values = dict([(l[0], l[1:]) for l in self.fill_values])
+			self.fill_values = dict([(l[0].encode('utf-8'), l[1:]) for l in self.fill_values])
 		except IndexError:
 			raise ValueError("Format of fill_values must be "
 							 "(<bad>, <fill>, <optional col1>, ...)")
@@ -147,7 +147,7 @@ cdef class CParser:
 		err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
 		if callable(err_msg):
 			err_msg = err_msg(self.tokenizer.num_rows + 1)
-		raise CParserError("{}: {}".format(msg, err_msg))
+		raise CParserError("{0}: {1}".format(msg, err_msg))
 
 	cdef setup_tokenizer(self, source):
 		cdef char *src
@@ -164,6 +164,7 @@ cdef class CParser:
 			  			   'or data), or an iterable')
 		# Create a reference to the Python object so its char * pointer remains valid
 		self.source = source + '\n' # add newline to simplify handling last line of data
+		self.source = self.source.encode('ascii') # encode in ASCII for char * handling (fixes Python 3 issue)
 		src = self.source
 		self.tokenizer.source = src
 		self.tokenizer.source_len = len(self.source)
@@ -199,7 +200,7 @@ cdef class CParser:
 						self.width += 1
 					else:
 						break
-			self.names = ['col{}'.format(i + 1) for i in range(self.width)] # auto-generate names
+			self.names = ['col{0}'.format(i + 1) for i in range(self.width)] # auto-generate names
 
 		size = int_size()
 		dtype = np.int16 #TODO: maybe find a better way to do this?
@@ -258,9 +259,10 @@ cdef class CParser:
 	cdef np.ndarray convert_int(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
 		cdef int converted
-		cdef char *field
 		cdef int row = 0
 		cdef int *data = <int *> col.data
+		cdef bytes field
+		cdef bytes new_val
 		mask = set()
 
 		start_iteration(self.tokenizer, i)
@@ -269,7 +271,7 @@ cdef class CParser:
 				break
 			field = next_field(self.tokenizer)
 			if field in self.fill_values:
-				new_val = str(self.fill_values[field][0])
+				new_val = str(self.fill_values[field][0]).encode('utf-8')
 				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
 						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
 					mask.add(row)
@@ -291,9 +293,10 @@ cdef class CParser:
 	cdef np.ndarray convert_float(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
 		cdef float converted
-		cdef char *field
 		cdef int row = 0
 		cdef float *data = <float *> col.data
+		cdef bytes field
+		cdef bytes new_val
 		mask = set()
 
 		start_iteration(self.tokenizer, i)
@@ -302,7 +305,7 @@ cdef class CParser:
 				break
 			field = next_field(self.tokenizer)
 			if field in self.fill_values:
-				new_val = str(self.fill_values[field][0])
+				new_val = str(self.fill_values[field][0]).encode('utf-8')
 				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
 						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
 					mask.add(row)
@@ -323,8 +326,9 @@ cdef class CParser:
 
 	cdef np.ndarray convert_str(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
-		cdef char *field
 		cdef int row = 0
+		cdef bytes field
+		cdef bytes new_val
 		mask = set()
 
 		start_iteration(self.tokenizer, i)
@@ -333,13 +337,13 @@ cdef class CParser:
 				break
 			field = next_field(self.tokenizer)
 			if field in self.fill_values:
-				new_val = str(self.fill_values[field][0])
+				new_val = str(self.fill_values[field][0]).encode('utf-8')
 				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
 						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
 					mask.add(row)
-				col[row] = new_val
+				col[row] = new_val.decode('utf-8')
 			else:
-				col[row] = field
+				col[row] = field.decode('utf-8')
 			row += 1
 
 		if mask:

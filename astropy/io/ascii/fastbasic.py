@@ -9,11 +9,11 @@ from . import cparser
 class FastBasic(object):
 	"""
 	This class is intended to handle the same format addressed by the
-    ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
-    code and is therefore much faster. Unlike the other readers and writers
-    in `io.ascii`, this class is not very extensible and is restricted
-    by optimization requirements.
-    """
+	ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
+	code and is therefore much faster. Unlike the other readers and writers
+	in `io.ascii`, this class is not very extensible and is restricted
+	by optimization requirements.
+	"""
 	_format_name = 'fast_basic'
 	_description = 'Basic table with custom delimiter using the fast C engine'
 	fill_extra_cols = False
