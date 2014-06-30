@@ -72,13 +72,6 @@ class WCSAxes(Axes):
                 self.coords[coord_index].set_ticklabel_position('')
                 self.coords[coord_index].set_ticks_position('')
 
-    def get_coord_range(self, transform):
-        xmin, xmax = self.get_xlim()
-        ymin, ymax = self.get_ylim()
-        return find_coordinate_range(transform,
-                                     [xmin, xmax, ymin, ymax],
-                                     [coord.coord_type for coord in self.coords])
-
     def draw(self, renderer, inframe=False):
 
         super(WCSAxes, self).draw(renderer, inframe)
@@ -113,15 +106,15 @@ class WCSAxes(Axes):
     def get_ylabel(self):
         return self.coords[1].get_axislabel()
 
-    def get_coords_overlay(self, frame, equinox=None, obstime=None):
+    def get_coords_overlay(self, frame, equinox=None, obstime=None, coord_meta=None):
 
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            coords = CoordinatesMap(self, frame)
+            coords = CoordinatesMap(self, frame, coord_meta=coord_meta)
         else:
             transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
-            coords = CoordinatesMap(self, self.wcs, transform=transform)
+            coords = CoordinatesMap(self, self.wcs, transform=transform, coord_meta=coord_meta)
 
         self._all_coords.append(coords)
 
