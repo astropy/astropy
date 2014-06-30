@@ -20,13 +20,13 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 class WCSAxes(Axes):
 
-    def __init__(self, fig, rect, wcs=IDENTITY, transData=None, slices=None,
-                 **kwargs):
+    def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
+                 transData=None, slices=None, **kwargs):
 
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.reset_wcs(wcs, slices=slices)
+        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
 
         if not (transData is None):
@@ -42,17 +42,19 @@ class WCSAxes(Axes):
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
-    def reset_wcs(self, wcs, slices=None):
+    def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
         Reset the current Axes, to use a new WCS object.
         """
 
         # Here determine all the coordinate axes that should be shown.
-        if wcs is None:
-            wcs = IDENTITY
+        if wcs is None and transform is None:
+            self.wcs = IDENTITY
+        else:
+            self.wcs = wcs
 
-        self.wcs = wcs
-        self.coords = CoordinatesMap(self, self.wcs, slice=slices)
+        self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
+                                     transform=transform, coord_meta=coord_meta)
 
         self._all_coords = [self.coords]
 
