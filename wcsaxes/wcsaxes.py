@@ -85,7 +85,7 @@ class WCSAxes(Axes):
     def _update_patch(self):
 
         old_props = self.patch.properties()
-        self.patch.get_verts = self.coords.frame.patch
+        self.patch = self.coords.frame.patch
         props = {}
         for key in VISUAL_PROPERTIES:
             props[key] = old_props[key]
