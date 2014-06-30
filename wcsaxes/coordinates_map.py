@@ -2,23 +2,34 @@ from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
 from .utils import coord_type_from_ctype
 from .frame import RectangularFrame
+from .coordinate_range import find_coordinate_range
 
 from . import six
 
 
 class CoordinatesMap(object):
 
-    def __init__(self, axes, wcs, transform=None, slice=None):
+    def __init__(self, axes, wcs=None, transform=None, coord_meta=None,
+                 slice=None):
 
         # Keep track of parent axes and WCS
         self._axes = axes
-        self._wcs = wcs
-
-        # Set up transform
-        if transform is None:
-            self._transform = WCSPixel2WorldTransform(self._wcs, slice=slice)
-        else:
+        
+        if wcs is None:
+            if transform is None:
+                raise ValueError("Either `wcs` or `transform` are required")
+            if coord_meta is None:
+                raise ValueError("`coord_meta` is required when "
+                                 "`transform` is passed")
             self._transform = transform
+            naxis = 2
+        else:
+            if transform is not None:
+                raise ValueError("Cannot specify both `wcs` and `transform`")
+            if coord_meta is not None:
+                raise ValueError("Cannot pass `coord_meta` if passing `wcs`")
+            self._transform = WCSPixel2WorldTransform(wcs, slice=slice)
+            naxis = wcs.wcs.naxis
 
         self.frame = RectangularFrame(axes, self._transform)
 
@@ -26,11 +37,24 @@ class CoordinatesMap(object):
         self._coords = []
         self._aliases = {}
 
-        for coord_index in range(self._wcs.wcs.naxis):
+        for coord_index in range(naxis):
 
-            coord_type, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
-            coord_unit = wcs.wcs.cunit[coord_index]
+            # Extract coordinate metadata from WCS object or transform
+            if wcs is not None:
+                coord_type, coord_wrap = coord_type_from_ctype(wcs.wcs.ctype[coord_index])
+                coord_unit = wcs.wcs.cunit[coord_index]
+                name = wcs.wcs.ctype[coord_index][:4].replace('-', '')
+            else:
+                try:
+                    coord_type = coord_meta['type'][coord_index]
+                    coord_wrap = coord_meta['wrap'][coord_index]
+                    coord_unit = coord_meta['unit'][coord_index]
+                    name = coord_meta['name'][coord_index]
+                except IndexError:
+                    raise ValueError("coord_meta items should have a length of {0}".format(len(wcs.wcs.naxis)))
+
             self._coords.append(CoordinateHelper(parent_axes=axes,
+                                                 parent_map=self,
                                                  transform=self._transform,
                                                  coord_index=coord_index,
                                                  coord_type=coord_type,
@@ -40,7 +64,6 @@ class CoordinatesMap(object):
 
 
             # Set up aliases for coordinates
-            name = self._wcs.wcs.ctype[coord_index][:4].replace('-', '')
             self._aliases[name.lower()] = coord_index
 
     def __getitem__(self, item):
@@ -84,3 +107,10 @@ class CoordinatesMap(object):
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)
+
+    def get_coord_range(self):
+        xmin, xmax = self._axes.get_xlim()
+        ymin, ymax = self._axes.get_ylim()
+        return find_coordinate_range(self._transform,
+                                     [xmin, xmax, ymin, ymax],
+                                     [coord.coord_type for coord in self])
