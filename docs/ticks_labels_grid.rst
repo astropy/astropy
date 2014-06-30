@@ -19,7 +19,7 @@ For the example in the following page we start from the example introduced in
 
     from wcsaxes import WCSAxes
 
-    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    ax = WCSAxes(fig, [0.25, 0.25, 0.7, 0.7], wcs=wcs)
     fig.add_axes(ax)  # note that the axes have to be added to the figure
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
@@ -58,16 +58,14 @@ would use ``ra`` and ``dec``. The names are only available for specific
 celestial coordinate systems - for all other systems, you should use the index
 of the coordinate (``0`` or ``1``).
 
-Each coordinate is an instance of the 
-:class:`~wcsaxes.coordinate_helpers.CoordinateHelper` class, which can be used
-to control the appearance of the ticks, tick labels, grid lines, and axis 
-labels associated with that coordinate.
+Each coordinate is an instance of the :class:`~wcsaxes.coordinate_helpers.CoordinateHelper`
+class, which can be used to control the appearance of the ticks, tick labels,
+grid lines, and axis labels associated with that coordinate.
 
 Axis labels
 ===========
 
-Axis labels can be added using the 
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
+Axis labels can be added using the :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel` method:
 
 .. plot::
    :context:
@@ -77,7 +75,18 @@ Axis labels can be added using the
     lon.set_axislabel('Galactic Longitude')
     lat.set_axislabel('Galactic Latitude')
 
-.. _tick_label_format:
+The padding of the axis label with respect to the axes can also be adjusted by
+using the ``minpad`` option. The default value for ``minpad`` is 1 and is in
+terms of the font size of the axis label text. Negative values are also 
+allowed.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_axislabel('Galactic Longitude', minpad=0.3)
+    lat.set_axislabel('Galactic Latitude', minpad=-0.4)
 
 Tick label format
 =================
@@ -125,27 +134,31 @@ Tick/label spacing and properties
 
 The spacing of ticks/tick labels should have a sensible default, but you may
 want to be able to manually specify the spacing. This can be done using the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method. There 
+:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method. There
 are different options that can be used:
 
-* Set the tick positions manually as an Astropy :class:`~astropy.units.quantity.Quantity`::
+* Set the tick positions manually::
 
-      from astropy import units as u
-      lon.set_ticks([242.2, 242.3, 242.4] * u.degree)
+      lon.set_ticks([242.2, 242.3, 242.4])
 
-* Set the spacing between ticks also as an Astropy :class:`~astropy.units.quantity.Quantity`::
+* Set the spacing between ticks::
 
-      lon.set_ticks(spacing=5. * u.arcmin)
+      lon.set_ticks(spacing=0.1)
 
 * Set the approximate number of ticks::
 
       lon.set_ticks(number=4)
 
-In the case of angular axes, specifying the spacing as an Astropy :class:`~astropy.units.quantity.Quantity`
-avoids roundoff errors. The
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also be used to set the
-appearance (color and size) of the ticks, using the ``color=`` and ``size=``
-options.
+In the case of angular axes, you should specify the spacing as an Astropy
+:class:`~astropy.units.quantity.Quantity`::
+
+      from astropy import units as u
+      lon.set_ticks(spacing=5. * u.arcmin)
+
+This is to avoid roundoff errors. The
+:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
+be used to set the appearance (color and size) of the ticks, using the
+``color=`` and ``size=`` options.
 
 We can apply this to the previous example:
 
