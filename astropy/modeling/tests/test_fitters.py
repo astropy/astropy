@@ -277,7 +277,7 @@ class TestNonLinearFitters(object):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
 
         levmar = LevMarLSQFitter()
-        fitter = SLSQPLSQFitter()
+        fitter = fitter_class()
         new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
