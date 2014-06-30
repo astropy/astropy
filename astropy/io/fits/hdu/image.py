@@ -661,7 +661,7 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 byteswapped = False
 
-            cs = self._compute_checksum(np.fromstring(d, dtype='ubyte'),
+            cs = self._compute_checksum(d.flatten().view(np.uint8),
                                         blocking=blocking)
 
             # If the data was byteswapped in this method then return it to
