@@ -90,7 +90,7 @@ class TestImages(object):
     def test_overlay_features_image(self, generate):
         hdu = self._image1_hdu
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.3, 0.3, 0.65, 0.65], wcs=WCS(hdu.header), aspect='equal')
+        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
         # Change the format of the ticks
         ax.coords[0].set_major_formatter('dd:mm:ss')
@@ -104,8 +104,8 @@ class TestImages(object):
         # Set the number of ticks on the 'glat' axis to 9
         ax.coords['glat'].set_ticks(number=9, size=5, width=1)
         # Set labels on axes
-        ax.coords['glon'].set_axislabel('Galactic Longitude')
-        ax.coords['glat'].set_axislabel('Galactic Latitude')
+        ax.coords['glon'].set_axislabel('Galactic Longitude', minpad=1.6)
+        ax.coords['glat'].set_axislabel('Galactic Latitude', minpad=-0.75)
 
         self.generate_or_test(generate, fig, 'overlay_features_image.png')
 
