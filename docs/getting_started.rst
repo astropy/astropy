@@ -12,7 +12,7 @@ information. In this example, we will use a FITS file from the
 ``wcsaxes.datasets`` module:
 
 .. plot::
-   :context:
+   :context: reset
    :nofigs:
    :include-source:
    :align: center
