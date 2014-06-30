@@ -111,10 +111,10 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            coords = CoordinatesMap(self, frame, coord_meta=coord_meta)
+            coords = CoordinatesMap(self, frame)
         else:
             transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
-            coords = CoordinatesMap(self, self.wcs, transform=transform, coord_meta=coord_meta)
+            coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta)
 
         self._all_coords.append(coords)
 
