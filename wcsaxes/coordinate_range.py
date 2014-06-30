@@ -89,7 +89,7 @@ def find_coordinate_range(transform, extent, coord_types):
         if coord_type == 'longitude':
             if x_range > 300.:
                 xw_min = 0.
-                xw_max = 360.
+                xw_max = 360 - np.spacing(360.)
             elif xw_min < 0.:
                 xw_min = max(-180., xw_min - 0.1 * x_range)
                 xw_max = min(+180., xw_max + 0.1 * x_range)
