@@ -2,6 +2,8 @@ import numpy as np
 
 from matplotlib.text import Text
 
+from .frame import RectangularFrame
+
 
 def sort_using(X, Y):
     return [x for (y,x) in sorted(zip(Y,X))]
@@ -9,8 +11,9 @@ def sort_using(X, Y):
 
 class TickLabels(Text):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, frame, *args, **kwargs):
         self.clear()
+        self._frame = frame
         super(TickLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
@@ -103,7 +106,7 @@ class TickLabels(Text):
 
                 x, y = self.pixel[axis][i]
 
-                if axis in 'brtl':
+                if isinstance(self._frame, RectangularFrame):
 
                     # This is just to preserve the current results, but can be
                     # removed next time the reference images are re-generated.
