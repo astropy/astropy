@@ -802,3 +802,14 @@ def test_sextractor_units():
     for i, colname in enumerate(table.colnames):
         assert table[colname].unit == expected_units[i]
         assert table[colname].description == expected_descrs[i]
+
+def test_list_with_newlines():
+    """
+    Check that lists of strings where some strings consist of just a newline
+    ("\n") are parsed correctly.
+    """
+    t = ascii.read(["abc", "123\n", "456\n", "\n", "\n"])
+    assert t.colnames == ['abc']
+    assert len(t) == 2
+    assert t[0][0] == 123
+    assert t[1][0] == 456

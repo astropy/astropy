@@ -538,6 +538,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - ``astropy.io.ascii.read`` would fail to read lists of strings where some of
+    the strings consisted of just a newline ("\n"). [#2648]
+
 - ``astropy.io.fits``
 
   - Use NaN for missing values in FITS when using Table.write for float
