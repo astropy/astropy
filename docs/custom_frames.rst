@@ -2,8 +2,10 @@
 Using a custom frame
 ====================
 
-By default, ``WCSAxes`` will make use of a rectangular frame for a plot, but
-this can be changed to provide any custom frame:
+By default, :class:`~wcsaxes.wcsaxes.WCSAxes` will make use of a rectangular
+frame for a plot, but this can be changed to provide any custom frame. The
+following example shows how to use the built-in
+:class:`~wcsaxes.frame.EllipticalFrame` class, which is an ellipse which extends to the same limits as the built-in rectangular frame:
 
 .. plot::
    :context: reset
