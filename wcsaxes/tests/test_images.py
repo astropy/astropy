@@ -15,7 +15,7 @@ from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
 
-class TestImages(object):
+class BaseImageTests(object):
 
     @classmethod
     def setup_class(cls):
@@ -48,6 +48,8 @@ class TestImages(object):
             figure.savefig(test_image)
             msg = compare_images(baseline_image, test_image, tol=self._tolerance)
             assert msg is None
+
+class TestBasic(BaseImageTests):
 
     # Test for plotting image and also setting values of ticks
     @remote_data
@@ -243,3 +245,4 @@ class TestImages(object):
         ax.coords['ra'].set_ticks(color='red', size=20)
         ax.coords['dec'].set_ticks(color='red', size=20)
         self.generate_or_test(generate, fig, 'tick_angles_non_square_axes.png')
+
