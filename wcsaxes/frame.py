@@ -101,7 +101,7 @@ class BaseFrame(OrderedDict):
 
     @property
     def path(self):
-        self.update_limits()
+        self.update_spines()
         x, y = [], []
         for axis in self:
             x.append(self[axis].data[:,0])
@@ -120,7 +120,7 @@ class BaseFrame(OrderedDict):
 
     def sample(self, n_samples):
 
-        self.update_limits()
+        self.update_spines()
 
         spines = OrderedDict()
 
@@ -140,7 +140,7 @@ class RectangularFrame(BaseFrame):
 
     spine_names = 'brtl'
 
-    def update_limits(self):
+    def update_spines(self):
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
@@ -155,7 +155,7 @@ class EllipticalFrame(BaseFrame):
 
     spine_names = 'c'
 
-    def update_limits(self):
+    def update_spines(self):
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
@@ -168,5 +168,3 @@ class EllipticalFrame(BaseFrame):
 
         theta = np.linspace(0., 2 * np.pi, 1000)
         self['c'].data = np.array([xmid + dx * np.cos(theta), ymid + dy * np.sin(theta)]).transpose()
-
-
