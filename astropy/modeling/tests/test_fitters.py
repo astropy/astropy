@@ -229,7 +229,7 @@ class TestNonLinearFitters(object):
         self.initial_values = [100, 5, 1]
 
         self.xdata = np.arange(0, 10, 0.1)
-        sigma = 8. * np.ones_like(self.xdata)
+        sigma = 4. * np.ones_like(self.xdata)
 
         with NumpyRNGContext(_RANDOM_SEED):
             yerror = np.random.normal(0, sigma)
