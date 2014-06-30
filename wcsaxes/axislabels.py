@@ -1,17 +1,19 @@
 import numpy as np
 
 from matplotlib.text import Text
+import matplotlib.transforms as mtransforms
 
 
 class AxisLabels(Text):
 
-    def __init__(self, frame, *args, **kwargs):
+    def __init__(self, frame, minpad=1, *args, **kwargs):
         self._frame = frame
         super(AxisLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self.set_ha('center')
         self.set_va('center')
+        self._minpad = minpad
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
@@ -22,9 +24,13 @@ class AxisLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self._frame]
 
-    def draw(self, renderer, bboxes):
+    def set_minpad(self, minpad):
+        self._minpad = minpad
+
+    def draw(self, renderer, bboxes, ticklabels_bbox_list, visible_ticks):
 
         text_size = renderer.points_to_pixels(self.get_size())
+        padding = text_size * self._minpad
 
         for axis in self.get_visible_axes():
 
@@ -47,25 +53,45 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
 
-            # Find label position, by trying to move it successively further
-            # away from the axis and then checking for intersection with tick
-            # labels. Obviously this could be optimized if needed.
-            dx = np.cos(np.radians(normal_angle)) * text_size
-            dy = np.sin(np.radians(normal_angle)) * text_size
+            # Find label position by looking at the bounding box of ticks'
+            # labels and the image. It sets the default padding at 1 times the
+            # axis label font size which can also be changed by setting
+            # the minpad parameter.
 
-            for pad in np.linspace(0.8, 8.8, 21):
+            ticklabels_bbox = mtransforms.Bbox.union(ticklabels_bbox_list)
 
-                xlabel = xcen + dx * pad
-                ylabel = ycen + dy * pad
+            if axis == 'l':
+                if axis in visible_ticks:
+                    left = ticklabels_bbox.xmin
+                else:
+                    left = xcen
+                xpos = left - padding
+                self.set_position((xpos, ycen))
 
-                self.set_position((xlabel, ylabel))
+            elif axis == 'r':
+                if axis in visible_ticks:
+                    right = ticklabels_bbox.x1
+                else:
+                    right = xcen
+                xpos = right + padding
+                self.set_position((xpos, ycen))
 
-                bb = super(AxisLabels, self).get_window_extent(renderer)
+            elif axis == 'b':
+                if axis in visible_ticks:
+                    bottom = ticklabels_bbox.ymin
+                else:
+                    bottom = ycen
+                ypos = bottom - padding
+                self.set_position((xcen, ypos))
 
-                if bb.count_overlaps(bboxes) == 0:
-                    break
+            elif axis == 't':
+                if axis in visible_ticks:
+                    top = ticklabels_bbox.y1
+                else:
+                    top = ycen
+                ypos = top + padding
+                self.set_position((xcen, ypos))
 
-            self.set_position((xlabel + dx * pad * 0.3, ylabel + dy * pad * 0.3))
             super(AxisLabels, self).draw(renderer)
 
             bb = super(AxisLabels, self).get_window_extent(renderer)
