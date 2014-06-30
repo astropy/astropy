@@ -15,6 +15,7 @@ class TickLabels(Text):
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self._bbox_list = []
+        self.pad = 0.3
 
     def clear(self):
         self.world = {}
@@ -100,33 +101,89 @@ class TickLabels(Text):
 
                 self.set_text(self.text[axis][i])
 
-                # TODO: do something smarter for arbitrary directions
-                if np.abs(self.angle[axis][i]) < 45.:
-                    ha = 'right'
-                    va = 'bottom'
-                    dx = - text_size * 0.5
-                    dy = - text_size * 0.5
-                elif np.abs(self.angle[axis][i] - 90.) < 45:
-                    ha = 'center'
-                    va = 'bottom'
-                    dx = 0
-                    dy = - text_size * 1.5
-                elif np.abs(self.angle[axis][i] - 180.) < 45:
-                    ha = 'left'
-                    va = 'bottom'
-                    dx = text_size * 0.5
-                    dy = - text_size * 0.5
-                else:
-                    ha = 'center'
-                    va = 'bottom'
-                    dx = 0
-                    dy = text_size * 0.2
-
                 x, y = self.pixel[axis][i]
 
-                self.set_position((x + dx, y + dy))
-                self.set_ha(ha)
-                self.set_va(va)
+                if axis in 'brtl':
+
+                    # This is just to preserve the current results, but can be
+                    # removed next time the reference images are re-generated.
+
+                    if np.abs(self.angle[axis][i]) < 45.:
+                        ha = 'right'
+                        va = 'bottom'
+                        dx = - text_size * 0.5
+                        dy = - text_size * 0.5
+                    elif np.abs(self.angle[axis][i] - 90.) < 45:
+                        ha = 'center'
+                        va = 'bottom'
+                        dx = 0
+                        dy = - text_size * 1.5
+                    elif np.abs(self.angle[axis][i] - 180.) < 45:
+                        ha = 'left'
+                        va = 'bottom'
+                        dx = text_size * 0.5
+                        dy = - text_size * 0.5
+                    else:
+                        ha = 'center'
+                        va = 'bottom'
+                        dx = 0
+                        dy = text_size * 0.2
+
+                    self.set_position((x + dx, y + dy))
+                    self.set_ha(ha)
+                    self.set_va(va)
+
+                else:
+
+                    # This is the more general code for arbitrarily oriented
+                    # axes
+
+                    # Set initial position and find bounding box
+                    self.set_position((x, y))
+                    bb = super(TickLabels, self).get_window_extent(renderer)
+
+                    # Find width and height, as well as angle at which we
+                    # transition which side of the label we use to anchor the
+                    # label.
+                    width = bb.width
+                    height = bb.height
+                    theta = np.tan(height / width)
+
+                    # Project axis angle onto bounding box
+                    ax = np.cos(np.radians(self.angle[axis][i]))
+                    ay = np.sin(np.radians(self.angle[axis][i]))
+
+                    # Set anchor point for label
+                    if np.abs(self.angle[axis][i]) < 45.:
+                        dx = width
+                        dy = ay * height
+                    elif np.abs(self.angle[axis][i] - 90.) < 45:
+                        dx = ax * width
+                        dy = height
+                    elif np.abs(self.angle[axis][i] - 180.) < 45:
+                        dx = -width
+                        dy = ay * height
+                    else:
+                        dx = ax * width
+                        dy = -height
+
+                    dx *= 0.5
+                    dy *= 0.5
+
+                    # Find normalized vector along axis normal, so as to be
+                    # able to nudge the label away by a constant padding factor
+
+                    dist = np.hypot(dx, dy)
+
+                    ddx = dx / dist
+                    ddy = dy / dist
+
+                    dx += ddx * text_size * self.pad
+                    dy += ddy * text_size * self.pad
+
+                    self.set_position((x - dx, y - dy))
+                    self.set_ha('center')
+                    self.set_va('center')
 
                 bb = super(TickLabels, self).get_window_extent(renderer)
 
