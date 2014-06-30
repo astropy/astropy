@@ -145,10 +145,10 @@ class RectangularFrame(BaseFrame):
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        self['b'].data = np.array(([xmin, xmax], [ymin, ymin])).transpose()
-        self['r'].data = np.array(([xmax, xmax], [ymin, ymax])).transpose()
-        self['t'].data = np.array(([xmax, xmin], [ymax, ymax])).transpose()
-        self['l'].data = np.array(([xmin, xmin], [ymax, ymin])).transpose()
+        self['b'].data = np.array(([xmin, ymin], [xmax, ymin]))
+        self['r'].data = np.array(([xmax, ymin], [xmax, ymax]))
+        self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
+        self['l'].data = np.array(([xmin, ymax], [xmin, ymin]))
 
 
 class EllipticalFrame(BaseFrame):
