@@ -263,11 +263,11 @@ class TestRunner(object):
             shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
             shutil.rmtree(os.environ['XDG_CACHE_HOME'])
             if xdg_config_home is not None:
-                os.environ['XDG_CONFIG_HOME'] = xdg_config_home
+                os.environ[str('XDG_CONFIG_HOME')] = xdg_config_home
             else:
                 del os.environ['XDG_CONFIG_HOME']
             if xdg_cache_home is not None:
-                os.environ['XDG_CACHE_HOME'] = xdg_cache_home
+                os.environ[str('XDG_CACHE_HOME')] = xdg_cache_home
             else:
                 del os.environ['XDG_CACHE_HOME']
             configuration._cfgobjs.clear()

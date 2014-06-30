@@ -197,10 +197,10 @@ def test_data_noastropy_fallback(monkeypatch):
     data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)
 
     # make sure the config and cache directories are not searched
-    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
-    monkeypatch.delenv('XDG_CONFIG_HOME')
-    monkeypatch.setenv('XDG_CACHE_HOME', 'bar')
-    monkeypatch.delenv('XDG_CACHE_HOME')
+    monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
+    monkeypatch.delenv(str('XDG_CONFIG_HOME'))
+    monkeypatch.setenv(str('XDG_CACHE_HOME'), 'bar')
+    monkeypatch.delenv(str('XDG_CACHE_HOME'))
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
