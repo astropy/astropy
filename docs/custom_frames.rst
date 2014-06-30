@@ -15,7 +15,7 @@ following example shows how to use the built-in
     from astropy.wcs import WCS
     from wcsaxes import datasets
     from wcsaxes.frame import EllipticalFrame
-    
+
     hdu = datasets.msx_hdu()
     wcs = WCS(hdu.header)
 
@@ -24,9 +24,9 @@ following example shows how to use the built-in
 
     from wcsaxes import WCSAxes
 
-    ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs, 
+    ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
                  frame_class=EllipticalFrame)
-    fig.add_axes(ax)  # note that the axes have to be added to the figure
+    fig.add_axes(ax)
 
     ax.coords.grid(color='white')
 
@@ -36,5 +36,67 @@ following example shows how to use the built-in
     # Clip the image to the frame
     im.set_clip_path(ax.coords.frame.patch)
 
+However, you can also write your own frame class. The idea is to set up any
+number of connecting spines that define the frame. You can define a frame as a
+spine, but if you define it as multiple spines you will be able to control on
+which spine the tick labels and ticks should appear.
 
+The following example shows how you could for example define a hexagonal frame:
+
+.. plot::
+   :context: reset
+   :include-source:
+   :nofigs:
+
+    from wcsaxes.frame import BaseFrame
+
+    class HexagonalFrame(BaseFrame):
+
+        spine_names = 'abcdef'
+
+        def update_spines(self):
+
+            xmin, xmax = self.parent_axes.get_xlim()
+            ymin, ymax = self.parent_axes.get_ylim()
+
+            ymid = 0.5 * (ymin + ymax)
+            xmid1 = (xmin + xmax) / 4.
+            xmid2 = (xmin + xmax) * 3. / 4.
+
+            self['a'].data = np.array(([xmid1, ymin], [xmid2, ymin]))
+            self['b'].data = np.array(([xmid2, ymin], [xmax, ymid]))
+            self['c'].data = np.array(([xmax, ymid], [xmid2, ymax]))
+            self['d'].data = np.array(([xmid2, ymax], [xmid1, ymax]))
+            self['e'].data = np.array(([xmid1, ymax], [xmin, ymid]))
+            self['f'].data = np.array(([xmin, ymid], [xmid1, ymin]))
+
+which we can then use:
+
+    .. plot::
+       :context:
+       :include-source:
+       :align: center
+
+        from astropy.wcs import WCS
+        from wcsaxes import datasets
+
+        hdu = datasets.msx_hdu()
+        wcs = WCS(hdu.header)
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+
+        from wcsaxes import WCSAxes
+
+        ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
+                     frame_class=HexagonalFrame)
+        fig.add_axes(ax)
+
+        ax.coords.grid(color='white')
+
+        im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+                  origin='lower')
+
+        # Clip the image to the frame
+        im.set_clip_path(ax.coords.frame.patch)
 
