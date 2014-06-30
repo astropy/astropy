@@ -13,6 +13,7 @@ Astropy Project Coordinators
 Core Package Contributors
 =========================
 
+* Shailesh Ahuja
 * Tom Aldcroft
 * Kyle Barbary
 * Geert Barentsen
@@ -20,28 +21,41 @@ Core Package Contributors
 * Andreas Baumbach
 * Chris Beaumont
 * Daniel Bell
+* Francesco Biscani
+* Christopher Bonnett
+* Médéric Boquien
 * Larry Bradley
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
+* Mabry Cervin
+* Pritish Chakraborty
 * Alex Conley
 * Jean Connelly
 * Simon Conseil
+* Ryan Cooke
 * Matt Craig
 * Steven Crawford
 * Neil Crighton
+* Kelle Cruz
 * Matt Davis
 * Christoph Deil
 * Nadia Dencheva
+* Jörg Dietrich
 * Axel Donath
 * Michael Droettboom
 * Zach Edwards
 * Thomas Erben
 * Henry Ferguson
+* Jonathan Foster
 * Ryan Fox
+* Lehman Garrison
 * Adam Ginsburg
+* Christoph Gohlke
 * Perry Greenfield
+* Dylan Gregersen
 * Frédéric Grollier
+* Karan Grover
 * Hans Moritz Günther
 * Alex Hagen
 * Emma Hogan
@@ -49,28 +63,47 @@ Core Package Contributors
 * JC Hsu
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
+* Lennard Kiehl
 * Kacper Kowalik
 * Roban Kramer
+* Simon Liedtke
 * Pey Lian Lim
+* Serge Montagnac
+* José Sabater Montes
+* Michael Mueller
 * Stuart Mumford
 * Demitri Muna
 * Prasanth Nair
+* Bogdan Nicula
 * Miruna Oprescu
+* Luigi Paioro
+* Asish Panda
 * Madhura Parikh
 * Sergio Pascual
+* Rohit Patil
+* David Perez-Suarez
+* Ray Plante
 * Adrian Price-Whelan
+* Tanuj Rastogi
 * Thomas Robitaille
+* Juan Luis Cano Rodríguez
+* Evert Rol
 * Alex Rudy
 * Joseph Ryan
+* Eloy Salinas
 * David Shiga
 * David Shupe
 * Leo Singer
+* Brigitta Sipocz
+* Shantanu Srivastava
 * James Taylor
 * Jeff Taylor
+* Kirill Tchernyshyov
 * Víctor Terrón
 * Erik Tollerud
 * James Turner
 * Miguel de Val-Borro
+* Jonathan Whitmore
 * Benjamin Alan Weaver
 * Julien Woillez
 * Victor Zabalza
