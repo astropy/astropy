@@ -9,6 +9,9 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
+from .utils import get_coordinate_system
+from astropy.wcs import WCS
+from . import six
 
 
 class CurvedTransform(Transform):
@@ -166,33 +169,123 @@ class WCSPixel2WorldTransform(CurvedTransform):
         return WCSWorld2PixelTransform(self.wcs, slice=self.slice)
 
 
-class CoordinateTransform(CurvedTransform):
+if astropy.__version__ >= '0.4':
+    from astropy.coordinates import frame_transform_graph
 
-    def __init__(self, input_system, output_system):
-        super(CoordinateTransform, self).__init__()
-        self.input_system = input_system
-        self.output_system = output_system
+    class CoordinateTransform(CurvedTransform):
+        def __init__(self, input_system, output_system):
+            super(CoordinateTransform, self).__init__()
+            self._input_system_name = input_system
+            self._output_system_name = output_system
 
-    def transform(self, input_coords):
-        """
-        Transform one set of coordinates to another
-        """
+            if isinstance(self._input_system_name, WCS):
+                self.input_system = get_coordinate_system(self._input_system_name)
+            elif isinstance(self._input_system_name, six.string_types):
+                self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
 
-        x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+            if isinstance(self._output_system_name, WCS):
+                self.output_system = get_coordinate_system(self._output_system_name)
+            elif isinstance(self._output_system_name, six.string_types):
+                self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
 
-        c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+            if self.output_system == self.input_system:
+                self.same_frames = True
+            else:
+                self.same_frames = False
 
-        c_out = c_in.transform_to(self.output_system)
+        @property
+        def same_frames(self):
+            return self._same_frames
 
-        if astropy.__version__ < '0.4':
-            return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
-        else:
+        @same_frames.setter
+        def same_frames(self, same_frames):
+            self._same_frames = same_frames
+
+        def transform(self, input_coords):
+            """
+            Transform one set of coordinates to another
+            """
+            if self.same_frames:
+                return input_coords
+
+            x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+
+            c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+
+            c_out = c_in.transform_to(self.output_system)
+
             return np.concatenate((c_out.spherical.lon.deg[:, np.newaxis], c_out.spherical.lat.deg[:, np.newaxis]), 1)
 
-    transform_non_affine = transform
+        transform_non_affine = transform
 
-    def inverted(self):
-        """
-        Return the inverse of the transform
-        """
-        return CoordinateTransform(self.output_system, self.input_system)
+        def inverted(self):
+            """
+            Return the inverse of the transform
+            """
+            return CoordinateTransform(self._output_system_name, self._input_system_name)
+
+else:
+
+    class CoordinateTransform(CurvedTransform):
+
+        def __init__(self, input_system, output_system):
+            super(CoordinateTransform, self).__init__()
+            from astropy.coordinates import FK5, Galactic
+            self._input_system_name = input_system
+            self._output_system_name = output_system
+
+            if isinstance(self._input_system_name, WCS):
+                self.input_system = get_coordinate_system(self._input_system_name)
+            elif isinstance(self._input_system_name, six.string_types):
+                if self._input_system_name == 'fk5':
+                    self.input_system = FK5
+                elif self._input_system_name == 'galactic':
+                    self.input_system = Galactic
+                else:
+                    raise NotImplemented("frame {0} not implemented".format(self._input_system_name))
+
+            if isinstance(self._output_system_name, WCS):
+                self.output_system = get_coordinate_system(self._output_system_name)
+            elif isinstance(self._output_system_name, six.string_types):
+                if self._output_system_name == 'fk5':
+                    self.output_system = FK5
+                elif self._output_system_name == 'galactic':
+                    self.output_system = Galactic
+                else:
+                    raise NotImplemented("frame {0} not implemented".format(self._output_system_name))
+
+            if self.output_system == self.input_system:
+                self.same_frames = True
+            else:
+                self.same_frames = False
+
+        @property
+        def same_frames(self):
+            return self._same_frames
+
+        @same_frames.setter
+        def same_frames(self, same_frames):
+            self._same_frames = same_frames
+
+        def transform(self, input_coords):
+            """
+            Transform one set of coordinates to another
+            """
+            if self.same_frames:
+                return input_coords
+
+            x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+
+            c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+
+            c_out = c_in.transform_to(self.output_system)
+
+            return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
+
+        transform_non_affine = transform
+
+        def inverted(self):
+            """
+            Return the inverse of the transform
+            """
+            return CoordinateTransform(self._output_system_name, self._input_system_name)
