@@ -3,7 +3,7 @@
 from . import core
 from ...extern import six
 from ...table import Table
-from cparser import CParser
+from . import cparser
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
@@ -51,7 +51,7 @@ class FastBasic(object):
 		elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
 			raise core.ParameterError("The C reader does not use a Splitter class")
 
-		self.engine = CParser(table, delimiter=self.delimiter, header_start=self.header_start,
+		self.engine = cparser.CParser(table, delimiter=self.delimiter, header_start=self.header_start,
 							  comment=self.comment, quotechar=self.quotechar, data_start=self.data_start,
 							  fill_extra_cols=self.fill_extra_cols, **self.kwargs)
 		self._read_header()

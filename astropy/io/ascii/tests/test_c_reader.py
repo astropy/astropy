@@ -10,7 +10,7 @@ from ....tests.helper import pytest
 from cStringIO import StringIO
 import numpy as np
 from numpy import ma
-import six
+from ....extern import six
 
 def assert_table_equal(t1, t2):
 	assert_equal(len(t1), len(t2))

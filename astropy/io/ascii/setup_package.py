@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license
 
 import os
-import numpy as np
 from distutils.extension import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -11,7 +10,7 @@ def get_extensions():
                os.path.join(ROOT, 'src', 'tokenizer.c')]
     ascii_ext = Extension(
         name="astropy.io.ascii.cparser",
-	include_dirs=[np.get_include()],
+		include_dirs=["numpy"],
         sources=sources)
     return [ascii_ext]
 

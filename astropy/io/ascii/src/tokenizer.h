@@ -45,6 +45,9 @@ typedef struct
     int fill_extra_cols;   // represents whether or not to fill rows with too few values
     tokenizer_state state; // current state of the tokenizer
     err_code code;         // represents the latest error that has occurred
+    int iter_col;          // index of the column being iterated over
+    char *curr_pos;        // current iteration position
+    char *buf;             // buffer for misc. data
 } tokenizer_t;
 
 /*
@@ -66,5 +69,8 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols);
 int int_size(void);
 int str_to_int(tokenizer_t *self, char *str);
 float str_to_float(tokenizer_t *self, char *str);
+void start_iteration(tokenizer_t *self, int col);
+int finished_iteration(tokenizer_t *self);
+char *next_field(tokenizer_t *self);
 
 #endif

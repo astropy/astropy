@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import six
 import numpy as np
 cimport numpy as np
 from numpy import ma
 from ...utils.data import get_readable_fileobj
+from ...extern import six
 
 cdef extern from "src/tokenizer.h":
 	ctypedef enum tokenizer_state:
@@ -40,6 +40,9 @@ cdef extern from "src/tokenizer.h":
 		int fill_extra_cols # represents whether or not to fill rows with too few values
 		tokenizer_state state   # current state of the tokenizer
 		err_code code		# represents the latest error that has occurred
+		int iter_col        # index of the column being iterated over
+		char *curr_pos      # current iteration position
+		char *buf           # buffer for misc. data
 		# Example input/output
 		# --------------------
 		# source: "A,B,C\n10,5.,6\n1,2,3"
@@ -51,6 +54,9 @@ cdef extern from "src/tokenizer.h":
 	int int_size()
 	int str_to_int(tokenizer_t *self, char *str)
 	float str_to_float(tokenizer_t *self, char *str)
+	void start_iteration(tokenizer_t *self, int col)
+	int finished_iteration(tokenizer_t *self)
+	char *next_field(tokenizer_t *self)
 
 class CParserError(Exception):
 	"""
@@ -233,47 +239,10 @@ cdef class CParser:
 			self.fill_names.difference_update(self.fill_exclude_names)
 
 	cdef _convert_data(self):
-		cols = {}
-		cdef int row
 		cdef int num_rows = self.tokenizer.num_rows
 		if self.data_end_obj is not None and self.data_end_obj < 0:
 			num_rows += self.data_end_obj
-
-		"""for i in range(self.tokenizer.num_cols):
-			cols[self.names[i]] = np.empty(num_rows, dtype='|S{}'.format(self.tokenizer.output_len[i]))
-			el = ''
-			row = 0
-			masked = False
-
-			for j in range(self.tokenizer.output_len[i]):
-				if row >= num_rows:
-					break
-				c = self.tokenizer.output_cols[i][j]
-				if not c:
-					if not el:
-						break
-					if el == '\x01':
-						el = ''
-					if el in self.fill_values: #TODO: tighten this bit up clarity-wise
-						new_val = str(self.fill_values[el][0])
-						if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
-						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
-							if not masked:
-								masked = True
-								# change from ndarray to MaskedArray
-								cols[self.names[i]] = cols[self.names[i]].view(ma.MaskedArray)
-								# by default, values are not masked
-								cols[self.names[i]].mask = np.zeros(num_rows)
-							cols[self.names[i]][row] = new_val
-							cols[self.names[i]].mask[row] = True
-						else:
-							cols[self.names[i]][row] = el
-					else:
-						cols[self.names[i]][row] = el
-					el = ''
-					row += 1
-				else:
-					el += chr(c)"""
+		cols = {}
 
 		for i, name in enumerate(self.names):
 			try:
@@ -286,115 +255,93 @@ cdef class CParser:
 
 		return cols
 
-	cdef convert_int(self, i, num_rows):
+	cdef np.ndarray convert_int(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
 		cdef int converted
-		data = <int *> col.data
-		el = ''
-		row = 0
+		cdef char *field
+		cdef int row = 0
+		cdef int *data = <int *> col.data
 		mask = set()
 
-		for j in range(self.tokenizer.output_len[i]):
-			if row >= num_rows:
+		start_iteration(self.tokenizer, i)
+		while not finished_iteration(self.tokenizer):
+			if row == num_rows:
 				break
-			c = self.tokenizer.output_cols[i][j]
-			if not c:
-				if not el:
-					break
-				if el == '\x01':
-					el = ''
-				if el in self.fill_values:
-					new_val = str(self.fill_values[el][0])
-					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
-						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
-						mask.add(row)
-					converted = str_to_int(self.tokenizer, new_val)
-				else:
-					converted = str_to_int(self.tokenizer, el)
-
-				if self.tokenizer.code == CONVERSION_ERROR:
-					self.tokenizer.code = NO_ERROR
-					raise ValueError()
-				col[row] = converted
-				el = ''
-				row += 1
+			field = next_field(self.tokenizer)
+			if field in self.fill_values:
+				new_val = str(self.fill_values[field][0])
+				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
+						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+					mask.add(row)
+				converted = str_to_int(self.tokenizer, new_val)
 			else:
-				el += chr(c)
-		
+				converted = str_to_int(self.tokenizer, field)
+
+			if self.tokenizer.code == CONVERSION_ERROR:
+				self.tokenizer.code = NO_ERROR
+				raise ValueError()
+			col[row] = converted
+			row += 1
+
 		if mask:
 			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
 		else:
 			return col
 
-	cdef convert_float(self, i, num_rows):
+	cdef np.ndarray convert_float(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
 		cdef float converted
-		data = <float *> col.data
-		el = ''
-		row = 0
+		cdef char *field
+		cdef int row = 0
+		cdef float *data = <float *> col.data
 		mask = set()
 
-		for j in range(self.tokenizer.output_len[i]):
-			if row >= num_rows:
+		start_iteration(self.tokenizer, i)
+		while not finished_iteration(self.tokenizer):
+			if row == num_rows:
 				break
-			c = self.tokenizer.output_cols[i][j]
-			if not c:
-				if not el:
-					break
-				if el == '\x01':
-					el = ''
-				if el in self.fill_values:
-					new_val = str(self.fill_values[el][0])
-					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
-						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
-						mask.add(row)
-					converted = str_to_float(self.tokenizer, new_val)
-				else:
-					converted = str_to_float(self.tokenizer, el)
-
-				if self.tokenizer.code == CONVERSION_ERROR:
-					self.tokenizer.code = NO_ERROR
-					raise ValueError()
-				col[row] = converted
-				el = ''
-				row += 1
+			field = next_field(self.tokenizer)
+			if field in self.fill_values:
+				new_val = str(self.fill_values[field][0])
+				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
+						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+					mask.add(row)
+				converted = str_to_float(self.tokenizer, new_val)
 			else:
-				el += chr(c)
-		
+				converted = str_to_float(self.tokenizer, field)
+
+			if self.tokenizer.code == CONVERSION_ERROR:
+				self.tokenizer.code = NO_ERROR
+				raise ValueError()
+			col[row] = converted
+			row += 1
+
 		if mask:
 			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
 		else:
 			return col
 
-	cdef convert_str(self, i, num_rows):
+	cdef np.ndarray convert_str(self, i, num_rows):
 		cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
-		el = ''
-		row = 0
+		cdef char *field
+		cdef int row = 0
 		mask = set()
 
-		for j in range(self.tokenizer.output_len[i]):
-			if row >= num_rows:
+		start_iteration(self.tokenizer, i)
+		while not finished_iteration(self.tokenizer):
+			if row == num_rows:
 				break
-			c = self.tokenizer.output_cols[i][j]
-			if not c:
-				if not el:
-					break
-				if el == '\x01':
-					el = ''
-				if el in self.fill_values:
-					new_val = str(self.fill_values[el][0])
-					if (len(self.fill_values[el]) > 1 and self.names[i] in self.fill_values[el][1:]) or \
-						   (len(self.fill_values[el]) == 1 and self.names[i] in self.fill_names):
-						mask.add(row)
-						col[row] = new_val
-				else:
-					col[row] = el
-
-				el = ''
-				row += 1
+			field = next_field(self.tokenizer)
+			if field in self.fill_values:
+				new_val = str(self.fill_values[field][0])
+				if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
+						   (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+					mask.add(row)
+				col[row] = new_val
 			else:
-				el += chr(c)
-		
+				col[row] = field
+			row += 1
+
 		if mask:
 			return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
 		else:

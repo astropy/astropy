@@ -21,6 +21,9 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
     tokenizer->fill_extra_cols = fill_extra_cols;
     tokenizer->state = START_LINE;
     tokenizer->code = NO_ERROR;
+    tokenizer->iter_col = 0;
+    tokenizer->curr_pos = 0;
+    tokenizer->buf = calloc(2, sizeof(char)); // This is a bit of a hack for empty field values
     return tokenizer;
 }
 
@@ -43,6 +46,7 @@ void delete_data(tokenizer_t *tokenizer)
 void delete_tokenizer(tokenizer_t *tokenizer)
 {
     delete_data(tokenizer);
+    free(tokenizer->buf);
     free(tokenizer);
 }
 
@@ -304,4 +308,30 @@ float str_to_float(tokenizer_t *self, char *str)
 	self->code = CONVERSION_ERROR;
 
     return ret;
+}
+
+void start_iteration(tokenizer_t *self, int col)
+{
+    self->iter_col = col;
+    self->curr_pos = self->output_cols[col];
+}
+
+int finished_iteration(tokenizer_t *self)
+{
+    return (self->curr_pos - self->output_cols[self->iter_col] >= self->output_len[self->iter_col] * sizeof(char)
+	    || *self->curr_pos == '\x00');
+}
+
+char *next_field(tokenizer_t *self)
+{
+    char *tmp = self->curr_pos;
+
+    while (*self->curr_pos != '\x00') // pass through the entire field until reaching the delimiter
+	++self->curr_pos;
+
+    ++self->curr_pos; // next field begins after the delimiter
+    if (*tmp == '\x01') // empty field; this is a hack
+	return self->buf;
+    else
+	return tmp;
 }
