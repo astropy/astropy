@@ -312,7 +312,7 @@ class CoordinateHelper(object):
 
                 for path in self.grid_lines:
                     p = PathPatch(path, **self.grid_lines_kwargs)
-                    p.set_clip_path(self.frame.path, Affine2D())
+                    p.set_clip_path(self.frame.patch)
                     p.draw(renderer)
 
             else:
