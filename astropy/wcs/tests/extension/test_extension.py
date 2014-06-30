@@ -18,7 +18,7 @@ def test_wcsapi_extension(tmpdir):
     paths = [str(tmpdir), astropy_path]
     if env.get('PYTHONPATH'):
         paths.append(env.get('PYTHONPATH'))
-    env['PYTHONPATH'] = ':'.join(paths)
+    env[str('PYTHONPATH')] = str(os.pathsep.join(paths))
 
     # Build the extension
     subprocess.check_call(
