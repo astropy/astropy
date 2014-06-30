@@ -62,7 +62,8 @@ class CoordinateHelper(object):
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
         # Initialize tick labels
-        self.ticklabels = TickLabels(transform=None,  # display coordinates
+        self.ticklabels = TickLabels(self.frame,
+                                     transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
         # Initialize axis labels

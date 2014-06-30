@@ -135,7 +135,7 @@ class WCSAxes(Axes):
             coords = CoordinatesMap(self, frame, frame_class=self.frame_class)
         else:
             transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
-            coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta, frame_class=frame_class)
+            coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta, frame_class=self.frame_class)
 
         self._all_coords.append(coords)
 
