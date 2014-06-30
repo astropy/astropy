@@ -7,7 +7,10 @@ from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
-from cStringIO import StringIO
+try:
+	from cStringIO import StringIO
+except ImportError: # cStringIO might not be present
+	StringIO = lambda x: x.split('\n')
 import numpy as np
 from numpy import ma
 from ....extern import six

@@ -65,7 +65,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
-int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols);
+int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len);
 int int_size(void);
 int str_to_int(tokenizer_t *self, char *str);
 float str_to_float(tokenizer_t *self, char *str);

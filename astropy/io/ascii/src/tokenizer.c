@@ -85,7 +85,7 @@ void resize_header(tokenizer_t *self)
     }
 
 #define END_FIELD()							\
-    if (header || use_cols[real_col])					\
+    if (header || real_col >= use_cols_len || use_cols[real_col])	\
     {									\
 	PUSH('\x00');							\
 	if (!header && ++col > self->num_cols)				\
@@ -110,7 +110,7 @@ void resize_header(tokenizer_t *self)
     
 #define RETURN(c) { self->code = c; return c; }
 
-int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
+int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
 {
     delete_data(self); // clear old reading data
     char c; // input character

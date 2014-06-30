@@ -50,7 +50,7 @@ cdef extern from "src/tokenizer.h":
 
 	tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols)
 	void delete_tokenizer(tokenizer_t *tokenizer)
-	int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols)
+	int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
 	int int_size()
 	int str_to_int(tokenizer_t *self, char *str)
 	float str_to_float(tokenizer_t *self, char *str)
@@ -173,7 +173,7 @@ cdef class CParser:
 			self.width = len(self.names)
 		# header_start is a valid line number
 		elif self.header_start is not None and self.header_start >= 0:
-			if tokenize(self.tokenizer, self.header_start, -1, 1, <int *> 0) != 0:
+			if tokenize(self.tokenizer, self.header_start, -1, 1, <int *> 0, 0) != 0:
 				self.raise_error("an error occurred while tokenizing the header line")
 			self.names = []
 			name = ''
@@ -190,7 +190,7 @@ cdef class CParser:
 			self.width = len(self.names)
 		else:
 			# Get number of columns from first data row
-			if tokenize(self.tokenizer, 0, -1, 1, <int *> 0) != 0:
+			if tokenize(self.tokenizer, 0, -1, 1, <int *> 0, 0) != 0:
 				self.raise_error("an error occurred while tokenizing the first line of data")
 			self.width = 0
 			for i in range(self.tokenizer.header_len):
@@ -225,7 +225,7 @@ cdef class CParser:
 			
 	def read(self):
 		if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
-					<int *> self.use_cols.data) != 0:
+					<int *> self.use_cols.data, len(self.use_cols)) != 0:
 			self.raise_error("an error occurred while tokenizing data")
 		else:
 			self._set_fill_names()
