@@ -157,8 +157,7 @@ extensions.remove(matplotlib.sphinxext.plot_directive.__name__)
 extensions += ['plot_directive']
 
 plot_rcparams = {'figure.figsize': (6,6),
-                 'savefig.facecolor':'none',
-                 'savefig.bbox':'tight'}
+                 'savefig.facecolor':'none'}
 plot_apply_rcparams = True
 plot_template = """
 {{ source_code }}

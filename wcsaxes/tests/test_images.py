@@ -103,8 +103,8 @@ class TestImages(object):
         # Set the number of ticks on the 'glat' axis to 9
         ax.coords['glat'].set_ticks(number=9, size=5, width=1)
         # Set labels on axes
-        ax.coords['glon'].set_axislabel('Galactic Longitude')
-        ax.coords['glat'].set_axislabel('Galactic Latitude')
+        ax.coords['glon'].set_axislabel('Galactic Longitude', minpad=1.6)
+        ax.coords['glat'].set_axislabel('Galactic Latitude', minpad=-0.75)
 
         self.generate_or_test(generate, fig, 'overlay_features_image.png')
 
