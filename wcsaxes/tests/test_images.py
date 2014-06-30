@@ -11,7 +11,6 @@ from astropy.io import fits
 from wcsaxes import WCSAxes
 from matplotlib import cbook
 from astropy.tests.helper import pytest
-from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
@@ -59,7 +58,6 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
         ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
-#        ax.imshow(hdu.data, vmin=-1e-5, vmax=1e-4, origin='lower')
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
 
         self.generate_or_test(generate, fig, 'image_plot.png')
@@ -77,7 +75,6 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
         ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
-        #ax.imshow(hdu.data, vmin=-100, vmax=3000, origin='lower')
         # Overplot contour
         ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx), colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
@@ -120,13 +117,14 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, hdu.data.shape[1] - 0.5)
         ax.set_ylim(-0.5, hdu.data.shape[0] - 0.5)
-        #ax.imshow(hdu.data, vmax=1000, origin='lower')
         ax.grid(color='black', alpha=1.0, lw=1, linestyle='dashed')
         p = Circle((300, 100), radius=40, ec='yellow', fc='none')
         ax.add_patch(p)
         p = Circle((30., 20.), radius=20., ec='orange', fc='none', transform=ax.get_transform('world'))
         ax.add_patch(p)
         p = Circle((60., 50.), radius=20., ec='red', fc='none', transform=ax.get_transform('fk5'))
+        ax.add_patch(p)
+        p = Circle((40., 60.), radius=20., ec='green', fc='none', transform=ax.get_transform('galactic'))
         ax.add_patch(p)
 
         self.generate_or_test(generate, fig, 'curvlinear_grid_patches_image.png')
@@ -141,7 +139,6 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, image.shape[0] - 0.5)
         ax.set_ylim(-0.5, image.shape[1] - 0.5)
-        #ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat, origin='lower')
         ax.coords[2].set_axislabel('Velocity m/s')
         ax.coords[1].set_ticks(width=1)
         ax.coords[2].set_ticks(width=1)
@@ -158,7 +155,6 @@ class TestImages(object):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, image.shape[0] - 0.5)
         ax.set_ylim(-0.5, image.shape[1] - 0.5)
-        #ax.imshow(image[:, :, 100].transpose(), cmap=plt.cm.gist_heat, origin='lower')
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
