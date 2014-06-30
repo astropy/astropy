@@ -9,8 +9,11 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
 from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_system
 from .coordinate_range import find_coordinate_range
+from .frame import RectangularFrame
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
+
+VISUAL_PROPERTIES = ['facecolor', 'edgecolor', 'linewidth', 'alpha', 'linestyle']
 
 IDENTITY = WCS(naxis=2)
 IDENTITY.wcs.ctype = ["X", "Y"]
@@ -22,12 +25,13 @@ IDENTITY.wcs.cdelt = [1., 1.]
 class WCSAxes(Axes):
 
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
-                 transData=None, slices=None, **kwargs):
+                 transData=None, slices=None, frame_class=RectangularFrame,
+                 **kwargs):
 
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
+        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta, frame_class=frame_class)
         self._hide_parent_artists()
 
         if not (transData is None):
@@ -43,7 +47,7 @@ class WCSAxes(Axes):
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
-    def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
+    def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None, frame_class=None):
         """
         Reset the current Axes, to use a new WCS object.
         """
@@ -54,28 +58,42 @@ class WCSAxes(Axes):
         else:
             self.wcs = wcs
 
+        self.frame_class = frame_class
         self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
-                                     transform=transform, coord_meta=coord_meta)
+                                     transform=transform, coord_meta=coord_meta,
+                                     frame_class=frame_class)
 
         self._all_coords = [self.coords]
 
         if slices is None:
             slices = ('x', 'y')
 
-        # Common default settings
-        for coord_index in range(len(slices)):
-            if slices[coord_index] == 'x':
-                self.coords[coord_index].set_axislabel_position('b')
-                self.coords[coord_index].set_ticklabel_position('b')
-            elif slices[coord_index] == 'y':
-                self.coords[coord_index].set_axislabel_position('l')
-                self.coords[coord_index].set_ticklabel_position('l')
-            else:
-                self.coords[coord_index].set_axislabel_position('')
-                self.coords[coord_index].set_ticklabel_position('')
-                self.coords[coord_index].set_ticks_position('')
+        # Common default settings for Rectangular Frame
+        if self.frame_class is RectangularFrame:
+            for coord_index in range(len(slices)):
+                if slices[coord_index] == 'x':
+                    self.coords[coord_index].set_axislabel_position('b')
+                    self.coords[coord_index].set_ticklabel_position('b')
+                elif slices[coord_index] == 'y':
+                    self.coords[coord_index].set_axislabel_position('l')
+                    self.coords[coord_index].set_ticklabel_position('l')
+                else:
+                    self.coords[coord_index].set_axislabel_position('')
+                    self.coords[coord_index].set_ticklabel_position('')
+                    self.coords[coord_index].set_ticks_position('')
+
+    def _update_patch(self):
+
+        old_props = self.patch.properties()
+        self.patch.get_verts = self.coords.frame.patch
+        props = {}
+        for key in VISUAL_PROPERTIES:
+            props[key] = old_props[key]
+        self.patch.update(props)
 
     def draw(self, renderer, inframe=False):
+
+        self._update_patch()
 
         super(WCSAxes, self).draw(renderer, inframe)
 
@@ -114,10 +132,10 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            coords = CoordinatesMap(self, frame)
+            coords = CoordinatesMap(self, frame, frame_class=self.frame_class)
         else:
             transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
-            coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta)
+            coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta, frame_class=frame_class)
 
         self._all_coords.append(coords)
 
