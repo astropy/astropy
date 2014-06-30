@@ -29,11 +29,12 @@ def wrap_angle_at(values, coord_wrap):
 
 class CoordinateHelper(object):
 
-    def __init__(self, parent_axes=None, transform=None, coord_index=None,
+    def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
                  coord_type='scalar',coord_unit=None, coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
+        self.parent_map = parent_map
         self.transform = transform
         self.coord_index = coord_index
         self.coord_type = coord_type
@@ -336,7 +337,7 @@ class CoordinateHelper(object):
         # to determine the rotations.
 
         # Find the range of coordinates in all directions
-        coord_range = self.parent_axes.get_coord_range(self.transform)
+        coord_range = self.parent_map.get_coord_range()
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
@@ -478,7 +479,7 @@ class CoordinateHelper(object):
         # the value in the slice). Here we basically assume that if the WCS
         # had a third axis, it has been abstracted away in the transformation.
 
-        coord_range = self.parent_axes.get_coord_range(self.transform)
+        coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
         tick_world_coordinates_values = tick_world_coordinates.value
@@ -507,7 +508,7 @@ class CoordinateHelper(object):
 
         X, Y, field = self.transform.get_coord_slices(xmin, xmax, ymin, ymax, 200, 200)
 
-        coord_range = self.parent_axes.get_coord_range(self.transform)
+        coord_range = self.parent_map.get_coord_range()
 
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
