@@ -1,12 +1,18 @@
 About
 =====
 
-This is an experimental implemnentation of the API described
+WCSAxes is a package that makes it easy to plot images with world coordinate
+system (WCS) information (which translates pixel to 'world' coordinates and
+back) using [Matplotlib](http://www.matplotlib.org). Originally intended for
+use with Astronomical data, WCSAxes can be used with any data provided that an
+appropriate WCS transformation is supplied.
+
+This is an implementation of the API described
 [here](https://github.com/astropy/astropy-api/blob/master/wcs_axes/wcs_api.md).
 
-At the moment the implementation has not be optimized. Once all the
-functionality is in place, and a test suite has been created, the code will be
-refactored and optimized.
+At the moment the implementation has not be optimized for performance. Once all
+the functionality is in place, and a test suite has been created, the code will
+be refactored and optimized.
 
 Build and coverage status
 =========================
