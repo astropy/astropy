@@ -10,7 +10,7 @@ def get_extensions():
                os.path.join(ROOT, 'src', 'tokenizer.c')]
     ascii_ext = Extension(
         name="astropy.io.ascii.cparser",
-		include_dirs=["numpy"],
+        include_dirs=["numpy"],
         sources=sources)
     return [ascii_ext]
 

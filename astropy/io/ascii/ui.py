@@ -23,6 +23,7 @@ from . import ipac
 from . import latex
 from . import html
 from . import fastbasic
+from . import cparser
 
 from ...table import Table
 
@@ -118,11 +119,14 @@ def read(table, guess=None, **kwargs):
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
     new_kwargs.update(kwargs)
+    format = kwargs.get('format')
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
-    Reader = _get_format_class(kwargs.get('format'), kwargs.get('Reader'), 'Reader')
+    Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
     if Reader is not None:
         new_kwargs['Reader'] = Reader
+        format = Reader._format_name
+
     # Remove format keyword if there, this is only allowed in read() not get_reader()
     if 'format' in new_kwargs:
         del new_kwargs['format']
@@ -130,15 +134,25 @@ def read(table, guess=None, **kwargs):
     if guess is None:
         guess = _GUESS
     if guess:
-        dat = _guess(table, new_kwargs)
+        dat = _guess(table, new_kwargs, format)
     else:
         reader = get_reader(**new_kwargs)
-        dat = reader.read(table)
+        # Try the fast reader first
+        if format is not None and 'fast_' + format in core.FAST_CLASSES:
+            new_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+            fast_reader = get_reader(**new_kwargs)
+            try:
+                return fast_reader.read(table)
+            except (core.ParameterError, cparser.CParserError):
+                # If the fast reader doesn't work, try the slow version
+                dat = reader.read(table)
+        else:
+            dat = reader.read(table)
 
     return dat
 
 
-def _guess(table, read_kwargs):
+def _guess(table, read_kwargs, format):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess
     keyword args. For each key/val pair specified explicitly in the read()
@@ -147,16 +161,24 @@ def _guess(table, read_kwargs):
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
+    fast_kwargs = []
+
+    first_kwargs = [read_kwargs.copy()]
+    if format is not None and 'fast_' + format in core.FAST_CLASSES:
+        # If a fast version of the reader is available, try that before the slow version
+        fast_kwargs = read_kwargs.copy()
+        fast_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+        first_kwargs = [fast_kwargs] + first_kwargs
 
     # First try guessing
-    for guess_kwargs in [read_kwargs.copy()] + _get_guess_kwargs_list():
+    for guess_kwargs in first_kwargs + _get_guess_kwargs_list():
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
             # a conflicting key/val pair then skip this guess entirely.
             if key not in guess_kwargs:
                 guess_kwargs[key] = val
-            elif val != guess_kwargs[key]:
+            elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
                 guess_kwargs_ok = False
                 break
 
@@ -182,7 +204,7 @@ def _guess(table, read_kwargs):
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError,
-                core.OptionalTableImportError, core.ParameterError) as e:
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as e:
             failed_kwargs.append(guess_kwargs)
     else:
         # failed all guesses, try the original read_kwargs without column requirements
@@ -190,7 +212,7 @@ def _guess(table, read_kwargs):
             reader = get_reader(**read_kwargs)
             return reader.read(table)
         except (core.InconsistentTableError, ValueError, ImportError,
-				core.OptionalTableImportError, core.ParameterError):
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
@@ -209,7 +231,7 @@ def _guess(table, read_kwargs):
 
 def _get_guess_kwargs_list():
     guess_kwargs_list = [dict(Reader=basic.Rdb),
-						 dict(Reader=fastbasic.FastTab),
+                         dict(Reader=fastbasic.FastTab),
                          dict(Reader=basic.Tab),
                          dict(Reader=cds.Cds),
                          dict(Reader=daophot.Daophot),
@@ -220,7 +242,7 @@ def _get_guess_kwargs_list():
                          dict(Reader=html.HTML)
                          ]
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
-				   fastbasic.FastNoHeader, basic.NoHeader):
+                   fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(

@@ -33,6 +33,9 @@ from . import connect
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
 
+# Similar dictionary for fast readers
+FAST_CLASSES = {}
+
 class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
 
@@ -725,6 +728,10 @@ class MetaBaseReader(type):
         format = dct.get('_format_name')
         if format is None:
             return
+
+        fast = dct.get('_fast')
+        if fast is not None:
+            FAST_CLASSES[format] = cls
 
         FORMAT_CLASSES[format] = cls
 

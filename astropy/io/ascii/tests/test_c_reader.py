@@ -28,9 +28,7 @@ def assert_table_equal(t1, t2):
 						assert_equal(el, t2[name][i])
 					else:
 						assert_almost_equal(el, t2[name][i])
-				except AssertionError as e:
-					raise e
-				except:
+				except (TypeError, NotImplementedError):
 					pass # ignore for now
 
 def read_basic(table, **kwargs):
@@ -131,11 +129,10 @@ A B C D E
 """
 	table = read_basic(StringIO(text))
 	assert_true(np.issubdtype(table['A'].dtype, np.float_))
-	assert_true(np.issubdtype(table['B'].dtype, np.object_))
-	print(table['C'].dtype) # hm?
+	assert_true(np.issubdtype(table['B'].dtype, np.str_))
 	assert_true(np.issubdtype(table['C'].dtype, np.int_))
 	assert_true(np.issubdtype(table['D'].dtype, np.float_))
-	assert_true(np.issubdtype(table['E'].dtype, np.object_))
+	assert_true(np.issubdtype(table['E'].dtype, np.str_))
 
 def test_delimiter():
 	"""
