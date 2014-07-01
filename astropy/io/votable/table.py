@@ -37,7 +37,7 @@ PEDANTIC = ConfigAlias(
 def parse(source, columns=None, invalid='exception', pedantic=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
           table_id=None, filename=None, unit_format=None,
-          _debug_python_based_parser=False):
+          datatype_mapping=None, _debug_python_based_parser=False):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
     `~astropy.io.votable.tree.VOTableFile` object.
@@ -100,6 +100,12 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         VOTable, and (probably) ``vounit`` in future versions of the
         spec).
 
+    datatype_mapping : dict of str to str, optional
+        A mapping of datatype names to valid VOTable datatype names.
+        For example, if the file being read contains the datatype
+        "unsignedInt" (an invalid datatype in VOTable), include the
+        mapping ``{"unsignedInt": "long"}``.
+
     Returns
     -------
     votable : `~astropy.io.votable.tree.VOTableFile` object
@@ -116,14 +122,19 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
     if pedantic is None:
         pedantic = conf.pedantic
 
+    if datatype_mapping is None:
+        datatype_mapping = {}
+
     config = {
-        'columns'      :      columns,
-        'invalid'      :      invalid,
-        'pedantic'     :     pedantic,
-        'chunk_size'   :   chunk_size,
-        'table_number' : table_number,
-        'filename'     :     filename,
-        'unit_format'  :  unit_format}
+        'columns'          : columns,
+        'invalid'          : invalid,
+        'pedantic'         : pedantic,
+        'chunk_size'       : chunk_size,
+        'table_number'     : table_number,
+        'filename'         : filename,
+        'unit_format'      : unit_format,
+        'datatype_mapping' : datatype_mapping
+    }
 
     if filename is None and isinstance(source, six.string_types):
         config['filename'] = source

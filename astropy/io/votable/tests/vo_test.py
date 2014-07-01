@@ -725,6 +725,8 @@ def test_open_files():
         parse(filename, pedantic=False)
 
     for filename in get_pkg_data_filenames('data', '*.xml'):
+        if filename.endswith('custom_datatype.xml'):
+            continue
         yield test_file, filename
 
 
@@ -992,3 +994,14 @@ def test_instantiate_vowarning():
     # This used to raise a deprecation exception on Python 2.6.
     # See https://github.com/astropy/astroquery/pull/276
     VOWarning(())
+
+
+def test_custom_datatype():
+    votable = parse(
+        get_pkg_data_filename('data/custom_datatype.xml'),
+        pedantic=False,
+        datatype_mapping={'bar': 'int'}
+    )
+
+    table = votable.get_first_table()
+    assert table.array.dtype['foo'] == np.int32
