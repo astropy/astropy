@@ -15,6 +15,7 @@ from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
 
+@remote_data
 class BaseImageTests(object):
 
     @classmethod
@@ -31,6 +32,10 @@ class BaseImageTests(object):
             cbook.mkdirs(cls._baseline_images_dir)
 
         cls._tolerance = 1
+        cls._msx_hdu = datasets.msx_hdu()
+        cls._rosat_hdu = datasets.rosat_hdu()
+        cls._twoMASS_k_hdu = datasets.twoMASS_k_hdu()
+        cls._cube_hdu = datasets.l1448_co_hdu()
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
@@ -50,9 +55,7 @@ class TestBasic(BaseImageTests):
     # Test for plotting image and also setting values of ticks
     @remote_data
     def test_image_plot(self, generate):
-        self._image1_hdu = datasets.msx_hdu()
-
-        hdu = self._image1_hdu
+        hdu = self._msx_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
@@ -65,10 +68,8 @@ class TestBasic(BaseImageTests):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
-        self._image3_hdu = datasets.twoMASS_k_hdu()
-
-        hdu = self._image3_hdu
-        hdu_msx = self._image1_hdu
+        hdu = self._twoMASS_k_hdu
+        hdu_msx = self._msx_hdu
         wcs_msx = WCS(hdu_msx.header)
 
         fig = plt.figure(figsize=(6, 6))
@@ -88,7 +89,7 @@ class TestBasic(BaseImageTests):
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     @remote_data
     def test_overlay_features_image(self, generate):
-        hdu = self._image1_hdu
+        hdu = self._msx_hdu
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
@@ -112,9 +113,7 @@ class TestBasic(BaseImageTests):
     # Overlay curvilinear grid and patches on image
     @remote_data
     def test_curvilinear_grid_patches_image(self, generate):
-        self._image2_hdu = datasets.rosat_hdu()
-
-        hdu = self._image2_hdu
+        hdu = self._rosat_hdu
         fig = plt.figure(figsize=(8, 8))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(hdu.header), aspect='equal')
         fig.add_axes(ax)
@@ -135,8 +134,6 @@ class TestBasic(BaseImageTests):
     # Test for cube slicing
     @remote_data
     def test_cube_slice_image(self, generate):
-        self._cube_hdu = datasets.l1448_co_hdu()
-
         image = self._cube_hdu.data
         w = WCS(self._cube_hdu.header)
         fig = plt.figure()

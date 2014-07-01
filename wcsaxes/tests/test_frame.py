@@ -36,7 +36,7 @@ class TestFrame(BaseImageTests):
     @remote_data
     def test_custom_frame(self, generate):
 
-        hdu = datasets.msx_hdu()
+        hdu = self._msx_hdu
         wcs = WCS(hdu.header)
 
         fig = plt.figure(figsize=(4,4))
