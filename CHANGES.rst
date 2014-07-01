@@ -4,8 +4,6 @@
 New Features
 ^^^^^^^^^^^^
 
-- ``astropy.config``
-
 - ``astropy.constants``
 
   - Added ``b_wien`` to represent Wien wavelength displacement law constant.
@@ -103,12 +101,6 @@ New Features
     ``fix+exception``, ``silentfix+ignore``, ``silentfix+warn``, and
     ``silentfix+exception`` which give more control over how to report fixable
     errors as opposed to unfixable errors.
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -278,25 +270,15 @@ API Changes
 
 - ``astropy.config``
 
-  - The configuration system received a major overhaul, as part of
-    APE3.  It is no longer possible to save configuration items from
-    Python, but instead users must edit the configuration file
-    directly.  The locations of configuration items have moved, and
-    some have been changed to science state values.  The old locations
-    should continue to work until astropy 0.5, but deprecation
-    warnings will be displayed.  See :ref:`config-0-4-transition` for a
-    detailed description of the changes and how to update existing
+  - The configuration system received a major overhaul, as part of APE3.  It is
+    no longer possible to save configuration items from Python, but instead
+    users must edit the configuration file directly.  The locations of
+    configuration items have moved, and some have been changed to science state
+    values.  The old locations should continue to work until astropy 0.5, but
+    deprecation warnings will be displayed.  See the `Configuration transition
+    <http://astropy.readthedocs.org/en/v0.4/config/config_0_4_transition.html>`_
+    docs for a detailed description of the changes and how to update existing
     code. [#2094]
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -374,12 +356,6 @@ API Changes
     Astropy following the v0.4 release (they will still be available in any
     v0.4.x bugfix releases, however).
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - The method computing the derivative of the model with respect
@@ -421,8 +397,6 @@ API Changes
     (therefore documentation builds that made use of any of the utilities in
     ``astropy.sphinx`` now have ``astropy_helpers`` as a documentation
     dependency).
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -470,10 +444,6 @@ API Changes
     `~astropy.table.Table` column and have it correctly pick up the units
     from the column.  [#2486]
 
-- ``astropy.utils``
-
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - ``calcFootprint`` was deprecated. It is replaced by
@@ -517,16 +487,10 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
 - ``astropy.constants``
 
   - ``astropy.constants.Contant`` objects can now be deep
     copied. [#2601]
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
 
 - ``astropy.cosmology``
 
@@ -551,10 +515,6 @@ Bug Fixes
 
   - Additional minor bug fixes ported from PyFITS.  [#2575]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - It is now possible to save an ``astropy.table.Table`` object as a
@@ -563,8 +523,6 @@ Bug Fixes
     kwarg. [#2138]
 
   - Fixed a crash writing out variable length arrays. [#2577]
-
-- ``astropy.modeling``
 
 - ``astropy.nddata``
 
@@ -604,8 +562,6 @@ Bug Fixes
 
   - Fix crash in smart resolver when the resolution doesn't work. [#2591]
 
-- ``astropy.stats``
-
 - ``astropy.table``
 
   - The ``astropy.table.Column`` object can now use both functions and callable
@@ -629,10 +585,6 @@ Bug Fixes
   - Composing base units into identical composite units now works. [#2382]
 
   - Creating and composing/decomposing units is now substantially faster [#2544]
-
-- ``astropy.utils``
-
-- ``astropy.vo``
 
 - ``astropy.wcs``
 
