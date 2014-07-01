@@ -87,10 +87,11 @@ The current planned and existing sub-packages are:
                 astropy.coordinates
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <img alt="dev" src="_images/stable.png">
             </td>
             <td>
-                New in v0.2, significant API changes in v0.3
+                New in v0.2, major changes in v0.4.  Subsequent versions should
+                maintain a stable/backwards-compatible API.
             </td>
         </tr>
         <tr>
