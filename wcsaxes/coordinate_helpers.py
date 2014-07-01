@@ -62,7 +62,8 @@ class CoordinateHelper(object):
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
         # Initialize tick labels
-        self.ticklabels = TickLabels(transform=None,  # display coordinates
+        self.ticklabels = TickLabels(self.frame,
+                                     transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
         # Initialize axis labels
@@ -312,7 +313,7 @@ class CoordinateHelper(object):
 
                 for path in self.grid_lines:
                     p = PathPatch(path, **self.grid_lines_kwargs)
-                    p.set_clip_path(self.frame.path, Affine2D())
+                    p.set_clip_path(self.frame.patch)
                     p.draw(renderer)
 
             else:
@@ -367,7 +368,7 @@ class CoordinateHelper(object):
         transData = self.parent_axes.transData
         invertedTransLimits = transData.inverted()
 
-        for axis, spine in frame.iteritems():
+        for axis, spine in six.iteritems(frame):
 
             # Determine tick rotation in display coordinates and compare to
             # the normal angle in display coordinates.
