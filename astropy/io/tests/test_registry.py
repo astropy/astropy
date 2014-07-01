@@ -5,6 +5,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
+
 from copy import copy
 
 import numpy as np
@@ -320,4 +322,4 @@ class TestSubclass:
             pass
         mt = MyTable([[1], [2]], names=['a', 'b'])
         mt.write(buffer, format='ascii')
-        assert buffer.getvalue() == 'a b\n1 2\n'
+        assert buffer.getvalue() == os.linesep.join(['a b', '1 2', ''])

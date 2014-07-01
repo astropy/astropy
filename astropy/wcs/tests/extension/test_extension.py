@@ -18,15 +18,22 @@ def test_wcsapi_extension(tmpdir):
     paths = [str(tmpdir), astropy_path]
     if env.get('PYTHONPATH'):
         paths.append(env.get('PYTHONPATH'))
-    env['PYTHONPATH'] = ':'.join(paths)
+    env[str('PYTHONPATH')] = str(os.pathsep.join(paths))
 
     # Build the extension
-    subprocess.check_call(
-        [sys.executable, 'setup.py',
-         'install', '--install-lib={0}'.format(tmpdir), astropy_path],
-        cwd=setup_path,
-        env=env
-    )
+    # This used to use subprocess.check_call, but on Python 3.4 there was
+    # a mysterious Heisenbug causing this to fail with a non-zero exit code
+    # *unless* the output is redirected.  This bug also did not occur in an
+    # interactive session, so it likely had something to do with pytest's
+    # output capture
+    with open(os.devnull, 'wb') as devnull:
+        p = subprocess.Popen([sys.executable, 'setup.py', 'install',
+                              '--install-lib={0}'.format(tmpdir),
+                              astropy_path], cwd=setup_path, env=env,
+                              stdout=devnull, stderr=devnull)
+        retcode = p.wait()
+
+    assert retcode == 0
 
     code = """
     import sys

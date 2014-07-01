@@ -121,8 +121,8 @@ def test_config_noastropy_fallback(monkeypatch):
     from .. import paths, configuration
 
     # make sure the config directory is not searched
-    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
-    monkeypatch.delenv('XDG_CONFIG_HOME')
+    monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
+    monkeypatch.delenv(str('XDG_CONFIG_HOME'))
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
