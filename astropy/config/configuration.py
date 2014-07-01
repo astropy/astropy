@@ -813,7 +813,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     if path.exists(cfgfn):
         doupdate = is_unedited_config_file(cfgfn)
-    else:
+    elif path.exists(path.dirname(cfgfn)):
         doupdate = True
 
     if version is None:

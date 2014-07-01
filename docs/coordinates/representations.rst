@@ -34,7 +34,7 @@ Instantiating and converting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Representation classes should be instantiated with `~astropy.units.Quantity`
-objects:
+objects::
 
     >>> from astropy import units as u
     >>> from astropy.coordinates.representation import CartesianRepresentation
@@ -47,11 +47,11 @@ Representations can be converted to other representations using the
 
     >>> from astropy.coordinates.representation import SphericalRepresentation, CylindricalRepresentation
     >>> sph = car.represent_as(SphericalRepresentation)
-    >>> sph
-    <SphericalRepresentation lon=1.0303... rad, lat=0.6012... rad, distance=7.0710... kpc>
+    >>> sph  # doctest: +FLOAT_CMP
+    <SphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad, distance=7.07106781187 kpc>
     >>> cyl = car.represent_as(CylindricalRepresentation)
-    >>> cyl
-    <CylindricalRepresentation rho=5.8309... kpc, phi=1.0303... rad, z=4.0 kpc>
+    >>> cyl  # doctest: +FLOAT_CMP
+    <CylindricalRepresentation rho=5.83095189485 kpc, phi=1.03037682652 rad, z=4.0 kpc>
 
 All representations can be converted to each other without loss of
 information, with the exception of
@@ -62,8 +62,8 @@ dimensionless sphere::
 
     >>> from astropy.coordinates.representation import UnitSphericalRepresentation
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
-    >>> sph_unit
-    <UnitSphericalRepresentation lon=1.0303... rad, lat=0.6012... rad>
+    >>> sph_unit  # doctest: +FLOAT_CMP
+    <UnitSphericalRepresentation lon=1.03037682652 rad, lat=0.601264216679 rad>
 
 Converting back to cartesian, the absolute scaling information has been
 removed, and the points are still located on a unit sphere:

@@ -683,8 +683,8 @@ class SkyCoord(object):
         >>> c1.position_angle(c2).degree
         90.0
         >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
-        >>> c1.position_angle(c3).degree
-        44.9956...
+        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
+        44.995636455344844
         """
         from . import angle_utilities
 

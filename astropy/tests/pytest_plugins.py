@@ -29,6 +29,7 @@ import types
 from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
+from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -60,62 +61,10 @@ def pytest_addoption(parser):
                   default=False)
 
 
-class OutputCheckerFix(doctest.OutputChecker):
-    """
-    A special doctest OutputChecker that normalizes a number of things common
-    to astropy doctests.
-
-    - Removes u'' prefixes on string literals
-    - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
-      'S9'.  Numpy 1.7 no longer includes it in display.
-    """
-
-    _literal_re = re.compile(
-        r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
-    _remove_byteorder = re.compile(
-        r"([\'\"])[|<>]([biufcSaUV][0-9]+)([\'\"])", re.UNICODE)
-    _fix_32bit = re.compile(
-        r"([\'\"])([iu])[48]([\'\"])", re.UNICODE)
-    _ignore_long_int = re.compile(
-        r"([0-9]+)L", re.UNICODE)
-
-    _original_output_checker = doctest.OutputChecker
-
-    def do_fixes(self, want, got):
-        want = re.sub(self._literal_re, r'\1\2', want)
-        want = re.sub(self._remove_byteorder, r'\1\2\3', want)
-        want = re.sub(self._fix_32bit, r'\1\2\3', want)
-        want = re.sub(self._ignore_long_int, r'\1', want)
-
-        got = re.sub(self._literal_re, r'\1\2', got)
-        got = re.sub(self._remove_byteorder, r'\1\2\3', got)
-        got = re.sub(self._fix_32bit, r'\1\2\3', got)
-        got = re.sub(self._ignore_long_int, r'\1', got)
-
-        return want, got
-
-    def check_output(self, want, got, flags):
-        if flags & FIX:
-            want, got = self.do_fixes(want, got)
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.check_output(
-            self, want, got, flags)
-
-    def output_difference(self, want, got, flags):
-        if flags & FIX:
-            want, got = self.do_fixes(want, got)
-        # Can't use super here because doctest.OutputChecker is not a
-        # new-style class.
-        return self._original_output_checker.output_difference(
-            self, want, got, flags)
-
-
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when
 # using doctest.testfile, unfortunately.
-FIX = doctest.register_optionflag('FIX')
-doctest.OutputChecker = OutputCheckerFix
+doctest.OutputChecker = AstropyOutputChecker
 
 
 REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
@@ -578,47 +527,6 @@ def pytest_report_header(config):
         s = s.encode(stdoutencoding, 'replace')
 
     return s
-
-
-@pytest.fixture(autouse=True)
-def modarg(request):
-    """Sets up environment variables to fake the config and cache
-    directories, then removes the temporary directories.
-
-    Does nothing if we are inside the sphinx testing command, as it
-    should have already done this for us.
-    """
-
-    # check if we're inside the distutils test command, which sets the
-    # _ASTROPY_TEST_ builtin
-    try:
-        _ASTROPY_TEST_
-        insidetestcmd = True
-    except NameError:
-        insidetestcmd = False
-
-    if not insidetestcmd:
-        oldconfigdir = os.environ.get('XDG_CONFIG_HOME')
-        oldcachedir = os.environ.get('XDG_CACHE_HOME')
-        os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
-        os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
-        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
-        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
-
-        def teardown():
-            # wipe the config/cache tmpdirs and restore the envars
-            shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
-            shutil.rmtree(os.environ['XDG_CACHE_HOME'])
-            if oldconfigdir is None:
-                del os.environ['XDG_CONFIG_HOME']
-            else:
-                os.environ['XDG_CONFIG_HOME'] = oldconfigdir
-            if oldcachedir is None:
-                del os.environ['XDG_CACHE_HOME']
-            else:
-                os.environ['XDG_CACHE_HOME'] = oldcachedir
-
-        request.addfinalizer(teardown)
 
 
 def pytest_pycollect_makemodule(path, parent):

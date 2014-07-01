@@ -17,42 +17,29 @@
 
 import warnings
 from os import path
-from distutils.version import LooseVersion
-import re
-
-from ..utils.compat import subprocess
 
 
 # -- General configuration ----------------------------------------------------
 
-# Some of the docs require the autodoc special-members option, in 1.1.
-# If using graphviz 2.30 or later, Sphinx < 1.2b2 will not work with
-# it.  Unfortunately, there are other problems with Sphinx 1.2b2, so
-# we need to use "dev" until a release is made post 1.2b2.  If
-# affiliated packages don't want this automatic determination, they
-# may simply override needs_sphinx in their local conf.py.
+# The version check in Sphinx itself can only compare the major and
+# minor parts of the version number, not the micro.  To do a more
+# specific version check, call check_sphinx_version("x.y.z.") from
+# your project's conf.py
+needs_sphinx = '1.2'
 
-def get_graphviz_version():
-    try:
-        output = subprocess.check_output(
-            ['dot', '-V'], stdin=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True)
-    except subprocess.CalledProcessError:
-        return '0'
-    tokens = output.split()
-    for token in tokens:
-        if re.match(b'[0-9.]+', token):
-            return token.decode('ascii')
-    return '0'
 
-graphviz_found = LooseVersion(get_graphviz_version())
-graphviz_broken = LooseVersion('0.30')
+def check_sphinx_version(expected_version):
+    import sphinx
+    from distutils import version
 
-if graphviz_found >= graphviz_broken:
-    needs_sphinx = '1.2'
-else:
-    needs_sphinx = '1.1'
+    sphinx_version = version.LooseVersion(sphinx.__version__)
+    expected_version = version.LooseVersion(expected_version)
+    if sphinx_version < expected_version:
+        raise RuntimeError(
+            "At least Sphinx version {0} is required to build this "
+            "documentation.  Found {1}.".format(
+                expected_version, sphinx_version))
+
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {

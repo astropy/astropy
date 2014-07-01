@@ -142,7 +142,7 @@ class BaseInputter(object):
         """
         try:
             if (hasattr(table, 'read') or
-                    ('\n' not in table and '\r' not in table + '')):
+                    ('\n' not in table + '' and '\r' not in table + '')):
                 with get_readable_fileobj(table) as file_obj:
                     table = file_obj.read()
             lines = table.splitlines()

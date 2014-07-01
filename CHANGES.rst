@@ -92,6 +92,8 @@ New Features
 
   - Provide a mechanism to select how masked values are printed. [#2424]
 
+  - Added support for reading multi-aperture daophot file. [#2656]
+
 - ``astropy.io.fits``
 
   - Included a new command-line script called ``fitsheader`` to display the
@@ -113,6 +115,11 @@ New Features
   - Prototype implementation of fitters that treat optimization algorithms
     separately from fit statistics, allowing new fitters to be created by
     mixing and matching optimizers and statistic functions. [#1914]
+
+  - Slight overhaul to how inputs to and outputs from models are handled with
+    respect to array-valued parameters and variables, as well as sets of
+    multiple models.  See the associated PR and the modeling section of the
+    v0.4 documentation for more details. [#2634]
 
   - Added a new ``SimplexLSQFitter`` which uses a downhill simplex optimizer
     with a least squares statistic. [#1914]
@@ -144,6 +151,8 @@ New Features
   - Added flat prior to binom_conf_interval and binned_binom_proportion
 
 - ``astropy.sphinx``
+
+  - Note, the following new features are included in astropy-helpers as well:
 
   - The ``automodapi`` and ``automodsumm`` extensions now include sphinx
     configuration options to write out what ``automodapi`` and ``automodsumm``
@@ -251,6 +260,17 @@ New Features
 
   - New ``astropy.wcs.utils`` module, with a handful of tools for manipulating
     WCS objects, including dropping, swapping, and adding axes.
+
+- Misc
+
+  - Includes the new astropy-helpers package which separates some of Astropy's
+    build, installation, and documentation infrastructure out into an
+    independent package, making it easier for Affiliated Packages to depend on
+    these features.  astropy-helpers replaces/deprecates some of the submodules
+    in the ``astropy`` package (see API Changes below).  See also
+    `APE 4 <https://github.com/astropy/astropy-APEs/blob/master/APE4.rst>`_
+    for more details on the motivation behind and implementation of
+    astropy-helpers.  [#1563]
 
 
 API Changes
@@ -394,6 +414,14 @@ API Changes
     be set with any array-like object instead of requiring that they be set
     with a ``numpy.ndarray``. [#2419]
 
+- ``astropy.sphinx``
+
+  - Use of the ``astropy.sphinx`` module is deprecated; all new development of
+    this module is in ``astropy_helpers.sphinx`` which should be used instead
+    (therefore documentation builds that made use of any of the utilities in
+    ``astropy.sphinx`` now have ``astropy_helpers`` as a documentation
+    dependency).
+
 - ``astropy.stats``
 
 - ``astropy.table``
@@ -477,6 +505,15 @@ API Changes
     0.2, have been removed.  Use the shape of the underlying FITS data
     array instead.  [#2386]
 
+- Misc
+
+  - The ``astropy.setup_helpers`` and ``astropy.version_helpers`` modules are
+    deprecated; any non-critical fixes and development to those modules should
+    be in ``astropy_helpers`` instead.  Packages that use these modules in
+    their ``setup.py`` should depend on ``astropy_helpers`` following the same
+    pattern as in the Astropy package template.
+
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -500,6 +537,9 @@ Bug Fixes
     ``astropy.cosmology`` [#2025]
 
 - ``astropy.io.ascii``
+
+  - ``astropy.io.ascii.read`` would fail to read lists of strings where some of
+    the strings consisted of just a newline ("\n"). [#2648]
 
 - ``astropy.io.fits``
 
@@ -677,6 +717,9 @@ Other Changes and Additions
 - Where appropriate, tests are now run both with and without the
   ``unicode_literals`` option to ensure that we support both cases. [#1962]
 
+- Added support for numerical comparison of floating point values appearing in
+  the output of doctests using a ``+FLOAT_CMP`` doctest flag. [#2087]
+
 - A monkey patch is performed to fix a bug in Numpy version 1.7 and
   earlier where unicode fill values on masked arrays are not
   supported.  This may cause unintended side effects if your
@@ -696,6 +739,7 @@ Other Changes and Additions
   ``nitpick`` Sphinx option is now used to avoid broken links in future.
   [#1221, #2019, #2109, #2161, #2162, #2192, #2200, #2296, #2448, #2456,
   #2460, #2467, #2476, #2508, #2509]
+
 
 0.3.2 (2014-05-13)
 ------------------

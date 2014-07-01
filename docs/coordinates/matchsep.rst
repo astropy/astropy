@@ -25,21 +25,21 @@ approximation)::
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', frame='fk5')
     >>> sep = c1.separation(c2)
-    >>> sep
-    <Angle 20.74611447... deg>
+    >>> sep  # doctest: +FLOAT_CMP
+    <Angle 20.74611447604398 deg>
 
 The returned object is an `~astropy.coordinates.Angle` instance, so it
 is straightforward to access the angle in any of several equivalent angular
 units::
 
-    >>> sep.radian
-    0.36208800460...
-    >>> sep.hour
-    1.38307429840...
-    >>> sep.arcminute
-    1244.76686856...
-    >>> sep.arcsecond
-    74686.0121137...
+    >>> sep.radian  # doctest: +FLOAT_CMP
+    0.36208800460262575
+    >>> sep.hour  # doctest: +FLOAT_CMP
+    1.3830742984029323
+    >>> sep.arcminute  # doctest: +FLOAT_CMP
+    1244.7668685626388
+    >>> sep.arcsecond  # doctest: +FLOAT_CMP
+    74686.01211375833
 
 Also note that the two input coordinates were not in the same frame -
 one is  automatically converted to match the other, ensuring that even
@@ -62,8 +62,8 @@ defined::
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', distance=70*u.kpc, frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', distance=80*u.kpc, frame='icrs')
     >>> sep = c1.separation_3d(c2)
-    >>> sep
-    <Distance 28.743988... kpc>
+    >>> sep  # doctest: +FLOAT_CMP
+    <Distance 28.743988157814094 kpc>
 
 .. _astropy-coordinates-matching:
 

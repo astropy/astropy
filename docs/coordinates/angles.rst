@@ -23,28 +23,28 @@ to create an |Angle|::
     >>> from astropy import units as u
     >>> from astropy.coordinates import Angle
 
-    >>> Angle('10.2345d')              # String with 'd' abbreviation for degrees
-    <Angle 10.2345... deg>
+    >>> Angle('10.2345d')              # String with 'd' abbreviation for degrees  # doctest: +FLOAT_CMP
+    <Angle 10.2345 deg>
     >>> Angle(['10.2345d', '-20d'])    # Array of strings
     <Angle [ 10.2345,-20.    ] deg>
-    >>> Angle('1:2:30.43 degrees')     # Sexagesimal degrees
-    <Angle 1.041786111... deg>
-    >>> Angle('1 2 0 hours')           # Sexagesimal hours
-    <Angle 1.0333... hourangle>
+    >>> Angle('1:2:30.43 degrees')     # Sexagesimal degrees  # doctest: +FLOAT_CMP
+    <Angle 1.0417861111111113 deg>
+    >>> Angle('1 2 0 hours')           # Sexagesimal hours  # doctest: +FLOAT_CMP
+    <Angle 1.0333333333333334 hourangle>
     >>> Angle(np.arange(1., 8.), unit=u.deg)  # Numpy array from 1..7 in degrees
     <Angle [ 1., 2., 3., 4., 5., 6., 7.] deg>
-    >>> Angle(u'1°2′3″')               # Unicode degree, arcmin and arcsec symbols
-    <Angle 1.0341666... deg>
-    >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.
-    <Angle 1.0342777... deg>
-    >>> Angle('-1h2m3s')               # Hour, minute, second
-    <Angle -1.0341666... hourangle>
-    >>> Angle((-1, 2, 3), unit=u.deg)  # (degree, arcmin, arcsec)
-    <Angle -1.0341666... deg>
-    >>> Angle(10.2345 * u.deg)         # From a Quantity object in degrees
-    <Angle 10.2345... deg>
-    >>> Angle(Angle(10.2345 * u.deg))  # From another Angle object
-    <Angle 10.2345... deg>
+    >>> Angle(u'1°2′3″')               # Unicode degree, arcmin and arcsec symbols  # doctest: +FLOAT_CMP
+    <Angle 1.0341666666666667 deg>
+    >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.  # doctest: +FLOAT_CMP
+    <Angle 1.0342777777777779 deg>
+    >>> Angle('-1h2m3s')               # Hour, minute, second  # doctest: +FLOAT_CMP
+    <Angle -1.0341666666666667 hourangle>
+    >>> Angle((-1, 2, 3), unit=u.deg)  # (degree, arcmin, arcsec)  # doctest: +FLOAT_CMP
+    <Angle -1.0341666666666667 deg>
+    >>> Angle(10.2345 * u.deg)         # From a Quantity object in degrees  # doctest: +FLOAT_CMP
+    <Angle 10.2345 deg>
+    >>> Angle(Angle(10.2345 * u.deg))  # From another Angle object  # doctest: +FLOAT_CMP
+    <Angle 10.2345 deg>
 
 
 Representation
@@ -58,22 +58,22 @@ of the angle, both as a floating point number as a string::
     <Angle 1.0 rad>
     >>> a.radian
     1.0
-    >>> a.degree
-    57.295779513082...
-    >>> a.hour
-    3.819718634205...
-    >>> a.hms
-    hms_tuple(h=3.0, m=49.0, s=10.987083...)
-    >>> a.dms
-    dms_tuple(d=57.0, m=17.0, s=44.806247...)
-    >>> a.signed_dms
-    signed_dms_tuple(sign=1.0, d=57.0, m=17.0, s=44.806247...)
-    >>> (-a).dms
-    dms_tuple(d=-57.0, m=-17.0, s=-44.806247...)
-    >>> (-a).signed_dms
-    signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247...)
-    >>> a.arcminute
-    3437.746770...
+    >>> a.degree  # doctest: +FLOAT_CMP
+    57.29577951308232
+    >>> a.hour  # doctest: +FLOAT_CMP
+    3.8197186342054885
+    >>> a.hms  # doctest: +FLOAT_CMP
+    hms_tuple(h=3.0, m=49.0, s=10.987083139758766)
+    >>> a.dms  # doctest: +FLOAT_CMP
+    dms_tuple(d=57.0, m=17.0, s=44.806247096362313)
+    >>> a.signed_dms  # doctest: +FLOAT_CMP
+    signed_dms_tuple(sign=1.0, d=57.0, m=17.0, s=44.806247096362313)
+    >>> (-a).dms  # doctest: +FLOAT_CMP
+    dms_tuple(d=-57.0, m=-17.0, s=-44.806247096362313)
+    >>> (-a).signed_dms  # doctest: +FLOAT_CMP
+    signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247096362313)
+    >>> a.arcminute  # doctest: +FLOAT_CMP
+    3437.7467707849396
     >>> a.to_string()
     u'1rad'
     >>> a.to_string(unit=u.degree)
@@ -96,8 +96,8 @@ Angles will also behave correctly for appropriate arithmetic operations::
     >>> a = Angle(1.0, u.radian)
     >>> a + 0.5 * u.radian + 2 * a
     <Angle 3.5 rad>
-    >>> np.sin(a / 2)
-    <Quantity 0.479425...>
+    >>> np.sin(a / 2)  # doctest: +FLOAT_CMP
+    <Quantity 0.479425538604203>
     >>> a == a
     array(True, dtype=bool)
     >>> a == (a + a)

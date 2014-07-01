@@ -33,24 +33,25 @@ def _tofloat(value):
     if isiterable(value):
         try:
             value = np.array(value, dtype=np.float)
-            shape = value.shape
         except (TypeError, ValueError):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
             raise InputParameterError(
                 "Parameter of {0} could not be converted to "
                 "float".format(type(value)))
+    elif isinstance(value, np.ndarray):
+        # A scalar/dimensionless array
+        value = float(value.item())
+    elif isinstance(value, (numbers.Number, np.number)):
+        value = float(value)
     elif isinstance(value, bool):
         raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
-    elif isinstance(value, (numbers.Number, np.number)):
-        value = float(value)
-        shape = ()
     else:
         raise InputParameterError(
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
-    return value, shape
+    return value
 
 
 class Parameter(object):
@@ -176,13 +177,13 @@ class Parameter(object):
     def __len__(self):
         if self._model is None:
             raise TypeError('Parameter definitions do not have a length.')
-        return self._model.param_dim
+        return len(self._model)
 
     def __getitem__(self, key):
         value = self.value
-        if self._model.param_dim == 1:
+        if len(self._model) == 1:
             # Wrap the value in a list so that getitem can work for sensible
-            # indcies like [0] and [-1]
+            # indices like [0] and [-1]
             value = [value]
         return value[key]
 
@@ -190,12 +191,12 @@ class Parameter(object):
         # Get the existing value and check whether it even makes sense to
         # apply this index
         oldvalue = self.value
-        param_dim = self._model.param_dim
+        n_models = len(self._model)
 
-        if param_dim == 1:
-            # Convert the single-dimension value to a list to allow some slices
-            # that would be compatible with a length-1 array like [:] and [0:]
-            oldvalue = [oldvalue]
+        #if n_models == 1:
+        #    # Convert the single-dimension value to a list to allow some slices
+        #    # that would be compatible with a length-1 array like [:] and [0:]
+        #    oldvalue = [oldvalue]
 
         if isinstance(key, slice):
             if len(oldvalue[key]) == 0:
@@ -207,12 +208,10 @@ class Parameter(object):
         else:
             try:
                 oldvalue[key] = value
-                if param_dim == 1:
-                    self.value = value
             except IndexError:
                 raise InputParameterError(
-                    "Input dimension {0} invalid for '{1}' parameter with "
-                    "dimension {2}".format(key, self.name, param_dim))
+                    "Input dimension {0} invalid for {1!r} parameter with "
+                    "dimension {2}".format(key, self.name, n_models))
 
     def __repr__(self):
         if self._model is None:
@@ -231,13 +230,29 @@ class Parameter(object):
     def default(self):
         """Parameter default value"""
 
-        if self._model is None:
+        if (self._model is None or self._default is None or
+                len(self._model) == 1):
             return self._default
 
-        if self._model.param_dim == 1:
-            return self._default
-        else:
-            return np.repeat(self._default, self._model.param_dim)
+        # Otherwise the model we are providing for has more than one parameter
+        # sets, so ensure that the default is repeated the correct number of
+        # times along the model_set_axis if necessary
+        n_models = len(self._model)
+        model_set_axis = self._model._model_set_axis
+        default = self._default
+        new_shape = (np.shape(default) +
+                     (1,) * (model_set_axis + 1 - np.ndim(default)))
+        default = np.reshape(default, new_shape)
+        # Now roll the new axis into its correct position if necessary
+        default = np.rollaxis(default, -1, model_set_axis)
+        # Finally repeat the last newly-added axis to match n_models
+        default = np.repeat(default, n_models, axis=-1)
+
+        # NOTE: Regardless of what order the last two steps are performed in,
+        # the resulting array will *look* the same, but only if the repeat is
+        # performed last will it result in a *contiguous* array
+
+        return default
 
     @property
     def value(self):
@@ -453,18 +468,17 @@ class Parameter(object):
         if model is None:
             return
 
-        param_dim = model.param_dim
-        if param_dim == 1:
+        n_models = len(model)
+        value = _tofloat(value)
+        if n_models == 1:
             # Just validate the value with _tofloat
-            return _tofloat(value)
+            return value, np.shape(value)
         else:
-            try:
-                # Validate each value
-                value, shape = _tofloat(value)
-            except (TypeError, IndexError):
-                raise InputParameterError(
-                    "Expected a multivalued input of dimension {0} "
-                    "for parameter '{1}'".format(param_dim, self.name))
+            shape = np.shape(value)
+            model_axis = model._model_set_axis
+            if model_axis < 0:
+                model_axis = len(shape) + model_axis
+            shape = shape[:model_axis] + shape[model_axis + 1:]
 
             return value, shape
 
@@ -504,7 +518,7 @@ class Parameter(object):
         return self.value + val
 
     def __radd__(self, val):
-        return self.value + val
+        return val + self.value
 
     def __sub__(self, val):
         return self.value - val
@@ -516,7 +530,7 @@ class Parameter(object):
         return self.value * val
 
     def __rmul__(self, val):
-        return self.value * val
+        return val * self.value
 
     def __pow__(self, val):
         return self.value ** val

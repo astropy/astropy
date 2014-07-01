@@ -188,6 +188,14 @@ def test_daophot_header_keywords():
         assert_equal(keyword['format'], format_)
 
 
+def test_daophot_multiple_aperture():
+    table = ascii.read('t/daophot3.dat', Reader=ascii.Daophot)
+    assert 'MAG5' in table.colnames  # MAG5 is one of the newly created column name
+    assert table['MAG5'][4] == 22.13  # A sample entry in daophot3.dat file
+    assert table['MERR2'][0] == 1.171
+    assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
+
+
 @raises(ascii.InconsistentTableError)
 def test_empty_table_no_header():
     table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
@@ -794,3 +802,14 @@ def test_sextractor_units():
     for i, colname in enumerate(table.colnames):
         assert table[colname].unit == expected_units[i]
         assert table[colname].description == expected_descrs[i]
+
+def test_list_with_newlines():
+    """
+    Check that lists of strings where some strings consist of just a newline
+    ("\n") are parsed correctly.
+    """
+    t = ascii.read(["abc", "123\n", "456\n", "\n", "\n"])
+    assert t.colnames == ['abc']
+    assert len(t) == 2
+    assert t[0][0] == 123
+    assert t[1][0] == 456

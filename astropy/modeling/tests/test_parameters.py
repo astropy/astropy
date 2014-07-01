@@ -6,6 +6,8 @@ Tests models.parameters
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import itertools
+
 import numpy as np
 from numpy.testing import utils
 
@@ -25,9 +27,8 @@ class TestParModel(Model):
     coeff = Parameter()
     e = Parameter()
 
-    def __init__(self, coeff, e, param_dim=1):
-        super(TestParModel, self).__init__(
-                coeff=coeff, e=e, param_dim=param_dim)
+    def __init__(self, coeff, e, **kwargs):
+        super(TestParModel, self).__init__(coeff=coeff, e=e, **kwargs)
 
     def __call__(self):
         pass
@@ -252,10 +253,10 @@ class TestParameters(object):
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
-        p1 = models.Polynomial1D(3, param_dim=3)
+        p1 = models.Polynomial1D(3, n_models=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
-        utils.assert_equal(p1.c0, [0., 0, 0])
+        utils.assert_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 10.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -264,7 +265,7 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice
         """
-        p1 = models.Polynomial1D(3, param_dim=3)
+        p1 = models.Polynomial1D(3, n_models=3)
         p1.c0[:2] = [10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -303,7 +304,8 @@ class TestMultipleParameterSets(object):
         self.x1 = np.arange(1, 10, .1)
         self.y, self.x = np.mgrid[:10, :7]
         self.x11 = np.array([self.x1, self.x1]).T
-        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7])
+        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7],
+                                        n_models=2)
 
     def test_change_par(self):
         """
@@ -319,7 +321,7 @@ class TestMultipleParameterSets(object):
                        5.2],
                       [0.4,
                        0.7]]))
-        utils.assert_almost_equal(self.gmodel.parameters, [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+        np.all(self.gmodel.parameters == [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
     def test_change_par2(self):
         """
@@ -335,25 +337,272 @@ class TestMultipleParameterSets(object):
                        5.2],
                       [0.4,
                        0.7]]))
-        utils.assert_almost_equal(self.gmodel.parameters, [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+        np.all(self.gmodel.parameters == [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
         utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
-    def test_object_params(self):
-        l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
-        utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
-        #utils.assert_almost_equal(l2.param_sets, np.array([[[1, 2.],[3., 4.]],
-        #                                                   [2., 3.]], dtype=np.object))
+
+class TestParameterInitialization(object):
+    """
+    This suite of tests checks most if not all cases if instantiating a model
+    with parameters of different shapes/sizes and with different numbers of
+    parameter sets.
+    """
+
+    def test_single_model_scalar_parameters(self):
+        t = TestParModel(10, 1)
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert np.all(t.param_sets == [[10], [1]])
+        assert np.all(t.parameters == [10, 1])
+        assert t.coeff.shape == ()
+        assert t.e.shape == ()
+
+    def test_single_model_scalar_and_array_parameters(self):
+        t = TestParModel(10, [1, 2])
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert len(t.param_sets) == 2
+        assert np.all(t.param_sets[0] == [10])
+        assert np.all(t.param_sets[1] == [[1, 2]])
+        assert np.all(t.parameters == [10, 1, 2])
+        assert t.coeff.shape == ()
+        assert t.e.shape == (2,)
+
+    def test_single_model_1d_array_parameters(self):
+        t = TestParModel([10, 20], [1, 2])
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert np.all(t.param_sets == [[[10, 20]], [[1, 2]]])
+        assert np.all(t.parameters == [10, 20, 1, 2])
+        assert t.coeff.shape == (2,)
+        assert t.e.shape == (2,)
+
+    def test_single_model_1d_array_different_length_parameters(self):
+        with pytest.raises(InputParameterError):
+            # Not broadcastable
+            t = TestParModel([1, 2], [3, 4, 5])
+
+    def test_single_model_2d_array_parameters(self):
+        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert np.all(t.param_sets == [[[[10, 20], [30, 40]]],
+                                       [[[1, 2], [3, 4]]]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 1, 2, 3, 4])
+        assert t.coeff.shape == (2, 2)
+        assert t.e.shape == (2, 2)
+
+    def test_single_model_2d_non_square_parameters(self):
+        coeff = np.array([[10, 20], [30, 40], [50, 60]])
+        e = np.array([[1, 2], [3, 4], [5, 6]])
+
+        t = TestParModel(coeff, e)
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert np.all(t.param_sets == [[[[10, 20], [30, 40], [50, 60]]],
+                                       [[[1, 2], [3, 4], [5, 6]]]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60,
+                                       1, 2, 3, 4, 5, 6])
+        assert t.coeff.shape == (3, 2)
+        assert t.e.shape == (3, 2)
+
+        t2 = TestParModel(coeff.T, e.T)
+        assert len(t2) == 1
+        assert t2.model_set_axis is False
+        assert np.all(t2.param_sets == [[[[10, 30, 50], [20, 40, 60]]],
+                                        [[[1, 3, 5], [2, 4, 6]]]])
+        assert np.all(t2.parameters == [10, 30, 50, 20, 40, 60,
+                                        1, 3, 5, 2, 4, 6])
+        assert t2.coeff.shape == (2, 3)
+        assert t2.e.shape == (2, 3)
+
+        # Not broadcastable
+        with pytest.raises(InputParameterError):
+            TestParModel(coeff, e.T)
+
+        with pytest.raises(InputParameterError):
+            TestParModel(coeff.T, e)
+
+    def test_single_model_2d_broadcastable_parameters(self):
+        t = TestParModel([[10, 20, 30], [40, 50, 60]], [1, 2, 3])
+        assert len(t) == 1
+        assert t.model_set_axis is False
+        assert len(t.param_sets) == 2
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.all(t.param_sets[0] == [[[10, 20, 30], [40, 50, 60]]])
+        assert np.all(t.param_sets[1] == [[1, 2, 3]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3])
+
+    @pytest.mark.parametrize('p1, p2', [
+        (1, 2), (1, [2, 3]), ([1, 2], 3), ([1, 2, 3], [4, 5]),
+        ([1, 2], [3, 4, 5])])
+    def test_two_model_incorrect_scalar_parameters(self, p1, p2):
+        with pytest.raises(InputParameterError):
+            TestParModel(p1, p2, n_models=2)
+
+    @pytest.mark.parametrize('kwargs', [
+        {'n_models': 2}, {'model_set_axis': 0},
+        {'n_models': 2, 'model_set_axis': 0}])
+    def test_two_model_scalar_parameters(self, kwargs):
+        t = TestParModel([10, 20], [1, 2], **kwargs)
+        assert len(t) == 2
+        assert t.model_set_axis == 0
+        assert np.all(t.param_sets == [[10, 20], [1, 2]])
+        assert np.all(t.parameters == [10, 20, 1, 2])
+        assert t.coeff.shape == ()
+        assert t.e.shape == ()
+
+    @pytest.mark.parametrize('kwargs', [
+        {'n_models': 2}, {'model_set_axis': 0},
+        {'n_models': 2, 'model_set_axis': 0}])
+    def test_two_model_scalar_and_array_parameters(self, kwargs):
+        t = TestParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
+        assert len(t) == 2
+        assert t.model_set_axis == 0
+        assert len(t.param_sets) == 2
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.all(t.param_sets[0] == [[10], [20]])
+        assert np.all(t.param_sets[1] == [[1, 2], [3, 4]])
+        assert np.all(t.parameters  == [10, 20, 1, 2, 3, 4])
+        assert t.coeff.shape == ()
+        assert t.e.shape == (2,)
+
+    def test_two_model_1d_array_parameters(self):
+        t = TestParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
+        assert len(t) == 2
+        assert t.model_set_axis == 0
+        assert np.all(t.param_sets == [[[10, 20], [30, 40]],
+                                       [[1, 2], [3, 4]]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 1, 2, 3, 4])
+        assert t.coeff.shape == (2,)
+        assert t.e.shape == (2,)
+
+        t2 = TestParModel([[10, 20, 30], [40, 50, 60]],
+                          [[1, 2, 3], [4, 5, 6]], n_models=2)
+        assert len(t2) == 2
+        assert t2.model_set_axis == 0
+        assert np.all(t2.param_sets == [[[10, 20, 30], [40, 50, 60]],
+                                        [[1, 2, 3], [4, 5, 6]]])
+        assert np.all(t2.parameters == [10, 20, 30, 40, 50, 60,
+                                        1, 2, 3, 4, 5, 6])
+        assert t2.coeff.shape == (3,)
+        assert t2.e.shape == (3,)
+
+    def test_two_model_mixed_dimension_array_parameters(self):
+        with pytest.raises(InputParameterError):
+            # Can't broadcast different array shapes
+            TestParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                         [[9, 10, 11], [12, 13, 14]], n_models=2)
+
+        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+                         [[1, 2], [3, 4]], n_models=2)
+        assert len(t) == 2
+        assert t.model_set_axis == 0
+        assert len(t.param_sets) == 2
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.all(t.param_sets[0] == [[[10, 20], [30, 40]],
+                                          [[50, 60], [70, 80]]])
+        assert np.all(t.param_sets[1] == [[[1, 2]], [[3, 4]]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 70, 80,
+                                       1, 2, 3, 4])
+        assert t.coeff.shape == (2, 2)
+        assert t.e.shape == (2,)
+
+    def test_two_model_2d_array_parameters(self):
+        t = TestParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+                         [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
+        assert len(t) == 2
+        assert t.model_set_axis == 0
+        assert np.all(t.param_sets == [[[[10, 20], [30, 40]],
+                                        [[50, 60], [70, 80]]],
+                                       [[[1, 2], [3, 4]],
+                                        [[5, 6], [7, 8]]]])
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 70, 80,
+                                       1, 2, 3, 4, 5, 6, 7, 8])
+        assert t.coeff.shape == (2, 2)
+        assert t.e.shape == (2, 2)
+
+    def test_two_model_nonzero_model_set_axis(self):
+        # An example where the model set axis is the *last* axis of the
+        # parameter arrays
+        coeff = np.array([[[10, 20], [30, 40]], [[50, 60], [70, 80]]])
+        coeff = np.rollaxis(coeff, 0, 3)
+        e = np.array([[1, 2], [3, 4]])
+        e = np.rollaxis(e, 0, 2)
+        t = TestParModel(coeff, e, model_set_axis=-1)
+        assert len(t) == 2
+        assert t.model_set_axis == -1
+        assert len(t.param_sets) == 2
+        assert np.issubdtype(t.param_sets.dtype, object)
+        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60]],
+                                          [[30, 70], [40, 80]]])
+        assert np.all(t.param_sets[1] == [[[1, 3], [2, 4]]])
+        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 40, 80,
+                                       1, 3, 2, 4])
+        assert t.coeff.shape == (2, 2)
+        assert t.e.shape == (2,)
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
+            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
+        with pytest.raises(InputParameterError):
+            TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
-        # This *should* work--if param_dim > 1 and one of the parameter values
-        # is given as a scalar, repeat that value across all param sets
-        m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
-        utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
+        with pytest.raises(InputParameterError):
+            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
+        with pytest.raises(InputParameterError):
+            m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
+
+    def test_array_parameter1(self):
+        with pytest.raises(InputParameterError):
+            t = TestParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
+
+    def test_array_parameter2(self):
+        with pytest.raises(InputParameterError):
+            m = TestParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
+                             model_set_axis=0)
+
+    def test_array_parameter4(self):
+        """
+        Test multiple parameter model with array-valued parameters of the
+        same size as the number of parameter sets.
+        """
+
+        t4 = TestParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)
+        assert len(t4) == 1
+        assert t4.coeff.shape == (2, 2)
+        assert t4.e.shape == (2,)
+        assert np.issubdtype(t4.param_sets.dtype, object)
+        assert np.all(t4.param_sets[0] == [[1, 2], [3, 4]])
+        assert np.all(t4.param_sets[1] == [5, 6])
+
+
+def test_non_broadcasting_parameters():
+    """
+    Tests that in a model with 3 parameters that do not all mutually broadcast,
+    this is determined correctly regardless of what order the parameters are
+    in.
+    """
+
+    a = 3
+    b = np.array([[1, 2, 3], [4, 5, 6]])
+    c = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
+
+    class TestModel(Model):
+        p1 = Parameter()
+        p2 = Parameter()
+        p3 = Parameter()
+
+        def __call__(self):
+            pass
+
+    # a broadcasts with both b and c, but b does not broadcast with c
+    for args in itertools.permutations((a, b, c)):
+        with pytest.raises(InputParameterError):
+            TestModel(*args)

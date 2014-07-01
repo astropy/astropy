@@ -15,9 +15,8 @@ from numpy.testing.utils import assert_allclose, assert_almost_equal
 
 from . import irafutil
 from .. import models
-from .. import fitting
 from ..core import Fittable2DModel, Parameter
-from ..fitting import LevMarLSQFitter, SimplexLSQFitter, SLSQPLSQFitter
+from ..fitting import *
 from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -31,6 +30,8 @@ except ImportError:
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
+_RANDOM_SEED = 0x1337
+
 
 class TestPolynomial2D(object):
     """Tests for 2D polynomail fitting."""
@@ -42,7 +43,7 @@ class TestPolynomial2D(object):
         def poly2(x, y):
             return 1 + 2 * x + 3 * x ** 2 + 4 * y + 5 * y ** 2 + 6 * x * y
         self.z = poly2(self.x, self.y)
-        self.fitter = fitting.LinearLSQFitter()
+        self.fitter = LinearLSQFitter()
 
     def test_poly2D_fitting(self):
         v = self.model.fit_deriv(x=self.x, y=self.y)
@@ -57,7 +58,7 @@ class TestPolynomial2D(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_polynomial2D_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
-        nlfitter = fitting.LevMarLSQFitter()
+        nlfitter = LevMarLSQFitter()
         new_model = nlfitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
@@ -76,7 +77,7 @@ class TestICheb2D(object):
         self.y, self.x = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
         self.cheb2 = models.Chebyshev2D(2, 2)
-        self.fitter = fitting.LinearLSQFitter()
+        self.fitter = LinearLSQFitter()
 
     def test_default_params(self):
         self.cheb2.parameters = np.arange(9)
@@ -97,7 +98,7 @@ class TestICheb2D(object):
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
-        nlfitter = fitting.LevMarLSQFitter()
+        nlfitter = LevMarLSQFitter()
         model = nlfitter(cheb2d, self.x, self.y, z)
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
@@ -117,14 +118,14 @@ class TestJointFitter(object):
         """
         self.g1 = models.Gaussian1D(10, mean=14.9, stddev=.3)
         self.g2 = models.Gaussian1D(10, mean=13, stddev=.4)
-        self.jf = fitting.JointFitter([self.g1, self.g2],
+        self.jf = JointFitter([self.g1, self.g2],
                                       {self.g1: ['amplitude'],
                                        self.g2: ['amplitude']}, [9.8])
         self.x = np.arange(10, 20, .1)
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
 
-        with NumpyRNGContext(0x01010101):
+        with NumpyRNGContext(_RANDOM_SEED):
             n = np.random.randn(100)
 
         self.ny1 = y1 + 2 * n
@@ -161,28 +162,61 @@ class TestJointFitter(object):
 
 
 class TestLinearLSQFitter(object):
-
-    def setup_class(self):
+    def test_chebyshev1D(self):
+        """Tests fitting a 1D Chebyshev polynomial to some real world data."""
         test_file = get_pkg_data_filename(os.path.join('data',
                                                        'idcompspec.fits'))
-        f = open(test_file)
-        lines = f.read()
-        reclist = lines.split('begin')
-        f.close()
-        record = irafutil.IdentifyRecord(reclist[1])
-        self.icoeff = record.coeff
-        order = int(record.fields['order'])
-        self.model = models.Chebyshev1D(order - 1)
-        self.model.domain = record.get_range()
-        self.lf = fitting.LinearLSQFitter()
-        self.x = record.x
-        self.y = record.z
-        self.yy = np.array([record.z, record.z])
+        with open(test_file) as f:
+            lines = f.read()
+            reclist = lines.split('begin')
 
-    def test_chebyshev1D(self):
-        new_model = self.lf(self.model, self.x, self.y)
-        assert_allclose(new_model.parameters, np.array(self.icoeff),
-                        rtol=10E-2)
+        record = irafutil.IdentifyRecord(reclist[1])
+        coeffs = record.coeff
+        order = int(record.fields['order'])
+
+        initial_model = models.Chebyshev1D(order - 1,
+                                           domain=record.get_range())
+        fitter = LinearLSQFitter()
+
+        fitted_model = fitter(initial_model, record.x, record.z)
+        assert_allclose(fitted_model.parameters, np.array(coeffs),
+                        rtol=10e-2)
+
+    def test_linear_fit_model_set(self):
+        """Tests fitting multiple models simultaneously."""
+
+        init_model = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y_expected = init_model(x, model_set_axis=False)
+        assert y_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(_RANDOM_SEED):
+            y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y)
+        assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                        rtol=1e-1)
+
+    def test_linear_fit_2d_model_set(self):
+        """Tests fitted multiple 2-D models simultaneously."""
+
+        init_model = models.Polynomial2D(degree=2, c0_0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y = np.arange(10)
+        z_expected = init_model(x, y, model_set_axis=False)
+        assert z_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(_RANDOM_SEED):
+            z = z_expected + np.random.normal(0, 0.01, size=z_expected.shape)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, z)
+        assert_allclose(fitted_model(x, y, model_set_axis=False), z_expected,
+                        rtol=1e-1)
+
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -195,9 +229,9 @@ class TestNonLinearFitters(object):
         self.initial_values = [100, 5, 1]
 
         self.xdata = np.arange(0, 10, 0.1)
-        sigma = 8. * np.ones_like(self.xdata)
+        sigma = 4. * np.ones_like(self.xdata)
 
-        with NumpyRNGContext(0xDEADBEEF):
+        with NumpyRNGContext(_RANDOM_SEED):
             yerror = np.random.normal(0, sigma)
 
         def func(p, x):
@@ -212,20 +246,19 @@ class TestNonLinearFitters(object):
         `Gaussian1D`.
         """
 
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
-        efitter = fitting.LevMarLSQFitter()
+        efitter = LevMarLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
         """
         Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`.
         """
 
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata,
                        estimate_jacobian=True)
 
@@ -243,8 +276,8 @@ class TestNonLinearFitters(object):
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
 
-        levmar = fitting.LevMarLSQFitter()
-        fitter = fitting.SLSQPLSQFitter()
+        levmar = LevMarLSQFitter()
+        fitter = fitter_class()
         new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
@@ -258,8 +291,8 @@ class TestNonLinearFitters(object):
 
         g1 = models.Gaussian1D(100, 5, stddev=1)
         g1.mean.fixed = True
-        fitter = fitting.LevMarLSQFitter()
-        fslsqp = fitting.SLSQPLSQFitter()
+        fitter = LevMarLSQFitter()
+        fslsqp = SLSQPLSQFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
@@ -277,7 +310,7 @@ class TestNonLinearFitters(object):
                 return (a - x) ** 2 + b * (y - x ** 2) ** 2
 
         x = y = np.linspace(-3.0, 3.0, 100)
-        with NumpyRNGContext(0xCAFECAFE):
+        with NumpyRNGContext(_RANDOM_SEED):
             z = Rosenbrock.eval(x, y, 1.0, 100.0) + np.random.normal(0., 0.1)
 
         fitter = SimplexLSQFitter()
@@ -295,7 +328,7 @@ class TestNonLinearFitters(object):
         a = 2
         b = 100
 
-        with NumpyRNGContext(0x1337FACE):
+        with NumpyRNGContext(_RANDOM_SEED):
             x = np.linspace(0, 1, 100)
             # y scatter is amplitude ~1 to make sure covarience is
             # non-negligible
@@ -309,7 +342,7 @@ class TestNonLinearFitters(object):
 
         #now do the non-linear least squares fit
         mod = models.Linear1D(a, b)
-        fitter = fitting.LevMarLSQFitter()
+        fitter = LevMarLSQFitter()
 
         fmod = fitter(mod, x, y)
 

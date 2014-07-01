@@ -50,18 +50,18 @@ objects, which are specialized versions of the general
 using aptly named attributes::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
-    >>> c.ra
-    <Longitude 10.6845... deg>
-    >>> c.ra.hour
-    0.712305333...
-    >>> c.ra.hms
-    hms_tuple(h=0.0, m=42.0, s=44.299...)
-    >>> c.dec
-    <Latitude 41.2691... deg>
-    >>> c.dec.degree
-    41.2691...
-    >>> c.dec.radian
-    0.72028289606...
+    >>> c.ra  # doctest: +FLOAT_CMP
+    <Longitude 10.68458 deg>
+    >>> c.ra.hour  # doctest: +FLOAT_CMP
+    0.7123053333333335
+    >>> c.ra.hms  # doctest: +FLOAT_CMP
+    hms_tuple(h=0.0, m=42.0, s=44.299200000000525)
+    >>> c.dec  # doctest: +FLOAT_CMP
+    <Latitude 41.26917 deg>
+    >>> c.dec.degree  # doctest: +FLOAT_CMP
+    41.26917
+    >>> c.dec.radian  # doctest: +FLOAT_CMP
+    0.7202828960652683
 
 Coordinates can easily be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
@@ -102,13 +102,13 @@ more control, you can use the `~astropy.coordinates.SkyCoord.transform_to` metho
 which accepts a frame name, frame class, or frame instance::
 
     >>> from astropy.coordinates import FK5
-    >>> c_icrs.galactic
-    <SkyCoord (Galactic): l=121.17430... deg, b=-21.572... deg>
+    >>> c_icrs.galactic  # doctest: +FLOAT_CMP
+    <SkyCoord (Galactic): l=121.174302631 deg, b=-21.5728000618 deg>
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
-    >>> c_fk5
-    <SkyCoord (FK5): equinox=J2000.000, ra=10.68459... deg, dec=41.269... deg>
-    >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox
-    <SkyCoord (FK5): equinox=J1975.000, ra=10.34209... deg, dec=41.132... deg>
+    >>> c_fk5  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5): equinox=J2000.000, ra=10.6845915393 deg, dec=41.2691714591 deg>
+    >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5): equinox=J1975.000, ra=10.3420913461 deg, dec=41.1323211229 deg>
 
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
@@ -117,6 +117,8 @@ to apply the same operation to many different coordinates (say, from a
 catalog), this is a better choice than a list of |skycoord| objects,
 because it will be *much* faster than applying the operation to each
 |skycoord| in a for loop.
+
+::
 
     >>> SkyCoord(ra=[10, 11]*u.degree, dec=[41, -5]*u.degree)
     <SkyCoord (ICRS): (ra, dec) in deg
@@ -136,20 +138,20 @@ coordinate objects::
     (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
 
     >>> c.representation = 'cylindrical'
-    >>> c
-    <SkyCoord (ICRS): rho=2.236067... kpc, phi=63.434948... deg, z=3.0 kpc>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): rho=2.2360679775 kpc, phi=63.4349488229 deg, z=3.0 kpc>
     >>> c.phi
     <Angle 63.434948... deg>
     >>> c.phi.to(u.radian)
     <Angle 1.107148... rad>
 
     >>> c.representation = 'spherical'
-    >>> c
-    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg, distance=3.741657... kpc>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg, distance=3.74165738677 kpc>
 
     >>> c.representation = 'unitspherical'
-    >>> c
-    <SkyCoord (ICRS): ra=63.434948... deg, dec=53.300774... deg>
+    >>> c  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg>
 
 |skycoord| defines a number of convenience methods as well, like on-sky
 separation between two coordinates and catalog matching (detailed in
@@ -157,8 +159,8 @@ separation between two coordinates and catalog matching (detailed in
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
-    >>> c1.separation(c2)  # Differing frames handled correctly
-    <Angle 1.40453358... deg>
+    >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
+    <Angle 1.4045335865905868 deg>
 
 
 Distance from the origin (which is system-dependent, but often the Earth
@@ -168,20 +170,20 @@ conversion to the Cartesian representation of this location::
 
     >>> from astropy.coordinates import Distance
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, distance=770*u.kpc)
-    >>> c.cartesian.x
-    <Quantity 568.712865423... kpc>
-    >>> c.cartesian.y
-    <Quantity 107.300897404... kpc>
-    >>> c.cartesian.z
-    <Quantity 507.889942918... kpc>
+    >>> c.cartesian.x  # doctest: +FLOAT_CMP
+    <Quantity 568.7128654235232 kpc>
+    >>> c.cartesian.y  # doctest: +FLOAT_CMP
+    <Quantity 107.3008974042025 kpc>
+    >>> c.cartesian.z  # doctest: +FLOAT_CMP
+    <Quantity 507.88994291875713 kpc>
 
 With distances assigned, |skycoord| convenience methods are more powerful, as
 they can make use of the 3D information. For example::
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
-    >>> c1.separation_3d(c2)
-    <Distance 1.522860241... pc>
+    >>> c1.separation_3d(c2)  # doctest: +FLOAT_CMP
+    <Distance 1.5228602415117989 pc>
 
 
 Finally, the `astropy.coordinates` subpackage also provides a quick way to get
@@ -190,8 +192,8 @@ connection. The `~astropy.coordinates.SkyCoord.from_name` method of |skycoord|
 uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
-    >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA
-    <SkyCoord (ICRS): ra=83.8220... deg, dec=-5.391... deg>
+    >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
+    <SkyCoord (ICRS): ra=83.82208 deg, dec=-5.39111 deg>
 
 .. note::
 

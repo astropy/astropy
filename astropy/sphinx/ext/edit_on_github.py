@@ -120,8 +120,9 @@ def doctree_read(app, doctree):
                 else:
                     anchor = '#L%d' % lineno
             if anchor:
+                real_modname = inspect.getmodule(obj).__name__
                 path = '%s%s%s.py%s' % (
-                    url, source_root, modname.replace('.', '/'), anchor)
+                    url, source_root, real_modname.replace('.', '/'), anchor)
                 onlynode = addnodes.only(expr='html')
                 onlynode += nodes.reference(
                     reftitle=app.config.edit_on_github_help_message,

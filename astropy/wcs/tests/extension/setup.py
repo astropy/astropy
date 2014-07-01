@@ -14,6 +14,19 @@ if __name__ == '__main__':
     from astropy import setup_helpers
     from distutils.core import setup, Extension
 
+    if sys.platform == 'win32':
+        # These are written into wcsconfig.h, but that file is not
+        # used by all parts of wcslib.
+        define_macros = [
+            ('YY_NO_UNISTD_H', None),
+            ('_CRT_SECURE_NO_WARNINGS', None),
+            ('_NO_OLDNAMES', None),  # for mingw32
+            ('NO_OLDNAMES', None),  # for mingw64
+            ('__STDC__', None)  # for MSVC
+        ]
+    else:
+        define_macros = []
+
     wcsapi_test_module = Extension(
         str('wcsapi_test'),
         include_dirs=[
@@ -23,7 +36,9 @@ if __name__ == '__main__':
         ],
         # Use the *full* name to the c file, since we can't change the cwd
         # during testing
-        sources=[str(os.path.join(os.path.dirname(__file__), 'wcsapi_test.c'))])
+        sources=[str(os.path.join(os.path.dirname(__file__),
+                                  'wcsapi_test.c'))],
+        define_macros=define_macros)
 
     setup(
         name='wcsapi_test',
