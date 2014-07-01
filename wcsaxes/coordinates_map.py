@@ -10,7 +10,7 @@ from . import six
 class CoordinatesMap(object):
 
     def __init__(self, axes, wcs=None, transform=None, coord_meta=None,
-                 slice=None):
+                 slice=None, frame_class=RectangularFrame):
 
         # Keep track of parent axes and WCS
         self._axes = axes
@@ -31,7 +31,7 @@ class CoordinatesMap(object):
             self._transform = WCSPixel2WorldTransform(wcs, slice=slice)
             naxis = wcs.wcs.naxis
 
-        self.frame = RectangularFrame(axes, self._transform)
+        self.frame = frame_class(axes, self._transform)
 
         # Set up coordinates
         self._coords = []
