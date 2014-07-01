@@ -15,6 +15,7 @@ from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
 
+@remote_data
 class BaseImageTests(object):
 
     @classmethod
