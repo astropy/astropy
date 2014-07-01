@@ -287,11 +287,11 @@ int int_size(void)
     return 8 * sizeof(int);
 }
 
-int str_to_int(tokenizer_t *self, char *str)
+long str_to_long(tokenizer_t *self, char *str)
 {
     errno = 0;
     char *tmp;
-    int ret = strtol(str, &tmp, 0); // TODO: see if there are problems with long->int conversion
+    long ret = strtol(str, &tmp, 0);
 
     if (tmp == str || *tmp != '\0' || errno == ERANGE)
  	self->code = CONVERSION_ERROR;
@@ -299,12 +299,12 @@ int str_to_int(tokenizer_t *self, char *str)
     return ret;
 }
 
-float str_to_float(tokenizer_t *self, char *str)
+double str_to_double(tokenizer_t *self, char *str)
 {
     char *tmp;
-    float ret = strtod(str, &tmp); // TODO: same here with double->float
+    double ret = strtod(str, &tmp);
 
-    if (ret == 0.0f && tmp == str)
+    if (tmp == str || *tmp != 0 || errno == ERANGE) // TODO: make sure this is right
 	self->code = CONVERSION_ERROR;
 
     return ret;

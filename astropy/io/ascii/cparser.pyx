@@ -54,8 +54,8 @@ cdef extern from "src/tokenizer.h":
     void delete_tokenizer(tokenizer_t *tokenizer)
     int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
     int int_size()
-    int str_to_int(tokenizer_t *self, char *str)
-    float str_to_float(tokenizer_t *self, char *str)
+    long str_to_long(tokenizer_t *self, char *str)
+    double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self)
@@ -155,9 +155,10 @@ cdef class CParser:
         cdef char *src
 
         if isinstance(source, six.string_types) or hasattr(source, 'read'):
-            #todo: handle the case where source is the actual data (includes newline)
-            with get_readable_fileobj(source) as file_obj:
-                source = file_obj.read()
+            if hasattr(source, 'read') or '\n' not in source: # Either filename or file-like object
+                with get_readable_fileobj(source) as file_obj:
+                    source = file_obj.read()
+            # Otherwise, source is the actual data so we leave it be
         else:
             try:
                 source = '\n'.join(source) # iterable sequence of lines
@@ -263,7 +264,7 @@ cdef class CParser:
 
     cdef np.ndarray convert_int(self, i, num_rows):
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
-        cdef int converted
+        cdef long converted
         cdef int row = 0
         cdef int *data = <int *> col.data
         cdef bytes field
@@ -280,9 +281,9 @@ cdef class CParser:
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
                            (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                converted = str_to_int(self.tokenizer, new_val)
+                converted = str_to_long(self.tokenizer, new_val)
             else:
-                converted = str_to_int(self.tokenizer, field)
+                converted = str_to_long(self.tokenizer, field)
 
             if self.tokenizer.code == CONVERSION_ERROR:
                 self.tokenizer.code = NO_ERROR
@@ -297,7 +298,7 @@ cdef class CParser:
 
     cdef np.ndarray convert_float(self, i, num_rows):
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
-        cdef float converted
+        cdef double converted
         cdef int row = 0
         cdef float *data = <float *> col.data
         cdef bytes field
@@ -314,9 +315,9 @@ cdef class CParser:
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
                            (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                converted = str_to_float(self.tokenizer, new_val)
+                converted = str_to_double(self.tokenizer, new_val)
             else:
-                converted = str_to_float(self.tokenizer, field)
+                converted = str_to_double(self.tokenizer, field)
 
             if self.tokenizer.code == CONVERSION_ERROR:
                 self.tokenizer.code = NO_ERROR

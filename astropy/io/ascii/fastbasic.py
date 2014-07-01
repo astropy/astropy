@@ -100,7 +100,8 @@ class FastNoHeader(FastBasic):
 
     def __init__(self, **kwargs):
         header_start = kwargs.pop('header_start', None)
-        FastBasic.__init__(self, header_start=header_start, **kwargs)
+        data_start = kwargs.pop('data_start', 0)
+        FastBasic.__init__(self, header_start=header_start, data_start=data_start, **kwargs)
 
 # TODO: write FastRdb, FastCommentedHeader...will require some changes to tokenizer
 
