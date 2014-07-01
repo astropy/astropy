@@ -1853,6 +1853,8 @@ class Unit(NamedUnit):
                            format=format)
 
     def decompose(self, bases=set()):
+        if self in bases:
+            return self
         return self._represents.decompose(bases=bases)
 
     def is_unity(self):
@@ -2017,6 +2019,9 @@ class CompositeUnit(UnitBase):
     def decompose(self, bases=set()):
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
+
+        if self in bases:
+            return self
 
         for base in self.bases:
             if (not isinstance(base, IrreducibleUnit) or
