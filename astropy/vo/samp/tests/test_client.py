@@ -13,7 +13,6 @@ from .. import conf
 def setup_module(module):
     conf.use_internet = False
 
-o
 
 def test_SAMPHubProxy():
     """Test that SAMPHubProxy can be instantiated"""
