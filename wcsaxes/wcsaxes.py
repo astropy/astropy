@@ -31,7 +31,9 @@ class WCSAxes(Axes):
         super(WCSAxes, self).__init__(fig, rect, **kwargs)
         self._bboxes = []
 
-        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta, frame_class=frame_class)
+        self.frame_class = frame_class
+
+        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
 
         if not (transData is None):
@@ -47,7 +49,7 @@ class WCSAxes(Axes):
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
-    def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None, frame_class=None):
+    def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
         Reset the current Axes, to use a new WCS object.
         """
@@ -58,10 +60,9 @@ class WCSAxes(Axes):
         else:
             self.wcs = wcs
 
-        self.frame_class = frame_class
         self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
                                      transform=transform, coord_meta=coord_meta,
-                                     frame_class=frame_class)
+                                     frame_class=self.frame_class)
 
         self._all_coords = [self.coords]
 
