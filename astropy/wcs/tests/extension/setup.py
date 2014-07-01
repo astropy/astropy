@@ -24,6 +24,8 @@ if __name__ == '__main__':
             ('NO_OLDNAMES', None),  # for mingw64
             ('__STDC__', None)  # for MSVC
         ]
+    else:
+        define_macros = []
 
     wcsapi_test_module = Extension(
         str('wcsapi_test'),
