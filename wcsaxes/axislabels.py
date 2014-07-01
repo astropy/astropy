@@ -75,7 +75,7 @@ class AxisLabels(Text):
                     ticklabels_bbox = None
 
                 if axis == 'l':
-                    if axis in visible_ticks:
+                    if axis in visible_ticks and ticklabels_bbox is not None:
                         left = ticklabels_bbox.xmin
                     else:
                         left = xcen
@@ -83,7 +83,7 @@ class AxisLabels(Text):
                     self.set_position((xpos, ycen))
 
                 elif axis == 'r':
-                    if axis in visible_ticks:
+                    if axis in visible_ticks and ticklabels_bbox is not None:
                         right = ticklabels_bbox.x1
                     else:
                         right = xcen
@@ -91,7 +91,7 @@ class AxisLabels(Text):
                     self.set_position((xpos, ycen))
 
                 elif axis == 'b':
-                    if axis in visible_ticks:
+                    if axis in visible_ticks and ticklabels_bbox is not None:
                         bottom = ticklabels_bbox.ymin
                     else:
                         bottom = ycen
@@ -99,7 +99,7 @@ class AxisLabels(Text):
                     self.set_position((xcen, ypos))
 
                 elif axis == 't':
-                    if axis in visible_ticks:
+                    if axis in visible_ticks and ticklabels_bbox is not None:
                         top = ticklabels_bbox.y1
                     else:
                         top = ycen
