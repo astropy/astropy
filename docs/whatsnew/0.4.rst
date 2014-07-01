@@ -68,7 +68,7 @@ convinience functions like catalog matching or attribute-based
 transforms like ``icrscoord.galactic`` will no longer work.  These
 features are now all in `~astropy.coordinates.SkyCoord`.
 
-For advanced users or developers who have defined their owncoordinates,
+For advanced users or developers who have defined their own coordinates,
 take note that the extensive internal changes will require re-writing
 user-defined coordinate frames.  The :ref:`sgr-example` document has
 been updated for the new framework to provide a worked example of how
