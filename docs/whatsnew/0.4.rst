@@ -11,11 +11,70 @@ Overview
 
 Astropy 0.4 is a major release that adds new functionality since the 0.3.x
 series of releases. One new sub-package is included (see `SAMP`_), and many
-new features have been implemented in the existing sub-pacakges, a few of
-which are described below. In addition to usability improvements, we have
+new features have been implemented in the existing sub-pacakges, and
+highlights are described below. In addition to usability improvements, we have
 made a number of changes in the infrastructure for setting up/installing the
 package, and for the configuration system (see `astropy-helpers`_ and
 `Configuration`_).
+
+Coordinates
+-----------
+
+The :ref:`astropy-coordinates` sub-package has been re-designed based on
+feedback and experience with v0.2 and v0.3.  The design motivation is
+described by
+`APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_,
+and details of the new usage is covered in detail in the
+:ref:`astropy-coordinates` documentation section. Moving foreward, we
+do not expect future backwards-incompatible changes to this subpackage.
+
+For typical users, the major change is that the recommended way to use
+coordinate functionality is via the `~astropy.coordinates.SkyCoord` class,
+instead of the classes like `~astropy.coordinates.ICRS` classes (now called
+"frame classes").
+
+For most users of pre-v0.4 coordinates, this means that the best way to
+adapt old code to the new framework is to change code like::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import ICRS  # or FK5, or Galactic, or similar
+    >>> coordinate = ICRS(123.4*u.deg, 56.7*u.deg)
+
+to instead be::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> coordinate = SkyCoord(123.4*u.deg, 56.7*u.deg, frame='icrs')
+
+Note that usage like::
+
+    >>> coordinate = ICRS(123.4, 56.7, unit=('deg', 'deg'))  # NOT RECOMMENDED!
+
+will continue to work in v0.4, but will yield a `~astropy.coordinates.SkyCoord`
+instead of an `~astropy.coordinates.ICRS` object (the former behaves
+more like the pre-v0.4 `~astropy.coordinates.ICRS`).  This compatibility
+feature will be removed in the next major version, so you should update
+your code to use `~astropy.coordinates.SkyCoord` directly by the next
+release.
+
+Users should also be aware that if they continue to use the first form (directly
+creating `~astropy.coordinates.ICRS` frame objects), old code may still
+work if it uses basic coordinate functionality, but many of the
+convinience functions like catalog matching or attribute-based
+transforms like ``icrscoord.galactic`` will no longer work.  This
+features are now all in `~astropy.coordinates.SkyCoord`.
+
+For advanced users or developers who have defined not-built-in coordinates,
+take note that the extensive internal changes will require re-writing
+user-defined coordinate frames.  The :ref:`sgr-example` document has
+been updated for the new framework to provide a worked example of how
+custom coordinates work .
+
+More detailed information about the new framework and using it to define
+custom coordinates is available at :ref:`astropy-coordinates-overview`,
+:ref:`astropy-coordinates-definitions`, :ref:`astropy-coordinates-design`,
+and :ref:`astropy-coordinates-create-repr`.
+
 
 SAMP
 ----
@@ -107,10 +166,16 @@ Deprecation and backward-incompatible changes
   ``cosmology.H(0.5)`` is now deprecated in favor of the objected-oriented
   approach (``WMAP9.H(0.5)``). [#2343]
 
-- The `astropy.coordinates` package has undergone large changes for implementing the
+- The `astropy.coordinates` sub-package has undergone major changes for
+  implementing the
   `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_ plan
-  for the package.  Pre-v0.4 coordinates may no longer work, and should be
-  adapted to the new framework.  From this point on, major changes to the
+  for the package.  A compatibility layer has been added that will allow
+  common use cases of pre-v0.4 coordinates to work, but this layer will be
+  removed in the next major version.  Hence, any use of the coordinates
+  package should be adapted to the new framework.  Additionally, the
+  compatibility layer cannot be used for convinience functions (like the
+  ``match_catalog_*()`` functions), as these have been moved to
+  `~astropy.coordinates.SkyCoord`. From this point on, major changes to the
   coordinates classes are not expected.  [#2422]
 
 Note on future versions

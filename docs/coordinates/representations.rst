@@ -91,6 +91,8 @@ representations::
        (0.0179..., 0.8587..., 0.4916...),
        (0.0207..., 0.3355..., 0.2799...)]>
 
+.. _astropy-coordinates-create-repr:
+
 Creating your own representations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
