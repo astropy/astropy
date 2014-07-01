@@ -515,6 +515,11 @@ class W13(VOTableSpecWarning):
        int64         -> long
        float32       -> float
        float64       -> double
+       unsignedInt   -> long
+       unsignedShort -> int
+
+    To add more datatype mappings during parsing, use the
+    ``datatype_mapping`` keyword to `astropy.io.votable.parse`.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1161,6 +1166,11 @@ class E06(VOWarning, ValueError):
         int64         -> long
         float32       -> float
         float64       -> double
+        unsignedInt   -> long
+        unsignedShort -> int
+
+    To add more datatype mappings during parsing, use the
+    ``datatype_mapping`` keyword to `astropy.io.votable.parse`.
 
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
