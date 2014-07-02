@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
-from .utils import get_coordinate_system
+from .utils import get_coordinate_frame
 from astropy.wcs import WCS
 from . import six
 
@@ -179,12 +179,12 @@ if astropy.__version__ >= '0.4':
             self._output_system_name = output_system
 
             if isinstance(self._input_system_name, WCS):
-                self.input_system = get_coordinate_system(self._input_system_name)
+                self.input_system = get_coordinate_frame(self._input_system_name)
             elif isinstance(self._input_system_name, six.string_types):
                 self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
 
             if isinstance(self._output_system_name, WCS):
-                self.output_system = get_coordinate_system(self._output_system_name)
+                self.output_system = get_coordinate_frame(self._output_system_name)
             elif isinstance(self._output_system_name, six.string_types):
                 self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
 
@@ -235,7 +235,7 @@ else:
             self._output_system_name = output_system
 
             if isinstance(self._input_system_name, WCS):
-                self.input_system = get_coordinate_system(self._input_system_name)
+                self.input_system = get_coordinate_frame(self._input_system_name)
             elif isinstance(self._input_system_name, six.string_types):
                 if self._input_system_name == 'fk5':
                     self.input_system = FK5
@@ -245,7 +245,7 @@ else:
                     raise NotImplemented("frame {0} not implemented".format(self._input_system_name))
 
             if isinstance(self._output_system_name, WCS):
-                self.output_system = get_coordinate_system(self._output_system_name)
+                self.output_system = get_coordinate_frame(self._output_system_name)
             elif isinstance(self._output_system_name, six.string_types):
                 if self._output_system_name == 'fk5':
                     self.output_system = FK5
