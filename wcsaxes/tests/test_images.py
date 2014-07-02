@@ -16,7 +16,7 @@ from wcsaxes import datasets
 
 
 class BaseImageTests(object):
-    # TODO: move header files to data directory, add them to config files so they get copied over
+
     @classmethod
     def setup_class(cls):
         cls._filedir = os.path.abspath(__file__)
@@ -68,8 +68,8 @@ class TestBasic(BaseImageTests):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.msx_header), aspect='equal')
         fig.add_axes(ax)
-        ax.set_xlim(-0.5, 149 - 0.5)
-        ax.set_ylim(-0.5, 149 - 0.5)
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
 
         self.generate_or_test(generate, fig, 'image_plot.png')
@@ -83,8 +83,8 @@ class TestBasic(BaseImageTests):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.15, 0.15, 0.8, 0.8], wcs=WCS(self.twoMASS_k_header), aspect='equal')
         fig.add_axes(ax)
-        ax.set_xlim(-0.5, 721 - 0.5)
-        ax.set_ylim(-0.5, 720 - 0.5)
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
         # Overplot contour
         ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx), colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
@@ -121,8 +121,8 @@ class TestBasic(BaseImageTests):
         fig = plt.figure(figsize=(8, 8))
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.rosat_header), aspect='equal')
         fig.add_axes(ax)
-        ax.set_xlim(-0.5, 480 - 0.5)
-        ax.set_ylim(-0.5, 240 - 0.5)
+        ax.set_xlim(-0.5, 479.5)
+        ax.set_ylim(-0.5, 239.5)
         ax.grid(color='black', alpha=1.0, lw=1, linestyle='dashed')
         p = Circle((300, 100), radius=40, ec='yellow', fc='none')
         ax.add_patch(p)
@@ -141,8 +141,8 @@ class TestBasic(BaseImageTests):
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
         fig.add_axes(ax)
-        ax.set_xlim(-0.5, 53 - 0.5)
-        ax.set_ylim(-0.5, 107 - 0.5)
+        ax.set_xlim(-0.5, 52.5)
+        ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_axislabel('Velocity m/s')
         ax.coords[1].set_ticks(width=1)
         ax.coords[2].set_ticks(width=1)
@@ -155,8 +155,8 @@ class TestBasic(BaseImageTests):
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
         fig.add_axes(ax)
-        ax.set_xlim(-0.5, 53 - 0.5)
-        ax.set_ylim(-0.5, 107 - 0.5)
+        ax.set_xlim(-0.5, 52.5)
+        ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
