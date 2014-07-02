@@ -107,10 +107,8 @@ def reset_frame_identifiers():
     """
     Remove any registered frame identifiers.
     """
-    from copy import deepcopy
-    for identifier in deepcopy(FRAME_IDENTIFIERS):
-        FRAME_IDENTIFIERS.remove(identifier)
-
+    global FRAME_IDENTIFIERS
+    FRAME_IDENTIFIERS = []
 
 def get_coordinate_frame(wcs):
     """
@@ -134,7 +132,8 @@ def get_coordinate_frame(wcs):
             if coordinate_class is not None:
                 break
         if coordinate_class is None:
-            raise ValueError("Frame not supported: {0}/{1}".format(xcoord, ycoord))
+            raise ValueError("Frame not supported: {0}/{1}".format(wcs.wcs.ctype[0],
+                                                                   wcs.wcs.ctype[1]))
 
     return coordinate_class
 
