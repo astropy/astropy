@@ -90,7 +90,27 @@ def select_step_scalar(dv):
     return 10. ** (base + steps[imin])
 
 
-def get_coordinate_system(wcs):
+FRAME_IDENTIFIERS = []
+
+def register_frame_identifier(func):
+    """
+    Register a function that can identify frames from WCS objects.
+
+    This should be a function that takes an :class:`~astropy.wcs.WCS` object
+    and returns an `astropy.coordinates`-compatible frame class, or `None` if
+    no match was found.
+    """
+    FRAME_IDENTIFIERS.append(func)
+
+
+def reset_frame_identifiers():
+    """
+    Remove any registered frame identifiers.
+    """
+    global FRAME_IDENTIFIERS
+    FRAME_IDENTIFIERS = []
+
+def get_coordinate_frame(wcs):
     """
     Given a WCS object for a pair of spherical coordinates, return the
     corresponding astropy coordinate class.
@@ -106,7 +126,14 @@ def get_coordinate_system(wcs):
     elif xcoord == 'GLON' and ycoord == 'GLAT':
         coordinate_class = Galactic
     else:
-        raise ValueError("System not supported (yet): {0}/{1}".format(xcoord, ycoord))
+        coordinate_class = None
+        for ident in FRAME_IDENTIFIERS:
+            coordinate_class = ident(wcs)
+            if coordinate_class is not None:
+                break
+        if coordinate_class is None:
+            raise ValueError("Frame not supported: {0}/{1}".format(wcs.wcs.ctype[0],
+                                                                   wcs.wcs.ctype[1]))
 
     return coordinate_class
 
