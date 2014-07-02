@@ -30,15 +30,6 @@ def test_SAMPIntegratedClient():
     SAMPIntegratedClient()
 
 
-# Not yet included because it seems that there is a problem with
-# instantiating multiple hubs.
-#def test_SAMPHubServer():
-#    """Test that SAMPHubServer can be instantiated"""
-#    my_hub = SAMPHubServer()
-#    my_hub.start()
-#    my_hub.stop()
-
-
 @pytest.fixture
 def samp_hub(request):
     my_hub = SAMPHubServer()
