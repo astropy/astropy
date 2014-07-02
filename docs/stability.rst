@@ -79,7 +79,9 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                New top-level package in v0.3 (was previously part of <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>). Includes a new framework for kernels in v0.3.
+                New top-level package in v0.3 (was previously part of
+                <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>).
+                No major changes in v0.4.
             </td>
         </tr>
         <tr>
@@ -102,6 +104,7 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 Incremental improvements since v0.1, but mostly stable API.
+                Pure functional interface deprecated in v0.4.
             </td>
         </tr>
         <tr>
