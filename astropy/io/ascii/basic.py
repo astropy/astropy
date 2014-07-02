@@ -126,9 +126,9 @@ class CommentedHeader(core.BaseReader):
 
 class Tab(Basic):
     """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
-    not stripped from the beginning and end of lines.  By default whitespace is
-    still stripped from the beginning and end of individual column values.
-
+    not stripped from the beginning and end of either lines or individual column
+    values.
+    
     Example::
 
       col1 <tab> col2 <tab> col3
