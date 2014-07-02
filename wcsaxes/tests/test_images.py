@@ -246,3 +246,16 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         self.generate_or_test(generate, fig, 'tick_angles_non_square_axes.png')
 
+    # Test for setting coord_type
+    def test_set_coord_type(self, generate):
+        fig = plt.figure(figsize=(3, 3))
+        ax = WCSAxes(fig, [0.2, 0.2, 0.6, 0.6], wcs=WCS(self.msx_header), aspect='equal')
+        fig.add_axes(ax)
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
+        ax.coords[0].set_coord_type('scalar')
+        ax.coords[1].set_coord_type('scalar')
+        ax.coords[0].set_major_formatter('x.xxx')
+        ax.coords[1].set_major_formatter('x.xxx')
+
+        self.generate_or_test(generate, fig, 'set_coord_type.png')
