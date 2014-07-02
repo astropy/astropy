@@ -19,7 +19,7 @@ For the example in the following page we start from the example introduced in
 
     from wcsaxes import WCSAxes
 
-    ax = WCSAxes(fig, [0.2, 0.2, 0.6, 0.6], wcs=wcs)
+    ax = WCSAxes(fig, [0.25, 0.25, 0.6, 0.6], wcs=wcs)
     fig.add_axes(ax)  # note that the axes have to be added to the figure
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
@@ -89,6 +89,14 @@ allowed.
 
     lon.set_axislabel('Galactic Longitude', minpad=0.3)
     lat.set_axislabel('Galactic Latitude', minpad=-0.4)
+
+
+.. plot::
+   :context:
+   :nofigs:
+
+    lon.set_axislabel('Galactic Longitude', minpad=1)
+    lat.set_axislabel('Galactic Latitude', minpad=1)
 
 .. _tick_label_format:
 
