@@ -34,8 +34,8 @@ def assert_table_equal(t1, t2):
 def read_basic(table, **kwargs):
     reader = FastBasic(**kwargs)
     t1 = reader.read(table)
-    t2 = ascii.read(table, format='fast_basic', guess=False, **kwargs)
-    t3 = ascii.read(table, format='basic', guess=False, **kwargs)
+    t2 = ascii.read(table, format='basic', guess=False, use_fast_reader=True, **kwargs)
+    t3 = ascii.read(table, format='basic', guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
     return t1
@@ -43,8 +43,8 @@ def read_basic(table, **kwargs):
 def read_csv(table, **kwargs):
     reader = FastCsv(**kwargs)
     t1 = reader.read(table)
-    t2 = ascii.read(table, format='fast_csv', guess=False, **kwargs)
-    t3 = ascii.read(table, format='csv', guess=False, **kwargs)
+    t2 = ascii.read(table, format='csv', guess=False, use_fast_reader=True, **kwargs)
+    t3 = ascii.read(table, format='csv', guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
     return t1
@@ -385,3 +385,15 @@ def test_many_columns():
     table = read_basic(StringIO(text))
     expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
     assert_table_equal(table, expected)
+
+def test_use_fast_reader():
+    """
+    Make sure that ascii.read() works as expected by default and with
+    use_fast_reader specified.
+    """
+    with pytest.raises(ParameterError): # C reader can't handle regex comment
+        ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False,
+                   comment='##', use_fast_reader=True)
+    # Will try the slow reader afterwards by default
+    ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False, comment='##')
+    # TODO: find a way to test other cases

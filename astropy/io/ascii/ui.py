@@ -109,6 +109,7 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    :param use_fast_reader: whether to use the C engine for reading (default=None tries the fast reader first)
     :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 
@@ -118,8 +119,9 @@ def read(table, guess=None, **kwargs):
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
-    new_kwargs.update(kwargs)
+    use_fast_reader = kwargs.pop('use_fast_reader', None)
     format = kwargs.get('format')
+    new_kwargs.update(kwargs)
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
     Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
@@ -134,17 +136,26 @@ def read(table, guess=None, **kwargs):
     if guess is None:
         guess = _GUESS
     if guess:
-        dat = _guess(table, new_kwargs, format)
+        dat = _guess(table, new_kwargs, format, use_fast_reader)
     else:
         reader = get_reader(**new_kwargs)
-        # Try the fast reader first
-        if format is not None and 'fast_' + format in core.FAST_CLASSES:
-            new_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
-            fast_reader = get_reader(**new_kwargs)
-            try:
-                return fast_reader.read(table)
-            except (core.ParameterError, cparser.CParserError):
-                # If the fast reader doesn't work, try the slow version
+        # Try the fast reader first if use_fast_reader is True or None
+        if use_fast_reader is None or use_fast_reader:
+            if format is not None and 'fast_' + format in core.FAST_CLASSES:
+                new_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+                fast_reader = get_reader(**new_kwargs)
+                try:
+                    return fast_reader.read(table)
+                except (core.ParameterError, cparser.CParserError) as e:
+                    # If the fast reader doesn't work and use_fast_reader is None, try the slow version
+                    if use_fast_reader is None:
+                        dat = reader.read(table)
+                    else:
+                        raise e
+            elif use_fast_reader: # user specified use_fast_reader=True, but no fast reader exists
+                raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers {1}'
+                                 .format(format, sorted(core.FAST_CLASSES)))
+            else:
                 dat = reader.read(table)
         else:
             dat = reader.read(table)
@@ -152,7 +163,7 @@ def read(table, guess=None, **kwargs):
     return dat
 
 
-def _guess(table, read_kwargs, format):
+def _guess(table, read_kwargs, format, use_fast_reader):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess
     keyword args. For each key/val pair specified explicitly in the read()
@@ -164,11 +175,20 @@ def _guess(table, read_kwargs, format):
     fast_kwargs = []
 
     first_kwargs = [read_kwargs.copy()]
-    if format is not None and 'fast_' + format in core.FAST_CLASSES:
-        # If a fast version of the reader is available, try that before the slow version
-        fast_kwargs = read_kwargs.copy()
-        fast_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
-        first_kwargs = [fast_kwargs] + first_kwargs
+    if use_fast_reader:
+        if format is not None and 'fast_' + format in core.FAST_CLASSES:
+            # If a fast version of the reader is available, try that before the slow version
+            fast_kwargs = read_kwargs.copy()
+            fast_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+            first_kwargs = [fast_kwargs] + first_kwargs
+        elif format is None:
+            # use_fast_reader=True, but the user did not specify a format
+            raise ValueError('The parameter "format" must be specified in order to use '
+                             'a fast reader')
+        else:
+            # format has no fast reader
+            raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers {1}'
+                             .format(format, sorted(core.FAST_CLASSES)))
 
     # First try guessing
     for guess_kwargs in first_kwargs + _get_guess_kwargs_list():
