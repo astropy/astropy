@@ -90,6 +90,12 @@ def select_step_scalar(dv):
     return 10. ** (base + steps[imin])
 
 
+FRAME_IDENTIFIERS = []
+
+def register_coordinate_system_identifier(func):
+    FRAME_IDENTIFIERS.append(func)
+
+
 def get_coordinate_system(wcs):
     """
     Given a WCS object for a pair of spherical coordinates, return the
@@ -106,7 +112,12 @@ def get_coordinate_system(wcs):
     elif xcoord == 'GLON' and ycoord == 'GLAT':
         coordinate_class = Galactic
     else:
-        raise ValueError("System not supported (yet): {0}/{1}".format(xcoord, ycoord))
+        for ident in FRAME_IDENTIFIERS:
+            coordinate_class = ident(wcs)
+            if coordinate_class is not None:
+                break
+        if coordinate_class is None:
+            raise ValueError("System not supported (yet): {0}/{1}".format(xcoord, ycoord))
 
     return coordinate_class
 
