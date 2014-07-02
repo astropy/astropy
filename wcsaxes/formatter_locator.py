@@ -163,9 +163,14 @@ class AngleFormatterLocator(BaseFormatterLocator):
             warnings.warn("Spacing is too small - resetting spacing to match format")
             self.spacing = self.base_spacing
 
-        if self.spacing is not None and (self.spacing % self.base_spacing) > 1e-10 * u.deg:
-            warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
-            self.spacing = self.base_spacing * np.round(self.spacing / self.spacing)
+        if self.spacing is not None:
+
+            ratio = float(self.spacing / self.base_spacing)
+            remainder = ratio - np.round(ratio)
+
+            if remainder > 1.e-10:
+                warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+                self.spacing = self.base_spacing * np.round(self.spacing / self.base_spacing)
 
     @property
     def base_spacing(self):
