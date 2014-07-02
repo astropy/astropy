@@ -25,7 +25,8 @@ typedef enum
     INVALID_LINE,
     TOO_MANY_COLS,
     NOT_ENOUGH_COLS,
-    CONVERSION_ERROR
+    CONVERSION_ERROR,
+    OVERFLOW_ERROR
 } err_code;
 
 typedef struct
