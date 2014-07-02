@@ -162,7 +162,7 @@ Deprecation and backward-incompatible changes
   common use cases of pre-v0.4 coordinates to work, but this layer will be
   removed in the next major version.  Hence, any use of the coordinates
   package should be adapted to the new framework.  Additionally, the
-  compatibility layer cannot be used for convinience functions (like the
+  compatibility layer cannot be used for convenience functions (like the
   ``match_catalog_*()`` functions), as these have been moved to
   `~astropy.coordinates.SkyCoord`. From this point on, major changes to the
   coordinates classes are not expected.  [#2422]
