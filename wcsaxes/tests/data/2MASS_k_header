@@ -1,0 +1,14 @@
+WCSAXES =                    2 / Number of coordinate axes                      
+CRPIX1  =                361.0 / Pixel coordinate of reference point            
+CRPIX2  =                360.5 / Pixel coordinate of reference point            
+CDELT1  =         -0.001388889 / [deg] Coordinate increment at reference point  
+CDELT2  =          0.001388889 / [deg] Coordinate increment at reference point  
+CUNIT1  = 'deg'                / Units of coordinate increment and value        
+CUNIT2  = 'deg'                / Units of coordinate increment and value        
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection           
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection               
+CRVAL1  =                266.4 / [deg] Coordinate value at reference point      
+CRVAL2  =            -28.93333 / [deg] Coordinate value at reference point      
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole       
+LATPOLE =            -28.93333 / [deg] Native latitude of celestial pole        
+EQUINOX =               2000.0 / [yr] Equinox of equatorial coordinates         

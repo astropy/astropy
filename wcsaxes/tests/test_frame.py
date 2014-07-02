@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from astropy.wcs import WCS
-from astropy.tests.helper import remote_data
 
 from .. import WCSAxes
 from .. import datasets
@@ -33,11 +32,9 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    @remote_data
     def test_custom_frame(self, generate):
 
-        hdu = datasets.msx_hdu()
-        wcs = WCS(hdu.header)
+        wcs = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(4,4))
 
@@ -48,7 +45,7 @@ class TestFrame(BaseImageTests):
 
         ax.coords.grid(color='white')
 
-        im = ax.imshow(np.ones(hdu.data.shape), vmin=0., vmax=2., cmap=plt.cm.gist_heat,
+        im = ax.imshow(np.ones((149, 149)), vmin=0., vmax=2., cmap=plt.cm.gist_heat,
                   origin='lower')
 
         minpad = {}
