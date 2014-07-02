@@ -165,7 +165,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if self.spacing is not None:
 
-            ratio = float(self.spacing / self.base_spacing)
+            ratio = (self.spacing / self.base_spacing).decompose().value
             remainder = ratio - np.round(ratio)
 
             if abs(remainder) > 1.e-10:
@@ -352,7 +352,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
         if self.spacing is not None:
 
-            ratio = float(self.spacing / self.base_spacing)
+            ratio = (self.spacing / self.base_spacing).decompose().value
             remainder = ratio - np.round(ratio)
 
             if abs(remainder) > 1.e-10:
