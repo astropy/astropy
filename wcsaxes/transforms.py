@@ -169,7 +169,9 @@ class WCSPixel2WorldTransform(CurvedTransform):
         return WCSWorld2PixelTransform(self.wcs, slice=self.slice)
 
 
-if astropy.__version__ >= '0.4':
+try:
+    
+    from astropy.coordinates import SkyCoord
     from astropy.coordinates import frame_transform_graph
 
     class CoordinateTransform(CurvedTransform):
@@ -182,11 +184,15 @@ if astropy.__version__ >= '0.4':
                 self.input_system = get_coordinate_system(self._input_system_name)
             elif isinstance(self._input_system_name, six.string_types):
                 self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
+                if self.input_system is None:
+                    raise ValueError("Frame {0} not found".format(self._input_system_name))
 
             if isinstance(self._output_system_name, WCS):
                 self.output_system = get_coordinate_system(self._output_system_name)
             elif isinstance(self._output_system_name, six.string_types):
                 self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
+                if self.output_system is None:
+                    raise ValueError("Frame {0} not found".format(self._output_system_name))
 
             if self.output_system == self.input_system:
                 self.same_frames = True
@@ -210,7 +216,7 @@ if astropy.__version__ >= '0.4':
 
             x_in, y_in = input_coords[:, 0], input_coords[:, 1]
 
-            c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+            c_in = SkyCoord(x_in, y_in, unit=(u.deg, u.deg), frame=self.input_system)
 
             c_out = c_in.transform_to(self.output_system)
 
@@ -224,7 +230,7 @@ if astropy.__version__ >= '0.4':
             """
             return CoordinateTransform(self._output_system_name, self._input_system_name)
 
-else:
+except ImportError:
 
     class CoordinateTransform(CurvedTransform):
 
