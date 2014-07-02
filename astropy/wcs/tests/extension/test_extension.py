@@ -26,14 +26,25 @@ def test_wcsapi_extension(tmpdir):
     # *unless* the output is redirected.  This bug also did not occur in an
     # interactive session, so it likely had something to do with pytest's
     # output capture
-    with open(os.devnull, 'wb') as devnull:
-        p = subprocess.Popen([sys.executable, 'setup.py', 'install',
-                              '--install-lib={0}'.format(tmpdir),
-                              astropy_path], cwd=setup_path, env=env,
-                              stdout=devnull, stderr=devnull)
-        retcode = p.wait()
+    p = subprocess.Popen([sys.executable, 'setup.py', 'install',
+                          '--install-lib={0}'.format(tmpdir),
+                          astropy_path], cwd=setup_path, env=env,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    assert retcode == 0
+    # Whether the process fails or not this isn't likely to produce a great
+    # deal of output so communicate should be fine in almost all cases
+    stdout, stderr = p.communicate()
+
+    try:
+        stdout, stderr = stdout.decode('utf8'), stderr.decode('utf8')
+    except UnicodeDecodeError:
+       # Don't try to guess about encoding; just display the text
+        stdout, stderr = stdout.decode('latin1'), stderr.decode('latin1')
+
+    assert p.returncode == 0, (
+        "setup.py exited with non-zero return code {0}\n"
+        "stdout:\n\n{1}\n\nstderr:\n\n{2}\n".format(
+            p.returncode, stdout, stderr))
 
     code = """
     import sys
@@ -44,6 +55,4 @@ def test_wcsapi_extension(tmpdir):
     code = code.strip().replace('\n', '; ')
 
     # Import and run the extension
-    subprocess.check_call(
-        [sys.executable, '-c', code],
-        env=env)
+    subprocess.check_call([sys.executable, '-c', code], env=env)
