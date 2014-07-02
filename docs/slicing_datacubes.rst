@@ -18,9 +18,9 @@ information. The original FITS file can be downloaded from `here
 
 .. plot::
    :context: reset
-   :nofigs:
    :include-source:
    :align: center
+   :nofigs:
 
     from astropy.wcs import WCS
     from wcsaxes import datasets
@@ -48,6 +48,7 @@ We then instantiate the :class:`~wcsaxes.wcsaxes.WCSAxes` using the
    :context:
    :include-source:
    :align: center
+   :nofigs:
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
@@ -92,7 +93,7 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :include-source:
    :align: center
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6,3))
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=(50, 'x', 'y'))
     fig.add_axes(ax)
     ax.imshow(image_data[:, :, 50], cmap=plt.cm.gist_heat)
