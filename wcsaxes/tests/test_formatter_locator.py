@@ -139,6 +139,12 @@ class TestAngleFormatterLocator(object):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.base_spacing == base_spacing
 
+    def test_incorrect_spacing(self):
+        fl = AngleFormatterLocator()
+        fl.spacing = 0.032 * u.deg
+        fl.format = 'dd:mm:ss'
+        assert_almost_equal(fl.spacing.to(u.arcsec).value, 115.)
+
 
 class TestScalarFormatterLocator(object):
 
@@ -242,3 +248,10 @@ class TestScalarFormatterLocator(object):
     def test_base_spacing(self, format, base_spacing):
         fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         assert fl.base_spacing == base_spacing
+
+    def test_incorrect_spacing(self):
+        fl = ScalarFormatterLocator(unit=u.m)
+        fl.spacing = 0.032 * u.m
+        fl.format = 'x.xx'
+        assert_almost_equal(fl.spacing.to(u.m).value, 0.03)
+
