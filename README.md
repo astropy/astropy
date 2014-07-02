@@ -14,6 +14,15 @@ At the moment the implementation has not be optimized for performance. Once all
 the functionality is in place, and a test suite has been created, the code will
 be refactored and optimized.
 
+Developers and Contributors
+===========================
+
+* Thomas Robitaille
+* Asra Nizami
+* Chris Beaumont
+* Leo Singer
+* Stuart Mumford
+
 Build and coverage status
 =========================
 
