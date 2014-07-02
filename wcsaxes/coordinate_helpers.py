@@ -37,24 +37,10 @@ class CoordinateHelper(object):
         self.parent_map = parent_map
         self.transform = transform
         self.coord_index = coord_index
-        self.coord_type = coord_type
         self.coord_unit = coord_unit
         self.frame = frame
 
-        if coord_type == 'longitude' and coord_wrap is None:
-            self.coord_wrap = 360
-        elif coord_type != 'longitude' and coord_wrap is not None:
-            raise NotImplementedError('coord_wrap is not yet supported for non-longitude coordinates')
-        else:
-            self.coord_wrap = coord_wrap
-
-        # Initialize tick formatter/locator
-        if coord_type == 'scalar':
-            self._formatter_locator = ScalarFormatterLocator(unit=coord_unit)
-        elif coord_type in ['longitude', 'latitude']:
-            self._formatter_locator = AngleFormatterLocator()
-        else:
-            raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
+        self.set_coord_type(coord_type, coord_wrap)
 
         # Initialize ticks
         self.dpi_transform = Affine2D()
@@ -134,6 +120,35 @@ class CoordinateHelper(object):
         else:
             self.grid_lines_kwargs['visible'] = True
 
+    def set_coord_type(self, coord_type, coord_wrap=None):
+        """
+        Set the coordinate type for the axis.
+
+        Parameters
+        ----------
+        coord_type : str
+            One of 'longitude', 'latitude' or 'scalar'
+        coord_wrap : float, optional
+            The value to wrap at for angular coordinates
+        """
+
+        self.coord_type = coord_type
+
+        if coord_type == 'longitude' and coord_wrap is None:
+            self.coord_wrap = 360
+        elif coord_type != 'longitude' and coord_wrap is not None:
+            raise NotImplementedError('coord_wrap is not yet supported for non-longitude coordinates')
+        else:
+            self.coord_wrap = coord_wrap
+
+        # Initialize tick formatter/locator
+        if coord_type == 'scalar':
+            self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
+        elif coord_type in ['longitude', 'latitude']:
+            self._formatter_locator = AngleFormatterLocator()
+        else:
+            raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
+
     def set_major_formatter(self, formatter):
         """
         Set the formatter to use for the major tick labels.
@@ -160,10 +175,9 @@ class CoordinateHelper(object):
         unit : class:`~astropy.units.Unit`
             The unit to which the tick labels should be converted to.
         """
-        if (not issubclass(unit.__class__, u.UnitBase)) :
+        if (not issubclass(unit.__class__, u.UnitBase)):
             raise TypeError("unit should be an astropy UnitBase subclass")
         self._formatter_locator.format_unit = unit
-
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
                   width=None, color=None, alpha=None):
@@ -269,7 +283,6 @@ class CoordinateHelper(object):
         self.axislabels.set_text(text)
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
-
 
     def set_axislabel_position(self, position):
         """
