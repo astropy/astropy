@@ -230,8 +230,8 @@ for declination with:
    :include-source:
    :align: center
 
-    lon.grid(color='yellow', alpha=0.5)
-    lat.grid(color='orange', alpha=0.5)
+    lon.grid(color='yellow', alpha=0.5, linestyle='solid')
+    lat.grid(color='orange', alpha=0.5, linestyle='solid')
 
 For convenience, you can also simply draw a grid for all the coordinates in
 one command:
@@ -241,4 +241,4 @@ one command:
    :include-source:
    :align: center
 
-    ax.coords.grid(color='white', alpha=0.3)
+    ax.coords.grid(color='white', alpha=0.5, linestyle='solid')

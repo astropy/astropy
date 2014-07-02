@@ -69,8 +69,8 @@ Plotting images and contours
 
 Plotting images as bitmaps or contours should be done via the usual matplotlib
 methods such as :meth:`~matplotlib.axes.Axes.imshow` or
-:meth:`~matplotlib.axes.Axes.contour`. For example, to plot the data from
-the file read in `Initialization`_, you can do:
+:meth:`~matplotlib.axes.Axes.contour`. For example, continuing from the
+example in `Initialization`_, you can do:
 
 .. plot::
    :context:
