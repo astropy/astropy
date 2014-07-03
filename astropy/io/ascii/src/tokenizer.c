@@ -2,7 +2,8 @@
 
 #include "tokenizer.h"
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols)
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
+                              int strip_whitespace_lines, int strip_whitespace_fields)
 {
     // Create the tokenizer in memory
     tokenizer_t *tokenizer = (tokenizer_t *) malloc(sizeof(tokenizer_t));
@@ -26,6 +27,9 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
     tokenizer->code = NO_ERROR;
     tokenizer->iter_col = 0;
     tokenizer->curr_pos = 0;
+    tokenizer->strip_whitespace_lines = strip_whitespace_lines;
+    tokenizer->strip_whitespace_fields = strip_whitespace_fields;
+
     // This is a bit of a hack -- buf holds an empty string to represent empty field values
     tokenizer->buf = calloc(2, sizeof(char));
 
@@ -170,8 +174,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     int empty = 1;
     int comment = 0;
     
-    //TODO: different error for no data
-    //TODO: decide what to do about whitespace delimiter here
+    //TODO: fix quoting issues here...maybe we can tokenize these rows in a new non-output mode
     while (i < start)
     {
 	if (self->source_pos >= self->source_len - 1) // ignore final newline
@@ -228,9 +231,10 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 	    switch (self->state)
 	    {
 	    case START_LINE:
-		// TODO: make an option not to strip whitespace (for tab-delimited, etc.)
-		if (c == '\n' || c == ' ' || c == '\t')
-		    break;
+                if (c == '\n')
+                    break;
+                else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
+                    break;                    
 		else if (c == self->comment) // comment line; ignore
 		{
 		    self->state = COMMENT;
@@ -244,16 +248,65 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 		
 	    case START_FIELD:
-		if (c == ' ' || c == '\t') // strip whitespace before field begins
+		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) // strip whitespace before field begins
 		    ;
 		else if (c == self->delimiter) // field ends before it begins
 		{
 		    PUSH('\x01'); // indicates empty field
 		    END_FIELD();
 		}
-		else if (c == '\n')
+		else if (c == '\n') // TODO: right stripping of fields
 		{
-                    // End line here. TODO: decide on better behavior (incorrect with non-whitespace sep)
+                    if (self->strip_whitespace_lines)
+                    {
+                        // Move on if the delimiter is whitespace, e.g. '1 2 3   '->['1','2','3']
+                        if (self->delimiter == ' ' || self->delimiter == '\t')
+                        {
+                            END_FIELD();
+                        }
+                        // Register an empty field if non-whitespace delimiter, e.g. '1,2, '->['1','2','']
+                        else
+                        {
+                            PUSH('\x01');
+                            END_FIELD();
+                        }                            
+                    }
+
+                    else if (!self->strip_whitespace_lines)
+                    {
+                        // In this case we don't want to left-strip the field, so we backtrack
+                        int tmp = self->source_pos;
+                        --self->source_pos;
+
+                        while (self->source_pos >= 0 && self->source[self->source_pos] != self->delimiter
+                               && self->source[self->source_pos] != '\n')
+                        {
+                            --self->source_pos;
+                        }
+
+                        // backtracked to line beginning
+                        if (self->source_pos == -1 || self->source[self->source_pos] == '\n')
+                            self->source_pos = tmp;
+                        else
+                        {
+                            ++self->source_pos;
+
+                            if (self->source_pos == tmp)
+                            {
+                                PUSH('\x01'); // no whitespace, just an empty field
+                            }
+
+                            else
+                                while (self->source_pos < tmp)
+                                {
+                                    PUSH(self->source[self->source_pos]); // append whitespace characters
+                                    ++self->source_pos;
+                                }
+
+                            END_FIELD(); // whitespace counts as a field
+                        }
+                    }
+                        
 		    END_LINE();
 		    self->state = START_LINE;
 		}

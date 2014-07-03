@@ -46,12 +46,15 @@ cdef extern from "src/tokenizer.h":
         int iter_col           # index of the column being iterated over
         char *curr_pos         # current iteration position
         char *buf              # buffer for misc. data
+        int strip_whitespace_lines  # whether to strip whitespace at the beginning and end of lines
+        int strip_whitespace_fields # whether to strip whitespace at the beginning and end of fields
         # Example input/output
         # --------------------
         # source: "A,B,C\n10,5.,6\n1,2,3"
         # output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 
-    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols)
+    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
+                                  int strip_whitespace_lines, int strip_whitespace_fields)
     void delete_tokenizer(tokenizer_t *tokenizer)
     int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
     int int_size()
@@ -101,7 +104,7 @@ cdef class CParser:
         int width
         object names
 
-    def __cinit__(self, source,
+    def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
                   delimiter=',',
                   comment=None,
                   quotechar='"',
@@ -116,7 +119,8 @@ cdef class CParser:
                   fill_exclude_names=None,
                   fill_extra_cols=0):
 
-        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar), fill_extra_cols)
+        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar), fill_extra_cols,
+                                          strip_line_whitespace, strip_line_fields)
         self.source = None
         self.setup_tokenizer(source)
         self.header_start = header_start
@@ -237,8 +241,8 @@ cdef class CParser:
         self.tokenizer.num_cols = self.width
             
     def read(self):
-        if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
-                    <int *> self.use_cols.data, len(self.use_cols)) != 0:
+        if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
+                    len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
         else:
             self._set_fill_names()

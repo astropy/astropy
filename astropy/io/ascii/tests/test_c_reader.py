@@ -4,7 +4,7 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv
+from ..fastbasic import FastBasic, FastCsv, FastTab
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
@@ -45,6 +45,15 @@ def read_csv(table, **kwargs):
     t1 = reader.read(table)
     t2 = ascii.read(table, format='csv', guess=False, use_fast_reader=True, **kwargs)
     t3 = ascii.read(table, format='csv', guess=False, use_fast_reader=False, **kwargs)
+    assert_table_equal(t1, t2)
+    assert_table_equal(t2, t3)
+    return t1
+
+def read_tab(table, **kwargs):
+    reader = FastTab(**kwargs)
+    t1 = reader.read(table)
+    t2 = ascii.read(table, format='tab', guess=False, use_fast_reader=True, **kwargs)
+    t3 = ascii.read(table, format='tab', guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
     return t1
@@ -343,7 +352,7 @@ A, B, C
 , 1, 2
 3, , 4
 5, 5,
-""" #TODO: fix issue with empty final field (read_basic doesn't work here)
+"""
     table = read_csv(StringIO(text), fill_include_names=['A', 'B'])
     assert table['A'][0] is ma.masked
     assert table['B'][1] is ma.masked
@@ -397,3 +406,14 @@ def test_use_fast_reader():
     # Will try the slow reader afterwards by default
     ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False, comment='##')
     # TODO: find a way to test other cases
+
+def test_read_tab():
+    """
+    The fast reader for tab-separated values should not strip whitespace, unlike
+    the basic reader.
+    """
+    text = '1\t2\t3\n  a\t b \t'
+    table = read_tab(StringIO(text))
+    assert_equal(table['1'][0], '  a'.encode('utf-8')) # preserve line whitespace
+    assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
+    assert table['3'][0] is ma.masked # assumed empty value

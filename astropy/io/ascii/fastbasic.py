@@ -28,6 +28,8 @@ class FastBasic(object):
             self.header_start = kwargs.pop('header_start', 0)
             self.data_start = kwargs.pop('data_start', 1)
             self.kwargs = kwargs
+        self.strip_whitespace_lines = True
+        self.strip_whitespace_fields = True
 
     def _read_header(self):
         self.engine.read_header()
@@ -52,9 +54,14 @@ class FastBasic(object):
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
-        self.engine = cparser.CParser(table, delimiter=self.delimiter, header_start=self.header_start,
-                              comment=self.comment, quotechar=self.quotechar, data_start=self.data_start,
-                              fill_extra_cols=self.fill_extra_cols, **self.kwargs)
+        self.engine = cparser.CParser(table, self.strip_whitespace_lines, self.strip_whitespace_fields,
+                                      delimiter=self.delimiter,
+                                      header_start=self.header_start,
+                                      comment=self.comment,
+                                      quotechar=self.quotechar,
+                                      data_start=self.data_start,
+                                      fill_extra_cols=self.fill_extra_cols,
+                                      **self.kwargs)
         self._read_header()
         data = self.engine.read()
         return Table(data, names=self.names) # TODO: add masking, units, etc.
@@ -88,6 +95,8 @@ class FastTab(FastBasic):
     def __init__(self, **kwargs):
         delimiter = kwargs.pop('delimiter', '\t')
         FastBasic.__init__(self, delimiter=delimiter, **kwargs)
+        self.strip_whitespace_lines = False
+        self.strip_whitespace_fields = False
 
 class FastNoHeader(FastBasic):
     """

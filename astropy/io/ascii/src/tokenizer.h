@@ -50,6 +50,8 @@ typedef struct
     int iter_col;          // index of the column being iterated over
     char *curr_pos;        // current iteration position
     char *buf;             // buffer for misc. data
+    int strip_whitespace_lines;  // whether to strip whitespace at the beginning and end of lines
+    int strip_whitespace_fields; // whether to strip whitespace at the beginning and end of fields
 } tokenizer_t;
 
 /*
@@ -63,7 +65,8 @@ output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 #define INITIAL_COL_SIZE 50
 #define INITIAL_HEADER_SIZE 50
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols);
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
+                              int strip_whitespace_lines, int strip_whitespace_fields);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
