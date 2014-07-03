@@ -11,19 +11,17 @@ is affiliated with the `Astropy <http://www.astropy.org>`_ project and is
 intended for inclusion in the Astropy package once stable.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation.rst
    getting_started.rst
    ticks_labels_grid.rst
    overlays.rst
+   overlaying_coordinate_systems.rst
    slicing_datacubes.rst
    changing_axis_unit.rst
+   custom_frames.rst
+   api.rst
 
 
-Reference/API
-=============
-
-.. automodapi:: wcsaxes
-   :no-inheritance-diagram:
 

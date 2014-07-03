@@ -5,7 +5,7 @@ Installation
 Requirements
 ============
 
-WCSAxes requires Python 2.6, 2.7, 3.2, or 3.3, and the following Python
+WCSAxes requires Python 2.6, 2.7, 3.2, 3.3, or 3.4 and the following Python
 packages to be installed:
 
 * `Numpy <http://www.numpy.org>`_
@@ -21,8 +21,12 @@ package, such as the `Anaconda Python Distribution
 Installation
 ============
 
-You can install the latest developer version of WCSAxes by cloning the git
-repository::
+You can install the stable version of WCSAxes with::
+
+    pip install wcsaxes
+
+Alternatively, you can install the latest developer version of WCSAxes by
+cloning the git repository::
 
     git clone http://github.com/astrofrog/wcsaxes
 
@@ -35,8 +39,9 @@ Testing
 =======
 
 If you want to check that all the tests are running correctly with your Python
-configuration, you can also run::
+configuration, start up python, and type::
 
-    python setup.py test
+    import wcsaxes
+    wcsaxes.test()
 
-in the source directory. If there are no errors, you are good to go!    
+If there are no errors, you are good to go!    
