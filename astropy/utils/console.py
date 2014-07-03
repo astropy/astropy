@@ -105,9 +105,9 @@ def terminal_size(file=stdio.stdout):
     """
 
     try:
-        s = struct.pack("HHHH", 0, 0, 0, 0)
+        s = struct.pack(str("HHHH"), 0, 0, 0, 0)
         x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
-        (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
+        (lines, width, xpixels, ypixels) = struct.unpack(str("HHHH"), x)
         if lines > 12:
             lines -= 6
         if width > 10:
@@ -119,8 +119,9 @@ def terminal_size(file=stdio.stdout):
             return (int(os.environ.get('LINES')),
                     int(os.environ.get('COLUMNS')))
         except TypeError:
-            # fall back on configuration variables
-            return conf.max_lines, conf.max_width
+            # fall back on configuration variables, or if not
+            # set, (25, 80)
+            return conf.max_lines or 25, conf.max_width or 80
 
 
 def _color_text(text, color):

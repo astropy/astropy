@@ -411,6 +411,11 @@ API Changes
   - The repr() function of ``astropy.table.Table`` now shows the units
     if any columns have the unit attribute set.  [#2180]
 
+  - The semantics of the config options ``table.max_lines`` and
+    ``table.max_width`` has changed slightly.  If a 0 is provided, for
+    either, astropy will try to determine the size automatically from
+    the terminal.  This is the new default value for astropy 0.4.
+
 - ``astropy.time``
 
   - Correct use of UT in TDB calculation [#1938, #1939].
