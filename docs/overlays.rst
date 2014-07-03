@@ -1,6 +1,6 @@
-=================
-Plotting overlays
-=================
+====================
+Overplotting artists
+====================
 
 For the example in the following page we start from the example introduced in
 :doc:`getting_started`.
@@ -105,3 +105,4 @@ plot overlays in various coordinate systems.
 ..     ax.add_collection(c, transform=ax.get_transform('gal'))
 ..     ax.add_line(l, transform=ax.get_transform('fk4'))
 ..     ax.scatter(l, b, transform=ax.get_transform('gal'))
+..     ax.contour
