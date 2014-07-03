@@ -32,10 +32,10 @@ Transforms
 Apart from the handling of the ticks, tick labels, and grid lines, the
 :class:`wcsaxes.wcsaxes.WCSAxes` class behaves like a normal Matplotlib
 ``Axes`` instance, and methods such as
-:meth:`~wcsaxes.wcsaxes.WCSAxes.imshow`,
-:meth:`~wcsaxes.wcsaxes.WCSAxes.contour`,
-:meth:`~wcsaxes.wcsaxes.WCSAxes.plot`,
-:meth:`~wcsaxes.wcsaxes.WCSAxes.scatter`, and so on will work and plot the
+:meth:`~matplotlib.axes.Axes.imshow`,
+:meth:`~matplotlib.axes.Axes.contour`,
+:meth:`~matplotlib.axes.Axes.plot`,
+:meth:`~matplotlib.axes.Axes.scatter`, and so on will work and plot the
 data in pixel coordinates. However, all such Matplotlib commands allow a
 ``transform=`` argument to be passed, and the
 :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method can be used to get the
