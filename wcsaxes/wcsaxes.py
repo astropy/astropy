@@ -7,7 +7,7 @@ from astropy.wcs import WCS
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
-from .utils import get_coordinate_frame
+from .utils import get_coordinate_frame, get_coord_meta
 from .coordinate_range import find_coordinate_range
 from .frame import RectangularFrame
 
@@ -135,6 +135,8 @@ class WCSAxes(Axes):
         if isinstance(frame, WCS):
             coords = CoordinatesMap(self, frame, frame_class=self.frame_class)
         else:
+            if coord_meta is None:
+                coord_meta = get_coord_meta(frame)
             transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
             coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta, frame_class=self.frame_class)
 

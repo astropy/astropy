@@ -96,6 +96,27 @@ class TestTransformCoordMeta(BaseImageTests):
 
         self.generate_or_test(generate, fig, 'coords_overlay.png')
 
+    def test_coords_overlay_auto_coord_meta(self, generate):
+
+        fig = plt.figure(figsize=(4,4))
+
+        ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=WCS(self.msx_header))
+        fig.add_axes(ax)
+
+        ax.grid(color='red', alpha=0.5, linestyle='solid')
+
+        overlay = ax.get_coords_overlay('fk5')  # automatically sets coord_meta
+
+        overlay.grid(color='black', alpha=0.5, linestyle='solid')
+
+        overlay['ra'].set_ticks(color='black')
+        overlay['dec'].set_ticks(color='black')
+
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
+
+        self.generate_or_test(generate, fig, 'coords_overlay_auto_coord_meta.png')
+
     def test_direct_init(self, generate):
 
         s = DistanceToLonLat(R=6378.273)
@@ -109,7 +130,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], transform=s, coord_meta=coord_meta)
         fig.add_axes(ax)
-        
+
         ax.coords['lon'].grid(color='red', linestyle='solid', alpha=0.3)
         ax.coords['lat'].grid(color='blue', linestyle='solid', alpha=0.3)
 
