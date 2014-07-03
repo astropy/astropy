@@ -19,21 +19,26 @@ class FastBasic(object):
     _fast = True
     fill_extra_cols = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, default_kwargs={}, **user_kwargs):
+        kwargs = default_kwargs.copy()
+        kwargs.update(user_kwargs) # user kwargs take precedence over defaults
         self.delimiter = str(kwargs.pop('delimiter', ' '))
         self.comment = kwargs.pop('comment', '#')
         if self.comment is not None:
             self.comment = str(self.comment)
-            self.quotechar = str(kwargs.pop('quotechar', '"'))
-            self.header_start = kwargs.pop('header_start', 0)
-            self.data_start = kwargs.pop('data_start', 1)
-            self.kwargs = kwargs
+        self.quotechar = str(kwargs.pop('quotechar', '"'))
+        self.header_start = kwargs.pop('header_start', 0)
+        # If data_start is not specified, start reading data right after the header line
+        data_start_default = user_kwargs.get('data_start', self.header_start + 1
+                                             if self.header_start is not None else 1)
+        self.data_start = kwargs.pop('data_start', data_start_default)
+        self.kwargs = kwargs
         self.strip_whitespace_lines = True
         self.strip_whitespace_fields = True
 
     def _read_header(self):
+        # Use the tokenizer by default -- this method can be overrided for specialized headers
         self.engine.read_header()
-        self.names = list(self.engine.names)
 
     def read(self, table): # TODO: actually take the parameters from _get_reader()
         if len(self.comment) != 1:
@@ -64,7 +69,7 @@ class FastBasic(object):
                                       **self.kwargs)
         self._read_header()
         data = self.engine.read()
-        return Table(data, names=self.names) # TODO: add masking, units, etc.
+        return Table(data, names=list(self.engine.names)) # TODO: add masking, units, etc.
 
 class FastCsv(FastBasic):
     """
@@ -80,12 +85,11 @@ class FastCsv(FastBasic):
     fill_extra_cols = True
 
     def __init__(self, **kwargs):
-        delimiter = kwargs.pop('delimiter', ',')
-        FastBasic.__init__(self, delimiter=delimiter, **kwargs)
+        FastBasic.__init__(self, {'delimiter': ','}, **kwargs)
 
 class FastTab(FastBasic):
     """
-    A faster version of the ordinary :class:`Tab` writer that uses the optimized
+    A faster version of the ordinary :class:`Tab` reader that uses the optimized
     C parsing engine.
     """
     _format_name = 'fast_tab'
@@ -94,7 +98,7 @@ class FastTab(FastBasic):
 
     def __init__(self, **kwargs):
         delimiter = kwargs.pop('delimiter', '\t')
-        FastBasic.__init__(self, delimiter=delimiter, **kwargs)
+        FastBasic.__init__(self, {'delimiter': '\t'}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
 
@@ -108,9 +112,28 @@ class FastNoHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        header_start = kwargs.pop('header_start', None)
-        data_start = kwargs.pop('data_start', 0)
-        FastBasic.__init__(self, header_start=header_start, data_start=data_start, **kwargs)
+        FastBasic.__init__(self, {'header_start': None, 'data_start': 0}, **kwargs)
+
+class FastCommentedHeader(FastBasic):
+    """
+    A faster version of the :class:`CommentedHeader` reader, which looks for
+    column names in a commented line. ``header_start`` denotes the index of
+    the header line among all commented lines and is 0 by default.
+    """
+    _format_name = 'fast_commented_header'
+    _description = 'Columns name in a commented line using the fast C engine'
+    _fast = True
+
+    def __init__(self, **kwargs):
+        FastBasic.__init__(self, {'data_start': 0}, **kwargs)
+
+    def _read_header(self):
+        tmp = self.engine.source
+        commented_lines = [line.lstrip()[1:] for line in tmp.split('\n') if line and line.lstrip()[0] == '#']
+        self.engine.setup_tokenizer([commented_lines[self.header_start]])
+        self.engine.header_start = 0
+        self.engine.read_header()
+        self.engine.setup_tokenizer(tmp)
 
 # TODO: write FastRdb, FastCommentedHeader...will require some changes to tokenizer
 

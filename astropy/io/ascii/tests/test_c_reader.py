@@ -4,7 +4,7 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab
+from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
@@ -31,32 +31,26 @@ def assert_table_equal(t1, t2):
                 except (TypeError, NotImplementedError):
                     pass # ignore for now
 
-def read_basic(table, **kwargs):
-    reader = FastBasic(**kwargs)
+def _read(table, Reader, format, **kwargs):
+    reader = Reader(**kwargs)
     t1 = reader.read(table)
-    t2 = ascii.read(table, format='basic', guess=False, use_fast_reader=True, **kwargs)
-    t3 = ascii.read(table, format='basic', guess=False, use_fast_reader=False, **kwargs)
+    t2 = ascii.read(table, format=format, guess=False, use_fast_reader=True, **kwargs)
+    t3 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
     return t1
+
+def read_basic(table, **kwargs):
+    return _read(table, FastBasic, 'basic', **kwargs)
 
 def read_csv(table, **kwargs):
-    reader = FastCsv(**kwargs)
-    t1 = reader.read(table)
-    t2 = ascii.read(table, format='csv', guess=False, use_fast_reader=True, **kwargs)
-    t3 = ascii.read(table, format='csv', guess=False, use_fast_reader=False, **kwargs)
-    assert_table_equal(t1, t2)
-    assert_table_equal(t2, t3)
-    return t1
+    return _read(table, FastCsv, 'csv', **kwargs)
 
 def read_tab(table, **kwargs):
-    reader = FastTab(**kwargs)
-    t1 = reader.read(table)
-    t2 = ascii.read(table, format='tab', guess=False, use_fast_reader=True, **kwargs)
-    t3 = ascii.read(table, format='tab', guess=False, use_fast_reader=False, **kwargs)
-    assert_table_equal(t1, t2)
-    assert_table_equal(t2, t3)
-    return t1
+    return _read(table, FastTab, 'tab', **kwargs)
+
+def read_commented_header(table, **kwargs):
+    return _read(table, FastCommentedHeader, 'commented_header', **kwargs)
 
 def test_simple_data():
     """
@@ -110,7 +104,7 @@ def test_comment():
     """
     Make sure that line comments are ignored by the C reader.
     """
-    table = read_basic(StringIO("# comment\nA B C\n# another comment\n1 2 3\n4 5 6"))
+    table = read_basic(StringIO("# comment\nA B C\n # another comment\n1 2 3\n4 5 6"))
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -436,3 +430,34 @@ def test_read_tab():
     assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
     assert table['3'][0] is ma.masked # empty value should be masked
     assert_equal(table['3'][1], '  '.encode('utf-8')) # preserve end-of-line whitespace
+
+def test_data_line():
+    """
+    If data_line is not explicitly passed to read(), data processing should
+    beginning right after the header.
+    """
+    text = 'ignore this line\na b c\n1 2 3\n4 5 6'
+    table = read_basic(StringIO(text), header_start=1)
+    expected = Table([[1, 4], [2, 5], [3, 6]], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)
+
+def test_commented_header():
+    """
+    The FastCommentedHeader reader should mimic the behavior of the
+    CommentedHeader by overriding the default header behavior of FastBasic.
+    """
+    text = """
+ # A B C
+ 1 2 3
+ 4 5 6
+"""
+    t1 = read_commented_header(StringIO(text))
+    expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
+    assert_table_equal(t1, expected)
+
+    text = '# first commented line\n # second commented line\n\n' + text
+    #TODO: think about what to do if data_start=None (old reader has surprising functionality)
+    t2 = read_commented_header(StringIO(text), header_start=2, data_start=0)
+    assert_table_equal(t2, expected)
+    t3 = read_commented_header(StringIO(text), header_start=-1, data_start=0) # negative indexing allowed
+    assert_table_equal(t3, expected)

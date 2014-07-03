@@ -86,8 +86,6 @@ cdef class CParser:
 
     cdef:
         tokenizer_t *tokenizer
-        object source
-        object header_start
         int data_start
         int data_end
         object data_end_obj
@@ -103,6 +101,8 @@ cdef class CParser:
     cdef public:
         int width
         object names
+        object source
+        object header_start
 
     def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
                   delimiter=',',
@@ -158,7 +158,7 @@ cdef class CParser:
 
         raise CParserError("{0}: {1}".format(msg, err_msg))
 
-    cdef setup_tokenizer(self, source):
+    cpdef setup_tokenizer(self, source):
         cdef char *src
 
         if isinstance(source, six.string_types) or hasattr(source, 'read'):
