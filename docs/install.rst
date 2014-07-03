@@ -323,6 +323,10 @@ packages:
 
     - `Graphviz <http://www.graphviz.org>`_
 
+    - `Astropy-helpers <https://github.com/astropy/astropy-helpers>`_ (Astropy
+      and most affiliated packages include this as a submodule in the source
+      repository, so it does not need to be installed separately.)
+
 .. note::
 
     Sphinx also requires a reasonably modern LaTeX installation to render
