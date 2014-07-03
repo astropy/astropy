@@ -113,8 +113,8 @@ or a string describing the format:
    :include-source:
    :align: center
 
-    lon.set_major_formatter('dd:mm')
-    lat.set_major_formatter('dd:mm:ss.s')
+    lon.set_major_formatter('dd:mm:ss.s')
+    lat.set_major_formatter('dd:mm')
 
 The syntax for the format string is the following:
 
