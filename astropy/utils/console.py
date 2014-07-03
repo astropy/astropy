@@ -103,7 +103,6 @@ def terminal_size(file=stdio.stdout):
     before falling back on the width and height in astropy's
     configuration.
     """
-
     try:
         s = struct.pack(str("HHHH"), 0, 0, 0, 0)
         x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
@@ -121,7 +120,13 @@ def terminal_size(file=stdio.stdout):
         except TypeError:
             # fall back on configuration variables, or if not
             # set, (25, 80)
-            return conf.max_lines or 25, conf.max_width or 80
+            lines = conf.max_lines
+            width = conf.max_width
+            if lines is None:
+                lines = 25
+            if width is None:
+                lines = 80
+            return lines, width
 
 
 def _color_text(text, color):

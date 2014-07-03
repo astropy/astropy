@@ -95,9 +95,10 @@ class TableFormatter(object):
         max_lines, max_width : int
 
         """
-        if conf.max_lines:
+        if max_lines is None:
             max_lines = conf.max_lines
-        if conf.max_width:
+
+        if max_width is None:
             max_width = conf.max_width
 
         if max_lines is None or max_width is None:
