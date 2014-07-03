@@ -669,6 +669,11 @@ Other Changes and Additions
 - Where appropriate, tests are now run both with and without the
   ``unicode_literals`` option to ensure that we support both cases. [#1962]
 
+- Running the Astropy test suite from within the IPython REPL is disabled for
+  now due to bad interaction between the test runner and IPython's logging
+  and I/O handler.  For now, run the Astropy tests should be run in the basic
+  Python interpreter. [#2684]
+
 - Added support for numerical comparison of floating point values appearing in
   the output of doctests using a ``+FLOAT_CMP`` doctest flag. [#2087]
 
