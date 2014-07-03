@@ -17,6 +17,7 @@ intended for inclusion in the Astropy package once stable.
    getting_started.rst
    ticks_labels_grid.rst
    overlays.rst
+   overlaying_coordinate_systems.rst
    slicing_datacubes.rst
    changing_axis_unit.rst
    api.rst
