@@ -40,6 +40,7 @@ To install Astropy with `pip <http://www.pip-installer.org/en/latest/>`_, simply
     pip install --no-deps astropy
 
 .. warning::
+
     Users of the Anaconda python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
@@ -82,13 +83,16 @@ run::
     conda update astropy
 
 .. note::
+
     There may be a delay of a day or to between when a new version of Astropy
     is released and when a package is available for Anaconda. You can check
     for the list of available versions with ``conda search astropy``.
 
 .. note::
+
     Attempting to use ``pip`` to upgrade your installation of Astropy may result
     in a corrupted installation.
+
 
 Binary installers
 -----------------
@@ -97,6 +101,7 @@ Binary installers are available on Windows for Python 2.6, 2.7, 3.1, and 3.2
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 .. _testing_installed_astropy:
+
 
 Testing an installed Astropy
 ----------------------------
@@ -116,6 +121,12 @@ the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
     astropy source distribution.  See :ref:`sourcebuildtest` for how to
     run the tests from the source code directory, or :ref:`running-tests`
     for more details.
+
+.. note::
+
+    Running the tests this wa is currently disabled in the IPython REPL due
+    to conflicts with some common display settings in IPython.  Please run the
+    Astropy tests under the standard Python command-line interpreter.
 
 
 
@@ -139,18 +150,19 @@ to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)
 
-.. note:: If you are using MacOS X, you will need to the XCode command line
-          tools.  One way to get them is to install `XCode
-          <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7
-          (Lion) or later, you must also explicitly install the command line
-          tools. You can do this by opening the XCode application, going to
-          **Preferences**, then **Downloads**, and then under
-          **Components**, click on the Install button to the right of
-          **Command Line Tools**.  Alternatively, on 10.7 (Lion) or later,
-          you do not need to install XCode, you can download just the
-          command line tools from
-          https://developer.apple.com/downloads/index.action (requires an
-          Apple developer account).
+.. note:: 
+
+    If you are using MacOS X, you will need to the XCode command line tools.
+    One way to get them is to install `XCode
+    <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7 (Lion)
+    or later, you must also explicitly install the command line tools. You can
+    do this by opening the XCode application, going to **Preferences**, then
+    **Downloads**, and then under **Components**, click on the Install button
+    to the right of **Command Line Tools**.  Alternatively, on 10.7 (Lion) or
+    later, you do not need to install XCode, you can download just the command
+    line tools from https://developer.apple.com/downloads/index.action
+    (requires an Apple developer account).
+
 
 Obtaining the source packages
 -----------------------------
@@ -197,6 +209,7 @@ To install Astropy (from the root of the source tree)::
 
     python setup.py install
 
+
 Troubleshooting
 ---------------
 
@@ -207,6 +220,7 @@ installing with::
     python setup.py install --user
 
 which will install into a default directory in your home directory.
+
 
 External C libraries
 ^^^^^^^^^^^^^^^^^^^^
@@ -253,14 +267,15 @@ If upon running the ``setup.py`` script you get a message like
 
 this is because you have a very outdated version of the `setuptools
 <https://pythonhosted.org/setuptools/>`_ package which is used to install
-Python packages.  Normally Astropy will bootstrap a newer version of
+Python packages.  Normally Astropy will bootstrap newer version of
 setuptools via the network, but setuptools suggests that you first
 *uninstall* the old version (the ``easy_install -U setuptools`` command).
-However, in the likely case that your version of setuptools was installed by
-an OS system package (on Linux check your package manager like apt or yum
-for a package called ``python-setuptools`` to be user).  In this case trying
-to uninstall with ``easy_install`` and without using ``sudo`` may not work,
-or may leave your system package in an inconsistent state.
+
+However, in the likely case that your version of setuptools was installed by an
+OS system package (on Linux check your package manager like apt or yum for a
+package called ``python-setuptools``), trying to uninstall with
+``easy_install`` and without using ``sudo`` may not work, or may leave your
+system package in an inconsistent state.
 
 As the best course of action at this point depends largely on the individual
 system and how it is configured, if you are not sure yourself what do please
@@ -295,6 +310,7 @@ Building documentation
 ----------------------
 
 .. note::
+
     Building the documentation is in general not necessary unless you
     are writing new documentation or do not have internet access, because
     the latest (and archive) versions of astropy's documentation should

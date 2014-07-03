@@ -20,9 +20,9 @@ Building the Documentation from source
 For information about building the documentation from source, see
 the :ref:`builddocs` section in the installation instructions.
 
+
 Astropy Documentation Rules and Guidelines
 ------------------------------------------
-
 
 This section describes the standards for documentation format affiliated
 packages that must follow for consideration of integration into the core
