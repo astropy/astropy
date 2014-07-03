@@ -11,7 +11,7 @@ is affiliated with the `Astropy <http://www.astropy.org>`_ project and is
 intended for inclusion in the Astropy package once stable.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation.rst
    getting_started.rst
@@ -19,11 +19,7 @@ intended for inclusion in the Astropy package once stable.
    overlays.rst
    slicing_datacubes.rst
    changing_axis_unit.rst
+   api.rst
 
 
-Reference/API
-=============
-
-.. automodapi:: wcsaxes
-   :no-inheritance-diagram:
 
