@@ -1,5 +1,9 @@
 import numpy as np
+
 from astropy import units as u
+from astropy.coordinates import frame_transform_graph
+
+from . import six
 
 # Modified from axis_artist, supports astropy.units
 
@@ -136,6 +140,21 @@ def get_coordinate_frame(wcs):
                                                                    wcs.wcs.ctype[1]))
 
     return coordinate_class
+
+
+def get_coord_meta(frame):
+
+    if isinstance(frame, six.string_types):
+        frame = frame_transform_graph.lookup_name(frame)
+
+    coord_meta = {}
+    coord_meta['type'] = ('longitude', 'latitude')
+    coord_meta['wrap'] = (None, None)
+    coord_meta['unit'] = (u.deg, u.deg)
+    names = frame().representation_component_names.keys()
+    coord_meta['name'] = names[:2]
+
+    return coord_meta
 
 
 def coord_type_from_ctype(ctype):
