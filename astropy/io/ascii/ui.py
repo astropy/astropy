@@ -153,8 +153,8 @@ def read(table, guess=None, **kwargs):
                     else:
                         raise e
             elif use_fast_reader: # user specified use_fast_reader=True, but no fast reader exists
-                raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers {1}'
-                                 .format(format, sorted(core.FAST_CLASSES)))
+                raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers: {1}'
+                                 .format(format, sorted(x[5:] for x in core.FAST_CLASSES))) # ignore fast_ prefix
             else:
                 dat = reader.read(table)
         else:
@@ -187,8 +187,8 @@ def _guess(table, read_kwargs, format, use_fast_reader):
                              'a fast reader')
         else:
             # format has no fast reader
-            raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers {1}'
-                             .format(format, sorted(core.FAST_CLASSES)))
+            raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers: {1}'
+                             .format(format, sorted(x[5:] for x in core.FAST_CLASSES))) # ignore fast_ prefix
 
     # First try guessing
     for guess_kwargs in first_kwargs + _get_guess_kwargs_list():

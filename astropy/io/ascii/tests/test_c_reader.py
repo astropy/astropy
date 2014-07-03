@@ -124,7 +124,7 @@ def test_empty_lines():
 
 def test_lstrip_whitespace():
     """
-    Test to make sure the whitespace ignores whitespace at the beginning of fields.
+    Test to make sure the reader ignores whitespace at the beginning of fields.
     """
     text = """
      1,  2,   \t3
@@ -132,6 +132,19 @@ def test_lstrip_whitespace():
   a, b,   c
   
    """
+    table = read_basic(StringIO(text), delimiter=',')
+    expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
+    assert_table_equal(table, expected)
+
+def test_rstrip_whitespace():
+    """
+    Test to make sure the reader ignores whitespace at the end of fields.
+    """
+    text = """
+ 1 ,2 \t,3  
+A\t,B ,C\t \t 
+  \ta ,b , c 
+"""
     table = read_basic(StringIO(text), delimiter=',')
     expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
     assert_table_equal(table, expected)
@@ -407,13 +420,19 @@ def test_use_fast_reader():
     ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False, comment='##')
     # TODO: find a way to test other cases
 
+    # read() should raise an error if no fast reader is available
+    with pytest.raises(ValueError) as e:
+        ascii.read('t/ipac.dat', format='ipac', use_fast_reader=True)
+    assert 'not in the list of formats with fast readers' in str(e)
+
 def test_read_tab():
     """
     The fast reader for tab-separated values should not strip whitespace, unlike
     the basic reader.
     """
-    text = '1\t2\t3\n  a\t b \t'
+    text = '1\t2\t3\n  a\t b \t\n c\td\t  '
     table = read_tab(StringIO(text))
     assert_equal(table['1'][0], '  a'.encode('utf-8')) # preserve line whitespace
     assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
-    assert table['3'][0] is ma.masked # assumed empty value
+    assert table['3'][0] is ma.masked # empty value should be masked
+    assert_equal(table['3'][1], '  '.encode('utf-8')) # preserve end-of-line whitespace

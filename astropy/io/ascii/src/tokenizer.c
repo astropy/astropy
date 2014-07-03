@@ -118,7 +118,8 @@ void resize_header(tokenizer_t *self)
     }
 
 /*
-  Unless this column will be excluded from output, append a null
+  First, backtrack to eliminate trailing whitespace if strip_whitespace_fields
+  is true. Unless this column will be excluded from output, append a null
   byte to the end of the column string as a field delimiting marker.
   Increment the variable col and eturn the value TOO_MANY_COLS if
   there are too many columns in this row. Increment real_col even if
@@ -126,12 +127,40 @@ void resize_header(tokenizer_t *self)
 */
 
 #define END_FIELD()							\
-    if (header || real_col >= use_cols_len || use_cols[real_col])	\
-    {									\
-	PUSH('\x00');							\
-	if (!header && ++col > self->num_cols)				\
-	    RETURN(TOO_MANY_COLS);					\
-    }									\
+    if (header)                                                         \
+    {                                                                   \
+        if (self->strip_whitespace_fields)                              \
+        {                                                               \
+            --output_pos;                                               \
+            while (self->header_output[output_pos] == ' ' ||            \
+                   self->header_output[output_pos] == '\t')             \
+            {                                                           \
+                self->header_output[output_pos--] = '\x00';             \
+            }                                                           \
+            ++output_pos;                                               \
+        }                                                               \
+        PUSH('\x00');                                                   \
+    }                                                                   \
+    else if (real_col >= use_cols_len)                                  \
+    {                                                                   \
+        RETURN(TOO_MANY_COLS);                                          \
+    }                                                                   \
+    else if (use_cols[real_col])                                        \
+    {                                                                   \
+        if (self->strip_whitespace_fields)                              \
+        {                                                               \
+            --self->col_ptrs[col];                                      \
+            while (*self->col_ptrs[col] == ' ' ||                       \
+                   *self->col_ptrs[col] == '\t')                        \
+            {                                                           \
+                *self->col_ptrs[col]-- = '\x00';                        \
+            }                                                           \
+            ++self->col_ptrs[col];                                      \
+        }                                                               \
+        PUSH('\x00');                                                   \
+        if (++col > self->num_cols)                                     \
+            RETURN(TOO_MANY_COLS);                                      \
+    }                                                                   \
     ++real_col;
 
 /*
