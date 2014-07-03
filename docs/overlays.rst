@@ -66,10 +66,13 @@ If the world coordinate system of the plot is a celestial coordinate system,
 the following built-in sky coordinate systems would be available from the
 ``get_transform`` method:
 
-* ``'fk4'`` or ``'b1950'``: B1950 equatorial coordinates
-* ``'fk5'`` or ``'j2000'``: J2000 equatorial coordinates
+* ``'fk4'``: B1950 FK4 equatorial coordinates
+* ``'fk5'``: J2000 FK5 equatorial coordinates
+* ``'icrs'``: ICRS equatorial coordinates
+* ``'galactic'``: Galactic coordinates
 
-and more coordinate systems will be added in future.
+It is also possible to directly pass a frame object from
+:mod:`astropy.coordinates`.
 
 Patches/shapes/lines
 ====================
