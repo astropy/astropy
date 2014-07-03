@@ -133,11 +133,18 @@ The syntax for the format string is the following:
 ``'d.d'``             ``'15.4'``
 ``'d.dd'``            ``'15.39'``
 ``'d.ddd'``           ``'15.392'``
+``'m'``               ``'924'``
+``'m.m'``             ``'923.5'``
+``'m.mm'``            ``'923.53'``
+``'s'``               ``'55412'``
+``'s.s'``             ``'55412.0'``
+``'s.ss'``            ``'55412.03'``
 ``'x.xxxx'``          ``'15.3922'``
 ==================== ====================
 
-All the ``d...`` and ``h...`` formats can be used for angular coordinate axes,
-while the ``x...`` formats should be used for non-angular coordinate axes.
+All the ``h...``, ``d...``, ``m...``, and ``s...`` formats can be used for
+angular coordinate axes, while the ``x...`` formats should be used for
+non-angular coordinate axes.
 
 Tick/label spacing and properties
 =================================
