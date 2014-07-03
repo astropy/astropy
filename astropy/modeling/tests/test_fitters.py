@@ -20,6 +20,7 @@ from ..fitting import *
 from ...utils import NumpyRNGContext
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
+from .utils import ignore_non_integer_warning
 
 try:
     from scipy import optimize
@@ -278,7 +279,8 @@ class TestNonLinearFitters(object):
 
         levmar = LevMarLSQFitter()
         fitter = fitter_class()
-        new_model = fitter(self.gauss, self.xdata, self.ydata)
+        with ignore_non_integer_warning():
+            new_model = fitter(self.gauss, self.xdata, self.ydata)
         model = levmar(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
                         rtol=10 ** (-4))
@@ -293,7 +295,8 @@ class TestNonLinearFitters(object):
         g1.mean.fixed = True
         fitter = LevMarLSQFitter()
         fslsqp = SLSQPLSQFitter()
-        slsqp_model = fslsqp(g1, self.xdata, self.ydata)
+        with ignore_non_integer_warning():
+            slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
                         rtol=10 ** (-4))
