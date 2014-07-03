@@ -66,8 +66,8 @@ plotted image changes.
 Plotting the image
 ==================
 
-We then add the axes to the image and plot it using the matplotlib 
-method :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow`.
+We then add the axes to the image and plot it using the method
+:meth:`~matplotlib.axes.Axes.imshow`.
 
 .. plot::
    :context:
@@ -80,7 +80,7 @@ method :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow`.
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order
 of the axes is reversed so the first dimension in the FITS file appears last, 
 the last dimension appears first and so on. Therefore the index passed to 
-:meth:`~wcsaxes.wcsaxes.WCSAxes.imshow` should be the same as passed to 
+:meth:`~matplotlib.axes.Axes.imshow` should be the same as passed to 
 ``slices`` but in reversed order. We also need to 
 :meth:`~numpy.ndarray.transpose` ``image_data`` as we have reversed the 
 dimensions plotted on the x and y axes in the slice.

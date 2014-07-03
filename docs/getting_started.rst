@@ -48,8 +48,8 @@ created above:
 
 By default, the field of view shown is, as for standard matplotlib axes, 0 to
 1 in both directions, in pixel coordinates. The
-:meth:`~wcsaxes.wcsaxes.WCSAxes.set_xlim` and
-:meth:`~wcsaxes.wcsaxes.WCSAxes.set_ylim` methods can be used to re-set the
+:meth:`~matplotlib.axes.Axes.set_xlim` and
+:meth:`~matplotlib.axes.Axes.set_ylim` methods can be used to re-set the
 pixel coordinates. For example, we can set the limits to the edge of the FITS
 image in pixel coordinates:
 
@@ -68,8 +68,8 @@ Plotting images and contours
 ============================
 
 Plotting images as bitmaps or contours should be done via the usual matplotlib
-methods such as :meth:`~wcsaxes.wcsaxes.WCSAxes.imshow` or
-:meth:`~wcsaxes.wcsaxes.WCSAxes.contour`. For example, to plot the data from
+methods such as :meth:`~matplotlib.axes.Axes.imshow` or
+:meth:`~matplotlib.axes.Axes.contour`. For example, to plot the data from
 the file read in `Initialization`_, you can do:
 
 .. plot::
