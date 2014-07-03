@@ -103,18 +103,16 @@ allowed.
 Tick label format
 =================
 
-The format of the tick labels can be specified with the
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_major_formatter` 
-method. This method accepts either a standard Matplotlib ``Formatter`` object,
-or a string describing the format:
+The format of the tick labels can be specified with a string describing the
+format:
 
 .. plot::
    :context:
    :include-source:
    :align: center
 
-    lon.set_major_formatter('dd:mm')
-    lat.set_major_formatter('dd:mm:ss.s')
+    lon.set_major_formatter('dd:mm:ss.s')
+    lat.set_major_formatter('dd:mm')
 
 The syntax for the format string is the following:
 
