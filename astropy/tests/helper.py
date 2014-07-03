@@ -114,6 +114,14 @@ class TestRunner(object):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
+        try:
+            get_ipython()
+        except NameError:
+            pass
+        else:
+            raise RuntimeError(
+                "Running astropy tests inside of IPython is not supported.")
+
         if coverage:
             warnings.warn(
                 "The coverage option is ignored on run_tests, since it "
