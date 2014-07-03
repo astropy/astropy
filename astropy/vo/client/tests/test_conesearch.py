@@ -79,7 +79,7 @@ class TestConeSearch(object):
 
         """
         tab_1 = conesearch.conesearch(
-            center, radius, pedantic=self.pedantic, verbose=self.verbose)
+            center, radius, pedantic=None, verbose=self.verbose)
 
         assert tab_1.array.size > 0
 
