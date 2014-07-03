@@ -103,9 +103,45 @@ to plot for example in FK5 equatorial coordinates:
 
 Many Matplotlib methods accept the ``transform=`` option, so
 :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` can be used in many cases to
-plot overlays in various coordinate systems.
+plot overlays in various coordinate systems. A few examples are shown below.
 
-..     ax.add_collection(c, transform=ax.get_transform('gal'))
-..     ax.add_line(l, transform=ax.get_transform('fk4'))
-..     ax.scatter(l, b, transform=ax.get_transform('gal'))
-..     ax.contour
+Contours
+========
+
+Overplotting contours is also simple using the
+:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method. For contours,
+:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` should be given the WCS of the
+image to plot the contours for:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    hdu = datasets.bolocam_hdu()
+    ax.contour(hdu.data, transform=ax.get_transform(WCS(hdu.header)),
+               levels=[1,2,3,4,5,6], colors='white')
+
+    ax.set_xlim(-0.5, 148.5)
+    ax.set_ylim(-0.5, 148.5)
+
+The calls to ``set_xlim`` and ``set_ylim`` are included here as the contours
+cover a larger region than the image, so we want to make sure we focus just on
+the image.
+
+Scatter plots
+=============
+
+Since the ``ax.scatter`` Matplotlib routine can take the ``transform`` option,
+it can also be used to plot objects in various coordinate systems:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+   
+    l = [0.25, 0.20, 0.30, 0.27]
+    b = [0.20, 0.23, 0.27, 0.30]
+
+    ax.scatter(l, b, transform=ax.get_transform('galactic'), s=100,
+               edgecolor='white', facecolor='yellow', alpha=0.5)
