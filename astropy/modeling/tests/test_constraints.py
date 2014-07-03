@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import types
+
 from ..core import Fittable1DModel
 from ..parameters import Parameter
 from .. import models
@@ -12,6 +13,7 @@ import numpy as np
 from numpy.testing import utils
 from numpy.random import RandomState
 from ...tests.helper import pytest
+from .utils import ignore_non_integer_warning
 
 try:
     from scipy import optimize
@@ -133,7 +135,8 @@ class TestBounds(object):
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1D(guess_slope, guess_intercept, bounds=bounds)
         fitter = fitting.SLSQPLSQFitter()
-        model = fitter(line_model, self.x, self.y)
+        with ignore_non_integer_warning():
+            model = fitter(line_model, self.x, self.y)
         slope = model.slope.value
         intercept = model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
@@ -175,7 +178,8 @@ class TestBounds(object):
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
         gauss_fit = fitting.SLSQPLSQFitter()
-        model = gauss_fit(gauss, X, Y, self.data)
+        with ignore_non_integer_warning():
+            model = gauss_fit(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
         x_stddev = model.x_stddev.value
