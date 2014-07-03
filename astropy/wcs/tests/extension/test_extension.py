@@ -6,6 +6,8 @@ import os
 import subprocess
 import sys
 
+from ....tests.helper import pytest
+
 
 def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
@@ -40,6 +42,21 @@ def test_wcsapi_extension(tmpdir):
     except UnicodeDecodeError:
        # Don't try to guess about encoding; just display the text
         stdout, stderr = stdout.decode('latin1'), stderr.decode('latin1')
+
+    # If compilation fails, we can skip this test, since the
+    # dependencies necessary to compile an extension may be missing.
+    # If it passes, however, we want to continue and ensure that the
+    # extension created is actually usable.  However, if we're on
+    # Travis-CI, or another generic continuous integration setup, we
+    # don't want to ever skip, because having it fail in that
+    # environment probably indicates something more serious that we
+    # want to know about.
+    if (not (str('CI') in os.environ or
+             str('TRAVIS') in os.environ or
+             str('CONTINUOUS_INTEGRATION') in os.environ) and
+        p.returncode):
+        pytest.skip("system unable to compile extensions")
+        return
 
     assert p.returncode == 0, (
         "setup.py exited with non-zero return code {0}\n"
