@@ -1,7 +1,6 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import frame_transform_graph
 
 from . import six
 
@@ -144,15 +143,30 @@ def get_coordinate_frame(wcs):
 
 def get_coord_meta(frame):
 
-    if isinstance(frame, six.string_types):
-        frame = frame_transform_graph.lookup_name(frame)
-
     coord_meta = {}
     coord_meta['type'] = ('longitude', 'latitude')
     coord_meta['wrap'] = (None, None)
     coord_meta['unit'] = (u.deg, u.deg)
-    names = frame().representation_component_names.keys()
-    coord_meta['name'] = names[:2]
+
+    try:
+
+        from astropy.coordinates import frame_transform_graph
+
+        if isinstance(frame, six.string_types):
+            frame = frame_transform_graph.lookup_name(frame)
+
+        names = frame().representation_component_names.keys()
+        coord_meta['name'] = names[:2]
+
+    except ImportError:
+
+        if isinstance(frame, six.string_types):
+            if frame in ('fk4', 'fk5', 'icrs'):
+                coord_meta['name'] = ('ra', 'dec')
+            elif frame == 'galactic':
+                coord_meta['name'] = ('l', 'b')
+            else:
+                raise ValueError("Unknown frame: {0}".format(frame))
 
     return coord_meta
 
