@@ -472,12 +472,13 @@ def test_set_guess_kwarg():
 
 
 @raises(ascii.InconsistentTableError)
-def test_read_rdb_wrong_type():
+@pytest.fixture(params=[True, False])
+def test_read_rdb_wrong_type(request):
     """Read RDB data with inconstent data type (except failure)"""
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    ascii.read(table, Reader=ascii.Rdb)
+    ascii.read(table, Reader=ascii.Rdb, use_fast_reader=request.param)
 
 
 @pytest.fixture(params=[True, False])

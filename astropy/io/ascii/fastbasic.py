@@ -4,6 +4,8 @@ from . import core
 from ...extern import six
 from ...table import Table
 from . import cparser
+from ...extern.six.moves import zip as izip
+import re
 
 @six.add_metaclass(core.MetaBaseReader)
 class FastBasic(object):
@@ -40,7 +42,7 @@ class FastBasic(object):
         # Use the tokenizer by default -- this method can be overrided for specialized headers
         self.engine.read_header()
 
-    def read(self, table): # TODO: actually take the parameters from _get_reader()
+    def read(self, table):
         if len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
         elif self.data_start is None:
@@ -67,8 +69,15 @@ class FastBasic(object):
                                       data_start=self.data_start,
                                       fill_extra_cols=self.fill_extra_cols,
                                       **self.kwargs)
-        self._read_header()
-        data = self.engine.read()
+        conversion_info = self._read_header()
+        if conversion_info is not None:
+            try_int, try_float, try_string = conversion_info
+        else:
+            try_int = {}
+            try_float = {}
+            try_string = {}
+
+        data = self.engine.read(try_int, try_float, try_string)
         return Table(data, names=list(self.engine.names)) # TODO: add masking, units, etc.
 
 class FastCsv(FastBasic):
@@ -97,7 +106,6 @@ class FastTab(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        delimiter = kwargs.pop('delimiter', '\t')
         FastBasic.__init__(self, {'delimiter': '\t'}, **kwargs)
         self.strip_whitespace_lines = False
         self.strip_whitespace_fields = False
@@ -128,13 +136,77 @@ class FastCommentedHeader(FastBasic):
         FastBasic.__init__(self, {'data_start': 0}, **kwargs)
 
     def _read_header(self):
-        tmp = self.engine.source
-        commented_lines = [line.lstrip()[1:] for line in tmp.split('\n') if line and line.lstrip()[0] == '#']
+        tmp = self.engine.source.decode('utf-8')
+        commented_lines = []
+
+        for line in tmp.split('\n'):
+            if line:
+                line = line.lstrip()
+                if line[0] == self.comment: # line begins with a comment
+                    commented_lines.append(line[1:])
+
         self.engine.setup_tokenizer([commented_lines[self.header_start]])
         self.engine.header_start = 0
         self.engine.read_header()
         self.engine.setup_tokenizer(tmp)
 
-# TODO: write FastRdb, FastCommentedHeader...will require some changes to tokenizer
+class FastRdb(FastBasic):
+    """
+    A faster version of the :class:`Rdb` reader. This format is similar to
+    tab-delimited, but it also contains a header line after the column
+    name line denoting the type of each column (N for numeric, S for string).
+    """
+    _format_name = 'fast_rdb'
+    _description = 'Tab-separated with a type definition header line'
+    _fast = True
 
+    def __init__(self, **kwargs):
+        FastBasic.__init__(self, {'delimiter': '\t', 'data_start': 2}, **kwargs)
+        self.strip_whitespace_lines = False
+        self.strip_whitespace_fields = False
 
+    def _read_header(self):
+        tmp = self.engine.source.decode('utf-8')
+        #todo check whitespace line in addition to empty
+        line1 = ''
+        line2 = ''
+        for line in tmp.split('\n'):
+            if not line1 and line and line.lstrip()[0] != self.comment: # valid non-comment line
+                line1 = line
+            elif not line2 and line and line.lstrip()[0] != self.comment:
+                line2 = line
+                break
+        else: # less than 2 lines in table
+            raise ValueError('RDB header requires 2 lines')
+
+        # tokenize the two header lines separately
+        self.engine.setup_tokenizer([line2])
+        self.engine.header_start = 0
+        self.engine.read_header()
+        types = self.engine.names
+        self.engine.setup_tokenizer([line1])
+        self.engine.names = []
+        self.engine.read_header()
+        
+        if len(self.engine.names) != len(types):
+            raise ValueError('RDB header mismatch between number of column names and column types')
+
+        if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
+            raise ValueError('RDB type definitions do not all match [num](N|S): {0}'.format(types))
+
+        try_int = {}
+        try_float = {}
+        try_string = {}
+
+        for name, col_type in izip(self.engine.names, types):
+            if col_type[-1].lower() == 's':
+                try_int[name] = 0
+                try_float[name] = 0
+                try_string[name] = 1
+            else:
+                try_int[name] = 1
+                try_float[name] = 1
+                try_string[name] = 0
+
+        self.engine.setup_tokenizer(tmp)
+        return (try_int, try_float, try_string)

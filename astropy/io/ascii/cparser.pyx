@@ -101,7 +101,7 @@ cdef class CParser:
     cdef public:
         int width
         object names
-        object source
+        bytes source
         object header_start
 
     def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
@@ -173,8 +173,8 @@ cdef class CParser:
                 raise TypeError('Input "table" must be a file-like object, a string (filename'
                              'or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
-        self.source = source + '\n' # add newline to simplify handling last line of data
-        self.source = self.source.encode('ascii') # encode in ASCII for char * handling (fixes Python 3 issue)
+        source_str = source + '\n' # add newline to simplify handling last line of data
+        self.source = source_str.encode('ascii') # encode in UTF-8 for char * handling (fixes Python 3 issue)
         src = self.source
         self.tokenizer.source = src
         self.tokenizer.source_len = len(self.source)
@@ -240,13 +240,13 @@ cdef class CParser:
         self.width = len(self.names)
         self.tokenizer.num_cols = self.width
             
-    def read(self):
+    def read(self, try_int, try_float, try_string):
         if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
         else:
             self._set_fill_names()
-            return self._convert_data()
+            return self._convert_data(try_int, try_float, try_string)
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)
@@ -255,7 +255,7 @@ cdef class CParser:
         if self.fill_exclude_names is not None:
             self.fill_names.difference_update(self.fill_exclude_names)
 
-    cdef _convert_data(self):
+    cdef _convert_data(self, try_int, try_float, try_string):
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end_obj is not None and self.data_end_obj < 0:
             num_rows += self.data_end_obj # e.g. if data_end = -1, ignore the last row
@@ -264,16 +264,22 @@ cdef class CParser:
         for i, name in enumerate(self.names):
             # Try int first, then float, then string
             try:
+                if try_int and not try_int[name]:
+                    raise ValueError()
                 cols[name] = self.convert_int(i, num_rows)
             except ValueError:
                 try:
+                    if try_float and not try_float[name]:
+                        raise ValueError()
                     cols[name] = self.convert_float(i, num_rows)
                 except ValueError:
+                    if try_string and not try_string[name]:
+                        raise ValueError('Column {0} failed to convert'.format(name))
                     cols[name] = self.convert_str(i, num_rows)
 
         return cols
 
-    cdef np.ndarray convert_int(self, i, num_rows):
+    cdef np.ndarray convert_int(self, int i, int num_rows):
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_) # intialize ndarray
         cdef long converted
         cdef int row = 0
@@ -312,7 +318,7 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray convert_float(self, i, num_rows):
+    cdef np.ndarray convert_float(self, int i, int num_rows):
         # very similar to convert_int()
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
@@ -357,7 +363,7 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray convert_str(self, i, num_rows):
+    cdef np.ndarray convert_str(self, int i, int num_rows):
         # similar to convert_int, but no actual conversion
         cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
         cdef int row = 0

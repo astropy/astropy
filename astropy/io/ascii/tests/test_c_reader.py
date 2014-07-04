@@ -4,7 +4,7 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader
+from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
@@ -51,6 +51,9 @@ def read_tab(table, **kwargs):
 
 def read_commented_header(table, **kwargs):
     return _read(table, FastCommentedHeader, 'commented_header', **kwargs)
+
+def read_rdb(table, **kwargs):
+    return _read(table, FastRdb, 'rdb', **kwargs)
 
 def test_simple_data():
     """
@@ -461,3 +464,36 @@ def test_commented_header():
     assert_table_equal(t2, expected)
     t3 = read_commented_header(StringIO(text), header_start=-1, data_start=0) # negative indexing allowed
     assert_table_equal(t3, expected)
+
+def test_rdb():
+    """
+    Make sure the FastRdb reader works as expected.
+    """
+    text = """
+
+A\tB\tC
+1n\tS\t4N
+1\t 9\t4.3
+"""
+    table = read_rdb(StringIO(text))
+    expected = Table([[1], [' 9'], [4.3]], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+    print(table)
+    assert_equal(table['A'].dtype.kind, 'i')
+    assert_equal(table['B'].dtype.kind, 'S')
+    assert_equal(table['C'].dtype.kind, 'f')
+
+    with pytest.raises(ValueError) as e:
+        text = 'A\tB\tC\nN\tS\tN\n4\tb\ta' # C column contains non-numeric data
+        read_rdb(StringIO(text))
+    assert 'Column C failed to convert' in str(e)
+
+    with pytest.raises(ValueError) as e:
+        text = 'A\tB\tC\nN\tN\n1\t2\t3' # not enough types specified
+        read_rdb(StringIO(text))
+    assert 'mismatch between number of column names and column types' in str(e)
+
+    with pytest.raises(ValueError) as e:
+        text = 'A\tB\tC\nN\tN\t5\n1\t2\t3' # invalid type for column C
+        read_rdb(StringIO(text))
+    assert 'type definitions do not all match [num](N|S)' in str(e)
