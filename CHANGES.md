@@ -1,4 +1,4 @@
-0.1 (unreleased)
+0.1 (2014-07-04)
 ----------------
 
 - Initial Release.
