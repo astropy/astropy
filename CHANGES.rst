@@ -142,6 +142,9 @@ New Features
 
   - Added flat prior to binom_conf_interval and binned_binom_proportion
 
+  - Change default in ``sigma_clip`` from ``np.median`` to ``np.ma.median``.
+    [#2582]
+
 - ``astropy.sphinx``
 
   - Note, the following new features are included in astropy-helpers as well:
