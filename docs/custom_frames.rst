@@ -72,31 +72,30 @@ The following example shows how you could for example define a hexagonal frame:
 
 which we can then use:
 
-    .. plot::
-       :context:
-       :include-source:
-       :align: center
+.. plot::
+    :context:
+    :include-source:
+    :align: center
 
-        from astropy.wcs import WCS
-        from wcsaxes import datasets
+     from astropy.wcs import WCS
+     from wcsaxes import datasets
 
-        hdu = datasets.msx_hdu()
-        wcs = WCS(hdu.header)
+     hdu = datasets.msx_hdu()
+     wcs = WCS(hdu.header)
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
+     import matplotlib.pyplot as plt
+     fig = plt.figure()
 
-        from wcsaxes import WCSAxes
+     from wcsaxes import WCSAxes
 
-        ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
-                     frame_class=HexagonalFrame)
-        fig.add_axes(ax)
+     ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
+                  frame_class=HexagonalFrame)
+     fig.add_axes(ax)
 
-        ax.coords.grid(color='white')
+     ax.coords.grid(color='white')
 
-        im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
-                  origin='lower')
+     im = ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
+               origin='lower')
 
-        # Clip the image to the frame
-        im.set_clip_path(ax.coords.frame.patch)
-
+     # Clip the image to the frame
+     im.set_clip_path(ax.coords.frame.patch)
