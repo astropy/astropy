@@ -427,16 +427,17 @@ def test_read_tab():
     The fast reader for tab-separated values should not strip whitespace, unlike
     the basic reader.
     """
-    text = '1\t2\t3\n  a\t b \t\n c\td\t  '
+    text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
     table = read_tab(StringIO(text))
     assert_equal(table['1'][0], '  a'.encode('utf-8')) # preserve line whitespace
     assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
-    assert table['3'][0] is ma.masked # empty value should be masked
-    assert_equal(table['3'][1], '  '.encode('utf-8')) # preserve end-of-line whitespace
+    assert table['3'][0] is ma.masked                  # empty value should be masked
+    assert_equal(table['2'][1], ' d e'.encode('utf-8'))  # preserve whitespace in quoted fields
+    assert_equal(table['3'][1], '  '.encode('utf-8'))  # preserve end-of-line whitespace
 
-def test_data_line():
+def test_default_data_start():
     """
-    If data_line is not explicitly passed to read(), data processing should
+    If data_start is not explicitly passed to read(), data processing should
     beginning right after the header.
     """
     text = 'ignore this line\na b c\n1 2 3\n4 5 6'
@@ -497,3 +498,46 @@ A\tB\tC
         text = 'A\tB\tC\nN\tN\t5\n1\t2\t3' # invalid type for column C
         read_rdb(StringIO(text))
     assert 'type definitions do not all match [num](N|S)' in str(e)
+
+def test_data_start():
+    """
+    Make sure that data parsing begins at data_start (ignoring empty and
+    commented lines but not taking quoted values into account).
+    """
+    text = """
+A B C
+1 2 3
+4 5 6
+
+7 8 "9
+ \t1"
+# comment
+10 11 12
+"""
+    table = read_basic(StringIO(text), data_start=2)
+    expected = Table([[4, 7, 10], [5, 8, 11], [6, 91, 12]], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    table = read_basic(StringIO(text), data_start=3)
+    # ignore empty line
+    expected = Table([[7, 10], [8, 11], [91, 12]], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    with pytest.raises(CParserError) as e:
+        # tries to begin in the middle of quoted field
+        read_basic(StringIO(text), data_start=4)
+    assert 'not enough columns found in line 1 of data' in str(e)
+
+    table = read_basic(StringIO(text), data_start=5)
+    # ignore commented line
+    expected = Table([[10], [11], [12]], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+def test_quoted_empty_values():
+    """
+    Quoted empty values spanning multiple lines should be treated correctly.
+    """
+    text = 'a b c\n1 2 " \n "'
+    table = ascii.read(StringIO(text))
+    assert table['c'][0] is ma.masked # empty value masked by default
+

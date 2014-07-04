@@ -119,7 +119,8 @@ void resize_header(tokenizer_t *self)
 
 /*
   First, backtrack to eliminate trailing whitespace if strip_whitespace_fields
-  is true. Unless this column will be excluded from output, append a null
+  is true. If the field is empty, push '\x01' as a marker.
+  Unless this column will be excluded from output, append a null
   byte to the end of the column string as a field delimiting marker.
   Increment the variable col and eturn the value TOO_MANY_COLS if
   there are too many columns in this row. Increment real_col even if
@@ -139,6 +140,10 @@ void resize_header(tokenizer_t *self)
             }                                                           \
             ++output_pos;                                               \
         }                                                               \
+        if (output_pos == 0 || self->header_output[output_pos - 1] == '\x00') \
+        {                                                               \
+            PUSH('\x01');                                               \
+        }                                                               \
         PUSH('\x00');                                                   \
     }                                                                   \
     else if (real_col >= use_cols_len)                                  \
@@ -156,6 +161,10 @@ void resize_header(tokenizer_t *self)
                 *self->col_ptrs[col]-- = '\x00';                        \
             }                                                           \
             ++self->col_ptrs[col];                                      \
+        }                                                               \
+        if (self->col_ptrs[col] == self->output_cols[col] || self->col_ptrs[col][-1] == '\x00') \
+        {                                                               \
+            PUSH('\x01');                                               \
         }                                                               \
         PUSH('\x00');                                                   \
         if (++col > self->num_cols)                                     \
@@ -203,7 +212,6 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     int empty = 1;
     int comment = 0;
     
-    //TODO: fix quoting issues here...maybe we can tokenize these rows in a new non-output mode
     while (i < start)
     {
 	if (self->source_pos >= self->source_len - 1) // ignore final newline
@@ -281,10 +289,9 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		    ;
 		else if (c == self->delimiter) // field ends before it begins
 		{
-		    PUSH('\x01'); // indicates empty field
 		    END_FIELD();
 		}
-		else if (c == '\n') // TODO: right stripping of fields
+		else if (c == '\n')
 		{
                     if (self->strip_whitespace_lines)
                     {
@@ -296,7 +303,6 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                         // Register an empty field if non-whitespace delimiter, e.g. '1,2, '->['1','2','']
                         else
                         {
-                            PUSH('\x01');
                             END_FIELD();
                         }                            
                     }
@@ -320,10 +326,8 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                         {
                             ++self->source_pos;
 
-                            if (self->source_pos == tmp)
-                            {
-                                PUSH('\x01'); // no whitespace, just an empty field
-                            }
+                            if (self->source_pos == tmp) // no whitespace, just an empty field
+                                ;                                
 
                             else
                                 while (self->source_pos < tmp)
@@ -350,11 +354,10 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 		
 	    case START_QUOTED_FIELD:
-		if (c == ' ' || c == '\t') // ignore initial whitespace
+		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) // ignore initial whitespace
 		    ;
 		else if (c == self->quotechar) // empty quotes
 		{
-		    PUSH('\x01'); // indicates empty field
 		    END_FIELD();
 		}
 		else
@@ -397,11 +400,11 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 
 	    case QUOTED_FIELD_NEWLINE:
-                // Ignore initial whitespace/newlines
-		if (c == ' ' || c == '\t' || c == '\n')
+                // Ignore initial whitespace if strip_whitespace_lines and newlines regardless
+		if (((c == ' ' || c == '\t') && self->strip_whitespace_lines) || c == '\n')
 		    ;
 		else if (c == self->quotechar)
-		    self->state = FIELD; // TODO: fix this for empty data
+		    self->state = FIELD;
 		else
 		{
                     // Once data begins, parse it as a normal quoted field
@@ -447,7 +450,7 @@ double str_to_double(tokenizer_t *self, char *str)
     char *tmp;
     double ret = strtod(str, &tmp);
 
-    if (tmp == str || *tmp != 0) // TODO: make sure this is right
+    if (tmp == str || *tmp != 0)
 	self->code = CONVERSION_ERROR;
     else if (errno == ERANGE)
         self->code = OVERFLOW_ERROR;
