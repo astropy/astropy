@@ -41,7 +41,7 @@ header information by::
 
 The header keyword 'NAXIS' gives the number of dimensions of the dataset. The keywords 'CTYPE1', 'CTYPE2' and 'CTYPE3' give the data type of these dimensions to be right ascension, declination and velocity respectively.
 
-We then instantiate the :class:`~wcsaxes.wcsaxes.WCSAxes` using the 
+We then instantiate the `~wcsaxes.WCSAxes` using the 
 :class:`~astropy.wcs.WCS` object and select the slices we want to plot:
 
 .. plot::

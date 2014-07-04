@@ -26,9 +26,9 @@ For the example in the following page we start from the example introduced in
               origin='lower')
 
 The coordinates shown by default in a plot will be those derived from the WCS
-or transformation passed to the :class:`wcsaxes.wcsaxes.WCSAxes` class.
+or transformation passed to the `wcsaxes.WCSAxes` class.
 However, it is possible to overlay different coordinate systems using the
-:meth:`wcsaxes.wcsaxes.WCSAxes.get_coords_overlay` method:
+:meth:`wcsaxes.WCSAxes.get_coords_overlay` method:
 
 .. plot::
    :context:
