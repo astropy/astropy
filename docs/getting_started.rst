@@ -5,7 +5,7 @@ Getting started
 Initialization
 ==============
 
-To make a plot using :class:`~wcsaxes.wcsaxes.WCSAxes`, we first read in the
+To make a plot using `~wcsaxes.WCSAxes`, we first read in the
 data using `astropy.io.fits
 <http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. In this example, we will use a FITS file from the
@@ -30,7 +30,7 @@ If you have the original FITS file, this is equivalent to doing::
 
 
 We then create a figure using Matplotlib and instantiate the
-:class:`~wcsaxes.wcsaxes.WCSAxes` class using the :class:`~astropy.wcs.WCS` object
+`~wcsaxes.WCSAxes` class using the :class:`~astropy.wcs.WCS` object
 created above:
 
 .. plot::
@@ -87,6 +87,7 @@ and we can also add contours corresponding to the same image using:
    :include-source:
    :align: center
 
+    import numpy as np
     ax.contour(hdu.data, levels=np.logspace(-4.7, -3., 10), colors='white', alpha=0.5)
 
 To show contours for an image in a different coordinate system, see
