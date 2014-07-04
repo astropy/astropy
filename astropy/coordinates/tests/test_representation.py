@@ -894,3 +894,32 @@ def test_representation_str():
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert str(r3) == '[(1.0, 4.0, 9.0) (2.0, 4.0, 10.0) (3.0, 4.0, 11.0)] kpc'
+
+
+def test_subclass_representation():
+    from ...utils import OrderedDict
+    from ..builtin_frames import ICRS
+
+    class Longitude180(Longitude):
+        def __new__(cls, angle, unit=None, wrap_angle=180 * u.deg, **kwargs):
+            self = super(Longitude180, cls).__new__(cls, angle, unit=unit,
+                                                    wrap_angle=wrap_angle, **kwargs)
+            return self
+
+    class SphericalWrap180Representation(SphericalRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude180),
+                                    ('lat', Latitude),
+                                    ('distance', u.Quantity)])
+        recommended_units = {'lon': u.deg, 'lat': u.deg}
+
+    class ICRSWrap180(ICRS):
+        frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
+        frame_specific_representation_info['sphericalwrap180'] = \
+            frame_specific_representation_info['spherical']
+        default_representation = SphericalWrap180Representation
+
+    c = ICRSWrap180(ra=-1 * u.deg, dec=-2 * u.deg, distance=1 * u.m)
+    assert c.ra.value == -1
+    assert c.ra.unit is u.deg
+    assert c.dec.value == -2
+    assert c.dec.unit is u.deg
