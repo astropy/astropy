@@ -172,11 +172,13 @@ are different options that can be used:
 
       lon.set_ticks(number=4)
 
-In the case of angular axes, specifying the spacing as an Astropy :class:`~astropy.units.quantity.Quantity`
-avoids roundoff errors. The
-:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also be used to set the
-appearance (color and size) of the ticks, using the ``color=`` and ``size=``
-options.
+In the case of angular axes, specifying the spacing as an Astropy
+:class:`~astropy.units.quantity.Quantity` avoids roundoff errors. The
+:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks` method can also
+be used to set the appearance (color and size) of the ticks, using the
+``color=`` and ``size=`` options. There is also the option
+``exclude_overlapping=True`` to prevent overlapping tick labels from being
+displayed.
 
 We can apply this to the previous example:
 
@@ -186,8 +188,8 @@ We can apply this to the previous example:
    :align: center
 
     from astropy import units as u
-    lon.set_ticks(spacing=10 * u.arcmin, color='white')
-    lat.set_ticks(spacing=10 * u.arcmin, color='white')
+    lon.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
+    lat.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
 
 Tick, tick label, and axis label position
 =========================================

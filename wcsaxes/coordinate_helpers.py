@@ -198,7 +198,7 @@ class CoordinateHelper(object):
         self._formatter_locator.format_unit = unit
 
     def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  width=None, color=None, alpha=None):
+                  width=None, color=None, alpha=None, exclude_overlapping=False):
         """
         Set the location and properties of the ticks.
 
@@ -241,6 +241,8 @@ class CoordinateHelper(object):
 
         if alpha is not None:
             self.ticks.set_alpha(alpha)
+
+        self.ticklabels.exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
