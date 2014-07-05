@@ -30,7 +30,7 @@ Transforms
 ==========
 
 Apart from the handling of the ticks, tick labels, and grid lines, the
-:class:`wcsaxes.wcsaxes.WCSAxes` class behaves like a normal Matplotlib
+`wcsaxes.WCSAxes` class behaves like a normal Matplotlib
 ``Axes`` instance, and methods such as
 :meth:`~matplotlib.axes.Axes.imshow`,
 :meth:`~matplotlib.axes.Axes.contour`,
@@ -38,7 +38,7 @@ Apart from the handling of the ticks, tick labels, and grid lines, the
 :meth:`~matplotlib.axes.Axes.scatter`, and so on will work and plot the
 data in pixel coordinates. However, all such Matplotlib commands allow a
 ``transform=`` argument to be passed, and the
-:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method can be used to get the
+:meth:`~wcsaxes.WCSAxes.get_transform` method can be used to get the
 appropriate transformation object.
 
 The following example shows how to get the transformation object for the FK5
@@ -89,7 +89,7 @@ coordinates:
     r = Rectangle((60., 20.), 10., 12., edgecolor='yellow', facecolor='none')
     ax.add_patch(r)
 
-but we can use the :meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method above
+but we can use the :meth:`~wcsaxes.WCSAxes.get_transform` method above
 to plot for example in FK5 equatorial coordinates:
 
 .. plot::
@@ -102,15 +102,15 @@ to plot for example in FK5 equatorial coordinates:
     ax.add_patch(r)
 
 Many Matplotlib methods accept the ``transform=`` option, so
-:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` can be used in many cases to
+:meth:`~wcsaxes.WCSAxes.get_transform` can be used in many cases to
 plot overlays in various coordinate systems. A few examples are shown below.
 
 Contours
 ========
 
 Overplotting contours is also simple using the
-:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` method. For contours,
-:meth:`~wcsaxes.wcsaxes.WCSAxes.get_transform` should be given the WCS of the
+:meth:`~wcsaxes.WCSAxes.get_transform` method. For contours,
+:meth:`~wcsaxes.WCSAxes.get_transform` should be given the WCS of the
 image to plot the contours for:
 
 .. plot::
