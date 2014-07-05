@@ -98,11 +98,13 @@ and its affiliated packages to facilitate easily documenting code in a
 homogeneous and readable way.
 
 .. note::
+
   These extensions are also included with Astropy itself in v0.4 and
   below, to facilitate backwards-compatibility for existing affiliated
   packages.  The versions actually in astropy will not receive further
-  updates, however, and will likely be removed in a future version. Sp
+  updates, however, and will likely be removed in a future version. So
   we strongly recommend using the astropy-helper versions instead.
+
 
 automodapi Extension
 ^^^^^^^^^^^^^^^^^^^^
