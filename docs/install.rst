@@ -124,7 +124,7 @@ the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
 
 .. note::
 
-    Running the tests this wa is currently disabled in the IPython REPL due
+    Running the tests this way is currently disabled in the IPython REPL due
     to conflicts with some common display settings in IPython.  Please run the
     Astropy tests under the standard Python command-line interpreter.
 
@@ -150,7 +150,7 @@ to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)
 
-.. note:: 
+.. note::
 
     If you are using MacOS X, you will need to the XCode command line tools.
     One way to get them is to install `XCode
