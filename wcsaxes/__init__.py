@@ -11,6 +11,6 @@ from ._astropy_init import *
 # ----------------------------------------------------------------------------
 
 if not _ASTROPY_SETUP_:
-    from .wcsaxes import *
+    from .core import *
     from .coordinate_helpers import CoordinateHelper
     from .coordinates_map import CoordinatesMap

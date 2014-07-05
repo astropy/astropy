@@ -1,5 +1,12 @@
 build
 docs/_build
 __pycache__
+dist
+docs/api
+wcsaxes.egg-info
 htmlcov
 *.pyc
+wcsaxes/version.py
+.project
+.pydevproject
+.settings
