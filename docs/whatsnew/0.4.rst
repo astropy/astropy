@@ -101,6 +101,14 @@ We can then use the client to communicate with other clients::
 and we can then send for example tables and images over SAMP to other
 applications (see :ref:`vo-samp` for examples of how to do this).
 
+Quantity
+--------
+The `~astropy.units.Quantity` class has seen a series of optimizations
+and is now substantially faster.  Additionally, the `~astropy.time`,
+`~astropy.table`, and `~astropy.coordinates` subpackages integrate better
+with `~astropy.units.Quantity`. See :doc:`/units/quantity` and the other
+subpackage documentation sections for more details.
+
 Inspecting FITS headers from the command line
 ---------------------------------------------
 
