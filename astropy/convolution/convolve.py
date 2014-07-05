@@ -388,7 +388,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     arrayshape = array.shape
     kernshape = kernel.shape
 
-    array_size_B = np.product(arrayshape)*np.dtype(complex_dtype).itemsize
+    array_size_B = (np.product(arrayshape, dtype=np.int64) * 
+                    np.dtype(complex_dtype).itemsize)
     if array_size_B > 1024**3 and not allow_huge:
         raise ValueError("Size Error: Arrays will be %s.  Use "
                          "allow_huge=True to override this exception."
