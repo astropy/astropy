@@ -322,6 +322,7 @@ properly populated::
     TFORM5   = 'L '
 
 .. warning::
+
     It should be noted that when creating a new table with
     :meth:`BinTableHDU.from_columns`, an in-memory copy of all of the input
     column arrays is created.  This is because it is not guaranteed that the
