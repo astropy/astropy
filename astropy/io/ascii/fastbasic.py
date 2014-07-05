@@ -43,6 +43,10 @@ class FastBasic(object):
         self.engine.read_header()
 
     def read(self, table):
+        """
+        Read input data (file-like object, filename, list of strings, or single string)
+        into a Table and return the result.
+        """
         if len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
         elif self.data_start is None:
@@ -78,7 +82,14 @@ class FastBasic(object):
             try_string = {}
 
         data = self.engine.read(try_int, try_float, try_string)
-        return Table(data, names=list(self.engine.names)) # TODO: add masking, units, etc.
+        return Table(data, names=list(self.engine.names))
+
+    def write(self, table, output):
+        """
+        Use a fast Cython method to write table data to output,
+        where output is a filename or file-like object.
+        """
+        cparser.write(table, output, **self.kwargs)
 
 class FastCsv(FastBasic):
     """

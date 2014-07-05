@@ -175,17 +175,17 @@ def _guess(table, read_kwargs, format, use_fast_reader):
     fast_kwargs = []
 
     first_kwargs = [read_kwargs.copy()]
-    if use_fast_reader:
+    if use_fast_reader is None or use_fast_reader:
         if format is not None and 'fast_' + format in core.FAST_CLASSES:
             # If a fast version of the reader is available, try that before the slow version
             fast_kwargs = read_kwargs.copy()
             fast_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
             first_kwargs = [fast_kwargs] + first_kwargs
-        elif format is None:
+        elif format is None and use_fast_reader:
             # use_fast_reader=True, but the user did not specify a format
             raise ValueError('The parameter "format" must be specified in order to use '
                              'a fast reader')
-        else:
+        elif use_fast_reader:
             # format has no fast reader
             raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers: {1}'
                              .format(format, sorted(x[5:] for x in core.FAST_CLASSES))) # ignore fast_ prefix
@@ -317,8 +317,12 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
 
     table = Table(table, names=kwargs.get('names'))
 
-    Writer = _get_format_class(format, Writer, 'Writer')
+    Writer = _get_format_class(format, Writer, 'Writer')        
     writer = get_writer(Writer=Writer, **kwargs)
+    if Writer._format_name in core.FAST_CLASSES: #TODO: add parameter use_fast_reader so fast is the default
+        writer.write(table, output)
+        return
+
     lines = writer.write(table)
 
     # Write the lines to output

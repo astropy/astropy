@@ -1036,12 +1036,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     because it depends only on the "core" module.
     """
 
-    reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     from .fastbasic import FastBasic
 
-    if issubclass(Reader, FastBasic): # Specialized readers handle args separately
+    if Reader._format_name in FAST_CLASSES: # Fast readers handle args separately
         return Reader(**kwargs)
 
+    reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 
     if Inputter is not None:
@@ -1122,12 +1122,13 @@ def _get_writer(Writer, **kwargs):
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module. """
 
-    writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
-    writer = Writer(**writer_kwargs)
     from .fastbasic import FastBasic
 
-    if isinstance(writer, FastBasic): # Specialized readers handle args separately
-        return writer
+    if Writer._format_name in FAST_CLASSES: # Fast writers handle args separately
+        return Writer(**kwargs)
+
+    writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
+    writer = Writer(**writer_kwargs)
 
     if 'delimiter' in kwargs:
         writer.header.splitter.delimiter = kwargs['delimiter']

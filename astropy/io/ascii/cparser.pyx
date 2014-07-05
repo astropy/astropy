@@ -7,6 +7,7 @@ from ...utils.data import get_readable_fileobj
 from ...extern import six
 from . import core
 from distutils import version
+import csv
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
@@ -241,12 +242,14 @@ cdef class CParser:
         self.tokenizer.num_cols = self.width
             
     def read(self, try_int, try_float, try_string):
+        self._tokenize_data()
+        self._set_fill_names()
+        return self._convert_data(try_int, try_float, try_string)
+
+    cdef _tokenize_data(self):
         if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
-        else:
-            self._set_fill_names()
-            return self._convert_data(try_int, try_float, try_string)
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)
@@ -266,20 +269,20 @@ cdef class CParser:
             try:
                 if try_int and not try_int[name]:
                     raise ValueError()
-                cols[name] = self.convert_int(i, num_rows)
+                cols[name] = self._convert_int(i, num_rows)
             except ValueError:
                 try:
                     if try_float and not try_float[name]:
                         raise ValueError()
-                    cols[name] = self.convert_float(i, num_rows)
+                    cols[name] = self._convert_float(i, num_rows)
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
-                    cols[name] = self.convert_str(i, num_rows)
+                    cols[name] = self._convert_str(i, num_rows)
 
         return cols
 
-    cdef np.ndarray convert_int(self, int i, int num_rows):
+    cdef np.ndarray _convert_int(self, int i, int num_rows):
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_) # intialize ndarray
         cdef long converted
         cdef int row = 0
@@ -318,8 +321,8 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray convert_float(self, int i, int num_rows):
-        # very similar to convert_int()
+    cdef np.ndarray _convert_float(self, int i, int num_rows):
+        # very similar to _convert_int()
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
         cdef int row = 0
@@ -363,8 +366,8 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray convert_str(self, int i, int num_rows):
-        # similar to convert_int, but no actual conversion
+    cdef np.ndarray _convert_str(self, int i, int num_rows):
+        # similar to _convert_int, but no actual conversion
         cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
         cdef int row = 0
         cdef bytes field
@@ -393,3 +396,47 @@ cdef class CParser:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
         else:
             return col
+
+def write(table, output,
+          delimiter=',',
+          write_comment=None,
+          quotechar='"',
+          formats=None,
+          strip_whitespace=True,
+          names=None,
+          include_names=None,
+          exclude_names=None):
+
+    opened_file = False
+
+    if not hasattr(output, 'write'): # output is a filename
+        output = open(output, 'w')
+        opened_file = True # remember to close file afterwards
+
+    use_names = set(table.colnames)
+    if include_names is not None:
+        use_names.intersection_update(include_names)
+    if exclude_names is not None:
+        use_names.difference_update(exclude_names)
+
+    col_iters = [iter(col.data) for col in six.itervalues(table.columns) if col.name in use_names]
+    writer = csv.writer(output, delimiter=delimiter,
+                        quotechar=quotechar,
+                        lineterminator='\n') # TODO: add more params
+    cdef int N = 100 # row chunk size
+    cdef int num_cols = len(use_names)
+    rows = [[None] * num_cols for i in range(N)]
+    
+    for i in range(len(table)):
+        for j in range(num_cols):
+            rows[i % N][j] = next(col_iters[j])
+        if i >= N - 1 and i % N == N - 1:
+            writer.writerows(rows)
+
+    if i % N != N - 1:
+        writer.writerows(rows[:i % N + 1])
+        
+    output.write('\n') # append final newline
+
+    if opened_file:
+        output.close()
