@@ -9,13 +9,21 @@ What's New in Astropy 0.4?
 Overview
 --------
 
-Astropy 0.4 is a major release that adds new functionality since the 0.3.x
-series of releases. One new sub-package is included (see `SAMP`_), and many
-new features have been implemented in the existing sub-packages, and
-highlights are described below. In addition to usability improvements, we have
-made a number of changes in the infrastructure for setting up/installing the
-package, and for the configuration system (see `astropy-helpers`_ and
-`Configuration`_).
+Astropy 0.4 is a major release that adds new functionality since the
+0.3.x series of releases. A new sub-package is included (see `SAMP`_),
+and many new features and improvements have been implemented for the
+existing sub-packages. In addition to usability improvements, we have
+made a number of changes in the infrastructure for setting up/installing
+the package (see `astropy-helpers`_), as well as reworking the
+configuration system  (see `Configuration`_).
+
+In addition to these major changes, a large number of smaller
+improvements have occurred.  Since v0.3, By the numbers:
+
+* 819 issues have been closed
+* 511 pull requests have been merged
+* 57 distinct people have contributed code
+
 
 Coordinates
 -----------
