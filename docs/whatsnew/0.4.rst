@@ -138,9 +138,11 @@ astropy.
 Configuration
 -------------
 
-The configuration framework has been re-factored. If you have previously
-edited the astropy configuration file (typically located in
-``~/.astropy/config/astropy.cfg``) then you should read over
+The configuration framework has been re-factored based on the design
+described in
+`APE3 <https://github.com/astropy/astropy-APEs/blob/master/APE3.rst>`_.
+If you have previously edited the astropy configuration file (typically
+located at ``~/.astropy/config/astropy.cfg``) then you should read over
 :ref:`config-0-4-transition` in order to understand how to update it
 to the new mechanism.
 
@@ -166,6 +168,15 @@ Deprecation and backward-incompatible changes
   ``match_catalog_*()`` functions), as these have been moved to
   `~astropy.coordinates.SkyCoord`. From this point on, major changes to the
   coordinates classes are not expected.  [#2422]
+
+- The configuration framework has been re-designed to the scheme of
+  `APE3 <https://github.com/astropy/astropy-APEs/blob/master/APE3.rst>`_.
+  The previous framework based on `~astropy.config.ConfigurationItem` is
+  deprecated, and  will be removed in a future release. Affiliated
+  packages should update to the new configuration system, and any users
+  who have customized their configuration file should migrate to the new
+  configuration approach.  Until they do, warnings will appear prompting
+  them to do so.
 
 Note on future versions
 -----------------------
