@@ -705,6 +705,34 @@ def test_units_known_fail():
     with pytest.raises(u.UnitsError):
         SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
 
+
 def test_nodata_failure():
     with pytest.raises(ValueError):
         SkyCoord()
+
+
+def test_create_w_list_of_reprs():
+    """
+    Try to create a single skycoord with a list of scalar representations
+    """
+    rscalar = SphericalRepresentation(lon=8*u.deg, lat=5*u.deg, distance=1*u.kpc)
+    SkyCoord([rscalar, rscalar])
+
+    rarr = SphericalRepresentation(lon=[8]*u.deg, lat=[5]*u.deg, distance=[1]*u.kpc)
+    with pytest.raises(ValueError):
+        SkyCoord([rscalar, rarr])
+
+
+def test_create_w_list_of_frames():
+    """
+    Try to create a single skycoord with a list of frame objects or SkyCoords
+    """
+    frame = ICRS(1*u.deg, 2*u.deg)
+    scalarsc = SkyCoord(1*u.deg, 2*u.deg)
+
+    SkyCoord([frame, frame])
+    arrsc = SkyCoord([scalarsc, scalarsc])
+
+    with pytest.raises(ValueError):
+        #arrays of arrays get confusing/ambiguous, so fail
+        SkyCoord([arrsc, arrsc])
