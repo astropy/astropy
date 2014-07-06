@@ -928,26 +928,75 @@ def _parse_coordinate_arg(coords, frame, units):
         # representation.  If so, we do some validation and then short-circuit
         # try to construct a consistent frame
         if isinstance(vals[0], (SkyCoord, BaseCoordinateFrame)):
-            raise NotImplementedError
+            if not all([v.isscalar for v in vals]):
+                raise ValueError("Gave a list of SkyCoord or frames to "
+                                 "SkyCoord, but they are not all scalars.")
+            if not all([v.has_data for v in vals]):
+                raise ValueError("Gave a list of SkyCoord or frames to "
+                                 "SkyCoord, but they do not all have data.")
+
+            # the baseline object is just the first in the list
+            templateobj = vals[0]
+
+            # try to convert them all to a shared frame from the first
+            # element of the list
+            sharedframe = getattr(templateobj, 'frame', templateobj)
+            convertedframes = [v.transform_to(sharedframe) for v in vals]
+
+            #now pull apart the components of each and re-assemble into a
+            #single frame object.
+            component_dct = {}
+            for component in templateobj.data.components:
+                elements = [getattr(f.data, component) for f in convertedframes]
+                component_dct[component] = u.Quantity(elements)
+            reassembledrepres = templateobj.data.__class__(**component_dct)
+            reassembledframe = templateobj.realize_frame(reassembledrepres)
+
+            #now convert into the requested frame, extract the data, and copy
+            #over relevant attributes
+            data = reassembledframe.transform_to(frame).data.represent_as(frame.representation)
+
+            values = []  # List of values corresponding to representation attrs
+            for repr_attr_name in repr_attr_names:
+                # If coords did not have an explicit distance then don't include in initializers.
+                if (isinstance(templateobj.data, UnitSphericalRepresentation) and
+                        repr_attr_name == 'distance'):
+                    continue
+
+                # Get the value from `data` in the eventual representation
+                values.append(getattr(data, repr_attr_name))
+
+            for attr in FRAME_ATTR_NAMES_SET():
+                value = getattr(templateobj, attr, None)
+                use_value = (isinstance(templateobj, SkyCoord)
+                             or attr not in templateobj._attr_names_with_defaults)
+                if use_value and value is not None:
+                    valid_kwargs[attr] = value
+
         elif isinstance(vals[0], BaseRepresentation):
-            represcls = vals[0].__class__
             if not all([v.isscalar for v in vals]):
                 raise ValueError("Gave a list of representations to SkyCoord, "
                                  "but they are not all scalars.")
+
+            # split the components of the representations out into pieces, when
+            # necessary converting to the same representation.  Then re-assemble
+            # into a single representation object
+            represcls = vals[0].__class__
             component_dct = {}
             for component in vals[0].components:
-                component_dct[component] = complist = []
+                complist = []
                 for v in vals:
                     if isinstance(v, represcls):
                         complist.append(getattr(v, component))
                     else:
                         complist.append(getattr(v.represent_as(represcls), component))
-            for component in component_dct.keys():
-                component_dct[component] = u.Quantity(component_dct[component])
+                component_dct[component] = u.Quantity(complist)
             valrepr = represcls(**component_dct)
 
+            # now convert to the actual requested representation for the desired frame
             data = valrepr.represent_as(frame.representation)
             values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+
         else:
             # Do some basic validation of the list elements: all have a length
             # and all lengths the same
