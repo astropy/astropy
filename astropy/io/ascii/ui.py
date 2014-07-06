@@ -141,8 +141,8 @@ def read(table, guess=None, **kwargs):
         reader = get_reader(**new_kwargs)
         # Try the fast reader first if use_fast_reader is True or None
         if use_fast_reader is None or use_fast_reader:
-            if format is not None and 'fast_' + format in core.FAST_CLASSES:
-                new_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+            if format is not None and 'fast_{0}'.format(format) in core.FAST_CLASSES:
+                new_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
                 fast_reader = get_reader(**new_kwargs)
                 try:
                     return fast_reader.read(table)
@@ -176,10 +176,10 @@ def _guess(table, read_kwargs, format, use_fast_reader):
 
     first_kwargs = [read_kwargs.copy()]
     if use_fast_reader is None or use_fast_reader:
-        if format is not None and 'fast_' + format in core.FAST_CLASSES:
+        if format is not None and 'fast_{0}'.format(format) in core.FAST_CLASSES:
             # If a fast version of the reader is available, try that before the slow version
             fast_kwargs = read_kwargs.copy()
-            fast_kwargs['Reader'] = core.FAST_CLASSES['fast_' + format]
+            fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
             first_kwargs = [fast_kwargs] + first_kwargs
         elif format is None and use_fast_reader:
             # use_fast_reader=True, but the user did not specify a format
@@ -273,7 +273,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 
-def get_writer(Writer=None, **kwargs):
+def get_writer(Writer=None, use_fast_writer=False, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
@@ -291,11 +291,11 @@ def get_writer(Writer=None, **kwargs):
         Writer = basic.Basic
     if 'strip_whitespace' not in kwargs:
         kwargs['strip_whitespace'] = True
-    writer = core._get_writer(Writer, **kwargs)
+    writer = core._get_writer(Writer, use_fast_writer, **kwargs)
     return writer
 
 
-def write(table, output=None,  format=None, Writer=None, **kwargs):
+def write(table, output=None,  format=None, Writer=None, use_fast_writer=False, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -310,6 +310,7 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param use_fast_writer: whether to use the fast Cython writer (default=False)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
     if output is None:
@@ -317,9 +318,9 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
 
     table = Table(table, names=kwargs.get('names'))
 
-    Writer = _get_format_class(format, Writer, 'Writer')        
-    writer = get_writer(Writer=Writer, **kwargs)
-    if Writer._format_name in core.FAST_CLASSES: #TODO: add parameter use_fast_reader so fast is the default
+    Writer = _get_format_class(format, Writer, 'Writer')
+    writer = get_writer(Writer=Writer, use_fast_writer=use_fast_writer, **kwargs)
+    if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
         return
 

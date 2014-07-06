@@ -343,7 +343,8 @@ nan, 5, -9999
     
     table = read_basic(StringIO(text), delimiter=',', fill_values=[('', '0', 'A'),
                                 ('nan', '999', 'A', 'C')])
-    assert table['B'][3] is not ma.masked # nan filling skips column B
+    assert np.isnan(table['B'][3]) # nan filling skips column B
+    assert table['B'][3] is not ma.masked # should skip masking as well as replacing nan
     assert table['A'][0] is ma.masked
     assert table['A'][2] is ma.masked
     assert_equal(table['A'].data.data[0], '0'.encode('utf-8'))

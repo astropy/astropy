@@ -1038,7 +1038,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     from .fastbasic import FastBasic
 
-    if Reader._format_name in FAST_CLASSES: # Fast readers handle args separately
+    if issubclass(Reader, FastBasic): # Fast readers handle args separately
         return Reader(**kwargs)
 
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
@@ -1117,15 +1117,17 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'fill_exclude_names')
 
 
-def _get_writer(Writer, **kwargs):
+def _get_writer(Writer, use_fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module. """
 
     from .fastbasic import FastBasic
 
-    if Writer._format_name in FAST_CLASSES: # Fast writers handle args separately
+    if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
+    elif 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES and use_fast_writer:
+        return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs) # Switch to fast writer
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)

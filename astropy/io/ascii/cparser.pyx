@@ -133,16 +133,7 @@ cdef class CParser:
         self.names = names
         self.include_names = include_names
         self.exclude_names = exclude_names
-        if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types): # e.g. fill_values=('999', '0')
-            self.fill_values = [fill_values]
-        else:
-            self.fill_values = fill_values
-        try:
-            # Create a dict with the values to be replaced as keys
-            self.fill_values = dict([(l[0].encode('utf-8'), l[1:]) for l in self.fill_values])
-        except IndexError:
-            raise ValueError("Format of fill_values must be "
-                             "(<bad>, <fill>, <optional col1>, ...)")
+        self.fill_values = get_fill_values(fill_values)
         self.fill_include_names = fill_include_names
         self.fill_exclude_names = fill_exclude_names
         self.fill_extra_cols = fill_extra_cols
@@ -305,7 +296,9 @@ cdef class CParser:
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
                            (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                converted = str_to_long(self.tokenizer, new_val) # try converting the new value
+                    converted = str_to_long(self.tokenizer, new_val) # try converting the new value
+                else:
+                    converted = str_to_long(self.tokenizer, field)
 
             else:
                 converted = str_to_long(self.tokenizer, field) # convert the field to long (widest integer type)
@@ -341,7 +334,9 @@ cdef class CParser:
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
                            (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                converted = str_to_double(self.tokenizer, new_val)
+                    converted = str_to_double(self.tokenizer, new_val)
+                else:
+                    converted = str_to_double(self.tokenizer, field)
             else:
                 converted = str_to_double(self.tokenizer, field)
 
@@ -385,6 +380,8 @@ cdef class CParser:
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
                            (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
+                else:
+                    el = field.decode('utf-8')
             else:
                 el = field.decode('utf-8')
             max_len = max(max_len, len(el)) # update max_len with the length of each field
@@ -397,15 +394,18 @@ cdef class CParser:
         else:
             return col
 
-def write(table, output,
+def write(table, output, header_output, output_types,
           delimiter=',',
-          write_comment=None,
+          comment='# ',
           quotechar='"',
           formats=None,
           strip_whitespace=True,
-          names=None,
+          names=None, # ignore, already used in _get_writer
           include_names=None,
-          exclude_names=None):
+          exclude_names=None,
+          fill_values=[],
+          fill_include_names=None,
+          fill_exclude_names=None):
 
     opened_file = False
 
@@ -418,18 +418,56 @@ def write(table, output,
         use_names.intersection_update(include_names)
     if exclude_names is not None:
         use_names.difference_update(exclude_names)
+    use_names = [x for x in table.colnames if x in use_names]
 
-    col_iters = [iter(col.data) for col in six.itervalues(table.columns) if col.name in use_names]
+    fill_values = get_fill_values(fill_values, False)
+    fill_names = set(use_names)
+    if fill_include_names is not None:
+        fill_names.intersection_update(fill_include_names)
+    if fill_exclude_names is not None:
+        fill_names.difference_update(fill_exclude_names)
+    fill_cols = set([i for i, name in enumerate(use_names) if name in fill_names])
+
+    if formats is not None:
+        for name in use_names:
+            if name in formats:
+                table.columns[name].format = formats[name]
+
+    col_iters = [col.iter_str_vals() for col in six.itervalues(table.columns) if col.name in use_names]
+    quotechar = None if quotechar is None else str(quotechar)
+    delimiter = ' ' if delimiter is None else str(delimiter)
     writer = csv.writer(output, delimiter=delimiter,
                         quotechar=quotechar,
                         lineterminator='\n') # TODO: add more params
     cdef int N = 100 # row chunk size
     cdef int num_cols = len(use_names)
     rows = [[None] * num_cols for i in range(N)]
-    
+
+    if header_output is not None:
+        if header_output == 'comment':
+            output.write(comment)
+        writer.writerow([x.strip() for x in use_names] if strip_whitespace else use_names) # TODO: test this
+
+    if output_types:
+        types = ['S' if table.columns[name].dtype.kind == 'S' else 'N' for name in use_names]
+        writer.writerow(types)
+
     for i in range(len(table)):
         for j in range(num_cols):
-            rows[i % N][j] = next(col_iters[j])
+            field = next(col_iters[j])
+            rows[i % N][j] = field
+            if table.columns[use_names[j]][i] is np.ma.masked:
+                field = core.masked
+
+            if field in fill_values:
+                new_val = fill_values[field][0]
+                # Either this column applies to the field as specified in the fill_values parameter,
+                # or no specific columns are specified and this column should apply fill_values
+                if (len(fill_values[field]) > 1 and use_names[j] in fill_values[field][1:]) or \
+                           (len(fill_values[field]) == 1 and j in fill_cols):
+                    rows[i % N][j] = new_val
+            if strip_whitespace:
+                rows[i % N][j] = rows[i % N][j].strip()
         if i >= N - 1 and i % N == N - 1:
             writer.writerows(rows)
 
@@ -437,6 +475,24 @@ def write(table, output,
         writer.writerows(rows[:i % N + 1])
         
     output.write('\n') # append final newline
+    # TODO: maybe use os.linesep instead
 
     if opened_file:
         output.close()
+
+def get_fill_values(fill_values, read=True):
+    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types): # e.g. fill_values=('999', '0')
+        fill_values = [fill_values]
+    else:
+        fill_values = fill_values
+    try:
+        # Create a dict with the values to be replaced as keys
+        if read:
+            fill_values = dict([(l[0].encode('utf-8'), l[1:]) for l in fill_values])
+        else:
+            fill_values = dict([(l[0], l[1:]) for l in fill_values]) # don't worry about unicode for writing
+
+    except IndexError:
+        raise ValueError("Format of fill_values must be "
+                         "(<bad>, <fill>, <optional col1>, ...)")
+    return fill_values

@@ -24,7 +24,9 @@ class FastBasic(object):
     def __init__(self, default_kwargs={}, **user_kwargs):
         kwargs = default_kwargs.copy()
         kwargs.update(user_kwargs) # user kwargs take precedence over defaults
-        self.delimiter = str(kwargs.pop('delimiter', ' '))
+        delimiter = kwargs.pop('delimiter', ' ')
+        self.delimiter = str(delimiter) if delimiter is not None else None
+        self.write_comment = kwargs.get('comment', '# ')
         self.comment = kwargs.pop('comment', '#')
         if self.comment is not None:
             self.comment = str(self.comment)
@@ -89,7 +91,17 @@ class FastBasic(object):
         Use a fast Cython method to write table data to output,
         where output is a filename or file-like object.
         """
-        cparser.write(table, output, **self.kwargs)
+        self._write(table, output, {})
+
+    def _write(self, table, output, default_kwargs, header_output=True, output_types=False):
+        write_kwargs = {'delimiter': self.delimiter,
+                         'quotechar': self.quotechar,
+                         'strip_whitespace': self.strip_whitespace_fields,
+                         'comment': self.write_comment
+                         }
+        write_kwargs.update(default_kwargs)
+        write_kwargs.update(self.kwargs) # user kwargs take precedence over default kwargs
+        cparser.write(table, output, header_output, output_types, **write_kwargs)
 
 class FastCsv(FastBasic):
     """
@@ -106,6 +118,13 @@ class FastCsv(FastBasic):
 
     def __init__(self, **kwargs):
         FastBasic.__init__(self, {'delimiter': ','}, **kwargs)
+
+    def write(self, table, output):
+        """
+        Override the default write method of `FastBasic` to
+        output masked values as empty fields.
+        """
+        self._write(table, output, { 'fill_values': [(core.masked, '')] })
 
 class FastTab(FastBasic):
     """
@@ -132,6 +151,13 @@ class FastNoHeader(FastBasic):
 
     def __init__(self, **kwargs):
         FastBasic.__init__(self, {'header_start': None, 'data_start': 0}, **kwargs)
+
+    def write(self, table, output):
+        """
+        Override the default writing behavior in `FastBasic` so
+        that columns names are not included in output.
+        """
+        self._write(table, output, {}, header_output=None)
 
 class FastCommentedHeader(FastBasic):
     """
@@ -160,6 +186,13 @@ class FastCommentedHeader(FastBasic):
         self.engine.header_start = 0
         self.engine.read_header()
         self.engine.setup_tokenizer(tmp)
+
+    def write(self, table, output):
+        """
+        Override the default writing behavior in `FastBasic` so
+        that column names are commented.
+        """
+        self._write(table, output, {}, header_output='comment')
 
 class FastRdb(FastBasic):
     """
@@ -221,3 +254,10 @@ class FastRdb(FastBasic):
 
         self.engine.setup_tokenizer(tmp)
         return (try_int, try_float, try_string)
+
+    def write(self, table, output):
+        """
+        Override the default writing behavior in `FastBasic` to
+        output a line with column types after the column name line.
+        """
+        self._write(table, output, {}, output_types=True)
