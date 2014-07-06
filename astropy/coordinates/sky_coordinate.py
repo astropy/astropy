@@ -853,10 +853,14 @@ def _parse_coordinate_arg(coords, frame, units):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
+    - SkyCoord
     - Representation
     - List or tuple of:
       - String which splits into two values
       - Iterable with two values
+      - Coordinate frame with scalar data
+      - SkyCoord with scalar data
+      - Representation with scalar data
     """
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
@@ -920,32 +924,57 @@ def _parse_coordinate_arg(coords, frame, units):
 
             vals.append(coord)  # This assumes coord is a sequence at this point
 
-        # Do some basic validation of the list elements: all have a length and all
-        # lengths the same
-        try:
-            n_coords = sorted(set(len(x) for x in vals))
-        except:
-            raise ValueError('One or more elements of input sequence does not have a length')
+        # Now check to see if the first element is a SkyCoord or frame or a
+        # representation.  If so, we do some validation and then short-circuit
+        # try to construct a consistent frame
+        if isinstance(vals[0], (SkyCoord, BaseCoordinateFrame)):
+            raise NotImplementedError
+        elif isinstance(vals[0], BaseRepresentation):
+            represcls = vals[0].__class__
+            if not all([v.isscalar for v in vals]):
+                raise ValueError("Gave a list of representations to SkyCoord, "
+                                 "but they are not all scalars.")
+            component_dct = {}
+            for component in vals[0].components:
+                component_dct[component] = complist = []
+                for v in vals:
+                    if isinstance(v, represcls):
+                        complist.append(getattr(v, component))
+                    else:
+                        complist.append(getattr(v.represent_as(represcls), component))
+            for component in component_dct.keys():
+                component_dct[component] = u.Quantity(component_dct[component])
+            valrepr = represcls(**component_dct)
 
-        if len(n_coords) > 1:
-            raise ValueError('Input coordinate values must have same number of elements, found {0}'
-                             .format(n_coords))
-        n_coords = n_coords[0]
+            data = valrepr.represent_as(frame.representation)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+        else:
+            # Do some basic validation of the list elements: all have a length
+            # and all lengths the same
+            try:
+                n_coords = sorted(set(len(x) for x in vals))
+            except:
+                raise ValueError('One or more elements of input sequence does not have a length')
 
-        # Must have no more coord inputs than representation attributes
-        if n_coords > n_attr_names:
-            raise ValueError('Input coordinates have {0} values but {1} representation '
-                             'only accepts {2}'
-                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+            if len(n_coords) > 1:
+                raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                                 .format(n_coords))
+            n_coords = n_coords[0]
 
-        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
-        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
-        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
-        # while (a1, a2, ..) doesn't work.
-        values = [list(x) for x in zip(*vals)]
+            # Must have no more coord inputs than representation attributes
+            if n_coords > n_attr_names:
+                raise ValueError('Input coordinates have {0} values but {1} representation '
+                                 'only accepts {2}'
+                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
 
-        if is_scalar:
-            values = [x[0] for x in values]
+            # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+            # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+            # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+            # while (a1, a2, ..) doesn't work.
+            values = [list(x) for x in zip(*vals)]
+
+            if is_scalar:
+                values = [x[0] for x in values]
 
     else:
         raise ValueError('Cannot parse coordinates from first argument')
