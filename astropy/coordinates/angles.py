@@ -617,12 +617,13 @@ class Longitude(Angle):
 
     _wrap_angle = None
 
-    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+    def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
         if isinstance(angle, Latitude):
             raise TypeError("A Longitude angle cannot be created from a Latitude angle")
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
-        self.wrap_angle = wrap_angle
+        self.wrap_angle = (wrap_angle if wrap_angle is not None
+                           else getattr(angle, 'wrap_angle', 360 * u.deg))
         return self
 
     def __setitem__(self, item, value):
