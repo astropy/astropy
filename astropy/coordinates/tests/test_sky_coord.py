@@ -722,9 +722,12 @@ def test_create_w_list_of_reprs():
     assert scsc.ra[0] == rscalar1.lon
     assert scsc.ra[1] == rscalar2.lon
 
-    rarr = SphericalRepresentation(lon=[8]*u.deg, lat=[5]*u.deg, distance=[1]*u.kpc)
-    with pytest.raises(ValueError):
-        SkyCoord([rscalar1, rarr])
+    rarr = SphericalRepresentation(lon=[8, 8.1]*u.deg, lat=[5, 5.1]*u.deg, distance=[1, 1.1]*u.kpc)
+    scarr = SkyCoord([rscalar1, rarr])
+    assert len(scarr) == 3
+
+    r2d = SphericalRepresentation([[1,2],[3,4]]*u.deg, [[5,6],[7,8]]*u.deg, distance=1*u.kpc)
+    assert SkyCoord([r2d, rscalar1]).shape == (5,)
 
 
 def test_create_w_list_of_frames():
@@ -756,10 +759,13 @@ def test_create_w_list_of_frames():
     assert not np.allclose(framescfk4.ra[0], frame1.ra, rtol=1e-8)
     assert not np.allclose(framescfk4.ra[1], frame2.ra, rtol=1e-8)
 
-    with pytest.raises(ValueError):
-        #arrays of arrays get confusing/ambiguous, so fail
-        SkyCoord([framesc, scsc])
+    scarr = SkyCoord([framesc, scalarsc1])
+    assert len(scarr) == 3
+
+    #check that nd arrays get flattened
+    sc2d = SkyCoord([[1,2],[3,4]]*u.deg, [[5,6],[7,8]]*u.deg)
+    assert SkyCoord([sc2d, scalarsc1]).shape == (5,)
 
     with pytest.raises(ValueError):
-        #data-less frame should also fail
+        #data-less frame should fail
         SkyCoord([frame1, ICRS()])

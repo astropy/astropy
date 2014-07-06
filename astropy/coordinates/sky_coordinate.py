@@ -931,9 +931,6 @@ def _parse_coordinate_arg(coords, frame, units):
         # representation.  If so, we do some validation and then short-circuit
         # try to construct a consistent frame
         if isinstance(vals[0], (SkyCoord, BaseCoordinateFrame)):
-            if not all([v.isscalar for v in vals]):
-                raise ValueError("Gave a list of SkyCoord or frames to "
-                                 "SkyCoord, but they are not all scalars.")
             if not all([v.has_data for v in vals]):
                 raise ValueError("Gave a list of SkyCoord or frames to "
                                  "SkyCoord, but they do not all have data.")
@@ -950,8 +947,14 @@ def _parse_coordinate_arg(coords, frame, units):
             #single frame object.
             component_dct = {}
             for component in templateobj.data.components:
-                elements = [getattr(f.data, component) for f in convertedframes]
-                component_dct[component] = u.Quantity(elements)
+                component_data = []
+                for f in convertedframes:
+                    fcdata = getattr(f.data, component)
+                    if fcdata.isscalar:
+                        component_data.append(fcdata)
+                    else:
+                        component_data.extend(fcdata.ravel())
+                component_dct[component] = u.Quantity(component_data)
             reassembledrepres = templateobj.data.__class__(**component_dct)
             reassembledframe = templateobj.realize_frame(reassembledrepres)
 
@@ -977,23 +980,23 @@ def _parse_coordinate_arg(coords, frame, units):
                     valid_kwargs[attr] = value
 
         elif isinstance(vals[0], BaseRepresentation):
-            if not all([v.isscalar for v in vals]):
-                raise ValueError("Gave a list of representations to SkyCoord, "
-                                 "but they are not all scalars.")
-
             # split the components of the representations out into pieces, when
             # necessary converting to the same representation.  Then re-assemble
             # into a single representation object
             represcls = vals[0].__class__
             component_dct = {}
             for component in vals[0].components:
-                complist = []
+                compdata = []
                 for v in vals:
                     if isinstance(v, represcls):
-                        complist.append(getattr(v, component))
+                        vcomp = getattr(v, component)
                     else:
-                        complist.append(getattr(v.represent_as(represcls), component))
-                component_dct[component] = u.Quantity(complist)
+                        vcomp = getattr(v.represent_as(represcls), component)
+                    if vcomp.isscalar:
+                        compdata.append(vcomp)
+                    else:
+                        compdata.extend(vcomp.ravel())
+                component_dct[component] = u.Quantity(compdata)
             valrepr = represcls(**component_dct)
 
             # now convert to the actual requested representation for the desired frame
