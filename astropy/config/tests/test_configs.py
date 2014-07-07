@@ -184,6 +184,9 @@ def test_empty_config_file():
     fn = get_pkg_data_filename('data/astropy.0.3.cfg')
     assert is_unedited_config_file(fn)
 
+    fn = get_pkg_data_filename('data/astropy.0.3.windows.cfg')
+    assert is_unedited_config_file(fn)
+
 
 def test_alias():
     import astropy
