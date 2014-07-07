@@ -217,6 +217,8 @@ class CoordinateHelper(object):
             The length of the ticks in points
         color : str or tuple
             A valid Matplotlib color for the ticks
+        exclude_overlapping : bool, optional
+            Whether to exclude tick labels that overlap over each other.
         """
 
         if sum([values is None, spacing is None, number is None]) < 2:
