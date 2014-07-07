@@ -432,11 +432,13 @@ cdef class FastWriter:
         self.comment = comment
         self.strip_whitespace = strip_whitespace
         use_names = set(table.colnames)
+
+        # Apply include_names before exclude_names
         if include_names is not None:
             use_names.intersection_update(include_names)
         if exclude_names is not None:
             use_names.difference_update(exclude_names)
-        self.use_names = [x for x in table.colnames if x in use_names]
+        self.use_names = [x for x in table.colnames if x in use_names] # preserve column ordering via list
 
         fill_values = get_fill_values(fill_values, False)
         self.fill_values = fill_values.copy()
@@ -453,22 +455,26 @@ cdef class FastWriter:
                 pass
 
         fill_names = set(self.use_names)
+        # Apply fill_include_names before fill_exclude_names
         if fill_include_names is not None:
             fill_names.intersection_update(fill_include_names)
         if fill_exclude_names is not None:
             fill_names.difference_update(fill_exclude_names)
+        # Preserve column ordering
         self.fill_cols = set([i for i, name in enumerate(self.use_names) if name in fill_names])
 
+        # formats in user-specified dict should override existing column formats
         if formats is not None:
             for name in self.use_names:
                 if name in formats:
-                    table.columns[name].format = formats[name]
-            
+                    self.table[name].format = formats[name]
+
         self.col_iters = []
         self.formats = []
         self.format_funcs = []
+
         for col in six.itervalues(table.columns):
-            if col.name in self.use_names:
+            if col.name in self.use_names: # iterate over included columns
                 if col.format is None:
                     self.format_funcs.append(None)
                 else:
@@ -483,6 +489,7 @@ cdef class FastWriter:
 
         self.quotechar = None if quotechar is None else str(quotechar)
         self.delimiter = ' ' if delimiter is None else str(delimiter)
+        # 'S' for string types, 'N' for numeric types
         self.types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N' for name in self.use_names]
 
     def _write_header(self, output, writer, header_output, output_types):
@@ -504,25 +511,35 @@ cdef class FastWriter:
                             quotechar=self.quotechar,
                             lineterminator='\n') # TODO: add more params
         self._write_header(output, writer, header_output, output_types)
-                                                                                      
-        cdef int N = 100 # row chunk size
+                                         
+        # Split rows into N-sized chunks, since we don't want to
+        # store all the rows in memory at one time (inefficient)
+        # or fail to take advantage of the speed boost of writerows()
+        # over writerow().
+        cdef int N = 100
         cdef int num_cols = len(self.use_names)
         cdef int num_rows = len(self.table)
-        cdef list rows = [[None] * num_cols for i in range(N)]        
+        cdef set string_rows = set([i for i, type in enumerate(self.types) if type == 'S']) # cache string columns beforehand
+        cdef list rows = [[None] * num_cols for i in range(N)]
 
         for i in range(num_rows):
             for j in range(num_cols):
-                orig_field = next(self.col_iters[j])
+                orig_field = next(self.col_iters[j]) # get field
+                str_val = True # monitors whether we should check if the field should be stripped
+
                 if orig_field is None: # tolist() converts ma.masked to None
                     field = core.masked
                     rows[i % N][j] = '--'
+
                 elif self.format_funcs[j] is not None:
                     # TODO: find a better way to format non-numpy types
                     field = self.format_funcs[j](self.formats[j], np.array([orig_field])[0])
                     rows[i % N][j] = field
+
                 else:
                     field = orig_field
                     rows[i % N][j] = field
+                    str_val = j in string_rows
 
                 if field in self.fill_values:
                     new_val = self.fill_values[field][0]
@@ -530,16 +547,21 @@ cdef class FastWriter:
                     # or no specific columns are specified and this column should apply fill_values
                     if (len(self.fill_values[field]) > 1 and self.use_names[j] in self.fill_values[field][1:]) or \
                        (len(self.fill_values[field]) == 1 and j in self.fill_cols):
+                        str_val = True
                         rows[i % N][j] = new_val
-                # TODO: make this check more efficient
-                if self.strip_whitespace and isinstance(rows[i % N][j], six.string_types):
+                        if self.strip_whitespace: # new_val should be a string
+                            rows[i % N][j] = rows[i % N][j].strip()
+
+                if str_val and self.strip_whitespace:
                     rows[i % N][j] = rows[i % N][j].strip()
-            if i >= N - 1 and i % N == N - 1:
+
+            if i >= N - 1 and i % N == N - 1: # rows is now full
                 writer.writerows(rows)
 
+        # Write leftover rows not included in previous chunks
         if i % N != N - 1:
             writer.writerows(rows[:i % N + 1])
-        
+
         output.write('\n') # append final newline
         # TODO: maybe use os.linesep instead
 
