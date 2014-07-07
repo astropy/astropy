@@ -630,8 +630,6 @@ class Quantity(np.ndarray):
             (e.g. ``np.array(1)``), while this is True for quantities,
             since quantities cannot represent true numpy scalars.
         """
-        from ..utils.misc import isiterable
-
         return not isiterable(self.value)
 
     # This flag controls whether convenience conversion members, such
@@ -1015,8 +1013,10 @@ class Quantity(np.ndarray):
                     raise exc
 
         if(check_precision and
-           np.any(np.array(_value, self.dtype) !=
-                  np.array(_value, dtype=getattr(value, 'dtype', None)))):
+           not np.all(np.logical_or(
+               np.array(_value, self.dtype) ==
+               np.array(_value, dtype=getattr(value, 'dtype', None)),
+               np.isnan(_value)))):
             raise TypeError("cannot convert value type to array type without "
                             "precision loss")
         return _value

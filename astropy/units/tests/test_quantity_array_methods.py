@@ -364,6 +364,8 @@ class TestArrayConversion(object):
         assert q1.item(0) == 5 * u.m / u.km
 
     def test_slice(self):
+        """Test that setitem changes the unit if needed (or ignores it for
+        values where that is allowed; viz., #2695)"""
         q2 = np.array([[1., 2., 3.], [4., 5., 6.]]) * u.km / u.m
         q1 = q2.copy()
         q2[0, 0] = 10000.
@@ -375,6 +377,17 @@ class TestArrayConversion(object):
         assert all(q2.flatten()[:3].value == np.array([8., 8., 9.]))
         with pytest.raises(u.UnitsError):
             q2[1, 1] = 10 * u.s
+        # just to be sure, repeat with a dimensionfull unit
+        q3 = u.Quantity(np.arange(10.), "m/s")
+        q3[5] = 100. * u.cm / u.s
+        assert q3[5].value == 1.
+        # and check unit is ignored for 0, inf, nan, where that is reasonable
+        q3[5] = 0.
+        assert q3[5] == 0.
+        q3[5] = np.inf
+        assert np.isinf(q3[5])
+        q3[5] = np.nan
+        assert np.isnan(q3[5])
 
     def test_fill(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km
@@ -460,3 +473,15 @@ class TestArrayConversion(object):
             q1.dump('a.a')
         with pytest.raises(NotImplementedError):
             q1.dumps()
+
+
+class TestRecArray(object):
+    """Record arrays are not specifically supported, but we should not
+    prevent their use unnecessarily"""
+    def test_creation(self):
+        ra = (np.array(np.arange(12.).reshape(4,3))
+              .view(dtype=('f8,f8,f8')).squeeze())
+        qra = u.Quantity(ra, u.m)
+        assert np.all(qra[:2].value == ra[:2])
+        qra[1] = qra[2]
+        assert qra[1] == qra[2]
