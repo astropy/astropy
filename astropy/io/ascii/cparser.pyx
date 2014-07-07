@@ -409,6 +409,7 @@ cdef class FastWriter:
         list col_iters
         list formats
         list format_funcs
+        list types
         str quotechar
         str delimiter
         int strip_whitespace
@@ -437,7 +438,20 @@ cdef class FastWriter:
             use_names.difference_update(exclude_names)
         self.use_names = [x for x in table.colnames if x in use_names]
 
-        self.fill_values = get_fill_values(fill_values, False)
+        fill_values = get_fill_values(fill_values, False)
+        self.fill_values = fill_values.copy()
+
+        # Add int/float versions of each fill value (if applicable)
+        # to the fill_values dict. This prevents the writer from having
+        # to call unicode() on every value, which is a major
+        # performance hit.
+        for key, val in six.iteritems(fill_values):
+            try:
+                self.fill_values[int(key)] = val
+                self.fill_values[float(key)] = val
+            except (ValueError, np.ma.MaskError):
+                pass
+
         fill_names = set(self.use_names)
         if fill_include_names is not None:
             fill_names.intersection_update(fill_include_names)
@@ -449,13 +463,27 @@ cdef class FastWriter:
             for name in self.use_names:
                 if name in formats:
                     table.columns[name].format = formats[name]
+            
+        self.col_iters = []
+        self.formats = []
+        self.format_funcs = []
+        for col in six.itervalues(table.columns):
+            if col.name in self.use_names:
+                if col.format is None:
+                    self.format_funcs.append(None)
+                else:
+                    self.format_funcs.append(pprint._format_funcs.get(col.format,
+                                                        pprint._auto_format_func))
+                # col is a numpy.ndarray, so we convert it to
+                # an ordinary list because csv.writer will call
+                # np.array_str() on each numpy value, which is
+                # very inefficient
+                self.col_iters.append(iter(col.tolist()))
+                self.formats.append(col.format)
 
-        self.col_iters = [iter(col) for col in six.itervalues(table.columns) if col.name in self.use_names]
-        self.formats = [col.format for col in six.itervalues(table.columns) if col.name in self.use_names]
-        self.format_funcs = [pprint._format_funcs.get(col.format, pprint._auto_format_func) \
-                             for col in six.itervalues(table.columns) if col.name in self.use_names]
         self.quotechar = None if quotechar is None else str(quotechar)
         self.delimiter = ' ' if delimiter is None else str(delimiter)
+        self.types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N' for name in self.use_names]
 
     def _write_header(self, output, writer, header_output, output_types):
         if header_output is not None:
@@ -464,8 +492,7 @@ cdef class FastWriter:
             writer.writerow([x.strip() for x in self.use_names] if self.strip_whitespace else self.use_names) # TODO: test this
 
         if output_types:
-            types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N' for name in self.use_names]
-            writer.writerow(types)
+            writer.writerow(self.types)
 
     def write(self, output, header_output, output_types):
         opened_file = False
@@ -486,10 +513,16 @@ cdef class FastWriter:
         for i in range(num_rows):
             for j in range(num_cols):
                 orig_field = next(self.col_iters[j])
-                field = self.format_funcs[j](self.formats[j], orig_field)
-                rows[i % N][j] = field
-                if orig_field is np.ma.masked:
+                if orig_field is None: # tolist() converts ma.masked to None
                     field = core.masked
+                    rows[i % N][j] = '--'
+                elif self.format_funcs[j] is not None:
+                    # TODO: find a better way to format non-numpy types
+                    field = self.format_funcs[j](self.formats[j], np.array([orig_field])[0])
+                    rows[i % N][j] = field
+                else:
+                    field = orig_field
+                    rows[i % N][j] = field
 
                 if field in self.fill_values:
                     new_val = self.fill_values[field][0]
@@ -498,7 +531,8 @@ cdef class FastWriter:
                     if (len(self.fill_values[field]) > 1 and self.use_names[j] in self.fill_values[field][1:]) or \
                        (len(self.fill_values[field]) == 1 and j in self.fill_cols):
                         rows[i % N][j] = new_val
-                if self.strip_whitespace:
+                # TODO: make this check more efficient
+                if self.strip_whitespace and isinstance(rows[i % N][j], six.string_types):
                     rows[i % N][j] = rows[i % N][j].strip()
             if i >= N - 1 and i % N == N - 1:
                 writer.writerows(rows)

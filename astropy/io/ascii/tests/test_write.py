@@ -374,7 +374,12 @@ a,b,c
 
 def check_write_table(test_def, table, use_fast_writer):
     out = StringIO()
-    ascii.write(table, out, use_fast_writer=use_fast_writer, **test_def['kwargs'])
+    try:
+        ascii.write(table, out, use_fast_writer=use_fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
@@ -391,7 +396,12 @@ def check_write_table_via_table(test_def, table, use_fast_writer):
     else:
         format = 'ascii'
 
-    table.write(out, format=format,  use_fast_writer=use_fast_writer, **test_def['kwargs'])
+    try:
+        table.write(out, format=format,  use_fast_writer=use_fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
