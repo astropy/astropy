@@ -666,6 +666,7 @@ def get_config(packageormod=None, reload=False):
             # There's no reason to use anything but the default config
             cobj = configobj.ConfigObj(interpolation=False)
         else:
+            cfgfn = None
             try:
                 # This feature is intended only for use by the unit tests
                 if _override_config_file is not None:
@@ -677,6 +678,7 @@ def get_config(packageormod=None, reload=False):
                 msg = ('Configuration defaults will be used due to ')
                 errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
                 msg += e.__class__.__name__ + errstr
+                msg += ' on {0}'.format(cfgfn)
                 warn(ConfigurationMissingWarning(msg))
 
                 # This caches the object, so if the file becomes accessible, this
