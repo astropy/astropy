@@ -242,7 +242,7 @@ class CoordinateHelper(object):
         if alpha is not None:
             self.ticks.set_alpha(alpha)
 
-        self.ticklabels.exclude_overlapping(exclude_overlapping)
+        self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
