@@ -1016,7 +1016,8 @@ class Quantity(np.ndarray):
             value_dtype = getattr(value, 'dtype', None)
             if self.dtype != value_dtype:
                 self_dtype_array = np.array(_value, self.dtype)
-                value_dtype_array = np.array(_value, dtype=value_dtype)
+                value_dtype_array = np.array(_value, dtype=value_dtype,
+                                             copy=False)
                 if not np.all(np.logical_or(self_dtype_array ==
                                             value_dtype_array,
                                             np.isnan(value_dtype_array))):
