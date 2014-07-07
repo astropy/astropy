@@ -85,7 +85,7 @@ class TickLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self.world]
 
-    def exclude_overlapping(self, exclude_overlapping):
+    def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
     def draw(self, renderer, bboxes, ticklabels_bbox):
