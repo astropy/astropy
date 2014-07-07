@@ -4,6 +4,7 @@ import numpy as np
 cimport numpy as np
 from numpy import ma
 from ...utils.data import get_readable_fileobj
+from ...table import pprint
 from ...extern import six
 from . import core
 from distutils import version
@@ -394,91 +395,122 @@ cdef class CParser:
         else:
             return col
 
-def write(table, output, header_output, output_types,
-          delimiter=',',
-          comment='# ',
-          quotechar='"',
-          formats=None,
-          strip_whitespace=True,
-          names=None, # ignore, already used in _get_writer
-          include_names=None,
-          exclude_names=None,
-          fill_values=[],
-          fill_include_names=None,
-          fill_exclude_names=None):
+cdef class FastWriter:
+    """
+    A fast Cython writing class for writing tables
+    as ASCII data.
+    """
 
-    opened_file = False
+    cdef:
+        object table
+        list use_names
+        dict fill_values
+        set fill_cols
+        list col_iters
+        list formats
+        list format_funcs
+        str quotechar
+        str delimiter
+        int strip_whitespace
+        object comment
 
-    if not hasattr(output, 'write'): # output is a filename
-        output = open(output, 'w')
-        opened_file = True # remember to close file afterwards
+    def __cinit__(self, table,
+                  delimiter=',',
+                  comment='# ',
+                  quotechar='"',
+                  formats=None,
+                  strip_whitespace=True,
+                  names=None, # ignore, already used in _get_writer
+                  include_names=None,
+                  exclude_names=None,
+                  fill_values=[],
+                  fill_include_names=None,
+                  fill_exclude_names=None):
 
-    use_names = set(table.colnames)
-    if include_names is not None:
-        use_names.intersection_update(include_names)
-    if exclude_names is not None:
-        use_names.difference_update(exclude_names)
-    use_names = [x for x in table.colnames if x in use_names]
+        self.table = table
+        self.comment = comment
+        self.strip_whitespace = strip_whitespace
+        use_names = set(table.colnames)
+        if include_names is not None:
+            use_names.intersection_update(include_names)
+        if exclude_names is not None:
+            use_names.difference_update(exclude_names)
+        self.use_names = [x for x in table.colnames if x in use_names]
 
-    fill_values = get_fill_values(fill_values, False)
-    fill_names = set(use_names)
-    if fill_include_names is not None:
-        fill_names.intersection_update(fill_include_names)
-    if fill_exclude_names is not None:
-        fill_names.difference_update(fill_exclude_names)
-    fill_cols = set([i for i, name in enumerate(use_names) if name in fill_names])
+        self.fill_values = get_fill_values(fill_values, False)
+        fill_names = set(self.use_names)
+        if fill_include_names is not None:
+            fill_names.intersection_update(fill_include_names)
+        if fill_exclude_names is not None:
+            fill_names.difference_update(fill_exclude_names)
+        self.fill_cols = set([i for i, name in enumerate(self.use_names) if name in fill_names])
 
-    if formats is not None:
-        for name in use_names:
-            if name in formats:
-                table.columns[name].format = formats[name]
+        if formats is not None:
+            for name in self.use_names:
+                if name in formats:
+                    table.columns[name].format = formats[name]
 
-    col_iters = [col.iter_str_vals() for col in six.itervalues(table.columns) if col.name in use_names]
-    quotechar = None if quotechar is None else str(quotechar)
-    delimiter = ' ' if delimiter is None else str(delimiter)
-    writer = csv.writer(output, delimiter=delimiter,
-                        quotechar=quotechar,
-                        lineterminator='\n') # TODO: add more params
-    cdef int N = 100 # row chunk size
-    cdef int num_cols = len(use_names)
-    rows = [[None] * num_cols for i in range(N)]
+        self.col_iters = [iter(col) for col in six.itervalues(table.columns) if col.name in self.use_names]
+        self.formats = [col.format for col in six.itervalues(table.columns) if col.name in self.use_names]
+        self.format_funcs = [pprint._format_funcs.get(col.format, pprint._auto_format_func) \
+                             for col in six.itervalues(table.columns) if col.name in self.use_names]
+        self.quotechar = None if quotechar is None else str(quotechar)
+        self.delimiter = ' ' if delimiter is None else str(delimiter)
 
-    if header_output is not None:
-        if header_output == 'comment':
-            output.write(comment)
-        writer.writerow([x.strip() for x in use_names] if strip_whitespace else use_names) # TODO: test this
+    def _write_header(self, output, writer, header_output, output_types):
+        if header_output is not None:
+            if header_output == 'comment':
+                output.write(self.comment)
+            writer.writerow([x.strip() for x in self.use_names] if self.strip_whitespace else self.use_names) # TODO: test this
 
-    if output_types:
-        types = ['S' if table.columns[name].dtype.kind == 'S' else 'N' for name in use_names]
-        writer.writerow(types)
+        if output_types:
+            types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N' for name in self.use_names]
+            writer.writerow(types)
 
-    for i in range(len(table)):
-        for j in range(num_cols):
-            field = next(col_iters[j])
-            rows[i % N][j] = field
-            if table.columns[use_names[j]][i] is np.ma.masked:
-                field = core.masked
+    def write(self, output, header_output, output_types):
+        opened_file = False
 
-            if field in fill_values:
-                new_val = fill_values[field][0]
-                # Either this column applies to the field as specified in the fill_values parameter,
-                # or no specific columns are specified and this column should apply fill_values
-                if (len(fill_values[field]) > 1 and use_names[j] in fill_values[field][1:]) or \
-                           (len(fill_values[field]) == 1 and j in fill_cols):
-                    rows[i % N][j] = new_val
-            if strip_whitespace:
-                rows[i % N][j] = rows[i % N][j].strip()
-        if i >= N - 1 and i % N == N - 1:
-            writer.writerows(rows)
+        if not hasattr(output, 'write'): # output is a filename
+            output = open(output, 'w')
+            opened_file = True # remember to close file afterwards
+        writer = csv.writer(output, delimiter=self.delimiter,
+                            quotechar=self.quotechar,
+                            lineterminator='\n') # TODO: add more params
+        self._write_header(output, writer, header_output, output_types)
+                                                                                      
+        cdef int N = 100 # row chunk size
+        cdef int num_cols = len(self.use_names)
+        cdef int num_rows = len(self.table)
+        cdef list rows = [[None] * num_cols for i in range(N)]        
 
-    if i % N != N - 1:
-        writer.writerows(rows[:i % N + 1])
+        for i in range(num_rows):
+            for j in range(num_cols):
+                orig_field = next(self.col_iters[j])
+                field = self.format_funcs[j](self.formats[j], orig_field)
+                rows[i % N][j] = field
+                if orig_field is np.ma.masked:
+                    field = core.masked
+
+                if field in self.fill_values:
+                    new_val = self.fill_values[field][0]
+                    # Either this column applies to the field as specified in the fill_values parameter,
+                    # or no specific columns are specified and this column should apply fill_values
+                    if (len(self.fill_values[field]) > 1 and self.use_names[j] in self.fill_values[field][1:]) or \
+                       (len(self.fill_values[field]) == 1 and j in self.fill_cols):
+                        rows[i % N][j] = new_val
+                if self.strip_whitespace:
+                    rows[i % N][j] = rows[i % N][j].strip()
+            if i >= N - 1 and i % N == N - 1:
+                writer.writerows(rows)
+
+        if i % N != N - 1:
+            writer.writerows(rows[:i % N + 1])
         
-    output.write('\n') # append final newline
-    # TODO: maybe use os.linesep instead
+        output.write('\n') # append final newline
+        # TODO: maybe use os.linesep instead
 
-    if opened_file:
-        output.close()
+        if opened_file:
+            output.close()
 
 def get_fill_values(fill_values, read=True):
     if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types): # e.g. fill_values=('999', '0')

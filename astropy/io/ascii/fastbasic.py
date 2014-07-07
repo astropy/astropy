@@ -101,7 +101,8 @@ class FastBasic(object):
                          }
         write_kwargs.update(default_kwargs)
         write_kwargs.update(self.kwargs) # user kwargs take precedence over default kwargs
-        cparser.write(table, output, header_output, output_types, **write_kwargs)
+        writer = cparser.FastWriter(table, **write_kwargs)
+        writer.write(output, header_output, output_types)
 
 class FastCsv(FastBasic):
     """
