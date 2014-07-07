@@ -811,10 +811,12 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     cfgfn = get_config(pkg).filename
 
-    if path.exists(cfgfn):
-        doupdate = is_unedited_config_file(cfgfn)
-    elif path.exists(path.dirname(cfgfn)):
-        doupdate = True
+    doupdate = False
+    if cfgfn is not None:
+        if path.exists(cfgfn):
+            doupdate = is_unedited_config_file(cfgfn)
+        elif path.exists(path.dirname(cfgfn)):
+            doupdate = True
 
     if version is None:
         mod = __import__(pkg)
