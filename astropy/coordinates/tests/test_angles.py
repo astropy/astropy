@@ -627,6 +627,14 @@ def test_longitude():
     lon.wrap_angle = '90d'
     assert lon == Angle('-260d')
 
+    #check that if we initialize a longitude with another longitude,
+    #wrap_angle is kept by default
+    lon2 = Longitude(lon)
+    assert lon2.wrap_angle == lon.wrap_angle
+    #but not if we explicitly set it
+    lon3 = Longitude(lon, wrap_angle='180d')
+    assert lon3.wrap_angle == 180 * u.deg
+
     #check for problem reported in #2037 about Longitude initializing to -0
     lon = Longitude(0, u.deg)
     lonstr = lon.to_string()
@@ -796,4 +804,3 @@ def test_angle_axis():
 
     assert an2 - 89*u.deg < 1e-10*u.deg
     assert_allclose(ax2, [-2**-0.5, -2**-0.5, 0])
-

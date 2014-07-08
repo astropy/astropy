@@ -53,6 +53,14 @@ class TestSphericalRepresentation(object):
         assert isinstance(s2.lat, Latitude)
         assert isinstance(s2.distance, Distance)
 
+        # also test that wrap_angle is preserved
+        s3 = SphericalRepresentation(Longitude(-90, u.degree,
+                                               wrap_angle=180*u.degree),
+                                     Latitude(-45, u.degree),
+                                     Distance(1., u.Rsun))
+        assert s3.lon == -90. * u.degree
+        assert s3.lon.wrap_angle == 180 * u.degree
+
     def test_init_array(self):
 
         s1 = SphericalRepresentation(lon=[8, 9] * u.hourangle,

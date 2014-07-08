@@ -27,14 +27,14 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
 REPRESENTATION_CLASSES = {}
 
 
-def broadcast_quantity(*args, **kwargs):
+def broadcast_quantity(*args):
     """
     A Quantity-aware version of np.broadcast_arrays
     """
     new_arrays = np.broadcast_arrays(*args)
     new_quantities = []
     for i in range(len(new_arrays)):
-        new_quantities.append(args[i].__class__(new_arrays[i], unit=args[i].unit, **kwargs))
+        new_quantities.append(args[i]._new_view(new_arrays[i]))
     return tuple(new_quantities)
 
 
@@ -230,7 +230,7 @@ class CartesianRepresentation(BaseRepresentation):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
         try:
-            x, y, z = broadcast_quantity(x, y, z, copy=copy)
+            x, y, z = broadcast_quantity(x, y, z)
         except ValueError:
             raise ValueError("Input parameters x, y, and z cannot be broadcast")
 
@@ -315,7 +315,7 @@ class SphericalRepresentation(BaseRepresentation):
             distance = distance.view(Distance)
 
         try:
-            lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
+            lon, lat, distance = broadcast_quantity(lon, lat, distance)
         except ValueError:
             raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
 
@@ -417,13 +417,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
             raise TypeError('lat should be a Quantity, Angle, or Latitude')
-
         # Let the Longitude and Latitude classes deal with e.g. parsing
         lon = self.attr_classes['lon'](lon, copy=copy)
         lat = self.attr_classes['lat'](lat, copy=copy)
 
         try:
-            lon, lat = broadcast_quantity(lon, lat, copy=copy)
+            lon, lat = broadcast_quantity(lon, lat)
         except ValueError:
             raise ValueError("Input parameters lon and lat cannot be broadcast")
 
@@ -540,7 +539,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             r = r.view(Distance)
 
         try:
-            phi, theta, r = broadcast_quantity(phi, theta, r, copy=copy)
+            phi, theta, r = broadcast_quantity(phi, theta, r)
         except ValueError:
             raise ValueError("Input parameters phi, theta, and r cannot be broadcast")
 
@@ -654,7 +653,7 @@ class CylindricalRepresentation(BaseRepresentation):
             raise u.UnitsError("rho and z should have matching physical types")
 
         try:
-            rho, phi, z = broadcast_quantity(rho, phi, z, copy=copy)
+            rho, phi, z = broadcast_quantity(rho, phi, z)
         except ValueError:
             raise ValueError("Input parameters rho, phi, and z cannot be broadcast")
 
