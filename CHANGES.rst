@@ -575,6 +575,8 @@ Bug Fixes
 
   - Fix initialisation of ``TableColumns`` with lists or tuples.  [#2647]
 
+  - Fix removal of single column using ``remove_columns``. [#2699]
+
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is

@@ -1379,6 +1379,8 @@ class Table(object):
 
         This gives the same as using remove_column.
         '''
+        if isinstance(names, six.string_types):
+            names = [names]
 
         for name in names:
             if name not in self.columns:

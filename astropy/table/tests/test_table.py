@@ -709,6 +709,15 @@ class TestRemove(SetupData):
         assert self.t._data.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
+    def test_3(self, table_types):
+        """Check remove_columns works for a single column with a name of
+        more than one character.  Regression test against #2699"""
+        self._setup(table_types)
+        self.t['new_column'] = self.t['a']
+        assert 'new_column' in self.t.columns.keys()
+        self.t.remove_columns('new_column')
+        assert 'new_column' not in self.t.columns.keys()
+
     def test_remove_nonexistent_row(self, table_types):
         self._setup(table_types)
         with pytest.raises(IndexError):
