@@ -171,6 +171,11 @@ def test_distance_is_quantity():
     assert q.value[1] == 0
     assert d.value[1] != 0
 
+    # regression test against #2261
+    d = Distance([2 * u.kpc, 250. * u.pc])
+    assert d.unit is u.kpc
+    assert np.all(d.value == np.array([2., 0.25]))
+
 
 def test_distmod():
 

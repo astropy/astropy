@@ -51,9 +51,18 @@ class Distance(u.Quantity):
     distmod : float or `~astropy.units.Quantity`
         The distance modulus for this distance.
     dtype : `~numpy.dtype`, optional
-        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+        See `~astropy.units.Quantity`.
     copy : bool, optional
-        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+        See `~astropy.units.Quantity`.
+    order : {'C', 'F', 'A'}, optional
+        See `~astropy.units.Quantity`.
+    subok : bool, optional
+        See `~astropy.units.Quantity`.
+    ndmin : int, optional
+        See `~astropy.units.Quantity`.
+    allow_negative : bool, optional
+        Whether to allow negative distances (which are possible is some
+        cosmologies).  Default: ``False``.
 
     Raises
     ------
@@ -84,82 +93,55 @@ class Distance(u.Quantity):
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, dtype=None, copy=True, allow_negative=False):
-        from ..cosmology import default_cosmology
+                distmod=None, dtype=None, copy=True, order=None,
+                subok=False, ndmin=0, allow_negative=False):
 
-        if isinstance(value, u.Quantity):
-            # This includes Distances as well
-            if z is not None or distmod is not None:
-                raise ValueError('`value` was given along with `z` or `distmod`'
-                                 ' in Quantity constructor.')
+        if z is not None:
+            if value is not None or distmod is not None:
+                raise ValueError('Should given only one of `value`, `z` '
+                                 'or `distmod` in Distance constructor.')
 
-            if unit is not None:
-                value = value.to(unit).value
-            else:
-                unit = value.unit
-                value = value.value
-        elif value is None:
-            if z is not None:
-                if distmod is not None:
-                    raise ValueError('Both `z` and `distmod` given in Distance '
-                                     'constructor')
+            if cosmology is None:
+                from ..cosmology import default_cosmology
+                cosmology = default_cosmology.get()
 
-                if cosmology is None:
-                    cosmology = default_cosmology.get()
+            value = cosmology.luminosity_distance(z)
+            # Continue on to take account of unit and other arguments
+            # but a copy is already made, so no longer necessary
+            copy = False
 
-                ld = cosmology.luminosity_distance(z)
+        else:
+            if cosmology is not None:
+                raise ValueError('A `cosmology` was given but `z` was not '
+                                 'provided in Distance constructor')
 
-                if unit is not None:
-                    ld = ld.to(unit)
-                value = ld.value
-                unit = ld.unit
+            if distmod is not None:
+                if value is not None:
+                    raise ValueError('Should given only one of `value`, `z` '
+                                     'or `distmod` in Distance constructor.')
 
-            elif distmod is not None:
                 value = cls._distmod_to_pc(distmod)
-                if unit is None:
-                    # choose unit based on most reasonable of Mpc, kpc, or pc
-                    if value > 1e6:
-                        value = value / 1e6
-                        unit = u.megaparsec
-                    elif value > 1e3:
-                        value = value / 1e3
-                        unit = u.kiloparsec
-                    else:
-                        unit = u.parsec
-                else:
-                    value = u.Quantity(value, u.parsec).to(unit).value
-            else:
-                raise ValueError('None of `value`, `z`, or `distmod` were given'
-                                 ' to Distance constructor')
+                # Continue on to take account of unit and other arguments
+                # but a copy is already made, so no longer necessary
+                copy = False
 
-                value = ld.value
-                unit = ld.unit
-        elif z is not None:  # and value is not None based on above
-            raise ValueError('Both `z` and a `value` were provided in Distance '
-                             'constructor')
-        elif cosmology is not None:
-            raise ValueError('A `cosmology` was given but `z` was not provided '
-                             'in Distance constructor')
-        elif unit is None:
-            raise u.UnitsError('No unit was provided for Distance')
-        #"else" the baseline ``value`` + ``unit`` case
+            elif value is None:
+                raise ValueError('None of `value`, `z`, or `distmod` were '
+                                 'given to Distance constructor')
 
-        unit = _convert_to_and_validate_length_unit(unit)
+        # now we have arguments like for a Quantity, so let it do the work
+        distance = super(Distance, cls).__new__(
+            cls, value, unit, dtype=dtype, copy=copy, order=order,
+            subok=subok, ndmin=ndmin)
 
-        try:
-            value = np.asarray(value)
-        except ValueError as e:
-            raise TypeError(str(e))
+        if not distance.unit.is_equivalent(u.m):
+            raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
 
-        if value.dtype.kind not in 'iuf':
-            raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
+        if not allow_negative and np.any(distance.value < 0):
+            raise ValueError("Distance must be >= 0.  Use the argument "
+                             "'allow_negative=True' to allow negative values.")
 
-        if np.any(value < 0) and not allow_negative:
-            raise ValueError("Distance must be >= 0. Set the kwarg "
-                            "'allow_negative=True' to allow negative values.")
-
-        return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
-                                            copy=copy)
+        return distance
 
     def __quantity_subclass__(self, unit):
         if unit.is_equivalent(u.m):
@@ -198,13 +180,14 @@ class Distance(u.Quantity):
 
     @property
     def distmod(self):
-        """  The distance modulus of this distance as a `~astropy.units.Quantity` """
+        """The distance modulus as a `~astropy.units.Quantity`"""
         val = 5. * np.log10(self.to(u.pc).value) - 5.
         return u.Quantity(val, u.mag)
 
-    @staticmethod
-    def _distmod_to_pc(dm):
-        return 10 ** ((dm + 5) / 5.)
+    @classmethod
+    def _distmod_to_pc(cls, dm):
+        dm = u.Quantity(dm, u.mag)
+        return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
 
 
 class CartesianPoints(u.Quantity):

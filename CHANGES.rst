@@ -144,6 +144,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - ``Distance`` can now take a list of quantities. [#2261]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
