@@ -120,7 +120,8 @@ def test_read_all_files(request):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-def test_read_all_files_via_table():
+@pytest.fixture(params=[True, False])
+def test_read_all_files_via_table(request):
     for testfile in get_testfiles():
         if testfile.get('skip'):
             print('\n\n******** SKIPPING %s' % testfile['name'])
@@ -135,6 +136,8 @@ def test_read_all_files_via_table():
                 del test_opts['Reader']
             else:
                 format = 'ascii'
+            if 'fast_{0}'.format(format) in core.FAST_CLASSES:
+                test_opts['use_fast_reader'] = request.param
             table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:

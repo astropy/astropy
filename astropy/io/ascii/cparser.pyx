@@ -239,6 +239,8 @@ cdef class CParser:
         if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
+        elif self.tokenizer.num_rows == 0: # no data
+            return [[]] * self.width
         self._set_fill_names()
         return self._convert_data(try_int, try_float, try_string)
 

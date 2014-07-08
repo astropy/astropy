@@ -4,7 +4,8 @@ from ....table import Table, MaskedColumn
 from ... import ascii
 from ...ascii.core import ParameterError
 from ...ascii.cparser import CParserError
-from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb
+from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
+    FastRdb, FastNoHeader
 from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
@@ -55,6 +56,9 @@ def read_commented_header(table, **kwargs):
 def read_rdb(table, **kwargs):
     return _read(table, FastRdb, 'rdb', **kwargs)
 
+def read_no_header(table, **kwargs):
+    return _read(table, FastNoHeader, 'no_header', **kwargs)
+
 def test_simple_data():
     """
     Make sure the fast reader works with basic input data.
@@ -89,9 +93,11 @@ def test_no_header():
     The header should not be read when header_start=None. Unless names is
     passed, the column names should be auto-generated.
     """
-    table = read_basic(StringIO("A B C\n1 2 3\n4 5 6"), header_start=None, data_start=0)
+    t1 = read_basic(StringIO("A B C\n1 2 3\n4 5 6"), header_start=None, data_start=0)
+    t2 = read_no_header(StringIO("A B C\n1 2 3\n4 5 6"))
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('col1', 'col2', 'col3'))
-    assert_table_equal(table, expected)
+    assert_table_equal(t1, expected)
+    assert_table_equal(t2, expected)
 
 def test_no_header_supplied_names():
     """
@@ -231,22 +237,36 @@ def test_invalid_parameters():
     """
     Make sure the C reader raises a ParameterError if passed parameters it can't handle.
     """
+    # multi-char delimiter
     with pytest.raises(ParameterError):
         table = FastBasic(delimiter=',,').read(StringIO('1 2 3\n4 5 6'))
+    # multi-char comment
     with pytest.raises(ParameterError):
         table = FastBasic(comment='##').read(StringIO('1 2 3\n4 5 6'))
+    # data_start=None
     with pytest.raises(ParameterError):
         table = FastBasic(data_start=None).read(StringIO('1 2 3\n4 5 6'))
+    # multi-char quote signifier
     with pytest.raises(ParameterError):
         table = FastBasic(quotechar='""').read(StringIO('1 2 3\n4 5 6'))
+    # negative data_start
+    with pytest.raises(ParameterError):
+        table = FastBasic(data_start=-1).read(StringIO('1 2 3\n4 5 6'))
+    # negative header_start
+    with pytest.raises(ParameterError):
+        table = FastBasic(header_start=-1).read(StringIO('1 2 3\n4 5 6'))
+    # passing converters
     with pytest.raises(ParameterError):
         int_converter = ascii.convert_numpy(np.uint)
         converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
         table = FastBasic(converters=converters).read(StringIO('1 2 3\n4 5 6'))
+    # passing Outputter
     with pytest.raises(ParameterError):
         table = FastBasic(Outputter=ascii.TableOutputter).read(StringIO('1 2 3\n4 5 6'))
+    # passing Inputter
     with pytest.raises(ParameterError):
         table = FastBasic(Inputter=ascii.ContinuationLinesInputter).read(StringIO('1 2 3\n4 5 6'))
+    # passing Splitter class
     for arg in ('header_Splitter', 'data_Splitter'):
         with pytest.raises(ParameterError):
             table = FastBasic(**{arg: ascii.DefaultSplitter}).read(StringIO('1 2 3\n4 5 6'))
@@ -286,7 +306,7 @@ A,B,C
     assert table['C'][1] is ma.masked
 
     with pytest.raises(CParserError) as e:
-        table = FastBasic(delimiter=',').read(StringIO(text)) #TODO: maybe make error types the same as the old ones
+        table = FastBasic(delimiter=',').read(StringIO(text))
 
 def test_data_end():
     """
@@ -461,11 +481,19 @@ def test_commented_header():
     assert_table_equal(t1, expected)
 
     text = '# first commented line\n # second commented line\n\n' + text
-    #TODO: think about what to do if data_start=None (old reader has surprising functionality)
     t2 = read_commented_header(StringIO(text), header_start=2, data_start=0)
     assert_table_equal(t2, expected)
     t3 = read_commented_header(StringIO(text), header_start=-1, data_start=0) # negative indexing allowed
     assert_table_equal(t3, expected)
+
+    text += '7 8 9'
+    # data_start=2 because data_start is relative to header_start if unspecified
+    t4 = read_commented_header(StringIO(text), header_start=2) 
+    expected = Table([[7], [8], [9]], names=('A', 'B', 'C'))
+    assert_table_equal(t4, expected)
+
+    with pytest.raises(ParameterError):
+        read_commented_header(StringIO(text), header_start=-1) # data_start cannot be negative
 
 def test_rdb():
     """
@@ -480,7 +508,6 @@ A\tB\tC
     table = read_rdb(StringIO(text))
     expected = Table([[1], [' 9'], [4.3]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
-    print(table)
     assert_equal(table['A'].dtype.kind, 'i')
     assert_equal(table['B'].dtype.kind, 'S')
     assert_equal(table['C'].dtype.kind, 'f')
@@ -561,4 +588,32 @@ def test_whitespace_before_comment():
     text = 'a\tb\tc\n # comment line\n1\t2\t3'
     table = read_tab(text)
     expected = Table([[1], [2], [3]], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)
+
+def test_strip_line_trailing_whitespace():
+    """
+    Readers that strip whitespace from lines should ignore
+    trailing whitespace after the last data value of each
+    row.
+    """
+    text = 'a b c\n1 2 \n3 4 5'
+    with pytest.raises(CParserError) as e:
+        ascii.read(StringIO(text), format='basic', guess=False, use_fast_reader=True)
+    assert 'not enough columns found in line 1' in str(e)
+    
+    text = 'a b c\n 1 2 3   \t \n 4 5 6 '
+    table = read_basic(StringIO(text))
+    expected = Table([[1, 4], [2, 5], [3, 6]], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)
+
+def test_no_data():
+    """
+    As long as column names are supplied, the C reader
+    should return an empty table in the absence of data.
+    """
+    table = read_basic(StringIO('a b c'))
+    expected = Table([[], [], []], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)
+
+    table = read_basic(StringIO('a b c\n1 2 3'), data_start=2)
     assert_table_equal(table, expected)

@@ -41,7 +41,7 @@ class FastBasic(object):
         self.strip_whitespace_fields = True
 
     def _read_header(self):
-        # Use the tokenizer by default -- this method can be overrided for specialized headers
+        # Use the tokenizer by default -- this method can be overridden for specialized headers
         self.engine.read_header()
 
     def read(self, table):
@@ -53,6 +53,12 @@ class FastBasic(object):
             raise core.ParameterError("The C reader does not support a comment regex")
         elif self.data_start is None:
             raise core.ParameterError("The C reader does not allow data_start to be None")
+        elif self.header_start is not None and self.header_start < 0 and \
+             not isinstance(self, FastCommentedHeader):
+            raise core.ParameterError("The C reader does not allow header_start to be "
+                                      "negative except for commented-header files")
+        elif self.data_start < 0:
+            raise core.ParameterError("The C reader does not allow data_start to be negative")
         elif len(self.delimiter) != 1:
             raise core.ParameterError("The C reader only supports 1-char delimiters")
         elif len(self.quotechar) != 1:
@@ -171,15 +177,19 @@ class FastCommentedHeader(FastBasic):
     _fast = True
 
     def __init__(self, **kwargs):
-        FastBasic.__init__(self, {'data_start': 0}, **kwargs)
+        FastBasic.__init__(self, {}, **kwargs)
+        # Mimic CommentedHeader's behavior in which data_start
+        # is relative to header_start if unspecified; see #2692
+        if 'data_start' not in kwargs:
+            self.data_start = self.header_start
 
     def _read_header(self):
         tmp = self.engine.source.decode('utf-8')
         commented_lines = []
 
         for line in tmp.split('\n'):
+            line = line.lstrip()
             if line:
-                line = line.lstrip()
                 if line[0] == self.comment: # line begins with a comment
                     commented_lines.append(line[1:])
 

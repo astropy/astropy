@@ -206,7 +206,7 @@ void resize_header(tokenizer_t *self)
 	done = 1;
 
 // Set the error code to c for later retrieval and return c
-#define RETURN(c) { self->code = c; return c; }
+#define RETURN(c) do { self->code = c; return c; } while (0)
 
 int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
 {
@@ -226,12 +226,20 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     while (i < start)
     {
 	if (self->source_pos >= self->source_len - 1) // ignore final newline
-	    RETURN(INVALID_LINE);
-	if (self->source[self->source_pos] != '\n' && empty) // first significant character encountered
-	{
-	    empty = 0;
-	    if (self->comment != 0 && self->source[self->source_pos] == self->comment) // comment line
-		comment = 1;
+        {
+            if (header)
+                RETURN(INVALID_LINE); // header line is required
+            else
+                return NO_ERROR; // no data in input
+        }
+	if (self->source[self->source_pos] != '\n' && empty && ((self->source[self->source_pos] != ' '
+                  && self->source[self->source_pos] != '\t') || !self->strip_whitespace_lines || header))
+	{ 
+            // first significant character encountered; during header tokenization, we
+            // count whitespace unlike data tokenization (see #2654)
+            empty = 0;
+            if (self->comment != 0 && self->source[self->source_pos] == self->comment) // comment line
+                comment = 1;
 	}
 	else if (self->source[self->source_pos++] == '\n')
 	{
@@ -314,9 +322,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                     {
                         // Move on if the delimiter is whitespace, e.g. '1 2 3   '->['1','2','3']
                         if (self->delimiter == ' ' || self->delimiter == '\t')
-                        {
-                            END_FIELD();
-                        }
+                            ;
                         // Register an empty field if non-whitespace delimiter, e.g. '1,2, '->['1','2','']
                         else
                         {
