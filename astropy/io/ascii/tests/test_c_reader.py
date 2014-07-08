@@ -542,3 +542,23 @@ def test_quoted_empty_values():
     table = ascii.read(StringIO(text))
     assert table['c'][0] is ma.masked # empty value masked by default
 
+def test_csv_comment_default():
+    """
+    Unless the comment parameter is specified, the CSV reader should
+    not treat any lines as comments.
+    """
+    text = 'a,b,c\n#1,2,3\n4,5,6'
+    table = read_csv(text)
+    expected = Table([['#1', '4'], [2, 5], [3, 6]], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)
+
+def test_whitespace_before_comment():
+    """
+    Readers that don't strip whitespace from data (Tab, RDB)
+    should still treat lines with leading whitespace and then
+    the comment char as comment lines.
+    """
+    text = 'a\tb\tc\n # comment line\n1\t2\t3'
+    table = read_tab(text)
+    expected = Table([[1], [2], [3]], names=('a', 'b', 'c'))
+    assert_table_equal(table, expected)

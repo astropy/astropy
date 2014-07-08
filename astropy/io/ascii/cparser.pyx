@@ -121,6 +121,8 @@ cdef class CParser:
                   fill_exclude_names=None,
                   fill_extra_cols=0):
 
+        if comment is None:
+            comment = '\x00' # tokenizer ignores all comments if comment='\x00'
         self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar), fill_extra_cols,
                                           strip_line_whitespace, strip_line_fields)
         self.source = None
@@ -234,14 +236,11 @@ cdef class CParser:
         self.tokenizer.num_cols = self.width
             
     def read(self, try_int, try_float, try_string):
-        self._tokenize_data()
-        self._set_fill_names()
-        return self._convert_data(try_int, try_float, try_string)
-
-    cdef _tokenize_data(self):
         if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
+        self._set_fill_names()
+        return self._convert_data(try_int, try_float, try_string)
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)

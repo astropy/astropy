@@ -117,6 +117,16 @@ void resize_header(tokenizer_t *self)
         *self->col_ptrs[col]++ = c;					\
     }
 
+/* Set the state to START_FIELD and begin with the assumption that
+   the field is entirely whitespace in order to handle the possibility
+   that the comment character is found before any non-whitespace even
+   if whitespace stripping is disable.
+*/
+
+#define BEGIN_FIELD()                           \
+    self->state = START_FIELD;                  \
+    whitespace = 1;
+
 /*
   First, backtrack to eliminate trailing whitespace if strip_whitespace_fields
   is true. If the field is empty, push '\x01' as a marker.
@@ -211,6 +221,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     int i = 0;
     int empty = 1;
     int comment = 0;
+    int whitespace = 1;
     
     while (i < start)
     {
@@ -219,7 +230,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 	if (self->source[self->source_pos] != '\n' && empty) // first significant character encountered
 	{
 	    empty = 0;
-	    if (self->source[self->source_pos] == self->comment) // comment line
+	    if (self->comment != 0 && self->source[self->source_pos] == self->comment) // comment line
 		comment = 1;
 	}
 	else if (self->source[self->source_pos++] == '\n')
@@ -272,7 +283,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                     break;
                 else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
                     break;                    
-		else if (c == self->comment) // comment line; ignore
+		else if (self->comment != 0 && c == self->comment) // comment line; ignore
 		{
 		    self->state = COMMENT;
 		    break;
@@ -280,16 +291,22 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                 // initialize variables for the beginning of line parsing
 		col = 0;
 		real_col = 0;
-		self->state = START_FIELD;
+                BEGIN_FIELD();
 		repeat = 1; // parse the same character again in mode START_FIELD
 		break;
-		
+	    
 	    case START_FIELD:
 		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) // strip whitespace before field begins
 		    ;
+                else if (!self->strip_whitespace_lines && self->comment != 0 && c == self->comment)
+                {
+                    // comment line, not caught earlier because of no stripping
+                    self->state = COMMENT;
+                }
 		else if (c == self->delimiter) // field ends before it begins
 		{
 		    END_FIELD();
+                    BEGIN_FIELD();
 		}
 		else if (c == '\n')
 		{
@@ -369,11 +386,17 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 		
 	    case FIELD:
-		if (c == self->delimiter)
+                if (self->comment != 0 && c == self->comment && whitespace && col == 0)
+                {
+                    // No whitespace stripping, but the comment char is found
+                    // before any data, e.g. '  # a b c'
+                    self->state = COMMENT;
+                }
+		else if (c == self->delimiter)
 		{
                     // End of field, look for new field
 		    END_FIELD();
-		    self->state = START_FIELD;
+                    BEGIN_FIELD();
 		}
 		else if (c == '\n')
 		{
@@ -383,7 +406,9 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		    self->state = START_LINE;
 		}
 		else
-		{                    
+		{
+                    if (c != ' ' && c != '\t')
+                        whitespace = 0; // field is not all whitespace
 		    PUSH(c);
 		}
 		break;

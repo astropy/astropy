@@ -49,7 +49,7 @@ class FastBasic(object):
         Read input data (file-like object, filename, list of strings, or single string)
         into a Table and return the result.
         """
-        if len(self.comment) != 1:
+        if self.comment is not None and len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
         elif self.data_start is None:
             raise core.ParameterError("The C reader does not allow data_start to be None")
@@ -118,7 +118,7 @@ class FastCsv(FastBasic):
     fill_extra_cols = True
 
     def __init__(self, **kwargs):
-        FastBasic.__init__(self, {'delimiter': ','}, **kwargs)
+        FastBasic.__init__(self, {'delimiter': ',', 'comment': None}, **kwargs)
 
     def write(self, table, output):
         """
