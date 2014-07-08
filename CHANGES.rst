@@ -168,6 +168,10 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - By default, ``Quantity`` and its subclasses will now convert to float also
+    numerical types such as ``decimal.Decimal``, which are stored as objects
+    by numpy. [#1419]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
