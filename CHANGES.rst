@@ -726,6 +726,9 @@ Bug Fixes
   - Mixing strings and quantities in the ``Angle`` constructor now
     works.  For example: ``Angle(['1d', 1. * u.d])``.  [#2398]
 
+  - If ``Longitude`` is given a ``Longitude`` as input, use its ``wrap_angle``
+    by default [#2705]
+
 - ``astropy.cosmology``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]

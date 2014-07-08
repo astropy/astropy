@@ -604,8 +604,11 @@ class Longitude(Angle):
         better to give an actual unit object.  Must be an angular
         unit.
 
-    wrap_angle : :class:`~astropy.coordinates.Angle` or equivalent
+    wrap_angle : :class:`~astropy.coordinates.Angle` or equivalent, or None
         Angle at which to wrap back to ``wrap_angle - 360 deg``.
+        If ``None`` (default), it will be taken to be 360 deg unless ``angle``
+        has a ``wrap_angle`` attribute already (i.e., is a ``Longitude``),
+        in which case it will be taken from there.
 
     Raises
     ------
