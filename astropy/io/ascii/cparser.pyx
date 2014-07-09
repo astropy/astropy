@@ -56,11 +56,12 @@ cdef extern from "src/tokenizer.h":
         # source: "A,B,C\n10,5.,6\n1,2,3"
         # output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 
-    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
-                                  int strip_whitespace_lines, int strip_whitespace_fields)
+    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+                                  int fill_extra_cols, int strip_whitespace_lines,
+                                  int strip_whitespace_fields)
     void delete_tokenizer(tokenizer_t *tokenizer)
-    int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
-    int int_size()
+    int tokenize(tokenizer_t *self, int start, int end, int header,
+                 int *use_cols, int use_cols_len)
     long str_to_long(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
@@ -94,10 +95,10 @@ cdef class CParser:
         object data_end_obj
         object include_names
         object exclude_names
-        object fill_values
+        dict fill_values
         object fill_include_names
         object fill_exclude_names
-        object fill_names
+        set fill_names
         int fill_extra_cols
         np.ndarray use_cols
 
@@ -124,8 +125,10 @@ cdef class CParser:
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
-        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar), fill_extra_cols,
-                                          strip_line_whitespace, strip_line_fields)
+        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar),
+                                          fill_extra_cols,
+                                          strip_line_whitespace,
+                                          strip_line_fields)
         self.source = None
         self.setup_tokenizer(source)
         self.header_start = header_start
@@ -149,7 +152,8 @@ cdef class CParser:
     cdef raise_error(self, msg):
         err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
 
-        if callable(err_msg): # error code is lambda function taking current line as input
+        # error code is lambda function taking current line as input
+        if callable(err_msg):
             err_msg = err_msg(self.tokenizer.num_rows + 1)
 
         raise CParserError("{0}: {1}".format(msg, err_msg))
@@ -158,7 +162,8 @@ cdef class CParser:
         cdef char *src
 
         if isinstance(source, six.string_types) or hasattr(source, 'read'):
-            if hasattr(source, 'read') or '\n' not in source: # Either filename or file-like object
+            # Either filename or file-like object
+            if hasattr(source, 'read') or '\n' not in source: 
                 with get_readable_fileobj(source) as file_obj:
                     source = file_obj.read()
             # Otherwise, source is the actual data so we leave it be
@@ -166,11 +171,11 @@ cdef class CParser:
             try:
                 source = '\n'.join(source) # iterable sequence of lines
             except TypeError:
-                raise TypeError('Input "table" must be a file-like object, a string (filename'
-                             'or data), or an iterable')
+                raise TypeError('Input "table" must be a file-like object, a '
+                                'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
         source_str = source + '\n' # add newline to simplify handling last line of data
-        self.source = source_str.encode('UTF-8') # encode in UTF-8 for char * handling (fixes Python 3 issue)
+        self.source = source_str.encode('UTF-8') # encode in UTF-8 for char * handling
         src = self.source
         self.tokenizer.source = src
         self.tokenizer.source_len = len(self.source)
@@ -189,7 +194,8 @@ cdef class CParser:
                 c = self.tokenizer.header_output[i] # next char in header string
                 if not c: # zero byte -- field terminator
                     if name:
-                        self.names.append(name.replace('\x01', '')) # replace empty placeholder with ''
+                        # replace empty placeholder with ''
+                        self.names.append(name.replace('\x01', ''))
                         name = ''
                     else:
                         break # end of string
@@ -203,23 +209,21 @@ cdef class CParser:
                 self.raise_error("an error occurred while tokenizing the first line of data")
             self.width = 0
             for i in range(self.tokenizer.header_len):
-                if not self.tokenizer.header_output[i]: # zero byte -- field terminator
-                    if i > 0 and self.tokenizer.header_output[i - 1]: # ends valid field
+                # zero byte -- field terminator
+                if not self.tokenizer.header_output[i]:
+                    # ends valid field
+                    if i > 0 and self.tokenizer.header_output[i - 1]:
                         self.width += 1
                     else: # end of line
                         break
             if self.width == 0: # no data
-                raise core.InconsistentTableError('No data lines found, C reader cannot autogenerate '
-                                                  'column names')
-            self.names = ['col{0}'.format(i + 1) for i in range(self.width)] # auto-generate names
+                raise core.InconsistentTableError('No data lines found, C reader '
+                                            'cannot autogenerate column names')
+            # auto-generate names
+            self.names = ['col{0}'.format(i + 1) for i in range(self.width)]
 
-        size = int_size()
-        dtype = np.int16 #TODO: maybe find a better way to do this?
-        if size == 64:
-            dtype = np.int64
-        elif size == 32:
-            dtype = np.int32
-        self.use_cols = np.ones(self.width, dtype) # "boolean" array denoting whether or not to use each column
+        # "boolean" array denoting whether or not to use each column
+        self.use_cols = np.ones(self.width, np.intc)
         if self.include_names is not None:
             for i, name in enumerate(self.names):
                 if name not in self.include_names:
@@ -237,8 +241,8 @@ cdef class CParser:
         self.tokenizer.num_cols = self.width
             
     def read(self, try_int, try_float, try_string):
-        if tokenize(self.tokenizer, self.data_start, self.data_end, 0, <int *> self.use_cols.data,
-                    len(self.use_cols)) != 0:
+        if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
+                    <int *> self.use_cols.data, len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
         elif self.tokenizer.num_rows == 0: # no data
             return [[]] * self.width
@@ -255,7 +259,8 @@ cdef class CParser:
     cdef _convert_data(self, try_int, try_float, try_string):
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end_obj is not None and self.data_end_obj < 0:
-            num_rows += self.data_end_obj # e.g. if data_end = -1, ignore the last row
+            # e.g. if data_end = -1, ignore the last row
+            num_rows += self.data_end_obj
         cols = {}
 
         for i, name in enumerate(self.names):
@@ -277,7 +282,8 @@ cdef class CParser:
         return cols
 
     cdef np.ndarray _convert_int(self, int i, int num_rows):
-        cdef np.ndarray col = np.empty(num_rows, dtype=np.int_) # intialize ndarray
+        # intialize ndarray
+        cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
         cdef long converted
         cdef int row = 0
         cdef long *data = <long *> col.data # pointer to raw data
@@ -289,24 +295,29 @@ cdef class CParser:
         while not finished_iteration(self.tokenizer):
             if row == num_rows: # end prematurely if we aren't using every row
                 break
-            field = next_field(self.tokenizer) # retrieve the next field in a bytes value
+            # retrieve the next field in a bytes value
+            field = next_field(self.tokenizer)
 
             if field in self.fill_values:
                 new_val = str(self.fill_values[field][0]).encode('utf-8')
 
-                # Either this column applies to the field as specified in the fill_values parameter,
-                # or no specific columns are specified and this column should apply fill_values
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
-                           (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+                # Either this column applies to the field as specified in the 
+                # fill_values parameter, or no specific columns are specified
+                # and this column should apply fill_values.
+                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
+                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                    converted = str_to_long(self.tokenizer, new_val) # try converting the new value
+                    # try converting the new value
+                    converted = str_to_long(self.tokenizer, new_val)
                 else:
                     converted = str_to_long(self.tokenizer, field)
 
-            else:                
-                converted = str_to_long(self.tokenizer, field) # convert the field to long (widest integer type)
+            else:
+                # convert the field to long (widest integer type)
+                converted = str_to_long(self.tokenizer, field)
 
-            if self.tokenizer.code in (CONVERSION_ERROR, OVERFLOW_ERROR): # no dice
+            if self.tokenizer.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
+                # no dice
                 self.tokenizer.code = NO_ERROR
                 raise ValueError()
             
@@ -314,7 +325,9 @@ cdef class CParser:
             row += 1
 
         if mask:
-            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)]) # convert to masked_array
+            # convert to masked_array
+            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
+                                              range(row)])
         else:
             return col
 
@@ -335,8 +348,8 @@ cdef class CParser:
             field = next_field(self.tokenizer)
             if field in self.fill_values:
                 new_val = str(self.fill_values[field][0]).encode('utf-8')
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
-                           (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
+                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
                     converted = str_to_double(self.tokenizer, new_val)
                 else:
@@ -349,9 +362,9 @@ cdef class CParser:
                 raise ValueError()
             elif self.tokenizer.code == OVERFLOW_ERROR:
                 self.tokenizer.code = NO_ERROR
-                # In numpy < 1.6, using type inference yields a float for overflow values because
-                # the error raised is not specific. This replicates the old reading behavior
-                # (see #2234).
+                # In numpy < 1.6, using type inference yields a float for 
+                # overflow values because the error raised is not specific.
+                # This replicates the old reading behavior (see #2234).
                 if version.LooseVersion(np.__version__) < version.LooseVersion('1.6'):
                     col[row] = new_val if field in self.fill_values else field
                 else:
@@ -361,13 +374,14 @@ cdef class CParser:
             row += 1
 
         if mask:
-            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
+            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
+                                              range(row)])
         else:
             return col
 
     cdef np.ndarray _convert_str(self, int i, int num_rows):
         # similar to _convert_int, but no actual conversion
-        cdef np.ndarray col = np.empty(num_rows, dtype=object) # TODO: find a faster method here
+        cdef np.ndarray col = np.empty(num_rows, dtype=object)
         cdef int row = 0
         cdef bytes field
         cdef bytes new_val
@@ -381,20 +395,23 @@ cdef class CParser:
             field = next_field(self.tokenizer)
             if field in self.fill_values:
                 el = str(self.fill_values[field][0])
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) or \
-                           (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
+                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
                 else:
                     el = field.decode('utf-8')
             else:
                 el = field.decode('utf-8')
-            max_len = max(max_len, len(el)) # update max_len with the length of each field
+            # update max_len with the length of each field
+            max_len = max(max_len, len(el))
             col[row] = el
             row += 1
 
-        col = col.astype('|S{0}'.format(max_len)) # convert to string with smallest length possible
+        # convert to string with smallest length possible
+        col = col.astype('|S{0}'.format(max_len))
         if mask:
-            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in range(row)])
+            return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
+                                              range(row)])
         else:
             return col
 
@@ -441,7 +458,8 @@ cdef class FastWriter:
             use_names.intersection_update(include_names)
         if exclude_names is not None:
             use_names.difference_update(exclude_names)
-        self.use_names = [x for x in table.colnames if x in use_names] # preserve column ordering via list
+        # preserve column ordering via list
+        self.use_names = [x for x in table.colnames if x in use_names]
 
         fill_values = get_fill_values(fill_values, False)
         self.fill_values = fill_values.copy()
@@ -464,9 +482,11 @@ cdef class FastWriter:
         if fill_exclude_names is not None:
             fill_names.difference_update(fill_exclude_names)
         # Preserve column ordering
-        self.fill_cols = set([i for i, name in enumerate(self.use_names) if name in fill_names])
+        self.fill_cols = set([i for i, name in enumerate(self.use_names) if
+                              name in fill_names])
 
-        # formats in user-specified dict should override existing column formats
+        # formats in user-specified dict should override
+        # existing column formats
         if formats is not None:
             for name in self.use_names:
                 if name in formats:
@@ -493,13 +513,15 @@ cdef class FastWriter:
         self.quotechar = None if quotechar is None else str(quotechar)
         self.delimiter = ' ' if delimiter is None else str(delimiter)
         # 'S' for string types, 'N' for numeric types
-        self.types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N' for name in self.use_names]
+        self.types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N'
+                      for name in self.use_names]
 
     def _write_header(self, output, writer, header_output, output_types):
         if header_output is not None:
             if header_output == 'comment':
                 output.write(self.comment)
-            writer.writerow([x.strip() for x in self.use_names] if self.strip_whitespace else self.use_names)
+            writer.writerow([x.strip() for x in self.use_names] if 
+                            self.strip_whitespace else self.use_names)
 
         if output_types:
             writer.writerow(self.types)
@@ -526,13 +548,17 @@ cdef class FastWriter:
         cdef int N = 100
         cdef int num_cols = len(self.use_names)
         cdef int num_rows = len(self.table)
-        cdef set string_rows = set([i for i, type in enumerate(self.types) if type == 'S']) # cache string columns beforehand
+        # cache string columns beforehand
+        cdef set string_rows = set([i for i, type in enumerate(self.types) if 
+                                    type == 'S'])
         cdef list rows = [[None] * num_cols for i in range(N)]
 
         for i in range(num_rows):
             for j in range(num_cols):
                 orig_field = next(self.col_iters[j]) # get field
-                str_val = True # monitors whether we should check if the field should be stripped
+                # str_val monitors whether we should check if the field
+                # should be stripped
+                str_val = True
 
                 if orig_field is None: # tolist() converts ma.masked to None
                     field = core.masked
@@ -540,7 +566,8 @@ cdef class FastWriter:
 
                 elif self.format_funcs[j] is not None:
                     # TODO: find a better way to format non-numpy types
-                    field = self.format_funcs[j](self.formats[j], np.array([orig_field])[0])
+                    field = self.format_funcs[j](self.formats[j], np.array(
+                                                          [orig_field])[0])
                     rows[i % N][j] = field
 
                 else:
@@ -550,10 +577,11 @@ cdef class FastWriter:
 
                 if field in self.fill_values:
                     new_val = self.fill_values[field][0]
-                    # Either this column applies to the field as specified in the fill_values parameter,
-                    # or no specific columns are specified and this column should apply fill_values
-                    if (len(self.fill_values[field]) > 1 and self.use_names[j] in self.fill_values[field][1:]) or \
-                       (len(self.fill_values[field]) == 1 and j in self.fill_cols):
+                    # Either this column applies to the field as specified in
+                    # the fill_values parameter, or no specific columns are
+                    # specified and this column should apply fill_values.
+                    if (len(self.fill_values[field]) > 1 and self.use_names[j] in self.fill_values[field][1:]) \
+                       or (len(self.fill_values[field]) == 1 and j in self.fill_cols):
                         str_val = True
                         rows[i % N][j] = new_val
                         if self.strip_whitespace: # new_val should be a string
@@ -569,13 +597,12 @@ cdef class FastWriter:
         if i % N != N - 1:
             writer.writerows(rows[:i % N + 1])
 
-        output.write(os.linesep) # append final newline
-
         if opened_file:
             output.close()
 
 def get_fill_values(fill_values, read=True):
-    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types): # e.g. fill_values=('999', '0')
+    if len(fill_values) > 0 and isinstance(fill_values[0], six.string_types):
+        # e.g. fill_values=('999', '0')
         fill_values = [fill_values]
     else:
         fill_values = fill_values
@@ -584,7 +611,8 @@ def get_fill_values(fill_values, read=True):
         if read:
             fill_values = dict([(l[0].encode('utf-8'), l[1:]) for l in fill_values])
         else:
-            fill_values = dict([(l[0], l[1:]) for l in fill_values]) # don't worry about unicode for writing
+            # don't worry about unicode for writing
+            fill_values = dict([(l[0], l[1:]) for l in fill_values])
 
     except IndexError:
         raise ValueError("Format of fill_values must be "

@@ -2,8 +2,9 @@
 
 #include "tokenizer.h"
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
-                              int strip_whitespace_lines, int strip_whitespace_fields)
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+                              int fill_extra_cols, int strip_whitespace_lines,
+                              int strip_whitespace_fields)
 {
     // Create the tokenizer in memory
     tokenizer_t *tokenizer = (tokenizer_t *) malloc(sizeof(tokenizer_t));
@@ -30,7 +31,8 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
     tokenizer->strip_whitespace_lines = strip_whitespace_lines;
     tokenizer->strip_whitespace_fields = strip_whitespace_fields;
 
-    // This is a bit of a hack -- buf holds an empty string to represent empty field values
+    // This is a bit of a hack -- buf holds an empty string to represent
+    // empty field values
     tokenizer->buf = calloc(2, sizeof(char));
 
     return tokenizer;
@@ -38,7 +40,8 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int 
 
 void delete_data(tokenizer_t *tokenizer)
 {
-    // Don't free tokenizer->source because it points to part of an already freed Python object
+    // Don't free tokenizer->source because it points to part of
+    // an already freed Python object
     free(tokenizer->header_output);
     int i;
 
@@ -64,27 +67,33 @@ void delete_tokenizer(tokenizer_t *tokenizer)
 
 void resize_col(tokenizer_t *self, int index)
 {
-    // Temporarily store the position in output_cols[index] to which col_ptrs[index] points
+    // Temporarily store the position in output_cols[index] to
+    // which col_ptrs[index] points
     int diff = self->col_ptrs[index] - self->output_cols[index];
 
     // Double the size of the column string
-    self->output_cols[index] = (char *) realloc(self->output_cols[index], 2 * self->output_len[index] * sizeof(char));
+    self->output_cols[index] = (char *) realloc(self->output_cols[index], 2 * 
+                                       self->output_len[index] * sizeof(char));
 
     // Set the second (newly allocated) half of the column string to all zeros
-    memset(self->output_cols[index] + self->output_len[index] * sizeof(char), 0, self->output_len[index] * sizeof(char));
+    memset(self->output_cols[index] + self->output_len[index] * sizeof(char), 0,
+                                       self->output_len[index] * sizeof(char));
 
     self->output_len[index] *= 2;
-    // realloc() might move the address in memory, so we have to move col_ptrs[index] to an offset of the new address
+    // realloc() might move the address in memory, so we have to move
+    // col_ptrs[index] to an offset of the new address
     self->col_ptrs[index] = self->output_cols[index] + diff;
 }
 
 void resize_header(tokenizer_t *self)
 {
     // Double the size of the header string
-    self->header_output = (char *) realloc(self->header_output, 2 * self->header_len * sizeof(char));
+    self->header_output = (char *) realloc(self->header_output, 2 *
+                                           self->header_len * sizeof(char));
 
     // Set the second half of the header string to all zeros
-    memset(self->header_output + self->header_len * sizeof(char), 0, self->header_len * sizeof(char));
+    memset(self->header_output + self->header_len * sizeof(char), 0,
+           self->header_len * sizeof(char));
     self->header_len *= 2;
 }
 
@@ -110,7 +119,8 @@ void resize_header(tokenizer_t *self)
     }									\
     else if (col < self->num_cols && use_cols[real_col])		\
     {									\
-	if (self->col_ptrs[col] - self->output_cols[col] >= self->output_len[col] * sizeof(char)) \
+	if (self->col_ptrs[col] - self->output_cols[col] >=             \
+            self->output_len[col] * sizeof(char))                       \
 	{								\
 	    resize_col(self, col);					\
 	}								\
@@ -172,7 +182,8 @@ void resize_header(tokenizer_t *self)
             }                                                           \
             ++self->col_ptrs[col];                                      \
         }                                                               \
-        if (self->col_ptrs[col] == self->output_cols[col] || self->col_ptrs[col][-1] == '\x00') \
+        if (self->col_ptrs[col] == self->output_cols[col] ||            \
+            self->col_ptrs[col][-1] == '\x00')                          \
         {                                                               \
             PUSH('\x01');                                               \
         }                                                               \
@@ -208,7 +219,8 @@ void resize_header(tokenizer_t *self)
 // Set the error code to c for later retrieval and return c
 #define RETURN(c) do { self->code = c; return c; } while (0)
 
-int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, int use_cols_len)
+int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
+             int use_cols_len)
 {
     delete_data(self); // clear old reading data
     char c; // input character
@@ -232,13 +244,16 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
             else
                 return NO_ERROR; // no data in input
         }
-	if (self->source[self->source_pos] != '\n' && empty && ((self->source[self->source_pos] != ' '
-                  && self->source[self->source_pos] != '\t') || !self->strip_whitespace_lines || header))
+	if (self->source[self->source_pos] != '\n' && empty && ((self->source[self->source_pos]
+             != ' ' && self->source[self->source_pos] != '\t') || 
+                        !self->strip_whitespace_lines || header))
 	{ 
-            // first significant character encountered; during header tokenization, we
-            // count whitespace unlike data tokenization (see #2654)
+            // first significant character encountered; during header
+            // tokenization, we count whitespace unlike data tokenization
+            // (see #2654)
             empty = 0;
-            if (self->comment != 0 && self->source[self->source_pos] == self->comment) // comment line
+            // comment line
+            if (self->comment != 0 && self->source[self->source_pos] ==self->comment)
                 comment = 1;
 	}
 	else if (self->source[self->source_pos++] == '\n')
@@ -253,7 +268,8 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     
     // Allocate memory for structures used during tokenization
     if (header)
-	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE * sizeof(char));
+	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE *
+                                              sizeof(char));
     else
     {
 	self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
@@ -262,14 +278,17 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 	
 	for (i = 0; i < self->num_cols; ++i)
 	{
-	    self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE * sizeof(char));
-            // Make each col_ptrs pointer point to the beginning of the column string
+	    self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE *
+                                                   sizeof(char));
+            // Make each col_ptrs pointer point to the beginning of the
+            // column string
 	    self->col_ptrs[i] = self->output_cols[i];
 	    self->output_len[i] = INITIAL_COL_SIZE;
 	}
     }
     
-    int done = (end != -1 && end <= start); // Make sure the parameter end is valid
+    // Make sure the parameter end is valid
+    int done = (end != -1 && end <= start);
     int repeat;
     self->state = START_LINE;
     
@@ -290,9 +309,10 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
                 if (c == '\n')
                     break;
                 else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
-                    break;                    
-		else if (self->comment != 0 && c == self->comment) // comment line; ignore
+                    break;
+		else if (self->comment != 0 && c == self->comment)
 		{
+                    // comment line; ignore
 		    self->state = COMMENT;
 		    break;
 		}
@@ -304,9 +324,11 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 	    
 	    case START_FIELD:
-		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) // strip whitespace before field begins
+                // strip whitespace before field begins
+		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
 		    ;
-                else if (!self->strip_whitespace_lines && self->comment != 0 && c == self->comment)
+                else if (!self->strip_whitespace_lines && self->comment != 0 &&
+                         c == self->comment)
                 {
                     // comment line, not caught earlier because of no stripping
                     self->state = COMMENT;
@@ -320,10 +342,12 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		{
                     if (self->strip_whitespace_lines)
                     {
-                        // Move on if the delimiter is whitespace, e.g. '1 2 3   '->['1','2','3']
+                        // Move on if the delimiter is whitespace, e.g.
+                        // '1 2 3   '->['1','2','3']
                         if (self->delimiter == ' ' || self->delimiter == '\t')
                             ;
-                        // Register an empty field if non-whitespace delimiter, e.g. '1,2, '->['1','2','']
+                        // Register an empty field if non-whitespace delimiter,
+                        // e.g. '1,2, '->['1','2','']
                         else
                         {
                             END_FIELD();
@@ -332,30 +356,35 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 
                     else if (!self->strip_whitespace_lines)
                     {
-                        // In this case we don't want to left-strip the field, so we backtrack
+                        // In this case we don't want to left-strip the field,
+                        // so we backtrack
                         int tmp = self->source_pos;
                         --self->source_pos;
 
-                        while (self->source_pos >= 0 && self->source[self->source_pos] != self->delimiter
+                        while (self->source_pos >= 0 &&
+                               self->source[self->source_pos] != self->delimiter
                                && self->source[self->source_pos] != '\n')
                         {
                             --self->source_pos;
                         }
 
                         // backtracked to line beginning
-                        if (self->source_pos == -1 || self->source[self->source_pos] == '\n')
+                        if (self->source_pos == -1 || self->source[self->source_pos]
+                                                                      == '\n')
                             self->source_pos = tmp;
                         else
                         {
                             ++self->source_pos;
 
-                            if (self->source_pos == tmp) // no whitespace, just an empty field
+                            if (self->source_pos == tmp)
+                                // no whitespace, just an empty field
                                 ;                                
 
                             else
                                 while (self->source_pos < tmp)
                                 {
-                                    PUSH(self->source[self->source_pos]); // append whitespace characters
+                                    // append whitespace characters
+                                    PUSH(self->source[self->source_pos]);
                                     ++self->source_pos;
                                 }
 
@@ -377,7 +406,8 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 		
 	    case START_QUOTED_FIELD:
-		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) // ignore initial whitespace
+		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
+                    // ignore initial whitespace
 		    ;
 		else if (c == self->quotechar) // empty quotes
 		{
@@ -431,8 +461,10 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
 		break;
 
 	    case QUOTED_FIELD_NEWLINE:
-                // Ignore initial whitespace if strip_whitespace_lines and newlines regardless
-		if (((c == ' ' || c == '\t') && self->strip_whitespace_lines) || c == '\n')
+                // Ignore initial whitespace if strip_whitespace_lines and
+                // newlines regardless
+		if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
+                    || c == '\n')
 		    ;
 		else if (c == self->quotechar)
 		    self->state = FIELD;
@@ -455,11 +487,6 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols, i
     }
     
     RETURN(0);
-}
-
-int int_size(void)
-{
-    return 8 * sizeof(int);
 }
 
 long str_to_long(tokenizer_t *self, char *str)
@@ -493,13 +520,16 @@ void start_iteration(tokenizer_t *self, int col)
 {
     // Begin looping over the column string with index col
     self->iter_col = col;
-    self->curr_pos = self->output_cols[col]; // Start at the initial pointer position
+    // Start at the initial pointer position
+    self->curr_pos = self->output_cols[col];
 }
 
 int finished_iteration(tokenizer_t *self)
 {
-    // Iteration is finished if we've exceeded the length of the column string or the pointer is at an empty byte
-    return (self->curr_pos - self->output_cols[self->iter_col] >= self->output_len[self->iter_col] * sizeof(char)
+    // Iteration is finished if we've exceeded the length of the column string
+    // or the pointer is at an empty byte
+    return (self->curr_pos - self->output_cols[self->iter_col] >=
+            self->output_len[self->iter_col] * sizeof(char)
 	    || *self->curr_pos == '\x00');
 }
 
@@ -507,7 +537,8 @@ char *next_field(tokenizer_t *self)
 {
     char *tmp = self->curr_pos;
 
-    while (*self->curr_pos != '\x00') // pass through the entire field until reaching the delimiter
+    // pass through the entire field until reaching the delimiter
+    while (*self->curr_pos != '\x00')
 	++self->curr_pos;
 
     ++self->curr_pos; // next field begins after the delimiter

@@ -130,9 +130,10 @@ the option to send the output to ``sys.stdout`` instead of a file::
   \end{table}
 
 There is also a faster Cython engine for writing simple formats,
-which can be enabled by specifying ``use_fast_writer``::
+which is enabled by default for these formats. To disable this
+engine, use the parameter ``use_fast_writer``::
 
-   >>> ascii.write(data, 'values.dat', use_fast_writer=True)  # doctest: +SKIP
+   >>> ascii.write(data, 'values.csv', format='csv', use_fast_writer=False)  # doctest: +SKIP
 
 .. _supported_formats:
 

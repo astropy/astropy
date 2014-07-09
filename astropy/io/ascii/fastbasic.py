@@ -32,22 +32,24 @@ class FastBasic(object):
             self.comment = str(self.comment)
         self.quotechar = str(kwargs.pop('quotechar', '"'))
         self.header_start = kwargs.pop('header_start', 0)
-        # If data_start is not specified, start reading data right after the header line
-        data_start_default = user_kwargs.get('data_start', self.header_start + 1
-                                             if self.header_start is not None else 1)
+        # If data_start is not specified, start reading
+        # data right after the header line
+        data_start_default = user_kwargs.get('data_start', self.header_start +
+                                    1 if self.header_start is not None else 1)
         self.data_start = kwargs.pop('data_start', data_start_default)
         self.kwargs = kwargs
         self.strip_whitespace_lines = True
         self.strip_whitespace_fields = True
 
     def _read_header(self):
-        # Use the tokenizer by default -- this method can be overridden for specialized headers
+        # Use the tokenizer by default -- this method
+        # can be overridden for specialized headers
         self.engine.read_header()
 
     def read(self, table):
         """
-        Read input data (file-like object, filename, list of strings, or single string)
-        into a Table and return the result.
+        Read input data (file-like object, filename, list of strings, or 
+        single string) into a Table and return the result.
         """
         if self.comment is not None and len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
@@ -73,7 +75,8 @@ class FastBasic(object):
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
-        self.engine = cparser.CParser(table, self.strip_whitespace_lines, self.strip_whitespace_fields,
+        self.engine = cparser.CParser(table, self.strip_whitespace_lines,
+                                      self.strip_whitespace_fields,
                                       delimiter=self.delimiter,
                                       header_start=self.header_start,
                                       comment=self.comment,
@@ -99,23 +102,26 @@ class FastBasic(object):
         """
         self._write(table, output, {})
 
-    def _write(self, table, output, default_kwargs, header_output=True, output_types=False):
+    def _write(self, table, output, default_kwargs,
+               header_output=True, output_types=False):
+
         write_kwargs = {'delimiter': self.delimiter,
                          'quotechar': self.quotechar,
                          'strip_whitespace': self.strip_whitespace_fields,
                          'comment': self.write_comment
                          }
         write_kwargs.update(default_kwargs)
-        write_kwargs.update(self.kwargs) # user kwargs take precedence over default kwargs
+        # user kwargs take precedence over default kwargs
+        write_kwargs.update(self.kwargs)
         writer = cparser.FastWriter(table, **write_kwargs)
         writer.write(output, header_output, output_types)
 
 class FastCsv(FastBasic):
     """
-    A faster version of the ordinary :class:`Csv` writer that uses the optimized
-    C parsing engine. Note that this reader will append empty field values to
-    the end of any row with not enough columns, while :class:`FastBasic` simply
-    raises an error.
+    A faster version of the ordinary :class:`Csv` writer that uses the
+    optimized C parsing engine. Note that this reader will append empty
+    field values to the end of any row with not enough columns, while
+    :class:`FastBasic` simply raises an error.
     """
     _format_name = 'fast_csv'
     _io_registry_suffix = '.csv'
@@ -135,8 +141,8 @@ class FastCsv(FastBasic):
 
 class FastTab(FastBasic):
     """
-    A faster version of the ordinary :class:`Tab` reader that uses the optimized
-    C parsing engine.
+    A faster version of the ordinary :class:`Tab` reader that uses
+    the optimized C parsing engine.
     """
     _format_name = 'fast_tab'
     _description = 'Tab-separated values table using the fast C engine'
@@ -149,8 +155,9 @@ class FastTab(FastBasic):
 
 class FastNoHeader(FastBasic):
     """
-    This class uses the fast C engine to read tables with no header line. If the
-    names parameter is unspecified, the columns will be autonamed with "col%d".
+    This class uses the fast C engine to read tables with no header line. If
+    the names parameter is unspecified, the columns will be autonamed with
+    "col%d".
     """
     _format_name = 'fast_no_header'
     _description = 'Basic table with no headers using the fast C engine'
@@ -226,7 +233,8 @@ class FastRdb(FastBasic):
         line1 = ''
         line2 = ''
         for line in tmp.split('\n'):
-            if not line1 and line and line.lstrip()[0] != self.comment: # valid non-comment line
+            # valid non-comment line
+            if not line1 and line and line.lstrip()[0] != self.comment:
                 line1 = line
             elif not line2 and line and line.lstrip()[0] != self.comment:
                 line2 = line
@@ -244,10 +252,12 @@ class FastRdb(FastBasic):
         self.engine.read_header()
         
         if len(self.engine.names) != len(types):
-            raise ValueError('RDB header mismatch between number of column names and column types')
+            raise ValueError('RDB header mismatch between number of '
+                             'column names and column types')
 
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in types):
-            raise ValueError('RDB type definitions do not all match [num](N|S): {0}'.format(types))
+            raise ValueError('RDB type definitions do not all match '
+                             '[num](N|S): {0}'.format(types))
 
         try_int = {}
         try_float = {}

@@ -1126,12 +1126,15 @@ def _get_writer(Writer, use_fast_writer, **kwargs):
 
     if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
-    elif use_fast_writer:
+    elif use_fast_writer is None or use_fast_writer:
         if 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
-            return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs) # Switch to fast writer
-        else:
-            raise ValueError('ASCII format {0!r} is not in the list of formats with fast writers: {1}'
-                .format(Writer._format_name, sorted(x[5:] for x in FAST_CLASSES))) # ignore fast_ prefix
+            # Switch to fast writer
+            return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs)
+        elif use_fast_writer:
+            raise ValueError('ASCII format {0!r} is not in the list of formats '
+                             'with fast writers: {1}'.format(Writer._format_name,
+                             sorted(x[5:] for x in FAST_CLASSES)))
+            # ignore fast_ prefix
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)

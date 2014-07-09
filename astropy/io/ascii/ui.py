@@ -273,7 +273,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 
-def get_writer(Writer=None, use_fast_writer=False, **kwargs):
+def get_writer(Writer=None, use_fast_writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
@@ -286,7 +286,7 @@ def get_writer(Writer=None, use_fast_writer=False, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=False)
+    :param use_fast_writer: whether to use the fast Cython writer (default=None uses this engine if possible)
     """
     if Writer is None:
         Writer = basic.Basic
@@ -296,7 +296,7 @@ def get_writer(Writer=None, use_fast_writer=False, **kwargs):
     return writer
 
 
-def write(table, output=None,  format=None, Writer=None, use_fast_writer=False, **kwargs):
+def write(table, output=None,  format=None, Writer=None, use_fast_writer=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -311,7 +311,7 @@ def write(table, output=None,  format=None, Writer=None, use_fast_writer=False, 
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=False)
+    :param use_fast_writer: whether to use the fast Cython writer (default=None uses this engine if possible)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
     if output is None:
