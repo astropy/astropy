@@ -286,6 +286,7 @@ def get_writer(Writer=None, use_fast_writer=False, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param use_fast_writer: whether to use the fast Cython writer (default=False)
     """
     if Writer is None:
         Writer = basic.Basic

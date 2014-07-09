@@ -447,3 +447,11 @@ def test_write_no_data_ipac(use_fast_writer):
     for test_def in test_defs_no_data:
         check_write_table(test_def, data, use_fast_writer)
         check_write_table_via_table(test_def, data, use_fast_writer)
+
+@pytest.mark.parametrize("use_fast_writer", [True, False])
+def test_strip_names(use_fast_writer):
+    """Names should be stripped of whitespace by default."""
+    data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
+    out = StringIO()
+    ascii.write(data, out, format='csv', use_fast_writer=True)
+    assert out.getvalue().splitlines()[0] == 'A,B,C'

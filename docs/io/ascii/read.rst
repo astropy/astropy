@@ -126,6 +126,8 @@ Parameters for ``read()``
 
 **header_Splitter**: Splitter class to split header columns
 
+**use_fast_reader**: whether to use the C engine for reading (default=``None`` tries the fast reader first)
+
 **Reader** : Reader class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table, for example
   if it is a basic character delimited table, fixed format table, or
@@ -256,16 +258,18 @@ look like a number.
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Rdb, Tab, Cds, Daophot, SExtractor, Ipac, Latex, AASTex, HTML):
+  for Reader in (Rdb, FastTab, Tab, Cds, Daophot, SExtractor, Ipac, Latex, AASTex, HTML):
       read(Reader=Reader)
-  for Reader in (CommentedHeader, Basic, NoHeader):
+  for Reader in (CommentedHeader, FastBasic, Basic, FastNoHeader, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
               read(Reader=Reader, delimiter=delimiter, quotechar=quotechar)
 
 Note that the :class:`~astropy.io.ascii.FixedWidth` derived-readers are not included
 in the default guess sequence (this causes problems), so to read such tables
-one must explicitly specify the format with the ``format`` keyword.
+one must explicitly specify the format with the ``format`` keyword. Also notice
+that formats compatible with the fast reading engine attempt to use the fast
+engine before the ordinary reading engine.
 
 If none of the guesses succeed in reading the table (subject to the column
 requirements) a final try is made using just the user-supplied parameters but
@@ -318,6 +322,34 @@ The default converters for each column can be overridden with the
   >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
   ...               'col2': [ascii.convert_numpy(np.float32)]}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
+
+Fast readers
+^^^^^^^^^^^^
+
+While :mod:`astropy.io.ascii` was designed with flexibility and extensibility
+in mind, there is also a less flexible but significantly faster engine for
+reading ASCII files. By default, |read| will attempt to use this engine when
+reading compatible formats like CSV. Since the fast engine is not part of the
+ordinary :mod:`astropy.io.ascii` infrastructure, it raises an error when passed
+certain invalid parameters, in which case |read| falls back on the ordinary reader unless
+the user explicity chooses ``use_fast_reader=True``. These parameters are::
+
+ * ``comment`` string not of length 1
+ * ``data_start=None``
+ * Negative ``header_start`` (except for commented-header format)
+ * Negative ``data_start``
+ * ``delimiter`` string not of length 1
+ * ``quotechar`` string not of length 1
+ * ``converters``
+ * ``Outputter``
+ * ``Inputter``
+ * ``data_Splitter``
+ * ``header_Splitter``
+
+The fast engine can also be enabled through the format parameter by prefixing
+a compatible format with "fast" and then an underscore. For example::
+
+   >>> ascii.read('file.csv', format='fast_csv')  # doctest: +SKIP
 
 Advanced customization
 ^^^^^^^^^^^^^^^^^^^^^^

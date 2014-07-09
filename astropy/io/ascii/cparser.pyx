@@ -9,6 +9,7 @@ from ...extern import six
 from . import core
 from distutils import version
 import csv
+import os
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
@@ -169,7 +170,7 @@ cdef class CParser:
                              'or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
         source_str = source + '\n' # add newline to simplify handling last line of data
-        self.source = source_str.encode('ascii') # encode in UTF-8 for char * handling (fixes Python 3 issue)
+        self.source = source_str.encode('UTF-8') # encode in UTF-8 for char * handling (fixes Python 3 issue)
         src = self.source
         self.tokenizer.source = src
         self.tokenizer.source_len = len(self.source)
@@ -279,7 +280,7 @@ cdef class CParser:
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_) # intialize ndarray
         cdef long converted
         cdef int row = 0
-        cdef int *data = <int *> col.data # pointer to raw data
+        cdef long *data = <long *> col.data # pointer to raw data
         cdef bytes field
         cdef bytes new_val
         mask = set() # set of indices for masked values
@@ -302,13 +303,14 @@ cdef class CParser:
                 else:
                     converted = str_to_long(self.tokenizer, field)
 
-            else:
+            else:                
                 converted = str_to_long(self.tokenizer, field) # convert the field to long (widest integer type)
 
             if self.tokenizer.code in (CONVERSION_ERROR, OVERFLOW_ERROR): # no dice
                 self.tokenizer.code = NO_ERROR
                 raise ValueError()
-            col[row] = converted
+            
+            data[row] = converted
             row += 1
 
         if mask:
@@ -321,7 +323,7 @@ cdef class CParser:
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
         cdef int row = 0
-        cdef float *data = <float *> col.data
+        cdef double *data = <double *> col.data
         cdef bytes field
         cdef bytes new_val
         mask = set()
@@ -355,7 +357,7 @@ cdef class CParser:
                 else:
                     raise ValueError()
             else:
-                col[row] = converted
+                data[row] = converted
             row += 1
 
         if mask:
@@ -497,7 +499,7 @@ cdef class FastWriter:
         if header_output is not None:
             if header_output == 'comment':
                 output.write(self.comment)
-            writer.writerow([x.strip() for x in self.use_names] if self.strip_whitespace else self.use_names) # TODO: test this
+            writer.writerow([x.strip() for x in self.use_names] if self.strip_whitespace else self.use_names)
 
         if output_types:
             writer.writerow(self.types)
@@ -508,9 +510,13 @@ cdef class FastWriter:
         if not hasattr(output, 'write'): # output is a filename
             output = open(output, 'w')
             opened_file = True # remember to close file afterwards
-        writer = csv.writer(output, delimiter=self.delimiter,
+        writer = csv.writer(output,
+                            delimiter=self.delimiter,
+                            doublequote=True,
+                            escapechar=None,
                             quotechar=self.quotechar,
-                            lineterminator='\n') # TODO: add more params
+                            quoting=csv.QUOTE_MINIMAL,
+                            lineterminator=os.linesep)
         self._write_header(output, writer, header_output, output_types)
                                          
         # Split rows into N-sized chunks, since we don't want to
@@ -563,8 +569,7 @@ cdef class FastWriter:
         if i % N != N - 1:
             writer.writerows(rows[:i % N + 1])
 
-        output.write('\n') # append final newline
-        # TODO: maybe use os.linesep instead
+        output.write(os.linesep) # append final newline
 
         if opened_file:
             output.close()

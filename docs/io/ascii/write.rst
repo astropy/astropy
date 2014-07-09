@@ -41,6 +41,11 @@ file::
   \end{tabular}
   \end{table}
 
+There is also a faster Cython engine for writing simple formats,
+which can be enabled by specifying ``use_fast_writer``::
+
+   >>> ascii.write(data, 'values.dat', use_fast_writer=True)  # doctest: +SKIP
+
 Input data format
 ^^^^^^^^^^^^^^^^^
 
@@ -254,6 +259,11 @@ details.
 
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
+
+**use_fast_writer**: whether to use the fast Cython writer
+  This parameter is ``False`` by default, but if it is specified as ``True``,
+  use the fast Cython engine rather than the ordinary writing implementation.
+  This parameter is only valid for formats compatible with the fast engine.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, for
