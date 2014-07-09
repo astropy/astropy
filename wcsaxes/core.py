@@ -33,13 +33,13 @@ class WCSAxes(Axes):
 
         self.frame_class = frame_class
 
-        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
-        self._hide_parent_artists()
-
         if not (transData is None):
             # User wants to override the transform for the final
             # data->pixel mapping
             self.transData = transData
+
+        self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
+        self._hide_parent_artists()
 
     def _hide_parent_artists(self):
         # Turn off spines and current axes
