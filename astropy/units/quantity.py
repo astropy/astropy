@@ -630,8 +630,6 @@ class Quantity(np.ndarray):
             (e.g. ``np.array(1)``), while this is True for quantities,
             since quantities cannot represent true numpy scalars.
         """
-        from ..utils.misc import isiterable
-
         return not isiterable(self.value)
 
     # This flag controls whether convenience conversion members, such
@@ -1004,19 +1002,28 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            value = value.to(self.unit).value
+            _value = value.to(self.unit).value
         except AttributeError:
             try:
-                value = dimensionless_unscaled.to(self.unit, value)
+                _value = dimensionless_unscaled.to(self.unit, value)
             except UnitsError as exc:
-                if not _can_have_arbitrary_unit(value):
+                if _can_have_arbitrary_unit(value):
+                    _value = value
+                else:
                     raise exc
 
-        if(check_precision and
-           np.any(np.array(value, self.dtype) != np.array(value))):
-            raise TypeError("cannot convert value type to array type without "
-                            "precision loss")
-        return value
+        if check_precision:
+            value_dtype = getattr(value, 'dtype', None)
+            if self.dtype != value_dtype:
+                self_dtype_array = np.array(_value, self.dtype)
+                value_dtype_array = np.array(_value, dtype=value_dtype,
+                                             copy=False)
+                if not np.all(np.logical_or(self_dtype_array ==
+                                            value_dtype_array,
+                                            np.isnan(value_dtype_array))):
+                    raise TypeError("cannot convert value type to array type "
+                                    "without precision loss")
+        return _value
 
     def itemset(self, *args):
         if len(args) == 0:

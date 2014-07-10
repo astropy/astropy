@@ -589,6 +589,8 @@ Bug Fixes
 
   - Creating and composing/decomposing units is now substantially faster [#2544]
 
+  - ``Quantity`` objects now are able to be assigned NaN [#2695]
+
 - ``astropy.wcs``
 
   - Astropy now requires wcslib version 4.23 or later.  The version of
