@@ -138,9 +138,25 @@ class BaseFrame(OrderedDict):
         return spines
 
     def set_color(self, color):
+        """
+        Sets the color of the frame.
+
+        Parameters
+        ----------
+        color : string
+            The color of the frame.
+        """
         self._color = color
 
     def set_linewidth(self, linewidth):
+        """
+        Sets the linewidth of the frame.
+
+        Parameters
+        ----------
+        linewidth : float
+            The linewidth of the frame in points.
+        """
         self._linewidth = linewidth
 
 
