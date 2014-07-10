@@ -93,7 +93,6 @@ class CoordinatesMap(object):
         ----------
         linewidth : float
             The linewidth of the frame in points.
-
         """
         self.frame.set_linewidth(linewidth)
 
@@ -103,9 +102,8 @@ class CoordinatesMap(object):
 
         Parameters
         ----------
-        linewidth : string
+        color : string
             The color of the frame.
-
         """
         self.frame.set_color(color)
 
