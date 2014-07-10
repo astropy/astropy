@@ -80,6 +80,8 @@ class BaseFrame(OrderedDict):
 
         self.parent_axes = parent_axes
         self._transform = transform
+        self._linewidth = None
+        self._color = 'black'
 
         for axis in self.spine_names:
             self[axis] = Spine(parent_axes, transform)
@@ -115,7 +117,7 @@ class BaseFrame(OrderedDict):
     def draw(self, renderer):
         for axis in self:
             x, y = self[axis].pixel[:,0], self[axis].pixel[:,1]
-            line = Line2D(x, y, color='black', zorder=1000)
+            line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
             line.draw(renderer)
 
     def sample(self, n_samples):
@@ -134,6 +136,12 @@ class BaseFrame(OrderedDict):
                                           np.interp(p_new, p, data[:,1])]).transpose()
 
         return spines
+
+    def set_color(self, color):
+        self._color = color
+
+    def set_linewidth(self, linewidth):
+        self._linewidth = linewidth
 
 
 class RectangularFrame(BaseFrame):
