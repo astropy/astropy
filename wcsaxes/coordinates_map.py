@@ -85,12 +85,6 @@ class CoordinatesMap(object):
         for coord in self._coords:
             yield coord
 
-    def set_frame_linewidth(self, linewidth):
-        self.frame.set_linewidth(linewidth)
-
-    def set_frame_color(self, color):
-        self.frame.set_color(color)
-
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
         Plot gridlines for both coordinates.
