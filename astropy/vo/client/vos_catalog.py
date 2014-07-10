@@ -845,7 +845,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
                              verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
-        pedantic = votable.conf.pedantic
+        from ...io.votable import conf
+        pedantic = conf.pedantic
 
     for name, catalog in catalogs:
         if isinstance(catalog, six.string_types):

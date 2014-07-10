@@ -292,9 +292,9 @@ To call a given VO service; In this case, a Cone Search
 
 >>> from astropy import coordinates as coord
 >>> from astropy import units as u
->>> c = coord.ICRS.from_name('47 Tuc')
+>>> c = coord.SkyCoord.from_name('47 Tuc')
 >>> c
-<ICRS RA=6.02233 deg, Dec=-72.08144 deg>
+<SkyCoord (ICRS): ra=6.0223292 deg, dec=-72.0814444 deg>
 >>> sr = 0.5 * u.degree
 >>> sr
 <Quantity 0.5 deg>
@@ -450,9 +450,9 @@ using cached data, set ``cache=False``:
 
 >>> from astropy import coordinates as coord
 >>> from astropy import units as u
->>> c = coord.ICRS.from_name('47 Tuc')
+>>> c = coord.SkyCoord.from_name('47 Tuc')
 >>> c
-<ICRS RA=6.02233 deg, Dec=-72.08144 deg>
+<SkyCoord (ICRS): ra=6.0223292 deg, dec=-72.0814444 deg>
 >>> sr = 0.5 * u.degree
 >>> sr
 <Quantity 0.5 deg>
