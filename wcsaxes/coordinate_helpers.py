@@ -298,30 +298,6 @@ class CoordinateHelper(object):
         """
         self.axislabels.set_visible_axes(position)
 
-    def set_frame_linewidth(self, linewidth):
-        """
-        Sets the linewidth of the frame.
-
-        Parameters
-        ----------
-        linewidth : float
-            The linewidth of the frame in points.
-
-        """
-        self.frame.set_linewidth(linewidth)
-
-    def set_frame_color(self, color):
-        """
-        Sets the linewidth of the frame.
-
-        Parameters
-        ----------
-        linewidth : float
-            The linewidth of the frame in points.
-
-        """
-        self.frame.set_color(color)
-
     @property
     def locator(self):
         return self._formatter_locator.locator

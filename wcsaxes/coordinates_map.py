@@ -14,7 +14,7 @@ class CoordinatesMap(object):
 
         # Keep track of parent axes and WCS
         self._axes = axes
-        
+
         if wcs is None:
             if transform is None:
                 raise ValueError("Either `wcs` or `transform` are required")
@@ -84,6 +84,30 @@ class CoordinatesMap(object):
     def __iter__(self):
         for coord in self._coords:
             yield coord
+
+    def set_frame_linewidth(self, linewidth):
+        """
+        Sets the linewidth of the frame.
+
+        Parameters
+        ----------
+        linewidth : float
+            The linewidth of the frame in points.
+
+        """
+        self.frame.set_linewidth(linewidth)
+
+    def set_frame_color(self, color):
+        """
+        Sets the color of the frame.
+
+        Parameters
+        ----------
+        linewidth : string
+            The color of the frame.
+
+        """
+        self.frame.set_color(color)
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
