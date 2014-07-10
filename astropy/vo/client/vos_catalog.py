@@ -16,7 +16,7 @@ from copy import deepcopy
 
 # LOCAL
 from .exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL, InvalidAccessURL
-from ...io.votable import parse_single_table, table, tree
+from ...io.votable import parse_single_table, table, tree, conf
 from ...config import ConfigAlias
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
@@ -845,7 +845,6 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
                              verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
-        from ...io.votable import conf
         pedantic = conf.pedantic
 
     for name, catalog in catalogs:
