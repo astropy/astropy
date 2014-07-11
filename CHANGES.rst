@@ -816,6 +816,9 @@ Bug Fixes
   - Progressbar will be limited to 100% so that the bar does not exceed the
     terminal width.  The numerical display can still exceed 100%, however.
 
+  - Converted the user-friendly display of file sizes without a suffix
+    from float to int in :func:`astropy.utils.console.human_file_size`.
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
