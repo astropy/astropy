@@ -69,7 +69,23 @@ class UnsupportedConstraintError(ModelsError, ValueError):
     """
 
 
-@six.add_metaclass(abc.ABCMeta)
+class _FitterMeta(abc.ABCMeta):
+    """
+    Currently just provides a registry for all Fitter classes.
+    """
+
+    registry = set()
+
+    def __new__(mcls, name, bases, members):
+        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+
+        return cls
+
+
+@six.add_metaclass(_FitterMeta)
 class Fitter(object):
     """
     Base class for all fitters.
@@ -137,6 +153,10 @@ class Fitter(object):
         raise NotImplementedError("Subclasses should implement this method.")
 
 
+# TODO: I have ongoing branch elsewhere that's refactoring this module so that
+# all the fitter classes in here are Fitter subclasses.  In the meantime we
+# need to specify that _FitterMeta is its metaclass.
+@six.add_metaclass(_FitterMeta)
 class LinearLSQFitter(object):
     """
     A class performing a linear least square fitting.
@@ -322,6 +342,7 @@ class LinearLSQFitter(object):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class LevMarLSQFitter(object):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
@@ -629,6 +650,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class JointFitter(object):
     """
     Fit models which share a parameter.
