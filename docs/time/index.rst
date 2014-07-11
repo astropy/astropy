@@ -626,9 +626,9 @@ calculations following different IAU resolutions.  Sample usage::
   >>> t.sidereal_time('mean')
   <Longitude 13.089521870640... hourangle>
   >>> t.sidereal_time('apparent')
-  <Longitude 13.089503675087... hourangle>
+  <Longitude 13.08950367508... hourangle>
   >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 5.089503675087... hourangle>
+  <Longitude 5.08950367508... hourangle>
   >>> t.sidereal_time('apparent', '-90d')
   <Longitude 23.08950367508... hourangle>
   >>> t.sidereal_time('apparent', '-90d', 'IAU1994')
