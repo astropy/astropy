@@ -9,6 +9,7 @@ from ...tests.helper import pytest
 from ... import table
 from ...table import pprint
 from ...extern.six import PY3
+from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
@@ -118,10 +119,11 @@ class TestPprint():
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float).reshape(100, 40)
         lines = table_type(arr).pformat()
-        assert len(lines) == conf.max_lines
+        nlines, width = console.terminal_size()
+        assert len(lines) == nlines
         for line in lines:
-            assert (len(line) > conf.max_width - 10 and
-                    len(line) <= conf.max_width)
+            assert (len(line) > width - 10 and
+                    len(line) <= width)
 
     def test_format1(self, table_type):
         """Basic test of formatting, unit header row included"""

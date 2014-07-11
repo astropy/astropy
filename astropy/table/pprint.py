@@ -12,7 +12,7 @@ import sys
 import numpy as np
 
 from .. import log
-from ..utils.console import Getch, color_print, terminal_size
+from ..utils.console import Getch, color_print, terminal_size, conf
 
 if six.PY3:
     def default_format_func(format_, val):
@@ -95,6 +95,12 @@ class TableFormatter(object):
         max_lines, max_width : int
 
         """
+        if max_lines is None:
+            max_lines = conf.max_lines
+
+        if max_width is None:
+            max_width = conf.max_width
+
         if max_lines is None or max_width is None:
             lines, width = terminal_size()
 

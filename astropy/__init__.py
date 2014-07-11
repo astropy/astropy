@@ -92,12 +92,19 @@ class Conf(_config.ConfigNamespace):
         'When True, use ANSI color escape sequences when writing to the console.',
         aliases=['astropy.utils.console.USE_COLOR', 'astropy.logger.USE_COLOR'])
     max_lines = _config.ConfigItem(
-        25, 'Maximum number of lines in the display if the terminal size can '
-        'not be automatically determined. Negative numbers mean no limit.',
+        None,
+        description='Maximum number of lines in the display of pretty-printed '
+        'objects. If not provided, try to determine automatically from the '
+        'terminal size.  Negative numbers mean no limit.',
+        cfgtype='integer(default=None)',
         aliases=['astropy.table.pprint.max_lines'])
     max_width = _config.ConfigItem(
-        80, 'Maximum number of characters in the display if the terminal size '
-        'can not be automatically determined. Negative numbers mean no limit.',
+        None,
+        description='Maximum number of characters per line in the display of '
+        'pretty-printed objects.  If not provided, try to determine '
+        'automatically from the terminal size. Negative numbers mean no '
+        'limit.',
+        cfgtype='integer(default=None)',
         aliases=['astropy.table.pprint.max_width'])
 
 conf = Conf()
