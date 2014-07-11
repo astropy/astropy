@@ -95,7 +95,7 @@ def test_distances():
     # TODO: choose between these when CartesianRepresentation gets a definite
     # decision on whether or not it gets __add__
     #
-    # CartesianPoints objects can be added and subtracted, which are
+    # CartesianRepresentation objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
     #csum = ICRS(c1.cartesian + c2.cartesian)
