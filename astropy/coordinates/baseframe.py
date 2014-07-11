@@ -851,24 +851,23 @@ class BaseCoordinateFrame(object):
             raise AttributeError('Cannot set any frame attribute {0}'.format(attr))
         else:
             super(BaseCoordinateFrame, self).__setattr__(attr, value)
-    
+
     @classmethod
-    def frame_wcs(cls, wcs):
+    def from_wcs(cls, wcs):
         """
         Test if this frame represents the world coordinates in a WCS object
-        
+
         Parameters
         ----------
         wcs: ~astropy.wcs.WCS object
             The WCS object to be tested
-        
+
         Returns
         -------
         match: bool
             True if this frame matches
         """
-        # By default it can't match
-        return False
+        raise NotImplementedError("frame_wcs is not defined for this frame")
 
     def separation(self, other):
         """
@@ -997,5 +996,3 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
-
-
