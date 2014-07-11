@@ -740,8 +740,14 @@ def is_unedited_config_file(filename):
       Astropy 0.4, when APE3 was implemented and the config file
       contained commented-out values by default.
     """
-    with io.open(filename, 'rb') as fd:
+    # We want to calculate the md5sum using universal line endings, so
+    # that even if the files had their line endings converted to \r\n
+    # on Windows, this will still work.
+
+    with io.open(filename, 'rt', encoding='latin-1') as fd:
         content = fd.read()
+
+    content = content.encode('latin-1')
 
     # First determine if the config file has any effective content
     buffer = io.BytesIO(content)
@@ -755,8 +761,6 @@ def is_unedited_config_file(filename):
 
     # Now determine if it matches the md5sum of a known, unedited
     # config file.
-    # TODO: How does this work with Windows line endings...?  Probably
-    # doesn't...
     known_configs = set([
         '5df7e409425e5bfe7ed041513fda3288',  # v0.3
         '8355f99a01b3bdfd8761ef45d5d8b7e5',  # v0.2
