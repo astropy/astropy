@@ -125,7 +125,7 @@ def terminal_size(file=stdio.stdout):
             if lines is None:
                 lines = 25
             if width is None:
-                lines = 80
+                width = 80
             return lines, width
 
 
