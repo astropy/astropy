@@ -4,10 +4,13 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import io
+import os
+import sys
+
 from ...tests.helper import catch_warnings
 from ...extern import six
-
-import io
+from ...utils.compat import subprocess
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
@@ -184,6 +187,9 @@ def test_empty_config_file():
     fn = get_pkg_data_filename('data/astropy.0.3.cfg')
     assert is_unedited_config_file(fn)
 
+    fn = get_pkg_data_filename('data/astropy.0.3.windows.cfg')
+    assert is_unedited_config_file(fn)
+
 
 def test_alias():
     import astropy
@@ -293,3 +299,29 @@ def test_warning_move_to_top_level():
     finally:
         configuration._override_config_file = None
         conf.reload()
+
+
+def test_no_home():
+    # "import astropy" fails when neither $HOME or $XDG_CONFIG_HOME
+    # are set.  To test, we unset those environment variables for a
+    # subprocess and try to import astropy.
+
+    test_path = os.path.dirname(__file__)
+    astropy_path = os.path.abspath(
+        os.path.join(test_path, '..', '..', '..'))
+
+    env = os.environ.copy()
+    paths = [astropy_path]
+    if env.get('PYTHONPATH'):
+        paths.append(env.get('PYTHONPATH'))
+    env[str('PYTHONPATH')] = str(os.pathsep.join(paths))
+
+    for val in ['HOME', 'XDG_CONFIG_HOME']:
+        if val in env:
+            del env[val]
+
+    retcode = subprocess.check_call(
+        [sys.executable, '-c', 'import astropy'],
+        env=env)
+
+    assert retcode == 0

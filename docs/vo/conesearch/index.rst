@@ -88,11 +88,11 @@ Select a 2MASS catalog from the list above that is to be searched:
 
 Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 
->>> from astropy.coordinates import ICRS
+>>> from astropy.coordinates import SkyCoord
 >>> from astropy import units as u
->>> c = ICRS.from_name('M31')
+>>> c = SkyCoord.from_name('M31')
 >>> c.ra, c.dec
-(<Longitude 10.684708300000011 deg>, <Latitude 41.26875 deg>)
+(<Longitude 10.6847083 deg>, <Latitude 41.26875 deg>)
 >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
 Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
 Downloading ...
