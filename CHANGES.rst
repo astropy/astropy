@@ -266,6 +266,9 @@ New Features
     ``astropy.coordinates.angles`` were made more numerically consistent and
     are now tested explicitly [#2619]
 
+  - ``CartesianPoints`` are now deprecated in favor of
+    ``CartesianRepresentation``. [#2727]
+
 - ``astropy.cosmology``
 
   - Added ``z_at_value`` function to find the redshift at which a cosmology
