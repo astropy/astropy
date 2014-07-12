@@ -74,9 +74,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
         frame = ICRS()
     else:
         if xcoord == b'GLON' and ycoord == b'GLAT':
-            if equinox is not None:
-                equinox = Time(equinox, format='jyear')
-            frame = Galactic(equinox=equinox)
+            frame = Galactic()
         else:
             frame = None
 

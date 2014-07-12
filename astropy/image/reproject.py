@@ -1,5 +1,9 @@
 import numpy as np
 
+from ..wcs.utils import wcs_to_celestial_frame
+from astropy.coordinates import UnitSphericalRepresentation
+from .. import units as u
+
 
 def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
     """
@@ -17,11 +21,22 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
         The shape of the output array
     """
 
-    # Start off by defining pixel to pixel transformations
+    # Find input/output frames
+    frame_in = wcs_to_celestial_frame(wcs_in)
+    frame_out = wcs_to_celestial_frame(wcs_out)
 
+    # Defining pixel to pixel transformations
     def pixel_out_to_pixel_in(xp_out, yp_out):
         xw, yw = wcs_out.wcs_pix2world(xp_out, yp_out, 0)
-        # TODO: currently assume coordinate frames match, fix this!
+        
+        # TODO: for now assuming that coordinates are spherical, not 
+        # necessarily the case. Also assuming something about the order of the 
+        # arguments. Also assuming units.
+        data = UnitSphericalRepresentation(xw * u.deg, yw * u.deg)
+        coords_in = frame_out.realize_frame(data)
+        coords_out = coords_in.transform_to(frame_in)
+        xw, yw = coords_out.spherical.lon, coords_out.spherical.lat
+
         xp_in, yp_in = wcs_in.wcs_world2pix(xw, yw, 0)
         return xp_in, yp_in
 
@@ -38,8 +53,10 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
         xp_in_grid, yp_in_grid = pixel_out_to_pixel_in(xp_out_grid, yp_out_grid)
 
         # Interpolate values to new grid
-        coordinates = [xp_in_grid.ravel(), yp_in_grid.ravel()]
-        array_new = map_coordinates(array, coordinates, order=3).reshape(shape_out)
+        coordinates = [yp_in_grid.ravel(), xp_in_grid.ravel()]
+        array_new = map_coordinates(array, coordinates,
+                                    order=0, cval=np.nan,
+                                    mode='constant').reshape(shape_out)
 
     else:
 
