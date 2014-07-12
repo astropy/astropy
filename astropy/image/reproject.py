@@ -5,7 +5,7 @@ from astropy.coordinates import UnitSphericalRepresentation
 from .. import units as u
 
 
-def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest', order=0):
+def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest', order=1):
     """
     Reproject a 2D array from one WCS to another.
 
