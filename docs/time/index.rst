@@ -90,8 +90,8 @@ Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
   >>> dt = t[1] - t[0]
-  >>> dt
-  <TimeDelta object: scale='tai' format='jd' value=4018.0000217...>
+  >>> dt  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tai' format='jd' value=4018.00002172>
 
 Here, note the conversion of the timescale to TAI.  Time differences
 can only have scales in which one day is always equal to 86400 seconds.
@@ -328,8 +328,8 @@ and ``jd2`` attributes::
   >>> t.jd1, t.jd2
   (2455197.5, 0.0)
   >>> t2 = t.tai
-  >>> t2.jd1, t2.jd2
-  (2455197.5, 0.00039351851851851...)
+  >>> t2.jd1, t2.jd2  # doctest: +FLOAT_CMP
+  (2455197.5, 0.0003935185185185185)
 
 Creating a Time object
 ----------------------
@@ -392,8 +392,8 @@ string-valued formats ignore ``val2`` and all numeric inputs effectively add
 the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
-  >>> t.jd, t.jd1, t.jd2  # doctest: +SKIP
-  (2400100.50000..., 2400100.5, 1e-06)
+  >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
+  (2400100.500001, 2400100.5, 1e-06)
 
 format
 ^^^^^^
@@ -482,10 +482,10 @@ no explicit longitude is given.
 
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 12.00000000000... hourangle>
-  >>> t.sidereal_time('apparent')
-  <Longitude 20.00000000000... hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude 12.00000000000001 hourangle>
+  >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
+  <Longitude 20.00000000000001 hourangle>
 
 .. note:: In future versions, we hope to add the possibility to add observatory
           objects and/or names.
@@ -654,16 +654,16 @@ transformations, ERFA C-library routines are used under the hood, which support
 calculations following different IAU resolutions.  Sample usage::
 
   >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
-  >>> t.sidereal_time('mean')
-  <Longitude 13.089521870640... hourangle>
-  >>> t.sidereal_time('apparent')
-  <Longitude 13.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 5.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', '-90d')
-  <Longitude 23.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', '-90d', 'IAU1994')
-  <Longitude 23.08950365423... hourangle>
+  >>> t.sidereal_time('mean')  # doctest: +FLOAT_CMP
+  <Longitude 13.089521870640212 hourangle>
+  >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
+  <Longitude 13.089503675087027 hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude 5.089503675087027 hourangle>
+  >>> t.sidereal_time('apparent', '-90d')  # doctest: +FLOAT_CMP
+  <Longitude 23.08950367508703 hourangle>
+  >>> t.sidereal_time('apparent', '-90d', 'IAU1994')  # doctest: +FLOAT_CMP
+  <Longitude 23.08950365423405 hourangle>
 
 Time Deltas
 -----------
@@ -754,8 +754,8 @@ object::
 i.e., scales for which it is not necessary to know the times that were
 differenced::
 
-  >>> dt.tt
-  <TimeDelta object: scale='tt' format='jd' value=364.99999974...>
+  >>> dt.tt  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tt' format='jd' value=364.999999746>
   >>> dt.tdb
   Traceback (most recent call last):
     ...
@@ -803,8 +803,8 @@ of time.  Usage is most easily illustrated by examples::
   array([False,  True,  True], dtype=bool)
   >>> dt + 1.*u.hr                   # can also add/subtract such quantities
   <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
-  >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr
-  <Time object: scale='utc' format='mjd' value=50000.041666...>
+  >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
   ...                                # Quantity, TimeDelta is converted
   <Quantity [ 100., 200., 300.] d km / s>
