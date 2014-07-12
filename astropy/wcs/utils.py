@@ -34,8 +34,13 @@ def wcs_to_celestial_frame(wcs):
 
     from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
     from ..time import Time
+    from . import WCSSUB_CELESTIAL
+
+    # Keep only the celestial part of the axes
+    wcs = wcs.sub([WCSSUB_CELESTIAL])
 
     radesys = wcs.wcs.radesys
+
     if np.isnan(wcs.wcs.equinox):
         equinox = None
     else:
@@ -44,7 +49,7 @@ def wcs_to_celestial_frame(wcs):
     xcoord = wcs.wcs.ctype[0][:4]
     ycoord = wcs.wcs.ctype[1][:4]
 
-    # Apply logic from FITS standard
+    # Apply logic from FITS standard to determine the default radesys
     if radesys == b'' and xcoord == b'RA--' and ycoord == b'DEC-':
         if equinox is None:
             radesys = "ICRS"
@@ -73,7 +78,11 @@ def wcs_to_celestial_frame(wcs):
                 equinox = Time(equinox, format='jyear')
             frame = Galactic(equinox=equinox)
         else:
-            print(radesys, equinox, xcoord, ycoord)
-            raise ValueError("Could not determine celestial frame for RADESYS={radesys}, CTYPE1={ctype1}, CTYPE2={ctype2}, EQUINOX={equinox}".format(radesys=wcs.wcs.radesys, ctype1=wcs.wcs.ctype[0], ctype2=wcs.wcs.ctype[1], equinox=wcs.wcs.equinox))
+            raise ValueError("Could not determine celestial frame for "
+                             "RADESYS={radesys}, CTYPE1={ctype1}, "
+                             "CTYPE2={ctype2}, EQUINOX={equinox}".format(radesys=wcs.wcs.radesys,
+                                                                         ctype1=wcs.wcs.ctype[0],
+                                                                         ctype2=wcs.wcs.ctype[1],
+                                                                         equinox=wcs.wcs.equinox))
 
     return frame
