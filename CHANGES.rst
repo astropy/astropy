@@ -2568,6 +2568,9 @@ Bug Fixes
   - Fixed an issue similar to the one in #1229, but specific to unmasked
     tables. [#1403]
 
+  - Improved the warning message when unable to aggregate non-numeric
+    columns. [#2700]
+
 - ``astropy.units``
 
   - Improved error handling for unparseable units and fixed parsing CDS units
