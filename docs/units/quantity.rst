@@ -64,7 +64,7 @@ Converting to different units
 :meth:`~astropy.units.quantity.Quantity.to` method:
 
     >>> q = 2.3 * u.m / u.s
-    >>> q.to(u.km / u.h) # doctest: +FLOAT_CMP
+    >>> q.to(u.km / u.h)  # doctest: +FLOAT_CMP
     <Quantity 8.28 km / h>
 
 For convenience, the `~astropy.units.quantity.Quantity.si` and
@@ -72,7 +72,7 @@ For convenience, the `~astropy.units.quantity.Quantity.si` and
 convert the |quantity| to base S.I. or c.g.s units:
 
     >>> q = 2.4 * u.m / u.s
-    >>> q.si # doctest: +FLOAT_CMP
+    >>> q.si  # doctest: +FLOAT_CMP
     <Quantity 2.4 m / s>
     >>> q.cgs
     <Quantity 240.0 cm / s>
@@ -97,11 +97,11 @@ resulting object **has units of the object on the left**:
 
     >>> 1100.1 * u.m + 13.5 * u.km
     <Quantity 14600.1 m>
-    >>> 13.5 * u.km + 1100.1 * u.m # doctest: +FLOAT_CMP
+    >>> 13.5 * u.km + 1100.1 * u.m  # doctest: +FLOAT_CMP
     <Quantity 14.6001 km>
     >>> 1100.1 * u.m - 13.5 * u.km
     <Quantity -12399.9 m>
-    >>> 13.5 * u.km - 1100.1 * u.m # doctest: +FLOAT_CMP
+    >>> 13.5 * u.km - 1100.1 * u.m  # doctest: +FLOAT_CMP
     <Quantity 12.3999 km>
 
 Addition and subtraction is not supported between |quantity| objects and basic
@@ -123,11 +123,11 @@ Multiplication and division is supported between |quantity| objects with any
 units, and with numeric types. For these operations between objects with
 equivalent units, the **resulting object has composite units**:
 
-    >>> 1.1 * u.m * 140.3 * u.cm # doctest: +FLOAT_CMP
+    >>> 1.1 * u.m * 140.3 * u.cm  # doctest: +FLOAT_CMP
     <Quantity 154.33 cm m>
-    >>> 140.3 * u.cm * 1.1 * u.m # doctest: +FLOAT_CMP
+    >>> 140.3 * u.cm * 1.1 * u.m  # doctest: +FLOAT_CMP
     <Quantity 154.33 cm m>
-    >>> 1. * u.m / (20. * u.cm) # doctest: +FLOAT_CMP
+    >>> 1. * u.m / (20. * u.cm)  # doctest: +FLOAT_CMP
     <Quantity 0.05 m / cm>
     >>> 20. * u.cm / (1. * u.m)
     <Quantity 20.0 cm / m>
@@ -135,23 +135,23 @@ equivalent units, the **resulting object has composite units**:
 For multiplication, you can change how to represent the resulting object by
 using the :meth:`~astropy.units.quantity.Quantity.to` method:
 
-    >>> (1.1 * u.m * 140.3 * u.cm).to(u.m**2) # doctest: +FLOAT_CMP
+    >>> (1.1 * u.m * 140.3 * u.cm).to(u.m**2)  # doctest: +FLOAT_CMP
     <Quantity 1.5433000000000001 m2>
-    >>> (1.1 * u.m * 140.3 * u.cm).to(u.cm**2) # doctest: +FLOAT_CMP
+    >>> (1.1 * u.m * 140.3 * u.cm).to(u.cm**2)  # doctest: +FLOAT_CMP
     <Quantity 15433.000000000002 cm2>
 
 For division, if the units are equivalent, you may want to make the resulting
 object dimensionless by reducing the units. To do this, use the
 :meth:`~astropy.units.quantity.Quantity.decompose()` method:
 
-    >>> (20. * u.cm / (1. * u.m)).decompose() # doctest: +FLOAT_CMP
+    >>> (20. * u.cm / (1. * u.m)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 0.2>
 
 This method is also useful for more complicated arithmetic:
 
-    >>> 15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms) # doctest: +FLOAT_CMP
+    >>> 15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)  # doctest: +FLOAT_CMP
     <Quantity 0.3419509727792778 cm kg m / (ms s)>
-    >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose() # doctest: +FLOAT_CMP
+    >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 3.4195097277927777 kg m2 / s2>
 
 
@@ -166,13 +166,13 @@ quantities:
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
     <Quantity 2.5 m / s>
-    >>> np.std(q) # doctest: +FLOAT_CMP
+    >>> np.std(q)  # doctest: +FLOAT_CMP
     <Quantity 1.118033988749895 m / s>
 
 including functions that only accept specific units such as angles:
 
     >>> q = 30. * u.deg
-    >>> np.sin(q) # doctest: +FLOAT_CMP
+    >>> np.sin(q)  # doctest: +FLOAT_CMP
     <Quantity 0.49999999999999994>
 
 or dimensionless quantities:
@@ -180,7 +180,7 @@ or dimensionless quantities:
     >>> from astropy.constants import h, k_B
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
-    >>> np.exp(-h * nu / (k_B * T)) # doctest: +FLOAT_CMP
+    >>> np.exp(-h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.995212254618668>
 
 (see `Dimensionless quantities`_ for more details).
@@ -194,7 +194,7 @@ or if they are passed to a Numpy function that takes dimensionless
 quantities, the units are simplified so that the quantity is
 dimensionless and scale-free. For example:
 
-    >>> 1. + 1. * u.m / u.km # doctest: +FLOAT_CMP
+    >>> 1. + 1. * u.m / u.km  # doctest: +FLOAT_CMP
     <Quantity 1.001>
 
 which is different from:
@@ -219,14 +219,14 @@ dimensionless quantities:
 
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T)) # doctest: +FLOAT_CMP
+    >>> np.exp(- h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.995212254618668>
 
 The result is independent from the units the different quantities were specified in:
 
     >>> nu = 3.e9 * u.Hz
     >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T)) # doctest: +FLOAT_CMP
+    >>> np.exp(- h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.995212254618668>
 
 Converting to plain Python scalars
