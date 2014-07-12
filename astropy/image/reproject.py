@@ -5,7 +5,7 @@ from astropy.coordinates import UnitSphericalRepresentation
 from .. import units as u
 
 
-def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
+def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest', order=0):
     """
     Reproject a 2D array from one WCS to another.
 
@@ -19,6 +19,12 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
         The output WCS
     shape_out : tuple
         The shape of the output array
+    mode : {``'interpolation'``, ``'drizzle'``}
+        The type of reprojection
+    order : int
+        The order of the interpolation (if ``mode`` is set to
+        ``'interpolation'``). A value of ``0`` indicates nearest neighbor
+        interpolation (the default).
     """
 
     # Find input/output frames
@@ -26,11 +32,28 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
     frame_out = wcs_to_celestial_frame(wcs_out)
 
     # Defining pixel to pixel transformations
+
+    def pixel_in_to_pixel_out(xp_in, yp_in):
+
+        xw, yw = wcs_in.wcs_pix2world(xp_in, yp_in, 0)
+
+        # TODO: for now assuming that coordinates are spherical, not
+        # necessarily the case. Also assuming something about the order of the
+        # arguments. Also assuming units.
+        data = UnitSphericalRepresentation(xw * u.deg, yw * u.deg)
+        coords_in = frame_in.realize_frame(data)
+        coords_out = coords_in.transform_to(frame_out)
+        xw, yw = coords_out.spherical.lon, coords_out.spherical.lat
+
+        xp_in, yp_in = wcs_out.wcs_world2pix(xw, yw, 0)
+        return xp_in, yp_in
+
     def pixel_out_to_pixel_in(xp_out, yp_out):
+
         xw, yw = wcs_out.wcs_pix2world(xp_out, yp_out, 0)
-        
-        # TODO: for now assuming that coordinates are spherical, not 
-        # necessarily the case. Also assuming something about the order of the 
+
+        # TODO: for now assuming that coordinates are spherical, not
+        # necessarily the case. Also assuming something about the order of the
         # arguments. Also assuming units.
         data = UnitSphericalRepresentation(xw * u.deg, yw * u.deg)
         coords_in = frame_out.realize_frame(data)
@@ -40,7 +63,7 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
         xp_in, yp_in = wcs_in.wcs_world2pix(xw, yw, 0)
         return xp_in, yp_in
 
-    if mode in ['nearest']:
+    if mode == 'interpolation':
 
         from scipy.ndimage import map_coordinates
 
@@ -55,11 +78,25 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest'):
         # Interpolate values to new grid
         coordinates = [yp_in_grid.ravel(), xp_in_grid.ravel()]
         array_new = map_coordinates(array, coordinates,
-                                    order=0, cval=np.nan,
+                                    order=order, cval=np.nan,
                                     mode='constant').reshape(shape_out)
+
+    elif mode == 'drizzle':
+
+        # Generate pixel coordinates of input image pixel corners
+        xp_in = np.linspace(0, array.shape[1], array.shape[1]+1) - 0.5
+        yp_in = np.linspace(0, array.shape[0], array.shape[0]+1) - 0.5
+        xp_in_grid, yp_in_grid = np.meshgrid(xp_out, yp_out)
+
+        # Convert pixel coordainates to frame of reference of output image
+        xp_out_grid, yp_out_grid = pixel_in_to_pixel_out(xp_in_grid, yp_in_grid)
+
+        # Call drizzle algiorithm
+        # TODO: magic here
+        raise NotImplementedError("Drizzle mode not yet implemented")
 
     else:
 
-        raise ValueError("mode= should be one of 'nearest")
+        raise ValueError("mode= should be one of 'interpolation' or 'drizzle'")
 
     return array_new
