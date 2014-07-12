@@ -804,7 +804,7 @@ of time.  Usage is most easily illustrated by examples::
   >>> dt + 1.*u.hr                   # can also add/subtract such quantities
   <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP
-  <Time object: scale='utc' format='mjd' value=value=50000.0416667>
+  <Time object: scale='utc' format='mjd' value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
   ...                                # Quantity, TimeDelta is converted
   <Quantity [ 100., 200., 300.] d km / s>
