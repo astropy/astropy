@@ -2975,8 +2975,14 @@ PyWcsprm_get_radesys(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  if (is_null(self->x.radesys)) {
-    return NULL;
+  if (self->x.radesys == NULL || self->x.radesys[0] == 0) {
+    if (isnan64(self->x.equinox)) {
+      return PyString_FromString("ICRS");
+    } else if (self->x.equinox < 1984.) {
+      return PyString_FromString("FK4");
+    } else {
+      return PyString_FromString("FK5");
+    }
   }
 
   return get_string("radesys", self->x.radesys);

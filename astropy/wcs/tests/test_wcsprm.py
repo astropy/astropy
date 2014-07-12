@@ -530,7 +530,11 @@ def test_print_contents():
 
 def test_radesys():
     w = _wcs.Wcsprm()
-    assert w.radesys == ''
+    assert w.radesys == 'ICRS'
+    w.equinox = 1980
+    assert w.radesys == 'FK4'
+    w.equinox = 1984
+    assert w.radesys == 'FK5'
     w.radesys = 'foo'
     assert w.radesys == 'foo'
 
