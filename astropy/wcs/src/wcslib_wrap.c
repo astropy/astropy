@@ -452,6 +452,63 @@ PyWcsprm_init(
   }
 }
 
+// The following three functions are used to resolve the default
+// values for the RADESYS and EQUINOX based on the FITS-WCS standard.
+
+int _startswith(const char *a, const char *b)
+{
+  if(strncmp(a, b, strlen(b)) == 0) return 1;
+  return 0;
+}
+
+const char * _determine_radesys(PyWcsprm* self)
+{
+
+  // Needed to make sure lng/lat get set
+  if (PyWcsprm_cset(self, 1)) {
+    return NULL;
+  }
+
+  if(self->x.lng > -1 && self->x.lat > -1 &&
+     ((_startswith(self->x.ctype[self->x.lng], "RA--") &&
+       _startswith(self->x.ctype[self->x.lat], "DEC-")) ||
+      (_startswith(self->x.ctype[self->x.lng], "ELON") &&
+       _startswith(self->x.ctype[self->x.lat], "ELAT")))) {
+    if (self->x.radesys == NULL || self->x.radesys[0] == 0) {
+      if (isnan64(self->x.equinox)) {
+	return "ICRS";
+      } else if (self->x.equinox < 1984.) {
+	return "FK4";
+      } else {
+	return "FK5";
+      }
+    }
+  } else if(is_null(self->x.radesys)) {
+    return NULL;
+  }
+
+  return self->x.radesys;
+
+}
+
+double _determine_equinox(PyWcsprm* self) {
+
+  char *radesys = _determine_radesys(self);
+
+  if(isnan64(self->x.equinox)) {
+    if(strcmp(radesys, "FK4") == 0 || strcmp(radesys, "FK4-NO-E") == 0) {
+      return 1950.;
+    } else if(strcmp(radesys, "FK5") == 0) {
+      return 2000.;
+    } else {
+      return self->x.equinox;
+    }
+  } else {
+    return self->x.equinox;
+  }
+
+}
+
 /*@null@*/ static PyObject*
 PyWcsprm_bounds_check(
     PyWcsprm* self,
@@ -2583,7 +2640,7 @@ PyWcsprm_get_equinox(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  return get_double("equinox", self->x.equinox);
+  return get_double("equinox", _determine_equinox(self));
 }
 
 static int
@@ -2975,17 +3032,7 @@ PyWcsprm_get_radesys(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  if (self->x.radesys == NULL || self->x.radesys[0] == 0) {
-    if (isnan64(self->x.equinox)) {
-      return PyString_FromString("ICRS");
-    } else if (self->x.equinox < 1984.) {
-      return PyString_FromString("FK4");
-    } else {
-      return PyString_FromString("FK5");
-    }
-  }
-
-  return get_string("radesys", self->x.radesys);
+  return get_string("radesys", _determine_radesys(self));
 }
 
 static int

@@ -528,15 +528,64 @@ def test_print_contents():
     assert isinstance(str(w), str)
 
 
-def test_radesys():
-    w = _wcs.Wcsprm()
-    assert w.radesys == 'ICRS'
-    w.equinox = 1980
-    assert w.radesys == 'FK4'
-    w.equinox = 1984
-    assert w.radesys == 'FK5'
-    w.radesys = 'foo'
-    assert w.radesys == 'foo'
+def test_radesys_equinox():
+
+    # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic
+    # coordinates", for those systems the RADESYS keyword can be used to
+    # indicate the equatorial/ecliptic frame to use. From the standard:
+
+    # "For RADESYSa values of FK4 and FK4-NO-E, any stated equinox is Besselian
+    # and, if neither EQUINOXa nor EPOCH are given, a default of 1950.0 is to
+    # be taken. For FK5, any stated equinox is Julian and, if neither keyword
+    # is given, it defaults to 2000.0.
+
+    # "If the EQUINOXa keyword is given it should always be accompanied by
+    # RADESYS a. However, if it should happen to ap- pear by itself then
+    # RADESYSa defaults to FK4 if EQUINOXa < 1984.0, or to FK5 if EQUINOXa
+    # 1984.0. Note that these defaults, while probably true of older files
+    # using the EPOCH keyword, are not required of them.
+
+    # By default RADESYS is empty
+    w = _wcs.Wcsprm(naxis=2)
+    assert w.radesys == ''
+    assert np.isnan(w.equinox)
+
+    # For non-ecliptic or equatorial systems it is still empty
+    w = _wcs.Wcsprm(naxis=2)
+    for ctype in [('GLON-CAR', 'GLAT-CAR'),
+                  ('SLON-SIN', 'SLAT-SIN')]:
+        w.ctype = ctype
+        assert w.radesys == ''
+        assert np.isnan(w.equinox)
+
+    for ctype in [('RA---TAN', 'DEC--TAN'),
+                  ('ELON-TAN', 'ELAT-TAN'),
+                  ('DEC--TAN', 'RA---TAN'),
+                  ('ELAT-TAN', 'ELON-TAN')]:
+
+        # Check defaults for RADESYS
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        assert w.radesys == 'ICRS'
+        w.equinox = 1980
+        assert w.radesys == 'FK4'
+        w.equinox = 1984
+        assert w.radesys == 'FK5'
+        w.radesys = 'foo'
+        assert w.radesys == 'foo'
+
+        # Check defaults for EQUINOX
+        w = _wcs.Wcsprm(naxis=2)
+        w.ctype = ctype
+        assert np.isnan(w.equinox)  # frame is ICRS, no equinox
+        w.radesys = 'ICRS'
+        assert np.isnan(w.equinox)
+        w.radesys = 'FK5'
+        assert w.equinox == 2000.
+        w.radesys = 'FK4'
+        assert w.equinox == 1950
+        w.radesys = 'FK4-NO-E'
+        assert w.equinox == 1950
 
 
 def test_restfrq():
