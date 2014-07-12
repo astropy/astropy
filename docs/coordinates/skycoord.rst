@@ -411,8 +411,8 @@ much bother (duck typing!).
 The lowest layer in the stack is the abstract
 `~astropy.coordinates.UnitSphericalRepresentation` object:
 
-  >>> sc_gal.frame.data
-  <UnitSphericalRepresentation lon=1.739010... rad, lat=-1.024675... rad>
+  >>> sc_gal.frame.data  # doctest: +FLOAT_CMP
+  <UnitSphericalRepresentation lon=1.73901017656 rad, lat=-1.02467592024 rad>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
