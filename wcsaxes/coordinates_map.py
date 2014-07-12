@@ -14,7 +14,7 @@ class CoordinatesMap(object):
 
         # Keep track of parent axes and WCS
         self._axes = axes
-        
+
         if wcs is None:
             if transform is None:
                 raise ValueError("Either `wcs` or `transform` are required")

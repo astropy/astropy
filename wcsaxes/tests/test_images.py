@@ -113,6 +113,9 @@ class TestBasic(BaseImageTests):
         # Set labels on axes
         ax.coords['glon'].set_axislabel('Galactic Longitude', minpad=1.6)
         ax.coords['glat'].set_axislabel('Galactic Latitude', minpad=-0.75)
+        # Change the frame linewidth and color
+        ax.coords.frame.set_color('red')
+        ax.coords.frame.set_linewidth(2)
 
         self.generate_or_test(generate, fig, 'overlay_features_image.png')
 
