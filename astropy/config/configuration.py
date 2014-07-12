@@ -804,6 +804,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         If the default configuration could not be found.
 
     """
+
     if path.isdir(default_cfg_dir_or_fn):
         default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
     else:
@@ -833,7 +834,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     # Don't install template files for dev versions, or we'll end up
     # spamming `~/.astropy/config`.
-    if not 'dev' in version:
+    if not 'dev' in version and cfgfn is not None:
         template_path = path.join(
             get_config_dir(), '{0}.{1}.cfg'.format(pkg, version))
         needs_template = not path.exists(template_path)
