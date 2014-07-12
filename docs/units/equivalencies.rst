@@ -270,8 +270,8 @@ but this example is illustrative::
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
     ... lambda x: (restfreq-x) / restfreq * si.c.to('km/s').value,
     ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
-    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)
-    -1895.4321928669262  # doctest: +FLOAT_CMP
+    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
+    -1895.4321928669262
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
     <Quantity -1895.4321928669262 km / s>
 
