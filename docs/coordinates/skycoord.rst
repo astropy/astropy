@@ -679,4 +679,3 @@ the available docstrings below:
 
 Addition information and examples can be found in the section on
 :ref:`astropy-coordinates-separations-matching`.
-
