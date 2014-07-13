@@ -30,7 +30,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     return newwcs
 
 
-def wcs_to_celestial_frame(wcs):
+def _wcs_to_celestial_frame_builtin(wcs):
 
     from ..coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
     from ..time import Time
@@ -78,11 +78,16 @@ def wcs_to_celestial_frame(wcs):
                 equinox = Time(equinox, format='jyear')
             frame = Galactic(equinox=equinox)
         else:
-            raise ValueError("Could not determine celestial frame for "
-                             "RADESYS={radesys}, CTYPE1={ctype1}, "
-                             "CTYPE2={ctype2}, EQUINOX={equinox}".format(radesys=wcs.wcs.radesys,
-                                                                         ctype1=wcs.wcs.ctype[0],
-                                                                         ctype2=wcs.wcs.ctype[1],
-                                                                         equinox=wcs.wcs.equinox))
+            frame = None
 
     return frame
+
+
+WCS_FRAME_MAPPINGS = [_wcs_to_celestial_frame_builtin]
+
+def wcs_to_celestial_frame(wcs):
+    for func in WCS_FRAME_MAPPINGS:
+        frame = func(wcs)
+        if frame is not None:
+            return frame
+    raise ValueError("Could not determine celestial frame corresponding to the specified WCS object")
