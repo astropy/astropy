@@ -86,6 +86,17 @@ class ICRS(BaseCoordinateFrame):
 
         return m1 * m2 * m3
 
+    @classmethod
+    def from_wcs(cls, wcs):
+        if wcs.wcs.radesys == '':
+            xcoord = wcs.wcs.ctype[0][:4]
+            ycoord = wcs.wcs.ctype[1][:4]
+            if xcoord != b'RA--' or ycoord != b'DEC-':
+                raise ValueError("Cannot instantiate an ICRS frame from a WCS object with coordinate types {0}/{1}".format(xcoord, ycoord))
+        elif wcs.wcs.radesys.lower() != 'icrs':
+            raise ValueError("Could not instantiate an ICRS frame from a WCS object with radesys={0}".format(radesys=wcs.wcs.radesys))
+        return cls()
+
 # define this because it only needs to be computed once
 ICRS._ICRS_TO_FK5_J2000_MAT = ICRS._icrs_to_fk5_matrix()
 
@@ -142,6 +153,20 @@ class FK5(BaseCoordinateFrame):
 
         return precession_matrix_Capitaine(oldequinox, newequinox)
 
+    @classmethod
+    def from_wcs(cls, wcs):
+        if wcs.wcs.radesys == '':
+            xcoord = wcs.wcs.ctype[0][:4]
+            ycoord = wcs.wcs.ctype[1][:4]
+            if xcoord != b'RA--' or ycoord != b'DEC-':
+                raise ValueError("Cannot instantiate an FK5 frame from a WCS object with coordinate types {0}/{1}".format(xcoord, ycoord))
+        elif wcs.wcs.radesys.lower() != 'fk5':
+            raise ValueError("Could not instantiate an FK5 frame from a WCS object with radesys={0}".format(radesys=wcs.wcs.radesys))
+        if np.isnan(wcs.wcs.equinox):
+            return cls()
+        else:
+            return cls(equinox=Time(wcs.wcs.equinox, format='jyear'))
+
 
 # Has to be defined at module level, because `transform` needs an FK5 reference
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK5)
@@ -183,6 +208,20 @@ class FK4(BaseCoordinateFrame):
     equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
+    @classmethod
+    def from_wcs(cls, wcs):
+        if wcs.wcs.radesys == '':
+            xcoord = wcs.wcs.ctype[0][:4]
+            ycoord = wcs.wcs.ctype[1][:4]
+            if xcoord != b'RA--' or ycoord != b'DEC-':
+                raise ValueError("Cannot instantiate an FK4 frame from a WCS object with coordinate types {0}/{1}".format(xcoord, ycoord))
+        elif wcs.wcs.radesys.lower() != 'fk4':
+            raise ValueError("Could not instantiate an FK4 frame from a WCS object with radesys={0}".format(radesys=wcs.wcs.radesys))
+        if np.isnan(wcs.wcs.equinox):
+            return cls()
+        else:
+            return cls(equinox=Time(wcs.wcs.equinox, format='jyear'))
+        # TODO: extract observation time
 
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4)
 def fk4_to_fk4(fk4coord1, fk4frame2):
@@ -258,6 +297,20 @@ class FK4NoETerms(BaseCoordinateFrame):
         T = (obstime.jyear - 1950.) / 100.
         return _B1950_TO_J2000_M + _FK4_CORR * T
 
+    @classmethod
+    def from_wcs(cls, wcs):
+        if wcs.wcs.radesys == '':
+            xcoord = wcs.wcs.ctype[0][:4]
+            ycoord = wcs.wcs.ctype[1][:4]
+            if xcoord != b'RA--' or ycoord != b'DEC-':
+                raise ValueError("Cannot instantiate an FK4 frame from a WCS object with coordinate types {0}/{1}".format(xcoord, ycoord))
+        elif wcs.wcs.radesys.lower() != 'fk4':
+            raise ValueError("Could not instantiate an FK4 frame from a WCS object with radesys={0}".format(radesys=wcs.wcs.radesys))
+        if np.isnan(wcs.wcs.equinox):
+            return cls()
+        else:
+            return cls(equinox=Time(wcs.wcs.equinox, format='jyear'))
+        # TODO: extract observation time
 
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK4NoETerms)
 def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
@@ -302,6 +355,14 @@ class Galactic(BaseCoordinateFrame):
     # These are from the IAU's definition of galactic coordinates
     _ngp_B1950 = FK4(ra=192.25*u.degree, dec=27.4*u.degree)
     _lon0_B1950 = Angle(123, u.degree)
+
+    @classmethod
+    def from_wcs(cls, wcs):
+        xcoord = wcs.wcs.ctype[0][:4]
+        ycoord = wcs.wcs.ctype[1][:4]
+        if xcoord != b'GLON' or ycoord != b'GLAT':
+            raise ValueError("Cannot instantiate a Galactic frame from a WCS object with coordinate types {0}/{1}".format(xcoord, ycoord))
+        return cls()
 
 
 class AltAz(BaseCoordinateFrame):
