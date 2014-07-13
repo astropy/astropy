@@ -116,7 +116,7 @@ else:
 WCSHDO_SIP = 0x10000
 
 
-__doctest_skip__ = ['WCS.all_world2pix']
+#__doctest_skip__ = ['WCS.all_world2pix']
 
 
 def _parse_keysel(keysel):
@@ -1922,7 +1922,7 @@ naxis kwarg.
         >>> import astropy.wcs as wcs
         >>> import numpy as np
 
-        >>> hdulist = fits.open('j94f05bgq_flt.fits')
+        >>> hdulist = fits.open('tests/data/j94f05bgq_flt.fits')
         >>> w = wcs.WCS(hdulist[('sci',1)].header, hdulist)
         >>> hdulist.close()
 

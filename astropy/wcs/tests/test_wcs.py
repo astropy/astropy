@@ -408,8 +408,8 @@ def test_all_world2pix(fname=None, ext=0,
 
     # Open test FITS file:
     if fname is None:
-        fname = get_pkg_data_filename('data/sip.fits')
-        ext = 0
+        fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
+        ext = ('SCI',1)
     if not path.isfile(fname):
         raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
