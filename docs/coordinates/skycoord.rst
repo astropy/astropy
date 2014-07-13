@@ -680,7 +680,6 @@ plotting and numpy to get the value of pi.
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> import matplotlib.pyplot as plt
-    >>> import matplotlib.pylab as lab
     >>> import numpy as np
 
 We now generate random data for visualisation. For RA this is done in the range
@@ -720,10 +719,9 @@ Aitoff projection with a speficic title, a grid and filled circles as markers.
 
 .. doctest-requires:: matplotlib
 
-    >>> fig = plt.figure()
-    >>> lab.subplot(111,projection="aitoff")
-    >>> lab.title("Aitoff projection of our random data")
-    >>> lab.grid(True)
+    >>> plt.subplot(111, projection="aitoff")
+    >>> plt.title("Aitoff projection of our random data")
+    >>> plt.grid(True)
     >>> plt.plot(ra_rad, dec_rad, 'o')
     >>> plt.show()
 
@@ -738,7 +736,6 @@ Aitoff projection with a speficic title, a grid and filled circles as markers.
     from astropy import units as u
     from astropy.coordinates import SkyCoord
     import matplotlib.pyplot as plt
-    import matplotlib.pylab as lab
     import numpy as np
 
     # Generate random data, for RA between 0 and 360 degrees, for DEC between
@@ -757,10 +754,9 @@ Aitoff projection with a speficic title, a grid and filled circles as markers.
     ra_rad[ra_rad > np.pi] -= 2. * np.pi
 
     # Now plot the data in Aitoff projection with a grid.
-    fig = plt.figure()
-    lab.subplot(111,projection="aitoff")
-    lab.title("Aitoff projection of our random data")
-    lab.grid(True)
+    plt.subplot(111,projection="aitoff")
+    plt.title("Aitoff projection of our random data")
+    plt.grid(True)
     plt.plot(ra_rad, dec_rad, 'o')
     plt.show()
 
