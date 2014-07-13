@@ -50,3 +50,6 @@ htmlcov
 
 # Mac OSX
 .DS_Store
+
+# PyCharm
+.idea
