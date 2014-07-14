@@ -117,6 +117,108 @@ def test_units():
     assert cosmo.age(1.0).unit == u.Gyr
     assert cosmo.distmod(1.0).unit == u.mag
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_clone():
+    """ Test clone operation"""
+    
+    cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
+                               Tcmb0=3.0 * u.K)
+    z = np.linspace(0.1, 3, 15)
+
+    # First, test with no changes, which should return same object
+    newclone = cosmo.clone()
+    assert newclone is cosmo
+
+    # Now change H0
+    #  Note that H0 affects Ode0 because it changes Ogamma0
+    newclone = cosmo.clone(H0=60 * u.km / u.s / u.Mpc)
+    assert newclone is not cosmo
+    assert newclone.__class__ == cosmo.__class__
+    assert newclone.name == cosmo.name
+    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.H0.value, 60.0)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
+    assert np.allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
+    assert np.allclose(newclone.m_nu.value, cosmo.m_nu.value)
+    assert np.allclose(newclone.Neff, cosmo.Neff)
+
+    # Compare modified version with directly instantiated one
+    cmp = core.FlatLambdaCDM(H0=60 * u.km / u.s / u.Mpc, Om0=0.27,
+                             Tcmb0=3.0 * u.K)
+    assert newclone.__class__ == cmp.__class__
+    assert newclone.name == cmp.name
+    assert np.allclose(newclone.H0.value, cmp.H0.value)
+    assert np.allclose(newclone.Om0, cmp.Om0)
+    assert np.allclose(newclone.Ode0, cmp.Ode0)
+    assert np.allclose(newclone.Ok0, cmp.Ok0)
+    assert np.allclose(newclone.Ogamma0, cmp.Ogamma0)
+    assert np.allclose(newclone.Onu0, cmp.Onu0)
+    assert np.allclose(newclone.Tcmb0, cmp.Tcmb0)
+    assert np.allclose(newclone.m_nu.value, cmp.m_nu.value)
+    assert np.allclose(newclone.Neff, cmp.Neff)
+    assert np.allclose(newclone.Om(z), cmp.Om(z))
+    assert np.allclose(newclone.H(z).value, cmp.H(z).value)
+    assert np.allclose(newclone.luminosity_distance(z).value,
+                       cmp.luminosity_distance(z).value)
+
+    # Now try changing multiple things
+    newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
+                         Tcmb0=2.8 * u.K)
+    assert newclone.__class__ == cosmo.__class__
+    assert not newclone.name == cosmo.name
+    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.H0.value, 65.0)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
+    assert not np.allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
+    assert np.allclose(newclone.Tcmb0.value, 2.8)
+    assert np.allclose(newclone.m_nu.value, cosmo.m_nu.value)
+    assert np.allclose(newclone.Neff, cosmo.Neff)
+
+    # And direct comparison
+    cmp = core.FlatLambdaCDM(name="New name", H0=65 * u.km / u.s / u.Mpc,
+                             Om0=0.27, Tcmb0=2.8 * u.K)
+    assert newclone.__class__ == cmp.__class__
+    assert newclone.name == cmp.name
+    assert np.allclose(newclone.H0.value, cmp.H0.value)
+    assert np.allclose(newclone.Om0, cmp.Om0)
+    assert np.allclose(newclone.Ode0, cmp.Ode0)
+    assert np.allclose(newclone.Ok0, cmp.Ok0)
+    assert np.allclose(newclone.Ogamma0, cmp.Ogamma0)
+    assert np.allclose(newclone.Onu0, cmp.Onu0)
+    assert np.allclose(newclone.Tcmb0, cmp.Tcmb0)
+    assert np.allclose(newclone.m_nu.value, cmp.m_nu.value)
+    assert np.allclose(newclone.Neff, cmp.Neff)
+    assert np.allclose(newclone.Om(z), cmp.Om(z))
+    assert np.allclose(newclone.H(z).value, cmp.H(z).value)
+    assert np.allclose(newclone.luminosity_distance(z).value,
+                       cmp.luminosity_distance(z).value)
+
+    # Try a dark energy class, make sure it can handle w params
+    cosmo = core.w0waCDM(name="test w0wa", H0=70 * u.km / u.s / u.Mpc,
+                         Om0=0.27, Ode0=0.5, wa=0.1, Tcmb0=4.0 * u.K)
+    newclone = cosmo.clone(w0=-1.1, wa=0.2)
+    assert newclone.__class__ == cosmo.__class__
+    assert newclone.name == cosmo.name
+    assert np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ode0, cosmo.Ode0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.w0, cosmo.w0)
+    assert np.allclose(newclone.w0, -1.1)
+    assert not np.allclose(newclone.wa, cosmo.wa)
+    assert np.allclose(newclone.wa, 0.2)
+
+    # Now test exception if user passes non-parameter
+    with pytest.raises(AttributeError):
+        newclone = cosmo.clone(not_an_arg=4)
+
+
 
 def test_repr():
     """ Test string representation of built in classes"""
