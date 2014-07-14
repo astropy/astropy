@@ -540,12 +540,28 @@ class CoordinateHelper(object):
             self.ticklabels.add(text=txt, **kwargs)
 
     def display_minor_ticks(self, display_minor_ticks):
+        """
+        Display minor ticks for this coordinate.
+
+        Parameters
+        ----------
+        display_minor_ticks : bool
+            Whether or not to display minor ticks.
+        """
         self.ticks.display_minor_ticks(display_minor_ticks)
 
     def get_minor_frequency(self):
         return self.minor_frequency
 
     def set_minor_frequency(self, frequency):
+        """
+        Set the frequency of minor ticks per major ticks.
+
+        Parameters
+        ----------
+        frequency : int
+            The number of minor ticks per major ticks.
+        """
         self.minor_frequency = frequency
 
     def _update_grid_lines(self):
