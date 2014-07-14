@@ -37,28 +37,46 @@ def reproject_image_2d(array, wcs_in, wcs_out, shape_out, mode='nearest', order=
 
         xw, yw = wcs_in.wcs_pix2world(xp_in, yp_in, 0)
 
+        xw_unit_in = u.Unit(wcs_in.wcs.cunit[0])
+        yw_unit_in = u.Unit(wcs_in.wcs.cunit[1])
+
         # TODO: for now assuming that coordinates are spherical, not
         # necessarily the case. Also assuming something about the order of the
         # arguments. Also assuming units.
-        data = UnitSphericalRepresentation(xw * u.deg, yw * u.deg)
+        data = UnitSphericalRepresentation(xw * xw_unit_in,
+                                           yw * yw_unit_in)
         coords_in = frame_in.realize_frame(data)
         coords_out = coords_in.transform_to(frame_out)
-        xw, yw = coords_out.spherical.lon, coords_out.spherical.lat
 
-        xp_in, yp_in = wcs_out.wcs_world2pix(xw, yw, 0)
-        return xp_in, yp_in
+        xw_unit_out = u.Unit(wcs_out.wcs.cunit[0])
+        yw_unit_out = u.Unit(wcs_out.wcs.cunit[1])
+
+        xw = coords_out.spherical.lon.to(xw_unit_out).value
+        yw = coords_out.spherical.lat.to(yw_unit_out).value
+
+        xp_out, yp_out = wcs_out.wcs_world2pix(xw, yw, 0)
+        return xp_out, yp_out
 
     def pixel_out_to_pixel_in(xp_out, yp_out):
 
         xw, yw = wcs_out.wcs_pix2world(xp_out, yp_out, 0)
 
+        xw_unit_out = u.Unit(wcs_out.wcs.cunit[0])
+        yw_unit_out = u.Unit(wcs_out.wcs.cunit[1])
+
         # TODO: for now assuming that coordinates are spherical, not
         # necessarily the case. Also assuming something about the order of the
         # arguments. Also assuming units.
-        data = UnitSphericalRepresentation(xw * u.deg, yw * u.deg)
+        data = UnitSphericalRepresentation(xw * xw_unit_out,
+                                           yw * yw_unit_out)
         coords_in = frame_out.realize_frame(data)
         coords_out = coords_in.transform_to(frame_in)
-        xw, yw = coords_out.spherical.lon, coords_out.spherical.lat
+
+        xw_unit_in = u.Unit(wcs_in.wcs.cunit[0])
+        yw_unit_in = u.Unit(wcs_in.wcs.cunit[1])
+
+        xw = coords_out.spherical.lon.to(xw_unit_in).value
+        yw = coords_out.spherical.lat.to(yw_unit_in).value
 
         xp_in, yp_in = wcs_in.wcs_world2pix(xw, yw, 0)
         return xp_in, yp_in
