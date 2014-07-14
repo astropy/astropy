@@ -18,7 +18,7 @@ the package (see `astropy-helpers package`_), as well as reworking the
 configuration system (see `Configuration`_).
 
 In addition to these major changes, a large number of smaller
-improvements have occurred.  Since v0.3, By the numbers:
+improvements have occurred.  Since v0.3, by the numbers:
 
 * 819 issues have been closed
 * 511 pull requests have been merged
