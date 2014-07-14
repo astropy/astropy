@@ -41,6 +41,13 @@ class Ticks(Line2D):
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
+        self._display_minor_ticks = False
+
+    def display_minor_ticks(self, display_minor_ticks):
+        self._display_minor_ticks = display_minor_ticks
+
+    def get_display_minor_ticks(self):
+        return self._display_minor_ticks
 
     def set_tick_out(self, tick_out):
         """
@@ -80,6 +87,10 @@ class Ticks(Line2D):
         self.pixel = {}
         self.angle = {}
         self.disp = {}
+        self.minor_world = {}
+        self.minor_pixel = {}
+        self.minor_angle = {}
+        self.minor_disp = {}
 
     def add(self, axis, world, pixel, angle, axis_displacement):
         if axis not in self.world:
@@ -92,6 +103,22 @@ class Ticks(Line2D):
             self.pixel[axis].append(pixel)
             self.angle[axis].append(angle)
             self.disp[axis].append(axis_displacement)
+
+    def get_minor_world(self):
+        return self.minor_world
+
+    def add_minor(self, minor_axis, minor_world, minor_pixel, minor_angle,
+                  minor_axis_displacement):
+        if minor_axis not in self.minor_world:
+            self.minor_world[minor_axis] = [minor_world]
+            self.minor_pixel[minor_axis] = [minor_pixel]
+            self.minor_angle[minor_axis] = [minor_angle]
+            self.minor_disp[minor_axis] = [minor_axis_displacement]
+        else:
+            self.minor_world[minor_axis].append(minor_world)
+            self.minor_pixel[minor_axis].append(minor_pixel)
+            self.minor_angle[minor_axis].append(minor_angle)
+            self.minor_disp[minor_axis].append(minor_axis_displacement)
 
     def __len__(self):
         return len(self.world)
@@ -123,6 +150,46 @@ class Ticks(Line2D):
         for axis in self.get_visible_axes():
 
             for loc, angle in zip(self.pixel[axis], self.angle[axis]):
+
+                # Set the rotation for this tick
+                marker_rotation.rotate_deg(initial_angle + angle)
+
+                # Draw the markers
+                locs = path_trans.transform_non_affine(np.array([loc, loc]))
+                renderer.draw_markers(gc, self._tickvert_path, marker_transform,
+                                      Path(locs), path_trans.get_affine())
+
+                # Reset the tick rotation before moving to the next tick
+                marker_rotation.clear()
+
+        gc.restore()
+        if self._display_minor_ticks:
+            self._draw_minor_ticks(renderer)
+
+    def _draw_minor_ticks(self, renderer):
+        """
+        Draw the minor ticks.
+        """
+        # if not self.get_visible():
+        #     return
+
+        path_trans = self.get_transform()
+
+        gc = renderer.new_gc()
+        gc.set_foreground(self.get_color())
+        gc.set_alpha(self.get_alpha())
+        gc.set_linewidth(self.get_linewidth())
+
+        offset = renderer.points_to_pixels(self.get_ticksize() * 0.5)
+        marker_scale = Affine2D().scale(offset, offset)
+        marker_rotation = Affine2D()
+        marker_transform = marker_scale + marker_rotation
+
+        initial_angle = 180. if self.get_tick_out() else 0.
+
+        for axis in self.get_visible_axes():
+
+            for loc, angle in zip(self.minor_pixel[axis], self.minor_angle[axis]):
 
                 # Set the rotation for this tick
                 marker_rotation.rotate_deg(initial_angle + angle)

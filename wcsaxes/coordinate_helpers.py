@@ -46,11 +46,13 @@ class CoordinateHelper(object):
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
+        self.use_minor_ticks = self.ticks.get_display_minor_ticks()
 
         # Initialize tick labels
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
+        self._use_minor_ticks = False
 
         # Initialize axis labels
         self.axislabels = AxisLabels(self.frame,
@@ -364,6 +366,8 @@ class CoordinateHelper(object):
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        if self._use_minor_ticks:
+            minor_ticks_w_coordinates, spacing = self._formatter_locator.minor_locator(spacing, 5, *coord_range[self.coord_index])
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -373,7 +377,7 @@ class CoordinateHelper(object):
         self.ticklabels.clear()
         lblinfo = []
         lbl_world = []
-
+        lbl_minor_world = []
         # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
@@ -487,10 +491,57 @@ class CoordinateHelper(object):
                                    axis_displacement=imin + frac))
                     lbl_world.append(world)
 
+            if self._use_minor_ticks:
+
+                minor_ticks_w_coordinates_values = minor_ticks_w_coordinates.value
+                if self.coord_type == 'longitude':
+                    minor_ticks_w_coordinates_values = np.hstack([minor_ticks_w_coordinates_values,
+                                                              minor_ticks_w_coordinates_values + 360])
+
+                for t in minor_ticks_w_coordinates_values:
+
+                    # Find steps where a tick is present
+                    intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
+
+                    # Loop over ticks, and find exact pixel coordinates by linear
+                    # interpolation
+                    for imin in intersections:
+
+                        imax = imin + 1
+
+                        frac = (t - w1[imin]) / (w2[imin] - w1[imin])
+                        x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
+                        y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
+                        x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
+                        y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
+                        delta_angle = tick_angle[imax] - tick_angle[imin]
+                        if delta_angle > 180.:
+                            delta_angle -= 360.
+                        elif delta_angle < -180.:
+                            delta_angle += 360.
+                        angle_i = tick_angle[imin] + frac * delta_angle
+
+                        if self.coord_type == 'longitude':
+                            world = wrap_angle_at(t, self.coord_wrap)
+                        else:
+                            world = t
+
+                        self.ticks.add_minor(minor_axis=axis,
+                                             minor_pixel=(x_data_i, y_data_i),
+                                             minor_world=world,
+                                             minor_angle=angle_i,
+                                             minor_axis_displacement=imin + frac)
+                        lbl_minor_world.append(world)
+
+
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates_unit, spacing=spacing)
+        text = self._formatter_locator.formatter(lbl_world * tick_world_coordinates_unit, spacing=spacing)
         for kwargs, txt in zip(lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
+
+    def display_minor_ticks(self, boolean):
+        self.ticks.display_minor_ticks(boolean)
+        self._use_minor_ticks = boolean
 
     def _update_grid_lines(self):
 
