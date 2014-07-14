@@ -240,6 +240,16 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
             return values * u.degree, spacing_deg * u.degree
 
+    def minor_locator(self, spacing, number, value_min, value_max):
+        if self.values is not None:
+            # values have been manually specified, minor_locator doesn't work for that then?
+            return [] * u.deg
+        minor_spacing = spacing.value / number
+        imin = np.ceil(value_min / minor_spacing)
+        imax = np.floor(value_max / minor_spacing)
+        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing
+        return values * u.degree, minor_spacing * u.degree
+
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
