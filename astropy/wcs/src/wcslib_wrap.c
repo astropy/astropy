@@ -455,25 +455,24 @@ PyWcsprm_init(
 // The following three functions are used to resolve the default
 // values for the RADESYS and EQUINOX based on the FITS-WCS standard.
 
-int _startswith(const char *a, const char *b)
+static const char *
+_determine_radesys(PyWcsprm* self)
 {
-  if(strncmp(a, b, strlen(b)) == 0) return 1;
-  return 0;
-}
-
-const char * _determine_radesys(PyWcsprm* self)
-{
+  int lng, lat;
 
   // Needed to make sure lng/lat get set
   if (PyWcsprm_cset(self, 1)) {
     return NULL;
   }
 
-  if(self->x.lng > -1 && self->x.lat > -1 &&
-     ((_startswith(self->x.ctype[self->x.lng], "RA--") &&
-       _startswith(self->x.ctype[self->x.lat], "DEC-")) ||
-      (_startswith(self->x.ctype[self->x.lng], "ELON") &&
-       _startswith(self->x.ctype[self->x.lat], "ELAT")))) {
+  lng = self->x.lng;
+  lat = self->x.lat;
+
+  if (lng > -1 && lat > -1 &&
+      ((strncmp(self->x.ctype[lng], "RA--", 4) == 0 &&
+        strncmp(self->x.ctype[lat], "DEC-", 4) == 0) ||
+       (strncmp(self->x.ctype[lng], "ELON", 4) == 0 &&
+        strncmp(self->x.ctype[lat], "ELAT", 4) == 0))) {
     if (self->x.radesys == NULL || self->x.radesys[0] == 0) {
       if (isnan64(self->x.equinox)) {
 	return "ICRS";
@@ -483,22 +482,21 @@ const char * _determine_radesys(PyWcsprm* self)
 	return "FK5";
       }
     }
-  } else if(is_null(self->x.radesys)) {
-    return NULL;
   }
 
   return self->x.radesys;
-
 }
 
-double _determine_equinox(PyWcsprm* self) {
-
+static double
+_determine_equinox(PyWcsprm* self)
+{
   char *radesys = _determine_radesys(self);
 
-  if(isnan64(self->x.equinox)) {
-    if(strcmp(radesys, "FK4") == 0 || strcmp(radesys, "FK4-NO-E") == 0) {
+  if (radesys != NULL && isnan64(self->x.equinox)) {
+    if (strncmp(radesys, "FK4", 4) == 0 ||
+        strncmp(radesys, "FK4-NO-E", 9) == 0) {
       return 1950.;
-    } else if(strcmp(radesys, "FK5") == 0) {
+    } else if (strncmp(radesys, "FK5", 4) == 0) {
       return 2000.;
     } else {
       return self->x.equinox;
@@ -3032,7 +3030,13 @@ PyWcsprm_get_radesys(
     PyWcsprm* self,
     /*@unused@*/ void* closure) {
 
-  return get_string("radesys", _determine_radesys(self));
+  char *radesys = _determine_radesys(self);
+
+  if (is_null(radesys)) {
+    return NULL;
+  }
+
+  return get_string("radesys", radesys);
 }
 
 static int
