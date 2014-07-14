@@ -11,6 +11,7 @@ Overview
 
 Astropy 0.4 is a major release that adds new functionality since the
 0.3.x series of releases. A new sub-package is included (see `SAMP`_),
+a major overhaul of the :ref:`astropy-coordinates` sub-package has been completed,
 and many new features and improvements have been implemented for the
 existing sub-packages. In addition to usability improvements, we have
 made a number of changes in the infrastructure for setting up/installing
