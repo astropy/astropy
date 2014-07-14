@@ -418,7 +418,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     def minor_locator(self, spacing, frequency, value_min, value_max):
         if self.values is not None:
             # values have been manually specified, minor_locator doesn't work for that then?
-            return [] * u.deg
+            return [] * self._unit
         minor_spacing = spacing.value / frequency
         imin = np.ceil(value_min / minor_spacing)
         imax = np.floor(value_max / minor_spacing)
