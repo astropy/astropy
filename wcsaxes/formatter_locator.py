@@ -240,15 +240,15 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
             return values * u.degree, spacing_deg * u.degree
 
-    def minor_locator(self, spacing, number, value_min, value_max):
+    def minor_locator(self, spacing, frequency, value_min, value_max):
         if self.values is not None:
             # values have been manually specified, minor_locator doesn't work for that then?
             return [] * u.deg
-        minor_spacing = spacing.value / number
+        minor_spacing = spacing.value / frequency
         imin = np.ceil(value_min / minor_spacing)
         imax = np.floor(value_max / minor_spacing)
         values = np.arange(imin, imax + 1, dtype=int) * minor_spacing
-        return values * u.degree, minor_spacing * u.degree
+        return values * u.degree
 
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
@@ -414,6 +414,16 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             imax = np.floor(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
             return values * self._unit, spacing * self._unit
+
+    def minor_locator(self, spacing, frequency, value_min, value_max):
+        if self.values is not None:
+            # values have been manually specified, minor_locator doesn't work for that then?
+            return [] * u.deg
+        minor_spacing = spacing.value / frequency
+        imin = np.ceil(value_min / minor_spacing)
+        imax = np.floor(value_max / minor_spacing)
+        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing
+        return values * self._unit
 
     def formatter(self, values, spacing):
 

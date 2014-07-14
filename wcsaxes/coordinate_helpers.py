@@ -366,8 +366,8 @@ class CoordinateHelper(object):
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
-        if self.ticks.get_display_minor_ticks:
-            minor_ticks_w_coordinates, minor_spacing = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
+        if self.ticks.get_display_minor_ticks():
+            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -491,7 +491,7 @@ class CoordinateHelper(object):
                                    axis_displacement=imin + frac))
                     lbl_world.append(world)
 
-            if self.ticks.get_display_minor_ticks:
+            if self.ticks.get_display_minor_ticks():
 
                 minor_ticks_w_coordinates_values = minor_ticks_w_coordinates.value
                 if self.coord_type == 'longitude':
