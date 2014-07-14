@@ -60,7 +60,7 @@ try:
     import pkg_resources
     _setuptools_req = pkg_resources.Requirement.parse('setuptools>=0.7')
     # This may raise a DistributionNotFound in which case no version of
-    # setuptools or distribute is properly instlaled
+    # setuptools or distribute is properly installed
     _setuptools = pkg_resources.get_distribution('setuptools')
     if _setuptools not in _setuptools_req:
         # Older version of setuptools; check if we have distribute; again if
@@ -421,7 +421,7 @@ def _check_submodule_using_git(path):
 
     if p.returncode != 0 or stderr:
         # Unfortunately the return code alone cannot be relied on, as
-        # earler versions of git returned 0 even if the requested submodule
+        # earlier versions of git returned 0 even if the requested submodule
         # does not exist
         log.debug('git submodule command failed '
                   'unexpectedly:\n{0}'.format(stderr))
@@ -436,7 +436,7 @@ def _check_submodule_using_git(path):
             return True
         else:
             log.warn(
-                'Unexected output from `git submodule status`:\n{0}\n'
+                'Unexpected output from `git submodule status`:\n{0}\n'
                 'Will attempt import from {1!r} regardless.'.format(
                     stdout, path))
             return False
@@ -659,6 +659,7 @@ _git_submodule_status_re = re.compile(
 _CFG_OPTIONS = [('auto_use', bool), ('path', str),
                 ('download_if_needed', bool), ('index_url', str),
                 ('use_git', bool), ('auto_upgrade', bool)]
+
 
 def _main():
     if not os.path.exists('setup.cfg'):
