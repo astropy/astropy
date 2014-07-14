@@ -170,9 +170,6 @@ class Ticks(Line2D):
         """
         Draw the minor ticks.
         """
-        # if not self.get_visible():
-        #     return
-
         path_trans = self.get_transform()
 
         gc = renderer.new_gc()

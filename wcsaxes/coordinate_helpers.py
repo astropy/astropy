@@ -46,13 +46,13 @@ class CoordinateHelper(object):
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
-        self.use_minor_ticks = self.ticks.get_display_minor_ticks()
 
         # Initialize tick labels
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
-        self._use_minor_ticks = False
+        self.ticks.display_minor_ticks(False)
+        self.minor_frequency = 5
 
         # Initialize axis labels
         self.axislabels = AxisLabels(self.frame,
@@ -366,8 +366,8 @@ class CoordinateHelper(object):
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
-        if self._use_minor_ticks:
-            minor_ticks_w_coordinates, spacing = self._formatter_locator.minor_locator(spacing, 5, *coord_range[self.coord_index])
+        if self.ticks.get_display_minor_ticks:
+            minor_ticks_w_coordinates, minor_spacing = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -444,7 +444,7 @@ class CoordinateHelper(object):
             tick_world_coordinates_unit = tick_world_coordinates.unit
             tick_world_coordinates_values = tick_world_coordinates.value
             if self.coord_type == 'longitude':
-                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values, 
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                     tick_world_coordinates_values + 360])
 
             for t in tick_world_coordinates_values:
@@ -491,7 +491,7 @@ class CoordinateHelper(object):
                                    axis_displacement=imin + frac))
                     lbl_world.append(world)
 
-            if self._use_minor_ticks:
+            if self.ticks.get_display_minor_ticks:
 
                 minor_ticks_w_coordinates_values = minor_ticks_w_coordinates.value
                 if self.coord_type == 'longitude':
@@ -539,9 +539,14 @@ class CoordinateHelper(object):
         for kwargs, txt in zip(lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
-    def display_minor_ticks(self, boolean):
-        self.ticks.display_minor_ticks(boolean)
-        self._use_minor_ticks = boolean
+    def display_minor_ticks(self, display_minor_ticks):
+        self.ticks.display_minor_ticks(display_minor_ticks)
+
+    def get_minor_frequency(self):
+        return self.minor_frequency
+
+    def set_minor_frequency(self, frequency):
+        self.minor_frequency = frequency
 
     def _update_grid_lines(self):
 
@@ -587,7 +592,7 @@ class CoordinateHelper(object):
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
-        
+
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
