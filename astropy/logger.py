@@ -110,7 +110,7 @@ def _teardown_log():
     """Shut down exception and warning logging (if enabled) and clear all
     Astropy loggers from the logging module's cache.
 
-    This involves poking some logging module interals, so much if it is 'at
+    This involves poking some logging module internals, so much if it is 'at
     your own risk' and is allowed to pass silently if any exceptions occur.
     """
 
@@ -479,7 +479,6 @@ class AstropyLogger(Logger):
         '''
         Reset logger to its initial state
         '''
-        from astropy import conf as astropy_conf
 
         # Reset any previously installed hooks
         if self.warnings_logging_enabled():
