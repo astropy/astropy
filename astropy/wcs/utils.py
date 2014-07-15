@@ -39,6 +39,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
     # Keep only the celestial part of the axes
     wcs = wcs.sub([WCSSUB_CELESTIAL])
 
+    if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
+        return None
+
     radesys = wcs.wcs.radesys
 
     if np.isnan(wcs.wcs.equinox):
@@ -50,7 +53,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
     ycoord = wcs.wcs.ctype[1][:4]
 
     # Apply logic from FITS standard to determine the default radesys
-    if radesys == b'' and xcoord == b'RA--' and ycoord == b'DEC-':
+    if radesys == '' and xcoord == 'RA--' and ycoord == 'DEC-':
         if equinox is None:
             radesys = "ICRS"
         elif equinox < 1984.:
@@ -58,25 +61,23 @@ def _wcs_to_celestial_frame_builtin(wcs):
         else:
             radesys = "FK5"
 
-    if radesys == b'FK4':
+    if radesys == 'FK4':
         if equinox is not None:
             equinox = Time(equinox, format='byear')
         frame = FK4(equinox=equinox)
-    elif radesys == b'FK4-NO-E':
+    elif radesys == 'FK4-NO-E':
         if equinox is not None:
             equinox = Time(equinox, format='byear')
         frame = FK4NoETerms(equinox=equinox)
-    elif radesys == b'FK5':
+    elif radesys == 'FK5':
         if equinox is not None:
             equinox = Time(equinox, format='jyear')
         frame = FK5(equinox=equinox)
-    elif radesys == b'ICRS':
+    elif radesys == 'ICRS':
         frame = ICRS()
     else:
-        if xcoord == b'GLON' and ycoord == b'GLAT':
-            if equinox is not None:
-                equinox = Time(equinox, format='jyear')
-            frame = Galactic(equinox=equinox)
+        if xcoord == 'GLON' and ycoord == 'GLAT':
+            frame = Galactic()
         else:
             frame = None
 
@@ -85,9 +86,37 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
 WCS_FRAME_MAPPINGS = [_wcs_to_celestial_frame_builtin]
 
+
 def wcs_to_celestial_frame(wcs):
+    """
+    For a given WCS, return the coordinate frame that matches the celestial
+    component of the WCS.
+
+    Paramters
+    ---------
+    wcs : :class:`~astropy.wcs.WCS` instance
+        The WCS to find the frame for
+
+    Returns
+    -------
+    frame : :class:`~astropy.coordinates.base_frame.BaseFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.base_frame.BaseFrame`
+        subclass instance that best matches the specified WCS.
+
+    Notes
+    -----
+
+    To extend this function to frames not defined in astropy.coordinates, you
+    can write your own function which should take a :class:`~astropy.wcs.WCS`
+    instance and should return either an instance of a frame, or `None` if no
+    matching frame was found. You can register this function with::
+
+    >>> from astropy.wcs.utils import WCS_FRAME_MAPPINGS
+    >>> WCS_FRAME_MAPPINGS.append(my_function)
+    """
     for func in WCS_FRAME_MAPPINGS:
         frame = func(wcs)
         if frame is not None:
             return frame
-    raise ValueError("Could not determine celestial frame corresponding to the specified WCS object")
+    raise ValueError("Could not determine celestial frame corresponding to "
+                     "the specified WCS object")
