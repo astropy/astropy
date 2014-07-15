@@ -116,11 +116,20 @@ class TestTableItems(BaseTestItems):
         assert row.columns['a'].attrs_equal(table_data.COLS[0])
         assert row.columns['b'].attrs_equal(table_data.COLS[1])
         assert row.columns['c'].attrs_equal(table_data.COLS[2])
+
+        # Check that setting by col index sets the table and row value
         row[1] = 0
         assert row[1] == 0
-        if table_data.Table is not MaskedTable:
-            # numpy.core.ma.mvoid makes a copy so this test is skipped for masked table
-            assert self.t['b'][1] == 0
+        assert row['b'] == 0
+        assert self.t['b'][1] == 0
+        assert self.t[1]['b'] == 0
+
+        # Check that setting by col name sets the table and row value
+        row['a'] = 0
+        assert row[0] == 0
+        assert row['a'] == 0
+        assert self.t['a'][1] == 0
+        assert self.t[1]['a'] == 0
 
     def test_table_slice(self, table_data):
         """Table slice returns REFERENCE to data"""

@@ -165,6 +165,17 @@ class Row(object):
         return self.data[item]
 
     def __setitem__(self, item, val):
+        if self._table.masked:
+            # Workaround for astropy/astropy#2734 and numpy/numpy#4866:
+            # Assignment to a masked array containing a recarray object doesn't
+            # work properly when being assigned in [row][colname] order.
+            # Instead go back to the parent table and do [colname][row] order.
+            #
+            # Note also that in the masked case the Row object is not a direct
+            # view of the data so we need to set in the table and in self.data.
+            col = self._table.columns[item]  # works for index or col name
+            col[self._index] = val
+
         self.data[item] = val
 
     def __eq__(self, other):

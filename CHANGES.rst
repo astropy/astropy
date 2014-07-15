@@ -582,6 +582,9 @@ Bug Fixes
 
   - Fix removal of single column using ``remove_columns``. [#2699]
 
+  - Fix a problem that setting a row element within a masked table did not
+    update the corresponding table element. [#2734]
+
 - ``astropy.time``
 
   - Correct UT1->UTC->UT1 round-trip being off by 1 second if UT1 is
