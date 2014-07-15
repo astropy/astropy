@@ -57,10 +57,10 @@ def identify_table(soup, htmldict, numtable):
         return 'id' in soup.attrs and soup['id'] == table_id
     elif isinstance(table_id, int):
         return table_id == numtable
-    
+
     # Return False if an invalid parameter is given
     return False
-    
+
 
 class HTMLInputter(core.BaseInputter):
     """
@@ -75,13 +75,13 @@ class HTMLInputter(core.BaseInputter):
         Convert the given input into a list of SoupString rows
         for further processing.
         """
-        
+
         try:
             from bs4 import BeautifulSoup
         except ImportError:
             raise core.OptionalTableImportError('BeautifulSoup must be '
                                         'installed to read HTML tables')
-        
+
         soup = BeautifulSoup('\n'.join(lines))
         tables = soup.find_all('table')
         for i, possible_table in enumerate(tables):
@@ -95,12 +95,12 @@ class HTMLInputter(core.BaseInputter):
                 err_descr = "id '{0}'".format(self.html['table_id'])
             raise core.InconsistentTableError(
                 'ERROR: HTML table {0} not found'.format(err_descr))
-        
+
         # Get all table rows
         soup_list = [SoupString(x) for x in table.find_all('tr')]
 
         return soup_list
-        
+
 class HTMLSplitter(core.BaseSplitter):
     """
     Split HTML table data.
@@ -156,7 +156,7 @@ class HTMLOutputter(core.TableOutputter):
                 col_num += 1
 
         return super(HTMLOutputter, self).__call__(new_cols, meta)
-        
+
 
 class HTMLHeader(core.BaseHeader):
     splitter_class = HTMLSplitter
@@ -165,7 +165,7 @@ class HTMLHeader(core.BaseHeader):
         """
         Return the line number at which header data begins.
         """
-        
+
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
@@ -197,7 +197,7 @@ class HTMLHeader(core.BaseHeader):
                 new_names.append(name)
 
         self.names = new_names
-    
+
 
 class HTMLData(core.BaseData):
     splitter_class = HTMLSplitter
@@ -206,18 +206,18 @@ class HTMLData(core.BaseData):
         """
         Return the line number at which table data begins.
         """
-        
+
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
             soup = line.soup
-            
+
             if soup.td is not None:
                 if soup.th is not None:
                     raise core.InconsistentTableError('HTML tables cannot '
                                 'have headings and data in the same row')
                 return i
-        
+
         raise core.InconsistentTableError('No start line found for HTML data')
 
     def end_line(self, lines):
@@ -225,7 +225,7 @@ class HTMLData(core.BaseData):
         Return the line number at which table data ends.
         """
         last_index = -1
-        
+
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError('HTML lines should be of type SoupString')
@@ -261,9 +261,9 @@ class HTML(core.BaseReader):
             columns if this parameter is true, and if not then it will
             use the syntax 1.36583e-13 .. 1.36583e-13 for output. If not
             present, this parameter will be true by default.
-    
+
     """
-    
+
     _format_name = 'html'
     _io_registry_format_aliases = ['html']
     _io_registry_suffix = '.html'
@@ -292,7 +292,7 @@ class HTML(core.BaseReader):
 
         self.outputter = HTMLOutputter()
         return core.BaseReader.read(self, table)
-    
+
     def write(self, table):
         """
         Return data in ``table`` converted to HTML as a list of strings.
@@ -303,7 +303,7 @@ class HTML(core.BaseReader):
 
         # Use XMLWriter to output HTML to lines
         w = writer.XMLWriter(ListWriter(lines))
-        
+
         with w.tag('html'):
             with w.tag('head'):
                 # Declare encoding and set CSS style for table

@@ -205,16 +205,16 @@ class Quantity(np.ndarray):
             # if the value has a `unit` attribute, treat it like a quantity by
             # rescaling the value appropriately
             if hasattr(value, 'unit'):
-                    try:
-                        value_unit = Unit(value.unit)
-                    except TypeError:
-                        if unit is None:
-                            unit = dimensionless_unscaled
+                try:
+                    value_unit = Unit(value.unit)
+                except TypeError:
+                    if unit is None:
+                        unit = dimensionless_unscaled
+                else:
+                    if unit is None:
+                        unit = value_unit
                     else:
-                        if unit is None:
-                            unit = value_unit
-                        else:
-                            rescale_value = value_unit.to(unit)
+                        rescale_value = value_unit.to(unit)
 
             #if it has no unit, default to dimensionless_unscaled
             elif unit is None:
@@ -317,8 +317,10 @@ class Quantity(np.ndarray):
 
         # We now prepare the output object
 
-        if self is obj:  # happens if the output object is self, which happens
-                         # for in-place operations such as q1 += q2
+        if self is obj:
+
+            # this happens if the output object is self, which happens
+            # for in-place operations such as q1 += q2
 
             # In some cases, the result of a ufunc should be a plain Numpy
             # array, which we can't do if we are doing an in-place operation.

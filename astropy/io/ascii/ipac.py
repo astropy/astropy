@@ -86,7 +86,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     'c': core.StrType}
     definition='ignore'
     start_line = None
-    
+
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
         delimiter character."""

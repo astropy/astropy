@@ -1339,7 +1339,7 @@ class Card(_Verify):
                 # keywords can only occur if they came from the wild
                 keyword = self._split()[0]
                 if keyword != keyword.upper():
-                # Keyword should be uppercase unless it's a HIERARCH card
+                    # Keyword should be uppercase unless it's a HIERARCH card
                     errs.append(self.run_option(
                         option,
                         err_text='Card keyword %r is not upper case.' %

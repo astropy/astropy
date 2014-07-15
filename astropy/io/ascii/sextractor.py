@@ -38,7 +38,7 @@ class SExtractorHeader(core.BaseHeader):
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
                                  (?P<colname> \w+)           # name of the column
                                  (?:\s+(?P<coldescr> \w [^\[]*\w))? # column description, match non-[
-                                 (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets 
+                                 (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets
                                  """, re.VERBOSE)
         for line in lines:
             if not line.startswith('#'):

@@ -68,12 +68,12 @@ class StreamingHDU(object):
 
         # handle a file object instead of a file name
         filename = fileobj_name(name) or ''
-#
-#       Check if the file already exists.  If it does not, check to see
-#       if we were provided with a Primary Header.  If not we will need
-#       to prepend a default PrimaryHDU to the file before writing the
-#       given header.
-#
+
+        # Check if the file already exists.  If it does not, check to see
+        # if we were provided with a Primary Header.  If not we will need
+        # to prepend a default PrimaryHDU to the file before writing the
+        # given header.
+
         newfile = False
 
         if filename:
@@ -87,11 +87,11 @@ class StreamingHDU(object):
                 hdulist = HDUList([PrimaryHDU()])
                 hdulist.writeto(name, 'exception')
         else:
-#
-#               This will not be the first extension in the file so we
-#               must change the Primary header provided into an image
-#               extension header.
-#
+
+            # This will not be the first extension in the file so we
+            # must change the Primary header provided into an image
+            # extension header.
+
             if 'SIMPLE' in self._header:
                 self._header.set('XTENSION', 'IMAGE', 'Image extension',
                                  after='SIMPLE')
@@ -176,9 +176,7 @@ class StreamingHDU(object):
                             'in the header.')
 
         if data.dtype.str[0] != '>':
-#
-#           byteswap little endian arrays before writing
-#
+            # byteswap little endian arrays before writing
             output = data.byteswap()
         else:
             output = data
@@ -186,9 +184,7 @@ class StreamingHDU(object):
         self._ffo.writearray(output)
 
         if self._ffo.tell() - self._data_offset == self._size:
-#
-#           the stream is full so pad the data to the next FITS block
-#
+            # the stream is full so pad the data to the next FITS block
             self._ffo.write(_pad_length(self._size) * '\0')
             self.writecomplete = True
 

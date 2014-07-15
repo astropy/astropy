@@ -1487,8 +1487,9 @@ naxis kwarg.
         #############################################################
         ##            INITIALIZE ITERATIVE PROCESS:                ##
         #############################################################
-        pix0 = self.wcs_world2pix(world, origin)  # initial approximation
-                                                  # (linear WCS based only)
+
+        # initial approximation (linear WCS based only)
+        pix0 = self.wcs_world2pix(world, origin)
 
         # Check that an iterative solution is required at all
         # (when any of the non-CD-matrix-based corrections are

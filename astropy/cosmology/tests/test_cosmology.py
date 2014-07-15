@@ -120,7 +120,7 @@ def test_units():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_clone():
     """ Test clone operation"""
-    
+
     cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
                                Tcmb0=3.0 * u.K)
     z = np.linspace(0.1, 3, 15)

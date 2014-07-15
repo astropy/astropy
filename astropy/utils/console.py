@@ -932,8 +932,10 @@ class _GetchUnix(object):
     def __init__(self):
         import tty
         import sys
-        import termios  # import termios now or else you'll get the Unix
-                        # version on the Mac
+
+        # import termios now or else you'll get the Unix
+        # version on the Mac
+        import termios
 
     def __call__(self):
         import sys
