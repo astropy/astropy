@@ -211,6 +211,12 @@ Deprecation and backward-incompatible changes
   configuration approach.  Until they do, warnings will appear prompting
   them to do so.
 
+Full change log
+----------------
+
+To see a detailed list of all changes in version 0.4 and prior, please see the
+:ref:`changelog`.
+
 Note on future versions
 -----------------------
 
