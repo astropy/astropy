@@ -72,6 +72,41 @@ acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
 
+UTF-8 locale error on MacOS X
+-----------------------------
+
+On MacOS X, you may see the following error when running ``setup.py``::
+
+    ValueError: unknown locale: UTF-8
+
+This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
+``UTF-8`` by default, which is not a valid locale setting. To fix this, set
+this environment variable, as well as the ``LANG`` and ``LC_ALL`` environment
+variables to e.g. ``en_US.UTF-8`` using::
+
+    export LANG="en_US.UTF-8"
+    export LC_ALL="en_US.UTF-8"
+    export LC_CTYPE="en_US.UTF-8"
+
+To avoid any issues in future, you should add this line to your
+``~/.bash_profile`` file.
+
+To test these changes, open a new terminal and type ``locale``, and you should
+see something like::
+
+    $ locale
+    LANG="en_US.UTF-8"
+    LC_COLLATE="en_US.UTF-8"
+    LC_CTYPE="en_US.UTF-8"
+    LC_MESSAGES="en_US.UTF-8"
+    LC_MONETARY="en_US.UTF-8"
+    LC_NUMERIC="en_US.UTF-8"
+    LC_TIME="en_US.UTF-8"
+    LC_ALL="en_US.UTF-8"
+
+If so, you can go ahead and try running ``setup.py`` again (in the new
+terminal).
+
 Floating point precision issues on Python 2.6 on Microsoft Windows
 ------------------------------------------------------------------
 
