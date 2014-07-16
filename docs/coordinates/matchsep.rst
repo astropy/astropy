@@ -85,8 +85,8 @@ You can also find the nearest 3d matches, different from the on-sky
 separation shown above only when the coordinates were initialized with
 a ``distance``::
 
-    >>> c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree)  # doctest: +SKIP
-    >>> catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  # doctest: +SKIP
+    >>> c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree, distance=distance1*u.kpc)  # doctest: +SKIP
+    >>> catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree, distance=distance2*u.kpc)  # doctest: +SKIP
     >>> idx, d2d, d3d = c.match_to_catalog_3d(catalog)  # doctest: +SKIP
 
 Now ``idx`` are indices into ``catalog`` that are the closest objects to each
