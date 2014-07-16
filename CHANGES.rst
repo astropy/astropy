@@ -177,6 +177,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- General improvements to documentation and docstrings [#2722, #2728, #2742]
 
 0.4 (2014-07-16)
 ----------------
