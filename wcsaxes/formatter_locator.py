@@ -86,6 +86,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     def __init__(self, values=None, number=None, spacing=None, format=None):
         self._unit = u.degree
+        self._sep = None
         super(AngleFormatterLocator, self).__init__(values=values,
                                                     number=number,
                                                     spacing=spacing,
@@ -103,6 +104,14 @@ class AngleFormatterLocator(BaseFormatterLocator):
         self._number = None
         self._spacing = spacing
         self._values = None
+
+    @property
+    def sep(self):
+        return self._sep
+
+    @sep.setter
+    def sep(self, separator):
+        self._sep = separator
 
     @property
     def format(self):
@@ -269,6 +278,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
             if decimal:
                 sep = None
+            elif self._sep is not None:
+                sep = self._sep
             else:
                 if unit == u.degree:
                     if rcParams['text.usetex']:
