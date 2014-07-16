@@ -290,9 +290,11 @@ The following example shows a simple function and a test to test this
 function::
 
     def func(x):
+        """Add one to the argument."""
         return x + 1
 
     def test_answer():
+        """Check the return value of func() for an example argument."""
         assert func(3) == 5
 
 If we place this in a ``test.py`` file and then run::
@@ -379,12 +381,14 @@ Examples
     from ...tests.helper import remote_data
 
     def test_1():
+        """Test version using a local file."""
         #if filename.fits is a local file in the source distribution
         datafile = get_data_filename('filename.fits')
         # do the test
 
     @remote_data
     def test_2():
+        """Test version using a remote file."""
         #this is the hash for a particular version of a file stored on the
         #astropy data server.
         datafile = get_data_filename('hash/94935ac31d585f68041c08f87d1a19d4')
@@ -426,12 +430,15 @@ These functions take one argument, which is the module itself, which makes it
 very easy to set module-wide variables::
 
     def setup_module(module):
+        """Initialize the value of NUM."""
         module.NUM = 11
 
     def add_num(x):
+        """Add pre-defined NUM to the argument."""
         return x + NUM
 
     def test_42():
+        """Ensure that add_num() adds the correct NUM to its argument."""
         added = add_num(42)
         assert added == 53
 
@@ -441,13 +448,16 @@ the functions in the file access it::
     import os
 
     def setup_module(module):
+        """Store a copy of the remote test file."""
         module.DATAFILE = get_remote_test_data('94935ac31d585f68041c08f87d1a19d4')
 
     def test():
+        """Perform test using cached remote input file."""
         f = open(DATAFILE, 'rb')
         # do the test
 
     def teardown_module(module):
+        """Clean up remote test file copy."""
         os.remove(DATAFILE)
 
 Class-level setup/teardown
@@ -457,18 +467,22 @@ Tests can be organized into classes that have their own setup/teardown
 functions. In the following ::
 
     def add_nums(x, y):
+        """Add two numbers."""
         return x + y
 
     class TestAdd42(object):
+        """Test for add_nums with y=42."""
 
         def setup_class(self):
             self.NUM = 42
 
         def test_1(self):
+            """Test behaviour for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
+            """Test behaviour for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -486,18 +500,22 @@ before and after *each* test. For this, use the ``setup_method`` and
 ``teardown_method`` methods::
 
     def add_nums(x, y):
+        """Add two numbers."""
         return x + y
 
     class TestAdd42(object):
+        """Test for add_nums with y=42."""
 
         def setup_method(self, method):
             self.NUM = 42
 
         def test_1(self):
+        """Test behaviour for a specific input value."""
             added = add_nums(11, self.NUM)
             assert added == 53
 
         def test_2(self):
+        """Test behaviour for another input value."""
             added = add_nums(13, self.NUM)
             assert added == 55
 
@@ -515,9 +533,11 @@ These take one argument, which is the function being tested::
         pass
 
     def test_1(self):
+       """First test."""
         # do test
 
     def test_2(self):
+        """Second test."""
         # do test
 
     def teardown_method(function):
@@ -544,6 +564,7 @@ inputs::
 
     @pytest.mark.parametrize(('letter'), ['a', 'b', 'c'])
     def test(letter):
+        """Check that the input is a string."""
         assert type(letter) == str
 
 Tests requiring optional dependencies
