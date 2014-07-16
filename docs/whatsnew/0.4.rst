@@ -130,7 +130,7 @@ the screen in a human-readable format. Run ``fitsheader --help`` to see the
 full usage documentation.
 
 Reading and writing HTML tables
----------------------------------------------
+-------------------------------
 
 The :ref:`io-ascii` sub-package now provides the capability to read a table
 within an HTML file or web URL into an astropy `~astropy.table.Table` object.
