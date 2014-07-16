@@ -378,7 +378,6 @@ class CoordinateHelper(object):
         self.ticklabels.clear()
         self.lblinfo = []
         self.lbl_world = []
-        lbl_minor_world = []
         # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
