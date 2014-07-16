@@ -49,7 +49,8 @@ class Distance(u.Quantity):
         If `None`, the current cosmology will be used (see
         `astropy.cosmology` for details).
     distmod : float or `~astropy.units.Quantity`
-        The distance modulus for this distance.
+        The distance modulus for this distance. Note that if ``unit`` is not
+        provided, a guess will be made at the unit between AU, pc, kpc, and Mpc.
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
     copy : bool, optional
@@ -121,6 +122,19 @@ class Distance(u.Quantity):
                                      'or `distmod` in Distance constructor.')
 
                 value = cls._distmod_to_pc(distmod)
+                if unit is None:
+                    # if the unit is not specified, guess based on the mean of
+                    # the log of the distance
+                    meanlogval = np.log10(value.value).mean()
+                    if meanlogval > 6:
+                        unit = u.Mpc
+                    elif meanlogval > 3:
+                        unit = u.kpc
+                    elif meanlogval < -3: #~200 AU
+                        unit = u.AU
+                    else:
+                        unit = u.pc
+
                 # Continue on to take account of unit and other arguments
                 # but a copy is already made, so no longer necessary
                 copy = False
