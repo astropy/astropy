@@ -212,7 +212,7 @@ Deprecation and backward-incompatible changes
   them to do so.
 
 Full change log
-----------------
+---------------
 
 To see a detailed list of all changes in version 0.4 and prior, please see the
 :ref:`changelog`.
