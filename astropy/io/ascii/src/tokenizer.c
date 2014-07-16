@@ -38,6 +38,12 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     return tokenizer;
 }
 
+tokenizer_t *copy_tokenizer(tokenizer_t *t)
+{
+    return create_tokenizer(t->delimiter, t->comment, t->quotechar, t->fill_extra_cols,
+                            t->strip_whitespace_lines, t->strip_whitespace_fields);
+}
+
 void delete_data(tokenizer_t *tokenizer)
 {
     // Don't free tokenizer->source because it points to part of
@@ -219,8 +225,8 @@ void resize_header(tokenizer_t *self)
 // Set the error code to c for later retrieval and return c
 #define RETURN(c) do { self->code = c; return c; } while (0)
 
-int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
-             int use_cols_len)
+int tokenize(tokenizer_t *self, int start, int end, int header,
+             int *use_cols, int use_cols_len)
 {
     delete_data(self); // clear old reading data
     char c; // input character
@@ -228,7 +234,6 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
     int real_col = 0; // current column taking excluded columns into account
     int output_pos = 0; // current position in header output string
     self->header_len = INITIAL_HEADER_SIZE;
-    self->source_pos = 0;
     self->num_rows = 0;
     int i = 0;
     int empty = 1;
@@ -237,7 +242,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
     
     while (i < start)
     {
-	if (self->source_pos >= self->source_len - 1) // ignore final newline
+	if (self->source_pos >= self->source_len)
         {
             if (header)
                 RETURN(INVALID_LINE); // header line is required
@@ -253,7 +258,7 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
             // (see #2654)
             empty = 0;
             // comment line
-            if (self->comment != 0 && self->source[self->source_pos] ==self->comment)
+            if (self->comment != 0 && self->source[self->source_pos] == self->comment)
                 comment = 1;
 	}
 	else if (self->source[self->source_pos++] == '\n')
@@ -291,7 +296,6 @@ int tokenize(tokenizer_t *self, int start, int end, int header, int *use_cols,
     int done = (end != -1 && end <= start);
     int repeat;
     self->state = START_LINE;
-    
     // Loop until all of source has been read or we finish for some other reason
     while (self->source_pos < self->source_len && !done)
     {

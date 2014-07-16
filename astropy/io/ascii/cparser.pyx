@@ -61,6 +61,7 @@ cdef extern from "src/tokenizer.h":
     tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields)
+    tokenizer_t *copy_tokenizer(tokenizer_t *t)
     void delete_tokenizer(tokenizer_t *tokenizer)
     int tokenize(tokenizer_t *self, int start, int end, int header,
                  int *use_cols, int use_cols_len)
@@ -176,8 +177,7 @@ cdef class CParser:
                 raise TypeError('Input "table" must be a file-like object, a '
                                 'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
-        source_str = source + '\n' # add newline to simplify handling last line of data
-        self.source = source_str.encode('UTF-8') # encode in UTF-8 for char * handling
+        self.source = source.encode('UTF-8') # encode in UTF-8 for char * handling
         src = self.source
         self.tokenizer.source = src
         self.tokenizer.source_len = len(self.source)
@@ -188,7 +188,8 @@ cdef class CParser:
 
         # header_start is a valid line number
         elif self.header_start is not None and self.header_start >= 0:
-            if tokenize(self.tokenizer, self.header_start, -1, 1, <int *> 0, 0) != 0:
+            if tokenize(self.tokenizer, self.header_start, -1, 1,
+                        <int *> 0, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the header line")
             self.names = []
             name = ''
@@ -247,31 +248,62 @@ cdef class CParser:
         cdef int N = 8 # figure out what to choose for N here
         cdef list processes = []
         queue = multiprocessing.Queue()
-        cdef int chunksize = math.ceil(self.tokenizer.source_len / float(N))
+        cdef int offset = self.tokenizer.source_pos
+        cdef int chunksize = math.ceil((self.tokenizer.source_len - offset) / float(N))
+        cdef list chunkindices = [offset]
+        for i in range(1, N):
+            index = offset + chunksize * i
+            while self.source[index] != '\n':
+                index += 1
+            chunkindices.append(index + 1)
+        chunkindices.append(self.tokenizer.source_len) #figure out correct chunkindices
+        self._set_fill_names()
+        ret = {}
+        cdef dict dct
 
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
-                self.source[chunksize * i: chunksize * (i + 1)],
-                try_int, try_float, try_string, queue))
+                chunkindices[i], chunkindices[i + 1],
+                try_int, try_float, try_string, queue, i))
             processes.append(process)
             process.start()
 
         for i in range(N):
-            pass # do something with queue.get()
+            dct = queue.get()
+            for key in dct:
+                if key not in ret:
+                    ret[key] = dct[key]
+                else:
+                    ret[key] = np.concatenate((ret[key], dct[key]))
 
         for process in processes:
             process.join() # wait for each process to finish
 
-    def _read_chunk(self, source, try_int, try_float, try_string, queue):
-        self.tokenizer.source = source
-        self.tokenizer.source_len = len(source)
-        if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
+        return ret
+
+    def _read_chunk(self, start, end, try_int, try_float, try_string, queue, i):
+        data_start = self.data_start if start == 0 else 0
+        cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
+        chunk_tokenizer.source = self.source
+        chunk_tokenizer.num_cols = self.width
+        chunk_tokenizer.source_pos = start
+        chunk_tokenizer.source_len = end
+
+        if tokenize(chunk_tokenizer, 0, -1, 0, #TODO: use data_start, data_end
                     <int *> self.use_cols.data, len(self.use_cols)) != 0:
+            delete_tokenizer(chunk_tokenizer)
             self.raise_error("an error occurred while tokenizing data")
         elif self.tokenizer.num_rows == 0: # no data
-            return [[]] * self.width
-        self._set_fill_names()
-        queue.put(self._convert_data(try_int, try_float, try_string))
+            delete_tokenizer(chunk_tokenizer)
+            queue.put(([[]] * self.width, i))
+            return
+
+        try:
+            queue.put((self._convert_data(chunk_tokenizer, try_int, try_float,
+                                          try_string), i))
+        finally:
+            # TODO: stop all processes when an error is raised
+            delete_tokenizer(chunk_tokenizer)
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)
@@ -280,8 +312,8 @@ cdef class CParser:
         if self.fill_exclude_names is not None:
             self.fill_names.difference_update(self.fill_exclude_names)
 
-    cdef _convert_data(self, try_int, try_float, try_string):
-        cdef int num_rows = self.tokenizer.num_rows
+    cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string):
+        cdef int num_rows = t.num_rows
         if self.data_end_obj is not None and self.data_end_obj < 0:
             # e.g. if data_end = -1, ignore the last row
             num_rows += self.data_end_obj
@@ -292,20 +324,20 @@ cdef class CParser:
             try:
                 if try_int and not try_int[name]:
                     raise ValueError()
-                cols[name] = self._convert_int(i, num_rows)
+                cols[name] = self._convert_int(t, i, num_rows)
             except ValueError:
                 try:
                     if try_float and not try_float[name]:
                         raise ValueError()
-                    cols[name] = self._convert_float(i, num_rows)
+                    cols[name] = self._convert_float(t, i, num_rows)
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
-                    cols[name] = self._convert_str(i, num_rows)
+                    cols[name] = self._convert_str(t, i, num_rows)
 
         return cols
 
-    cdef np.ndarray _convert_int(self, int i, int num_rows):
+    cdef np.ndarray _convert_int(self, tokenizer_t *t, int i, int num_rows):
         # intialize ndarray
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
         cdef long converted
@@ -314,13 +346,13 @@ cdef class CParser:
         cdef bytes field
         cdef bytes new_val
         mask = set() # set of indices for masked values
-        start_iteration(self.tokenizer, i) # begin the iteration process in C
+        start_iteration(t, i) # begin the iteration process in C
 
-        while not finished_iteration(self.tokenizer):
+        while not finished_iteration(t):
             if row == num_rows: # end prematurely if we aren't using every row
                 break
             # retrieve the next field in a bytes value
-            field = next_field(self.tokenizer)
+            field = next_field(t)
 
             if field in self.fill_values:
                 new_val = str(self.fill_values[field][0]).encode('utf-8')
@@ -332,17 +364,17 @@ cdef class CParser:
                    or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
                     # try converting the new value
-                    converted = str_to_long(self.tokenizer, new_val)
+                    converted = str_to_long(t, new_val)
                 else:
-                    converted = str_to_long(self.tokenizer, field)
+                    converted = str_to_long(t, field)
 
             else:
                 # convert the field to long (widest integer type)
-                converted = str_to_long(self.tokenizer, field)
+                converted = str_to_long(t, field)
 
-            if self.tokenizer.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
+            if t.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
                 # no dice
-                self.tokenizer.code = NO_ERROR
+                t.code = NO_ERROR
                 raise ValueError()
             
             data[row] = converted
@@ -355,7 +387,7 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_float(self, int i, int num_rows):
+    cdef np.ndarray _convert_float(self, tokenizer_t *t, int i, int num_rows):
         # very similar to _convert_int()
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
@@ -365,27 +397,27 @@ cdef class CParser:
         cdef bytes new_val
         mask = set()
 
-        start_iteration(self.tokenizer, i)
-        while not finished_iteration(self.tokenizer):
+        start_iteration(t, i)
+        while not finished_iteration(t):
             if row == num_rows:
                 break
-            field = next_field(self.tokenizer)
+            field = next_field(t)
             if field in self.fill_values:
                 new_val = str(self.fill_values[field][0]).encode('utf-8')
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
                    or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                    converted = str_to_double(self.tokenizer, new_val)
+                    converted = str_to_double(t, new_val)
                 else:
-                    converted = str_to_double(self.tokenizer, field)
+                    converted = str_to_double(t, field)
             else:
-                converted = str_to_double(self.tokenizer, field)
+                converted = str_to_double(t, field)
 
-            if self.tokenizer.code == CONVERSION_ERROR:
-                self.tokenizer.code = NO_ERROR
+            if t.code == CONVERSION_ERROR:
+                t.code = NO_ERROR
                 raise ValueError()
-            elif self.tokenizer.code == OVERFLOW_ERROR:
-                self.tokenizer.code = NO_ERROR
+            elif t.code == OVERFLOW_ERROR:
+                t.code = NO_ERROR
                 # In numpy < 1.6, using type inference yields a float for 
                 # overflow values because the error raised is not specific.
                 # This replicates the old reading behavior (see #2234).
@@ -403,7 +435,7 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_str(self, int i, int num_rows):
+    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i, int num_rows):
         # similar to _convert_int, but no actual conversion
         cdef np.ndarray col = np.empty(num_rows, dtype=object)
         cdef int row = 0
@@ -412,11 +444,11 @@ cdef class CParser:
         cdef int max_len = 0 # greatest length of any element
         mask = set()
 
-        start_iteration(self.tokenizer, i)
-        while not finished_iteration(self.tokenizer):
+        start_iteration(t, i)
+        while not finished_iteration(t):
             if row == num_rows:
                 break
-            field = next_field(self.tokenizer)
+            field = next_field(t)
             if field in self.fill_values:
                 el = str(self.fill_values[field][0])
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
