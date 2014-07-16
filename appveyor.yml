@@ -6,10 +6,8 @@ environment:
   global:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "3.5.5"
-      PYTHON_ARCH: "64"
 
   matrix:
-    allow_failures:
       - PYTHON_VERSION: "2.6"
         NUMPY_VERSION: "1.8.1"
         
@@ -28,6 +26,9 @@ environment:
 # There is no conda package for Numpy 1.7.1 on 3.4.
 #      - PYTHON_VERSION: "3.4"
 #        NUMPY_VERSION: "1.7.1"
+
+platform:
+    -x64
 
 install:
     # Install miniconda using a powershell script.
