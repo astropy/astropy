@@ -367,20 +367,17 @@ class CoordinateHelper(object):
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
         if self.ticks.get_display_minor_ticks():
-            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
-            self._compute_ticks(minor_ticks_w_coordinates, spacing)
-        else:
-            self._compute_ticks(tick_world_coordinates, spacing)
+            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(tick_world_coordinates, spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
-    def _compute_ticks(self, tick_world_coordinates, spacing):
+
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
         frame = self.frame.sample(settings.FRAME_BOUNDARY_SAMPLES)
 
         self.ticks.clear()
         self.ticklabels.clear()
-        lblinfo = []
-        lbl_world = []
+        self.lblinfo = []
+        self.lbl_world = []
         lbl_minor_world = []
         # Look up parent axes' transform from data to figure coordinates.
         #
@@ -445,14 +442,25 @@ class CoordinateHelper(object):
             # since the above can produce pairs such as 359 to 361 or 0.5 to
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
-            tick_world_coordinates_unit = tick_world_coordinates.unit
+            self._compute_ticks(tick_world_coordinates, spine, axis, w1, w2, tick_angle)
+
+            if self.ticks.get_display_minor_ticks():
+                self._compute_ticks(minor_ticks_w_coordinates, spine, axis, w1,
+                                    w2, tick_angle, ticks='minor')
+
+        # format tick labels, add to scene
+        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=spacing)
+        for kwargs, txt in zip(self.lblinfo, text):
+            self.ticklabels.add(text=txt, **kwargs)
+
+    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks='major'):
             tick_world_coordinates_values = tick_world_coordinates.value
             if self.coord_type == 'longitude':
                 tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                     tick_world_coordinates_values + 360])
 
-            counter = 1
             for t in tick_world_coordinates_values:
+
                 # Find steps where a tick is present
                 intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
 
@@ -479,7 +487,8 @@ class CoordinateHelper(object):
                     else:
                         world = t
 
-                    if not self.ticks.get_display_minor_ticks() or (counter % self.get_minor_frequency() == 0):
+                    if ticks == 'major':
+
                         self.ticks.add(axis=axis,
                                        pixel=(x_data_i, y_data_i),
                                        world=world,
@@ -489,25 +498,19 @@ class CoordinateHelper(object):
                         # store information to pass to ticklabels.add
                         # it's faster to format many ticklabels at once outside
                         # of the loop
-                        lblinfo.append(dict(axis=axis,
-                                       pixel=(x_pix_i, y_pix_i),
-                                       world=world,
-                                       angle=spine.normal_angle[imin],
-                                       axis_displacement=imin + frac))
-                        lbl_world.append(world)
+                        self.lblinfo.append(dict(axis=axis,
+                                                 pixel=(x_pix_i, y_pix_i),
+                                                 world=world,
+                                                 angle=spine.normal_angle[imin],
+                                                 axis_displacement=imin + frac))
+                        self.lbl_world.append(world)
+
                     else:
                         self.ticks.add_minor(minor_axis=axis,
                                              minor_pixel=(x_data_i, y_data_i),
                                              minor_world=world,
                                              minor_angle=angle_i,
                                              minor_axis_displacement=imin + frac)
-                        lbl_minor_world.append(world)
-                counter += 1
-
-        # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world * tick_world_coordinates_unit, spacing=spacing)
-        for kwargs, txt in zip(lblinfo, text):
-            self.ticklabels.add(text=txt, **kwargs)
 
     def display_minor_ticks(self, display_minor_ticks):
         """
