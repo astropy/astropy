@@ -195,6 +195,16 @@ def test_distmod():
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
 
+    #check the Mpc/kpc/pc behavior
+    assert Distance(distmod=1).unit == u.pc
+    assert Distance(distmod=11).unit == u.kpc
+    assert Distance(distmod=26).unit == u.Mpc
+    assert Distance(distmod=-21).unit == u.AU
+
+    #if an array, uses the mean of the log of the distances
+    assert Distance(distmod=[1, 11, 26]).unit == u.kpc
+
+
 
 def test_distance_in_coordinates():
     """
