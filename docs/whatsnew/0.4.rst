@@ -129,6 +129,16 @@ inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run
 the screen in a human-readable format. Run ``fitsheader --help`` to see the
 full usage documentation.
 
+Reading and writing HTML tables
+---------------------------------------------
+
+The :ref:`io-ascii` sub-package now provides the capability to read a table
+within an HTML file or web URL into an astropy `~astropy.table.Table` object.
+This requires the `BeautifulSoup4
+<http://www.crummy.com/software/BeautifulSoup/>`_ package to be installed.
+Conversely a `~astropy.table.Table` object can now be written out as an HTML
+table.
+
 Documentation URL changes
 -------------------------
 
