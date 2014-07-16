@@ -10,6 +10,8 @@ from . import core
 from distutils import version
 import csv
 import os
+import math
+import multiprocessing
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
@@ -239,15 +241,37 @@ cdef class CParser:
         self.names = [self.names[i] for i, should_use in enumerate(self.use_cols) if should_use]
         self.width = len(self.names)
         self.tokenizer.num_cols = self.width
-            
+
     def read(self, try_int, try_float, try_string):
+        # TODO: deal with data_end
+        cdef int N = 8 # figure out what to choose for N here
+        cdef list processes = []
+        queue = multiprocessing.Queue()
+        cdef int chunksize = math.ceil(self.tokenizer.source_len / float(N))
+
+        for i in range(N):
+            process = multiprocessing.Process(target=self._read_chunk, args=(
+                self.source[chunksize * i: chunksize * (i + 1)],
+                try_int, try_float, try_string, queue))
+            processes.append(process)
+            process.start()
+
+        for i in range(N):
+            pass # do something with queue.get()
+
+        for process in processes:
+            process.join() # wait for each process to finish
+
+    def _read_chunk(self, source, try_int, try_float, try_string, queue):
+        self.tokenizer.source = source
+        self.tokenizer.source_len = len(source)
         if tokenize(self.tokenizer, self.data_start, self.data_end, 0,
                     <int *> self.use_cols.data, len(self.use_cols)) != 0:
             self.raise_error("an error occurred while tokenizing data")
         elif self.tokenizer.num_rows == 0: # no data
             return [[]] * self.width
         self._set_fill_names()
-        return self._convert_data(try_int, try_float, try_string)
+        queue.put(self._convert_data(try_int, try_float, try_string))
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)
