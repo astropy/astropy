@@ -238,7 +238,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
             imin = np.ceil(value_min / spacing_deg)
             imax = np.floor(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            print('major_ticks: ' + str(values))
             return values * u.degree, spacing_deg * u.degree
 
     def minor_locator(self, major_ticks, spacing, frequency, value_min, value_max):
@@ -254,7 +253,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
         values = values.compress(cond)
-        print('minor_ticks: ' + str(values))
         return values * u.degree
 
     def formatter(self, values, spacing):
@@ -435,7 +433,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
         cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
         values = values.compress(cond)
-        return values * u.degree
+        return values * self._unit
 
     def formatter(self, values, spacing):
 
