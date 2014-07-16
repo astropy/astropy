@@ -87,7 +87,7 @@ with any SAMP-enabled application (such as `TOPCAT
 <http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
 <http://aladin.u-strasbg.fr>`_). This sub-package includes both classes for a
 hub and a client, as well as an *integrated client* which automatically
-starts up a hub and acts as a client::
+connects to any running SAMP hub and acts as a client::
 
     >>> from astropy.vo.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
