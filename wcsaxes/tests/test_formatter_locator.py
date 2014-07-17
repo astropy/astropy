@@ -84,6 +84,31 @@ class TestAngleFormatterLocator(object):
         values, spacing = fl.locator(34.3, 36.1)
         assert_almost_equal(values.to(u.degree).value, [35., 36.])
 
+    def test_minor_locator(self):
+
+        fl = AngleFormatterLocator()
+
+        values, spacing = fl.locator(34.3, 55.4)
+
+        minor_values = fl.minor_locator(values, spacing, 5, 34.3, 55.4)
+
+        assert_almost_equal(minor_values.to(u.degree).value, [36., 37., 38.,
+                            39., 41., 42., 43., 44., 46., 47., 48., 49., 51.,
+                            52., 53., 54.])
+
+        minor_values = fl.minor_locator(values, spacing, 2, 34.3, 55.4)
+
+        assert_almost_equal(minor_values.to(u.degree).value, [37.5, 42.5, 47.5, 52.5])
+
+        fl.values = [0.1, 1., 14.] * u.degree
+
+        values, spacing = fl.locator(34.3, 36.1)
+
+        minor_values = fl.minor_locator(values, spacing, 2, 34.3, 55.4)
+
+        assert_almost_equal(minor_values.to(u.degree).value, [])
+
+
     @pytest.mark.parametrize(('format', 'string'), [('dd', six.u('15\xb0')),
                                                     ('dd:mm', six.u('15\xb024\'')),
                                                     ('dd:mm:ss', six.u('15\xb023\'32"')),
