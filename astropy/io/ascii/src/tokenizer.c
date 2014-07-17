@@ -219,35 +219,26 @@ void resize_header(tokenizer_t *self)
     else if (col < self->num_cols)			\
 	RETURN(NOT_ENOUGH_COLS);			\
     ++self->num_rows;					\
-    if (end != -1 && self->num_rows == end - start)	\
+    if (end != -1 && self->num_rows == end/* - start -- figure this out*/)	\
 	done = 1;
 
 // Set the error code to c for later retrieval and return c
 #define RETURN(c) do { self->code = c; return c; } while (0)
 
-int tokenize(tokenizer_t *self, int start, int end, int header,
-             int *use_cols, int use_cols_len)
+int skip_lines(tokenizer_t *self, int offset, int header)
 {
-    delete_data(self); // clear old reading data
-    char c; // input character
-    int col = 0; // current column ignoring possibly excluded columns
-    int real_col = 0; // current column taking excluded columns into account
-    int output_pos = 0; // current position in header output string
-    self->header_len = INITIAL_HEADER_SIZE;
-    self->num_rows = 0;
-    int i = 0;
     int empty = 1;
     int comment = 0;
-    int whitespace = 1;
+    int i;
     
-    while (i < start)
+    while (i < offset)
     {
 	if (self->source_pos >= self->source_len)
         {
             if (header)
                 RETURN(INVALID_LINE); // header line is required
             else
-                return NO_ERROR; // no data in input
+                RETURN(NO_ERROR); // no data in input
         }
 	if (self->source[self->source_pos] != '\n' && empty && ((self->source[self->source_pos]
              != ' ' && self->source[self->source_pos] != '\t') || 
@@ -270,6 +261,22 @@ int tokenize(tokenizer_t *self, int start, int end, int header,
 	    comment = 0;
 	}
     }
+
+    RETURN(NO_ERROR);
+}
+
+int tokenize(tokenizer_t *self, int end, int header,
+             int *use_cols, int use_cols_len)
+{
+    delete_data(self); // clear old reading data
+    char c; // input character
+    int col = 0; // current column ignoring possibly excluded columns
+    int real_col = 0; // current column taking excluded columns into account
+    int output_pos = 0; // current position in header output string
+    self->header_len = INITIAL_HEADER_SIZE;
+    self->num_rows = 0;
+    int i = 0;
+    int whitespace = 1;
     
     // Allocate memory for structures used during tokenization
     if (header)
@@ -293,7 +300,8 @@ int tokenize(tokenizer_t *self, int start, int end, int header,
     }
     
     // Make sure the parameter end is valid
-    int done = (end != -1 && end <= start);
+    // int done = (end != -1 && end <= start); //TODO: figure out how to reimplement this
+    int done = 0;
     int repeat;
     self->state = START_LINE;
     // Loop until all of source has been read or we finish for some other reason

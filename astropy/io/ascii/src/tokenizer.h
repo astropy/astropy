@@ -71,7 +71,8 @@ tokenizer_t *copy_tokenizer(tokenizer_t *t);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
-int tokenize(tokenizer_t *self, int start, int end, int header,
+int skip_lines(tokenizer_t *self, int offset, int header);
+int tokenize(tokenizer_t *self, int end, int header,
              int *use_cols, int use_cols_len);
 long str_to_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);

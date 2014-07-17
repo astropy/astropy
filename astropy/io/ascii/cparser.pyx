@@ -63,7 +63,8 @@ cdef extern from "src/tokenizer.h":
                                   int strip_whitespace_fields)
     tokenizer_t *copy_tokenizer(tokenizer_t *t)
     void delete_tokenizer(tokenizer_t *tokenizer)
-    int tokenize(tokenizer_t *self, int start, int end, int header,
+    int skip_lines(tokenizer_t *self, int offset, int header)
+    int tokenize(tokenizer_t *self, int end, int header,
                  int *use_cols, int use_cols_len)
     long str_to_long(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
@@ -162,8 +163,6 @@ cdef class CParser:
         raise CParserError("{0}: {1}".format(msg, err_msg))
 
     cpdef setup_tokenizer(self, source):
-        cdef char *src
-
         if isinstance(source, six.string_types) or hasattr(source, 'read'):
             # Either filename or file-like object
             if hasattr(source, 'read') or '\n' not in source: 
@@ -177,9 +176,9 @@ cdef class CParser:
                 raise TypeError('Input "table" must be a file-like object, a '
                                 'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
+        source = source + "\n" # add a final newline to simplify tokenizing
         self.source = source.encode('UTF-8') # encode in UTF-8 for char * handling
-        src = self.source
-        self.tokenizer.source = src
+        self.tokenizer.source = self.source
         self.tokenizer.source_len = len(self.source)
 
     def read_header(self):
@@ -188,8 +187,10 @@ cdef class CParser:
 
         # header_start is a valid line number
         elif self.header_start is not None and self.header_start >= 0:
-            if tokenize(self.tokenizer, self.header_start, -1, 1,
-                        <int *> 0, 0) != 0:
+            if skip_lines(self.tokenizer, self.header_start, 1) != 0:
+                self.raise_error("an error occurred while advancing to the "
+                                 "first header line")
+            if tokenize(self.tokenizer, -1, 1, <int *> 0, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the header line")
             self.names = []
             name = ''
@@ -208,7 +209,7 @@ cdef class CParser:
 
         else:
             # Get number of columns from first data row
-            if tokenize(self.tokenizer, 0, -1, 1, <int *> 0, 0) != 0:
+            if tokenize(self.tokenizer, -1, 1, <int *> 0, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the first line of data")
             self.width = 0
             for i in range(self.tokenizer.header_len):
@@ -245,21 +246,30 @@ cdef class CParser:
 
     def read(self, try_int, try_float, try_string):
         # TODO: deal with data_end
+        self.tokenizer.source_pos = 0
+        if skip_lines(self.tokenizer, self.data_start, 0) != 0:
+            self.raise_error("an error occurred while advancing to the first "
+                             "line of data")
         cdef int N = 8 # figure out what to choose for N here
         cdef list processes = []
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
         cdef int chunksize = math.ceil((self.tokenizer.source_len - offset) / float(N))
         cdef list chunkindices = [offset]
+        cdef int source_len = len(self.source)
+
         for i in range(1, N):
             index = offset + chunksize * i
-            while self.source[index] != '\n':
+            while index < source_len and self.source[index] != '\n':
                 index += 1
-            chunkindices.append(index + 1)
+            if index < source_len:
+                chunkindices.append(index + 1)
+            else:
+                N = i
+                break
+
         chunkindices.append(self.tokenizer.source_len) #figure out correct chunkindices
         self._set_fill_names()
-        ret = {}
-        cdef dict dct
 
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
@@ -268,16 +278,19 @@ cdef class CParser:
             processes.append(process)
             process.start()
 
+        cdef list chunks = [None] * N
+
         for i in range(N):
-            dct = queue.get()
-            for key in dct:
-                if key not in ret:
-                    ret[key] = dct[key]
-                else:
-                    ret[key] = np.concatenate((ret[key], dct[key]))
+            data, proc = queue.get()
+            chunks[proc] = data
 
         for process in processes:
             process.join() # wait for each process to finish
+
+        ret = chunks[0]
+        for chunk in chunks[1:]:
+            for name in chunk:
+                ret[name] = np.concatenate((ret[name], chunk[name]))
 
         return ret
 
@@ -289,13 +302,13 @@ cdef class CParser:
         chunk_tokenizer.source_pos = start
         chunk_tokenizer.source_len = end
 
-        if tokenize(chunk_tokenizer, 0, -1, 0, #TODO: use data_start, data_end
+        if tokenize(chunk_tokenizer, -1, 0, #TODO: use data_end
                     <int *> self.use_cols.data, len(self.use_cols)) != 0:
             delete_tokenizer(chunk_tokenizer)
             self.raise_error("an error occurred while tokenizing data")
-        elif self.tokenizer.num_rows == 0: # no data
+        elif chunk_tokenizer.num_rows == 0: # no data
             delete_tokenizer(chunk_tokenizer)
-            queue.put(([[]] * self.width, i))
+            queue.put((dict((name, []) for name in self.names), i))
             return
 
         try:
