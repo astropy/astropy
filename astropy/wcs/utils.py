@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
+__doctest_skip__ = ['wcs_to_celestial_frame']
+
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
