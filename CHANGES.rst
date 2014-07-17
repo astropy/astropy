@@ -174,6 +174,9 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - Fixed a memory leak when ``astropy.wcs.WCS`` objects are copied
+    [#2754]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
