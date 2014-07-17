@@ -3,7 +3,7 @@ cimport numpy as np
 
 np.import_array()
 
-__all__ = ['atco13']
+__all__ = ['atco13', 'd2dtf']
 
 cdef extern from "erfa.h":
     int eraAtco13(double rc, double dc,
@@ -13,7 +13,8 @@ cdef extern from "erfa.h":
               double phpa, double tk, double rh, double wl,
               double *aob, double *zob, double *hob,
               double *dob, double *rob, double *eo)
-
+    int eraD2dtf(const char *scale, int ndp, double d1, double d2,
+                 int *iy, int *im, int *id, int ihmsf[4])
 
 #Note: the pattern used here follows https://github.com/cython/cython/wiki/tutorials-numpy#dimensionally-simple-functions
 
@@ -70,3 +71,34 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
         np.PyArray_MultiIter_NEXT(it)
     
     return aob, zob, hob, dob, rob, eo
+
+def d2dtf(scale, ndp, d1, d2):
+    
+    shape = np.broadcast(d1, d2).shape
+    iy    = np.empty(shape, dtype=np.int)
+    im    = np.empty(shape, dtype=np.int)
+    id    = np.empty(shape, dtype=np.int)
+    ihmsf = np.empty(shape, dtype=[('h','i'),('m','i'),('s','i'),('f','i')]) 
+    
+    cdef np.broadcast it = np.broadcast(d1, d2, iy, im, id, ihmsf)
+    
+    cdef int _iy
+    cdef int _im
+    cdef int _id
+    cdef int _ihmsf[4]
+    
+    while np.PyArray_MultiIter_NOTDONE(it):
+        
+        _d1    = (<double*>np.PyArray_MultiIter_DATA(it,  0))[0]
+        _d2    = (<double*>np.PyArray_MultiIter_DATA(it,  1))[0]
+        
+        ret = eraD2dtf(scale, ndp, _d1, _d2, &_iy, &_im, &_id, _ihmsf)
+        
+        (<int*>np.PyArray_MultiIter_DATA(it, 2))[0] = _iy
+        (<int*>np.PyArray_MultiIter_DATA(it, 3))[0] = _im
+        (<int*>np.PyArray_MultiIter_DATA(it, 4))[0] = _id
+        (<int*>np.PyArray_MultiIter_DATA(it, 5))[0:4] = _ihmsf
+        
+        np.PyArray_MultiIter_NEXT(it)
+    
+    return iy, im, id, ihmsf
