@@ -166,7 +166,20 @@ model`_.
 
 A important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
-``Om``, you need to make a new instance of the class.
+``Om``, you need to make a new instance of the class.  To make
+this more convenient, a ``clone`` operation is provided, which
+allows you to make a copy with specified values changed.  
+Note that you can't change the type of cosmology with this operation
+(e.g., flat to non-flat). For example:
+
+  >>> from astropy.cosmology import WMAP9
+  >>> newcosmo = WMAP9.clone(name='WMAP9 modified', Om0=0.3141)
+  >>> WMAP9.H0, newcosmo.H0  # some values unchanged
+  (<Quantity 69.3... km / (Mpc s)>, <Quantity 69.3... km / (Mpc s)>)
+  >>> WMAP9.Om0, newcosmo.Om0  # some changed
+  (0.286..., 0.314...)
+  >>> WMAP9.Ode0, newcosmo.Ode0  # Indirectly changed since this is flat
+  (0.713..., 0.685...)
 
 
 Finding the Redshift at a Given Value of a Cosmological Quantity
@@ -245,7 +258,9 @@ redshift by `~astropy.cosmology.wpwaCDM`: :math:`w(z) = w_{p} + w_{a}
 
 Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.FLRW`.  See the provided subclasses for
-examples.
+examples. It is recommended, but not required, that all arguments to the
+constructor of a new subclass be available as properties, since the
+``clone`` method assumes this is the case.
 
 Photons and Neutrinos
 ---------------------

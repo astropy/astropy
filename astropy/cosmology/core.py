@@ -193,7 +193,8 @@ class FLRW(Cosmology):
                 else:
                     self._massivenu = True
                     if len(m_nu) != self._nneutrinos:
-                        raise ValueError("Unexpected number of neutrino masses")
+                        errstr = "Unexpected number of neutrino masses"
+                        raise ValueError(errstr)
                     # Segregate out the massless ones
                     try:
                         # Numpy < 1.6 doesn't have count_nonzero
@@ -346,6 +347,68 @@ class FLRW(Cosmology):
     def Onu0(self):
         """ Omega nu; the density/critical density of neutrinos at z=0"""
         return self._Onu0
+
+    def clone(self, **kwargs):
+        """ Returns a copy of this object, potentially with some changes.
+
+        Returns
+        -------
+        newcos : Subclass of FLRW
+        A new instance of this class with the specified changes.
+
+        Notes
+        -----
+        This assumes that the values of all constructor arguments
+        are available as properties, which is true of all the provided
+        subclasses but may not be true of user-provided ones.  You can't
+        change the type of class, so this can't be used to change between
+        flat and non-flat.  If no modifications are requested, then
+        a reference to this object is returned.
+
+        Examples
+        --------
+        To make a copy of the Planck13 cosmology with a different Omega_m
+        and a new name:
+
+        >>> from astropy.cosmology import Planck13
+        >>> newcos = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+        """
+
+        # Quick return check, taking advantage of the
+        # immutability of cosmological objects
+        if len(kwargs) == 0:
+            return self
+
+        # Get constructor arguments
+        import inspect
+        arglist = inspect.getargspec(self.__init__).args
+
+        # Build the dictionary of values used to construct this
+        #  object.  This -assumes- every argument to __init__ has a
+        #  property.  This is true of all the classes we provide, but
+        #  maybe a user won't do that.  So at least try to have a useful
+        #  error message.
+        argdict = {}
+        for arg in arglist[1:]:  # Skip self, which should always be first
+            try:
+                val = getattr(self, arg)
+                argdict[arg] = val
+            except AttributeError as e:
+                # We didn't find a property -- complain usefully
+                errstr = "Object did not have property corresponding "\
+                         "to constructor argument '%s'; perhaps it is a "\
+                         "user provided subclass that does not do so"
+                raise AttributeError(errstr % arg)
+
+        # Now substitute in new arguments
+        for newarg in kwargs:
+            if newarg not in argdict:
+                errstr = "User provided argument '%s' not found in "\
+                         "constructor for this object"
+                raise AttributeError(errstr % newarg)
+            argdict[newarg] = kwargs[newarg]
+
+        return self.__class__(**argdict)
 
     @abstractmethod
     def w(self, z):
