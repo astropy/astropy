@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import copy
+import decimal
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
@@ -80,7 +81,10 @@ class TestQuantityCreation(object):
             q1.unit = u.cm
 
     def test_preserve_dtype(self):
-
+        """Test that if an explicit dtype is given, it is used, while if not,
+        numbers are converted to float (including decimal.Decimal, which
+        numpy converts to an object; closes #1419)
+        """
         # If dtype is specified, use it, but if not, convert int, bool to float
         q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
         assert q1.dtype == int
@@ -94,6 +98,13 @@ class TestQuantityCreation(object):
         a3 = np.array([1.,2.], dtype=np.float32)
         q3 = u.Quantity(a3, u.yr)
         assert q3.dtype == a3.dtype
+        # items stored as objects by numpy should be converted to float
+        # by default
+        q4 = u.Quantity(decimal.Decimal('10.25'), u.m)
+        assert q4.dtype == float
+
+        q5 = u.Quantity(decimal.Decimal('10.25'), u.m, dtype=object)
+        assert q5.dtype == object
 
     def test_copy(self):
 
