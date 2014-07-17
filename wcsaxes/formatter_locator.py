@@ -78,6 +78,20 @@ class BaseFormatterLocator(object):
         self._spacing = spacing
         self._values = None
 
+    def minor_locator(self, major_ticks, spacing, frequency, value_min, value_max):
+        if self.values is not None:
+            return [] * self._unit
+
+        t0 = major_ticks[0].value
+        minor_spacing = spacing.value / frequency
+        imin = np.ceil((value_min - t0) / minor_spacing)
+        imax = np.floor((value_max - t0) / minor_spacing)
+        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing + t0
+
+        cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
+        values = values.compress(cond)
+        return values * self._unit
+
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
@@ -239,21 +253,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
             imax = np.floor(value_max / spacing_deg)
             values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
             return values * u.degree, spacing_deg * u.degree
-
-    def minor_locator(self, major_ticks, spacing, frequency, value_min, value_max):
-        if self.values is not None:
-            # values have been manually specified, minor_locator doesn't work for that then?
-            return [] * u.deg
-
-        t0 = major_ticks[0].value
-        minor_spacing = spacing.value / frequency
-        imin = np.ceil((value_min - t0) / minor_spacing)
-        imax = np.floor((value_max - t0) / minor_spacing)
-        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing + t0
-
-        cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
-        values = values.compress(cond)
-        return values * u.degree
 
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
@@ -419,21 +418,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             imax = np.floor(value_max / spacing)
             values = np.arange(imin, imax + 1, dtype=int) * spacing
             return values * self._unit, spacing * self._unit
-
-    def minor_locator(self, major_ticks, spacing, frequency, value_min, value_max):
-        if self.values is not None:
-            # values have been manually specified, minor_locator doesn't work for that then?
-            return [] * self._unit
-
-        t0 = major_ticks[0].value
-        minor_spacing = spacing.value / frequency
-        imin = np.ceil((value_min - t0) / minor_spacing)
-        imax = np.floor((value_max - t0) / minor_spacing)
-        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing + t0
-
-        cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
-        values = values.compress(cond)
-        return values * self._unit
 
     def formatter(self, values, spacing):
 
