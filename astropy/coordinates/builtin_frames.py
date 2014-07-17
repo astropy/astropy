@@ -42,7 +42,7 @@ class ICRS(BaseCoordinateFrame):
     If you're looking for "J2000" coordinates, and aren't sure if you want to
     use this or `FK5`, you probably want to use ICRS. It's more well-defined as
     a catalog coordinate and is an inertial system, and is very close (within
-    tens of arcseconds) to J2000 equatorial.
+    tens of milliarcseconds) to J2000 equatorial.
 
     Parameters
     ----------
