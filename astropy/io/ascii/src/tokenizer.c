@@ -229,7 +229,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
 {
     int empty = 1;
     int comment = 0;
-    int i;
+    int i = 0;
     
     while (i < offset)
     {

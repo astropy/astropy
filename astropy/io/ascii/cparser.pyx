@@ -12,6 +12,7 @@ import csv
 import os
 import math
 import multiprocessing
+import Queue
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
@@ -177,7 +178,7 @@ cdef class CParser:
                                 'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
         source = source + "\n" # add a final newline to simplify tokenizing
-        self.source = source.encode('UTF-8') # encode in UTF-8 for char * handling
+        self.source = source.encode('ascii') # encode in ASCII for char * handling
         self.tokenizer.source = self.source
         self.tokenizer.source_len = len(self.source)
 
@@ -258,6 +259,9 @@ cdef class CParser:
         cdef list chunkindices = [offset]
         cdef int source_len = len(self.source)
 
+        # This queue is used to signal processes to reconvert if necessary
+        reconvert_queue = multiprocessing.Queue()
+
         for i in range(1, N):
             index = offset + chunksize * i
             while index < source_len and self.source[index] != '\n':
@@ -274,7 +278,7 @@ cdef class CParser:
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
                 chunkindices[i], chunkindices[i + 1],
-                try_int, try_float, try_string, queue, i))
+                try_int, try_float, try_string, queue, reconvert_queue, i))
             processes.append(process)
             process.start()
 
@@ -284,17 +288,46 @@ cdef class CParser:
             data, proc = queue.get()
             chunks[proc] = data
 
+        seen_str = {}
+        seen_numeric = {}
+        for name in self.names:
+            seen_str[name] = False
+            seen_numeric[name] = False
+
+        for chunk in chunks:
+            for name in chunk:
+                if chunk[name].dtype.kind == 'S': # string values in column
+                    seen_str[name] = True
+                elif len(chunk[name]) > 0: # ignore empty chunk columns
+                    seen_numeric[name] = True
+
+        reconvert_cols = []
+
+        for i, name in enumerate(self.names):
+            if seen_str[name] and seen_numeric[name]:
+                # Reconvert to str to avoid conversion issues, e.g.
+                # 5 (int) -> 5.0 (float) -> 5.0 (string)
+                reconvert_cols.append(i)
+
+        reconvert_queue.put(reconvert_cols)
         for process in processes:
             process.join() # wait for each process to finish
-
+        try:
+            while True:
+                reconverted, proc, col = queue.get(False)
+                chunks[proc][self.names[col]] = reconverted
+        except Queue.Empty:
+            pass
         ret = chunks[0]
+
         for chunk in chunks[1:]:
             for name in chunk:
                 ret[name] = np.concatenate((ret[name], chunk[name]))
 
         return ret
 
-    def _read_chunk(self, start, end, try_int, try_float, try_string, queue, i):
+    def _read_chunk(self, start, end, try_int, try_float, try_string, queue,
+                    reconvert_queue, i):
         data_start = self.data_start if start == 0 else 0
         cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
         chunk_tokenizer.source = self.source
@@ -307,16 +340,20 @@ cdef class CParser:
             delete_tokenizer(chunk_tokenizer)
             self.raise_error("an error occurred while tokenizing data")
         elif chunk_tokenizer.num_rows == 0: # no data
-            delete_tokenizer(chunk_tokenizer)
-            queue.put((dict((name, []) for name in self.names), i))
-            return
+            queue.put((dict((name, np.array([], np.int_)) for name in self.names), i))
+        else:
+            try:
+                queue.put((self._convert_data(chunk_tokenizer,
+                                try_int, try_float, try_string), i))
+            except Exception as e:
+                # TODO: stop all processes when an error is raised
+                delete_tokenizer(chunk_tokenizer)
+                raise e
 
-        try:
-            queue.put((self._convert_data(chunk_tokenizer, try_int, try_float,
-                                          try_string), i))
-        finally:
-            # TODO: stop all processes when an error is raised
-            delete_tokenizer(chunk_tokenizer)
+        reconvert_cols = reconvert_queue.get()
+        for col in reconvert_cols:
+            queue.put((self._convert_str(chunk_tokenizer, col), i, col))
+        reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
     cdef _set_fill_names(self):
         self.fill_names = set(self.names)
@@ -326,10 +363,9 @@ cdef class CParser:
             self.fill_names.difference_update(self.fill_exclude_names)
 
     cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string):
-        cdef int num_rows = t.num_rows
         if self.data_end_obj is not None and self.data_end_obj < 0:
             # e.g. if data_end = -1, ignore the last row
-            num_rows += self.data_end_obj
+            t.num_rows += self.data_end_obj
         cols = {}
 
         for i, name in enumerate(self.names):
@@ -337,22 +373,24 @@ cdef class CParser:
             try:
                 if try_int and not try_int[name]:
                     raise ValueError()
-                cols[name] = self._convert_int(t, i, num_rows)
+                cols[name] = self._convert_int(t, i)
             except ValueError:
                 try:
                     if try_float and not try_float[name]:
                         raise ValueError()
-                    cols[name] = self._convert_float(t, i, num_rows)
+                    cols[name] = self._convert_float(t, i)
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
-                    cols[name] = self._convert_str(t, i, num_rows)
+                    cols[name] = self._convert_str(t, i)
 
         return cols
 
-    cdef np.ndarray _convert_int(self, tokenizer_t *t, int i, int num_rows):
+    cdef np.ndarray _convert_int(self, tokenizer_t *t, int i):
+        cdef int num_rows = t.num_rows
         # intialize ndarray
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
+        cdef np.ndarray str_col = np.empty(num_rows, dtype=object) 
         cdef long converted
         cdef int row = 0
         cdef long *data = <long *> col.data # pointer to raw data
@@ -368,7 +406,7 @@ cdef class CParser:
             field = next_field(t)
 
             if field in self.fill_values:
-                new_val = str(self.fill_values[field][0]).encode('utf-8')
+                new_val = str(self.fill_values[field][0]).encode('ascii')
 
                 # Either this column applies to the field as specified in the 
                 # fill_values parameter, or no specific columns are specified
@@ -400,7 +438,8 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_float(self, tokenizer_t *t, int i, int num_rows):
+    cdef np.ndarray _convert_float(self, tokenizer_t *t, int i):
+        cdef int num_rows = t.num_rows
         # very similar to _convert_int()
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
@@ -416,7 +455,7 @@ cdef class CParser:
                 break
             field = next_field(t)
             if field in self.fill_values:
-                new_val = str(self.fill_values[field][0]).encode('utf-8')
+                new_val = str(self.fill_values[field][0]).encode('ascii')
                 if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
                    or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
@@ -448,7 +487,8 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i, int num_rows):
+    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i):
+        cdef int num_rows = t.num_rows
         # similar to _convert_int, but no actual conversion
         cdef np.ndarray col = np.empty(num_rows, dtype=object)
         cdef int row = 0
@@ -468,9 +508,9 @@ cdef class CParser:
                    or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
                 else:
-                    el = field.decode('utf-8')
+                    el = field.decode('ascii')
             else:
-                el = field.decode('utf-8')
+                el = field.decode('ascii')
             # update max_len with the length of each field
             max_len = max(max_len, len(el))
             col[row] = el
@@ -678,9 +718,9 @@ def get_fill_values(fill_values, read=True):
     try:
         # Create a dict with the values to be replaced as keys
         if read:
-            fill_values = dict([(l[0].encode('utf-8'), l[1:]) for l in fill_values])
+            fill_values = dict([(l[0].encode('ascii'), l[1:]) for l in fill_values])
         else:
-            # don't worry about unicode for writing
+            # don't worry about encoding for writing
             fill_values = dict([(l[0], l[1:]) for l in fill_values])
 
     except IndexError:
