@@ -32,7 +32,7 @@ platform:
 
 install:
     # Install miniconda using a powershell script.
-    - "powershell ./anaconda-install.ps1"
+    - "powershell ./.install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   
     # Install the build and runtime dependencies of the project.
