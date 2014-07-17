@@ -415,10 +415,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
             # We now find the interval values as multiples of the spacing and generate the tick
             # positions from this
-            imin = np.ceil(value_min / spacing)
-            imax = np.floor(value_max / spacing)
-            values = np.arange(imin, imax + 1, dtype=int) * spacing
-            return values * self._unit, spacing * self._unit
+
+            values = self._locate_values(value_min, value_max, spacing)
+            return values * spacing * self._unit, spacing * self._unit
 
     def formatter(self, values, spacing):
 
