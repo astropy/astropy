@@ -78,18 +78,19 @@ class BaseFormatterLocator(object):
         self._spacing = spacing
         self._values = None
 
-    def minor_locator(self, major_ticks, spacing, frequency, value_min, value_max):
+    def minor_locator(self, spacing, frequency, value_min, value_max):
         if self.values is not None:
             return [] * self._unit
 
-        t0 = major_ticks[0].value
         minor_spacing = spacing.value / frequency
-        imin = np.ceil((value_min - t0) / minor_spacing)
-        imax = np.floor((value_max - t0) / minor_spacing)
-        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing + t0
+        imin = np.ceil(value_min / minor_spacing)
+        imax = np.floor(value_max / minor_spacing)
+        values = np.arange(imin, imax + 1, dtype=int)
+        index = np.where((values % frequency) == 0)
+        index = index[0][0]
+        values = np.arange(imin, imax + 1, dtype=int) * minor_spacing
 
-        cond = np.abs((values - t0) % spacing.value) > minor_spacing / 10.0
-        values = values.compress(cond)
+        values = np.delete(values, np.s_[index::frequency])
         return values * self._unit
 
 
