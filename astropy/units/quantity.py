@@ -232,7 +232,8 @@ class Quantity(np.ndarray):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and not np.can_cast(np.float32, value.dtype):
+        if dtype is None and (not np.can_cast(np.float32, value.dtype)
+                              or value.dtype.kind == 'O'):
             value = value.astype(np.float)
 
         if rescale_value is not None:
