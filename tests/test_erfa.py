@@ -1,5 +1,5 @@
 import numpy as np
-import erfa
+import erfa.cython_numpy as erfa
 
 jd = np.linspace(2456855.5, 2456855.5+1.0/24.0, 3600*2+1)
 
