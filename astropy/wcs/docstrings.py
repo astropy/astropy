@@ -164,6 +164,8 @@ b_order = """
 bounds_check = """
 bounds_check(pix2world, world2pix)
 
+Enable/disable bounds checking.
+
 Parameters
 ----------
 pix2world : bool, optional
