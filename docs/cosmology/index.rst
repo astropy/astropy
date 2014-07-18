@@ -57,7 +57,7 @@ classes::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 The cosmology subpackage makes use of `~astropy.units`, so in many
 cases returns values with units attached.  Consult the documentation
@@ -88,7 +88,7 @@ arguments giving the Hubble parameter and omega matter (both at z=0)::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
 
@@ -156,7 +156,7 @@ used to describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 This is also an example with a different model for dark energy, a flat
 Universe with a constant dark energy equation of state, but not
