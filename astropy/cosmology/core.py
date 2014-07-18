@@ -127,8 +127,10 @@ class FLRW(Cosmology):
             if self._Ob0 > self._Om0:
                 raise ValueError("Baryonic density can not be larger than "
                                  "total matter density")
+            self._Odm0 = self._Om0 - self._Ob0
         else:
             self._Ob0 = None
+            self._Odm0 = self._Om0
         self._Neff = float(Neff)
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
@@ -299,6 +301,11 @@ class FLRW(Cosmology):
         if self._Ob0 is None:
             raise ValueError("Baryon density not set for this cosmology")
         return self._Ob0
+
+    @property
+    def Odm0(self):
+        """ Omega dark matter; dark matter density/critical density at z=0"""
+        return self._Odm0
 
     @property
     def Ok0(self):
@@ -503,6 +510,25 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         return self._Ob0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
+
+    def Odm(self, z):
+        """ Return the density parameter for dark matter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Odm : ndarray, or float if input scalar
+          The density of non-relativistic matter relative to the critical
+          density at each redshift.
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Odm0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
 
     def Ok(self, z):
         """ Return the equivalent density parameter for curvature

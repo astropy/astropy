@@ -58,6 +58,7 @@ def test_basic():
     assert np.allclose(cosmo.Om0, 0.27)
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
     assert np.allclose(cosmo.Ob0, 0.05)
+    assert np.allclose(cosmo.Odm0, 0.27 - 0.05)
     # This next test will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
@@ -76,9 +77,11 @@ def test_basic():
     # Make sure setting them as quantities gives the same results
     H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
     T = u.Quantity(2.0, u.K)
-    cosmo = core.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04)
+    cosmo = core.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04, Ob0=0.05)
     assert np.allclose(cosmo.Om0, 0.27)
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    assert np.allclose(cosmo.Ob0, 0.05)
+    assert np.allclose(cosmo.Odm0, 0.27 - 0.05)
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
     assert np.allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
     assert np.allclose(cosmo.Ok0, 0.0)
@@ -413,6 +416,8 @@ def test_matter():
                        rtol=1e-4)
     assert np.allclose(tcos.Ob(z), [0.045, 0.08866820, 0.11608115, 
                                     0.13796127], rtol=1e-4)
+    assert np.allclose(tcos.Odm(z), [0.255, 0.50245314, 0.6577932, 0.78178052],
+                       rtol=1e-4)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
