@@ -59,7 +59,6 @@ def test_basic():
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
     assert np.allclose(cosmo.Ob0, 0.05)
     assert np.allclose(cosmo.Odm0, 0.27 - 0.05)
-
     # This next test will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)

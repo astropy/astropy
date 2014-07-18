@@ -131,8 +131,6 @@ class FLRW(Cosmology):
         else:
             self._Ob0 = None
             self._Odm0 = self._Om0
-        else:
-            self._Ob0 = None
 
         self._Neff = float(Neff)
         if self._Neff < 0.0:
