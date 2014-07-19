@@ -154,14 +154,17 @@ cdef class CParser:
         if self.tokenizer:
             delete_tokenizer(self.tokenizer) # perform C memory cleanup
 
-    cdef raise_error(self, msg):
-        err_msg = ERR_CODES.get(self.tokenizer.code, "unknown error")
+    cdef get_error(self, code, num_rows, msg):
+        err_msg = ERR_CODES.get(code, "unknown error")
 
         # error code is lambda function taking current line as input
         if callable(err_msg):
-            err_msg = err_msg(self.tokenizer.num_rows + 1)
+            err_msg = err_msg(num_rows + 1)
 
-        raise CParserError("{0}: {1}".format(msg, err_msg))
+        return CParserError("{0}: {1}".format(msg, err_msg))
+
+    cdef raise_error(self, msg):
+        raise self.get_error(self.tokenizer.code, self.tokenizer.num_rows, msg)
 
     cpdef setup_tokenizer(self, source):
         if isinstance(source, six.string_types) or hasattr(source, 'read'):
@@ -183,6 +186,8 @@ cdef class CParser:
         self.tokenizer.source_len = len(self.source)
 
     def read_header(self):
+        self.tokenizer.source_pos = 0
+
         if self.names:
             self.width = len(self.names)
 
@@ -252,7 +257,6 @@ cdef class CParser:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
         cdef int N = 8 # figure out what to choose for N here
-        cdef list processes = []
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
         cdef int chunksize = math.ceil((self.tokenizer.source_len - offset) / float(N))
@@ -274,6 +278,7 @@ cdef class CParser:
 
         chunkindices.append(self.tokenizer.source_len) #figure out correct chunkindices
         self._set_fill_names()
+        cdef list processes = []
 
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
@@ -283,10 +288,29 @@ cdef class CParser:
             process.start()
 
         cdef list chunks = [None] * N
+        cdef dict failed_procs = {}
 
         for i in range(N):
             data, proc = queue.get()
-            chunks[proc] = data
+            if isinstance(data, Exception):
+                for process in processes:
+                    process.terminate()
+                raise data
+            elif isinstance(data, tuple): # data is (error code, error line)
+                failed_procs[proc] = data
+            else: # parsing was successful
+                chunks[proc] = data
+
+        if failed_procs:
+            for process in processes:
+                process.terminate()
+            # find the line number of the error
+            line_no = 0
+            for i in range(N):
+                if i in failed_procs:
+                    raise self.get_error(failed_procs[i][0], failed_procs[i][1] + line_no,
+                                         "an error occurred while parsing table data")
+                line_no += len(chunks[i][self.names[0]])
 
         seen_str = {}
         seen_numeric = {}
@@ -310,7 +334,7 @@ cdef class CParser:
                 reconvert_cols.append(i)
 
         reconvert_queue.put(reconvert_cols)
-        for process in processes:
+        for process in processes:            
             process.join() # wait for each process to finish
         try:
             while True:
@@ -322,7 +346,11 @@ cdef class CParser:
 
         for chunk in chunks[1:]:
             for name in chunk:
-                ret[name] = np.concatenate((ret[name], chunk[name]))
+                if isinstance(ret[name], ma.masked_array) or isinstance(
+                        chunk[name], ma.masked_array):
+                    ret[name] = ma.concatenate((ret[name], chunk[name]))
+                else:
+                    ret[name] = np.concatenate((ret[name], chunk[name]))
 
         return ret
 
@@ -338,17 +366,17 @@ cdef class CParser:
         if tokenize(chunk_tokenizer, -1, 0, #TODO: use data_end
                     <int *> self.use_cols.data, len(self.use_cols)) != 0:
             delete_tokenizer(chunk_tokenizer)
-            self.raise_error("an error occurred while tokenizing data")
+            # return the error code and line at which error occurred
+            queue.put(((chunk_tokenizer.code, chunk_tokenizer.num_rows), i))
         elif chunk_tokenizer.num_rows == 0: # no data
             queue.put((dict((name, np.array([], np.int_)) for name in self.names), i))
         else:
             try:
                 queue.put((self._convert_data(chunk_tokenizer,
                                 try_int, try_float, try_string), i))
-            except Exception as e:
-                # TODO: stop all processes when an error is raised
+            except Exception as e: #TODO: check if queue can raise errors
                 delete_tokenizer(chunk_tokenizer)
-                raise e
+                queue.put((e, i))
 
         reconvert_cols = reconvert_queue.get()
         for col in reconvert_cols:

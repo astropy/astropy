@@ -265,8 +265,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
     RETURN(NO_ERROR);
 }
 
-int tokenize(tokenizer_t *self, int end, int header,
-             int *use_cols, int use_cols_len)
+int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols_len)
 {
     delete_data(self); // clear old reading data
     char c; // input character
@@ -277,7 +276,7 @@ int tokenize(tokenizer_t *self, int end, int header,
     self->num_rows = 0;
     int i = 0;
     int whitespace = 1;
-    
+
     // Allocate memory for structures used during tokenization
     if (header)
 	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE *

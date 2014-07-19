@@ -191,7 +191,7 @@ class FastCommentedHeader(FastBasic):
             self.data_start = self.header_start
 
     def _read_header(self):
-        tmp = self.engine.source.decode('utf-8')
+        tmp = self.engine.source.decode('ascii')
         commented_lines = []
 
         for line in tmp.split('\n'):
@@ -228,7 +228,7 @@ class FastRdb(FastBasic):
         self.strip_whitespace_fields = False
 
     def _read_header(self):
-        tmp = self.engine.source.decode('utf-8')
+        tmp = self.engine.source.decode('ascii')
         #todo check whitespace line in addition to empty
         line1 = ''
         line2 = ''
