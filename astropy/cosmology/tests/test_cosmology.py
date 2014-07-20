@@ -425,6 +425,9 @@ def test_matter():
                                     0.13796127], rtol=1e-4)
     assert np.allclose(tcos.Odm(z), [0.255, 0.50245314, 0.6577932, 0.78178052],
                        rtol=1e-4)
+    # Consistency of dark and baryonic matter evolution with all
+    # non-relativisitic matter
+    assert np.allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
