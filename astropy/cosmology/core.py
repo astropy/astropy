@@ -263,6 +263,7 @@ class FLRW(Cosmology):
         else:
             return "{0}(name=\"{1}\", ".format(self.__class__.__name__,
                                                self.name)
+
     def _float_or_none(self, x, digits=3):
         """ Helper function to format a variable that can be a float or None"""
         if x is None:
@@ -275,7 +276,7 @@ class FLRW(Cosmology):
                  "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
                  "Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._Ode0,
-                             self._Tcmb0, self._Neff, self.m_nu, 
+                             self._Tcmb0, self._Neff, self.m_nu,
                              self._float_or_none(self._Ob0))
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
@@ -500,7 +501,7 @@ class FLRW(Cosmology):
         Returns
         -------
         Ob : ndarray, or float if input scalar
-          The density of baryonic matter relative to the critical density at 
+          The density of baryonic matter relative to the critical density at
           each redshift.
 
         Raises
@@ -534,9 +535,9 @@ class FLRW(Cosmology):
         ValueError
         If Ob0 is None.
         """
-        
+
         if self._Odm0 is None:
-            raise ValueError("Baryonic density not set for this cosmology, " \
+            raise ValueError("Baryonic density not set for this cosmology, "
                              "unclear meaning of dark matter density")
         if isiterable(z):
             z = np.asarray(z)
@@ -1446,7 +1447,7 @@ class LambdaCDM(FLRW):
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name, 
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
 
     def w(self, z):
@@ -2535,7 +2536,7 @@ class w0wzCDM(FLRW):
                  "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
-                             self._Neff, self.m_nu, 
+                             self._Neff, self.m_nu,
                              self._float_or_none(self._Ob0))
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
