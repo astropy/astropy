@@ -52,6 +52,13 @@ def test_init():
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=-0.04)
     with pytest.raises(ValueError):
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=0.4)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
+        cosmo.Ob(1)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
+        cosmo.Odm(1)
+
 
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04, Ob0=0.05)
