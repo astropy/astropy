@@ -233,7 +233,6 @@ def test_clone():
         newclone = cosmo.clone(not_an_arg=4)
 
 
-
 def test_repr():
     """ Test string representation of built in classes"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5)
@@ -332,6 +331,7 @@ def test_zeroing():
     cosmo = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Ob0=0.0)
     assert np.allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
 
+
 # This class is to test whether the routines work correctly
 # if one only overloads w(z)
 class test_cos_sub(core.FLRW):
@@ -421,7 +421,7 @@ def test_matter():
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert np.allclose(tcos.Om(z), [0.3, 0.59112134, 0.77387435, 0.91974179],
                        rtol=1e-4)
-    assert np.allclose(tcos.Ob(z), [0.045, 0.08866820, 0.11608115, 
+    assert np.allclose(tcos.Ob(z), [0.045, 0.08866820, 0.11608115,
                                     0.13796127], rtol=1e-4)
     assert np.allclose(tcos.Odm(z), [0.255, 0.50245314, 0.6577932, 0.78178052],
                        rtol=1e-4)
