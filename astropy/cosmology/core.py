@@ -299,8 +299,6 @@ class FLRW(Cosmology):
     @property
     def Ob0(self):
         """ Omega baryon; baryonic matter density/critical density at z=0"""
-        if self._Ob0 is None:
-            raise ValueError("Baryon density not set for this cosmology")
         return self._Ob0
 
     @property
