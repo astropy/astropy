@@ -217,6 +217,7 @@ A B C D E F G H
     assert_table_equal(table, expected)
 
 def test_quoted_fields():
+    #TODO: decide how to split up data into processes while respecting quotes
     """
     The character quotechar (default '"') should denote the start of a field which can
     contain the field delimiter and newlines.
@@ -287,7 +288,7 @@ A B C
 """
     with pytest.raises(CParserError) as e:
         table = FastBasic().read(StringIO(text))
-    assert 'CParserError: an error occurred while tokenizing data: too many ' \
+    assert 'CParserError: an error occurred while parsing table data: too many ' \
         'columns found in line 3 of data' in str(e)
 
 def test_not_enough_cols():

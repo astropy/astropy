@@ -96,8 +96,7 @@ cdef class CParser:
     cdef:
         tokenizer_t *tokenizer
         int data_start
-        int data_end
-        object data_end_obj
+        object data_end
         object include_names
         object exclude_names
         dict fill_values
@@ -138,10 +137,7 @@ cdef class CParser:
         self.setup_tokenizer(source)
         self.header_start = header_start
         self.data_start = data_start
-        self.data_end = -1 # keep reading data until the end
-        if data_end is not None and data_end >= 0:
-            self.data_end = data_end
-        self.data_end_obj = data_end
+        self.data_end = data_end
         self.names = names
         self.include_names = include_names
         self.exclude_names = exclude_names
@@ -291,23 +287,23 @@ cdef class CParser:
         cdef dict failed_procs = {}
 
         for i in range(N):
-            data, proc = queue.get()
-            if isinstance(data, Exception):
+            data, err, proc = queue.get()
+            if isinstance(err, Exception):
                 for process in processes:
                     process.terminate()
-                raise data
-            elif isinstance(data, tuple): # data is (error code, error line)
-                failed_procs[proc] = data
-            else: # parsing was successful
-                chunks[proc] = data
+                raise err
+            elif err is not None: # err is (error code, error line)
+                failed_procs[proc] = err
+            chunks[proc] = data
 
         if failed_procs:
-            for process in processes:
-                process.terminate()
             # find the line number of the error
             line_no = 0
             for i in range(N):
-                if i in failed_procs:
+                # ignore errors after data_end
+                if i in failed_procs and self.data_end is None or line_no < self.data_end:
+                    for process in processes:
+                        process.terminate()
                     raise self.get_error(failed_procs[i][0], failed_procs[i][1] + line_no,
                                          "an error occurred while parsing table data")
                 line_no += len(chunks[i][self.names[0]])
@@ -342,6 +338,28 @@ cdef class CParser:
                 chunks[proc][self.names[col]] = reconverted
         except Queue.Empty:
             pass
+
+        if self.data_end is not None:
+            if self.data_end < 0:
+                # e.g. if data_end = -1, cut the last row
+                num_rows = 0
+                for chunk in chunks:
+                    num_rows += len(chunk[self.names[0]])
+                self.data_end += num_rows
+            else:
+                # TODO: see if this is a problem with RDB
+                self.data_end -= 1 # ignore header
+            line_no = 0
+            for i, chunk in enumerate(chunks):
+                num_rows = len(chunk[self.names[0]])
+                if line_no + num_rows > self.data_end:
+                    for name in self.names:
+                        # truncate columns
+                        chunk[name] = chunk[name][:self.data_end - line_no]
+                    del chunks[i + 1:]
+                    break
+                line_no += num_rows
+
         ret = chunks[0]
 
         for chunk in chunks[1:]:
@@ -362,21 +380,23 @@ cdef class CParser:
         chunk_tokenizer.num_cols = self.width
         chunk_tokenizer.source_pos = start
         chunk_tokenizer.source_len = end
+        data = None
+        err = None
 
-        if tokenize(chunk_tokenizer, -1, 0, #TODO: use data_end
-                    <int *> self.use_cols.data, len(self.use_cols)) != 0:
-            delete_tokenizer(chunk_tokenizer)
-            # return the error code and line at which error occurred
-            queue.put(((chunk_tokenizer.code, chunk_tokenizer.num_rows), i))
-        elif chunk_tokenizer.num_rows == 0: # no data
-            queue.put((dict((name, np.array([], np.int_)) for name in self.names), i))
+        if tokenize(chunk_tokenizer, -1, 0, <int *> self.use_cols.data,
+                    len(self.use_cols)) != 0:
+            err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
+        if chunk_tokenizer.num_rows == 0: # no data
+            data = dict((name, np.array([], np.int_)) for name in self.names)
         else:
             try:
-                queue.put((self._convert_data(chunk_tokenizer,
-                                try_int, try_float, try_string), i))
-            except Exception as e: #TODO: check if queue can raise errors
+                data = self._convert_data(chunk_tokenizer, try_int, try_float, try_string)
+            except Exception as e:
                 delete_tokenizer(chunk_tokenizer)
-                queue.put((e, i))
+                queue.put((None, e, i))
+                return
+        #TODO: check if queue can raise errors
+        queue.put((data, err, i))
 
         reconvert_cols = reconvert_queue.get()
         for col in reconvert_cols:
@@ -391,9 +411,6 @@ cdef class CParser:
             self.fill_names.difference_update(self.fill_exclude_names)
 
     cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string):
-        if self.data_end_obj is not None and self.data_end_obj < 0:
-            # e.g. if data_end = -1, ignore the last row
-            t.num_rows += self.data_end_obj
         cols = {}
 
         for i, name in enumerate(self.names):
