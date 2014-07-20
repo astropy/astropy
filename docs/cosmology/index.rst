@@ -57,7 +57,7 @@ classes::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 The cosmology subpackage makes use of `~astropy.units`, so in many
 cases returns values with units attached.  Consult the documentation
@@ -88,7 +88,7 @@ arguments giving the Hubble parameter and omega matter (both at z=0)::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
 
@@ -149,6 +149,31 @@ flat Universe because photons and neutrinos are included. Also note
 that they are unitless and so are not `~astropy.units.Quantity`
 objects.
 
+It is possible to specify the baryonic matter density at redshift zero
+at class instantiation by passing the keyword argument ``Ob0``::
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
+  >>> cosmo
+  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=0.05)
+
+In this case the dark matter only density at redshift zero is
+available as class attribute ``Odm0`` and the redshift evolution of
+dark and baryonic matter densities can be computed using the methods
+``Odm`` and ``Ob``, respectively. If ``Ob0`` is not specified at class
+instantiation it defaults to ``None`` and any method relying on it
+being specified will raise a ``ValueError``:
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+  >>> cosmo.Odm(1)
+  Traceback (most recent call last):
+      cosmo.Odm(1)
+    File "astropy/cosmology/core.py", line 539, in Odm
+      raise ValueError("Baryonic density not set for this cosmology, "
+  ValueError: Baryonic density not set for this cosmology, unclear meaning of dark matter density
+
 Cosmological instances have an optional ``name`` attribute which can be
 used to describe the cosmology::
 
@@ -156,7 +181,7 @@ used to describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
 
 This is also an example with a different model for dark energy, a flat
 Universe with a constant dark energy equation of state, but not
