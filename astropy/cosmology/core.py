@@ -264,20 +264,13 @@ class FLRW(Cosmology):
             return "{0}(name=\"{1}\", ".format(self.__class__.__name__,
                                                self.name)
 
-    def _float_or_none(self, x, digits=3):
-        """ Helper function to format a variable that can be a float or None"""
-        if x is None:
-            return str(x)
-        fmtstr = "{0:.{digits}g}".format(x, digits=digits)
-        return fmtstr.format(x)
-
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
                  "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
                  "Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._Ode0,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -1681,7 +1674,7 @@ class FlatLambdaCDM(LambdaCDM):
                  "Neff={4:.3g}, m_nu={5}, Ob0={6:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
 
 class wCDM(FLRW):
@@ -1869,7 +1862,7 @@ class wCDM(FLRW):
                  "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7}, Ob0={8:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._Tcmb0, self._Neff,
-                             self.m_nu, self._float_or_none(self._Ob0))
+                             self.m_nu, _float_or_none(self._Ob0))
 
 
 class FlatwCDM(wCDM):
@@ -2000,7 +1993,7 @@ class FlatwCDM(wCDM):
                  "Neff={5:.3g}, m_nu={6}, Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
 
 class w0waCDM(FLRW):
@@ -2146,7 +2139,7 @@ class w0waCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wa,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
 
 class Flatw0waCDM(w0waCDM):
@@ -2224,7 +2217,7 @@ class Flatw0waCDM(w0waCDM):
                  "Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
 
 class wpwaCDM(FLRW):
@@ -2389,7 +2382,7 @@ class wpwaCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._wp, self._wa, self._zp,
                              self._Tcmb0, self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             _float_or_none(self._Ob0))
 
 
 class w0wzCDM(FLRW):
@@ -2536,8 +2529,14 @@ class w0wzCDM(FLRW):
                  "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
-                             self._Neff, self.m_nu,
-                             self._float_or_none(self._Ob0))
+                             self._Neff, self.m_nu, _float_or_none(self._Ob0))
+
+def _float_or_none(x, digits=3):
+    """ Helper function to format a variable that can be a float or None"""
+    if x is None:
+        return str(x)
+    fmtstr = "{0:.{digits}g}".format(x, digits=digits)
+    return fmtstr.format(x)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
