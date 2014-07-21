@@ -407,7 +407,7 @@ class ConfigItem(object):
                 module = ''
             if name in sec:
                 if '.' in self.module:
-                    new_module = module.split('.', 1)[1]
+                    new_module = self.module.split('.', 1)[1]
                 else:
                     new_module = ''
                 warn(
