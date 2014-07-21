@@ -11,7 +11,7 @@ if __name__ == '__main__':
     sys.path.insert(0, astropy_path)
 
     from astropy import wcs
-    from astropy import setup_helpers
+    from astropy_helpers import setup_helpers
     from distutils.core import setup, Extension
 
     if sys.platform == 'win32':
