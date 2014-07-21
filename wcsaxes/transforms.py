@@ -4,14 +4,13 @@
 # coordinates, but also world-to-world).
 
 import abc
-import astropy
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
-from .utils import get_coordinate_frame
 from astropy.wcs import WCS
-from . import six
+from astropy.extern import six
+from .utils import get_coordinate_frame
 
 
 class CurvedTransform(Transform):

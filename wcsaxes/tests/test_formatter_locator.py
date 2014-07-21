@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 from astropy import units as u
-from .. import six
+from astropy.extern import six
 
 from ..formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 
