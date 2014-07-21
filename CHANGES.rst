@@ -14,6 +14,10 @@ New Features
 
 - ``astropy.cosmology``
 
+  - Add a ``clone`` method to cosmology objects to allow copies
+    of cosmological objects to be created with the specified variables
+    modified [#2592].
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
@@ -143,6 +147,8 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+
+  - ``Distance`` can now take a list of quantities. [#2261]
 
 - ``astropy.cosmology``
 

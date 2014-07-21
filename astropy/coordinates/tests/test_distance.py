@@ -171,6 +171,11 @@ def test_distance_is_quantity():
     assert q.value[1] == 0
     assert d.value[1] != 0
 
+    # regression test against #2261
+    d = Distance([2 * u.kpc, 250. * u.pc])
+    assert d.unit is u.kpc
+    assert np.all(d.value == np.array([2., 0.25]))
+
 
 def test_distmod():
 
@@ -189,6 +194,16 @@ def test_distmod():
 
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
+
+    #check the Mpc/kpc/pc behavior
+    assert Distance(distmod=1).unit == u.pc
+    assert Distance(distmod=11).unit == u.kpc
+    assert Distance(distmod=26).unit == u.Mpc
+    assert Distance(distmod=-21).unit == u.AU
+
+    #if an array, uses the mean of the log of the distances
+    assert Distance(distmod=[1, 11, 26]).unit == u.kpc
+
 
 
 def test_distance_in_coordinates():
