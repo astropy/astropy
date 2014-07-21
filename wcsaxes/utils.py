@@ -1,8 +1,7 @@
 import numpy as np
 
 from astropy import units as u
-
-from . import six
+from astropy.extern import six
 
 # Modified from axis_artist, supports astropy.units
 

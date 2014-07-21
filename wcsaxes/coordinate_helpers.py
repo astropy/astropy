@@ -5,6 +5,7 @@ axes, ticks, tick labels, and grid lines.
 
 import numpy as np
 from astropy import units as u
+from astropy.extern import six
 
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
@@ -18,7 +19,6 @@ from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
 from . import settings
 
-from . import six
 
 __all__ = ['CoordinateHelper']
 
