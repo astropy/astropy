@@ -72,24 +72,31 @@ acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
 
-UTF-8 locale error on MacOS X
------------------------------
+Locale errors
+-------------
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
+      ...
     ValueError: unknown locale: UTF-8
+
+You may also (on MacOS X or other platforms) see errors such as::
+
+      ...
+      stderr = stderr.decode(stdio_encoding)
+    TypeError: decode() argument 1 must be str, not None
 
 This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
 ``UTF-8`` by default, which is not a valid locale setting. To fix this, set
 this environment variable, as well as the ``LANG`` and ``LC_ALL`` environment
-variables to e.g. ``en_US.UTF-8`` using::
+variables to e.g. ``en_US.UTF-8`` using, in the case of ``bash``::
 
     export LANG="en_US.UTF-8"
     export LC_ALL="en_US.UTF-8"
     export LC_CTYPE="en_US.UTF-8"
 
-To avoid any issues in future, you should add this line to your
-``~/.bash_profile`` file.
+To avoid any issues in future, you should add this line to your e.g.
+``~/.bash_profile`` or ``.bashrc`` file.
 
 To test these changes, open a new terminal and type ``locale``, and you should
 see something like::
