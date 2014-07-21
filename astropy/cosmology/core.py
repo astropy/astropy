@@ -130,7 +130,7 @@ class FLRW(Cosmology):
             self._Odm0 = self._Om0 - self._Ob0
         else:
             self._Ob0 = None
-            self._Odm0 = self._Om0
+            self._Odm0 = None
         self._Neff = float(Neff)
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
@@ -501,6 +501,11 @@ class FLRW(Cosmology):
         Ob : ndarray, or float if input scalar
           The density of baryonic matter relative to the critical density at 
           each redshift.
+
+        Raises
+        ------
+        ValueError
+          If Ob0 is None.
         """
 
         if self._Ob0 is None:
@@ -522,8 +527,16 @@ class FLRW(Cosmology):
         Odm : ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
-        """
 
+        Raises
+        ------
+        ValueError
+        If Ob0 is None.
+        """
+        
+        if self._Odm0 is None:
+            raise ValueError("Baryonic density not set for this cosmology, " \
+                             "unclear meaning of dark matter density")
         if isiterable(z):
             z = np.asarray(z)
         return self._Odm0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
