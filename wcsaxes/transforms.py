@@ -13,12 +13,11 @@ from astropy.extern import six
 from .utils import get_coordinate_frame
 
 
+@six.add_metaclass(abc.ABCMeta)
 class CurvedTransform(Transform):
     """
     Abstract base class for non-affine curved transforms
     """
-
-    __metaclass__ = abc.ABCMeta
 
     input_dims = 2
     output_dims = 2

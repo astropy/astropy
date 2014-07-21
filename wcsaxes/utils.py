@@ -154,7 +154,7 @@ def get_coord_meta(frame):
         if isinstance(frame, six.string_types):
             frame = frame_transform_graph.lookup_name(frame)
 
-        names = frame().representation_component_names.keys()
+        names = list(frame().representation_component_names.keys())
         coord_meta['name'] = names[:2]
 
     except ImportError:

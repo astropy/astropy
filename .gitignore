@@ -10,3 +10,5 @@ wcsaxes/version.py
 .project
 .pydevproject
 .settings
+.coverage
+
