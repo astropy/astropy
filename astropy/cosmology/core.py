@@ -520,13 +520,13 @@ class FLRW(Cosmology):
         Returns
         -------
         Odm : ndarray, or float if input scalar
-          The density of non-relativistic matter relative to the critical
+          The density of non-relativistic dark matter relative to the critical
           density at each redshift.
 
         Raises
         ------
         ValueError
-        If Ob0 is None.
+          If Ob0 is None.
         """
 
         if self._Odm0 is None:
