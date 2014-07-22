@@ -1740,7 +1740,7 @@ class TimeDecimalYear(TimeFormat):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         try:
-            assert all(isinstance(val, datetime) for val in val1)
+            assert all(isinstance(val, (np.float64, np.float32)) for val in val1)
         except:
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
