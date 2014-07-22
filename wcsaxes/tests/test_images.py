@@ -97,7 +97,7 @@ class TestBasic(BaseImageTests):
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     def test_overlay_features_image(self, generate):
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.msx_header), aspect='equal')
+        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(self.msx_header), aspect='equal')
         fig.add_axes(ax)
         # Change the format of the ticks
         ax.coords[0].set_major_formatter('dd:mm:ss')
