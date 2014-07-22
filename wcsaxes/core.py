@@ -102,17 +102,23 @@ class WCSAxes(Axes):
         # each coordinate axis. For now, just assume it covers the whole sky.
 
         self._bboxes = []
+        self._ticklabels_bbox = []
+        visible_ticks = []
 
         for coords in self._all_coords:
 
             coords.frame.update()
             for coord in coords:
-                coord._draw(renderer, bboxes=self._bboxes)
+                coord._draw(renderer, bboxes=self._bboxes,
+                            ticklabels_bbox=self._ticklabels_bbox)
+                visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
 
             for coord in coords:
-                coord._draw_axislabels(renderer, bboxes=self._bboxes)
+                coord._draw_axislabels(renderer, bboxes=self._bboxes,
+                                       ticklabels_bbox=self._ticklabels_bbox,
+                                       visible_ticks=visible_ticks)
 
         self.coords.frame.draw(renderer)
 
