@@ -46,6 +46,10 @@ The basic workflow is as follows:
        - `~astropy.wcs.wcs.WCS.wcs_pix2world`: Perform just the core
          WCS transformation from pixel to world coordinates.
 
+       - `~astropy.wcs.wcs.WCS.all_world2pix`: Perform all three
+         transformations from world to pixel coordinates, using an
+         iterative method if necessary.
+
        - `~astropy.wcs.wcs.WCS.wcs_world2pix`: Perform just the core
          WCS transformation from world to pixel coordinates.
 
