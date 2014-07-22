@@ -17,7 +17,6 @@ class TickLabels(Text):
         super(TickLabels, self).__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes('all')
-        # self._bbox_list = []
         self.pad = 0.3
 
     def clear(self):
@@ -84,12 +83,6 @@ class TickLabels(Text):
             return self.world.keys()
         else:
             return [x for x in self._visible_axes if x in self.world]
-
-    # def get_ticklabels_bbox_list(self):
-    #     """
-    #     Returns the bounding box list of all the ticklabels
-    #     """
-    #     return self._bbox_list
 
     def draw(self, renderer, bboxes, ticklabels_bbox):
 
