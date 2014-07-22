@@ -112,7 +112,7 @@ script:
     - |
       if [[ $SETUP_CMD == 'asv' ]]; then
         cd astropy-benchmarks;
-        asv -v continuous --machine-defaults +refs/pull/$TRAVIS_PULL_REQUEST/merge;
+        asv continuous --machine-defaults +refs/pull/$TRAVIS_PULL_REQUEST/merge;
       else
         $MAIN_CMD $SETUP_CMD;
       fi
