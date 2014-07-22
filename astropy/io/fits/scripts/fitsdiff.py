@@ -126,8 +126,7 @@ def handle_options(argv=None):
         '--exact', action='store_true',
         dest='exact_comparisons', default=False,
         help="Report ALL differences, "
-             "overriding command-line options and FITSDIFF_SETTINGS.  "
-                    )
+             "overriding command-line options and FITSDIFF_SETTINGS. ")
 
     parser.add_option(
         '-o', '--output-file', metavar='FILE',
