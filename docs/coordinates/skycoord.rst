@@ -665,15 +665,15 @@ state of the |SkyCoord| object, you should instead use the
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 
-Example: Plotting in Aitoff projection
-======================================
+Example 1: Plotting random data in Aitoff projection
+====================================================
 
 This is an example how to plot data using the astropy.coordinates package in
 the Aitoff projection. Here a randomly generated data set will be used. The
 final script can be found below.
 
 First we need to import the required packages. We use matplotlib here for
-plotting and numpy to get the value of pi.
+plotting and numpy to get the value of pi and to generate our random data.
 
 .. doctest-requires:: matplotlib
 
@@ -698,31 +698,37 @@ As next step, those coordinates are transformed into an astropy.coordinates
 
     >>> c = SkyCoord(ra=ra_random*u.degree, dec=dec_random*u.degree, frame='icrs')
 
-Because matplotlib needs the coordinates in radians, we have to convert them
-from degrees into radians.
+Because matplotlib needs the coordinates in radians and between :math:`-\pi`
+and :math:`\pi`, not 0 and :math:`2\pi`, we have to convert them. This also
+means that values are larger than :math:`\pi` (180 degrees) are subtracted by
+:math:`2\pi` to get the required range. There are two possibilities. The first
+one might be more intuitive:
 
 .. doctest-requires:: matplotlib
 
     >>> ra_rad = c.ra.radian
     >>> dec_rad = c.dec.radian
+    >>> ra_rad[ra_rad > np.pi] -= 2. * np.pi
 
-Furthermore matplotlib needs the RA (x-)coordinate in the range between :math:`\pi` and
-:math:`\pi`, not 0 and 2\ :math:`\pi`. This means that all values that are larger than
-:math:`\pi` (180 degrees) are subtrated by 2\ :math:`\pi` to get the required range.
+The other one is to directly use a wrapper for this and use 180 degrees as wrap
+angle. This possibility might be more general and shows the power of the
+SkyCoord object better:
 
 .. doctest-requires:: matplotlib
 
-    >>> ra_rad[ra_rad > np.pi] -= 2. * np.pi
+    >>> ra_rad = c.ra.wrap_at(180 * u.deg).radian
+    >>> dec_rad = c.dec.radian
 
 As last step we set up the plotting environment with matplotlib using the
-Aitoff projection with a speficic title, a grid and filled circles as markers.
+Aitoff projection with a speficic title, a grid, filled circles as markers with
+a markersize of 2 and an alpha value of 0.3.
 
 .. doctest-requires:: matplotlib
 
     >>> plt.subplot(111, projection="aitoff")
     >>> plt.title("Aitoff projection of our random data")
     >>> plt.grid(True)
-    >>> plt.plot(ra_rad, dec_rad, 'o')
+    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
     >>> plt.show()
 
 .. plot::
@@ -748,16 +754,127 @@ Aitoff projection with a speficic title, a grid and filled circles as markers.
 
     # Matplotlib needs the coordinates in radians, so we have to convert them.
     # Furtermore matplotlib needs the RA coordinate in the range between -pi
-    # and pi, not 0 and 2pi.
-    ra_rad = c.ra.radian
+    # and pi, not 0 and 2pi. There are two possibilities, the first one
+    # (commented) might be more intuitive, the second one (used) shows the
+    # the power of a SkyCoord object better.
+    # ra_rad = c.ra.radian
+    # dec_rad = c.dec.radian
+    # ra_rad[ra_rad > np.pi] -= 2. * np.pi
+    ra_rad = c.ra.wrap_at(180 * u.deg).radian
     dec_rad = c.dec.radian
-    ra_rad[ra_rad > np.pi] -= 2. * np.pi
 
-    # Now plot the data in Aitoff projection with a grid.
+    # As last step we set up the plotting environment with matplotlib using the
+    # Aitoff projection with a speficic title, a grid, filled circles as markers with
+    # a markersize of 2 and an alpha value of 0.3.
     plt.subplot(111,projection="aitoff")
     plt.title("Aitoff projection of our random data")
     plt.grid(True)
-    plt.plot(ra_rad, dec_rad, 'o')
+    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    plt.show()
+
+
+Example 2: Plotting star positions in bulge and disk
+====================================================
+
+This is another example how to plot data using the astropy.coordinates package
+in the Aitoff projection. Here a randomly generated data set (multivariante
+normal distribution) for both stars in the bulge and in the disk of a galaxy
+will be used. Both types will be plotted with different number counts. The
+final script can be found below.
+
+First we need to import the required packages. We use matplotlib here for
+plotting and numpy to get the value of pi and to generate our random data.
+
+.. doctest-requires:: matplotlib
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+
+We now generate random data for visualisation. For more information on the
+np.random.multivariate_normal function please look up the documentation for
+numpy.random.multivariate_normal.
+
+.. doctest-requires:: matplotlib
+
+    >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    >>> galaxy = np.concatenate([disk, bulge])
+
+As next step, those coordinates are transformed into an astropy.coordinates
+`~astropy.coordinates.SkyCoord` object.
+
+.. doctest-requires:: matplotlib
+
+    >>> c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    >>> c_gal_icrs = c_gal.icrs
+
+Because matplotlib needs the coordinates in radians and between :math:`-\pi`
+and :math:`\pi`, not 0 and :math:`2\pi`, we have to convert them. This also
+means that are larger than :math:`\pi` (180 degrees) are subtracted by
+:math:`2\pi` to get the required range. There are two possibilities. The first
+one might be more intuitive:
+
+The other one is to directly use a wrapper for this and use 180 degrees as wrap
+angle. This possibility might be more general and shows the power of the
+SkyCoord object better:
+
+.. doctest-requires:: matplotlib
+
+    >>> ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
+    >>> dec_rad = c_gal_icrs.dec.radian
+
+As last step we set up the plotting environment with matplotlib using the
+Aitoff projection with a speficic title, a grid, filled circles as markers with
+a markersize of 2 and an alpha value of 0.3.
+
+.. doctest-requires:: matplotlib
+
+    >>> plt.subplot(111, projection="aitoff")
+    >>> plt.title("Aitoff projection of our random data")
+    >>> plt.grid(True)
+    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    >>> plt.show()
+
+.. plot::
+
+    # This script plots objects positions in a Aitoff projection using
+    # matplotlib. For this, random data is generated, interpreted as SkyCoord
+    # object and then transformed into RA and DEC radian values. If you want to
+    # use your own data, just import them as SkyCoord objects and continue.
+
+    # Import all required packages.
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Generate random data. For more information on the
+    # np.random.multivariate_normal function please look up the documentation for
+    # numpy.random.multivariate_normal.
+    disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    galaxy = np.concatenate([disk, bulge])
+
+    # Transform the data into a SkyCoord object and change the frame from
+    # galactic to icrs.
+    c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    c_gal_icrs = c_gal.icrs
+
+    # Matplotlib needs the coordinates in radians, so we have to convert them.
+    # Furtermore matplotlib needs the RA coordinate in the range between -pi
+    # and pi, not 0 and 2pi.
+    ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
+    dec_rad = c_gal_icrs.dec.radian
+
+    # As last step we set up the plotting environment with matplotlib using the
+    # Aitoff projection with a speficic title, a grid, filled circles as markers with
+    # a markersize of 2 and an alpha value of 0.3.
+    plt.subplot(111,projection="aitoff")
+    plt.title("Aitoff projection of our random data")
+    plt.grid(True)
+    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
     plt.show()
 
 
