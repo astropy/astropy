@@ -104,7 +104,7 @@ install:
     # ASV BENCHMARKING
     - |
       if [[ $SETUP_CMD == 'asv' ]]; then
-        pip install git+git://github.com/mdboom/asv.git@master;
+        pip install git+git://github.com/spacetelescope/asv.git@master;
         git clone https://github.com/astropy/astropy-benchmarks.git;
       fi
 
