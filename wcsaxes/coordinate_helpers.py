@@ -342,10 +342,6 @@ class CoordinateHelper(object):
 
         renderer.open_group('axis labels')
 
-        # visible_ticks = self.ticklabels.get_visible_axes()
-
-        # ticklabels_bbox_list = self.ticklabels.get_ticklabels_bbox_list()
-
         self.axislabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox_list=ticklabels_bbox,
                              visible_ticks=visible_ticks)
