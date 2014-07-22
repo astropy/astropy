@@ -49,14 +49,14 @@ class BaseImageTests(object):
         cls.cube_header = fits.Header.fromtextfile(cube_header)
 
     # method to create baseline or test images
-    def generate_or_test(self, generate, figure, image, test_image=None, baseline_image=None):
+    def generate_or_test(self, generate, figure, image, bbox_inches=None):
         baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
         test_image = os.path.abspath(os.path.join(self._result_dir, image))
         if generate:
-            figure.savefig(baseline_image)
+            figure.savefig(baseline_image, bbox_inches=bbox_inches)
             pytest.skip("Skipping test, since generating data")
         else:
-            figure.savefig(test_image)
+            figure.savefig(test_image, bbox_inches=bbox_inches)
             msg = compare_images(baseline_image, test_image, tol=self._tolerance)
             assert msg is None
 
@@ -97,7 +97,7 @@ class TestBasic(BaseImageTests):
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     def test_overlay_features_image(self, generate):
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(self.msx_header), aspect='equal')
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.msx_header), aspect='equal')
         fig.add_axes(ax)
         # Change the format of the ticks
         ax.coords[0].set_major_formatter('dd:mm:ss')
@@ -188,7 +188,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticklabel_position('all')
         ax.coords[1].set_ticklabel_position('r')
 
-        self.generate_or_test(generate, fig, 'ticks_labels.png')
+        self.generate_or_test(generate, fig, 'ticks_labels.png', bbox_inches='tight')
 
     # Test default style (matplotlib.rcParams) for ticks and gridlines
     def test_rcparams(self, generate):
