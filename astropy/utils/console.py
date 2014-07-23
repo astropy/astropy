@@ -17,6 +17,10 @@ import sys
 import threading
 import time
 
+# Imports for iPython notebook widgets
+from IPython.html import widgets
+from IPython.display import display
+
 try:
     import fcntl
     import termios
@@ -465,7 +469,7 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=None):
+    def __init__(self, total_or_items, interactive=False, file=None):
         """
         Parameters
         ----------
@@ -503,18 +507,23 @@ class ProgressBar(six.Iterator):
 
         self._file = file
         self._start_time = time.time()
-
-        self._should_handle_resize = (
-            _CAN_RESIZE_TERMINAL and self._file.isatty())
-        self._handle_resize()
-        if self._should_handle_resize:
-            signal.signal(signal.SIGWINCH, self._handle_resize)
-            self._signal_set = True
-        else:
-            self._signal_set = False
-
         self._human_total = human_file_size(self._total)
-        self.update(0)
+        self._interactive = interactive
+
+
+        if interactive:
+            self.update_interactive(0)
+        else:    
+            self._should_handle_resize = (
+                _CAN_RESIZE_TERMINAL and self._file.isatty())
+            self._handle_resize()
+            if self._should_handle_resize:
+                signal.signal(signal.SIGWINCH, self._handle_resize)
+                self._signal_set = True
+            else:
+                self._signal_set = False
+
+            self.update_console(0)
 
     def _handle_resize(self, signum=None, frame=None):
         terminal_width = terminal_size(self._file)[1]
@@ -547,6 +556,15 @@ class ProgressBar(six.Iterator):
 
 
     def update(self, value=None):
+        """
+        Update progress bar via the console or notebook accordingly.
+        """
+        if self._interactive:
+            self.update_interactive(value)
+        else:
+            self.update_console(value)
+
+    def update_console(self, value=None):
         """
         Update the progress bar to the given value (out of the total
         given to the constructor).
@@ -591,6 +609,28 @@ class ProgressBar(six.Iterator):
         if t is not None:
             write(human_time(t))
         self._file.flush()
+
+    def update_interactive(self, value=None):
+        """
+        Update the progress bar to the given value (out of a total
+        given to the contructor).
+        
+        This method is for use in the iPython notebook 2+. 
+        """
+
+        ## IPython notebook widgets
+        #from IPython.html import widgets
+        #from IPython.display import display
+
+        if hasattr(self, '_pb'):
+            # Update progressbar with new value
+            self._pb.value = (value/self._total) * 100
+        else:
+            # Create and display a progress bar widget
+            self._pb = widgets.FloatProgressWidget()
+            display(self._pb)
+            self._pb.value = 0
+
 
     def _silent_update(self, value=None):
         pass
