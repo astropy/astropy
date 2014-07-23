@@ -136,7 +136,7 @@ class Ticks(Line2D):
         offset = renderer.points_to_pixels(self.get_ticksize())
         self._draw_ticks(renderer, self.pixel, self.angle, offset)
         if self._display_minor_ticks:
-            offset = offset * 0.5
+            offset = offset * 0.5  # for minor ticksize
             self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset)
 
     def _draw_ticks(self, renderer, pixel_array, angle_array, offset):
@@ -150,7 +150,6 @@ class Ticks(Line2D):
         gc.set_alpha(self.get_alpha())
         gc.set_linewidth(self.get_linewidth())
 
-        # offset = renderer.points_to_pixels(self.get_ticksize())
         marker_scale = Affine2D().scale(offset, offset)
         marker_rotation = Affine2D()
         marker_transform = marker_scale + marker_rotation
