@@ -624,12 +624,15 @@ class ProgressBar(six.Iterator):
 
         if hasattr(self, '_pb'):
             # Update progressbar with new value
-            self._pb.value = (value/self._total) * 100
+            percent = (value/self._total) * 100
+            self._pb.value = percent
+            self._pb.description = str(percent)+'%'
         else:
             # Create and display a progress bar widget
             self._pb = widgets.FloatProgressWidget()
             display(self._pb)
             self._pb.value = 0
+            self._pb.description = str(0)+'%'
 
 
     def _silent_update(self, value=None):
