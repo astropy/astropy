@@ -107,25 +107,9 @@ class _File(object):
             raise ValueError("Mode '%s' not recognized" % mode)
 
         if (isinstance(fileobj, string_types) and
-                mode not in ('ostream', 'append') and
-                not os.path.exists(fileobj)):
-
-            # Not writing file and file does not exist on local machine and
-            # name does not begin with a drive letter (Windows), try to get it
-            # over the web.
-            try:
-                if not os.path.splitdrive(fileobj)[0]:
-                    # Basically if the filename (on Windows anyways) doesn't
-                    # have a drive letter try to open it as a URL
-                    self.name, _ = urllib.request.urlretrieve(fileobj)
-                else:
-                    # Otherwise the file was already not found so just raise
-                    # a ValueError
-                    raise ValueError("File not found")
-            except (TypeError, ValueError, IOError):
-                # A couple different exceptions can occur here when passing a
-                # filename into urlretrieve in Python 3
-                raise IOError('File does not exist: {0!r}'.format(fileobj))
+            mode not in ('ostream', 'append') and
+            urllib.parse.urlparse(fileobj).scheme > 1): # This is an URL.
+                self.name, _ = urllib.request.urlretrieve(fileobj)
         else:
             self.name = fileobj_name(fileobj)
 
