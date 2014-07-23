@@ -109,6 +109,20 @@ class TestAngleFormatterLocator(object):
         fl = AngleFormatterLocator(number=5, format=format)
         assert fl.formatter([15.392231] * u.degree, None)[0] == string
 
+    @pytest.mark.parametrize(('separator', 'format', 'string'), [(('deg', "'", '"'), 'dd', '15deg'),
+                                                                 (('deg', "'", '"'), 'dd:mm', '15deg24\''),
+                                                                 (('deg', "'", '"'), 'dd:mm:ss', '15deg23\'32"'),
+                                                                 ((':', "-", 's'), 'dd:mm:ss.s', '15:23-32.0s'),
+                                                                 ((':', ":", 's'), 'hh', '1:'),
+                                                                 (('-', "-", 's'), 'hh:mm:ss.ssss', '1-01-34.1354s'),
+                                                                 (('d', ":", '"'), 'd', '15'),
+                                                                 (('d', ":", '"'), 'd.d', '15.4'),
+                                                                 ])
+    def test_separator(self, separator, format, string):
+        fl = AngleFormatterLocator(number=5, format=format)
+        fl.sep = separator
+        assert fl.formatter([15.392231] * u.degree, None)[0] == string
+
     def test_latex_format(self):
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
         assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
