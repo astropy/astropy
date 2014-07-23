@@ -2,7 +2,7 @@
 
 from __future__ import division, with_statement
 
-import gzip
+from ...utils.compat import gzip
 import mmap
 import os
 import tempfile
