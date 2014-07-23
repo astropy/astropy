@@ -6,15 +6,16 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import collections
+import inspect
 
 from textwrap import dedent
 
 import numpy as np
 
-from .core import (FittableModel, Fittable1DModel, Fittable2DModel,
-                   Model, ModelDefinitionError)
+from .core import (Fittable1DModel, Fittable2DModel, Model,
+                   ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
-from ..utils import find_current_module
+from ..utils import deprecated
 from ..extern import six
 
 __all__ = sorted([
@@ -1301,118 +1302,17 @@ class Beta2D(Fittable2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
+@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
+            pending=True)
 def custom_model_1d(func, func_fit_deriv=None):
-    """
-    Create a one dimensional model from a user defined function. The
-    parameters of the model will be inferred from the arguments of
-    the function.
-
-    .. note::
-
-        All model parameters have to be defined as keyword arguments
-        with default values in the model function.
-
-    If you want to use parameter sets in the model, the parameters should be
-    treated as lists or arrays.
-
-    Parameters
-    ----------
-    func : function
-        Function which defines the model.  It should take one positional
-        argument (the independent variable in the model), and any number of
-        keyword arguments (the parameters).  It must return the value of the
-        model (typically as an array, but can also be a scalar for scalar
-        inputs).  This corresponds to the
-        `~astropy.modeling.Model.evaluate` method.
-    func_fit_deriv : function, optional
-        Function which defines the Jacobian derivative of the model. I.e., the
-        derivive with respect to the *parameters* of the model.  It should
-        have the same argument signature as ``func``, but should return a
-        sequence where each element of the sequence is the derivative
-        with respect to the correseponding argument. This corresponds to the
-        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
-
-
-    Examples
-    --------
-    Define a sinusoidal model function as a custom 1D model:
-
-        >>> from astropy.modeling.models import custom_model_1d
-        >>> import numpy as np
-        >>> def sine_model(x, amplitude=1., frequency=1.):
-        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
-        >>> def sine_deriv(x, amplitude=1., frequency=1.):
-        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
-        >>> SineModel = custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
-
-    Create an instance of the custom model and evaluate it:
-
-        >>> model = SineModel()
-        >>> model(0.25)
-        1.0
-
-    This model instance can now be used like a usual astropy model.
-    """
-
-    if not six.callable(func):
-        raise ModelDefinitionError("Not callable. Must be function")
-
-    if func_fit_deriv is not None and not six.callable(func_fit_deriv):
-        raise ModelDefinitionError(
-                "func_fit_deriv not callable. Must be function")
-
-    model_name = func.__name__
-    param_values = six.get_function_defaults(func)
-
-    # Check if all parameters are keyword arguments
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults
     nparams = len(param_values)
 
-    if (func_fit_deriv is not None and
-            len(six.get_function_defaults(func_fit_deriv)) != nparams):
-        raise ModelDefinitionError("derivative function should accept "
-                                   "same number of parameters as func.")
-
-    func_code = six.get_function_code(func)
-    if func_code.co_argcount == nparams + 1:
-        param_names = func_code.co_varnames[1:nparams + 1]
+    if len(argspec.args) == nparams + 1:
+        param_names = argspec.args[-nparams:]
     else:
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 
-    params = dict((name, Parameter(name, default=default))
-                  for name, default in zip(param_names, param_values))
-
-    arg_signature_1 = ', '.join('{0}=None'.format(name)
-                                for name in param_names)
-    arg_signature_2 = ', '.join('{0}={0}'.format(name)
-                                for name in param_names)
-
-    mod = find_current_module(2)
-    if mod:
-        filename = mod.__file__
-        modname = mod.__name__
-    else:
-        filename = '<string>'
-        modname = '__main__'
-
-    members = {'evaluate': staticmethod(func)}
-
-    eval_globals = {}
-
-    init_code_string = dedent("""
-        def __init__(self, {0}, **kwargs):
-            super(self.__class__, self).__init__({1}, **kwargs)
-    """).format(arg_signature_1, arg_signature_2)
-
-    eval(compile(init_code_string, filename, 'single'), eval_globals)
-
-    if func_fit_deriv is not None:
-        members['fit_deriv'] = staticmethod(func_fit_deriv)
-
-    members['__init__'] = eval_globals['__init__']
-    members.update(params)
-
-    cls = type(model_name, (Fittable1DModel,), members)
-    cls.__module__ = modname
-
-    return cls
+    return custom_model(func, func_fit_deriv=func_fit_deriv)
