@@ -501,3 +501,13 @@ class InheritDocstrings(type):
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+
+def in_ipynb():
+    try:
+        cfg = get_ipython().config 
+        if cfg['IPKernelApp']['parent_appname'] == 'ipython-notebook':
+            return True
+        else:
+            return False
+    except NameError:
+        return False
