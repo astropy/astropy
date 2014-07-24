@@ -618,18 +618,19 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                                   "for fft-based convolution")
 
     # find ideal size (power of 2) for fft.
+    # Forces array to be square - it should be possible to avoid this, in
+    # principle, but that may require manipulating the tests too
     # Can add shapes because they are tuples
     if fft_pad:  # default=True
         if psf_pad:  # default=False
             # add the dimensions and then take the max (bigger)
-            newshape = [_next_regular(x)
-                        for x in (np.array(arrayshape) +
-                                  np.array(kernshape))]
+            fsize = max([_next_regular(x)
+                         for x in (np.array(arrayshape) +
+                                   np.array(kernshape))])
         else:
             # add the shape lists (max of a list of length 4) (smaller)
-            newshape = [max(_next_regular(x),
-                            _next_regular(y)) 
-                        for x,y in zip(arrayshape,kernshape)]
+            fsize = _next_regular(np.max(arrayshape + kernshape))
+        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
     else:
         if psf_pad:
             # just add the biggest dimensions
