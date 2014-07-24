@@ -133,6 +133,11 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- ``astropy.io.fits``
+
+  - Overwriting an existing file using the ``clobber=True`` option no longer
+    displays a warning message. [#1963]
+
 
 0.4.1 (unreleased)
 ------------------
