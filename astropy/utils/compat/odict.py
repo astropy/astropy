@@ -20,7 +20,7 @@ class OrderedDict(NativeOrderedDict):
         NativeOrderedDict.__init__(self, *args, **kwds)
     def __str__(self):
         """
-        Pretty-printed string representation.
+        Pretty-printed string representation of OrderedDict.
         x.__str__() <==> str(x)
         """
         return('OrderedDict('+ pformat(dict(self),width=1)[1:-1]+')')
