@@ -1319,7 +1319,7 @@ def custom_model(func, func_fit_deriv=None):
         >>> print(Beta2D.__doc__)
         Two dimensional beta function.
         >>> model = Beta2D()
-        >>> model(1, 1)
+        >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
 
