@@ -505,7 +505,11 @@ class InheritDocstrings(type):
 def in_ipynb():
     try:
         cfg = get_ipython().config 
-        if cfg['IPKernelApp']['parent_appname'] == 'ipython-notebook':
+        app = cfg['IPKernelApp']
+        # ipython 1.0 console has no 'parent_appname',
+        # but ipynb does
+        if ('parent_appname' in app and
+            app['parent_appname'] == 'ipython-notebook'):
             return True
         else:
             return False
