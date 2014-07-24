@@ -513,7 +513,7 @@ class ProgressBar(six.Iterator):
 
 
         if interactive:
-            self.update_interactive(0)
+            self._update_interactive(0)
         else:    
             self._should_handle_resize = (
                 _CAN_RESIZE_TERMINAL and self._file.isatty())
@@ -524,7 +524,7 @@ class ProgressBar(six.Iterator):
             else:
                 self._signal_set = False
 
-            self.update_console(0)
+            self._update_console(0)
 
     def _handle_resize(self, signum=None, frame=None):
         terminal_width = terminal_size(self._file)[1]
@@ -561,11 +561,11 @@ class ProgressBar(six.Iterator):
         Update progress bar via the console or notebook accordingly.
         """
         if self._interactive:
-            self.update_interactive(value)
+            self._update_interactive(value)
         else:
-            self.update_console(value)
+            self._update_console(value)
 
-    def update_console(self, value=None):
+    def _update_console(self, value=None):
         """
         Update the progress bar to the given value (out of the total
         given to the constructor).
@@ -611,7 +611,7 @@ class ProgressBar(six.Iterator):
             write(human_time(t))
         self._file.flush()
 
-    def update_interactive(self, value=None):
+    def _update_interactive(self, value=None):
         """
         Update the progress bar to the given value (out of a total
         given to the contructor).
@@ -619,17 +619,21 @@ class ProgressBar(six.Iterator):
         This method is for use in the iPython notebook 2+. 
         """
 
-        if hasattr(self, '_pb'):
-            # Update progressbar with new value
-            percent = (value/self._total) * 100
-            self._pb.value = percent
-            self._pb.description = str(percent)+'%'
-        else:
-            # Create and display a progress bar widget
-            self._pb = widgets.FloatProgressWidget()
-            display(self._pb)
-            self._pb.value = 0
-            self._pb.description = str(0)+'%'
+        # Create and display an empty progress bar widget,
+        # if none exists.
+        if not hasattr(self, '_widget'):
+            # Import only if interactive, i.e., widget in iPython NB
+            from IPython.html import widgets
+            from IPython.display import display
+
+            self._widget = widgets.FloatProgressWidget()
+            display(self._widget)
+            self._widget.value = 0
+
+        # Calculate percent completion, and update progress bar    
+        percent = (value/self._total) * 100
+        self._widget.value = percent
+        self._widget.description =' ({0:>6s}%)'.format('{0:.2f}'.format(percent))
 
 
     def _silent_update(self, value=None):
