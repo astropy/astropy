@@ -424,11 +424,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
     fftn, ifftn : functions, optional
         The fft and inverse fft functions.  Can be overridden to use your own
-        ffts, e.g. an fftw3 wrapper or scipy's fftn,
-        ``fft=scipy.fftpack.fftn``
-    complex_dtype : numpy.complex, optional
+        ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
+        ``fftn=scipy.fftpack.fftn``
+    real : bool
+        Use the real fft instead of complex?  rfft and irfft must be passed as
+        ``fftn``, ``ifftn`` for this to work.
+    complex_dtype : `numpy.complex`, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
-        256.
+        256.  Ignored if ``real==True``
     quiet : bool, optional
         Silence warning message about NaN interpolation
     allow_huge : bool, optional
@@ -510,10 +513,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    # Convert array dtype to complex
-    # and ensure that list inputs become arrays
-    array = np.asarray(array, dtype=complex)
-    kernel = np.asarray(kernel, dtype=complex)
+    if real:
+        complex_dtype = array.dtype
+    else:
+        # Convert array dtype to complex
+        # and ensure that list inputs become arrays
+        array = np.asarray(array, dtype=complex_dtype)
+        kernel = np.asarray(kernel, dtype=complex_dtype)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -616,20 +622,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if fft_pad:  # default=True
         if psf_pad:  # default=False
             # add the dimensions and then take the max (bigger)
-            fsize = 2 ** np.ceil(np.log2(
-                np.max(np.array(arrayshape) + np.array(kernshape))))
+            newshape = [_next_regular(x)
+                        for x in (np.array(arrayshape) +
+                                  np.array(kernshape))]
         else:
             # add the shape lists (max of a list of length 4) (smaller)
-            # also makes the shapes square
-            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(array.ndim)], dtype=int)
+            newshape = [max(_next_regular(x),
+                            _next_regular(y)) 
+                        for x,y in zip(arrayshape,kernshape)]
     else:
         if psf_pad:
             # just add the biggest dimensions
             newshape = np.array(arrayshape) + np.array(kernshape)
         else:
             newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in zip(arrayshape, kernshape)])
+                                 for imsh, kernsh in
+                                 zip(arrayshape, kernshape)])
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
@@ -813,3 +821,9 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         raise ValueError('Mode {} is not supported.'.format(mode))
 
     return _CompoundModelMeta._from_operator(mode, model, kernel)
+
+try:
+    from scipy.signal.signaltools import _next_regular
+except ImportError:
+    def _next_regular(x):
+        return int(2 ** np.ceil(np.log2(x)))
