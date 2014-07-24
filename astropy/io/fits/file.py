@@ -108,7 +108,7 @@ class _File(object):
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            urllib.parse.urlparse(fileobj).scheme > 1): # This is an URL.
+            len(urllib.parse.urlparse(fileobj).scheme) > 1): # This is an URL.
                 self.name, _ = urllib.request.urlretrieve(fileobj)
         else:
             self.name = fileobj_name(fileobj)
