@@ -158,6 +158,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Added a ``latex_inline`` unit format that returns the units in LaTeX math
+    notation with negative exponents instead of fractions [#2622].
+
 - ``astropy.utils``
 
 - ``astropy.vo``
