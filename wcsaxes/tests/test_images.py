@@ -147,8 +147,8 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_axislabel('Velocity m/s')
-        ax.coords[1].set_ticks(width=1, exclude_overlapping=True)
-        ax.coords[2].set_ticks(width=1, exclude_overlapping=True)
+        ax.coords[1].set_ticks(width=1, exclude_overlapping=False)
+        ax.coords[2].set_ticks(width=1, exclude_overlapping=False)
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
