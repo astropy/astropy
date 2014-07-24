@@ -155,6 +155,10 @@ Bug Fixes
 
   - ``Distance`` can now take a list of quantities. [#2261]
 
+  - For in-place operations for ``Angle`` instances in which the result unit
+    is not an angle, an exception is raised before the instance is corrupted.
+    [#2718]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

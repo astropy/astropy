@@ -324,8 +324,15 @@ class Quantity(np.ndarray):
             # array, which we can't do if we are doing an in-place operation.
             if result_unit is None:
                 raise TypeError("Cannot store non-quantity output from {0} "
-                                "function in Quantity object"
-                                .format(function.__name__))
+                                "function in {1} instance"
+                                .format(function.__name__, type(self)))
+
+            if self.__quantity_subclass__(result_unit)[0] is not type(self):
+                raise TypeError(
+                    "Cannot store output with unit '{0}' from {1} function "
+                    "in {2} instance.  Use {3} instance instead."
+                    .format(result_unit, function.__name__, type(self),
+                            self.__quantity_subclass__(result_unit)[0]))
 
             # If the Quantity has an integer dtype, in-place operations are
             # dangerous because in some cases the quantity will be e.g.
