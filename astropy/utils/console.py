@@ -619,10 +619,6 @@ class ProgressBar(six.Iterator):
         This method is for use in the iPython notebook 2+. 
         """
 
-        ## IPython notebook widgets
-        #from IPython.html import widgets
-        #from IPython.display import display
-
         if hasattr(self, '_pb'):
             # Update progressbar with new value
             percent = (value/self._total) * 100
