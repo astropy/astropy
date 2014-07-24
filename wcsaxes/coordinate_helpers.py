@@ -166,6 +166,22 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
+    def set_separator(self, separator):
+        """
+        Set the separator to use for the angle major tick labels.
+
+        Parameters
+        ----------
+        separator : The separator between numbers in sexagesimal
+        representation. Can be either a string or a tuple.
+        """
+        if not (self._formatter_locator.__class__ == AngleFormatterLocator):
+            raise TypeError("Separator can only be specified for angle coordinates")
+        if isinstance(separator, six.string_types) or isinstance(separator, tuple):
+            self._formatter_locator.sep = separator
+        else:
+            raise TypeError("separator should be a string or a tuple")
+
     def set_format_unit(self, unit):
         """
         Set the unit for the major tick labels.
