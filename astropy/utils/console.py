@@ -17,10 +17,6 @@ import sys
 import threading
 import time
 
-# Imports for iPython notebook widgets
-from IPython.html import widgets
-from IPython.display import display
-
 try:
     import fcntl
     import termios
@@ -484,6 +480,11 @@ class ProgressBar(six.Iterator):
             to detect the IPython console), the progress bar will be
             completely silent.
         """
+
+        if interactive:
+            # Import only if interactive, i.e., widget in iPython NB
+            from IPython.html import widgets
+            from IPython.display import display
 
         if file is None:
             file = _get_stdout()
