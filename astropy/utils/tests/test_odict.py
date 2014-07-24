@@ -23,7 +23,7 @@ from ..compat.odict import OrderedDict
 from ...tests.helper import pytest
 
 #Skips all of these tests if the builtin ordered dict is available
-pytestmark = pytest.mark.skipif(str("sys.version_info >= (2,7)"))
+#pytestmark = pytest.mark.skipif(str("sys.version_info >= (2,7)"))
 
 
 class TestOrderedDict(unittest.TestCase):
@@ -46,8 +46,8 @@ class TestOrderedDict(unittest.TestCase):
                                           c=3, e=5).items()), pairs)                # mixed input
 
         # make sure no positional args conflict with possible kwdargs
-        self.assertEqual(inspect.getargspec(OrderedDict.__dict__['__init__']).args,
-                         ['self'])
+        #self.assertEqual(inspect.getargspec(OrderedDict.__dict__['__init__']).args,
+        #                 ['self'])
 
         # Make sure that direct calls to __init__ do not clear previous contents
         d = OrderedDict([('a', 1), ('b', 2), ('c', 3), ('d', 44), ('e', 55)])
