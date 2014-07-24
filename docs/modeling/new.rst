@@ -10,22 +10,23 @@ fitting algorithm is to be used and optional if a non-linear fitter is to be
 used.
 
 
-Custom 1-D models
------------------
+Basic custom models
+-------------------
 
-For 1-D models, the `~astropy.modeling.functional_models.custom_model_1d`
-decorator is provided to make it very easy to define new models. The following
-example demonstrates how to set up a model consisting of two Gaussians:
+For most cases, the `~astropy.modeling.custom_model` decorator provides an
+easy way to made a new `~astropy.modeling.Model` class from an existing Python
+callable. The following example demonstrates how to set up a model consisting
+of two Gaussians:
 
 .. plot::
    :include-source:
 
     import numpy as np
-    from astropy.modeling.models import custom_model_1d
+    from astropy.modeling.models import custom_model
     from astropy.modeling.fitting import LevMarLSQFitter
 
     # Define model
-    @custom_model_1d
+    @custom_model
     def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
                             amplitude2=1., mean2=1., sigma2=1.):
         return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
@@ -47,17 +48,22 @@ example demonstrates how to set up a model consisting of two Gaussians:
     plt.plot(x, y, 'o', color='k')
     plt.plot(x, m(x), color='r', lw=2)
 
-.. note::
 
-    Currently this shortcut for model definition only works for 1-D models, but
-    it is being expanded to support 2 or greater dimension models.
+This decorator also supports setting a model's
+`~astropy.modeling.FittableModel.fit_deriv` as well as creating models with
+more than one inputs.  See the `~astropy.modeling.custom_model` documentation
+for more examples.
 
 
 A step by step definition of a 1-D Gaussian model
 -------------------------------------------------
 
-The example described in `Custom 1-D models`_ can be used for most 1-D cases,
-but the following section described how to construct model classes in general.
+The example described in `Basic custom models`_ can be used for most simple
+cases, but the following section described how to construct model classes in
+general.  Defining a full model class may be desireable, for example, to
+provide more specialized parameters, or to implement special functionality not
+supported by the basic `~astropy.modeling.custom_model` factory function.
+
 The details are explained below with a 1-D Gaussian model as an example.  There
 are two base classes for models. If the model is fittable, it should inherit
 from `~astropy.modeling.FittableModel`; if not it should subclass
