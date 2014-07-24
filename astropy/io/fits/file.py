@@ -340,13 +340,9 @@ class _File(object):
         """
 
         # The file will be overwritten...
-        if ((self.file_like and
-                (hasattr(fileobj, 'len') and fileobj.len > 0)) or
-                (os.path.exists(self.name) and
-                 os.path.getsize(self.name) != 0)):
+        if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
+            (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
             if clobber:
-                warnings.warn("Overwriting existing file %r." % self.name,
-                              AstropyUserWarning)
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
                 else:
