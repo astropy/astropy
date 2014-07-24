@@ -514,4 +514,5 @@ def in_ipynb():
         else:
             return False
     except NameError:
+        # NameError will occur if this is called from python (not ipython)
         return False
