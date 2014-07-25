@@ -183,6 +183,9 @@ def test_pix2world():
     pixels = (np.arange(n)*np.ones((2, n))).T
     result = ww.wcs_pix2world(pixels, 0, ra_dec_order=True)
 
+    # Catch #2791
+    ww.wcs_pix2world(pixels[..., 0], pixels[..., 1], 0, ra_dec_order=True)
+
     close_enough = 1e-8
     # assuming that the data of sip2.fits doesn't change
     answer = np.array([[0.00024976, 0.00023018],
@@ -572,4 +575,3 @@ def test_printwcs():
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = wcs.WCS(h)
     w.printwcs()
-
