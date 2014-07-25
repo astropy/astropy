@@ -257,8 +257,8 @@ class TestOrderedDict(unittest.TestCase):
     def test_str(self):
         od = OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])
         self.assertEqual(str(od),
-            "OrderedDict(u'a': 3,\n u'b': 2,\n u'c': 1,\n u'd': 4,\n u'e': 5,\n u'f': 6)")
-        self.assertEqual(str(OrderedDict()), "OrderedDict()")
+            "OrderedDict([('c', 1), ('b', 2), ('a', 3), ('d', 4), ('e', 5), ('f', 6)])")
+        self.assertEqual(str(OrderedDict()), "OrderedDict([])")
 
     def assertIn(self, key, d):
         self.assertTrue(key in d)
