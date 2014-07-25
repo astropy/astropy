@@ -248,16 +248,21 @@ def write_table_fits(input, output, overwrite=False):
 
     # Set units for output HDU
     for col in table_hdu.columns:
-        if input[col.name].unit is not None:
+        unit = input[col.name].unit
+        if unit is not None:
             try:
-                col.unit = input[col.name].unit.to_string(format='fits')
+                col.unit = unit.to_string(format='fits')
             except UnitScaleError:
-                scale = input[col.name].unit.scale
+                scale = unit.scale
                 raise UnitScaleError(
                     "The column '{0}' could not be stored in FITS format "
                     "because it has a scale '({1})' that "
                     "is not recognized by the FITS standard. Either scale "
                     "the data or change the units.".format(col.name, str(scale)))
+            except ValueError:
+                warnings.warn(
+                    "The unit '{0}' could not be saved to FITS format".format(
+                        unit.to_string()), AstropyUserWarning)
 
     for key, value in input.meta.items():
 

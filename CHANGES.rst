@@ -202,6 +202,10 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - When saving a table to a FITS file containing a unit that is not
+    supported by the FITS standard, a warning rather than an exception
+    is raised. [#2797]
+
 - ``astropy.time``
 
 - ``astropy.units``
