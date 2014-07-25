@@ -8,18 +8,21 @@ except ImportError:
     from ._odict_py2 import OrderedDict as NativeOrderedDict
 
 class OrderedDict(NativeOrderedDict):
-    """
-    Dictionary that remembers insertion order
+    r"""Dictionary that remembers insertion order
+
+    The native OrderedDict class is extended here in order to
+    provide a more pleasing printed or string representation.
+
     """
     def __init__(self, *args, **kwds):
-        """
-        Initialize an ordered dictionary, The signature is the same as
+        r"""
+        Initialize an ordered dictionary. The signature is the same as
         regular dictionaries, but keyword arguments are not recommended
         because their insertion order is arbitrary.
         """
         NativeOrderedDict.__init__(self, *args, **kwds)
     def __str__(self):
-        """
+        r"""
         Pretty-printed string representation of OrderedDict.
         x.__str__() <==> str(x)
         """
