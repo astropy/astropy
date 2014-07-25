@@ -3,23 +3,33 @@
 # images/ui-icons_888888_256x240.png
 import os
 
-from ..config.configuration import ConfigurationItem
+from .. import config as _config
 from .. import extern
 
-JQUERY_URL = ConfigurationItem(
-    'jquery_url',
-    'file://' + os.path.abspath(
-        os.path.join(
-            os.path.dirname(extern.__file__), 'js', 'jquery-1.11.0.js')),
-    'URL to jquery.js')
+
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for `astropy.table.jsviewer`.
+    """
+
+    jquery_url = _config.ConfigItem(
+        '',
+        'The URL to the jquery library.')
+
+    datatables_url = _config.ConfigItem(
+        '',
+        'The URL to the jquery datatables library.')
+
+conf = Conf()
 
 
-DATATABLES_URL = ConfigurationItem(
-    'datatables_url',
-    'file://' + os.path.abspath(
-        os.path.join(
-            os.path.dirname(extern.__file__), 'js', 'jquery.dataTables.js')),
-    'datatables_url', None, 'URL to jquery.datatables.js')
+JQUERY_URL = _config.ConfigAlias(
+    '0.4', 'JQUERY_URL', 'jquery_url',
+    'astropy.table.jsviewer', 'astropy.table.jsviewer')
+
+DATATABLES_URL = _config.ConfigAlias(
+    '0.4', 'DATATABLES_URL', 'datatables_url',
+    'astropy.table.jsviewer', 'astropy.table.jsviewer')
 
 
 data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
@@ -89,11 +99,23 @@ class JSViewer(object):
                 L.insert(0, display_length)
 
     def _jquery_file(self):
-        return '<script src="{0}"></script>'.format(JQUERY_URL())
+        jquery_url = conf.jquery_url
+        if not jquery_url:
+            jquery_url = 'file://' + os.path.abspath(
+                os.path.join(
+                    os.path.dirname(extern.__file__), 'js', 'jquery-1.11.0.js'))
+        return '<script src="{0}"></script>'.format(jquery_url)
 
     def _jstable_file(self):
         # downloaded from http://datatables.net/download/build/
-        return '<script class="jsbin" src="{0}"></script>'.format(DATATABLES_URL())
+        datatables_url = conf.datatables_url
+        if not datatables_url:
+            datatables_url = 'file://' + os.path.abspath(
+                os.path.join(
+                    os.path.dirname(extern.__file__), 'js',
+                    'jquery.dataTables.js'))
+        return '<script class="jsbin" src="{0}"></script>'.format(
+            datatables_url)
 
     def _css_files(self):
         return [

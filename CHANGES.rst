@@ -6,6 +6,24 @@ Bug Fixes
 
 - ``astropy.config``
 
+  - Fixed a bug where an unedited configuration file from astropy
+    0.3.2 would not be correctly identified as unedited. [#2772] This
+    resulted in the warning::
+
+      WARNING: ConfigurationChangedWarning: The configuration options
+      in astropy 0.4 may have changed, your configuration file was not
+      updated in order to preserve local changes.  A new configuration
+      template has been saved to
+      '~/.astropy/config/astropy.0.4.cfg'. [astropy.config.configuration]
+
+  - Fixed the error message that is displayed when an old
+    configuration item has moved.  Before, the destination
+    section was wrong.  [#2772]
+
+  - Added configuration settings for ``io.fits``, ``io.votable`` and
+    ``table.jsviewer`` that were missing from the configuration file
+    template. [#2772]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``
