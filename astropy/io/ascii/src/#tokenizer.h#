@@ -32,7 +32,6 @@ typedef enum
 typedef struct
 {
     char *source;          // single string containing all of the input
-    FILE *fhandle;         // file handle for header reading (if applicable)
     int source_len;        // length of the input
     int source_pos;        // current index in source for tokenization
     char delimiter;        // delimiter character
@@ -80,7 +79,7 @@ double str_to_double(tokenizer_t *self, char *str);
 void start_iteration(tokenizer_t *self, int col);
 int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self);
-char *read_file_chunk(FILE *fhandle, int len);
-long file_len(FILE *fhandle);
+static double xstrtod(const char *str, char **endptr, char decimal,
+                      char sci, char tsep, int skip_trailing);
 
 #endif

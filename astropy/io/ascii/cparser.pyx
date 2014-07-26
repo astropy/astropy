@@ -7,6 +7,7 @@ from ...utils.data import get_readable_fileobj
 from ...table import pprint
 from ...extern import six
 from . import core
+from libc cimport stdio
 from distutils import version
 import csv
 import os
@@ -34,6 +35,7 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
+        stdio.FILE *fhandle     # file handle for header reading (if applicable)
         int source_len         # length of the input
         int source_pos         # current index in source for tokenization
         char delimiter         # delimiter character
@@ -72,6 +74,8 @@ cdef extern from "src/tokenizer.h":
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self)
+    char *read_file_chunk(stdio.FILE *fhandle, int len)
+    long file_len(stdio.FILE *fhandle)
 
 class CParserError(Exception):
     """
@@ -84,8 +88,40 @@ ERR_CODES = dict(enumerate([
     "invalid line supplied",
     lambda line: "too many columns found in line {0} of data".format(line),
     lambda line: "not enough columns found in line {0} of data".format(line),
-    "type conversion error"
+    "type conversion error",
+    "overflow error"
     ]))
+
+cdef class FileString:
+    """
+    A file wrapper class which provides string-like methods.
+    """
+    cdef:
+        stdio.FILE *fhandle
+        int pos
+        int length
+
+    def __cinit__(self, fname):
+        self.fhandle = stdio.fopen(fname, b'r')
+        if not self.fhandle:
+            raise IOError('File "{0}" could not be opened'.format(fname))
+        self.pos = 0
+        self.length = -1
+
+    def __dealloc__(self):
+        if self.fhandle:
+            stdio.fclose(self.fhandle)
+
+    def __len__(self):
+        if self.length == -1:
+            self.length = file_len(self.fhandle)
+        return self.length
+
+    def __getitem__(self, i):
+        if i != self.pos + 1:
+            stdio.fseek(self.fhandle, i, stdio.SEEK_SET)
+        self.pos = i
+        return chr(stdio.getc(self.fhandle))
 
 cdef class CParser:
     """
@@ -105,11 +141,12 @@ cdef class CParser:
         set fill_names
         int fill_extra_cols
         np.ndarray use_cols
+        bytes source_bytes
 
     cdef public:
         int width
         object names
-        bytes source
+        object source
         object header_start
 
     def __cinit__(self, source, strip_line_whitespace, strip_line_fields,
@@ -163,23 +200,30 @@ cdef class CParser:
         raise self.get_error(self.tokenizer.code, self.tokenizer.num_rows, msg)
 
     cpdef setup_tokenizer(self, source):
-        if isinstance(source, six.string_types) or hasattr(source, 'read'):
-            # Either filename or file-like object
-            if hasattr(source, 'read') or '\n' not in source: 
-                with get_readable_fileobj(source) as file_obj:
-                    source = file_obj.read()
+        cdef FileString fstring
+
+        if isinstance(source, six.string_types): # filename or data
+            if '\n' not in source: # filename
+                fstring = FileString(source)
+                self.tokenizer.fhandle = fstring.fhandle
+                self.source = fstring
+                self.tokenizer.source_len = len(fstring)
+                return
             # Otherwise, source is the actual data so we leave it be
-        else:
+        elif hasattr(source, 'read'): # file-like object
+            with get_readable_fileobj(source) as file_obj:
+                source = file_obj.read()
+        elif not isinstance(source, FileString):
             try:
                 source = '\n'.join(source) # iterable sequence of lines
             except TypeError:
                 raise TypeError('Input "table" must be a file-like object, a '
                                 'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
-        source = source + "\n" # add a final newline to simplify tokenizing
-        self.source = source.encode('ascii') # encode in ASCII for char * handling
-        self.tokenizer.source = self.source
-        self.tokenizer.source_len = len(self.source)
+        self.source = source + "\n" # add a final newline to simplify tokenizing
+        self.source_bytes = self.source.encode('ascii') # encode in ASCII for char * handling
+        self.tokenizer.source = self.source_bytes
+        self.tokenizer.source_len = len(self.source_bytes)
 
     def read_header(self):
         self.tokenizer.source_pos = 0
@@ -247,17 +291,22 @@ cdef class CParser:
         self.tokenizer.num_cols = self.width
 
     def read(self, try_int, try_float, try_string):
-        # TODO: deal with data_end
+        cdef int source_len = len(self.source)
         self.tokenizer.source_pos = 0
+
+        if self.tokenizer.fhandle:
+            stdio.fseek(self.tokenizer.fhandle, 0, stdio.SEEK_SET)
+
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
+
         cdef int N = 8 # figure out what to choose for N here
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
-        cdef int chunksize = math.ceil((self.tokenizer.source_len - offset) / float(N))
+        cdef int chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
-        cdef int source_len = len(self.source)
+        cdef long read_pos = stdio.ftell(self.tokenizer.fhandle) if self.tokenizer.fhandle else 0
 
         # This queue is used to signal processes to reconvert if necessary
         reconvert_queue = multiprocessing.Queue()
@@ -272,14 +321,32 @@ cdef class CParser:
                 N = i
                 break
 
-        chunkindices.append(self.tokenizer.source_len) #figure out correct chunkindices
+        chunkindices.append(source_len) #figure out correct chunkindices
+        cdef list source_chunks = []
+        cdef char *file_chunk
+
+        if self.tokenizer.fhandle:
+            stdio.fseek(self.tokenizer.fhandle, read_pos, stdio.SEEK_SET)
+
+        for i in range(N):
+            if self.tokenizer.fhandle:
+                read_len = chunkindices[i + 1] - chunkindices[i]
+                if i == N - 1:
+                    read_len -= 1 # TODO: find out why this is necessary
+                file_chunk = read_file_chunk(self.tokenizer.fhandle, read_len)
+                if not file_chunk:
+                    raise IOError('an error occurred while reading file data')
+                source_chunks.append(file_chunk)
+            else:
+                source_chunks.append((chunkindices[i], chunkindices[i + 1]))
+
         self._set_fill_names()
         cdef list processes = []
 
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
-                chunkindices[i], chunkindices[i + 1],
-                try_int, try_float, try_string, queue, reconvert_queue, i))
+                source_chunks[i], try_int, try_float, try_string,
+                queue, reconvert_queue, i))
             processes.append(process)
             process.start()
 
@@ -372,14 +439,19 @@ cdef class CParser:
 
         return ret
 
-    def _read_chunk(self, start, end, try_int, try_float, try_string, queue,
+    def _read_chunk(self, source_chunk, try_int, try_float, try_string, queue,
                     reconvert_queue, i):
-        data_start = self.data_start if start == 0 else 0
         cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
-        chunk_tokenizer.source = self.source
+        if isinstance(source_chunk, tuple):
+            chunk_tokenizer.source = self.source_bytes
+            chunk_tokenizer.source_len = source_chunk[1]
+            chunk_tokenizer.source_pos = source_chunk[0]
+        else:
+            chunk_tokenizer.source = source_chunk
+            chunk_tokenizer.source_len = len(source_chunk)
+
         chunk_tokenizer.num_cols = self.width
-        chunk_tokenizer.source_pos = start
-        chunk_tokenizer.source_len = end
+
         data = None
         err = None
 
