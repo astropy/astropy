@@ -10,11 +10,14 @@ from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
     from cStringIO import StringIO
+    HAS_STRINGIO = True
 except ImportError: # cStringIO might not be present
     StringIO = lambda x: x.split('\n')
+    HAS_STRINGIO = False
 import numpy as np
 from numpy import ma
 from ....extern import six
+from tempfile import NamedTemporaryFile
 
 def assert_table_equal(t1, t2):
     assert_equal(len(t1), len(t2))
@@ -39,6 +42,17 @@ def _read(table, Reader, format, **kwargs):
     t3 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
+
+    try:
+        content = table.getvalue()
+        with NamedTemporaryFile() as f:
+            f.write(content)
+            f.flush()
+            t4 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
+        assert_table_equal(t3, t4)
+    except AttributeError: # not a StringIO object
+        pass
+
     return t1
 
 def read_basic(table, **kwargs):

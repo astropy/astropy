@@ -220,8 +220,10 @@ cdef class CParser:
                 raise TypeError('Input "table" must be a file-like object, a '
                                 'string (filename or data), or an iterable')
         # Create a reference to the Python object so its char * pointer remains valid
-        self.source = source + "\n" # add a final newline to simplify tokenizing
-        self.source_bytes = self.source.encode('ascii') # encode in ASCII for char * handling
+        self.source = source
+
+        # encode in ASCII for char * handling
+        self.source_bytes = self.source.encode('ascii')
         self.tokenizer.source = self.source_bytes
         self.tokenizer.source_len = len(self.source_bytes)
 
@@ -304,15 +306,20 @@ cdef class CParser:
         cdef int N = 8 # figure out what to choose for N here
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
+
+        if offset == source_len: # no data
+            return dict((name, []) for name in self.names)
+
         cdef int chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
-        cdef long read_pos = stdio.ftell(self.tokenizer.fhandle) if self.tokenizer.fhandle else 0
+        cdef long read_pos = stdio.ftell(self.tokenizer.fhandle) if \
+                             self.tokenizer.fhandle else 0
 
         # This queue is used to signal processes to reconvert if necessary
         reconvert_queue = multiprocessing.Queue()
 
         for i in range(1, N):
-            index = offset + chunksize * i
+            index = max(offset + chunksize * i, chunkindices[i - 1])
             while index < source_len and self.source[index] != '\n':
                 index += 1
             if index < source_len:
@@ -331,8 +338,6 @@ cdef class CParser:
         for i in range(N):
             if self.tokenizer.fhandle:
                 read_len = chunkindices[i + 1] - chunkindices[i]
-                if i == N - 1:
-                    read_len -= 1 # TODO: find out why this is necessary
                 file_chunk = read_file_chunk(self.tokenizer.fhandle, read_len)
                 if not file_chunk:
                     raise IOError('an error occurred while reading file data')
@@ -449,7 +454,6 @@ cdef class CParser:
         else:
             chunk_tokenizer.source = source_chunk
             chunk_tokenizer.source_len = len(source_chunk)
-
         chunk_tokenizer.num_cols = self.width
 
         data = None

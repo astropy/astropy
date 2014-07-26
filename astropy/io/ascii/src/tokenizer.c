@@ -257,18 +257,15 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             if (self->comment != 0 && c == self->comment)
                 comment = 1;
 	}
-        else
+        else if (c == '\n')
         {
-            ++self->source_pos;
-            if (c == '\n')
-            {
-                if (!empty && !comment) // significant line
-                    ++i;
-                // Start by assuming a line is empty and non-commented
-                empty = 1;
-                comment = 0;
-            }
+            if (!empty && !comment) // significant line
+                ++i;
+            // Start by assuming a line is empty and non-commented
+            empty = 1;
+            comment = 0;
         }
+        ++self->source_pos;
     }
 
     RETURN(NO_ERROR);
@@ -314,9 +311,11 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
     self->state = START_LINE;
     // Loop until all of source has been read or we finish for some other reason
 
-    while (self->source_pos < self->source_len && !done)
+    while (self->source_pos < self->source_len + 1 && !done)
     {
-        if (self->fhandle && header)
+        if (self->source_pos == self->source_len)
+            c = '\n';
+        else if (self->fhandle && header)
             c = getc(self->fhandle);
         else
             c = self->source[self->source_pos]; // next character of input
