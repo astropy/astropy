@@ -38,7 +38,7 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
-        stdio.FILE *fhandle     # file handle for header reading (if applicable)
+        stdio.FILE *fhandle    # file handle for header reading (if applicable)
         int source_len         # length of the input
         int source_pos         # current index in source for tokenization
         char delimiter         # delimiter character
@@ -81,6 +81,9 @@ cdef extern from "src/tokenizer.h":
     long file_len(stdio.FILE *fhandle)
     char *get_line(stdio.FILE *fhandle)
     char *read_file_data(stdio.FILE *fhandle, int len)
+    int can_mmap()
+    char *get_mmap(stdio.FILE *fhandle, long len)
+    void free_mmap(char *buf, long len)
 
 class CParserError(Exception):
     """
@@ -103,17 +106,21 @@ cdef class FileString:
     """
     cdef:
         stdio.FILE *fhandle
+        char *memmap
         int pos
-        int length
+        long length
 
-    def __cinit__(self, fname):
+    def __cinit__(self, fname, memmap):
         self.fhandle = stdio.fopen(fname, b'r')
         if not self.fhandle:
             raise IOError('File "{0}" could not be opened'.format(fname))
         self.pos = 0
         self.length = -1
+        self.memmap = <char *>0
 
     def __dealloc__(self):
+        if self.memmap:
+            free_mmap(self.memmap, len(self))
         if self.fhandle:
             stdio.fclose(self.fhandle)
 
@@ -139,6 +146,11 @@ cdef class FileString:
             line = ptr
             yield line[:-1]
 
+    def setup_memmap(self):
+        self.memmap = get_mmap(self.fhandle, len(self))
+        if not self.memmap:
+            return IOError("memory mapping failed")
+
 cdef class CParser:
     """
     A fast Cython parser class which uses underlying C code
@@ -159,6 +171,7 @@ cdef class CParser:
         np.ndarray use_cols
         bytes source_bytes
         object parallel
+        object memmap
 
     cdef public:
         int width
@@ -180,7 +193,8 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  parallel=False):
+                  parallel=False,
+                  memory_map=False):
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
@@ -189,6 +203,7 @@ cdef class CParser:
                                           strip_line_whitespace,
                                           strip_line_fields)
         self.source = None
+        self.memmap = memory_map and can_mmap() # make sure memory mapping is possible
         self.setup_tokenizer(source)
         self.header_start = header_start
         self.data_start = data_start
@@ -230,8 +245,14 @@ cdef class CParser:
 
         if isinstance(source, six.string_types): # filename or data
             if '\n' not in source: # filename
-                fstring = FileString(source)
-                self.tokenizer.fhandle = fstring.fhandle
+                fstring = FileString(source, self.memmap)
+                if self.memmap:
+                    fstring.setup_memmap()
+                    self.tokenizer.fhandle = <stdio.FILE *>0
+                    self.tokenizer.source = fstring.memmap
+                    self.source_bytes = fstring.memmap
+                else:
+                    self.tokenizer.fhandle = fstring.fhandle
                 self.source = fstring
                 self.tokenizer.source_len = len(fstring)
                 return
@@ -265,7 +286,7 @@ cdef class CParser:
         if not ptr:
             raise IOError("An error occurred while reading whole file into memory")
 
-        self.source_bytes = ptr
+        self.source_bytes = <bytes> ptr
         self.source = self.source_bytes.decode('ascii')
         self.tokenizer.fhandle = <stdio.FILE *>0
         self.tokenizer.source = self.source_bytes
@@ -515,8 +536,12 @@ cdef class CParser:
                 else:
                     ret[name] = np.concatenate((ret[name], chunk[name]))
 
+        for process in processes:
+            process.terminate()
+
         return ret
 
+    # TODO: move this outside CParser, remove self as parameter
     def _read_chunk(self, source_chunk, try_int, try_float, try_string, queue,
                     reconvert_queue, i):
         cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
@@ -551,6 +576,7 @@ cdef class CParser:
         reconvert_cols = reconvert_queue.get()
         for col in reconvert_cols:
             queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
+        delete_tokenizer(chunk_tokenizer)
         reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
     cdef _set_fill_names(self):

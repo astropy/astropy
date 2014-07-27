@@ -84,5 +84,8 @@ char *read_file_chunk(FILE *fhandle, int len);
 long file_len(FILE *fhandle);
 char *get_line(FILE *fhandle);
 char *read_file_data(FILE *fhandle, long len);
+int can_mmap(void);
+char *get_mmap(FILE *fhandle, long len);
+void free_mmap(char *buf, long len);
 
 #endif

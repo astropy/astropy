@@ -58,11 +58,13 @@ void delete_data(tokenizer_t *tokenizer)
     
     free(tokenizer->output_cols);
     free(tokenizer->col_ptrs);
+    free(tokenizer->output_len);
 
     // Set pointers to 0 so we don't use freed memory when reading over again
     tokenizer->header_output = 0;
     tokenizer->output_cols = 0;
     tokenizer->col_ptrs = 0;
+    tokenizer->output_len = 0;
 }
 
 void delete_tokenizer(tokenizer_t *tokenizer)
@@ -574,7 +576,7 @@ char *next_field(tokenizer_t *self)
 char *read_file_chunk(FILE *fhandle, int len)
 {
     // TODO: make sure this chunk is free()'d by Cython
-    char *buf = calloc(len, sizeof(char));
+    char *buf = calloc(len + 1, sizeof(char));
     if (fread(buf, sizeof(char), len, fhandle) != len * sizeof(char))
         return 0;
     return buf;
@@ -590,7 +592,7 @@ long file_len(FILE *fhandle)
 
 char *get_line(FILE *fhandle)
 {
-    char *buf = (char *)calloc(1000, sizeof(char)); // TODO: handle long lines, make sure this is free()d
+    char *buf = (char *)calloc(1001, sizeof(char)); // TODO: handle long lines, make sure this is free()d
     char *ret = fgets(buf, 1000, fhandle);
     if (!ret && ferror(fhandle))
         return 0;
@@ -607,3 +609,44 @@ char *read_file_data(FILE *fhandle, long len)
 
     return buf;
 }
+
+// memory mapping won't work on Windows
+
+#if !defined(_WIN32)
+#include <sys/mman.h>
+
+int can_mmap(void)
+{
+    return 1;
+}
+
+char *get_mmap(FILE *fhandle, long len)
+{
+    char *ret = (char *)mmap(0, len, PROT_READ, MAP_SHARED, fileno(fhandle), 0);
+    if (ret == MAP_FAILED)
+        return 0;
+    return ret;
+}
+
+void free_mmap(char *buf, long len)
+{
+    munmap(buf, len);
+}
+
+#else
+
+int can_mmap(void)
+{
+    return 0;
+}
+
+char *get_mmap(FILE *fhandle, long len)
+{
+    return 0;
+}
+
+void free_mmap(char *buf, long len)
+{
+}
+
+#endif

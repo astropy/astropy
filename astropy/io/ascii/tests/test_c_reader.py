@@ -46,15 +46,21 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
     if not fail_parallel:
         t4 = ascii.read(table, format=format, guess=False, use_fast_reader=True,
                         parallel=True, **kwargs)
+        t5 = ascii.read(table, format=format, guess=False, use_fast_reader=True,
+                        parallel=True, memory_map=True, **kwargs)
         assert_table_equal(t3, t4)
+        assert_table_equal(t4, t5)
 
     try:
         content = table.getvalue()
         with NamedTemporaryFile() as f:
             f.write(content)
             f.flush()
-            t5 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
-        assert_table_equal(t1, t5)
+            t6 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
+            t7 = ascii.read(f.name, format=format, guess=False,
+                            use_fast_reader=True, memory_map=True, **kwargs)
+        assert_table_equal(t1, t6)
+        assert_table_equal(t1, t7)
         return t1
     except AttributeError as e:
         if "no attribute 'getvalue'" in str(e):
