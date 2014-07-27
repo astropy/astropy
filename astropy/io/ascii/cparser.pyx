@@ -460,7 +460,8 @@ cdef class CParser:
 
         for chunk in chunks:
             for name in chunk:
-                if chunk[name].dtype.kind == 'S': # string values in column
+                if isinstance(chunk[name], list) or chunk[name].dtype.kind == 'S':
+                    # string values in column
                     seen_str[name] = True
                 elif len(chunk[name]) > 0: # ignore empty chunk columns
                     seen_numeric[name] = True
@@ -686,13 +687,13 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i, int nrows):
+    cdef _convert_str(self, tokenizer_t *t, int i, int nrows):
         # similar to _convert_int, but no actual conversion
         cdef int num_rows = t.num_rows
         if nrows != -1:
             num_rows = nrows
 
-        cdef np.ndarray col = np.empty(num_rows, dtype=object)
+        cdef list col = []
         cdef int row = 0
         cdef bytes field
         cdef bytes new_val
@@ -715,11 +716,9 @@ cdef class CParser:
                 el = field.decode('ascii')
             # update max_len with the length of each field
             max_len = max(max_len, len(el))
-            col[row] = el
+            col.append(el)
             row += 1
 
-        # convert to string with smallest length possible
-        col = col.astype('|S{0}'.format(max_len))
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in
                                               range(row)])

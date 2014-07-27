@@ -187,10 +187,10 @@ A B C D E
 """
     table = read_basic(StringIO(text))
     assert_equal(table['A'].dtype.kind, 'f')
-    assert_equal(table['B'].dtype.kind, 'S')
+    assert table['B'].dtype.kind in ('S', 'U')
     assert_equal(table['C'].dtype.kind, 'i')
     assert_equal(table['D'].dtype.kind, 'f')
-    assert_equal(table['E'].dtype.kind, 'S')
+    assert table['E'].dtype.kind in ('S', 'U')
 
 def test_delimiter():
     """
@@ -365,7 +365,7 @@ nan, 5, -9999
     assert isinstance(table['A'], MaskedColumn)
     assert table['A'][0] is ma.masked
     # '0' rather than 0 because there is a string in the column
-    assert_equal(table['A'].data.data[0], '0'.encode('utf-8')) # for Python 3 compatibility
+    assert_equal(table['A'].data.data[0], '0') # for Python 3 compatibility
     assert table['A'][1] is not ma.masked
 
     table = read_basic(StringIO(text), delimiter=',', fill_values=('-999', '0'))
@@ -388,8 +388,8 @@ nan, 5, -9999
     assert table['B'][3] is not ma.masked # should skip masking as well as replacing nan
     assert table['A'][0] is ma.masked
     assert table['A'][2] is ma.masked
-    assert_equal(table['A'].data.data[0], '0'.encode('utf-8'))
-    assert_equal(table['A'].data.data[2], '999'.encode('utf-8'))
+    assert_equal(table['A'].data.data[0], '0')
+    assert_equal(table['A'].data.data[2], '999')
     assert table['C'][0] is ma.masked
     assert_almost_equal(table['C'].data.data[0], 999.0)
     assert_almost_equal(table['C'][1], -3.4) # column is still of type float
@@ -471,11 +471,11 @@ def test_read_tab():
     """
     text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
     table = read_tab(StringIO(text), fail_parallel=True)
-    assert_equal(table['1'][0], '  a'.encode('utf-8')) # preserve line whitespace
-    assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
-    assert table['3'][0] is ma.masked                  # empty value should be masked
-    assert_equal(table['2'][1], ' d e'.encode('utf-8'))  # preserve whitespace in quoted fields
-    assert_equal(table['3'][1], '  '.encode('utf-8'))  # preserve end-of-line whitespace
+    assert_equal(table['1'][0], '  a')   # preserve line whitespace
+    assert_equal(table['2'][0], ' b ')   # preserve field whitespace
+    assert table['3'][0] is ma.masked    # empty value should be masked
+    assert_equal(table['2'][1], ' d e')  # preserve whitespace in quoted fields
+    assert_equal(table['3'][1], '  ')    # preserve end-of-line whitespace
 
 def test_default_data_start():
     """
@@ -530,7 +530,7 @@ A\tB\tC
     expected = Table([[1], [' 9'], [4.3]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
     assert_equal(table['A'].dtype.kind, 'i')
-    assert_equal(table['B'].dtype.kind, 'S')
+    assert table['B'].dtype.kind in ('S', 'U')
     assert_equal(table['C'].dtype.kind, 'f')
 
     with pytest.raises(ValueError) as e:
