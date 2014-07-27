@@ -13,7 +13,10 @@ import csv
 import os
 import math
 import multiprocessing
-import Queue
+try:
+    import Queue
+except ImportError: # on python 3, the module is named queue
+    import queue as Queue
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:
@@ -76,6 +79,8 @@ cdef extern from "src/tokenizer.h":
     char *next_field(tokenizer_t *self)
     char *read_file_chunk(stdio.FILE *fhandle, int len)
     long file_len(stdio.FILE *fhandle)
+    char *get_line(stdio.FILE *fhandle)
+    char *read_file_data(stdio.FILE *fhandle, int len)
 
 class CParserError(Exception):
     """
@@ -123,6 +128,17 @@ cdef class FileString:
         self.pos = i
         return chr(stdio.getc(self.fhandle))
 
+    def splitlines(self):
+        stdio.fseek(self.fhandle, 0, stdio.SEEK_SET)
+        cdef bytes line
+        cdef char *ptr
+        while not stdio.feof(self.fhandle):
+            ptr = get_line(self.fhandle)
+            if not ptr:
+                raise IOError("An error occurred while splitting file into lines")
+            line = ptr
+            yield line[:-1]
+
 cdef class CParser:
     """
     A fast Cython parser class which uses underlying C code
@@ -142,6 +158,7 @@ cdef class CParser:
         int fill_extra_cols
         np.ndarray use_cols
         bytes source_bytes
+        object parallel
 
     cdef public:
         int width
@@ -162,7 +179,8 @@ cdef class CParser:
                   fill_values=('', '0'),
                   fill_include_names=None,
                   fill_exclude_names=None,
-                  fill_extra_cols=0):
+                  fill_extra_cols=0,
+                  parallel=False):
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
@@ -182,6 +200,14 @@ cdef class CParser:
         self.fill_include_names = fill_include_names
         self.fill_exclude_names = fill_exclude_names
         self.fill_extra_cols = fill_extra_cols
+
+        # parallel=True indicates that we should use the CPU count
+        if parallel is True:
+            parallel = multiprocessing.cpu_count()
+        # If parallel = 1 or 0, don't use multiprocessing
+        elif parallel is not False and parallel < 2:
+            parallel = False
+        self.parallel = parallel
     
     def __dealloc__(self):
         if self.tokenizer:
@@ -213,7 +239,12 @@ cdef class CParser:
         elif hasattr(source, 'read'): # file-like object
             with get_readable_fileobj(source) as file_obj:
                 source = file_obj.read()
-        elif not isinstance(source, FileString):
+        elif isinstance(source, FileString):
+            self.tokenizer.fhandle = (<FileString>source).fhandle
+            self.source = source
+            self.tokenizer.source_len = len(source)
+            return
+        else:
             try:
                 source = '\n'.join(source) # iterable sequence of lines
             except TypeError:
@@ -226,6 +257,18 @@ cdef class CParser:
         self.source_bytes = self.source.encode('ascii')
         self.tokenizer.source = self.source_bytes
         self.tokenizer.source_len = len(self.source_bytes)
+        self.tokenizer.fhandle = <stdio.FILE *>0
+
+    cdef _read_file(self):            
+        cdef char *ptr = read_file_data(self.tokenizer.fhandle,
+                                        self.tokenizer.source_len)
+        if not ptr:
+            raise IOError("An error occurred while reading whole file into memory")
+
+        self.source_bytes = ptr
+        self.source = self.source_bytes.decode('ascii')
+        self.tokenizer.fhandle = <stdio.FILE *>0
+        self.tokenizer.source = self.source_bytes
 
     def read_header(self):
         self.tokenizer.source_pos = 0
@@ -242,6 +285,7 @@ cdef class CParser:
                 self.raise_error("an error occurred while tokenizing the header line")
             self.names = []
             name = ''
+
             for i in range(self.tokenizer.header_len):
                 c = self.tokenizer.header_output[i] # next char in header string
                 if not c: # zero byte -- field terminator
@@ -290,9 +334,37 @@ cdef class CParser:
         # self.names should only contain columns included in output
         self.names = [self.names[i] for i, should_use in enumerate(self.use_cols) if should_use]
         self.width = len(self.names)
-        self.tokenizer.num_cols = self.width
+        self.tokenizer.num_cols = self.width        
 
     def read(self, try_int, try_float, try_string):
+        if self.parallel:
+            return self._read_parallel(try_int, try_float, try_string)
+
+        # Read in a single process
+        if self.tokenizer.fhandle:
+            self._read_file() # get a single string with the entire data
+
+        self.tokenizer.source_pos = 0
+        if skip_lines(self.tokenizer, self.data_start, 0) != 0:
+            self.raise_error("an error occurred while advancing to the first "
+                             "line of data")
+
+        cdef int data_end = -1 # keep reading data until the end
+        if self.data_end is not None and self.data_end >= 0:
+            data_end = self.data_end - self.data_start #TODO: handle data_start<data_end
+        if tokenize(self.tokenizer, data_end, 0, <int *> self.use_cols.data,
+                    len(self.use_cols)) != 0:
+            self.raise_error("an error occurred while parsing table data")
+        elif self.tokenizer.num_rows == 0: # no data
+            return [[]] * self.width
+        self._set_fill_names()
+        cdef int num_rows = self.tokenizer.num_rows
+        if self.data_end is not None and self.data_end < 0: # negative indexing
+            num_rows += self.data_end
+        return self._convert_data(self.tokenizer, try_int, try_float,
+                                  try_string, num_rows)
+
+    def _read_parallel(self, try_int, try_float, try_string):
         cdef int source_len = len(self.source)
         self.tokenizer.source_pos = 0
 
@@ -303,7 +375,7 @@ cdef class CParser:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
 
-        cdef int N = 8 # figure out what to choose for N here
+        cdef int N = self.parallel
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
 
@@ -466,7 +538,8 @@ cdef class CParser:
             data = dict((name, np.array([], np.int_)) for name in self.names)
         else:
             try:
-                data = self._convert_data(chunk_tokenizer, try_int, try_float, try_string)
+                data = self._convert_data(chunk_tokenizer,
+                                          try_int, try_float, try_string, -1)
             except Exception as e:
                 delete_tokenizer(chunk_tokenizer)
                 queue.put((None, e, i))
@@ -476,7 +549,7 @@ cdef class CParser:
 
         reconvert_cols = reconvert_queue.get()
         for col in reconvert_cols:
-            queue.put((self._convert_str(chunk_tokenizer, col), i, col))
+            queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
         reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
     cdef _set_fill_names(self):
@@ -486,7 +559,7 @@ cdef class CParser:
         if self.fill_exclude_names is not None:
             self.fill_names.difference_update(self.fill_exclude_names)
 
-    cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string):
+    cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string, num_rows):
         cols = {}
 
         for i, name in enumerate(self.names):
@@ -494,21 +567,23 @@ cdef class CParser:
             try:
                 if try_int and not try_int[name]:
                     raise ValueError()
-                cols[name] = self._convert_int(t, i)
+                cols[name] = self._convert_int(t, i, num_rows)
             except ValueError:
                 try:
                     if try_float and not try_float[name]:
                         raise ValueError()
-                    cols[name] = self._convert_float(t, i)
+                    cols[name] = self._convert_float(t, i, num_rows)
                 except ValueError:
                     if try_string and not try_string[name]:
                         raise ValueError('Column {0} failed to convert'.format(name))
-                    cols[name] = self._convert_str(t, i)
+                    cols[name] = self._convert_str(t, i, num_rows)
 
         return cols
 
-    cdef np.ndarray _convert_int(self, tokenizer_t *t, int i):
+    cdef np.ndarray _convert_int(self, tokenizer_t *t, int i, int nrows):
         cdef int num_rows = t.num_rows
+        if nrows != -1:
+            num_rows = nrows
         # intialize ndarray
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
         cdef np.ndarray str_col = np.empty(num_rows, dtype=object) 
@@ -559,9 +634,12 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_float(self, tokenizer_t *t, int i):
-        cdef int num_rows = t.num_rows
+    cdef np.ndarray _convert_float(self, tokenizer_t *t, int i, int nrows):
         # very similar to _convert_int()
+        cdef int num_rows = t.num_rows
+        if nrows != -1:
+            num_rows = nrows
+
         cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
         cdef double converted
         cdef int row = 0
@@ -608,9 +686,12 @@ cdef class CParser:
         else:
             return col
 
-    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i):
-        cdef int num_rows = t.num_rows
+    cdef np.ndarray _convert_str(self, tokenizer_t *t, int i, int nrows):
         # similar to _convert_int, but no actual conversion
+        cdef int num_rows = t.num_rows
+        if nrows != -1:
+            num_rows = nrows
+
         cdef np.ndarray col = np.empty(num_rows, dtype=object)
         cdef int row = 0
         cdef bytes field

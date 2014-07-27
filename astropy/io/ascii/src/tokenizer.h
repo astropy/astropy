@@ -82,5 +82,7 @@ int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self);
 char *read_file_chunk(FILE *fhandle, int len);
 long file_len(FILE *fhandle);
+char *get_line(FILE *fhandle);
+char *read_file_data(FILE *fhandle, long len);
 
 #endif

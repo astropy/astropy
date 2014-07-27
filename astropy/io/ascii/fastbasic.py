@@ -194,7 +194,7 @@ class FastCommentedHeader(FastBasic):
         tmp = self.engine.source
         commented_lines = []
 
-        for line in tmp.split('\n'):
+        for line in tmp.splitlines(): #TODO: handle Windows line breaks
             line = line.lstrip()
             if line:
                 if line[0] == self.comment: # line begins with a comment
@@ -231,7 +231,7 @@ class FastRdb(FastBasic):
         tmp = self.engine.source
         line1 = ''
         line2 = ''
-        for line in tmp.split('\n'):
+        for line in tmp.splitlines():
             # valid non-comment line
             if not line1 and line.strip() and line.lstrip()[0] != self.comment:
                 line1 = line

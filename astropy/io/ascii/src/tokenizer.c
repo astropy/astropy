@@ -587,3 +587,23 @@ long file_len(FILE *fhandle)
     fseek(fhandle, 0, SEEK_SET);
     return ret;
 }
+
+char *get_line(FILE *fhandle)
+{
+    char *buf = (char *)calloc(1000, sizeof(char)); // TODO: handle long lines, make sure this is free()d
+    char *ret = fgets(buf, 1000, fhandle);
+    if (!ret && ferror(fhandle))
+        return 0;
+    return buf;
+}
+
+char *read_file_data(FILE *fhandle, long len)
+{
+    fseek(fhandle, 0, SEEK_SET);
+    char *buf = (char *)calloc(len, sizeof(char)); // check for free() here as well
+
+    if (fread(buf, sizeof(char), len, fhandle) != len * sizeof(char))
+        return 0;
+
+    return buf;
+}

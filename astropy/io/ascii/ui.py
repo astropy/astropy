@@ -138,7 +138,10 @@ def read(table, guess=None, **kwargs):
     if guess:
         dat = _guess(table, new_kwargs, format, use_fast_reader)
     else:
-        reader = get_reader(**new_kwargs)
+        slow_kwargs = new_kwargs.copy()
+        if 'parallel' in new_kwargs:
+            del slow_kwargs['parallel'] # parallel argument only applies for fast reading
+        reader = get_reader(**slow_kwargs)
         # Try the fast reader first if use_fast_reader is True or None
         if use_fast_reader is None or use_fast_reader:
             if format is not None and 'fast_{0}'.format(format) in core.FAST_CLASSES:

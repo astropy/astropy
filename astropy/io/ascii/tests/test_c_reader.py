@@ -35,7 +35,7 @@ def assert_table_equal(t1, t2):
                 except (TypeError, NotImplementedError):
                     pass # ignore for now
 
-def _read(table, Reader, format, **kwargs):
+def _read(table, Reader, format, fail_parallel=False, **kwargs):
     reader = Reader(**kwargs)
     t1 = reader.read(table)
     t2 = ascii.read(table, format=format, guess=False, use_fast_reader=True, **kwargs)
@@ -43,17 +43,24 @@ def _read(table, Reader, format, **kwargs):
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
 
+    if not fail_parallel:
+        t4 = ascii.read(table, format=format, guess=False, use_fast_reader=True,
+                        parallel=True, **kwargs)
+        assert_table_equal(t3, t4)
+
     try:
         content = table.getvalue()
         with NamedTemporaryFile() as f:
             f.write(content)
             f.flush()
-            t4 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
-        assert_table_equal(t3, t4)
-    except AttributeError: # not a StringIO object
-        pass
-
-    return t1
+            t5 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
+        assert_table_equal(t1, t5)
+        return t1
+    except AttributeError as e:
+        if "no attribute 'getvalue'" in str(e):
+            # not a StringIO object
+            return t1
+        raise e
 
 def read_basic(table, **kwargs):
     return _read(table, FastBasic, 'basic', **kwargs)
@@ -231,7 +238,6 @@ A B C D E F G H
     assert_table_equal(table, expected)
 
 def test_quoted_fields():
-    #TODO: decide how to split up data into processes while respecting quotes
     """
     The character quotechar (default '"') should denote the start of a field which can
     contain the field delimiter and newlines.
@@ -242,10 +248,10 @@ def test_quoted_fields():
 a b "   c
  d"
 """
-    table = read_basic(StringIO(text))
+    table = read_basic(StringIO(text), fail_parallel=True)
     expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'cd']], names=('A B', 'C', 'D'))
     assert_table_equal(table, expected)
-    table = read_basic(StringIO(text.replace('"', "'")), quotechar="'")
+    table = read_basic(StringIO(text.replace('"', "'")), quotechar="'", fail_parallel=True)
     assert_table_equal(table, expected)
 
 def test_invalid_parameters():
@@ -464,7 +470,7 @@ def test_read_tab():
     the basic reader.
     """
     text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
-    table = read_tab(StringIO(text))
+    table = read_tab(StringIO(text), fail_parallel=True)
     assert_equal(table['1'][0], '  a'.encode('utf-8')) # preserve line whitespace
     assert_equal(table['2'][0], ' b '.encode('utf-8')) # preserve field whitespace
     assert table['3'][0] is ma.masked                  # empty value should be masked
@@ -557,23 +563,37 @@ A B C
 # comment
 10 11 12
 """
-    table = read_basic(StringIO(text), data_start=2)
+    table = read_basic(StringIO(text), data_start=2, fail_parallel=True)
     expected = Table([[4, 7, 10], [5, 8, 11], [6, 91, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
-    table = read_basic(StringIO(text), data_start=3)
+    table = read_basic(StringIO(text), data_start=3, fail_parallel=True)
     # ignore empty line
     expected = Table([[7, 10], [8, 11], [91, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     with pytest.raises(CParserError) as e:
         # tries to begin in the middle of quoted field
-        read_basic(StringIO(text), data_start=4)
+        read_basic(StringIO(text), data_start=4, fail_parallel=True)
     assert 'not enough columns found in line 1 of data' in str(e)
 
-    table = read_basic(StringIO(text), data_start=5)
+    table = read_basic(StringIO(text), data_start=5, fail_parallel=True)
     # ignore commented line
     expected = Table([[10], [11], [12]], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    text = """
+A B C
+1 2 3
+4 5 6
+
+7 8 9
+# comment
+10 11 12
+"""
+    # make sure reading works as expected in parallel
+    table = read_basic(StringIO(text), data_start=2)
+    expected = Table([[4, 7, 10], [5, 8, 11], [6, 9, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
 def test_quoted_empty_values():
