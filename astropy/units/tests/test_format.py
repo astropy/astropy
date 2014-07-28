@@ -178,7 +178,7 @@ def test_roundtrip():
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     for key, val in u.__dict__.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip, val
 
 
@@ -195,7 +195,7 @@ def test_roundtrip_vo_unit():
 
     x = u_format.VOUnit()
     for key, val in x._units.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_vo_unit, val, val in (u.mag, u.dB)
 
 
@@ -206,7 +206,7 @@ def test_roundtrip_fits():
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     for key, val in u_format.Fits()._units.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_fits, val
 
 
@@ -222,7 +222,7 @@ def test_roundtrip_cds():
 
     x = u_format.CDS()
     for key, val in x._units.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_cds, val
 
 
@@ -238,7 +238,7 @@ def test_roundtrip_ogip():
 
     x = u_format.OGIP()
     for key, val in x._units.items():
-        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+        if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_ogip, val
 
 
@@ -258,9 +258,11 @@ def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
+
 def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
+
 
 def test_format_styles():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -277,6 +279,7 @@ def test_format_styles():
 
     for format_, s in format_s_pairs:
         yield _test_format_styles, format_, s
+
 
 def test_flatten_to_known():
     myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
@@ -351,4 +354,3 @@ def test_scaled_dimensionless():
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('vounit')
-
