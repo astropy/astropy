@@ -169,7 +169,7 @@ Bug Fixes
 
 - ``astropy.convolution``
 
-	- Fixed the multiplication of ``Kernel`` with numpy floats. [#2174] 
+	- Fixed the multiplication of ``Kernel`` with numpy floats. [#2174]
 
 - ``astropy.coordinates``
 
@@ -178,6 +178,9 @@ Bug Fixes
   - For in-place operations for ``Angle`` instances in which the result unit
     is not an angle, an exception is raised before the instance is corrupted.
     [#2718]
+
+  - ``CartesianPoints`` are now deprecated in favor of
+    ``CartesianRepresentation``. [#2727]
 
 - ``astropy.cosmology``
 
