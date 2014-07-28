@@ -7,13 +7,164 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import textwrap
+
+from collections import deque
 
 import numpy as np
 
 from ..extern.six.moves import xrange, zip_longest
 
 
-__all__ = ['check_broadcast', 'poly_map_domain', 'comb']
+__all__ = ['ExpressionTree', 'check_broadcast', 'poly_map_domain', 'comb']
+
+
+class ExpressionTree(object):
+    __slots__ = ['left', 'right', 'value']
+
+    def __init__(self, value, left=None, right=None):
+        self.value = value
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return self.format_tree_ascii()
+
+    @property
+    def isleaf(self):
+        return self.left is None and self.right is None
+
+    def traverse_preorder(self):
+        stack = deque([self])
+        while stack:
+            node = stack.pop()
+            yield node
+
+            if node.right is not None:
+                stack.append(node.right)
+            if node.left is not None:
+                stack.append(node.left)
+
+    def traverse_inorder(self):
+        stack = deque()
+        node = self
+        while stack or node is not None:
+            if node is not None:
+                stack.append(node)
+                node = node.left
+            else:
+                node = stack.pop()
+                yield node
+                node = node.right
+
+    def traverse_postorder(self):
+        stack = deque()
+        node = self
+        last = None
+        while stack or node is not None:
+            if node is not None:
+                stack.append(node)
+                node = node.left
+            else:
+                parent = stack[-1]
+                if parent.right is not None and last is not parent.right:
+                    node = parent.right
+                else:
+                    stack.pop()
+                    yield parent
+                    last = parent
+
+    def evaluate(self, operators, getter=None):
+        """Evaluate the expression represented by this tree.
+
+        ``Operators`` should be a dictionary mapping operator names ('tensor',
+        'product', etc.) to a function that implements that operator for the
+        correct number of operands.
+
+        If given, ``getter`` is a function evaluated on each *leaf* node's
+        value before applying the operator between them.  This could be used,
+        for example, to operate on an attribute of the node values rather than
+        directly on the node values.
+        """
+
+        operands = deque()
+
+        for node in self.traverse_postorder():
+            if node.isleaf:
+                # For a "tree" containing just a single operator at the root
+                operands.append(getter(node.value))
+            else:
+                operator = operators[node.value]
+                right = operands.pop()
+                left = operands.pop()
+                operands.append(operator(left, right))
+
+        return operands.pop()
+
+    def copy(self):
+        # Hopefully this won't blow the stack for any practical case; if such a
+        # case arises that this won't work then I suppose we can find an
+        # iterative approach.
+
+        children = []
+        for child in (self.left, self.right):
+            if isinstance(child, ExpressionTree):
+                children.append(child.copy())
+            else:
+                children.append(child)
+
+        return self.__class__(self.value, left=children[0], right=children[1])
+
+    # TODO: This could still use a lot of improvement; in particular the trees
+    # it outputs are often too wide, and could be made more compactly.  More
+    # formatting control would be useful too.
+    def format_tree_ascii(self, format_leaf=str):
+        """
+        Format the tree using an ASCII character representation.
+
+        Parameters
+        ----------
+        format_leaf : callable
+            A function of a single argument which, given a node value,
+            returns a string representing that node in the tree display.
+        """
+
+        stack = deque()
+
+        for node in self.traverse_postorder():
+            if node.isleaf:
+                text = format_leaf(node.value)
+                stack.append((len(text), [text]))
+            else:
+                right_width, right = stack.pop()
+                left_width, left = stack.pop()
+
+                if left_width > right_width:
+                    right = [r.center(left_width) for r in right]
+                    child_width = left_width
+                elif right_width > left_width:
+                    left = [l.center(right_width) for l in left]
+                    child_width = right_width
+                else:
+                    child_width = left_width  # without loss of generality
+
+                root = '[{0}]'.format(node.value)
+                spine = '/   \\'
+                fill = ' ' * len(spine)
+                width = 2 * child_width + len(fill)
+
+                offset = child_width - (child_width % 2)
+                spine = spine.center(width - 2 - offset, '_').center(width)
+                root = root.center(width)
+
+                lines = [root, spine]
+                for l, r in zip_longest(left, right,
+                                        fillvalue=' ' * child_width):
+                    lines.append(l + fill + r)
+
+                stack.append((width, lines))
+
+        return textwrap.dedent('\n'.join(stack[0][1]))
 
 
 class IncompatibleShapeError(ValueError):

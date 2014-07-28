@@ -33,7 +33,8 @@ from ..table import Table
 from ..utils import deprecated, find_current_module, InheritDocstrings
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
+from .utils import (array_repr_oneline, check_broadcast, ExpressionTree,
+                    IncompatibleShapeError)
 
 from .parameters import Parameter, InputParameterError
 
@@ -41,6 +42,17 @@ from .parameters import Parameter, InputParameterError
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
            'Fittable2DModel', 'custom_model', 'ModelDefinitionError']
+
+
+# TODO: Support a couple unary operators, or at least negation?
+BINARY_OPERATORS = {
+    '+': lambda f, g: (lambda *args: f(*args) + g(*args)),
+    '-': lambda f, g: (lambda *args: f(*args) - g(*args)),
+    '*': lambda f, g: (lambda *args: f(*args) * g(*args)),
+    '/': lambda f, g: (lambda *args: f(*args) / g(*args)),
+    '**': lambda f, g: (lambda *args: f(*args) ** g(*args)),
+    '|': lambda f, g: (lambda *args: g(f(*args)))
+}
 
 
 class ModelDefinitionError(Exception):
@@ -228,6 +240,25 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                     __init__, args, kwargs, varkwargs='kwargs')
             update_wrapper(new_init, cls)
             cls.__init__ = new_init
+
+    # *** Arithmetic operators for creating compound models ***
+    def __add__(cls, other):
+        return _make_compound_model(cls, other, '+')
+
+    def __sub__(cls, other):
+        return _make_compound_model(cls, other, '-')
+
+    def __mul__(cls, other):
+        return _make_compound_model(cls, other, '*')
+
+    def __truediv__(cls, other):
+        return _make_compound_model(cls, other, '/')
+
+    def __pow__(cls, other):
+        return _make_compound_model(cls, other, '**')
+
+    def __or__(cls, other):
+        return _make_compound_model(cls, other, '|')
 
 
 @six.add_metaclass(_ModelMeta)
@@ -994,6 +1025,30 @@ class FittableModel(Model):
     fittable = True
 
 
+class Fittable1DModel(FittableModel):
+    """
+    Base class for one-dimensional fittable models.
+
+    This class provides an easier interface to defining new models.
+    Examples can be found in `astropy.modeling.functional_models`.
+    """
+
+    inputs = ('x',)
+    outputs = ('y',)
+
+
+class Fittable2DModel(FittableModel):
+    """
+    Base class for one-dimensional fittable models.
+
+    This class provides an easier interface to defining new models.
+    Examples can be found in `astropy.modeling.functional_models`.
+    """
+
+    inputs = ('x', 'y')
+    outputs = ('z',)
+
+
 class LabeledInput(dict):
     """
     Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
@@ -1375,28 +1430,109 @@ class SummedCompositeModel(_CompositeModel):
             return result
 
 
-class Fittable1DModel(FittableModel):
-    """
-    Base class for one-dimensional fittable models.
+def _make_compound_model(left, right, operator):
+    name = str('_CompoundModel{0}'.format(_CompoundModelMeta._nextid))
+    _CompoundModelMeta._nextid += 1
 
-    This class provides an easier interface to defining new models.
-    Examples can be found in `astropy.modeling.functional_models`.
-    """
+    children = []
+    for child in (left, right):
+        if isinstance(child, _CompoundModel):
+            children.append(child._tree)
+        elif isinstance(child, _CompoundModelMeta):
+            children.append(child._tree)
+        else:
+            children.append(ExpressionTree(child))
 
-    inputs = ('x',)
-    outputs = ('y',)
+    tree = ExpressionTree(operator, left=children[0], right=children[1])
+
+    mod = find_current_module(2)
+    if mod:
+        modname = mod.__name__
+    else:
+        modname = '__main__'
+
+    members = {'_tree': tree,
+               # TODO: These are temporary until we implement the full rules
+               # for handling inputs/outputs
+               'inputs': left.inputs,
+               'outputs': left.outputs,
+               '__module__': modname}
+
+    return _CompoundModelMeta(name, (_CompoundModel,), members)
 
 
-class Fittable2DModel(FittableModel):
-    """
-    Base class for one-dimensional fittable models.
+class _CompoundModelMeta(_ModelMeta):
+    _tree = None
+    _submodels = None
+    _nextid = 0
 
-    This class provides an easier interface to defining new models.
-    Examples can be found in `astropy.modeling.functional_models`.
-    """
+    def __getitem__(cls, index):
+        return cls._get_submodels()[index]
 
-    inputs = ('x', 'y')
-    outputs = ('z',)
+    # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
+    # leaf nodes is something the ExpressionTree class itself could just know
+    def _get_submodels(cls):
+        # Would make this a lazyproperty but those don't currently work with
+        # type objects
+        if cls._submodels is not None:
+            return cls._submodels
+
+        cls._submodels = [c.value for c in cls._tree.traverse_postorder()
+                          if c.isleaf]
+        return cls._submodels
+        return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
+
+
+@six.add_metaclass(_CompoundModelMeta)
+class _CompoundModel(Model):
+    def __init__(self, *args):
+        # TODO: Just as a quick prototype, pass args off as parameters to
+        # individual submodels; there are a myriad ways we can make this more
+        # sophisticated later...
+
+        # Make a copy of the class's model tree, then go through each leaf node
+        # and convert it from a class to an instance of that class
+        self._tree = self.__class__._tree.copy()
+
+        for node in self._tree.traverse_postorder():
+            if not node.isleaf:
+                continue
+
+            model_cls = node.value
+            nparams = len(model_cls.param_names)
+            model_inst = model_cls(*args[:nparams])
+
+            # Update the node replacing the class with the instance
+            node.value = model_inst
+            args = args[nparams:]
+
+        # TODO: This is temporary while prototyping
+        self._model_set_axis = 0
+        self._n_models = 0
+
+    @property
+    def param_sets(self):
+        # TODO: This is temporary while prototyping
+
+        all_params = [n.value.param_sets
+                      for n in self._tree.traverse_postorder()
+                      if n.isleaf]
+
+        return np.vstack(tuple(all_params))
+
+    def evaluate(self, *args):
+        inputs = args[:self.n_inputs]
+        params = iter(args[self.n_inputs:])
+
+        def getter(model, params=params):
+            # Basically "curries" the parameter values into the model's
+            # evaluate
+            nparams = len(model.param_names)
+            return lambda *inputs: model.evaluate(
+                *(inputs + tuple(itertools.islice(params, nparams))))
+
+        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)
+        return func(*inputs)
 
 
 def custom_model(*args, **kwargs):
