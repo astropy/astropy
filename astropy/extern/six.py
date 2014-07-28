@@ -9,6 +9,10 @@ from distutils.version import StrictVersion
 
 
 _SIX_MIN_VERSION = StrictVersion('1.5.0')
+
+# Update this to prevent Astropy from using its bundled copy of six
+# (but only if some other version of at least _SIX_MIN_VERSION can
+# be provided)
 _SIX_SEARCH_PATH = ['astropy.extern.bundled.six', 'six']
 
 
