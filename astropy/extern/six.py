@@ -9,6 +9,7 @@ from distutils.version import StrictVersion
 
 
 _SIX_MIN_VERSION = StrictVersion('1.5.0')
+_SIX_SEARCH_PATH = ['astropy.extern.bundled.six', 'six']
 
 
 def _find_module(name, path=None):
@@ -27,7 +28,7 @@ def _find_module(name, path=None):
     return fh, path, descr
 
 
-for mod_name in ['astropy.extern.bundled.six', 'six']:
+for mod_name in _SIX_SEARCH_PATH:
     try:
         mod_info = _find_module(mod_name)
     except ImportError:
