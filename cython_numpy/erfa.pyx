@@ -173,8 +173,7 @@ def d2dtf(scale, ndp, d1, d2):
 def aper(theta, astrom):
     
     shape = np.broadcast(theta, astrom).shape
-    astrom_out = np.empty(shape, dtype=dt_eraASTROM)
-    np.copyto(astrom_out, astrom)
+    astrom_out = np.array(np.broadcast_arrays(theta, astrom)[1], dtype=dt_eraASTROM)
     
     cdef np.broadcast it = np.broadcast(theta, astrom_out)
     
