@@ -3,7 +3,8 @@ cimport numpy as np
 
 np.import_array()
 
-__all__ = ['atco13', 'd2dtf']
+__all__ = ['atco13', 'd2dtf', 'aper']
+
 
 cdef extern from "erfa.h":
     int eraAtco13(double rc, double dc,
@@ -15,8 +16,48 @@ cdef extern from "erfa.h":
               double *dob, double *rob, double *eo)
     int eraD2dtf(const char *scale, int ndp, double d1, double d2,
                  int *iy, int *im, int *id, int ihmsf[4])
+    void eraAper(double theta, eraASTROM *astrom)
+
+cdef struct eraASTROM:
+    double pmt
+    double eb[3]
+    double eh[3]
+    double em
+    double v[3]
+    double bm1 
+    double bpn[3][3]
+    double along
+    double phi
+    double xpl
+    double ypl
+    double sphi
+    double cphi
+    double diurab   
+    double eral     
+    double refa
+    double refb
+
+dt_eraASTROM = np.dtype([('pmt','d'),
+                         ('eb','d',(3,)),
+                         ('eh','d',(3,)),
+                         ('em','d'),
+                         ('v','d',(3,)),
+                         ('bm1 ','d'),
+                         ('bpn','d',(3,3)),
+                         ('along','d'),
+                         ('phi','d'),
+                         ('xpl','d'),
+                         ('ypl','d'),
+                         ('sphi','d'),
+                         ('cphi','d'),
+                         ('diurab','d'),
+                         ('eral','d'),
+                         ('refa','d'),
+                         ('refb','d')], align=True)
+
 
 #Note: the pattern used here follows https://github.com/cython/cython/wiki/tutorials-numpy#dimensionally-simple-functions
+
 
 
 def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl):
@@ -72,6 +113,8 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
     
     return aob, zob, hob, dob, rob, eo
 
+
+
 def d2dtf(scale, ndp, d1, d2):
     
     shape = np.broadcast(scale, ndp, d1, d2).shape
@@ -106,3 +149,27 @@ def d2dtf(scale, ndp, d1, d2):
         np.PyArray_MultiIter_NEXT(it)
     
     return iy, im, id, ihmsf
+
+
+
+def aper(theta, astrom):
+    
+    shape = np.broadcast(theta, astrom).shape
+    astrom_out = np.empty(shape, dtype=dt_eraASTROM)
+    np.copyto(astrom_out, astrom)
+    
+    cdef np.broadcast it = np.broadcast(theta, astrom_out)
+    
+    cdef double _theta
+    cdef eraASTROM *_astrom
+    
+    while np.PyArray_MultiIter_NOTDONE(it):
+        
+        _theta  = (   <double *>np.PyArray_MultiIter_DATA(it,  0))[0]
+        _astrom = (<eraASTROM *>np.PyArray_MultiIter_DATA(it,  1))
+        
+        eraAper(_theta, _astrom)
+        
+        np.PyArray_MultiIter_NEXT(it)
+    
+    return astrom_out
