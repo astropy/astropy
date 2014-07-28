@@ -74,14 +74,16 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
 
 def d2dtf(scale, ndp, d1, d2):
     
-    shape = np.broadcast(d1, d2).shape
+    shape = np.broadcast(scale, ndp, d1, d2).shape
     iy    = np.empty(shape, dtype=np.int)
     im    = np.empty(shape, dtype=np.int)
     id    = np.empty(shape, dtype=np.int)
     ihmsf = np.empty(shape, dtype=[('h','i'),('m','i'),('s','i'),('f','i')]) 
     
-    cdef np.broadcast it = np.broadcast(d1, d2, iy, im, id, ihmsf)
+    cdef np.broadcast it = np.broadcast(scale, ndp, d1, d2, iy, im, id, ihmsf)
     
+    cdef char *_scale
+    cdef int _ndp
     cdef int _iy
     cdef int _im
     cdef int _id
@@ -89,15 +91,17 @@ def d2dtf(scale, ndp, d1, d2):
     
     while np.PyArray_MultiIter_NOTDONE(it):
         
-        _d1    = (<double*>np.PyArray_MultiIter_DATA(it,  0))[0]
-        _d2    = (<double*>np.PyArray_MultiIter_DATA(it,  1))[0]
+        _scale = (  <char*>np.PyArray_MultiIter_DATA(it,  0))
+        _ndp   = (   <int*>np.PyArray_MultiIter_DATA(it,  1))[0]
+        _d1    = (<double*>np.PyArray_MultiIter_DATA(it,  2))[0]
+        _d2    = (<double*>np.PyArray_MultiIter_DATA(it,  3))[0]
         
-        ret = eraD2dtf(scale, ndp, _d1, _d2, &_iy, &_im, &_id, _ihmsf)
+        ret = eraD2dtf(_scale, _ndp, _d1, _d2, &_iy, &_im, &_id, _ihmsf)
         
-        (<int*>np.PyArray_MultiIter_DATA(it, 2))[0] = _iy
-        (<int*>np.PyArray_MultiIter_DATA(it, 3))[0] = _im
-        (<int*>np.PyArray_MultiIter_DATA(it, 4))[0] = _id
-        (<int*>np.PyArray_MultiIter_DATA(it, 5))[0:4] = _ihmsf
+        (<int*>np.PyArray_MultiIter_DATA(it, 4))[0] = _iy
+        (<int*>np.PyArray_MultiIter_DATA(it, 5))[0] = _im
+        (<int*>np.PyArray_MultiIter_DATA(it, 6))[0] = _id
+        (<int*>np.PyArray_MultiIter_DATA(it, 7))[0:4] = _ihmsf
         
         np.PyArray_MultiIter_NEXT(it)
     
