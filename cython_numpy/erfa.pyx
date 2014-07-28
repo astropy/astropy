@@ -63,14 +63,14 @@ dt_eraASTROM = np.dtype([('pmt','d'),
 def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl):
     
     shape = np.broadcast(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl).shape    
-    aob = np.empty(shape, dtype=np.double)
-    zob = np.empty(shape, dtype=np.double)
-    hob = np.empty(shape, dtype=np.double)
-    dob = np.empty(shape, dtype=np.double)
-    rob = np.empty(shape, dtype=np.double)
-    eo  = np.empty(shape, dtype=np.double)
+    aob_out = np.empty(shape, dtype=np.double)
+    zob_out = np.empty(shape, dtype=np.double)
+    hob_out = np.empty(shape, dtype=np.double)
+    dob_out = np.empty(shape, dtype=np.double)
+    rob_out = np.empty(shape, dtype=np.double)
+    eo_out  = np.empty(shape, dtype=np.double)
     
-    cdef np.broadcast it = np.broadcast(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl, aob, zob, hob, dob, rob, eo)
+    cdef np.broadcast it = np.broadcast(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl, aob_out, zob_out, hob_out, dob_out, rob_out, eo_out)
     
     cdef double _aob
     cdef double _zob
@@ -111,19 +111,19 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
         
         np.PyArray_MultiIter_NEXT(it)
     
-    return aob, zob, hob, dob, rob, eo
+    return aob_out, zob_out, hob_out, dob_out, rob_out, eo_out
 
 
 
 def d2dtf(scale, ndp, d1, d2):
     
     shape = np.broadcast(scale, ndp, d1, d2).shape
-    iy    = np.empty(shape, dtype=np.int)
-    im    = np.empty(shape, dtype=np.int)
-    id    = np.empty(shape, dtype=np.int)
-    ihmsf = np.empty(shape, dtype=[('h','i'),('m','i'),('s','i'),('f','i')]) 
+    iy_out    = np.empty(shape, dtype=np.int)
+    im_out    = np.empty(shape, dtype=np.int)
+    id_out    = np.empty(shape, dtype=np.int)
+    ihmsf_out = np.empty(shape, dtype=[('h','i'),('m','i'),('s','i'),('f','i')]) 
     
-    cdef np.broadcast it = np.broadcast(scale, ndp, d1, d2, iy, im, id, ihmsf)
+    cdef np.broadcast it = np.broadcast(scale, ndp, d1, d2, iy_out, im_out, id_out, ihmsf_out)
     
     cdef char *_scale
     cdef int _ndp
@@ -148,7 +148,7 @@ def d2dtf(scale, ndp, d1, d2):
         
         np.PyArray_MultiIter_NEXT(it)
     
-    return iy, im, id, ihmsf
+    return iy_out, im_out, id_out, ihmsf_out
 
 
 
