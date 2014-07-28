@@ -45,6 +45,11 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Made it easier for third-party packagers to have Astropy use their own
+  version of the ``six`` module (so long as it meets the minimum version
+  requirement) and remove the copy bundled with Astropy.  See the
+  astropy/extern/README file in the source tree.  [#2623]
+
 
 0.4 (2014-07-16)
 ----------------
