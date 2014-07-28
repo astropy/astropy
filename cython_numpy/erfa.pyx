@@ -72,12 +72,30 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
     
     cdef np.broadcast it = np.broadcast(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tk, rh, wl, aob_out, zob_out, hob_out, dob_out, rob_out, eo_out)
     
-    cdef double _aob
-    cdef double _zob
-    cdef double _hob
-    cdef double _dob
-    cdef double _rob
-    cdef double _eo
+    cdef double _rc
+    cdef double _dc
+    cdef double _pr
+    cdef double _pd
+    cdef double _px
+    cdef double _rv
+    cdef double _utc1
+    cdef double _utc2
+    cdef double _dut1
+    cdef double _elong
+    cdef double _phi
+    cdef double _hm
+    cdef double _xp
+    cdef double _yp
+    cdef double _phpa
+    cdef double _tk
+    cdef double _rh
+    cdef double _wl
+    cdef double *_aob
+    cdef double *_zob
+    cdef double *_hob
+    cdef double *_dob
+    cdef double *_rob
+    cdef double *_eo
     
     while np.PyArray_MultiIter_NOTDONE(it):
         
@@ -99,15 +117,14 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
         _tk    = (<double*>np.PyArray_MultiIter_DATA(it, 15))[0]
         _rh    = (<double*>np.PyArray_MultiIter_DATA(it, 16))[0]
         _wl    = (<double*>np.PyArray_MultiIter_DATA(it, 17))[0]
+        _aob   = (<double*>np.PyArray_MultiIter_DATA(it, 18))
+        _zob   = (<double*>np.PyArray_MultiIter_DATA(it, 19)) 
+        _hob   = (<double*>np.PyArray_MultiIter_DATA(it, 20))
+        _dob   = (<double*>np.PyArray_MultiIter_DATA(it, 21))
+        _rob   = (<double*>np.PyArray_MultiIter_DATA(it, 22))
+        _eo    = (<double*>np.PyArray_MultiIter_DATA(it, 23))
         
-        ret = eraAtco13(_rc, _dc, _pr, _pd, _px, _rv, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tk, _rh, _wl, &_aob, &_zob, &_hob, &_dob, &_rob, &_eo)
-        
-        (<double*>np.PyArray_MultiIter_DATA(it, 18))[0] = _aob
-        (<double*>np.PyArray_MultiIter_DATA(it, 19))[0] = _zob
-        (<double*>np.PyArray_MultiIter_DATA(it, 20))[0] = _hob
-        (<double*>np.PyArray_MultiIter_DATA(it, 21))[0] = _dob
-        (<double*>np.PyArray_MultiIter_DATA(it, 22))[0] = _rob
-        (<double*>np.PyArray_MultiIter_DATA(it, 23))[0] = _eo
+        ret = eraAtco13(_rc, _dc, _pr, _pd, _px, _rv, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tk, _rh, _wl, _aob, _zob, _hob, _dob, _rob, _eo)        
         
         np.PyArray_MultiIter_NEXT(it)
     
@@ -127,10 +144,12 @@ def d2dtf(scale, ndp, d1, d2):
     
     cdef char *_scale
     cdef int _ndp
-    cdef int _iy
-    cdef int _im
-    cdef int _id
-    cdef int _ihmsf[4]
+    cdef double _d1
+    cdef double _d2
+    cdef int *_iy
+    cdef int *_im
+    cdef int *_id
+    cdef int *_ihmsf
     
     while np.PyArray_MultiIter_NOTDONE(it):
         
@@ -138,13 +157,12 @@ def d2dtf(scale, ndp, d1, d2):
         _ndp   = (   <int*>np.PyArray_MultiIter_DATA(it,  1))[0]
         _d1    = (<double*>np.PyArray_MultiIter_DATA(it,  2))[0]
         _d2    = (<double*>np.PyArray_MultiIter_DATA(it,  3))[0]
+        _iy    = (   <int*>np.PyArray_MultiIter_DATA(it,  4))
+        _im    = (   <int*>np.PyArray_MultiIter_DATA(it,  5))
+        _id    = (   <int*>np.PyArray_MultiIter_DATA(it,  6))
+        _ihmsf = (   <int*>np.PyArray_MultiIter_DATA(it,  7))
         
-        ret = eraD2dtf(_scale, _ndp, _d1, _d2, &_iy, &_im, &_id, _ihmsf)
-        
-        (<int*>np.PyArray_MultiIter_DATA(it, 4))[0] = _iy
-        (<int*>np.PyArray_MultiIter_DATA(it, 5))[0] = _im
-        (<int*>np.PyArray_MultiIter_DATA(it, 6))[0] = _id
-        (<int*>np.PyArray_MultiIter_DATA(it, 7))[0:4] = _ihmsf
+        ret = eraD2dtf(_scale, _ndp, _d1, _d2, _iy, _im, _id, _ihmsf)
         
         np.PyArray_MultiIter_NEXT(it)
     
