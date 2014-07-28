@@ -69,6 +69,9 @@ Bug Fixes
     numerical types such as ``decimal.Decimal``, which are stored as objects
     by numpy. [#1419]
 
+  - The units ``count``, ``pixel``, ``voxel`` and ``dbyte`` now output
+    to FITS, OGIP and VOUnit formats correctly. [#2798]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
