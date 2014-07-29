@@ -78,7 +78,7 @@ differs from Astropy v0.3.x, where it was necessary to provide the name twice.
 
 ::
 
-    from astropy.modeling import FittableModel, Parameter, formt_input
+    from astropy.modeling import FittableModel, Parameter
 
     class Gaussian1D(FittableModel):
         amplitude = Parameter()
