@@ -396,22 +396,8 @@ class Chebyshev1D(PolynomialModel):
         return (x,), format_info
 
     @classmethod
-    def evaluate(x, *coeffs):
+    def evaluate(cls, x, *coeffs):
         return cls.clenshaw(x, coeffs)
-
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x : scalar, list or array
-            input
-        """
-
-        if self.domain is not None:
-            x = poly_map_domain(x, self.domain, self.window)
-        return self.clenshaw(x, self.param_sets)
 
     @staticmethod
     def clenshaw(x, coeffs):
