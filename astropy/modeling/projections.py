@@ -17,7 +17,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from .core import (Model, format_input)
+from .core import Model, FittableModel, format_input
 from .parameters import Parameter, InputParameterError
 
 from ..utils.compat import ignored
@@ -482,7 +482,7 @@ class Sky2Pix_MER(Cylindrical):
         return x, y
 
 
-class AffineTransformation2D(Model):
+class AffineTransformation2D(FittableModel):
     """
     Perform an affine transformation in 2 dimensions.
 
