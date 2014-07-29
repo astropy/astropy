@@ -1043,7 +1043,7 @@ naxis kwarg.
                 xy = self._denormalize_sky(xy)
             output = func(xy, origin)
             if ra_dec_order and sky == 'output':
-                output = self._normalize_sky_output(output)
+                output = self._normalize_sky(output)
                 return (output[:, 0].reshape(axes[0].shape),
                         output[:, 1].reshape(axes[0].shape))
             return [output[:, i].reshape(axes[0].shape)
