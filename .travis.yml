@@ -22,6 +22,10 @@ matrix:
         - python: 2.7
           env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
+        # Do a one-off comparison of asv benchmarks
+        - python: 2.7
+          env: NUMPY_VERSION=1.8 SETUP_CMD='asv'
+
         # Do a coverage test in Python 2
         - python: 2.7
           env: SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
@@ -57,10 +61,6 @@ matrix:
           env: NUMPY_VERSION=1.6 SETUP_CMD='test'
         - python: 2.7
           env: NUMPY_VERSION=1.5 SETUP_CMD='test'
-
-        # Do a one-off comparison of asv benchmarks
-        - python: 2.7
-          env: NUMPY_VERSION=1.8 SETUP_CMD='asv'
 
 before_install:
 
