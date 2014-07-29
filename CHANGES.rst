@@ -222,6 +222,9 @@ Bug Fixes
   - Fixed a memory leak when ``astropy.wcs.WCS`` objects are copied
     [#2754]
 
+  - Fixed a crash when passing ``ra_dec_order=True`` to any of the
+    ``*2world`` methods. [#2791]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
