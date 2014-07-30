@@ -204,6 +204,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix ability to read gzipped fits files using Python 2.6  [#2783]
+
 - ``astropy.io.misc``
 
   - Fixed a bug that prevented h5py ``Dataset`` objects from being
