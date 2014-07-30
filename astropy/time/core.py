@@ -872,7 +872,7 @@ class Time(object):
             if scale == 'ut1':
                 # calculate UTC using the offset we got; the ERFA routine
                 # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa_time.ut1_utc(jd1, jd2, delta)
+                jd1_utc, jd2_utc = erfa_time.ut1utc(jd1, jd2, delta)
                 # calculate a better estimate using the nearly correct UTC
                 delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
 
@@ -907,8 +907,8 @@ class Time(object):
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
             # pretty close (few msec?), assume TT.  Similarly, since the
             # UT1 terms are very small, use UTC instead of UT1.
-            njd1, njd2 = erfa_time.tt_tai(jd1, jd2)
-            njd1, njd2 = erfa_time.tai_utc(njd1, njd2)
+            njd1, njd2 = erfa_time.tttai(jd1, jd2)
+            njd1, njd2 = erfa_time.taiutc(njd1, njd2)
             # subtract 0.5, so UT is fraction of the day from midnight
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
@@ -917,11 +917,11 @@ class Time(object):
                 location = EarthLocation.from_geodetic(0., 0., 0.)
             else:
                 location = self.location
-            # Geodetic params needed for d_tdb_tt()
+            # Geodetic params needed for dtdb()
             lon = location.longitude
             rxy = np.hypot(location.x, location.y)
             z = location.z
-            self._delta_tdb_tt = erfa_time.d_tdb_tt(
+            self._delta_tdb_tt = erfa_time.dtdb(
                 jd1, jd2, ut, np.atleast_1d(lon.to(u.radian).value),
                 np.atleast_1d(rxy.to(u.km).value),
                 np.atleast_1d(z.to(u.km).value))
@@ -1707,12 +1707,12 @@ class TimeDatetime(TimeUnique):
             imin[i] = val.minute
             dsec[i] = val.second + val.microsecond / 1e6
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(
+        self.jd1, self.jd2 = erfa_time.dtf2d(
             self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     @property
     def value(self):
-        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
+        iys, ims, ids, ihmsfs = erfa_time.d2dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  6,  # precision=6 for microsec
                                                  self.jd1, self.jd2)
@@ -1794,7 +1794,7 @@ class TimeString(TimeUnique):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = erfa_time.dtf_jd(
+        self.jd1, self.jd2 = erfa_time.dtf2d(
             self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
@@ -1802,7 +1802,7 @@ class TimeString(TimeUnique):
         Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
-        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
+        iys, ims, ids, ihmsfs = erfa_time.d2dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  self.precision,
                                                  self.jd1, self.jd2)

@@ -160,7 +160,7 @@ class EarthLocation(u.Quantity):
                                                   lat.to(u.radian).value,
                                                   height.to(u.m).value)
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa_time.era_gd2gc(ELLIPSOIDS[ellipsoid], _lon.ravel(),
+        xyz = erfa_time.gd2gc(ELLIPSOIDS[ellipsoid], _lon.ravel(),
                                   _lat.ravel(), _height.ravel())
         self = xyz.view(cls._location_dtype, cls).reshape(lon.shape)
         self._unit = u.meter
@@ -208,7 +208,7 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
-        lon, lat, height = erfa_time.era_gc2gd(ELLIPSOIDS[ellipsoid],
+        lon, lat, height = erfa_time.gc2gd(ELLIPSOIDS[ellipsoid],
                                                np.atleast_2d(self_array))
         return (Longitude(lon.squeeze() * u.radian, u.degree,
                           wrap_angle=180.*u.degree),

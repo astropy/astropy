@@ -125,7 +125,7 @@ def cal2jd(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def d_tai_utc(np.ndarray[int, ndim=1] iy,
+def dat(np.ndarray[int, ndim=1] iy,
               np.ndarray[int, ndim=1] im,
               np.ndarray[int, ndim=1] id,
               np.ndarray[double, ndim=1] fd):
@@ -223,7 +223,7 @@ def d_tai_utc(np.ndarray[int, ndim=1] iy,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def jd_dtf(scale, ndp,
+def d2dtf(scale, ndp,
               np.ndarray[double, ndim=1] d1,
               np.ndarray[double, ndim=1] d2):
     """
@@ -302,7 +302,7 @@ def jd_dtf(scale, ndp,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def dtf_jd(scale,
+def dtf2d(scale,
               np.ndarray[int, ndim=1] iy,
               np.ndarray[int, ndim=1] im,
               np.ndarray[int, ndim=1] id,
@@ -396,7 +396,7 @@ def dtf_jd(scale,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tai_tt( 
+def taitt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -433,7 +433,7 @@ def tai_tt(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tcb_tdb( 
+def tcbtdb( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -489,7 +489,7 @@ def tcb_tdb(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tcg_tt( 
+def tcgtt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -520,7 +520,7 @@ def tcg_tt(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tdb_tcb( 
+def tdbtcb( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -550,7 +550,7 @@ def tdb_tcb(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tt_tai( 
+def tttai( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -580,7 +580,7 @@ def tt_tai(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tt_tcg( 
+def tttcg( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -609,7 +609,7 @@ def tt_tcg(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def utc_tai( 
+def utctai( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -667,7 +667,7 @@ def utc_tai(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tai_utc( 
+def taiutc( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
@@ -724,7 +724,7 @@ def tai_utc(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tai_ut1( 
+def taiut1( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -766,7 +766,7 @@ def tai_ut1(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ut1_tai( 
+def ut1tai( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -808,7 +808,7 @@ def ut1_tai(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tt_ut1( 
+def ttut1( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -849,7 +849,7 @@ def tt_ut1(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ut1_tt( 
+def ut1tt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -890,7 +890,7 @@ def ut1_tt(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tdb_tt( 
+def tdbtt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -940,7 +940,7 @@ def tdb_tt(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def tt_tdb( 
+def tttdb( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -990,7 +990,7 @@ def tt_tdb(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ut1_utc( 
+def ut1utc( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -1054,7 +1054,7 @@ def ut1_utc(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def utc_ut1( 
+def utcut1( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
@@ -1122,7 +1122,7 @@ def utc_ut1(
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def d_tdb_tt(np.ndarray[double, ndim=1] in1,
+def dtdb(np.ndarray[double, ndim=1] in1,
              np.ndarray[double, ndim=1] in2,
              np.ndarray[double, ndim=1] ut,
              np.ndarray[double, ndim=1] elong,
@@ -1243,7 +1243,7 @@ def d_tdb_tt(np.ndarray[double, ndim=1] in1,
     return out
 
 
-def era_af2a(sign, ideg, iamin, asec):
+def af2a(sign, ideg, iamin, asec):
     """
     int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
 
@@ -1284,7 +1284,7 @@ def era_af2a(sign, ideg, iamin, asec):
 
     return rad
 
-def era_gd2gc(n, elong, phi, height):
+def gd2gc(n, elong, phi, height):
     """
     Wrap
     int eraGd2gc(int n, double elong, double phi, double height, double xyz[3])
@@ -1346,7 +1346,7 @@ def era_gd2gc(n, elong, phi, height):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def era_gc2gd(n, xyz):
+def gc2gd(n, xyz):
     """
     Wrap
     int eraGc2gd(int n, double xyz[3], double *elong, double *phi, double *height )
@@ -1416,7 +1416,7 @@ def era_gc2gd(n, xyz):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
+def epj(np.ndarray[double, ndim=1] jd1,
                     np.ndarray[double, ndim=1] jd2):
     """ Wrap double eraEpj(double dj1, double dj2)
     **  Julian Date to Julian Epoch.
@@ -1447,7 +1447,7 @@ def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
+def epj2jd(np.ndarray[double, ndim=1] epd):
     """ Wrap void eraEpj2jd(double epj, double *djm0, double *djm)
     **  Julian Epoch to Julian Date.
     **  Given:
@@ -1469,7 +1469,7 @@ def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
+def epb(np.ndarray[double, ndim=1] jd1,
                        np.ndarray[double, ndim=1] jd2):
     """ Wrap double eraEpb(double dj1, double dj2)
     **  Julian Date to Besselian Epoch.
@@ -1500,7 +1500,7 @@ def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
+def epb2jd(np.ndarray[double, ndim=1] epd):
     """ Wrap void eraEpb2jd(double epj, double *djm0, double *djm)
     **  Besselian Epoch to Julian Date.
 
