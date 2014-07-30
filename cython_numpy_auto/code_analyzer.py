@@ -14,7 +14,7 @@ ctype_to_dtype = {'double'     : "np.double",
                   }
 
 
-class FunctionDoc:
+class FunctionDoc(object):
     
     def __init__(self, doc):
         self.doc = doc.replace("**","  ").replace("/*","  ").replace("*/","  ")
@@ -46,7 +46,7 @@ class FunctionDoc:
     def __repr__(self):
         return self.doc
 
-class ArgumentDoc:
+class ArgumentDoc(object):
     
     def __init__(self, doc):
         match = re.search("^       ([^ ]+)[ ]+([^ ]+)[ ]+(.+)", doc)
@@ -62,7 +62,7 @@ class ArgumentDoc:
     def __repr__(self):
         return "    {0:15} {1:15} {2}".format(self.name, self.type, self.doc)
 
-class Argument:
+class Argument(object):
     
     def __init__(self, definition, doc):
         self.__doc = doc
@@ -121,7 +121,7 @@ class Argument:
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
-class Function:
+class Function(object):
     
     def __init__(self, name, source_path):
         self.name = name
