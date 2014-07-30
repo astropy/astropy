@@ -71,7 +71,7 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 
- _GZIP_FILE_TYPES = (_astropy_gzip, _system_gzip)
+_GZIP_FILE_TYPES = (_astropy_gzip, _system_gzip)
 
 class _File(object):
     """
