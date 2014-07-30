@@ -404,7 +404,7 @@ class Time(object):
                     args.append(get_dt(jd1, jd2))
                     break
 
-            conv_func = getattr(erfa_time, sys1 + '_' + sys2)
+            conv_func = getattr(erfa_time, sys1 + sys2)
             jd1, jd2 = conv_func(*args)
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
