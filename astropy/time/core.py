@@ -1952,8 +1952,8 @@ class TimeEpochDate(TimeFormat):
 class TimeBesselianEpoch(TimeEpochDate):
     """Besselian Epoch year as floating point value(s) like 1950.0"""
     name = 'byear'
-    epoch_to_jd = 'besselian_epoch_jd'
-    jd_to_epoch = 'jd_besselian_epoch'
+    epoch_to_jd = 'epb2jd'
+    jd_to_epoch = 'epb'
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
@@ -1969,8 +1969,8 @@ class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
     unit = 365.25  # Length of the Julian year, for conversion to quantities
-    epoch_to_jd = 'julian_epoch_jd'
-    jd_to_epoch = 'jd_julian_epoch'
+    epoch_to_jd = 'epj2jd'
+    jd_to_epoch = 'epj'
 
 
 class TimeEpochDateString(TimeString):
@@ -2011,16 +2011,16 @@ class TimeEpochDateString(TimeString):
 class TimeBesselianEpochString(TimeEpochDateString):
     """Besselian Epoch year as string value(s) like 'B1950.0'"""
     name = 'byear_str'
-    epoch_to_jd = 'besselian_epoch_jd'
-    jd_to_epoch = 'jd_besselian_epoch'
+    epoch_to_jd = 'epb2jd'
+    jd_to_epoch = 'epb'
     epoch_prefix = 'B'
 
 
 class TimeJulianEpochString(TimeEpochDateString):
     """Julian Epoch year as string value(s) like 'J2000.0'"""
     name = 'jyear_str'
-    epoch_to_jd = 'julian_epoch_jd'
-    jd_to_epoch = 'jd_julian_epoch'
+    epoch_to_jd = 'epj2jd'
+    jd_to_epoch = 'epj'
     epoch_prefix = 'J'
 
 
