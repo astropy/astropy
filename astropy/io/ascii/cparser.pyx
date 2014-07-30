@@ -7,7 +7,7 @@ from ...utils.data import get_readable_fileobj
 from ...table import pprint
 from ...extern import six
 from . import core
-from libc cimport stdio
+from libc cimport stdio, stdlib
 from distutils import version
 import csv
 import os
@@ -79,11 +79,11 @@ cdef extern from "src/tokenizer.h":
     char *next_field(tokenizer_t *self)
     char *read_file_chunk(stdio.FILE *fhandle, int len)
     long file_len(stdio.FILE *fhandle)
-    char *get_line(stdio.FILE *fhandle)
     char *read_file_data(stdio.FILE *fhandle, int len)
     int can_mmap()
     char *get_mmap(stdio.FILE *fhandle, long len)
     void free_mmap(char *buf, long len)
+    int read_line(char *buf, stdio.FILE *fhandle, int line_len)
 
 class CParserError(Exception):
     """
@@ -138,10 +138,14 @@ cdef class FileString:
     def splitlines(self):
         stdio.fseek(self.fhandle, 0, stdio.SEEK_SET)
         cdef bytes line
+        cdef int line_len = 30
         cdef char *ptr
+
         while not stdio.feof(self.fhandle):
-            ptr = get_line(self.fhandle)
-            if not ptr:
+            ptr = <char *>stdlib.malloc(line_len)
+            line_len = read_line(ptr, self.fhandle, line_len)
+            if not line_len:
+                stdlib.free(ptr)
                 raise IOError("An error occurred while splitting file into lines")
             line = ptr
             yield line[:-1]
@@ -372,7 +376,7 @@ cdef class CParser:
 
         cdef int data_end = -1 # keep reading data until the end
         if self.data_end is not None and self.data_end >= 0:
-            data_end = self.data_end - self.data_start #TODO: handle data_start<data_end
+            data_end = self.data_end - self.data_start
         if tokenize(self.tokenizer, data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while parsing table data")
@@ -541,7 +545,6 @@ cdef class CParser:
 
         return ret
 
-    # TODO: move this outside CParser, remove self as parameter
     def _read_chunk(self, source_chunk, try_int, try_float, try_string, queue,
                     reconvert_queue, i):
         cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
@@ -570,8 +573,14 @@ cdef class CParser:
                 delete_tokenizer(chunk_tokenizer)
                 queue.put((None, e, i))
                 return
-        #TODO: check if queue can raise errors
-        queue.put((data, err, i))
+
+        try:
+            queue.put((data, err, i))
+        except Queue.Full as e:
+            # hopefully this shouldn't happen
+            delete_tokenizer(chunk_tokenizer)
+            queue.pop()
+            queue.put((None, e, i))
 
         reconvert_cols = reconvert_queue.get()
         for col in reconvert_cols:

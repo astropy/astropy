@@ -228,10 +228,10 @@ void resize_header(tokenizer_t *self)
 
 int skip_lines(tokenizer_t *self, int offset, int header)
 {
-    int empty = 1;
+    int signif_chars = 0;
     int comment = 0;
     int i = 0;
-    char c;
+    char c, prev = ' ';
     
     while (i < offset)
     {
@@ -248,26 +248,31 @@ int skip_lines(tokenizer_t *self, int offset, int header)
         else
             c = self->source[self->source_pos];
 
-	if (c != '\n' && empty && ((c != ' ' && c != '\t') ||
-                                   !self->strip_whitespace_lines || header))
+	if (c != '\n' && ((c != ' ' && c != '\t') ||
+                          !self->strip_whitespace_lines || header))
 	{ 
-            // first significant character encountered; during header
+            // comment line
+            if (!signif_chars && self->comment != 0 && c == self->comment)
+                comment = 1;
+
+            // significant character encountered; during header
             // tokenization, we count whitespace unlike data tokenization
             // (see #2654)
-            empty = 0;
-            // comment line
-            if (self->comment != 0 && c == self->comment)
-                comment = 1;
+            ++signif_chars;
 	}
+
         else if (c == '\n')
         {
-            if (!empty && !comment) // significant line
+            // make sure a Windows CR isn't the only char making the line significant
+            if ((signif_chars > 1 || (signif_chars == 1 && prev != '\r')) && !comment)
                 ++i;
             // Start by assuming a line is empty and non-commented
-            empty = 1;
+            signif_chars = 0;
             comment = 0;
         }
+
         ++self->source_pos;
+        prev = c;
     }
 
     RETURN(NO_ERROR);
@@ -306,21 +311,41 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
 	}
     }
     
-    // Make sure the parameter end is valid
-    // int done = (end != -1 && end <= start); //TODO: figure out how to reimplement this
     int done = 0;
     int repeat;
     self->state = START_LINE;
-    // Loop until all of source has been read or we finish for some other reason
+    char next_char;
 
+    if (self->source_pos > self->source_len)
+        next_char = 0;
+    if (self->source_pos == self->source_len)
+        next_char = '\n';
+    else if (self->fhandle && header)
+        next_char = getc(self->fhandle);
+    else
+        next_char = self->source[self->source_pos];
+
+    // Loop until all of source has been read or we finish for some other reason
     while (self->source_pos < self->source_len + 1 && !done)
     {
-        if (self->source_pos == self->source_len)
-            c = '\n';
+        c = next_char;
+
+        if (self->source_pos + 1 > self->source_len)
+            next_char = 0; // no more input
+        else if (self->source_pos + 1 == self->source_len)
+            next_char = '\n'; // final newline simplifies tokenizing
         else if (self->fhandle && header)
-            c = getc(self->fhandle);
+            next_char = getc(self->fhandle);
         else
-            c = self->source[self->source_pos]; // next character of input
+            next_char = self->source[self->source_pos + 1]; // next character of input
+
+        if (c == '\r' && next_char == '\n')
+        {
+            // ignore the carriage return
+            ++self->source_pos;
+            continue;
+        }
+
 	repeat = 1;
 	
         // Keep parsing the same character
@@ -379,6 +404,7 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
                         }                            
                     }
 
+                    // TODO: handle backtracking without source_pos
                     else if (!self->strip_whitespace_lines)
                     {
                         // In this case we don't want to left-strip the field,
@@ -575,7 +601,6 @@ char *next_field(tokenizer_t *self)
 
 char *read_file_chunk(FILE *fhandle, int len)
 {
-    // TODO: make sure this chunk is free()'d by Cython
     char *buf = calloc(len + 1, sizeof(char));
     if (fread(buf, sizeof(char), len, fhandle) != len * sizeof(char))
         return 0;
@@ -588,15 +613,6 @@ long file_len(FILE *fhandle)
     long ret = ftell(fhandle);
     fseek(fhandle, 0, SEEK_SET);
     return ret;
-}
-
-char *get_line(FILE *fhandle)
-{
-    char *buf = (char *)calloc(1001, sizeof(char)); // TODO: handle long lines, make sure this is free()d
-    char *ret = fgets(buf, 1000, fhandle);
-    if (!ret && ferror(fhandle))
-        return 0;
-    return buf;
 }
 
 char *read_file_data(FILE *fhandle, long len)
@@ -650,3 +666,24 @@ void free_mmap(char *buf, long len)
 }
 
 #endif
+
+int read_line(char *buf, FILE *fhandle, int line_len)
+{
+    memset(buf, 0, line_len);
+    char *ret = fgets(buf, line_len, fhandle);
+
+    if (!ret && ferror(fhandle)) // error occurred while reading
+        return 0;
+
+    // line is longer than expected
+    while (strlen(buf) == line_len - 1 && buf[line_len - 2] != '\n' && !feof(fhandle))
+    {
+        buf = realloc(buf, line_len * 2); // double buffer size
+        ret = fgets(buf + line_len - 1, line_len, fhandle);
+        if (!ret && ferror(fhandle))
+            return 0;
+        line_len += (line_len - 1);
+    }
+
+    return line_len;
+}
