@@ -78,6 +78,23 @@ class BaseFormatterLocator(object):
         self._spacing = spacing
         self._values = None
 
+    def minor_locator(self, spacing, frequency, value_min, value_max):
+        if self.values is not None:
+            return [] * self._unit
+
+        minor_spacing = spacing.value / frequency
+        values = self._locate_values(value_min, value_max, minor_spacing)
+        index = np.where((values % frequency) == 0)
+        index = index[0][0]
+        values = np.delete(values, np.s_[index::frequency])
+        return values * minor_spacing * self._unit
+
+    def _locate_values(self, value_min, value_max, spacing):
+        imin = np.ceil(value_min / spacing)
+        imax = np.floor(value_max / spacing)
+        values = np.arange(imin, imax + 1, dtype=int)
+        return values
+
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
@@ -244,10 +261,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.
-            imin = np.ceil(value_min / spacing_deg)
-            imax = np.floor(value_max / spacing_deg)
-            values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
-            return values * u.degree, spacing_deg * u.degree
+            values = self._locate_values(value_min, value_max, spacing_deg)
+            return values * spacing_deg * u.degree, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
@@ -411,10 +426,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
             # We now find the interval values as multiples of the spacing and generate the tick
             # positions from this
-            imin = np.ceil(value_min / spacing)
-            imax = np.floor(value_max / spacing)
-            values = np.arange(imin, imax + 1, dtype=int) * spacing
-            return values * self._unit, spacing * self._unit
+
+            values = self._locate_values(value_min, value_max, spacing)
+            return values * spacing * self._unit, spacing * self._unit
 
     def formatter(self, values, spacing):
 

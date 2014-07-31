@@ -51,6 +51,8 @@ class CoordinateHelper(object):
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
+        self.ticks.display_minor_ticks(False)
+        self.minor_frequency = 5
 
         # Initialize axis labels
         self.axislabels = AxisLabels(self.frame,
@@ -380,6 +382,9 @@ class CoordinateHelper(object):
 
         # First find the ticks we want to show
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        if self.ticks.get_display_minor_ticks():
+            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
+
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -387,9 +392,8 @@ class CoordinateHelper(object):
 
         self.ticks.clear()
         self.ticklabels.clear()
-        lblinfo = []
-        lbl_world = []
-
+        self.lblinfo = []
+        self.lbl_world = []
         # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
@@ -453,10 +457,21 @@ class CoordinateHelper(object):
             # since the above can produce pairs such as 359 to 361 or 0.5 to
             # 1.5, both of which would match a tick at 0.75. Otherwise we just
             # check the ticks determined above.
-            tick_world_coordinates_unit = tick_world_coordinates.unit
+            self._compute_ticks(tick_world_coordinates, spine, axis, w1, w2, tick_angle)
+
+            if self.ticks.get_display_minor_ticks():
+                self._compute_ticks(minor_ticks_w_coordinates, spine, axis, w1,
+                                    w2, tick_angle, ticks='minor')
+
+        # format tick labels, add to scene
+        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=spacing)
+        for kwargs, txt in zip(self.lblinfo, text):
+            self.ticklabels.add(text=txt, **kwargs)
+
+    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks='major'):
             tick_world_coordinates_values = tick_world_coordinates.value
             if self.coord_type == 'longitude':
-                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values, 
+                tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
                                                     tick_world_coordinates_values + 360])
 
             for t in tick_world_coordinates_values:
@@ -487,26 +502,55 @@ class CoordinateHelper(object):
                     else:
                         world = t
 
-                    self.ticks.add(axis=axis,
-                                   pixel=(x_data_i, y_data_i),
-                                   world=world,
-                                   angle=angle_i,
-                                   axis_displacement=imin + frac)
+                    if ticks == 'major':
 
-                    # store information to pass to ticklabels.add
-                    # it's faster to format many ticklabels at once outside
-                    # of the loop
-                    lblinfo.append(dict(axis=axis,
-                                   pixel=(x_pix_i, y_pix_i),
-                                   world=world,
-                                   angle=spine.normal_angle[imin],
-                                   axis_displacement=imin + frac))
-                    lbl_world.append(world)
+                        self.ticks.add(axis=axis,
+                                       pixel=(x_data_i, y_data_i),
+                                       world=world,
+                                       angle=angle_i,
+                                       axis_displacement=imin + frac)
 
-        # format tick labels, add to scene
-        text = self._formatter_locator.formatter(lbl_world  * tick_world_coordinates_unit, spacing=spacing)
-        for kwargs, txt in zip(lblinfo, text):
-            self.ticklabels.add(text=txt, **kwargs)
+                        # store information to pass to ticklabels.add
+                        # it's faster to format many ticklabels at once outside
+                        # of the loop
+                        self.lblinfo.append(dict(axis=axis,
+                                                 pixel=(x_pix_i, y_pix_i),
+                                                 world=world,
+                                                 angle=spine.normal_angle[imin],
+                                                 axis_displacement=imin + frac))
+                        self.lbl_world.append(world)
+
+                    else:
+                        self.ticks.add_minor(minor_axis=axis,
+                                             minor_pixel=(x_data_i, y_data_i),
+                                             minor_world=world,
+                                             minor_angle=angle_i,
+                                             minor_axis_displacement=imin + frac)
+
+    def display_minor_ticks(self, display_minor_ticks):
+        """
+        Display minor ticks for this coordinate.
+
+        Parameters
+        ----------
+        display_minor_ticks : bool
+            Whether or not to display minor ticks.
+        """
+        self.ticks.display_minor_ticks(display_minor_ticks)
+
+    def get_minor_frequency(self):
+        return self.minor_frequency
+
+    def set_minor_frequency(self, frequency):
+        """
+        Set the frequency of minor ticks per major ticks.
+
+        Parameters
+        ----------
+        frequency : int
+            The number of minor ticks per major ticks.
+        """
+        self.minor_frequency = frequency
 
     def _update_grid_lines(self):
 
@@ -552,7 +596,7 @@ class CoordinateHelper(object):
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
-        
+
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
