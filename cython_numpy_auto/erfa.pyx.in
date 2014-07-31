@@ -37,6 +37,7 @@ dt_eraASTROM = numpy.dtype([('pmt','d'),
 {% for func in funcs %}
 def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
     
+    {%- if func.args_by_inout('in|inout') %}
     shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}).shape
     {%- for arg in func.args_by_inout('out|ret') %}
     {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
@@ -67,6 +68,13 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
         {%- endfor %}
         
         numpy.PyArray_MultiIter_NEXT(it)
+    {%- else %}
+    {%- for arg in func.args_by_inout('out') %}
+    {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
+    {%- endfor %}
+    
+    {{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
+    {%- endif %}
     
     return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
