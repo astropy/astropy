@@ -167,31 +167,31 @@ Full example
         mean = Parameter()
         stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        # Note that this __init__ does nothing different from the base class's
-        # __init__.  The main point of defining it is so that the function
-        # signature is more informative.
-        super(Gaussian1DModel, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
+        def __init__(self, amplitude, mean, stddev, **kwargs):
+            # Note that this __init__ does nothing different from the base
+            class's # __init__.  The main point of defining it is so that the
+            function # signature is more informative.
+            super(Gaussian1DModel, self).__init__(
+                amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
-    @staticmethod
-    def evaluate(x, amplitude, mean, stddev):
-        return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
+        @staticmethod
+        def evaluate(x, amplitude, mean, stddev):
+            return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
 
-    @staticmethod
-    def fit_deriv(x, amplitude, mean, stddev):
-        d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
-        d_mean = (2 * amplitude *
-                  np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
-                  (x - mean) / (stddev**2))
-        d_stddev = (2 * amplitude *
-                    np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
-                    ((x - mean)**2) / (stddev**3))
-        return [d_amplitude, d_mean, d_stddev]
+        @staticmethod
+        def fit_deriv(x, amplitude, mean, stddev):
+            d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
+            d_mean = (2 * amplitude *
+                      np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
+                      (x - mean) / (stddev**2))
+            d_stddev = (2 * amplitude *
+                        np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
+                        ((x - mean)**2) / (stddev**3))
+            return [d_amplitude, d_mean, d_stddev]
 
-    def __call__(self, x, model_set_axis=None):
-        return super(Gaussian1D, self).__call__(
-            x, model_set_axis=model_set_axis)
+        def __call__(self, x, model_set_axis=None):
+            return super(Gaussian1D, self).__call__(
+                x, model_set_axis=model_set_axis)
 
 
 A full example of a LineModel
@@ -207,23 +207,23 @@ A full example of a LineModel
         intercept = Parameter()
         linear = True
 
-    def __init__(self, slope, intercept, **kwargs):
-        super(LineModel, self).__init__(slope=slope, intercept=intercept,
-                                        **kwargs)
+        def __init__(self, slope, intercept, **kwargs):
+            super(LineModel, self).__init__(slope=slope, intercept=intercept,
+                                            **kwargs)
 
-    @staticmethod
-    def evaluate(x, slope, intercept):
-        return slope * x + intercept
+        @staticmethod
+        def evaluate(x, slope, intercept):
+            return slope * x + intercept
 
-    @staticmethod
-    def fit_deriv(x, slope, intercept):
-        d_slope = x
-        d_intercept = np.ones_like(x)
-        return [d_slope, d_intercept]
+        @staticmethod
+        def fit_deriv(x, slope, intercept):
+            d_slope = x
+            d_intercept = np.ones_like(x)
+            return [d_slope, d_intercept]
 
-    def __call__(self, x, model_set_axis=None):
-        return super(LineModel, self).__call__(
-            x, model_set_axis=model_set_axis)
+        def __call__(self, x, model_set_axis=None):
+            return super(LineModel, self).__call__(
+                x, model_set_axis=model_set_axis)
 
 
 Defining New Fitter Classes
