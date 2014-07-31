@@ -1,8 +1,7 @@
 import numpy as np
 
 from astropy import units as u
-
-from . import six
+from astropy.extern import six
 
 # Modified from axis_artist, supports astropy.units
 
@@ -155,7 +154,7 @@ def get_coord_meta(frame):
         if isinstance(frame, six.string_types):
             frame = frame_transform_graph.lookup_name(frame)
 
-        names = frame().representation_component_names.keys()
+        names = list(frame().representation_component_names.keys())
         coord_meta['name'] = names[:2]
 
     except ImportError:

@@ -4,22 +4,20 @@
 # coordinates, but also world-to-world).
 
 import abc
-import astropy
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 from astropy import units as u
-from .utils import get_coordinate_frame
 from astropy.wcs import WCS
-from . import six
+from astropy.extern import six
+from .utils import get_coordinate_frame
 
 
+@six.add_metaclass(abc.ABCMeta)
 class CurvedTransform(Transform):
     """
     Abstract base class for non-affine curved transforms
     """
-
-    __metaclass__ = abc.ABCMeta
 
     input_dims = 2
     output_dims = 2
