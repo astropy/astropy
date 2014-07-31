@@ -77,15 +77,14 @@ class Argument(object):
         self.__doc = doc
         self.__inout_state = None
         self.definition = definition.strip()
-        if self.definition[-1] == "]":
-            self.ctype, self.name = self.definition.split(" ",1)
-            self.name, arr = self.name.split("[")
-            self.ctype += ("["+arr)
-        elif "*" in self.definition:
+        if "*" in self.definition:
             self.ctype, self.name = self.definition.split("*", 1)
             self.ctype += "*"
         else:
-            self.ctype, self.name = self.definition.split(" ", 1)
+            self.ctype, self.name = self.definition.rsplit(" ", 1)
+            if "[" in self.name:
+                self.name, arr = self.name.split("[", 1)
+                self.ctype += ("["+arr)
     
     @property
     def inout_state(self):
