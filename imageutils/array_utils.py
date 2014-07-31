@@ -160,16 +160,16 @@ def subpixel_indices(position, subsampling):
 def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     """
     Replace masked pixels with the value of the pixel mirrored across a
-    given `center_position`.  If the mirror pixel is unavailable (i.e.
+    given ``center_position``.  If the mirror pixel is unavailable (i.e.
     itself masked or outside of the image), then the masked pixel value
     is set to zero.
 
     Parameters
     ----------
-    image : 2D ndarray
+    image : `numpy.ndarray`, 2D
         The 2D array of the image.
 
-    mask_image : 2D ndarray
+    mask_image : array-like, bool
         A boolean mask with the same shape as ``image``, where a `True`
         value indicates the corresponding element of ``image`` is
         considered bad.
@@ -178,9 +178,14 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
         (x, y) center coordinates around which masked pixels will be
         mirrored.
 
-    bbox : list, tuple, ndarray, optional
+    bbox : list, tuple, `numpy.ndarray`, optional
         The bounding box (x_min, x_max, y_min, y_max) over which to
         replace masked pixels.
+
+    Returns
+    -------
+    result : `numpy.ndarray`, 2D
+        A 2D array with replaced masked pixels.
     """
 
     if bbox is None:
