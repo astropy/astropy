@@ -34,6 +34,22 @@ The code below shows the basics of modifying a table and its data.
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:3]['c'] = 100           # Set column 'c' of rows 0, 1, 2
 
+Note that ``table[row][column]`` assignments will not work with
+`numpy` "fancy" ``row`` indexing (in that case ``table[row]`` would be
+a *copy* instead of a *view*).  "Fancy" `numpy` indices include a
+`list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g. the
+return from `numpy.where`)::
+
+  >>> t[[1, 2]]['a'] = [3., 5.]             # doesn't change table t
+  >>> t[np.array([1, 2])]['a'] = [3., 5.]   # doesn't change table t
+  >>> t[np.where(t['a'] > 3)]['a'] = 3.     # doesn't change table t
+
+Instead use ``table[column][row]`` order::
+
+  >>> t['a'][[1, 2]] = [3., 5.]
+  >>> t['a'][np.array([1, 2])] = [3., 5.]
+  >>> t['a'][np.where(t['a'] > 3)] = 3.
+
 **Add a column or columns**
 
 A single column can be added to a table using syntax like adding a dict value.
