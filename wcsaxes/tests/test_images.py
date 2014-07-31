@@ -168,7 +168,21 @@ class TestBasic(BaseImageTests):
 
         self.generate_or_test(generate, fig, 'changed_axis_units.png')
 
-    # Test for axes and ticks sizes, labels etc
+    # Test to for drawing minor ticks
+    def test_minor_ticks(self, generate):
+        w = WCS(self.cube_header)
+        fig = plt.figure()
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
+        fig.add_axes(ax)
+        ax.set_xlim(-0.5, 52.5)
+        ax.set_ylim(-0.5, 106.5)
+        ax.coords[2].display_minor_ticks(True)
+        ax.coords[1].display_minor_ticks(True)
+        ax.coords[2].set_minor_frequency(3)
+        ax.coords[1].set_minor_frequency(10)
+
+        self.generate_or_test(generate, fig, 'minor_ticks_image.png')
+
     def test_ticks_labels(self, generate):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
