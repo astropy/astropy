@@ -104,18 +104,6 @@ class Argument(object):
         return self.__inout_state
     
     @property
-    def is_in(self):
-        return self.inout_state == 'in'
-    
-    @property
-    def is_out(self):
-        return self.inout_state == 'out'
-    
-    @property
-    def is_inout(self):
-        return self.inout_state == 'inout'
-    
-    @property
     def ctype_ptr(self):
         if self.ctype[-1] == ']':
             return self.ctype.split('[')[0]+" *"
