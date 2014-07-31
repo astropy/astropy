@@ -30,22 +30,26 @@ class FunctionDoc(object):
     def input(self):
         if self.__input is None:
             self.__input = []
-            __input = re.search("Given:\n(.+?)  \n", self.doc, re.DOTALL).group(1)
-            for i in __input.split("\n"):
-                arg_doc = ArgumentDoc(i)
-                if arg_doc.name is not None:
-                    self.__input.append(arg_doc)
+            result = re.search("Given[^\n]*:\n(.+?)  \n", self.doc, re.DOTALL)
+            if result is not None:
+                __input = result.group(1)
+                for i in __input.split("\n"):
+                    arg_doc = ArgumentDoc(i)
+                    if arg_doc.name is not None:
+                        self.__input.append(arg_doc)
         return self.__input
     
     @property
     def output(self):
         if self.__output is None:
             self.__output = []
-            __output = re.search("Returned:\n(.+?)  \n", self.doc, re.DOTALL).group(1)
-            for i in __output.split("\n"):
-                arg_doc = ArgumentDoc(i)
-                if arg_doc.name is not None:
-                    self.__output.append(arg_doc)
+            result = re.search("Returned:\n(.+?)  \n", self.doc, re.DOTALL)
+            if result is not None:
+                __output = result.group(1)
+                for i in __output.split("\n"):
+                    arg_doc = ArgumentDoc(i)
+                    if arg_doc.name is not None:
+                        self.__output.append(arg_doc)
         return self.__output
     
     def __repr__(self):
