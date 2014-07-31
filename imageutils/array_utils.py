@@ -186,6 +186,20 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     -------
     result : `numpy.ndarray`, 2D
         A 2D array with replaced masked pixels.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from imageutils import mask_to_mirrored_num
+    >>> image = np.arange(16).reshape(4, 4)
+    >>> mask = np.zeros_like(image, dtype=bool)
+    >>> mask[0, 0] = True
+    >>> mask[1, 1] = True
+    >>> mask_to_mirrored_num(image, mask, (1.5, 1.5))
+    array([[15,  1,  2,  3],
+           [ 4, 10,  6,  7],
+           [ 8,  9, 10, 11],
+           [12, 13, 14, 15]])
     """
 
     if bbox is None:
