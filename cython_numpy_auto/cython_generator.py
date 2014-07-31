@@ -22,12 +22,19 @@ erfa_pyx_in = env.get_template('erfa.pyx.in')
 
 #Extract all the ERFA function names from erfa.h
 with open(ERFA_SOURCES+"/erfa.h", "r") as f:
-    func_names = re.findall(' (\w+)\(.*?\);', f.read(), flags=re.DOTALL)
+    
+    erfa_h = f.read()
+    
     funcs = []
-    for name in func_names:
-        print("Parsing {0}...".format(name))
-        funcs.append(Function(name, ERFA_SOURCES))
-        print("Done!")
+    section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n', erfa_h, flags=re.DOTALL|re.MULTILINE)
+    for section, subsection, functions in section_subsection_functions:
+        print("{0}.{1}".format(section, subsection))
+        if section == "Astronomy":
+            func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+            for name in func_names:
+                print("{0}.{1}.{2}...".format(section, subsection, name))
+                funcs.append(Function(name, ERFA_SOURCES))
+    print("Done!")
     #Render the template and save
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
     with open("erfa.pyx", "w") as f:
