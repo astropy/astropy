@@ -58,7 +58,7 @@ class FunctionDoc(object):
 class ArgumentDoc(object):
     
     def __init__(self, doc):
-        match = re.search("^       ([^ ]+)[ ]+([^ ]+)[ ]+(.+)", doc)
+        match = re.search("^ +([^ ]+)[ ]+([^ ]+)[ ]+(.+)", doc)
         if match is not None:
             self.name = match.group(1)
             self.type = match.group(2)
