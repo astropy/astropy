@@ -1913,7 +1913,8 @@ naxis kwarg.
         >>> import astropy.wcs as wcs
         >>> import numpy as np
 
-        >>> hdulist = fits.open('tests/data/j94f05bgq_flt.fits')
+        >>> filename = os.path.join(wcs.__path__[0], 'tests/data/j94f05bgq_flt.fits')
+        >>> hdulist = fits.open(filename)
         >>> w = wcs.WCS(hdulist[('sci',1)].header, hdulist)
         >>> hdulist.close()
 
