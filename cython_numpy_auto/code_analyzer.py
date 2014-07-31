@@ -119,6 +119,18 @@ class Argument(object):
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
+class Return(object):
+    
+    def __init__(self, ctype, doc):
+        self.name = 'ret'
+        self.ctype = ctype
+        self.inout_state = 'ret'
+        self.ctype_ptr = ctype
+    
+    @property
+    def dtype(self):
+        return ctype_to_dtype[self.ctype]
+
 class Function(object):
     
     def __init__(self, name, source_path):
