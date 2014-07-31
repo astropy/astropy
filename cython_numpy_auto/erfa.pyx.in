@@ -38,15 +38,15 @@ dt_eraASTROM = numpy.dtype([('pmt','d'),
 def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
     
     shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}).shape
-    {%- for arg in func.args_by_inout('out') %}
+    {%- for arg in func.args_by_inout('out|ret') %}
     {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
     {%- endfor %}
     {%- for arg in func.args_by_inout('inout') %}
     {{ arg.name }}_out = numpy.array(numpy.broadcast_arrays({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }})[{{ func.args.index(arg) }}], dtype={{ arg.dtype }})
     {%- endfor %}
     
-    cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
-    {%- for arg in func.args_by_inout('in|inout|out') %}
+    cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
+    {%- for arg in func.args_by_inout('in|inout|out|ret') %}
     cdef {{ arg.ctype_ptr }} _{{ arg.name }}
     {%- endfor %}
     
@@ -60,10 +60,14 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
         {%- endif %}
         {%- endfor %}
         
-        {{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
+        {{ func.args_by_inout('ret')|map(attribute='name')|surround('_',' = ')|join }}{{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
+        
+        {%- for arg in func.args_by_inout('ret') %}
+        (<{{ arg.ctype_ptr }}*>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))[0] = _{{ arg.name }}
+        {%- endfor %}
         
         numpy.PyArray_MultiIter_NEXT(it)
     
-    return {{ func.args_by_inout('inout|out')|map(attribute='name')|postfix('_out')|join(', ') }}
+    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
 {% endfor %}
