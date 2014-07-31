@@ -30,9 +30,18 @@ class FunctionDoc(object):
     def input(self):
         if self.__input is None:
             self.__input = []
-            result = re.search("Given[^\n]*:\n(.+?)  \n", self.doc, re.DOTALL)
+            result = re.search("Given([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
             if result is not None:
-                __input = result.group(1)
+                print(result.group(1))
+                __input = result.group(2)
+                for i in __input.split("\n"):
+                    arg_doc = ArgumentDoc(i)
+                    if arg_doc.name is not None:
+                        self.__input.append(arg_doc)
+            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
+            if result is not None:
+                print(result.group(1))
+                __input = result.group(2)
                 for i in __input.split("\n"):
                     arg_doc = ArgumentDoc(i)
                     if arg_doc.name is not None:
@@ -43,9 +52,18 @@ class FunctionDoc(object):
     def output(self):
         if self.__output is None:
             self.__output = []
-            result = re.search("Returned:\n(.+?)  \n", self.doc, re.DOTALL)
+            result = re.search("Returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
             if result is not None:
-                __output = result.group(1)
+                print(result.group(1))
+                __output = result.group(2)
+                for i in __output.split("\n"):
+                    arg_doc = ArgumentDoc(i)
+                    if arg_doc.name is not None:
+                        self.__output.append(arg_doc)
+            result = re.search("Given and returned([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
+            if result is not None:
+                print(result.group(1))
+                __output = result.group(2)
                 for i in __output.split("\n"):
                     arg_doc = ArgumentDoc(i)
                     if arg_doc.name is not None:
