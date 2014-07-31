@@ -1,6 +1,10 @@
+import re
 from jinja2 import Environment, PackageLoader
 from cython_numpy_auto.code_analyzer import Function
 
+ERFA_SOURCES = "../../erfa/src"
+
+#Prepare the jinja2 templating environment
 env = Environment(loader=PackageLoader('cython_numpy_auto', '.'))
 
 def prefix(a_list, pre):
@@ -15,10 +19,16 @@ env.filters['surround'] = surround
 
 erfa_pyx_in = env.get_template('erfa.pyx.in')
 
-era_func_names = ["eraAtco13", "eraD2dtf", "eraAper"]
-source_path = "../../erfa/src"
 
-erfa_pyx = erfa_pyx_in.render(funcs=[Function(name, source_path) for name in era_func_names])
-
-with open("erfa.pyx", "w") as f:
-    f.write(erfa_pyx)
+#Extract all the ERFA function names from erfa.h
+with open(ERFA_SOURCES+"/erfa.h", "r") as f:
+    func_names = re.findall(' (\w+)\(.*?\);', f.read(), flags=re.DOTALL)
+    funcs = []
+    for name in func_names:
+        print("Parsing {0}...".format(name))
+        funcs.append(Function(name, ERFA_SOURCES))
+        print("Done!")
+    #Render the template and save
+    erfa_pyx = erfa_pyx_in.render(funcs=funcs)
+    with open("erfa.pyx", "w") as f:
+        f.write(erfa_pyx)
