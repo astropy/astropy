@@ -12,7 +12,7 @@ cdef extern from "erfa.h":
     struct eraLDBODY:
         pass
 {%- for func in funcs %}
-    {{ func.cfunc }}
+    {{ func.ret }} {{ func.name }}({{ func.args_by_inout('in|inout|out')|map(attribute='ctype_ptr')|join(', ') }})
 {%- endfor %}
 
 dt_eraASTROM = numpy.dtype([('pmt','d'),
