@@ -138,7 +138,7 @@ class Function(object):
         self.pyname = name.split('era')[-1].lower()
         self.filename = name.split("era")[-1].lower()+".c"
         self.filepath = os.path.join(os.path.normpath(source_path), self.filename)
-        pattern = "\n([^\n]+{0}\([^)]+\)).+?(/\*.+?\*/)".format(name)
+        pattern = "\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
         p = re.compile(pattern, flags=re.DOTALL|re.MULTILINE)
         with open(self.filepath) as f:
             search = p.search(f.read())
