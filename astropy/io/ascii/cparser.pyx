@@ -59,6 +59,7 @@ cdef extern from "src/tokenizer.h":
         char *buf              # buffer for misc. data
         int strip_whitespace_lines  # whether to strip whitespace at the beginning and end of lines
         int strip_whitespace_fields # whether to strip whitespace at the beginning and end of fields
+        int use_fast_converter      # whether to use the fast converter for floats
         # Example input/output
         # --------------------
         # source: "A,B,C\n10,5.,6\n1,2,3"
@@ -66,13 +67,14 @@ cdef extern from "src/tokenizer.h":
 
     tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                                   int fill_extra_cols, int strip_whitespace_lines,
-                                  int strip_whitespace_fields)
+                                  int strip_whitespace_fields, int use_fast_converter)
     tokenizer_t *copy_tokenizer(tokenizer_t *t)
     void delete_tokenizer(tokenizer_t *tokenizer)
     int skip_lines(tokenizer_t *self, int offset, int header)
     int tokenize(tokenizer_t *self, int end, int header,
                  int *use_cols, int use_cols_len)
     long str_to_long(tokenizer_t *self, char *str)
+    double fast_str_to_double(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
@@ -197,6 +199,7 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
+                  use_fast_converter=False,
                   parallel=False,
                   memory_map=False):
 
@@ -205,7 +208,8 @@ cdef class CParser:
         self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar),
                                           fill_extra_cols,
                                           strip_line_whitespace,
-                                          strip_line_fields)
+                                          strip_line_fields,
+                                          use_fast_converter)
         self.source = None
         self.memmap = memory_map and can_mmap() # make sure memory mapping is possible
         self.setup_tokenizer(source)
@@ -290,7 +294,7 @@ cdef class CParser:
         if not ptr:
             raise IOError("An error occurred while reading whole file into memory")
 
-        self.source_bytes = <bytes> ptr
+        self.source_bytes = ptr
         self.source = self.source_bytes.decode('ascii')
         self.tokenizer.fhandle = <stdio.FILE *>0
         self.tokenizer.source = self.source_bytes
@@ -376,7 +380,8 @@ cdef class CParser:
 
         cdef int data_end = -1 # keep reading data until the end
         if self.data_end is not None and self.data_end >= 0:
-            data_end = self.data_end - self.data_start
+            data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
+
         if tokenize(self.tokenizer, data_end, 0, <int *> self.use_cols.data,
                     len(self.use_cols)) != 0:
             self.raise_error("an error occurred while parsing table data")

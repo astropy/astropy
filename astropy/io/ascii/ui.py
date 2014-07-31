@@ -139,10 +139,10 @@ def read(table, guess=None, **kwargs):
         dat = _guess(table, new_kwargs, format, use_fast_reader)
     else:
         slow_kwargs = new_kwargs.copy()
-        if 'parallel' in new_kwargs:
-            del slow_kwargs['parallel'] # parallel argument only applies for fast reading
-        if 'memory_map' in new_kwargs:
-            del slow_kwargs['memory_map'] # only fast readers can memory map
+        fast_params = ['parallel', 'memory_map', 'use_fast_converter']
+        for param in fast_params:
+            if param in new_kwargs:
+                del slow_kwargs[param]
         reader = get_reader(**slow_kwargs)
         # Try the fast reader first if use_fast_reader is True or None
         if use_fast_reader is None or use_fast_reader:

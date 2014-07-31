@@ -4,7 +4,7 @@
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                               int fill_extra_cols, int strip_whitespace_lines,
-                              int strip_whitespace_fields)
+                              int strip_whitespace_fields, int use_fast_converter)
 {
     // Create the tokenizer in memory
     tokenizer_t *tokenizer = (tokenizer_t *) malloc(sizeof(tokenizer_t));
@@ -31,6 +31,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     tokenizer->curr_pos = 0;
     tokenizer->strip_whitespace_lines = strip_whitespace_lines;
     tokenizer->strip_whitespace_fields = strip_whitespace_fields;
+    tokenizer->use_fast_converter = use_fast_converter;
 
     // This is a bit of a hack -- buf holds an empty string to represent
     // empty field values
@@ -42,7 +43,8 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
 tokenizer_t *copy_tokenizer(tokenizer_t *t)
 {
     return create_tokenizer(t->delimiter, t->comment, t->quotechar, t->fill_extra_cols,
-                            t->strip_whitespace_lines, t->strip_whitespace_fields);
+                            t->strip_whitespace_lines, t->strip_whitespace_fields,
+                            t->use_fast_converter);
 }
 
 void delete_data(tokenizer_t *tokenizer)
@@ -310,7 +312,10 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
 	    self->output_len[i] = INITIAL_COL_SIZE;
 	}
     }
-    
+
+    if (end == 0)
+        RETURN(NO_ERROR); // don't read if end == 0
+
     int done = 0;
     int repeat;
     self->state = START_LINE;
@@ -557,14 +562,205 @@ long str_to_long(tokenizer_t *self, char *str)
 double str_to_double(tokenizer_t *self, char *str)
 {
     char *tmp;
-    double ret = strtod(str, &tmp);
+    double val;
 
-    if (tmp == str || *tmp != 0)
-	self->code = CONVERSION_ERROR;
-    else if (errno == ERANGE)
-        self->code = OVERFLOW_ERROR;
+    if (self->use_fast_converter)
+    {
+        val = xstrtod(str, &tmp, '.', 'E', ',', 1);
 
-    return ret;
+        if (*tmp)
+            self->code = CONVERSION_ERROR;
+        else if (errno == ERANGE)
+            self->code = OVERFLOW_ERROR;
+    }
+
+    else
+    {
+        val = strtod(str, &tmp);
+
+        if (tmp == str || *tmp != 0)
+            self->code = CONVERSION_ERROR;
+        else if (errno == ERANGE)
+            self->code = OVERFLOW_ERROR;
+    }
+
+    return val;
+}
+
+// ---------------------------------------------------------------------------
+// Implementation of xstrtod
+
+//
+// strtod.c
+//
+// Convert string to double
+//
+// Copyright (C) 2002 Michael Ringgaard. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+// 3. Neither the name of the project nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+// SUCH DAMAGE.
+//
+// -----------------------------------------------------------------------
+// Modifications by Warren Weckesser, March 2011:
+// * Rename strtod() to xstrtod().
+// * Added decimal and sci arguments.
+// * Skip trailing spaces.
+// * Commented out the other functions.
+// Modifications by Richard T Guy, August 2013:
+// * Add tsep argument for thousands separator
+//
+
+double xstrtod(const char *str, char **endptr, char decimal,
+               char sci, char tsep, int skip_trailing)
+{
+  double number;
+  int exponent;
+  int negative;
+  char *p = (char *) str;
+  double p10;
+  int n;
+  int num_digits;
+  int num_decimals;
+
+  errno = 0;
+
+  // Skip leading whitespace
+  while (isspace(*p)) p++;
+
+  // Handle optional sign
+  negative = 0;
+  switch (*p)
+  {
+    case '-': negative = 1; // Fall through to increment position
+    case '+': p++;
+  }
+
+  number = 0.;
+  exponent = 0;
+  num_digits = 0;
+  num_decimals = 0;
+
+  // Process string of digits
+  while (isdigit(*p))
+  {
+    number = number * 10. + (*p - '0');
+    p++;
+    num_digits++;
+
+    p += (tsep != '\0' & *p == tsep);
+  }
+
+  // Process decimal part
+  if (*p == decimal)
+  {
+    p++;
+
+    while (isdigit(*p))
+    {
+      number = number * 10. + (*p - '0');
+      p++;
+      num_digits++;
+      num_decimals++;
+    }
+
+    exponent -= num_decimals;
+  }
+
+  if (num_digits == 0)
+  {
+    errno = ERANGE;
+    return 0.0;
+  }
+
+  // Correct for sign
+  if (negative) number = -number;
+
+  // Process an exponent string
+  if (toupper(*p) == toupper(sci))
+  {
+    // Handle optional sign
+    negative = 0;
+    switch (*++p)
+    {
+      case '-': negative = 1;   // Fall through to increment pos
+      case '+': p++;
+    }
+
+    // Process string of digits
+    n = 0;
+    while (isdigit(*p))
+    {
+      n = n * 10 + (*p - '0');
+      p++;
+    }
+
+    if (negative)
+      exponent -= n;
+    else
+      exponent += n;
+  }
+
+
+  if (exponent < DBL_MIN_EXP  || exponent > DBL_MAX_EXP)
+  {
+
+    errno = ERANGE;
+    return HUGE_VAL;
+  }
+
+  // Scale the result
+  p10 = 10.;
+  n = exponent;
+  if (n < 0) n = -n;
+  while (n)
+  {
+    if (n & 1)
+    {
+      if (exponent < 0)
+        number /= p10;
+      else
+        number *= p10;
+    }
+    n >>= 1;
+    p10 *= p10;
+  }
+
+
+  if (number == HUGE_VAL) {
+      errno = ERANGE;
+  }
+
+  if (skip_trailing) {
+      // Skip trailing whitespace
+      while (isspace(*p)) p++;
+  }
+
+  if (endptr) *endptr = p;
+
+
+  return number;
 }
 
 void start_iteration(tokenizer_t *self, int col)

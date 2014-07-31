@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
+#include <float.h>
+#include <ctype.h>
 
 typedef enum
 {
@@ -53,6 +56,7 @@ typedef struct
     char *buf;             // buffer for misc. data
     int strip_whitespace_lines;  // whether to strip whitespace at the beginning and end of lines
     int strip_whitespace_fields; // whether to strip whitespace at the beginning and end of fields
+    int use_fast_converter;      // whether to use the fast converter for floats
 } tokenizer_t;
 
 /*
@@ -67,7 +71,8 @@ output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 #define INITIAL_HEADER_SIZE 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
-                              int strip_whitespace_lines, int strip_whitespace_fields);
+                              int strip_whitespace_lines, int strip_whitespace_fields,
+                              int use_fast_converter);
 tokenizer_t *copy_tokenizer(tokenizer_t *t);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
@@ -77,6 +82,8 @@ int tokenize(tokenizer_t *self, int end, int header,
              int *use_cols, int use_cols_len);
 long str_to_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);
+double xstrtod(const char *str, char **endptr, char decimal,
+               char sci, char tsep, int skip_trailing);
 void start_iteration(tokenizer_t *self, int col);
 int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self);

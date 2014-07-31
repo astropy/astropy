@@ -359,6 +359,28 @@ A B C
     table = read_basic(StringIO(text), data_end=-2)
     assert_table_equal(table, expected)
 
+    text = """
+A\tB\tC
+N\tN\tS
+1\t2\ta
+3\t4\tb
+5\t6\tc
+"""
+    # make sure data_end works with RDB
+    table = read_rdb(StringIO(text), data_end=-1)
+    expected = Table([[1, 3], [2, 4], ['a', 'b']], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    # positive index
+    table = read_rdb(StringIO(text), data_end=3)
+    expected = Table([[1], [2], ['a']], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    # empty table if data_end is too small
+    table = read_rdb(StringIO(text), data_end=1)
+    expected = Table([[], [], []], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
 def test_fill_values():
     """
     Make sure that the parameter fill_values works as intended. If fill_values
