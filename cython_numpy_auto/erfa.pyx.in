@@ -69,11 +69,29 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
         
         numpy.PyArray_MultiIter_NEXT(it)
     {%- else %}
+    shape = []
     {%- for arg in func.args_by_inout('out') %}
     {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
     {%- endfor %}
     
-    {{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
+    cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
+    {%- for arg in func.args_by_inout('out') %}
+    cdef {{ arg.ctype_ptr }} _{{ arg.name }}
+    {%- endfor %}
+    
+    while numpy.PyArray_MultiIter_NOTDONE(it):
+        
+        {%- for arg in func.args_by_inout('in|inout|out') %}
+        {%- if arg.ctype_ptr[-1] == '*' %}
+        _{{ arg.name }} = (<{{ arg.ctype_ptr }}>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))
+        {%- else %}
+        _{{ arg.name }} = (<{{ arg.ctype_ptr }}*>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))[0]
+        {%- endif %}
+        {%- endfor %}
+    
+        {{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
+        
+        numpy.PyArray_MultiIter_NEXT(it)
     {%- endif %}
     
     return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
