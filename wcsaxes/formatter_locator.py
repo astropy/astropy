@@ -12,10 +12,9 @@ import numpy as np
 
 from matplotlib import rcParams
 
+from astropy.extern import six
 from astropy import units as u
 from astropy.coordinates import Angle
-
-from . import six
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')

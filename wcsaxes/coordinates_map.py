@@ -1,10 +1,9 @@
+from astropy.extern import six
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
 from .utils import coord_type_from_ctype
 from .frame import RectangularFrame
 from .coordinate_range import find_coordinate_range
-
-from . import six
 
 
 class CoordinatesMap(object):
