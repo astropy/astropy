@@ -5,9 +5,10 @@ This module includes helper functions for array operations.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+import copy
 
 __all__ = ['extract_array_2d', 'add_array_2d', 'subpixel_indices',
-           'fix_prf_nan']
+           'mask_to_mirrored_num']
 
 
 def _get_slices(large_array_shape, small_array_shape, position):
@@ -156,32 +157,61 @@ def subpixel_indices(position, subsampling):
     return x_sub, y_sub
 
 
-def fix_prf_nan(extracted_prf, prf_nan):
+def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     """
-    Fix NaN values in an extracted PRF image.
-
-    The NaN values are fixed by replacing with the mirrored
-    value with respect to the PRF's center
+    Replace masked pixels with the value of the pixel mirrored across a
+    given `center_position`.  If the mirror pixel is unavailable (i.e.
+    itself masked or outside of the image), then the masked pixel value
+    is set to zero.
 
     Parameters
     ----------
-    extracted_prf : array
-        PRF array to be fixed.
-    prf_nan : array, bool
-        Mask indicating where NaN values are present
-        ``extracted_prf``.
+    image : 2D ndarray
+        The 2D array of the image.
+
+    mask_image : 2D ndarray
+        A boolean mask with the same shape as ``image``, where a `True`
+        value indicates the corresponding element of ``image`` is
+        considered bad.
+
+    center_position : 2-tuple
+        (x, y) center coordinates around which masked pixels will be
+        mirrored.
+
+    bbox : list, tuple, ndarray, optional
+        The bounding box (x_min, x_max, y_min, y_max) over which to
+        replace masked pixels.
     """
-    # Allow at most 3 NaN values to prevent the unlikely case,
-    # that the mirrored values are also NaN.
-    y_nan_coords, x_nan_coords = np.nonzero(prf_nan)
-    for y_nan, x_nan in zip(y_nan_coords, x_nan_coords):
-        if not np.isnan(extracted_prf[-y_nan - 1, -x_nan - 1]):
-            extracted_prf[y_nan, x_nan] = \
-                extracted_prf[-y_nan - 1, -x_nan - 1]
-        elif not np.isnan(extracted_prf[y_nan, -x_nan]):
-            extracted_prf[y_nan, x_nan] = \
-                extracted_prf[y_nan, -x_nan - 1]
-        else:
-            extracted_prf[y_nan, x_nan] = \
-                extracted_prf[-y_nan - 1, x_nan]
-    return extracted_prf
+
+    if bbox is None:
+        ny, nx = image.shape
+        bbox = [0, nx, 0, ny]
+    subdata = copy.deepcopy(image[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1])
+    submask = mask_image[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1]
+    y_masked, x_masked = np.nonzero(submask)
+    x_mirror = (2 * (center_position[0] - bbox[0])
+                - x_masked + 0.5).astype('int32')
+    y_mirror = (2 * (center_position[1] - bbox[2])
+                - y_masked + 0.5).astype('int32')
+
+    # Reset mirrored pixels that go out of the image.
+    outofimage = ((x_mirror < 0) | (y_mirror < 0) |
+                  (x_mirror >= subdata.shape[1]) |
+                  (y_mirror >= subdata.shape[0]))
+    if outofimage.any():
+        x_mirror[outofimage] = x_masked[outofimage]
+        y_mirror[outofimage] = y_masked[outofimage]
+
+    subdata[y_masked, x_masked] = subdata[y_mirror, x_mirror]
+
+    # Set pixels that mirrored to another masked pixel to zero.
+    # This will also set to zero any pixels that mirrored out of
+    # the image.
+    mirror_is_masked = submask[y_mirror, x_mirror]
+    x_bad = x_masked[mirror_is_masked]
+    y_bad = y_masked[mirror_is_masked]
+    subdata[y_bad, x_bad] = 0.0
+
+    outimage = copy.deepcopy(image)
+    outimage[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1] = subdata
+    return outimage
