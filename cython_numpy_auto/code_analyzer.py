@@ -147,6 +147,9 @@ class Function(object):
         self.args = []
         for arg in re.search("\(([^)]+)\)", self.cfunc, flags=re.MULTILINE|re.DOTALL).group(1).split(','):
             self.args.append(Argument(arg, self.__doc))
+        self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
+        if self.ret == 'double':
+            self.args.append(Return(self.ret, self.__doc))
     
     def args_by_inout(self, inout_filter, prop=None, join=None):
         result = []
