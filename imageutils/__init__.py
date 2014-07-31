@@ -18,4 +18,4 @@ if not _ASTROPY_SETUP_:
 __all__ = ['find_imgcuts', 'img_stats', 'rescale_img', 'scale_linear',
            'scale_sqrt', 'scale_power', 'scale_log', 'scale_asinh',
            'downsample', 'upsample', 'extract_array_2d', 'add_array_2d',
-           'subpixel_indices', 'fix_prf_nan']
+           'subpixel_indices', 'mask_to_mirrored_num']
