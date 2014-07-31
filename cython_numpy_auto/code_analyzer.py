@@ -93,8 +93,6 @@ class Argument(object):
             for i in self.__doc.input:
                 if self.name in i.name.split(','):
                     self.__inout_state = 'in'
-            if "*" in self.ctype_ptr:
-                self.__inout_state = 'in'
             for o in self.__doc.output:
                 if self.name in o.name.split(','):
                     if self.__inout_state == 'in':
