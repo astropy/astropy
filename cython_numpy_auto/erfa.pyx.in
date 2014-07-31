@@ -9,6 +9,8 @@ __all__ = ['{{ funcs|map(attribute='name')|join("', '") }}']
 cdef extern from "erfa.h":
     struct eraASTROM:
         pass
+    struct eraLDBODY:
+        pass
 {%- for func in funcs %}
     {{ func.cfunc }}
 {%- endfor %}
