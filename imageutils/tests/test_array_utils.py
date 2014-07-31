@@ -2,8 +2,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from numpy.testing import assert_allclose
 from astropy.tests.helper import pytest
-from ..array_utils import extract_array_2d, add_array_2d, subpixel_indices
+from ..array_utils import (extract_array_2d, add_array_2d, subpixel_indices,
+                           mask_to_mirrored_num)
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]
@@ -56,3 +58,70 @@ def test_subpixel_indices(position, subpixel_index):
     given test values.
     """
     assert subpixel_indices(position, subsampling) == subpixel_index
+
+
+def test_mask_to_mirrored_num():
+    """
+    Test mask_to_mirrored_num.
+    """
+    center = (1.5, 1.5)
+    data = np.arange(16).reshape(4, 4)
+    mask = np.zeros_like(data, dtype=bool)
+    mask[0, 0] = True
+    mask[1, 1] = True
+    data_ref = data.copy()
+    data_ref[0, 0] = data[3, 3]
+    data_ref[1, 1] = data[2, 2]
+    mirror_data = mask_to_mirrored_num(data, mask, center)
+    assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
+
+
+def test_mask_to_mirrored_num_range():
+    """
+    Test mask_to_mirrored_num when mirrored pixels are outside of the
+    image.
+    """
+    center = (2.5, 2.5)
+    data = np.arange(16).reshape(4, 4)
+    mask = np.zeros_like(data, dtype=bool)
+    mask[0, 0] = True
+    mask[1, 1] = True
+    data_ref = data.copy()
+    data_ref[0, 0] = 0.
+    data_ref[1, 1] = 0.
+    mirror_data = mask_to_mirrored_num(data, mask, center)
+    assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
+
+
+def test_mask_to_mirrored_num_masked():
+    """
+    Test mask_to_mirrored_num when mirrored pixels are also masked.
+    """
+    center = (0.5, 0.5)
+    data = np.arange(16).reshape(4, 4)
+    data[0, 0] = 100
+    mask = np.zeros_like(data, dtype=bool)
+    mask[0, 0] = True
+    mask[1, 1] = True
+    data_ref = data.copy()
+    data_ref[0, 0] = 0.
+    data_ref[1, 1] = 0.
+    mirror_data = mask_to_mirrored_num(data, mask, center)
+    assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
+
+
+def test_mask_to_mirrored_num_bbox():
+    """
+    Test mask_to_mirrored_num with a bounding box.
+    """
+    center = (1.5, 1.5)
+    data = np.arange(16).reshape(4, 4)
+    data[0, 0] = 100
+    mask = np.zeros_like(data, dtype=bool)
+    mask[0, 0] = True
+    mask[1, 1] = True
+    data_ref = data.copy()
+    data_ref[1, 1] = data[2, 2]
+    bbox = (1, 2, 1, 2)
+    mirror_data = mask_to_mirrored_num(data, mask, center, bbox=bbox)
+    assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
