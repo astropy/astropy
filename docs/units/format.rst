@@ -197,8 +197,8 @@ Normally, passing an unrecognized unit string raises an exception::
   Traceback (most recent call last):
     ...
   ValueError: 'Angstroem' did not parse as fits unit: At col 0, Unit
-  u'Angstroem' not supported by the FITS standard. Did you mean
-  Angstrom or angstrom?
+  'Angstroem' not supported by the FITS standard. Did you mean
+  Angstrom (deprecated) or angstrom (deprecated)?
 
 However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control

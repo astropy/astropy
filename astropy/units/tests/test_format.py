@@ -13,7 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ...extern import six
 
 from numpy.testing.utils import assert_allclose
-from ...tests.helper import raises, pytest
+from ...tests.helper import raises, pytest, catch_warnings
 
 from ... import units as u
 from ...constants import si
@@ -362,3 +362,29 @@ def test_scaled_dimensionless():
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('vounit')
+
+
+def test_deprecated_did_you_mean_fits():
+    try:
+        u.Unit('ANGSTROM', format='fits')
+    except ValueError as e:
+        assert 'angstrom (deprecated)' in six.text_type(e)
+        assert 'Angstrom (deprecated)' in six.text_type(e)
+
+    try:
+        u.Unit('crab', format='ogip')
+    except ValueError as e:
+        assert 'Crab (deprecated)' in six.text_type(e)
+        assert 'mCrab (deprecated)' in six.text_type(e)
+
+    try:
+        u.Unit('ANGSTROM', format='vounit')
+    except ValueError as e:
+        assert 'angstrom (deprecated)' in six.text_type(e)
+        assert '1 10-10m' in six.text_type(e)
+        assert six.text_type(e).count('1 10-10m') == 1
+
+    with catch_warnings() as w:
+        u.Unit('angstrom', format='vounit')
+    assert len(w) == 1
+    assert '1 10-10m' in six.text_type(w[0].message)

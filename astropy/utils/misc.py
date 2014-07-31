@@ -386,7 +386,7 @@ def strip_accents(s):
         if unicodedata.category(c) != 'Mn')
 
 
-def did_you_mean(s, candidates, n=3, cutoff=0.8):
+def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     """
     When a string isn't found in a set of candidates, we can be nice
     to provide a list of alternatives in the exception.  This
@@ -406,6 +406,11 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         In the range [0, 1]. Possibilities that don't score at least
         that similar to word are ignored.  See
         `difflib.get_close_matches`.
+
+    fix : callable
+        A callable to modify the results after matching.  It should
+        take a single string and return a sequence of strings
+        containing the fixed matches.
 
     Returns
     -------
@@ -438,13 +443,22 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         capitalized_matches = set()
         for match in matches:
             capitalized_matches.update(candidates_lower[match])
+        matches = capitalized_matches
 
-        matches = sorted(capitalized_matches)
+        if fix is not None:
+            mapped_matches = []
+            for match in matches:
+                mapped_matches.extend(fix(match))
+            matches = mapped_matches
+
+        matches = list(set(matches))
+        matches = sorted(matches)
 
         if len(matches) == 1:
             matches = matches[0]
         else:
-            matches = ', '.join(matches[:-1]) + ' or ' + matches[-1]
+            matches = (', '.join(matches[:-1]) + ' or ' +
+                       matches[-1])
         return 'Did you mean {0}?'.format(matches)
 
     return ''

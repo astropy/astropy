@@ -11,17 +11,16 @@ from ...extern.six.moves import zip
 import keyword
 import warnings
 
-from ...utils.exceptions import AstropyDeprecationWarning
-
 from . import generic
 from . import utils
-from ...utils.misc import did_you_mean
+
 
 class UnitScaleError(ValueError):
     """
     Used to catch the errors involving scaled units,
     which are not recognized by FITS format.
     """
+
 
 class Fits(generic.Generic):
     """
@@ -39,6 +38,7 @@ class Fits(generic.Generic):
 
         if not '_units' in Fits.__dict__:
             Fits._units, Fits._deprecated_units = self._generate_unit_names()
+            Fits._active_units = set(Fits._units.keys()) - Fits._deprecated_units
 
     @staticmethod
     def _generate_unit_names():
@@ -92,17 +92,15 @@ class Fits(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit {0!r} not supported by the FITS standard. {1}".format(
-                        unit, did_you_mean(
-                            unit, cls._units)))
+                    "Unit '{0}' not supported by the FITS standard. {1}".format(
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units,
+                            format='fits')))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            warnings.warn(
-                "The unit {0!r} has been deprecated in the FITS "
-                "standard.".format(unit),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(unit, cls._units[unit], 'fits')
 
         return cls._units[unit]
 
@@ -111,13 +109,13 @@ class Fits(generic.Generic):
 
         if name not in self._units:
             raise ValueError(
-                "Unit {0!r} is not part of the FITS standard".format(name))
+                "Unit '{0}' not supported by the FITS standard. {1}".format(
+                    unit, utils.did_you_mean_units(
+                        name, self._units, self._deprecated_units,
+                        format='fits')))
 
         if name in self._deprecated_units:
-            warnings.warn(
-                "The unit {0!r} has been deprecated in the FITS "
-                "standard.".format(name),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(name, self._units[name], 'fits')
 
         return name
 

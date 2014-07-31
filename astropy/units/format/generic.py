@@ -318,7 +318,7 @@ class Generic(Base):
                 p[0] = p[3] ** 0.5
             else:
                 raise ValueError(
-                   '{0!r} is not a recognized function'.format(p[1]))
+                   "'{0}' is not a recognized function".format(p[1]))
 
         def p_error(p):
             raise ValueError()
@@ -372,18 +372,19 @@ class Generic(Base):
         return result
 
     def _do_parse(self, s, debug=False):
-        # This is a short circuit for the case where the string
-        # is just a single unit name
         try:
+            # This is a short circuit for the case where the string
+            # is just a single unit name
             return self._parse_unit(s, detailed_exception=False)
         except ValueError as e:
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
                 if six.text_type(e):
-                    raise ValueError(six.text_type(e))
+                    raise
                 else:
-                    raise ValueError("Syntax error")
+                    raise ValueError(
+                        "Syntax error parsing unit '{0}'".format(s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

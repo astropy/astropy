@@ -7,9 +7,11 @@ Utilities shared by the different formats.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import warnings
 
 from ...extern import six
 from ...utils.compat.fractions import Fraction
+from ...utils.misc import did_you_mean
 
 
 def get_grouped_by_powers(bases, powers):
@@ -126,3 +128,75 @@ def format_power(power):
         else:
             power = int(power)
     return six.text_type(power)
+
+
+def try_decomposed(unit, format=None):
+    decomposed = unit.decompose()
+    if decomposed is not unit:
+        try:
+            decompose_string = decomposed.to_string(format=format)
+        except ValueError:
+            pass
+        else:
+            return decompose_string
+    return None
+
+
+def did_you_mean_units(s, all_units, deprecated_units, format=None):
+    """
+    A wrapper around `astropy.utils.misc.did_you_mean` that deals with
+    the display of deprecated units.
+
+    Parameters
+    ----------
+    s : str
+        The invalid unit string
+
+    all_units : dict
+        A mapping from valid unit names to unit objects.
+
+    deprecated_units : sequence
+        The deprecated unit names
+
+    Returns
+    -------
+    msg : str
+        A string message with a list of alternatives, or the empty
+        string.
+    """
+    def fix_deprecated(x):
+        if x in deprecated_units:
+            results = [x + ' (deprecated)']
+            decomposed_string = try_decomposed(all_units[x], format=format)
+            if decomposed_string is not None:
+                results.append("'{0}'".format(decomposed_string))
+            return results
+        return (x,)
+
+    return did_you_mean(s, all_units, fix=fix_deprecated)
+
+
+def unit_deprecation_warning(s, unit, format):
+    """
+    Raises a UnitsWarning about a deprecated unit in a given format.
+    Suggests a decomposed alternative if one is available.
+
+    Parameters
+    ----------
+    s : str
+        The deprecated unit name.
+
+    unit : astropy.units.core.UnitBase
+        The unit object.
+
+    format : str
+        The name of the format for which the unit is deprecated.
+    """
+    from ..core import UnitsWarning
+
+    message = "The unit '{0}' has been deprecated in the {1} standard.".format(
+        s, format)
+    decomposed_string = try_decomposed(unit, format=format)
+    if decomposed_string is not None:
+        message += " Suggested: '{0}'.".format(decomposed_string)
+    warnings.warn(message, UnitsWarning)

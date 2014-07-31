@@ -76,7 +76,7 @@ class OGIP(Generic):
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
         Crab = u.def_unit(['Crab'], prefixes=False, doc='Crab (X-ray flux)')
-        mCrab = 10 ** -3 * Crab
+        mCrab = u.Unit(10 ** -3 * Crab)
         names['Crab'] = Crab
         names['mCrab'] = mCrab
 
@@ -356,25 +356,25 @@ class OGIP(Generic):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit according to the "
-                "OGIP standard".format(
-                    t.lexpos, t.value))
+                "At col {0}, '{1}': {2}".format(
+                    t.lexpos, t.value, six.text_type(e)))
 
     @classmethod
-    def _parse_unit(cls, unit):
+    def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
-            raise ValueError(
-                "Unit {0!r} not supported by the OGIP "
-                "standard".format(unit))
+            if detailed_exception:
+                raise ValueError(
+                    "Unit '{0}' not supported by the OGIP "
+                    "standard. {1}".format(
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units, format='ogip')))
+            else:
+                raise ValueError()
 
         if unit in cls._deprecated_units:
-            from ..core import UnitsWarning
-            warnings.warn(
-                "The unit {0!r} is discouraged in the OGIP "
-                "standard".format(unit),
-                UnitsWarning)
+            utils.unit_deprecation_warning(unit, cls._units[unit], 'ogip')
 
         return cls._units[unit]
 
@@ -383,7 +383,7 @@ class OGIP(Generic):
         try:
             # This is a short circuit for the case where the string is
             # just a single unit name
-            return self._parse_unit(s)
+            return self._parse_unit(s, detailed_exception=False)
         except ValueError:
             from ..core import Unit
             try:
@@ -391,25 +391,23 @@ class OGIP(Generic):
                     self._parser.parse(s, lexer=self._lexer, debug=debug))
             except ValueError as e:
                 if six.text_type(e):
-                    raise ValueError("{0} in unit {1!r}".format(
-                        six.text_type(e), s))
+                    raise
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                        "Syntax error parsing unit '{0}'".format(s))
 
     def _get_unit_name(self, unit):
         name = unit.get_format_name('ogip')
 
         if name not in self._units:
             raise ValueError(
-                "Unit {0!r} is not part of the OGIP standard".format(name))
+                "Unit '{0}' not supported by the OGIP "
+                "standard. {1}".format(
+                    unit, utils.did_you_mean_units(
+                        name, self._units, self._deprecated_units, format='ogip')))
 
         if unit in self._deprecated_units:
-            from ..core import UnitsWarning
-            warnings.warn(
-                "The unit {0!r} is discouraged in the OGIP "
-                "standard".format(unit),
-                UnitsWarning)
+            utils.unit_deprecation_warning(name, self._units[name], 'ogip')
 
         return name
 

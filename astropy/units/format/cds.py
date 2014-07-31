@@ -264,7 +264,7 @@ class CDS(Base):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit {0!r} not supported by the CDS SAC "
+                    "Unit '{0}' not supported by the CDS SAC "
                     "standard. {1}".format(
                         unit, did_you_mean(
                             unit, cls._units)))

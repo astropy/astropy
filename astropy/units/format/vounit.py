@@ -13,7 +13,6 @@ from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils
-from ...utils.misc import did_you_mean
 
 
 class VOUnit(generic.Generic):
@@ -83,18 +82,15 @@ class VOUnit(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit {0!r} not supported by the VOUnit "
+                    "Unit '{0}' not supported by the VOUnit "
                     "standard. {1}".format(
-                        unit, did_you_mean(
-                            unit, cls._units)))
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units, format='vounit')))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            warnings.warn(
-                "The use of unit {0!r} is discouraged by the "
-                "VOUnit standard.".format(unit),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(unit, cls._units[unit], 'vounit')
 
         return cls._units[unit]
 
@@ -103,13 +99,13 @@ class VOUnit(generic.Generic):
 
         if name not in self._units:
             raise ValueError(
-                "Unit {0!r} is not part of the VOUnit standard".format(name))
+                "Unit '{0}' not supported by the VOUnit "
+                "standard. {1}".format(
+                    name, utils.did_you_mean_units(
+                        name, self._units, self._deprecated_units, format='vounit')))
 
         if name in self._deprecated_units:
-            warnings.warn(
-                "The use of unit {0!r} is discouraged by the "
-                "VOUnit standard.".format(name),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(name, self._units[name], 'vounit')
 
         return name
 
