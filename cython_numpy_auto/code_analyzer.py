@@ -5,12 +5,17 @@ import re
 __all__ = ['Function']
 
 
-ctype_to_dtype = {'double'     : "np.double",
-                  'double *'   : "np.double",
-                  'int'        : "np.int",
-                  'int *'      : "np.int",
-                  'int[4]'     : "np.dtype([('', 'i')]*4)",
-                  'eraASTROM *': "dt_eraASTROM",
+ctype_to_dtype = {'double'       : "numpy.double",
+                  'double *'     : "numpy.double",
+                  'int'          : "numpy.int",
+                  'int *'        : "numpy.int",
+                  'int[4]'       : "numpy.dtype([('', 'i', (4,))])",
+                  'double[2]'    : "numpy.dtype([('', 'd', (2,))])",
+                  'double[3]'    : "numpy.dtype([('p', 'd', (3,))])",
+                  'double[2][3]' : "numpy.dtype([('pv', 'd', (2,3))])",
+                  'double[3][3]' : "numpy.dtype([('r', 'd', (3,3))])",
+                  'eraASTROM *'  : "dt_eraASTROM",
+                  'char *'       : "numpy.dtype('S1')",
                   }
 
 
