@@ -176,6 +176,8 @@ class TestBasic(BaseImageTests):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
+        ax.coords[2].set_ticks(exclude_overlapping=True)
+        ax.coords[1].set_ticks(exclude_overlapping=True)
         ax.coords[2].display_minor_ticks(True)
         ax.coords[1].display_minor_ticks(True)
         ax.coords[2].set_minor_frequency(3)
