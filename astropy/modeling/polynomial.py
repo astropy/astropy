@@ -191,8 +191,8 @@ class OrthoPolynomialBase(PolynomialBase):
         {keyword: value} pairs, representing {parameter_name: value}
     """
 
-    n_inputs = 2
-    n_outputs = 1
+    inputs = ('x', 'y')
+    outputs = ('z',)
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
@@ -609,7 +609,8 @@ class Polynomial2D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
-    n_inputs = 2
+    inputs = ('x', 'y')
+    outputs = ('z',)
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1], n_models=None,
@@ -949,7 +950,8 @@ class _SIP1D(PolynomialBase):
     and SIP should be used instead.
     """
 
-    n_inputs = 2
+    inputs = ('u', 'v')
+    outputs = ('w',)
 
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, **params):
@@ -1067,8 +1069,9 @@ class SIP(Model):
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
-    n_inputs = 2
-    n_outputs = 2
+
+    inputs = ('u', 'v')
+    outputs = ('x', 'y')
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
                  ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
@@ -1138,8 +1141,8 @@ class InverseSIP(Model):
 
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('u', 'v')
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
                  n_models=None, model_set_axis=None):
