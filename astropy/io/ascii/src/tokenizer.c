@@ -11,7 +11,6 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
 
     // Initialize the tokenizer fields
     tokenizer->source = 0;
-    tokenizer->fhandle = 0;
     tokenizer->source_len = 0;
     tokenizer->source_pos = 0;
     tokenizer->delimiter = delimiter;
@@ -245,10 +244,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
                 RETURN(NO_ERROR); // no data in input
         }
 
-        if (self->fhandle)
-            c = getc(self->fhandle);
-        else
-            c = self->source[self->source_pos];
+        c = self->source[self->source_pos];
 
 	if (c != '\n' && ((c != ' ' && c != '\t') ||
                           !self->strip_whitespace_lines || header))
@@ -319,37 +315,17 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
     int done = 0;
     int repeat;
     self->state = START_LINE;
-    char next_char;
-
-    if (self->source_pos > self->source_len)
-        next_char = 0;
-    if (self->source_pos == self->source_len)
-        next_char = '\n';
-    else if (self->fhandle && header)
-        next_char = getc(self->fhandle);
-    else
-        next_char = self->source[self->source_pos];
 
     // Loop until all of source has been read or we finish for some other reason
     while (self->source_pos < self->source_len + 1 && !done)
     {
-        c = next_char;
-
-        if (self->source_pos + 1 > self->source_len)
-            next_char = 0; // no more input
-        else if (self->source_pos + 1 == self->source_len)
-            next_char = '\n'; // final newline simplifies tokenizing
-        else if (self->fhandle && header)
-            next_char = getc(self->fhandle);
+        if (self->source_pos == self->source_len)
+            c = '\n'; // final newline simplifies tokenizing
+        else if (self->source_pos < self->source_len - 1 && self->source[self->source_pos]
+                 == '\r' && self->source[self->source_pos + 1] == '\n')
+            c = self->source[++self->source_pos]; // convert Windows to Unix line endings
         else
-            next_char = self->source[self->source_pos + 1]; // next character of input
-
-        if (c == '\r' && next_char == '\n')
-        {
-            // ignore the carriage return
-            ++self->source_pos;
-            continue;
-        }
+            c = self->source[self->source_pos];
 
 	repeat = 1;
 	
@@ -795,91 +771,54 @@ char *next_field(tokenizer_t *self)
 	return tmp;
 }
 
-char *read_file_chunk(FILE *fhandle, int len)
-{
-    char *buf = calloc(len + 1, sizeof(char));
-    if (fread(buf, sizeof(char), len, fhandle) != len * sizeof(char))
-        return 0;
-    return buf;
-}
-
-long file_len(FILE *fhandle)
-{
-    fseek(fhandle, 0, SEEK_END);
-    long ret = ftell(fhandle);
-    fseek(fhandle, 0, SEEK_SET);
-    return ret;
-}
-
-char *read_file_data(FILE *fhandle, long len)
-{
-    fseek(fhandle, 0, SEEK_SET);
-    char *buf = (char *)calloc(len, sizeof(char)); // check for free() here as well
-
-    if (fread(buf, sizeof(char), len, fhandle) != len * sizeof(char))
-        return 0;
-
-    return buf;
-}
-
 // memory mapping won't work on Windows
 
 #if !defined(_WIN32)
 #include <sys/mman.h>
 
-int can_mmap(void)
+memory_map *get_mmap(char *fname)
 {
-    return 1;
-}
+    memory_map *map = (memory_map *)malloc(sizeof(memory_map));
+    map->file_ptr = fopen(fname, "r");
 
-char *get_mmap(FILE *fhandle, long len)
-{
-    char *ret = (char *)mmap(0, len, PROT_READ, MAP_SHARED, fileno(fhandle), 0);
-    if (ret == MAP_FAILED)
+    if (!map->file_ptr) // file failed to open
+    {
+        free(map);
         return 0;
-    return ret;
+    }
+
+    fseek(map->file_ptr, 0, SEEK_END);
+    map->len = ftell(map->file_ptr);
+    fseek(map->file_ptr, 0, SEEK_SET);
+    map->ptr = (char *)mmap(0, map->len, PROT_READ, MAP_SHARED,
+                             fileno(map->file_ptr), 0);
+    if (map->ptr == MAP_FAILED)
+    {
+        fclose(map->file_ptr);
+        free(map);
+        return 0;
+    }
+
+    return map;
 }
 
-void free_mmap(char *buf, long len)
+void free_mmap(memory_map *mmap)
 {
-    munmap(buf, len);
+    munmap(mmap->ptr, mmap->len);
+    fclose(mmap->file_ptr);
+    free(mmap);
 }
 
 #else
 
-int can_mmap(void)
+// TODO: write these for Windows
+memory_map *get_mmap(char *fname)
 {
     return 0;
 }
 
-char *get_mmap(FILE *fhandle, long len)
-{
-    return 0;
-}
-
-void free_mmap(char *buf, long len)
+void free_mmap(memory_map *mmap)
 {
 }
 
 #endif
-
-int read_line(char *buf, FILE *fhandle, int line_len)
-{
-    memset(buf, 0, line_len);
-    char *ret = fgets(buf, line_len, fhandle);
-
-    if (!ret && ferror(fhandle)) // error occurred while reading
-        return 0;
-
-    // line is longer than expected
-    while (strlen(buf) == line_len - 1 && buf[line_len - 2] != '\n' && !feof(fhandle))
-    {
-        buf = realloc(buf, line_len * 2); // double buffer size
-        ret = fgets(buf + line_len - 1, line_len, fhandle);
-        if (!ret && ferror(fhandle))
-            return 0;
-        line_len += (line_len - 1);
-    }
-
-    return line_len;
-}

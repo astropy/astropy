@@ -35,7 +35,6 @@ typedef enum
 typedef struct
 {
     char *source;          // single string containing all of the input
-    FILE *fhandle;         // file handle for header reading (if applicable)
     int source_len;        // length of the input
     int source_pos;        // current index in source for tokenization
     char delimiter;        // delimiter character
@@ -67,6 +66,13 @@ source: "A,B,C\n10,5.,6\n1,2,3"
 output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 */
 
+typedef struct
+{
+    char *ptr;
+    int len;
+    void *file_ptr;
+} memory_map;
+
 #define INITIAL_COL_SIZE 50
 #define INITIAL_HEADER_SIZE 50
 
@@ -87,12 +93,8 @@ double xstrtod(const char *str, char **endptr, char decimal,
 void start_iteration(tokenizer_t *self, int col);
 int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self);
-char *read_file_chunk(FILE *fhandle, int len);
 long file_len(FILE *fhandle);
-char *read_file_data(FILE *fhandle, long len);
-int can_mmap(void);
-char *get_mmap(FILE *fhandle, long len);
-void free_mmap(char *buf, long len);
-int read_line(char *buf, FILE *fhandle, int line_len);
+memory_map *get_mmap(char *fname);
+void free_mmap(memory_map *mmap);
 
 #endif

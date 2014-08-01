@@ -15,7 +15,7 @@ import math
 import multiprocessing
 try:
     import Queue
-except ImportError: # on python 3, the module is named queue
+except ImportError: # in python 3, the module is named queue
     import queue as Queue
 
 cdef extern from "src/tokenizer.h":
@@ -38,7 +38,6 @@ cdef extern from "src/tokenizer.h":
 
     ctypedef struct tokenizer_t:
         char *source           # single string containing all of the input
-        stdio.FILE *fhandle    # file handle for header reading (if applicable)
         int source_len         # length of the input
         int source_pos         # current index in source for tokenization
         char delimiter         # delimiter character
@@ -65,6 +64,11 @@ cdef extern from "src/tokenizer.h":
         # source: "A,B,C\n10,5.,6\n1,2,3"
         # output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 
+    ctypedef struct memory_map:
+        char *ptr
+        int len
+        void *file_ptr
+
     tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields, int use_fast_converter)
@@ -79,13 +83,9 @@ cdef extern from "src/tokenizer.h":
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self)
-    char *read_file_chunk(stdio.FILE *fhandle, int len)
     long file_len(stdio.FILE *fhandle)
-    char *read_file_data(stdio.FILE *fhandle, int len)
-    int can_mmap()
-    char *get_mmap(stdio.FILE *fhandle, long len)
-    void free_mmap(char *buf, long len)
-    int read_line(char *buf, stdio.FILE *fhandle, int line_len)
+    memory_map *get_mmap(char *fname)
+    void free_mmap(memory_map *mmap)
 
 class CParserError(Exception):
     """
@@ -104,58 +104,37 @@ ERR_CODES = dict(enumerate([
 
 cdef class FileString:
     """
-    A file wrapper class which provides string-like methods.
+    A wrapper class for a memory-mapped file pointer.
     """
     cdef:
-        stdio.FILE *fhandle
-        char *memmap
-        int pos
-        long length
+        memory_map *mmap
 
-    def __cinit__(self, fname, memmap):
-        self.fhandle = stdio.fopen(fname, b'r')
-        if not self.fhandle:
+    def __cinit__(self, fname):
+        self.mmap = get_mmap(fname)
+        if not self.mmap:
             raise IOError('File "{0}" could not be opened'.format(fname))
-        self.pos = 0
-        self.length = -1
-        self.memmap = <char *>0
 
     def __dealloc__(self):
-        if self.memmap:
-            free_mmap(self.memmap, len(self))
-        if self.fhandle:
-            stdio.fclose(self.fhandle)
+        if self.mmap:
+            free_mmap(self.mmap)
 
     def __len__(self):
-        if self.length == -1:
-            self.length = file_len(self.fhandle)
-        return self.length
+        return self.mmap.len
 
     def __getitem__(self, i):
-        if i != self.pos + 1:
-            stdio.fseek(self.fhandle, i, stdio.SEEK_SET)
-        self.pos = i
-        return chr(stdio.getc(self.fhandle))
+        return chr(self.mmap.ptr[i])
 
     def splitlines(self):
-        stdio.fseek(self.fhandle, 0, stdio.SEEK_SET)
-        cdef bytes line
-        cdef int line_len = 30
-        cdef char *ptr
-
-        while not stdio.feof(self.fhandle):
-            ptr = <char *>stdlib.malloc(line_len)
-            line_len = read_line(ptr, self.fhandle, line_len)
-            if not line_len:
-                stdlib.free(ptr)
-                raise IOError("An error occurred while splitting file into lines")
-            line = ptr
-            yield line[:-1]
-
-    def setup_memmap(self):
-        self.memmap = get_mmap(self.fhandle, len(self))
-        if not self.memmap:
-            return IOError("memory mapping failed")
+        line = ''
+        for i in range(self.mmap.len):
+            if i != self.mmap.len - 1 and self.mmap.ptr[i] == '\r' \
+               and self.mmap.ptr[i + 1] == '\n':
+                i += 1
+            if self.mmap.ptr[i] == '\n':
+                yield line
+                line = ''
+            else:
+                line += chr(self.mmap.ptr[i])
 
 cdef class CParser:
     """
@@ -177,7 +156,6 @@ cdef class CParser:
         np.ndarray use_cols
         bytes source_bytes
         object parallel
-        object memmap
 
     cdef public:
         int width
@@ -200,8 +178,7 @@ cdef class CParser:
                   fill_exclude_names=None,
                   fill_extra_cols=0,
                   use_fast_converter=False,
-                  parallel=False,
-                  memory_map=False):
+                  parallel=False):
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
@@ -211,7 +188,6 @@ cdef class CParser:
                                           strip_line_fields,
                                           use_fast_converter)
         self.source = None
-        self.memmap = memory_map and can_mmap() # make sure memory mapping is possible
         self.setup_tokenizer(source)
         self.header_start = header_start
         self.data_start = data_start
@@ -253,14 +229,9 @@ cdef class CParser:
 
         if isinstance(source, six.string_types): # filename or data
             if '\n' not in source: # filename
-                fstring = FileString(source, self.memmap)
-                if self.memmap:
-                    fstring.setup_memmap()
-                    self.tokenizer.fhandle = <stdio.FILE *>0
-                    self.tokenizer.source = fstring.memmap
-                    self.source_bytes = fstring.memmap
-                else:
-                    self.tokenizer.fhandle = fstring.fhandle
+                fstring = FileString(source)
+                self.tokenizer.source = fstring.mmap.ptr
+                self.source_bytes = fstring.mmap.ptr
                 self.source = fstring
                 self.tokenizer.source_len = len(fstring)
                 return
@@ -269,7 +240,7 @@ cdef class CParser:
             with get_readable_fileobj(source) as file_obj:
                 source = file_obj.read()
         elif isinstance(source, FileString):
-            self.tokenizer.fhandle = (<FileString>source).fhandle
+            self.tokenizer.source = (<FileString>source).mmap.ptr
             self.source = source
             self.tokenizer.source_len = len(source)
             return
@@ -286,18 +257,6 @@ cdef class CParser:
         self.source_bytes = self.source.encode('ascii')
         self.tokenizer.source = self.source_bytes
         self.tokenizer.source_len = len(self.source_bytes)
-        self.tokenizer.fhandle = <stdio.FILE *>0
-
-    cdef _read_file(self):            
-        cdef char *ptr = read_file_data(self.tokenizer.fhandle,
-                                        self.tokenizer.source_len)
-        if not ptr:
-            raise IOError("An error occurred while reading whole file into memory")
-
-        self.source_bytes = ptr
-        self.source = self.source_bytes.decode('ascii')
-        self.tokenizer.fhandle = <stdio.FILE *>0
-        self.tokenizer.source = self.source_bytes
 
     def read_header(self):
         self.tokenizer.source_pos = 0
@@ -370,9 +329,6 @@ cdef class CParser:
             return self._read_parallel(try_int, try_float, try_string)
 
         # Read in a single process
-        if self.tokenizer.fhandle:
-            self._read_file() # get a single string with the entire data
-
         self.tokenizer.source_pos = 0
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
             self.raise_error("an error occurred while advancing to the first "
@@ -398,9 +354,6 @@ cdef class CParser:
         cdef int source_len = len(self.source)
         self.tokenizer.source_pos = 0
 
-        if self.tokenizer.fhandle:
-            stdio.fseek(self.tokenizer.fhandle, 0, stdio.SEEK_SET)
-
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
@@ -414,8 +367,6 @@ cdef class CParser:
 
         cdef int chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
-        cdef long read_pos = stdio.ftell(self.tokenizer.fhandle) if \
-                             self.tokenizer.fhandle else 0
 
         # This queue is used to signal processes to reconvert if necessary
         reconvert_queue = multiprocessing.Queue()
@@ -431,28 +382,12 @@ cdef class CParser:
                 break
 
         chunkindices.append(source_len) #figure out correct chunkindices
-        cdef list source_chunks = []
-        cdef char *file_chunk
-
-        if self.tokenizer.fhandle:
-            stdio.fseek(self.tokenizer.fhandle, read_pos, stdio.SEEK_SET)
-
-        for i in range(N):
-            if self.tokenizer.fhandle:
-                read_len = chunkindices[i + 1] - chunkindices[i]
-                file_chunk = read_file_chunk(self.tokenizer.fhandle, read_len)
-                if not file_chunk:
-                    raise IOError('an error occurred while reading file data')
-                source_chunks.append(file_chunk)
-            else:
-                source_chunks.append((chunkindices[i], chunkindices[i + 1]))
-
         self._set_fill_names()
         cdef list processes = []
 
         for i in range(N):
             process = multiprocessing.Process(target=self._read_chunk, args=(
-                source_chunks[i], try_int, try_float, try_string,
+                chunkindices[i], chunkindices[i + 1], try_int, try_float, try_string,
                 queue, reconvert_queue, i))
             processes.append(process)
             process.start()
@@ -522,8 +457,7 @@ cdef class CParser:
                     num_rows += len(chunk[self.names[0]])
                 self.data_end += num_rows
             else:
-                # TODO: see if this is a problem with RDB
-                self.data_end -= 1 # ignore header
+                self.data_end -= self.data_start # ignore header
             line_no = 0
             for i, chunk in enumerate(chunks):
                 num_rows = len(chunk[self.names[0]])
@@ -550,16 +484,12 @@ cdef class CParser:
 
         return ret
 
-    def _read_chunk(self, source_chunk, try_int, try_float, try_string, queue,
+    def _read_chunk(self, start, end, try_int, try_float, try_string, queue,
                     reconvert_queue, i):
         cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
-        if isinstance(source_chunk, tuple):
-            chunk_tokenizer.source = self.source_bytes
-            chunk_tokenizer.source_len = source_chunk[1]
-            chunk_tokenizer.source_pos = source_chunk[0]
-        else:
-            chunk_tokenizer.source = source_chunk
-            chunk_tokenizer.source_len = len(source_chunk)
+        chunk_tokenizer.source = self.source_bytes
+        chunk_tokenizer.source_len = end
+        chunk_tokenizer.source_pos = start
         chunk_tokenizer.num_cols = self.width
 
         data = None

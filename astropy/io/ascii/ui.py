@@ -139,7 +139,8 @@ def read(table, guess=None, **kwargs):
         dat = _guess(table, new_kwargs, format, use_fast_reader)
     else:
         slow_kwargs = new_kwargs.copy()
-        fast_params = ['parallel', 'memory_map', 'use_fast_converter']
+        # Delete keywords used only by the fast reader
+        fast_params = ['parallel', 'use_fast_converter']
         for param in fast_params:
             if param in new_kwargs:
                 del slow_kwargs[param]
