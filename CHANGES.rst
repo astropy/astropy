@@ -198,6 +198,9 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+  - ``astropy.nddata.NDData()`` no longer raises a ``ValueError`` when passed
+    a numpy masked array which has no masked entries. [#2784]
+
 - ``astropy.stats``
 
 - ``astropy.table``
