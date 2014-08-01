@@ -222,6 +222,12 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Restored missing information from deprecation warning messages
+    from the ``deprecated`` decorator. [#2811]
+
+  - Fixed support for ``staticmethod`` deprecation in the ``deprecated``
+    decorator. [#2811]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
