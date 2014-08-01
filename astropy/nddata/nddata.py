@@ -199,7 +199,8 @@ class NDData(object):
 
     @mask.setter
     def mask(self, value):
-        if value is not None:
+        # Check that value is not either type of null mask.
+        if (value is not None) and (value is not np.ma.nomask):
             mask = np.array(value, dtype=np.bool_, copy=False)
             if mask.shape != self.shape:
                 raise ValueError("dimensions of mask do not match data")
