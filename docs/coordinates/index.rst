@@ -146,10 +146,10 @@ coordinate objects::
     >>> c.representation = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): rho=2.2360679775 kpc, phi=63.4349488229 deg, z=3.0 kpc>
-    >>> c.phi
-    <Angle 63.434948... deg>
-    >>> c.phi.to(u.radian)
-    <Angle 1.107148... rad>
+    >>> c.phi  # doctest: +FLOAT_CMP
+    <Angle 63.43494882292201 deg>
+    >>> c.phi.to(u.radian)  # doctest: +FLOAT_CMP
+    <Angle 1.1071487177940904 rad>
 
     >>> c.representation = 'spherical'
     >>> c  # doctest: +FLOAT_CMP

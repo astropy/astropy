@@ -42,9 +42,9 @@ FixedWidth
   ... |  1.2   | "hello" |
   ... |  2.4   |'s worlds|
   ... """
-  >>> ascii.read(table, format='fixed_width')
+  >>> ascii.read(table, format='fixed_width')  # doctest: +FLOAT_CMP
   <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
         dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Typical fixed format table with col names provided**
@@ -56,9 +56,9 @@ FixedWidth
   ... |  1.2   | "hello" |
   ... |  2.4   |'s worlds|
   ... """
-  >>> ascii.read(table, format='fixed_width', names=('name1', 'name2'))
+  >>> ascii.read(table, format='fixed_width', names=('name1', 'name2'))  # doctest: +FLOAT_CMP
   <Table rows=2 names=('name1','name2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
         dtype=[('name1', '<f8'), ('name2', 'S9')])
 
 **Weird input table with data values chopped by col extent**
@@ -69,9 +69,9 @@ FixedWidth
   ...   1.2       "hello"
   ...   2.4   sdf's worlds
   ... """
-  >>> ascii.read(table, format='fixed_width')
+  >>> ascii.read(table, format='fixed_width')  # doctest: +FLOAT_CMP
   <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hel'), (2..., "df's wo")],
+  array([(1.2, '"hel'), (2.4, "df's wo")],
         dtype=[('Col1', '<f8'), ('Col2', 'S7')])
 
 **Table with double delimiters**
@@ -199,9 +199,9 @@ FixedWidthTwoLine
   ...    1.2xx"hello"
   ...   2.4   's worlds
   ... """
-  >>> ascii.read(table, format='fixed_width_two_line')
+  >>> ascii.read(table, format='fixed_width_two_line')  # doctest: +FLOAT_CMP
   <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
         dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Restructured text table**
@@ -216,9 +216,9 @@ FixedWidthTwoLine
   ... ======= ===========
   ... """
   >>> ascii.read(table, format='fixed_width_two_line',
-  ...                 header_start=1, position_line=2, data_end=-1)
+  ...                 header_start=1, position_line=2, data_end=-1)  # doctest: +FLOAT_CMP
   <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
         dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Text table designed for humans and test having position line before the header line.**
@@ -233,9 +233,9 @@ FixedWidthTwoLine
   ... +------+----------+
   ... """
   >>> ascii.read(table, format='fixed_width_two_line', delimiter='+',
-  ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
+  ...                 header_start=1, position_line=0, data_start=3, data_end=-1)  # doctest: +FLOAT_CMP
   <Table rows=2 names=('Col1','Col2')>
-  array([(1.2, '"hello"'), (2..., "'s worlds")],
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
         dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 Writing

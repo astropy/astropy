@@ -52,14 +52,14 @@ Parameter examples
   when constructing an instance of that model::
 
       >>> g = models.Gaussian1D(1.0, 0.0, 0.1)
-      >>> g
-      <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.1...)>
+      >>> g  # doctest: +FLOAT_CMP
+      <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.1)>
 
   However, parameters may also be given as keyword arguments (in any order)::
 
       >>> g = models.Gaussian1D(mean=0.0, amplitude=2.0, stddev=0.2)
-      >>> g
-      <Gaussian1D(amplitude=2.0, mean=0.0, stddev=0.2...)>
+      >>> g  # doctest: +FLOAT_CMP
+      <Gaussian1D(amplitude=2.0, mean=0.0, stddev=0.2)>
 
   So all that really matters is knowing the names (and meanings) of the
   parameters that each model accepts.  More information about an individual

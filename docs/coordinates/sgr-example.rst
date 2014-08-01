@@ -166,7 +166,7 @@ transform from ICRS coordinates to ``Sagittarius``, we simply::
     >>> icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
     >>> icrs.transform_to(Sagittarius)  # doctest: +SKIP
     <Sagittarius Coordinate: (Lambda, Beta, distance) in (deg, deg, )
-        (346.818273..., -39.283667..., 1.0)>
+        (346.8182733552503, -39.28366798041541, 1.0)>
 
 The complete code for the above example is included below for reference.
 

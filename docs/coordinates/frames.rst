@@ -246,8 +246,8 @@ the way you want.  As an example::
   ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
-  >>> c
-  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c  # doctest: +FLOAT_CMP
+  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532925199 rad, D=0.349065850399 rad>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 
