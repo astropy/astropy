@@ -22,7 +22,8 @@ import traceback
 import unicodedata
 import warnings
 
-from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
+from .exceptions import (AstropyDeprecationWarning,
+                         AstropyPendingDeprecationWarning)
 
 from ..extern import six
 from ..extern.six.moves import urllib
@@ -372,6 +373,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         The type of this object, if the automatically determined one
         needs to be overridden.
     """
+
+    method_types = (classmethod, staticmethod)
+
     def deprecate_doc(old_doc, message):
         """
         Returns a given docstring with a deprecation message prepended
@@ -391,9 +395,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     def get_function(func):
         """
-        Given a function or classmethod, get the function object.
+        Given a function or classmethod (or other function wrapper type), get
+        the function object.
         """
-        if isinstance(func, classmethod):
+        if isinstance(func, method_types):
             try:
                 func = func.__func__
             except AttributeError:
@@ -406,7 +411,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                     func = method.im_func
                 else:
                     # Nothing we can do really...  just return the original
-                    # classmethod
+                    # classmethod, etc.
                     return func
         return func
 
@@ -415,7 +420,12 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         Returns a wrapped function that displays an
         ``AstropyDeprecationWarning`` when it is called.
         """
-        is_classmethod = isinstance(func, classmethod)
+
+        if isinstance(func, method_types):
+            func_wrapper = type(func)
+        else:
+            func_wrapper = lambda f: f
+
         func = get_function(func)
 
         def deprecated_func(*args, **kwargs):
@@ -438,9 +448,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         deprecated_func.__doc__ = deprecate_doc(
             deprecated_func.__doc__, message)
 
-        if is_classmethod:
-            return classmethod(deprecated_func)
-        return deprecated_func
+        return func_wrapper(deprecated_func)
 
     def deprecate_class(cls, message):
         """
@@ -487,7 +495,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                 obj_type_name = 'class'
             elif inspect.isfunction(obj):
                 obj_type_name = 'function'
-            elif inspect.ismethod(obj):
+            elif inspect.ismethod(obj) or isinstance(obj, method_types):
                 obj_type_name = 'method'
             else:
                 obj_type_name = 'object'
@@ -515,13 +523,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
             'obj_type': obj_type_name}) +
             altmessage)
 
-        if not altmessage:
-            altmessage = message
-
         if isinstance(obj, type):
-            return deprecate_class(obj, altmessage)
+            return deprecate_class(obj, message)
         else:
-            return deprecate_function(obj, altmessage)
+            return deprecate_function(obj, message)
 
     if type(message) == type(deprecate):
         return deprecate(message)
