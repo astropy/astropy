@@ -14,6 +14,7 @@ from ...extern.six.moves import zip
 
 from . import core
 from .core import InconsistentTableError
+from .basic import Basic
 
 
 class FixedWidthSplitter(core.BaseSplitter):
@@ -235,7 +236,7 @@ class FixedWidthData(core.BaseData):
         return lines
 
 
-class FixedWidth(core.BaseReader):
+class FixedWidth(Basic):
     """Read or write a fixed width table with a single header line that defines column
     names and positions.  Examples::
 
@@ -267,24 +268,17 @@ class FixedWidth(core.BaseReader):
     _format_name = 'fixed_width'
     _description = 'Fixed width'
 
-    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
-        core.BaseReader.__init__(self)
+    header_class = FixedWidthHeader
+    data_class = FixedWidthData
 
-        self.header = FixedWidthHeader()
-        self.data = FixedWidthData()
-        self.data.header = self.header
-        self.header.data = self.data
+
+    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
+        super(FixedWidth, self).__init__()
 
         self.header.splitter.delimiter = '|'
         self.data.splitter.delimiter = '|'
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
-        self.header.start_line = 0
-        self.data.start_line = 1
-        self.header.comment = r'\s*#'
-        self.header.write_comment = '# '
-        self.data.comment = r'\s*#'
-        self.data.write_comment = '# '
         self.header.col_starts = col_starts
         self.header.col_ends = col_ends
 
@@ -322,7 +316,7 @@ class FixedWidthNoHeader(FixedWidth):
     _description = 'Fixed width with no header'
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
-        FixedWidth.__init__(self, col_starts, col_ends,
+        super(FixedWidthNoHeader, self).__init__(col_starts, col_ends,
                             delimiter_pad=delimiter_pad, bookend=bookend)
         self.header.start_line = None
         self.data.start_line = 0
@@ -360,7 +354,7 @@ class FixedWidthTwoLine(FixedWidth):
     _description = 'Fixed width with second header line'
 
     def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
-        FixedWidth.__init__(self, delimiter_pad=delimiter_pad, bookend=bookend)
+        super(FixedWidthTwoLine, self).__init__(delimiter_pad=delimiter_pad, bookend=bookend)
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1

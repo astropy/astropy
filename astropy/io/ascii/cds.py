@@ -49,7 +49,7 @@ class CdsHeader(core.BaseHeader):
         properties needed to read the data file. The data file name
         will be the ``table`` passed to the ``read`` method.
         """
-        core.BaseHeader.__init__(self)
+        super(CdsHeader, self).__init__()
         self.readme = readme
 
     def get_cols(self, lines):
@@ -287,10 +287,12 @@ class Cds(core.BaseReader):
     _io_registry_can_write = False
     _description = 'CDS format table'
 
+    data_class = CdsData
+
     def __init__(self, readme=None):
-        core.BaseReader.__init__(self)
+        super(Cds, self).__init__()
+        # Usually the header is not initilized here, but this needs a keyword
         self.header = CdsHeader(readme)
-        self.data = CdsData()
 
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""

@@ -252,17 +252,16 @@ class Latex(core.BaseReader):
     _io_registry_suffix = '.tex'
     _description = 'LaTeX table'
 
+    header_class = LatexHeader
+    data_class = LatexData
+
     def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline'],
                  latexdict={}, caption='', col_align=None):
 
-        core.BaseReader.__init__(self)
-        self.header = LatexHeader()
-        self.data = LatexData()
+        super(Latex, self).__init__()
 
         self.header.splitter = LatexSplitter()
         self.data.splitter = LatexSplitter()
-        self.data.header = self.header
-        self.header.data = self.data
         self.latex = {}
         # The latex dict drives the format of the table and needs to be shared
         # with data and header
@@ -374,24 +373,14 @@ class AASTex(Latex):
     _io_registry_suffix = ''  # AASTex inherits from Latex, so override this class attr
     _description = 'AASTeX deluxetable used for AAS journals'
 
+    header_class = AASTexHeader
+    data_class = AASTexData
+
     def __init__(self, **kwargs):
-        Latex.__init__(self, **kwargs)
-        self.header = AASTexHeader()
-        self.data = AASTexData()
+        super(AASTex, self).__init__(**kwargs)
         self.header.comment = '%|' + '|'.join(
             [r'\\' + command for command in self.ignore_latex_commands])
         self.header.splitter = AASTexHeaderSplitter()
-        self.data.splitter = LatexSplitter()
-        self.data.comment = self.header.comment
-        self.data.header = self.header
-        self.header.data = self.data
-        # The latex dict drives the format of the table and needs to be shared
-        # with data and header
-        self.header.latex = self.latex
-        self.data.latex = self.latex
         # check if tabletype was explicitly set by the user
         if not (('latexdict' in kwargs) and ('tabletype' in kwargs['latexdict'])):
             self.latex['tabletype'] = 'deluxetable'
-        self.header.comment = '%|' + '|'.join(
-            [r'\\' + command for command in self.ignore_latex_commands])
-        self.data.comment = self.header.comment

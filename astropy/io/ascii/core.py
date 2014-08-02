@@ -807,11 +807,16 @@ class BaseReader(object):
     exclude_names = None
     strict_names = False
 
+    header_class = BaseHeader
+    data_class = BaseData
+    inputter_class = BaseInputter
+    outputter_class = TableOutputter
+
     def __init__(self):
-        self.header = BaseHeader()
-        self.data = BaseData()
-        self.inputter = BaseInputter()
-        self.outputter = TableOutputter()
+        self.header = self.header_class()
+        self.data = self.data_class()
+        self.inputter = self.inputter_class()
+        self.outputter = self.outputter_class()
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.

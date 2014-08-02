@@ -48,7 +48,7 @@ class Basic(core.BaseReader):
     _description = 'Basic table with custom delimiters'
 
     def __init__(self):
-        core.BaseReader.__init__(self)
+        super(Basic, self).__init__()
         self.header.splitter.delimiter = ' '
         self.data.splitter.delimiter = ' '
         self.header.start_line = 0
@@ -72,7 +72,7 @@ class NoHeader(Basic):
     _description = 'Basic table with no headers'
 
     def __init__(self):
-        Basic.__init__(self)
+        super(NoHeader, self).__init__()
         self.header.start_line = None
         self.data.start_line = 0
 
@@ -94,7 +94,7 @@ class CommentedHeaderHeader(core.BaseHeader):
         lines.append(self.write_comment + self.splitter.join(self.colnames))
 
 
-class CommentedHeader(core.BaseReader):
+class CommentedHeader(Basic):
     """Read a file where the column names are given in a line that begins with
     the header comment character. ``header_start`` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
@@ -109,19 +109,11 @@ class CommentedHeader(core.BaseReader):
     _format_name = 'commented_header'
     _description = 'Column names in a commented line'
 
+    header_class = CommentedHeaderHeader
+
     def __init__(self):
-        core.BaseReader.__init__(self)
-        self.header = CommentedHeaderHeader()
-        self.header.data = self.data
-        self.data.header = self.header
-        self.header.splitter.delimiter = ' '
-        self.data.splitter.delimiter = ' '
-        self.header.start_line = 0
+        super(CommentedHeader, self).__init__()
         self.data.start_line = 0
-        self.header.comment = r'\s*#'
-        self.header.write_comment = '# '
-        self.data.comment = r'\s*#'
-        self.data.write_comment = '# '
 
 
 class Tab(Basic):
@@ -139,7 +131,7 @@ class Tab(Basic):
     _description = 'Basic table with tab-separated values'
 
     def __init__(self):
-        Basic.__init__(self)
+        super(Tab, self).__init__()
         self.header.splitter.delimiter = '\t'
         self.data.splitter.delimiter = '\t'
         # Don't strip line whitespace since that includes tabs
@@ -181,11 +173,9 @@ class Csv(Basic):
     _description = 'Comma-separated-values'
 
     def __init__(self):
-        core.BaseReader.__init__(self)
+        super(Csv, self).__init__()
         self.data.splitter.delimiter = ','
         self.header.splitter.delimiter = ','
-        self.header.start_line = 0
-        self.data.start_line = 1
         self.data.fill_values = [(core.masked, '')]
 
     def inconsistent_handler(self, str_vals, ncols):
@@ -206,37 +196,12 @@ class Csv(Basic):
         return str_vals
 
 
-class Rdb(Tab):
-    """Read a tab-separated file with an extra line after the column definition
-    line.  The RDB format meets this definition.  Example::
-
-      col1 <tab> col2 <tab> col3
-      N <tab> S <tab> N
-      1 <tab> 2 <tab> 5
-
-    In this reader the second line is just ignored.
-    """
-    _format_name = 'rdb'
-    _io_registry_format_aliases = ['rdb']
-    _io_registry_suffix = '.rdb'
-    _description = 'Tab-separated with a type definition header line'
-
-    def __init__(self):
-        Tab.__init__(self)
-        self.header = RdbHeader()
-        self.header.start_line = 0
-        self.header.comment = r'\s*#'
-        self.header.write_comment = '# '
-        self.header.splitter.delimiter = '\t'
-        self.header.splitter.process_line = None
-        self.header.data = self.data
-        self.data.header = self.header
-        self.data.start_line = 2
-
-
 class RdbHeader(core.BaseHeader):
     col_type_map = {'n': core.NumType,
                     's': core.StrType}
+    comment = r'\s*#'
+    write_comment = '# '
+
 
     def get_type_map_key(self, col):
         return col.raw_type[-1]
@@ -278,3 +243,25 @@ class RdbHeader(core.BaseHeader):
             rdb_types.append(rdb_type)
 
         lines.append(self.splitter.join(rdb_types))
+
+
+class Rdb(Tab):
+    """Read a tab-separated file with an extra line after the column definition
+    line.  The RDB format meets this definition.  Example::
+
+      col1 <tab> col2 <tab> col3
+      N <tab> S <tab> N
+      1 <tab> 2 <tab> 5
+
+    In this reader the second line is just ignored.
+    """
+    _format_name = 'rdb'
+    _io_registry_format_aliases = ['rdb']
+    _io_registry_suffix = '.rdb'
+    _description = 'Tab-separated with a type definition header line'
+
+    header_class = RdbHeader
+
+    def __init__(self):
+        super(Rdb, self).__init__()
+        self.data.start_line = 2
