@@ -159,7 +159,7 @@ class HTMLOutputter(core.TableOutputter):
         
 
 class HTMLHeader(core.BaseHeader):
-    splitter = HTMLSplitter
+    splitter_class = HTMLSplitter
 
     def start_line(self, lines):
         """
@@ -200,7 +200,7 @@ class HTMLHeader(core.BaseHeader):
     
 
 class HTMLData(core.BaseData):
-    splitter = HTMLSplitter
+    splitter_class = HTMLSplitter
 
     def start_line(self, lines):
         """
