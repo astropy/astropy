@@ -810,15 +810,51 @@ void free_mmap(memory_map *mmap)
 }
 
 #else
+#include <windows.h>
 
-// TODO: write these for Windows
+// TODO: test these on Windows
 memory_map *get_mmap(char *fname)
 {
-    return 0;
+    memory_map *map = (memory_map *)malloc(sizeof(memory_map));
+    map->file_ptr = CreateFile(fname, GENERIC_READ, 0, 0, OPEN_EXISTING,
+                               FILE_ATTRIBUTE_NORMAL, 0);
+
+    if (map->file_ptr == INVALID_HANDLE_VALUE)
+    {
+        free(map);
+        return 0;
+    }
+
+    map->len = GetFileSize(map->file_ptr, 0);
+    map->handle = (HANDLE *)malloc(sizeof(HANDLE));
+    *map->handle = CreateFileMapping(map->file_ptr, 0, PAGE_READONLY,
+                                          0, 0, 0);
+    if (!mem_handle)
+    {
+        free(map->handle);
+        CloseHandle(map->file_ptr);
+        free(map);
+        return 0;
+    }
+
+    map->ptr = MapViewOfFile(mem_handle, FILE_MAP_READ, 0, 0, 0);
+
+    if (!map->ptr)
+    {
+        free(map->handle);
+        CloseHandle(mem_handle);
+        CloseHandle(map->file_ptr);
+        free(map);
+        return 0;
+    }
 }
 
 void free_mmap(memory_map *mmap)
 {
+    CloseHandle(mem_handle);
+    CloseHandle(mmap->file_ptr);
+    free(mmap->handle);
+    free(mmap);
 }
 
 #endif

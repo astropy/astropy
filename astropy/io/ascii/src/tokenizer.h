@@ -71,6 +71,7 @@ typedef struct
     char *ptr;
     int len;
     void *file_ptr;
+    void *handle; // only used on Windows
 } memory_map;
 
 #define INITIAL_COL_SIZE 50

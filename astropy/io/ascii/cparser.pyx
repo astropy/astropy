@@ -68,6 +68,7 @@ cdef extern from "src/tokenizer.h":
         char *ptr
         int len
         void *file_ptr
+        void *handle
 
     tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                                   int fill_extra_cols, int strip_whitespace_lines,
