@@ -159,6 +159,8 @@ class HTMLOutputter(core.TableOutputter):
         
 
 class HTMLHeader(core.BaseHeader):
+    splitter = HTMLSplitter
+
     def start_line(self, lines):
         """
         Return the line number at which header data begins.
@@ -198,6 +200,8 @@ class HTMLHeader(core.BaseHeader):
     
 
 class HTMLData(core.BaseData):
+    splitter = HTMLSplitter
+
     def start_line(self, lines):
         """
         Return the line number at which table data begins.
@@ -267,17 +271,13 @@ class HTML(core.BaseReader):
 
     header_class = HTMLHeader
     data_class = HTMLData
+    inputter_class = HTMLInputter
 
     def __init__(self, htmldict={}):
         """
         Initialize classes for HTML reading and writing.
         """
         super(HTML, self).__init__()
-        self.inputter = HTMLInputter()
-        self.header.splitter = HTMLSplitter()
-        self.header.inputter = HTMLInputter()
-        self.data.splitter = HTMLSplitter()
-        self.data.inputter = HTMLInputter()
         self.html = deepcopy(htmldict)
         if 'multicol' not in htmldict:
             self.html['multicol'] = True

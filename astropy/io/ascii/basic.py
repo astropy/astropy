@@ -17,6 +17,17 @@ import numpy as np
 
 from . import core
 
+class BasicHeader(core.BaseHeader):
+        start_line = 0
+        comment = r'\s*#'
+        write_comment = '# '
+
+
+class BasicData(core.BaseData):
+        start_line = 1
+        comment = r'\s*#'
+        write_comment = '# '
+
 
 class Basic(core.BaseReader):
     """Read a character-delimited table with a single header line at the top
@@ -47,17 +58,15 @@ class Basic(core.BaseReader):
     _format_name = 'basic'
     _description = 'Basic table with custom delimiters'
 
-    def __init__(self):
-        super(Basic, self).__init__()
-        self.header.splitter.delimiter = ' '
-        self.data.splitter.delimiter = ' '
-        self.header.start_line = 0
-        self.data.start_line = 1
-        self.header.comment = r'\s*#'
-        self.header.write_comment = '# '
-        self.data.comment = r'\s*#'
-        self.data.write_comment = '# '
+    header_class = BasicHeader
+    data_class = BasicData
 
+
+class NoHeaderHeader(BasicHeader):
+    start_line = None
+
+class NoHeaderData(BasicData):
+    start_line = 0
 
 class NoHeader(Basic):
     """Read a table with no header line.  Columns are autonamed using
@@ -70,14 +79,11 @@ class NoHeader(Basic):
     """
     _format_name = 'no_header'
     _description = 'Basic table with no headers'
-
-    def __init__(self):
-        super(NoHeader, self).__init__()
-        self.header.start_line = None
-        self.data.start_line = 0
+    header_class = NoHeaderHeader
+    data_class = NoHeaderData
 
 
-class CommentedHeaderHeader(core.BaseHeader):
+class CommentedHeaderHeader(BasicHeader):
     """Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
@@ -110,11 +116,23 @@ class CommentedHeader(Basic):
     _description = 'Column names in a commented line'
 
     header_class = CommentedHeaderHeader
+    data_class = NoHeaderData
 
-    def __init__(self):
-        super(CommentedHeader, self).__init__()
-        self.data.start_line = 0
 
+class TabHeaderSplitter(core.DefaultSplitter):
+    delimiter = '\t'
+    process_line = None
+
+class TabDataSplitter(TabHeaderSplitter):
+    '''Don't strip data value whitespace since that is significant in TSV tables'''
+    process_val = None
+    skipinitialspace = False
+
+class TabHeader(BasicHeader):
+    splitter_class = TabHeaderSplitter
+
+class TabData(BasicData):
+    splitter_class = TabDataSplitter
 
 class Tab(Basic):
     """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
@@ -129,18 +147,19 @@ class Tab(Basic):
     """
     _format_name = 'tab'
     _description = 'Basic table with tab-separated values'
+    header_class = TabHeader
+    data_class = TabData
 
-    def __init__(self):
-        super(Tab, self).__init__()
-        self.header.splitter.delimiter = '\t'
-        self.data.splitter.delimiter = '\t'
-        # Don't strip line whitespace since that includes tabs
-        self.header.splitter.process_line = None
-        self.data.splitter.process_line = None
-        # Don't strip data value whitespace since that is significant in TSV tables
-        self.data.splitter.process_val = None
-        self.data.splitter.skipinitialspace = False
 
+class CsvSplitter(core.DefaultSplitter):
+    delimiter = ','
+
+class CsvHeader(BasicHeader):
+    splitter_class = CsvSplitter
+
+class CsvData(BasicData):
+    splitter_class = CsvSplitter
+    fill_values = [(core.masked, '')]
 
 class Csv(Basic):
     """Read a CSV (comma-separated-values) file.
@@ -172,11 +191,8 @@ class Csv(Basic):
     _io_registry_can_write = True
     _description = 'Comma-separated-values'
 
-    def __init__(self):
-        super(Csv, self).__init__()
-        self.data.splitter.delimiter = ','
-        self.header.splitter.delimiter = ','
-        self.data.fill_values = [(core.masked, '')]
+    header_class = CsvHeader
+    data_class = CsvData
 
     def inconsistent_handler(self, str_vals, ncols):
         '''Adjust row if it is too short.
@@ -196,7 +212,7 @@ class Csv(Basic):
         return str_vals
 
 
-class RdbHeader(core.BaseHeader):
+class RdbHeader(TabHeader):
     col_type_map = {'n': core.NumType,
                     's': core.StrType}
     comment = r'\s*#'
@@ -245,6 +261,10 @@ class RdbHeader(core.BaseHeader):
         lines.append(self.splitter.join(rdb_types))
 
 
+class RdbData(TabData):
+    start_line = 2
+
+
 class Rdb(Tab):
     """Read a tab-separated file with an extra line after the column definition
     line.  The RDB format meets this definition.  Example::
@@ -261,7 +281,4 @@ class Rdb(Tab):
     _description = 'Tab-separated with a type definition header line'
 
     header_class = RdbHeader
-
-    def __init__(self):
-        super(Rdb, self).__init__()
-        self.data.start_line = 2
+    data_class = RdbData

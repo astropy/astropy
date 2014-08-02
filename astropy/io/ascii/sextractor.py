@@ -13,13 +13,12 @@ import re
 
 from ...extern import six
 from . import core
-
+from . import basic
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
-    def __init__(self):
-        super(SExtractorHeader, self).__init__()
-        self.comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
+    comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
+
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a SExtractor
@@ -81,6 +80,12 @@ class SExtractorHeader(core.BaseHeader):
             self.cols.append(col)
 
 
+class SExtractorData(core.BaseData):
+        start_line = 0
+        delimiter = ' '
+        comment = r'\s*#'
+
+
 class SExtractor(core.BaseReader):
     """Read a SExtractor file.
        SExtractor is a package for faint-galaxy photometry.
@@ -110,13 +115,9 @@ class SExtractor(core.BaseReader):
     _description = 'SExtractor format table'
 
     header_class = SExtractorHeader
+    data_class = SExtractorData
+    inputter_class = core.ContinuationLinesInputter
 
-    def __init__(self):
-        super(SExtractor, self).__init__()
-        self.inputter = core.ContinuationLinesInputter()
-        self.data.splitter.delimiter = ' '
-        self.data.start_line = 0
-        self.data.comment = r'\s*#'  # Comments embedded in the data start with #
 
     def read(self, table):
         output = core.BaseReader.read(self, table)

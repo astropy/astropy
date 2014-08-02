@@ -19,11 +19,8 @@ from ...utils import OrderedDict
 
 
 class DaophotHeader(core.BaseHeader):
-    """Read the header from a file produced by the IRAF DAOphot routine."""
-    def __init__(self):
-        super(DaophotHeader, self).__init__()
-        self.comment = r'\s*#K'
-        self.aperture_values = ''
+    comment = r'\s*#K'
+    aperture_values = ''
 
     def update_meta(self, lines, meta):
         """
@@ -160,6 +157,16 @@ class DaophotHeader(core.BaseHeader):
         self.data.fill_values.append(('INDEF', '0'))
 
 
+class DaophotData(core.BaseData):
+    splitter_class = fixedwidth.FixedWidthSplitter
+    start_line = 0
+    comment = r'\s*#'
+
+
+class DaophotInputter(core.ContinuationLinesInputter):
+    no_continue = r'\s*#'
+
+
 class Daophot(core.BaseReader):
     """Read a DAOphot file.
     Example::
@@ -226,14 +233,9 @@ class Daophot(core.BaseReader):
     _description = 'IRAF DAOphot format table'
     
     header_class = DaophotHeader
+    data_class = DaophotData
+    inputter_class = DaophotInputter
 
-    def __init__(self):
-        super(Daophot, self).__init__()
-        self.inputter = core.ContinuationLinesInputter()
-        self.inputter.no_continue = r'\s*#'
-        self.data.splitter = fixedwidth.FixedWidthSplitter()
-        self.data.start_line = 0
-        self.data.comment = r'\s*#'
 
     def write(self, table=None):
         raise NotImplementedError

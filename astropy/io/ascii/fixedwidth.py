@@ -13,8 +13,8 @@ from __future__ import absolute_import, division, print_function
 from ...extern.six.moves import zip
 
 from . import core
-from .core import InconsistentTableError
-from .basic import Basic
+from .core import InconsistentTableError, DefaultSplitter
+from . import basic
 
 
 class FixedWidthSplitter(core.BaseSplitter):
@@ -33,6 +33,7 @@ class FixedWidthSplitter(core.BaseSplitter):
     """
     delimiter_pad = ''
     bookend = False
+    delimiter = '|'
 
     def __call__(self, lines):
         for line in lines:
@@ -56,7 +57,11 @@ class FixedWidthSplitter(core.BaseSplitter):
         return bookend_left + padded_delim.join(vals) + bookend_right
 
 
-class FixedWidthHeader(core.BaseHeader):
+class FixedWidthHeaderSplitter(DefaultSplitter):
+    delimiter = '|'
+
+
+class FixedWidthHeader(basic.BasicHeader):
     """Fixed width table header reader.
 
     The key settable class attributes are:
@@ -72,7 +77,7 @@ class FixedWidthHeader(core.BaseHeader):
     :param delimiter_pad: padding around delimiter when writing (default = None)
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
-
+    splitter_class = FixedWidthHeaderSplitter
     position_line = None   # secondary header line position
 
     def get_line(self, lines, index):
@@ -187,7 +192,7 @@ class FixedWidthHeader(core.BaseHeader):
         pass
 
 
-class FixedWidthData(core.BaseData):
+class FixedWidthData(basic.BasicData):
     """Base table data reader.
 
     :param start_line: None, int, or a function of ``lines`` that returns None or int
@@ -236,7 +241,7 @@ class FixedWidthData(core.BaseData):
         return lines
 
 
-class FixedWidth(Basic):
+class FixedWidth(basic.Basic):
     """Read or write a fixed width table with a single header line that defines column
     names and positions.  Examples::
 
@@ -274,13 +279,18 @@ class FixedWidth(Basic):
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         super(FixedWidth, self).__init__()
-
-        self.header.splitter.delimiter = '|'
-        self.data.splitter.delimiter = '|'
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
         self.header.col_starts = col_starts
         self.header.col_ends = col_ends
+
+
+class FixedWidthNoHeaderHeader(FixedWidthHeader):
+    start_line = None
+
+
+class FixedWidthNoHeaderData(FixedWidthData):
+     start_line = 0
 
 
 class FixedWidthNoHeader(FixedWidth):
@@ -314,12 +324,25 @@ class FixedWidthNoHeader(FixedWidth):
     """
     _format_name = 'fixed_width_no_header'
     _description = 'Fixed width with no header'
+    header_class = FixedWidthNoHeaderHeader
+    data_class = FixedWidthNoHeaderData
+
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         super(FixedWidthNoHeader, self).__init__(col_starts, col_ends,
                             delimiter_pad=delimiter_pad, bookend=bookend)
-        self.header.start_line = None
-        self.data.start_line = 0
+
+
+class FixedWidthTwoLineHeader(FixedWidthHeader):
+    splitter_class = DefaultSplitter
+
+
+class FixedWidthTwoLineDataSplitter(FixedWidthSplitter):
+    delimiter = ' '
+
+
+class FixedWidthTwoLineData(FixedWidthData):
+    splitter_class = FixedWidthTwoLineDataSplitter
 
 
 class FixedWidthTwoLine(FixedWidth):
@@ -352,11 +375,11 @@ class FixedWidthTwoLine(FixedWidth):
     """
     _format_name = 'fixed_width_two_line'
     _description = 'Fixed width with second header line'
+    data_class = FixedWidthTwoLineData
+    header_class = FixedWidthTwoLineHeader
 
     def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
         super(FixedWidthTwoLine, self).__init__(delimiter_pad=delimiter_pad, bookend=bookend)
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1
-        self.header.splitter.delimiter = ' '
-        self.data.splitter.delimiter = ' '

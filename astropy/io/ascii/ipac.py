@@ -20,6 +20,7 @@ from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth
+from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
@@ -83,15 +84,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     'f': core.FloatType,
                     'r': core.FloatType,
                     'c': core.StrType}
-
-    def __init__(self, definition='ignore'):
-
-        super(IpacHeader, self).__init__()
-        if definition in ['ignore', 'left', 'right']:
-            self.ipac_definition = definition
-        else:
-            raise ValueError("definition should be one of ignore/left/right")
-
+    definition='ignore'
+    start_line = None
+    
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
         delimiter character."""
@@ -291,8 +286,18 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         return lines
 
 
+class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
+    delimiter = ' '
+    delimiter_pad = ''
+    bookend = True
+
+
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
+    comment = r'[|\\]'
+    start_line = 0
+    splitter_class = IpacDataSplitter
+
 
     def str_vals(self):
         '''return str vals for each in the table'''
@@ -312,7 +317,7 @@ class IpacData(fixedwidth.FixedWidthData):
         return lines
 
 
-class Ipac(fixedwidth.FixedWidth):
+class Ipac(basic.Basic):
     """Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
@@ -396,19 +401,17 @@ class Ipac(fixedwidth.FixedWidth):
     _description = 'IPAC format table'
 
     data_class = IpacData
+    header_class = IpacHeader
 
     def __init__(self, definition='ignore', DBMS=False):
-        super(fixedwidth.FixedWidth, self).__init__()
+        super(Ipac, self).__init__()
         # Usually the header is not defined in __init__, but here it need a keyword
-        self.header = IpacHeader(definition=definition)
-        self.data.header = self.header
-        self.header.data = self.data
+        if definition in ['ignore', 'left', 'right']:
+            self.header.ipac_definition = definition
+        else:
+            raise ValueError("definition should be one of ignore/left/right")
         self.header.DBMS = DBMS
-        self.data.splitter.delimiter = ' '
-        self.data.splitter.delimiter_pad = ''
-        self.data.splitter.bookend = True
-        self.data.comment = r'[|\\]'
-        self.data.start_line = 0
+
 
     def write(self, table):
         """Write ``table`` as list of strings.

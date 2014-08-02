@@ -60,8 +60,38 @@ def find_latex_line(lines, latex):
         return None
 
 
+class LatexSplitter(core.BaseSplitter):
+    '''Split LaTeX table date. Default delimiter is `&`.
+    '''
+    delimiter = '&'
+
+    def process_line(self, line):
+        """Remove whitespace at the beginning or end of line. Also remove
+        \\ at end of line"""
+        line = line.split('%')[0]
+        line = line.strip()
+        if line[-2:] == r'\\':
+            line = line.strip(r'\\')
+        else:
+            raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
+        return line
+
+    def process_val(self, val):
+        """Remove whitespace and {} at the beginning or end of value."""
+        val = val.strip()
+        if val and (val[0] == '{') and (val[-1] == '}'):
+            val = val[1:-1]
+        return val
+
+    def join(self, vals):
+        '''Join values together and add a few extra spaces for readability'''
+        delimiter = ' ' + self.delimiter + ' '
+        return delimiter.join(x.strip() for x in vals) + r' \\'
+
+
 class LatexHeader(core.BaseHeader):
     header_start = r'\begin{tabular}'
+    splitter_class = LatexSplitter
 
     def start_line(self, lines):
         line = find_latex_line(lines, self.header_start)
@@ -93,6 +123,7 @@ class LatexHeader(core.BaseHeader):
 class LatexData(core.BaseData):
     data_start = None
     data_end = r'\end{tabular}'
+    splitter_class = LatexSplitter
 
     def start_line(self, lines):
         if self.data_start:
@@ -113,35 +144,6 @@ class LatexData(core.BaseData):
         lines.append(self.data_end)
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + '}')
-
-
-class LatexSplitter(core.BaseSplitter):
-    '''Split LaTeX table date. Default delimiter is `&`.
-    '''
-    delimiter = '&'
-
-    def process_line(self, line):
-        """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line"""
-        line = line.split('%')[0]
-        line = line.strip()
-        if line[-2:] == r'\\':
-            line = line.strip(r'\\')
-        else:
-            raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
-        return line
-
-    def process_val(self, val):
-        """Remove whitespace and {} at the beginning or end of value."""
-        val = val.strip()
-        if val and (val[0] == '{') and (val[-1] == '}'):
-            val = val[1:-1]
-        return val
-
-    def join(self, vals):
-        '''Join values together and add a few extra spaces for readability'''
-        delimiter = ' ' + self.delimiter + ' '
-        return delimiter.join(x.strip() for x in vals) + r' \\'
 
 
 class Latex(core.BaseReader):
@@ -260,8 +262,6 @@ class Latex(core.BaseReader):
 
         super(Latex, self).__init__()
 
-        self.header.splitter = LatexSplitter()
-        self.data.splitter = LatexSplitter()
         self.latex = {}
         # The latex dict drives the format of the table and needs to be shared
         # with data and header
@@ -285,6 +285,29 @@ class Latex(core.BaseReader):
         return core.BaseReader.write(self, table=table)
 
 
+class AASTexHeaderSplitter(LatexSplitter):
+    '''Extract column names from a `deluxetable`_.
+
+    This splitter expects the following LaTeX code **in a single line**:
+
+        \tablehead{\colhead{col1} & ... & \colhead{coln}}
+    '''
+    def process_line(self, line):
+        """extract column names from tablehead
+        """
+        line = line.split('%')[0]
+        line = line.replace(r'\tablehead', '')
+        line = line.strip()
+        if (line[0] == '{') and (line[-1] == '}'):
+            line = line[1:-1]
+        else:
+            raise core.InconsistentTableError(r'\tablehead is missing {}')
+        return line.replace(r'\colhead', '')
+
+    def join(self, vals):
+        return ' & '.join([r'\colhead{' + str(x) + '}' for x in vals])
+
+
 class AASTexHeader(LatexHeader):
     '''In a `deluxetable
     <http://fits.gsfc.nasa.gov/standard30/deluxetable.sty>`_ some header
@@ -293,6 +316,7 @@ class AASTexHeader(LatexHeader):
     This header is modified to take that into account.
     '''
     header_start = r'\tablehead'
+    splitter_class = AASTexHeaderSplitter
 
     def start_line(self, lines):
         return find_latex_line(lines, r'\tablehead')
@@ -333,29 +357,6 @@ class AASTexData(LatexData):
         lines.append(r'\end{' + self.latex['tabletype'] + r'}')
 
 
-class AASTexHeaderSplitter(LatexSplitter):
-    '''Extract column names from a `deluxetable`_.
-
-    This splitter expects the following LaTeX code **in a single line**:
-
-        \tablehead{\colhead{col1} & ... & \colhead{coln}}
-    '''
-    def process_line(self, line):
-        """extract column names from tablehead
-        """
-        line = line.split('%')[0]
-        line = line.replace(r'\tablehead', '')
-        line = line.strip()
-        if (line[0] == '{') and (line[-1] == '}'):
-            line = line[1:-1]
-        else:
-            raise core.InconsistentTableError(r'\tablehead is missing {}')
-        return line.replace(r'\colhead', '')
-
-    def join(self, vals):
-        return ' & '.join([r'\colhead{' + str(x) + '}' for x in vals])
-
-
 class AASTex(Latex):
     '''Write and read AASTeX tables.
 
@@ -378,9 +379,6 @@ class AASTex(Latex):
 
     def __init__(self, **kwargs):
         super(AASTex, self).__init__(**kwargs)
-        self.header.comment = '%|' + '|'.join(
-            [r'\\' + command for command in self.ignore_latex_commands])
-        self.header.splitter = AASTexHeaderSplitter()
         # check if tabletype was explicitly set by the user
         if not (('latexdict' in kwargs) and ('tabletype' in kwargs['latexdict'])):
             self.latex['tabletype'] = 'deluxetable'
