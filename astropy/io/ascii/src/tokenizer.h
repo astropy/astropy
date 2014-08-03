@@ -80,7 +80,6 @@ typedef struct
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
                               int strip_whitespace_lines, int strip_whitespace_fields,
                               int use_fast_converter);
-tokenizer_t *copy_tokenizer(tokenizer_t *t);
 void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);

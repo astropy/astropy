@@ -39,13 +39,6 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     return tokenizer;
 }
 
-tokenizer_t *copy_tokenizer(tokenizer_t *t)
-{
-    return create_tokenizer(t->delimiter, t->comment, t->quotechar, t->fill_extra_cols,
-                            t->strip_whitespace_lines, t->strip_whitespace_fields,
-                            t->use_fast_converter);
-}
-
 void delete_data(tokenizer_t *tokenizer)
 {
     // Don't free tokenizer->source because it points to part of
@@ -812,7 +805,6 @@ void free_mmap(memory_map *mmap)
 #else
 #include <windows.h>
 
-// TODO: test these on Windows
 memory_map *get_mmap(char *fname)
 {
     memory_map *map = (memory_map *)malloc(sizeof(memory_map));
@@ -826,35 +818,32 @@ memory_map *get_mmap(char *fname)
     }
 
     map->len = GetFileSize(map->file_ptr, 0);
-    map->handle = (HANDLE *)malloc(sizeof(HANDLE));
-    *map->handle = CreateFileMapping(map->file_ptr, 0, PAGE_READONLY,
-                                          0, 0, 0);
-    if (!mem_handle)
+    map->handle = CreateFileMapping(map->file_ptr, 0, PAGE_READONLY, 0, 0, 0);
+
+    if (!map->handle)
     {
-        free(map->handle);
         CloseHandle(map->file_ptr);
         free(map);
         return 0;
     }
 
-    map->ptr = MapViewOfFile(mem_handle, FILE_MAP_READ, 0, 0, 0);
+    map->ptr = MapViewOfFile(map->handle, FILE_MAP_READ, 0, 0, 0);
 
     if (!map->ptr)
     {
-        free(map->handle);
-        CloseHandle(mem_handle);
+        CloseHandle(map->handle);
         CloseHandle(map->file_ptr);
         free(map);
         return 0;
     }
+
+    return map;
 }
 
 void free_mmap(memory_map *mmap)
 {
-    CloseHandle(mem_handle);
+    CloseHandle(mmap->handle);
     CloseHandle(mmap->file_ptr);
-    free(mmap->handle);
     free(mmap);
 }
-
 #endif

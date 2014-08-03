@@ -73,7 +73,6 @@ cdef extern from "src/tokenizer.h":
     tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields, int use_fast_converter)
-    tokenizer_t *copy_tokenizer(tokenizer_t *t)
     void delete_tokenizer(tokenizer_t *tokenizer)
     int skip_lines(tokenizer_t *self, int offset, int header)
     int tokenize(tokenizer_t *self, int end, int header,
@@ -149,10 +148,10 @@ cdef class CParser:
         object data_end
         object include_names
         object exclude_names
-        dict fill_values
+        object fill_values
         object fill_include_names
         object fill_exclude_names
-        set fill_names
+        object fill_names
         int fill_extra_cols
         np.ndarray use_cols
         bytes source_bytes
@@ -189,16 +188,18 @@ cdef class CParser:
                                           strip_line_fields,
                                           use_fast_converter)
         self.source = None
-        self.setup_tokenizer(source)
+        if source is not None:
+            self.setup_tokenizer(source)
         self.header_start = header_start
         self.data_start = data_start
         self.data_end = data_end
         self.names = names
         self.include_names = include_names
         self.exclude_names = exclude_names
-        self.fill_values = get_fill_values(fill_values)
+        self.fill_values = fill_values
         self.fill_include_names = fill_include_names
         self.fill_exclude_names = fill_exclude_names
+        self.fill_names = None
         self.fill_extra_cols = fill_extra_cols
 
         # parallel=True indicates that we should use the CPU count
@@ -208,7 +209,7 @@ cdef class CParser:
         elif parallel is not False and parallel < 2:
             parallel = False
         self.parallel = parallel
-    
+
     def __dealloc__(self):
         if self.tokenizer:
             delete_tokenizer(self.tokenizer) # perform C memory cleanup
@@ -344,7 +345,7 @@ cdef class CParser:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
             return [[]] * self.width
-        self._set_fill_names()
+        self._set_fill_values()
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end is not None and self.data_end < 0: # negative indexing
             num_rows += self.data_end
@@ -382,14 +383,14 @@ cdef class CParser:
                 N = i
                 break
 
-        chunkindices.append(source_len) #figure out correct chunkindices
-        self._set_fill_names()
+        self._set_fill_values()
+        chunkindices.append(source_len) #TODO: figure out correct chunkindices
         cdef list processes = []
 
         for i in range(N):
-            process = multiprocessing.Process(target=self._read_chunk, args=(
-                chunkindices[i], chunkindices[i + 1], try_int, try_float, try_string,
-                queue, reconvert_queue, i))
+            process = multiprocessing.Process(target=_read_chunk, args=(self,
+                self.use_cols, chunkindices[i], chunkindices[i + 1], try_int,
+                try_float, try_string, queue, reconvert_queue, i))
             processes.append(process)
             process.start()
 
@@ -485,51 +486,14 @@ cdef class CParser:
 
         return ret
 
-    def _read_chunk(self, start, end, try_int, try_float, try_string, queue,
-                    reconvert_queue, i):
-        cdef tokenizer_t *chunk_tokenizer = copy_tokenizer(self.tokenizer)
-        chunk_tokenizer.source = self.source_bytes
-        chunk_tokenizer.source_len = end
-        chunk_tokenizer.source_pos = start
-        chunk_tokenizer.num_cols = self.width
-
-        data = None
-        err = None
-
-        if tokenize(chunk_tokenizer, -1, 0, <int *> self.use_cols.data,
-                    len(self.use_cols)) != 0:
-            err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
-        if chunk_tokenizer.num_rows == 0: # no data
-            data = dict((name, np.array([], np.int_)) for name in self.names)
-        else:
-            try:
-                data = self._convert_data(chunk_tokenizer,
-                                          try_int, try_float, try_string, -1)
-            except Exception as e:
-                delete_tokenizer(chunk_tokenizer)
-                queue.put((None, e, i))
-                return
-
-        try:
-            queue.put((data, err, i))
-        except Queue.Full as e:
-            # hopefully this shouldn't happen
-            delete_tokenizer(chunk_tokenizer)
-            queue.pop()
-            queue.put((None, e, i))
-
-        reconvert_cols = reconvert_queue.get()
-        for col in reconvert_cols:
-            queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
-        delete_tokenizer(chunk_tokenizer)
-        reconvert_queue.put(reconvert_cols) # return to the queue for other processes
-
-    cdef _set_fill_names(self):
-        self.fill_names = set(self.names)
-        if self.fill_include_names is not None:
-            self.fill_names.intersection_update(self.fill_include_names)
-        if self.fill_exclude_names is not None:
-            self.fill_names.difference_update(self.fill_exclude_names)
+    cdef _set_fill_values(self):
+        if self.fill_names is None:
+            self.fill_names = set(self.names)
+            if self.fill_include_names is not None:
+                self.fill_names.intersection_update(self.fill_include_names)
+            if self.fill_exclude_names is not None:
+                self.fill_names.difference_update(self.fill_exclude_names)
+        self.fill_values = get_fill_values(self.fill_values)
 
     cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string, num_rows):
         cols = {}
@@ -695,6 +659,74 @@ cdef class CParser:
                                               range(row)])
         else:
             return col
+
+    def __reduce__(self):
+        return (_copy_cparser, (self.source_bytes, self.use_cols, self.fill_names,
+                                self.fill_values, self.tokenizer.strip_whitespace_lines,
+                                self.tokenizer.strip_whitespace_fields,
+                                dict(delimiter=chr(self.tokenizer.delimiter),
+                                comment=chr(self.tokenizer.comment),
+                                quotechar=chr(self.tokenizer.quotechar),
+                                header_start=self.header_start,
+                                data_start=self.data_start,
+                                data_end=self.data_end,
+                                names=self.names,
+                                include_names=self.include_names,
+                                exclude_names=self.exclude_names,
+                                fill_values=None,
+                                fill_include_names=self.fill_include_names,
+                                fill_exclude_names=self.fill_exclude_names,
+                                fill_extra_cols=self.tokenizer.fill_extra_cols,
+                                use_fast_converter=self.tokenizer.use_fast_converter,
+                                parallel=False)))
+
+def _copy_cparser(source_bytes, use_cols, fill_names, fill_values,
+                  strip_whitespace_lines, strip_whitespace_fields, kwargs):
+    parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
+    parser.source_bytes = source_bytes
+    parser.use_cols = use_cols
+    parser.fill_names = fill_names
+    parser.fill_values = fill_values
+    return parser
+
+def _read_chunk(CParser self, np.ndarray use_cols, start, end, try_int,
+                try_float, try_string, queue, reconvert_queue, i):
+    cdef tokenizer_t *chunk_tokenizer = self.tokenizer
+    chunk_tokenizer.source = self.source_bytes
+    chunk_tokenizer.source_len = end
+    chunk_tokenizer.source_pos = start
+    chunk_tokenizer.num_cols = len(self.names)
+
+    data = None
+    err = None
+
+    if tokenize(chunk_tokenizer, -1, 0, <int *> use_cols.data,
+                len(use_cols)) != 0:
+        err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
+    if chunk_tokenizer.num_rows == 0: # no data
+        data = dict((name, np.array([], np.int_)) for name in self.names)
+    else:
+        try:
+            data = self._convert_data(chunk_tokenizer,
+                                      try_int, try_float, try_string, -1)
+        except Exception as e:
+            delete_tokenizer(chunk_tokenizer)
+            queue.put((None, e, i))
+            return
+
+    try:
+        queue.put((data, err, i))
+    except Queue.Full as e:
+        # hopefully this shouldn't happen
+        delete_tokenizer(chunk_tokenizer)
+        queue.pop()
+        queue.put((None, e, i))
+
+    reconvert_cols = reconvert_queue.get()
+    for col in reconvert_cols:
+        queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
+    delete_tokenizer(chunk_tokenizer)
+    reconvert_queue.put(reconvert_cols) # return to the queue for other processes
 
 cdef class FastWriter:
     """
