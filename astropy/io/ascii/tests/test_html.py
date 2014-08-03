@@ -38,11 +38,11 @@ def test_soupstring():
     Test to make sure the class SoupString behaves properly.
     """
     
-    soup = BeautifulSoup('<html><body><p>foo</p></body></html>')
+    soup = BeautifulSoup('<html><head></head><body><p>foo</p></body></html>')
     soup_str = html.SoupString(soup)
     assert isinstance(soup_str, str)
     assert isinstance(soup_str, html.SoupString)
-    assert soup_str == '<html><body><p>foo</p></body></html>'
+    assert soup_str == '<html><head></head><body><p>foo</p></body></html>'
     assert soup_str.soup is soup
 
 def test_listwriter():
@@ -237,8 +237,8 @@ def test_htmlsplitter():
 
     splitter = html.HTMLSplitter()
 
-    lines = [html.SoupString(BeautifulSoup('<tr><th>Col 1</th><th>Col 2</th></tr>').tr),
-            html.SoupString(BeautifulSoup('<tr><td>Data 1</td><td>Data 2</td></tr>').tr)]
+    lines = [html.SoupString(BeautifulSoup('<table><tr><th>Col 1</th><th>Col 2</th></tr></table>').tr),
+            html.SoupString(BeautifulSoup('<table><tr><td>Data 1</td><td>Data 2</td></tr></table>').tr)]
     expected_data = [['Col 1', 'Col 2'], ['Data 1', 'Data 2']]
     assert list(splitter(lines)) == expected_data
 
@@ -280,7 +280,7 @@ def test_htmlheader_start():
            '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
 
     # start_line should return None if no valid header is found
-    lines = [html.SoupString(BeautifulSoup('<tr><td>Data</td></tr>').tr),
+    lines = [html.SoupString(BeautifulSoup('<table><tr><td>Data</td></tr></table>').tr),
              html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     assert header.start_line(lines) is None
 
@@ -327,7 +327,7 @@ def test_htmldata():
            '<tr><td>9</td><td>i</td><td>-125.0</td></tr>'
     
     # start_line should raise an error if no table data exists
-    lines = [html.SoupString(BeautifulSoup('<tr></tr>').tr),
+    lines = [html.SoupString(BeautifulSoup('<div></div>').div),
              html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     with pytest.raises(core.InconsistentTableError):
         data.start_line(lines)
