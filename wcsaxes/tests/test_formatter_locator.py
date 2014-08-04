@@ -291,7 +291,11 @@ class TestScalarFormatterLocator(object):
     @pytest.mark.parametrize(('format', 'string'), [('x', '15'),
                                                     ('x.x', '15.4'),
                                                     ('x.xx', '15.39'),
-                                                    ('x.xxx', '15.392')])
+                                                    ('x.xxx', '15.392'),
+                                                    ('%g', '15.3922'),
+                                                    ('%f', '15.392231'),
+                                                    ('%.2f', '15.39'),
+                                                    ('%.3f', '15.392')])
     def test_format(self, format, string):
         fl = ScalarFormatterLocator(number=5, format=format, unit=u.m)
         assert fl.formatter([15.392231] * u.m, None)[0] == string
