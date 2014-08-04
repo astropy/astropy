@@ -316,7 +316,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
     def check_required_modules(cls, mods):
         for mod in mods:
             if mod in cls._import_cache:
-                return cls._import_cache[mod]
+                if not cls._import_cache[mod]:
+                    return False
             try:
                 imp.find_module(mod)
             except ImportError:
