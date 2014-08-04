@@ -145,11 +145,14 @@ class TestBasic(BaseImageTests):
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
         fig.add_axes(ax)
+        ax.grid(grid_type='contours')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_axislabel('Velocity m/s')
-        ax.coords[1].set_ticks(width=1, exclude_overlapping=False)
-        ax.coords[2].set_ticks(width=1, exclude_overlapping=False)
+        ax.coords[1].set_ticks(width=1, exclude_overlapping=True)
+        ax.coords[2].set_ticks(width=1, exclude_overlapping=True)
+        ax.grid(grid_type='contours', color='red')
+        ax.grid(grid_type='contours', linestyle='solid')
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
