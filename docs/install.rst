@@ -13,7 +13,7 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://alfven.org/wp/hdf5-for-python/>`_: To read/write
+- `h5py <http://h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files
 
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
