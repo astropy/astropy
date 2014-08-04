@@ -19,6 +19,7 @@ import signal
 import sys
 import textwrap
 import traceback
+import types
 import unicodedata
 import warnings
 
@@ -405,7 +406,11 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                 # classmethods in Python2.6 and below lack the __func__
                 # attribute so we need to hack around to get it
                 method = func.__get__(None, object)
-                if hasattr(method, '__func__'):
+                if isinstance(method, types.FunctionType):
+                    # For staticmethods anyways the wrapped object is just a
+                    # plain function (not a bound method or anything like that)
+                    func = method
+                elif hasattr(method, '__func__'):
                     func = method.__func__
                 elif hasattr(method, 'im_func'):
                     func = method.im_func
