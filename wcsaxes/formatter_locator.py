@@ -374,21 +374,23 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 self._precision = len(value) - value.index('.') - 1
             else:
                 self._precision = 0
-        else:
+
+            if self.spacing is not None and self.spacing < self.base_spacing:
+                warnings.warn("Spacing is too small - resetting spacing to match format")
+                self.spacing = self.base_spacing
+
+            if self.spacing is not None:
+
+                ratio = (self.spacing / self.base_spacing).decompose().value
+                remainder = ratio - np.round(ratio)
+
+                if abs(remainder) > 1.e-10:
+                    warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+                    self.spacing = self.base_spacing * max(1, round(ratio))
+
+        elif not value.startswith('%'):
             raise ValueError("Invalid format: {0}".format(value))
 
-        if self.spacing is not None and self.spacing < self.base_spacing:
-            warnings.warn("Spacing is too small - resetting spacing to match format")
-            self.spacing = self.base_spacing
-
-        if self.spacing is not None:
-
-            ratio = (self.spacing / self.base_spacing).decompose().value
-            remainder = ratio - np.round(ratio)
-
-            if abs(remainder) > 1.e-10:
-                warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
-                self.spacing = self.base_spacing * max(1, round(ratio))
 
     @property
     def base_spacing(self):
@@ -415,7 +417,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # first compute the exact spacing
                 dv = abs(float(value_max - value_min)) / self.number
 
-                if self.format is not None and dv < self.base_spacing.value:
+                if self.format is not None and (not self.format.startswith('%')) and dv < self.base_spacing.value:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
                     spacing = self.base_spacing.to(self._unit).value
@@ -437,6 +439,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                     precision = -int(np.floor(np.log10(spacing)))
                 else:
                     precision = 0
+            elif self.format.startswith('%'):
+                return [(self.format % x.value) for x in values]
             else:
                 precision = self._precision
 

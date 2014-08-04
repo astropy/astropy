@@ -140,11 +140,16 @@ The syntax for the format string is the following:
 ``'s.s'``             ``'55412.0'``
 ``'s.ss'``            ``'55412.03'``
 ``'x.xxxx'``          ``'15.3922'``
+``'%.2f'``            ``'15.39'``
+``'%.3f'``            ``'15.392'``
+``'%d'``              ``'15'``
 ==================== ====================
 
 All the ``h...``, ``d...``, ``m...``, and ``s...`` formats can be used for
-angular coordinate axes, while the ``x...`` formats should be used for
-non-angular coordinate axes.
+angular coordinate axes, while the ``x...`` format or valid Python formats
+(see `String Formatting Operations
+<https://docs.python.org/2/library/stdtypes.html#string-formatting>`_) should
+be used for non-angular coordinate axes.
 
 Tick/label spacing and properties
 =================================
