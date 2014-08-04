@@ -1939,6 +1939,8 @@ naxis kwarg.
          [ 3.00000236  0.99999997]]
         >>> xy = w.all_world2pix(radec, 1, maxiter=3,
         ...                      tolerance=1.0e-10, quiet=False)
+        Traceback (innermost last):
+            ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
         requested accuracy.
         After 3 iterations, the solution is diverging at least for
