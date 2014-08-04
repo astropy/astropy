@@ -161,7 +161,7 @@ Numpy functions
 |quantity| objects are actually full Numpy arrays (the |quantity|
 object class inherits from and extends the ``numpy.ndarray`` class), and
 we have tried to ensure that most Numpy functions behave properly with
-units:
+quantities:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
