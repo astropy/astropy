@@ -142,6 +142,38 @@ def test_deprecated_class():
     pickle.dumps(TestA)
 
 
+def test_deprecated_static_and_classmethod():
+    """
+    Regression test for issue introduced by
+    https://github.com/astropy/astropy/pull/2811 and mentioned also here:
+    https://github.com/astropy/astropy/pull/2580#issuecomment-51049969
+    where it appears that deprecated staticmethods didn't work on Python 2.6.
+    """
+
+    class A(object):
+        @misc.deprecated('1.0')
+        @staticmethod
+        def B():
+            pass
+
+        @misc.deprecated('1.0')
+        @classmethod
+        def C(cls):
+            pass
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        A.B()
+
+    assert len(w) == 1
+    assert 'deprecated' in A.B.__doc__
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        A.C()
+
+    assert len(w) == 1
+    assert 'deprecated' in A.C.__doc__
+
+
 @remote_data
 def test_api_lookup():
     strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
