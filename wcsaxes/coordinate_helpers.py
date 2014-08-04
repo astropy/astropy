@@ -355,7 +355,7 @@ class CoordinateHelper(object):
 
             else:
 
-                for line in self.grid.collections:
+                for line in self._grid.collections:
                     line.set(**self.grid_lines_kwargs)
                     line.draw(renderer)
 
@@ -635,4 +635,4 @@ class CoordinateHelper(object):
             field[:-1,1:][reset] = np.nan
             field[1:,1:][reset] = np.nan
 
-        self.grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+        self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
