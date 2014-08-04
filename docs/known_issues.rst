@@ -188,6 +188,20 @@ may be a brief delay between the release of Astropy on PyPI and its release
 via the ``conda`` package manager; users can check the availability of new
 versions with ``conda search astropy``.
 
+When trying to update all packages after updating ``astropy`` like so::
+
+    $ conda update astropy
+    $ conda update --all
+
+the following error occurs between the ``astropy`` package and the ``anaconda``
+meta package::
+
+    Error: Unsatisfiable package specifications.
+
+The recommended fix is to run::
+
+    $ conda remove anaconda
+
 Installation fails on Mageia-2 or Mageia-3 distributions
 --------------------------------------------------------
 
