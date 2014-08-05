@@ -1759,8 +1759,8 @@ class TimeDecimalYear(TimeFormat):
         # Iterate through the fractional year objects
         for i, val in enumerate(val1):
             iy[i] = int(val)
-            year_begin = datetime(iy[i], 01, 01)
-            year_end = datetime(iy[i] + 1, 01, 01)
+            year_begin = datetime(iy[i], 1, 1)
+            year_end = datetime(iy[i] + 1, 1, 1)
 
             try:
                 ndays_per_year = (year_end - year_begin).total_seconds() / (60.0*60.0*24.0)
@@ -1772,9 +1772,9 @@ class TimeDecimalYear(TimeFormat):
             for month in xrange(1, 12, 1):
 
                 try:
-                    new_tot_days = tot_days + (datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)).total_seconds() / (60.0*60.0*24.0)
+                    new_tot_days = tot_days + (datetime(iy[i], month+1, 1) - datetime(iy[i], month, 1)).total_seconds() / (60.0*60.0*24.0)
                 except AttributeError:
-                    new_tot_days = tot_days + total_seconds(datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)) / (60.0*60.0*24.0)
+                    new_tot_days = tot_days + total_seconds(datetime(iy[i], month+1, 1) - datetime(iy[i], month, 1)) / (60.0*60.0*24.0)
 
                 if new_tot_days > idoy:
                     im[i] = month
@@ -1808,8 +1808,8 @@ class TimeDecimalYear(TimeFormat):
             ihr, imin, isec, ifracsec = ihmsf
             current = datetime(int(iy), int(im), int(id),
                                int(ihr), int(imin), int(isec), int(ifracsec))
-            year_begin = datetime(int(iy), 01, 01)
-            year_end = datetime(int(iy) + 1, 01, 01)
+            year_begin = datetime(int(iy), 1, 1)
+            year_end = datetime(int(iy) + 1, 1, 1)
             try:
                 decyear = (current - year_begin).total_seconds() / (year_end - year_begin).total_seconds()
             except AttributeError:
