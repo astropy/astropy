@@ -1761,11 +1761,21 @@ class TimeDecimalYear(TimeFormat):
             iy[i] = int(val)
             year_begin = datetime(iy[i], 01, 01)
             year_end = datetime(iy[i] + 1, 01, 01)
-            ndays_per_year = (year_end - year_begin).total_seconds() /(60.0*60.0*24.0)
+
+            try:
+                ndays_per_year = (year_end - year_begin).total_seconds() / (60.0*60.0*24.0)
+            except AttributeError:
+                ndays_per_year = total_seconds((year_end - year_begin)) / (60.0*60.0*24.0)
+
             idoy = (val - iy[i])* ndays_per_year
             tot_days = 0.0
             for month in xrange(1, 12, 1):
-                new_tot_days = tot_days + (datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)).total_seconds() / (60.0*60.0*24.0)
+
+                try:
+                    new_tot_days = tot_days + (datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)).total_seconds() / (60.0*60.0*24.0)
+                except AttributeError:
+                    new_tot_days = tot_days + total_seconds(datetime(iy[i], month+1, 01) - datetime(iy[i], month, 01)) / (60.0*60.0*24.0)
+
                 if new_tot_days > idoy:
                     im[i] = month
                     id[i] = int(idoy - tot_days)+1
@@ -1800,7 +1810,11 @@ class TimeDecimalYear(TimeFormat):
                                int(ihr), int(imin), int(isec), int(ifracsec))
             year_begin = datetime(int(iy), 01, 01)
             year_end = datetime(int(iy) + 1, 01, 01)
-            decyear = (current - year_begin).total_seconds() / (year_end - year_begin).total_seconds()
+            try:
+                decyear = (current - year_begin).total_seconds() / (year_end - year_begin).total_seconds()
+            except AttributeError:
+                decyear = total_seconds(current - year_begin) / total_seconds(year_end - year_begin)
+
             out[idx] = int(iy) + float(decyear)
 
         return out
@@ -2221,6 +2235,13 @@ def day_frac(val1, val2, factor=1., divisor=1.):
     frac += extra + err12
     return day, frac
 
+def total_seconds(td):
+    """
+    Replacement for time_delta.total_seconds() available in 2.7+
+    
+    """
+
+    return (td.microseconds + (td.seconds + td.days * 24. * 3600.) * 10**6) / 10**6
 
 def two_sum(a, b):
     """
