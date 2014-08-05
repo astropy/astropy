@@ -568,3 +568,18 @@ div.figures .figure {
 .field-list th {
     white-space: nowrap;
 }
+
+table.field-list {
+    border-spacing: 0px;
+    margin-left: 1px;
+    border-left: 5px solid rgb(238, 238, 238) !important;
+}
+
+table.field-list th.field-name {
+    display: inline-block;
+    padding: 1px 8px 1px 5px;
+    white-space: nowrap;
+    background-color: rgb(238, 238, 238);
+    border-radius: 0 3px 3px 0;
+    -webkit-border-radius: 0 3px 3px 0;
+}
