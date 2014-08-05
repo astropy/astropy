@@ -597,9 +597,9 @@ class CoordinateHelper(object):
 
     def _get_gridline(self, xy_world, pixel, xy_world_round):
         if self.coord_type == 'scalar':
-            return get_gridline_path(self.parent_axes, xy_world, pixel)
+            return get_gridline_path(xy_world, pixel)
         else:
-            return get_lon_lat_path(self.parent_axes, xy_world, pixel, xy_world_round)
+            return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
     def _update_grid_contour(self):
 
