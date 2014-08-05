@@ -727,7 +727,7 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
-def is_unedited_config_file(filename):
+def is_unedited_config_file(filename, template_content=None):
     """
     Determines if a config file can be safely replaced because it doesn't
     actually contain any meaningful content.
@@ -739,6 +739,9 @@ def is_unedited_config_file(filename):
     - An exact match to a "legacy" version of the config file prior to
       Astropy 0.4, when APE3 was implemented and the config file
       contained commented-out values by default.
+
+    If the config file is already identical to the template config
+    file, `False` is returned so it is not needlessly overwritten.
     """
     # We want to calculate the md5sum using universal line endings, so
     # that even if the files had their line endings converted to \r\n
@@ -746,6 +749,9 @@ def is_unedited_config_file(filename):
 
     with io.open(filename, 'rt', encoding='latin-1') as fd:
         content = fd.read()
+
+    if content == template_content:
+        return False
 
     content = content.encode('latin-1')
 
@@ -824,10 +830,13 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     cfgfn = get_config(pkg).filename
 
+    with io.open(default_cfgfn, 'rt', encoding='latin-1') as fr:
+        template_content = fr.read()
+
     doupdate = False
     if cfgfn is not None:
         if path.exists(cfgfn):
-            doupdate = is_unedited_config_file(cfgfn)
+            doupdate = is_unedited_config_file(cfgfn, template_content)
         elif path.exists(path.dirname(cfgfn)):
             doupdate = True
 
@@ -848,12 +857,9 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         needs_template = False
 
     if doupdate or needs_template:
-        with io.open(default_cfgfn, 'rb') as fr:
-            content = fr.read()
-
         if needs_template:
-            with io.open(template_path, 'wb') as fw:
-                fw.write(content)
+            with io.open(template_path, 'wt', encoding='latin-1') as fw:
+                fw.write(template_content)
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
             # changes, display a warning.
@@ -867,8 +873,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                     ConfigurationChangedWarning)
 
         if doupdate:
-            with io.open(cfgfn, 'wb') as fw:
-                fw.write(content)
+            with io.open(cfgfn, 'wt', encoding='latin-1') as fw:
+                fw.write(template_content)
             return True
 
     return False

@@ -165,6 +165,9 @@ Bug Fixes
     ``table.jsviewer`` that were missing from the configuration file
     template. [#2772]
 
+  - The configuration template is no longer rewritten on every import
+    of astropy, causing race conditions. [#2805]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``
