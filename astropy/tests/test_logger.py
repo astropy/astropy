@@ -147,6 +147,29 @@ def test_warning_logging_with_io_votable_warning():
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
+def test_import_error_in_warning_logging():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/2671
+
+    This test actually puts a goofy fake module into ``sys.modules`` to test
+    this problem.
+    """
+
+    class FakeModule(object):
+        def __getattr__(self, attr):
+            raise ImportError('_showwarning should ignore any exceptions '
+                              'here')
+
+    log.enable_warnings_logging()
+
+    sys.modules['<test fake module>'] = FakeModule()
+    try:
+        warnings.showwarning(AstropyWarning('Regression test for #2671'),
+                             AstropyWarning, '<this is only a test>', 1)
+    finally:
+        del sys.modules['<test fake module>']
+
+
 def test_exception_logging_disable_no_enable():
     with pytest.raises(LoggingError) as e:
         log.disable_exception_logging()

@@ -199,6 +199,11 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+- ``astropy.logger``
+
+  - Fixed a crash that could occur in rare cases when (such as in bundled
+    apps) where submodules of the ``email`` package are not importable. [#2671]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
