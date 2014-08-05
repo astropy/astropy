@@ -138,7 +138,8 @@ Other Changes and Additions
   - Overwriting an existing file using the ``clobber=True`` option no longer
     displays a warning message. [#1963]
 
-- Updated the bundled ``six`` module to version 1.7.3. [#2814]
+- Updated the bundled ``six`` module to version 1.7.3 and made 1.7.3 the
+  minimum acceptable version of ``six``. [#2814]
 
 
 0.4.1 (unreleased)
