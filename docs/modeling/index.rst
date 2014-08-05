@@ -144,6 +144,7 @@ background in an image.
 .. plot::
    :include-source:
 
+    import warnings
     import numpy as np
     from astropy.modeling import models, fitting
 
@@ -156,7 +157,11 @@ background in an image.
     # Fit the data using astropy.modeling
     p_init = models.Polynomial2D(degree=2)
     fit_p = fitting.LevMarLSQFitter()
-    p = fit_p(p_init, x, y, z)
+
+    with warnings.catch_warnings():
+        # Ignore model linearity warning from the fitter
+        warnings.simplefilter('ignore')
+        p = fit_p(p_init, x, y, z)
 
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,2.5))
