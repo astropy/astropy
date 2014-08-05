@@ -149,11 +149,15 @@ class TestAngleFormatterLocator(object):
         assert fl.formatter([15.392231] * u.degree, None)[0] == string
 
     def test_latex_format(self):
-        fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
-        assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
-        import matplotlib as mpl
-        with mpl.rc_context(rc={'text.usetex': True}):
-            assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\circ$23'32\""
+        try:
+            from matplotlib import rc_context
+            fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
+            assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
+            import matplotlib as mpl
+            with mpl.rc_context(rc={'text.usetex': True}):
+                assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\circ$23'32\""
+        except:
+            pytest.skip("Could not import rc_context, skipping test")
 
     @pytest.mark.parametrize(('format'), ['x.xxx', 'dd.ss', 'dd:ss', 'mdd:mm:ss'])
     def test_invalid_formats(self, format):
