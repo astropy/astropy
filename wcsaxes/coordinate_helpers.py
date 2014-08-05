@@ -77,13 +77,19 @@ class CoordinateHelper(object):
             ' ': 'none',
             '': 'none'
         }
-        self.grid_lines_kwargs = {'visible':False,
-                                  'facecolor':'none',
-                                  'edgecolor': rcParams['grid.color'],
-                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
-                                  'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams['grid.alpha'],
-                                  'transform':self.parent_axes.transData}
+        try:
+            from matplotlib import rcParams
+            self.grid_lines_kwargs = {'visible':False,
+                                      'facecolor':'none',
+                                      'edgecolor': rcParams['grid.color'],
+                                      'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                      'linewidth': rcParams['grid.linewidth'],
+                                      'alpha': rcParams['grid.alpha'],
+                                      'transform':self.parent_axes.transData}
+        except:
+            self.grid_lines_kwargs = {'visible':False,
+                                      'facecolor':'none',
+                                      'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
