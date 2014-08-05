@@ -20,8 +20,8 @@ New Features
 
 - ``astropy.io.ascii``
 
-  - Simplify the way new Reader classes are defined, allowing custom behavior 
-    entirely by overriding inherited class attributes instead of setting 
+  - Simplify the way new Reader classes are defined, allowing custom behavior
+    entirely by overriding inherited class attributes instead of setting
     instance attributes in the Reader ``__init__`` method. [#2812]
 
 - ``astropy.io.fits``
@@ -165,6 +165,16 @@ Bug Fixes
 
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math
     notation with negative exponents instead of fractions [#2622].
+
+  - When using a unit that is deprecated in a given unit format,
+    non-deprecated alternatives will be suggested. [#2806] For
+    example::
+
+      >>> import astropy.units as u
+      >>> u.Unit('Angstrom', format='fits')
+      WARNING: UnitsWarning: The unit 'Angstrom' has been deprecated
+      in the FITS standard. Suggested: nm (with data multiplied by
+      0.1).  [astropy.units.format.utils]
 
 - ``astropy.utils``
 
