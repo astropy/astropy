@@ -11,7 +11,7 @@ ROUND_TRIP_TOL = 1e-1
 DISCONT_FACTOR = 10.
 
 
-def get_lon_lat_path(ax, transform, lon_lat):
+def get_lon_lat_path(ax, lon_lat, pixel, lon_lat_check):
     """
     Draw a curve, taking into account discontinuities.
 
@@ -19,8 +19,6 @@ def get_lon_lat_path(ax, transform, lon_lat):
     ----------
     ax : ~matplotlib.axes.Axes
         The axes in which to plot the grid
-    transform : transformation class
-        The transformation between the world and pixel coordinates
     lon_lat : `~numpy.ndarray`
         The longitude and latitude values along the curve, given as a (n,2)
         array.
@@ -30,14 +28,9 @@ def get_lon_lat_path(ax, transform, lon_lat):
     # xlim = ax.get_xlim()
     # ylim = ax.get_ylim()
 
-    # Transform line to pixel coordinates
-    pixel = transform.inverted().transform(lon_lat)
-
     # In some spherical projections, some parts of the curve are 'behind' or
     # 'in front of' the plane of the image, so we find those by reversing the
     # transformation and finding points where the result is not consistent.
-
-    lon_lat_check = transform.transform(pixel)
 
     sep = angular_separation(np.radians(lon_lat[:, 0]),
                              np.radians(lon_lat[:, 1]),
@@ -96,7 +89,7 @@ def get_lon_lat_path(ax, transform, lon_lat):
     return path
 
 
-def get_gridline_path(ax, transform, world):
+def get_gridline_path(ax, world, pixel):
     """
     Draw a grid line
 
@@ -104,8 +97,6 @@ def get_gridline_path(ax, transform, world):
     ----------
     ax : ~matplotlib.axes.Axes
         The axes in which to plot the grid
-    transform : transformation class
-        The transformation between the world and pixel coordinates
     world : `~numpy.ndarray`
         The world coordinates along the curve, given as a (n,2)
         array.
@@ -114,9 +105,6 @@ def get_gridline_path(ax, transform, world):
     # Get pixel limits
     # xlim = ax.get_xlim()
     # ylim = ax.get_ylim()
-
-    # Transform line to pixel coordinates
-    pixel = transform.inverted().transform(world)
 
     # Mask values with invalid pixel positions
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
