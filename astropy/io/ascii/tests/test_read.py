@@ -19,7 +19,7 @@ from ....tests.helper import pytest
 
 _NUMPY_VERSION = version.LooseVersion(np.__version__)
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_convert_overflow(request):
     """
     Test reading an extremely large integer, which falls through to
@@ -92,7 +92,7 @@ def test_guess_with_format_arg():
 
 
 @raises(ValueError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_read_with_names_arg(request):
     """
     Test that a bad value of `names` raises an exception.
@@ -100,7 +100,7 @@ def test_read_with_names_arg(request):
     dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, use_fast_reader=request.param)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_read_all_files(request):
     for testfile in get_testfiles():
         if testfile.get('skip'):
@@ -120,7 +120,7 @@ def test_read_all_files(request):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_read_all_files_via_table(request):
     for testfile in get_testfiles():
         if testfile.get('skip'):
@@ -207,26 +207,26 @@ def test_daophot_multiple_aperture():
 
 
 @raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_empty_table_no_header(request):
     table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
                             guess=False, use_fast_reader=request.param)
 
 
 @raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_wrong_quote(request):
     table = ascii.read('t/simple.txt', guess=False, use_fast_reader=request.param)
 
 
 @raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_extra_data_col(request):
     table = ascii.read('t/bad.txt', use_fast_reader=request.param)
 
 
 @raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_extra_data_col2(request):
     table = ascii.read('t/simple5.txt', delimiter='|', use_fast_reader=request.param)
 
@@ -236,7 +236,7 @@ def test_missing_file():
     table = ascii.read('does_not_exist')
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_set_names(request):
     names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     data = ascii.read('t/simple3.txt', names=names, delimiter='|',
@@ -244,7 +244,7 @@ def test_set_names(request):
     assert_equal(data.dtype.names, names)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_set_include_names(request):
     names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
@@ -253,7 +253,7 @@ def test_set_include_names(request):
     assert_equal(data.dtype.names, include_names)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_set_exclude_names(request):
     exclude_names = ('Y', 'object')
     data = ascii.read('t/simple3.txt', exclude_names=exclude_names, delimiter='|',
@@ -330,7 +330,7 @@ def test_set_converters():
     assert_equal(data['p1.gamma'][0], '1.26764544642')
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_from_string(request):
     f = 't/simple.txt'
     with open(f) as fd:
@@ -341,7 +341,7 @@ def test_from_string(request):
     assert_equal(len(data), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_from_filelike(request):
     f = 't/simple.txt'
     testfile = get_testfiles(f)
@@ -351,7 +351,7 @@ def test_from_filelike(request):
     assert_equal(len(data), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_from_lines(request):
     f = 't/simple.txt'
     with open(f) as fd:
@@ -368,7 +368,7 @@ def test_comment_lines():
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_fill_values(request):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -380,7 +380,7 @@ def test_fill_values(request):
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_fill_values_col(request):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -389,7 +389,7 @@ def test_fill_values_col(request):
     check_fill_values(data)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_fill_values_include_names(request):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -398,7 +398,7 @@ def test_fill_values_include_names(request):
     check_fill_values(data)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_fill_values_exclude_names(request):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -418,7 +418,7 @@ def check_fill_values(data):
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_fill_values_list(request):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -475,7 +475,7 @@ def test_set_guess_kwarg():
 
 
 @raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_read_rdb_wrong_type(request):
     """Read RDB data with inconstent data type (except failure)"""
     table = """col1\tcol2
@@ -484,7 +484,7 @@ N\tN
     ascii.read(table, Reader=ascii.Rdb, use_fast_reader=request.param)
 
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_default_missing(request):
     """Read a table with empty values and ensure that corresponding entries are masked"""
     table = '\n'.join(['a,b,c,d',
@@ -805,7 +805,7 @@ def test_csv_table_read():
     t = ascii.read(lines)
     assert t.colnames == ['a', 'b']
 
-@pytest.fixture(params=[True, False, None])
+@pytest.fixture(params=[True, False])
 def test_overlapping_names(request):
     """
     Check that the names argument list can overlap with the existing column names.

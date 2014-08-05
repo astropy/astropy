@@ -408,7 +408,7 @@ def check_write_table_via_table(test_def, table, use_fast_writer):
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False, None])
+@pytest.mark.parametrize("use_fast_writer", [True, False])
 def test_write_table(use_fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')
@@ -418,7 +418,7 @@ def test_write_table(use_fast_writer):
         check_write_table_via_table(test_def, data, use_fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False, None])
+@pytest.mark.parametrize("use_fast_writer", [True, False])
 def test_write_fill_values(use_fast_writer):
     data = ascii.read(tab_to_fill)
 
@@ -426,7 +426,7 @@ def test_write_fill_values(use_fast_writer):
         check_write_table(test_def, data, use_fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False, None])
+@pytest.mark.parametrize("use_fast_writer", [True, False])
 def test_write_fill_masked_different(use_fast_writer):
     '''see discussion in #2255'''
     data = ascii.read(tab_to_fill)
@@ -438,7 +438,7 @@ def test_write_fill_masked_different(use_fast_writer):
         check_write_table(test_def, data, use_fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False, None])
+@pytest.mark.parametrize("use_fast_writer", [True, False])
 def test_write_no_data_ipac(use_fast_writer):
     """Write an IPAC table that contains no data."""
     table = ascii.get_reader(Reader=ascii.Ipac)
@@ -448,7 +448,7 @@ def test_write_no_data_ipac(use_fast_writer):
         check_write_table(test_def, data, use_fast_writer)
         check_write_table_via_table(test_def, data, use_fast_writer)
 
-@pytest.mark.parametrize("use_fast_writer", [True, False, None])
+@pytest.mark.parametrize("use_fast_writer", [True, False])
 def test_strip_names(use_fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
