@@ -130,19 +130,29 @@ def format_power(power):
     return six.text_type(power)
 
 
-def try_decomposed(unit, format=None):
+def _try_decomposed(unit, format_decomposed):
+    represents = getattr(unit, '_represents', None)
+    if represents is not None:
+        try:
+            represents_string = format_decomposed(represents)
+        except ValueError:
+            pass
+        else:
+            return represents_string
+
     decomposed = unit.decompose()
     if decomposed is not unit:
         try:
-            decompose_string = decomposed.to_string(format=format)
+            decompose_string = format_decomposed(decomposed)
         except ValueError:
             pass
         else:
             return decompose_string
+
     return None
 
 
-def did_you_mean_units(s, all_units, deprecated_units, format=None):
+def did_you_mean_units(s, all_units, deprecated_units, format_decomposed):
     """
     A wrapper around `astropy.utils.misc.did_you_mean` that deals with
     the display of deprecated units.
@@ -158,6 +168,10 @@ def did_you_mean_units(s, all_units, deprecated_units, format=None):
     deprecated_units : sequence
         The deprecated unit names
 
+    format_decomposed : callable
+        A function to turn a decomposed version of the unit into a
+        string.  Should return `None` if not possible
+
     Returns
     -------
     msg : str
@@ -167,16 +181,17 @@ def did_you_mean_units(s, all_units, deprecated_units, format=None):
     def fix_deprecated(x):
         if x in deprecated_units:
             results = [x + ' (deprecated)']
-            decomposed_string = try_decomposed(all_units[x], format=format)
-            if decomposed_string is not None:
-                results.append("'{0}'".format(decomposed_string))
+            decomposed = _try_decomposed(
+                all_units[x], format_decomposed)
+            if decomposed is not None:
+                results.append(decomposed)
             return results
         return (x,)
 
     return did_you_mean(s, all_units, fix=fix_deprecated)
 
 
-def unit_deprecation_warning(s, unit, format):
+def unit_deprecation_warning(s, unit, standard_name, format_decomposed):
     """
     Raises a UnitsWarning about a deprecated unit in a given format.
     Suggests a decomposed alternative if one is available.
@@ -189,14 +204,18 @@ def unit_deprecation_warning(s, unit, format):
     unit : astropy.units.core.UnitBase
         The unit object.
 
-    format : str
+    standard_name : str
         The name of the format for which the unit is deprecated.
+
+    format_decomposed : callable
+        A function to turn a decomposed version of the unit into a
+        string.  Should return `None` if not possible
     """
     from ..core import UnitsWarning
 
     message = "The unit '{0}' has been deprecated in the {1} standard.".format(
-        s, format)
-    decomposed_string = try_decomposed(unit, format=format)
-    if decomposed_string is not None:
-        message += " Suggested: '{0}'.".format(decomposed_string)
+        s, standard_name)
+    decomposed = _try_decomposed(unit, format_decomposed)
+    if decomposed is not None:
+        message += " Suggested: {0}.".format(decomposed)
     warnings.warn(message, UnitsWarning)

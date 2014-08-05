@@ -364,12 +364,18 @@ def test_scaled_dimensionless():
         u.Unit(0.1).to_string('vounit')
 
 
-def test_deprecated_did_you_mean_fits():
+def test_deprecated_did_you_mean_units():
     try:
         u.Unit('ANGSTROM', format='fits')
     except ValueError as e:
         assert 'angstrom (deprecated)' in six.text_type(e)
         assert 'Angstrom (deprecated)' in six.text_type(e)
+        assert 'nm (with data multiplied by 0.1)' in six.text_type(e)
+
+    with catch_warnings() as w:
+        u.Unit('Angstrom', format='fits')
+    assert len(w) == 1
+    assert 'nm (with data multiplied by 0.1)' in six.text_type(w[0].message)
 
     try:
         u.Unit('crab', format='ogip')
@@ -381,10 +387,10 @@ def test_deprecated_did_you_mean_fits():
         u.Unit('ANGSTROM', format='vounit')
     except ValueError as e:
         assert 'angstrom (deprecated)' in six.text_type(e)
-        assert '1 10-10m' in six.text_type(e)
-        assert six.text_type(e).count('1 10-10m') == 1
+        assert '0.1nm' in six.text_type(e)
+        assert six.text_type(e).count('0.1nm') == 1
 
     with catch_warnings() as w:
         u.Unit('angstrom', format='vounit')
     assert len(w) == 1
-    assert '1 10-10m' in six.text_type(w[0].message)
+    assert '0.1nm' in six.text_type(w[0].message)

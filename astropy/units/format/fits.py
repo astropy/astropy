@@ -8,18 +8,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern.six.moves import zip
 
+import copy
 import keyword
-import warnings
 
 from . import generic
 from . import utils
-
-
-class UnitScaleError(ValueError):
-    """
-    Used to catch the errors involving scaled units,
-    which are not recognized by FITS format.
-    """
 
 
 class Fits(generic.Generic):
@@ -38,7 +31,6 @@ class Fits(generic.Generic):
 
         if not '_units' in Fits.__dict__:
             Fits._units, Fits._deprecated_units = self._generate_unit_names()
-            Fits._active_units = set(Fits._units.keys()) - Fits._deprecated_units
 
     @staticmethod
     def _generate_unit_names():
@@ -88,54 +80,65 @@ class Fits(generic.Generic):
         return names, deprecated_names
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
                     "Unit '{0}' not supported by the FITS standard. {1}".format(
                         unit, utils.did_you_mean_units(
                             unit, cls._units, cls._deprecated_units,
-                            format='fits')))
+                            cls._to_decomposed_alternative)))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            utils.unit_deprecation_warning(unit, cls._units[unit], 'fits')
+            utils.unit_deprecation_warning(
+                unit, cls._units[unit], 'FITS',
+                cls._to_decomposed_alternative)
 
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        cls._validate_unit(unit)
         return cls._units[unit]
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('fits')
-
-        if name not in self._units:
-            raise ValueError(
-                "Unit '{0}' not supported by the FITS standard. {1}".format(
-                    unit, utils.did_you_mean_units(
-                        name, self._units, self._deprecated_units,
-                        format='fits')))
-
-        if name in self._deprecated_units:
-            utils.unit_deprecation_warning(name, self._units[name], 'fits')
-
+        cls._validate_unit(name)
         return name
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                raise UnitScaleError(
+                raise core.UnitScaleError(
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))
 
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
-            s = self._format_unit_list(pairs)
+            s = cls._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = cls._get_unit_name(unit)
 
+        return s
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit):
+        from .. import core
+
+        try:
+            s = cls.to_string(unit)
+        except core.UnitScaleError:
+            scale = unit.scale
+            unit = copy.copy(unit)
+            unit._scale = 1.0
+            return '{0} (with data multiplied by {1})'.format(
+                cls.to_string(unit), scale)
         return s

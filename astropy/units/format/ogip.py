@@ -17,12 +17,12 @@ import math
 import os
 import warnings
 
-from .generic import Generic
+from . import generic
 from . import utils
 from ...utils.compat.fractions import Fraction
 
 
-class OGIP(Generic):
+class OGIP(generic.Generic):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
@@ -362,20 +362,26 @@ class OGIP(Generic):
                     t.lexpos, t.value, six.text_type(e)))
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
                     "Unit '{0}' not supported by the OGIP "
                     "standard. {1}".format(
                         unit, utils.did_you_mean_units(
-                            unit, cls._units, cls._deprecated_units, format='ogip')))
+                            unit, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            utils.unit_deprecation_warning(unit, cls._units[unit], 'ogip')
+            utils.unit_deprecation_warning(
+                unit, cls._units[unit], 'OGIP',
+                cls._to_decomposed_alternative)
 
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     def parse(self, s, debug=False):
@@ -396,43 +402,36 @@ class OGIP(Generic):
                     raise ValueError(
                         "Syntax error parsing unit '{0}'".format(s))
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('ogip')
-
-        if name not in self._units:
-            raise ValueError(
-                "Unit '{0}' not supported by the OGIP "
-                "standard. {1}".format(
-                    unit, utils.did_you_mean_units(
-                        name, self._units, self._deprecated_units, format='ogip')))
-
-        if unit in self._deprecated_units:
-            utils.unit_deprecation_warning(name, self._units[name], 'ogip')
-
+        cls._validate_unit(name)
         return name
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
-        units.sort(key=lambda x: self._get_unit_name(x[0]).lower())
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
 
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
                 if '/' in power:
                     out.append('{0}**({1})'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
                 else:
                     out.append('{0}**{1}'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
         return ' '.join(out)
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
@@ -443,4 +442,22 @@ class OGIP(Generic):
                         unit.scale),
                     core.UnitsWarning)
 
-        return Generic.to_string(self, unit)
+        return generic._to_string(cls, unit)
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit):
+        from .. import core
+
+        # Remove units that aren't known to the format
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+
+        if isinstance(unit, core.CompositeUnit):
+            # Can't use np.log10 here, because p[0] may be a Python long.
+            if math.log10(unit.scale) % 1.0 != 0.0:
+                scale = unit.scale
+                unit = copy.copy(unit)
+                unit._scale = 1.0
+                return '{0} (with data multiplied by {1})'.format(
+                    generic._to_string(cls, unit), scale)
+
+        return generic._to_string(unit)

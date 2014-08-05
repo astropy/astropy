@@ -440,6 +440,19 @@ class UnitsError(Exception):
     """
 
 
+class UnitScaleError(UnitsError, ValueError):
+    """
+    Used to catch the errors involving scaled units,
+    which are not recognized by FITS format.
+    """
+    pass
+
+
+# Maintain error in old location for backward compatibility
+from .format import fits as _fits
+_fits.UnitScaleError = UnitScaleError
+
+
 class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific exceptions.
