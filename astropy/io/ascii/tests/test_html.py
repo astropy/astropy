@@ -185,7 +185,9 @@ def test_backend_parsers():
             table = Table.read('t/html2.html', format='ascii.html',
                                htmldict={'parser': parser}, guess=False)
         except FeatureNotFound:
-            pass # dependency isn't present
+            if parser == 'html.parser':
+                raise
+            # otherwise ignore if the dependency isn't present
 
     # reading should fail if the parser is invalid
     with pytest.raises(FeatureNotFound):
