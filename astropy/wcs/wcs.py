@@ -1957,18 +1957,18 @@ naxis kwarg.
 
         >>> # First, turn detect_divergence on:
         >>> try:
-        >>>   xy = w.all_world2pix(divradec, 1, maxiter=20,
+        ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=True,
         ...                        quiet=False)
-        >>> except wcs.wcs.NoConvergence as e:
-        >>>   print("Indices of diverging points: {{}}"
+        ... except wcs.wcs.NoConvergence as e:
+        ...   print("Indices of diverging points: {{}}"
         ...         .format(e.divergent))
-        >>>   print("Indices of poorly converging points: {{}}"
+        ...   print("Indices of poorly converging points: {{}}"
         ...         .format(e.slow_conv))
-        >>>   print("Best solution:\\n{{}}".format(e.best_solution))
-        >>>   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        >>>   raise e
+        ...   print("Best solution:\\n{{}}".format(e.best_solution))
+        ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
+        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
@@ -1988,18 +1988,18 @@ naxis kwarg.
 
         >>> # This time turn detect_divergence off:
         >>> try:
-        >>>   xy = w.all_world2pix(divradec, 1, maxiter=20,
+        ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
         ...                        tolerance=1.0e-4, adaptive=False,
         ...                        detect_divergence=False,
         ...                        quiet=False)
-        >>> except wcs.wcs.NoConvergence as e:
-        >>>   print("Indices of diverging points: {{}}"
+        ... except wcs.wcs.NoConvergence as e:
+        ...   print("Indices of diverging points: {{}}"
         ...         .format(e.divergent))
-        >>>   print("Indices of poorly converging points: {{}}"
+        ...   print("Indices of poorly converging points: {{}}"
         ...         .format(e.slow_conv))
-        >>>   print("Best solution:\\n{{}}".format(e.best_solution))
-        >>>   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        >>>   raise e
+        ...   print("Best solution:\\n{{}}".format(e.best_solution))
+        ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
+        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
