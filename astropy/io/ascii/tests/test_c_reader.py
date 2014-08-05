@@ -38,14 +38,13 @@ def assert_table_equal(t1, t2):
 def _read(table, Reader, format, fail_parallel=False, **kwargs):
     reader = Reader(**kwargs)
     t1 = reader.read(table)
-    t2 = ascii.read(table, format=format, guess=False, use_fast_reader=True, **kwargs)
+    t2 = ascii.read(table, format=format, guess=False, **kwargs)
     t3 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
 
     if not fail_parallel:
-        t4 = ascii.read(table, format=format, guess=False, use_fast_reader=True,
-                        parallel=True, **kwargs)
+        t4 = ascii.read(table, format=format, guess=False, parallel=True, **kwargs)
         assert_table_equal(t3, t4)
 
     try:
@@ -53,13 +52,12 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
         with NamedTemporaryFile() as f:
             f.write(content)
             f.flush()
-            t5 = ascii.read(f.name, format=format, guess=False, use_fast_reader=True, **kwargs)
+            t5 = ascii.read(f.name, format=format, guess=False, **kwargs)
 
         with NamedTemporaryFile() as f2:
             f2.write(content.replace('\n', '\r\n')) # make sure Windows line endings work
             f2.flush()
-            t6 = ascii.read(f2.name, format=format, guess=False,
-                            use_fast_reader=True, **kwargs)
+            t6 = ascii.read(f2.name, format=format, guess=False, **kwargs)
 
         assert_table_equal(t1, t5)
         assert_table_equal(t1, t6)
@@ -482,17 +480,14 @@ def test_use_fast_reader():
     Make sure that ascii.read() works as expected by default and with
     use_fast_reader specified.
     """
+    text = 'a b c\n1 2 3\n4 5 6'
     with pytest.raises(ParameterError): # C reader can't handle regex comment
-        ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False,
-                   comment='##', use_fast_reader=True)
-    # Will try the slow reader afterwards by default
-    ascii.read('a b c\n1 2 3\n4 5 6', format='basic', guess=False, comment='##')
-    # TODO: find a way to test other cases
+        ascii.read(text, format='fast_basic', guess=False, comment='##')
 
-    # read() should raise an error if no fast reader is available
-    with pytest.raises(ValueError) as e:
-        ascii.read('t/ipac.dat', format='ipac', use_fast_reader=True)
-    assert 'not in the list of formats with fast readers' in str(e)
+    # Use the slow reader instead
+    ascii.read(text, format='basic', guess=False, comment='##', use_fast_reader=False)
+    # Will try the slow reader afterwards by default
+    ascii.read(text, format='basic', guess=False, comment='##')
 
 def test_read_tab():
     """
@@ -663,7 +658,7 @@ def test_strip_line_trailing_whitespace():
     """
     text = 'a b c\n1 2 \n3 4 5'
     with pytest.raises(CParserError) as e:
-        ascii.read(StringIO(text), format='basic', guess=False, use_fast_reader=True)
+        ascii.read(StringIO(text), format='fast_basic', guess=False)
     assert 'not enough columns found in line 1' in str(e)
     
     text = 'a b c\n 1 2 3   \t \n 4 5 6 '

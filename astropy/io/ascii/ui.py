@@ -109,7 +109,7 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param use_fast_reader: whether to use the C engine for reading (default=None tries the fast reader first)
+    :param use_fast_reader: whether to use the C engine for reading (default=True)
     :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 
@@ -119,7 +119,7 @@ def read(table, guess=None, **kwargs):
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
-    use_fast_reader = kwargs.pop('use_fast_reader', None)
+    use_fast_reader = kwargs.pop('use_fast_reader', True)
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
 
@@ -145,23 +145,15 @@ def read(table, guess=None, **kwargs):
             if param in new_kwargs:
                 del slow_kwargs[param]
         reader = get_reader(**slow_kwargs)
-        # Try the fast reader first if use_fast_reader is True or None
-        if use_fast_reader is None or use_fast_reader:
-            if format is not None and 'fast_{0}'.format(format) in core.FAST_CLASSES:
-                new_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
-                fast_reader = get_reader(**new_kwargs)
-                try:
-                    return fast_reader.read(table)
-                except (core.ParameterError, cparser.CParserError) as e:
-                    # If the fast reader doesn't work and use_fast_reader is None, try the slow version
-                    if use_fast_reader is None:
-                        dat = reader.read(table)
-                    else:
-                        raise e
-            elif use_fast_reader: # user specified use_fast_reader=True, but no fast reader exists
-                raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers: {1}'
-                                 .format(format, sorted(x[5:] for x in core.FAST_CLASSES))) # ignore fast_ prefix
-            else:
+        # Try the fast reader first if applicable
+        if use_fast_reader and format is not None and 'fast_{0}'.format(format) \
+                                                        in core.FAST_CLASSES:
+            new_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+            fast_reader = get_reader(**new_kwargs)
+            try:
+                return fast_reader.read(table)
+            except (core.ParameterError, cparser.CParserError) as e:
+                # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
         else:
             dat = reader.read(table)
@@ -181,20 +173,12 @@ def _guess(table, read_kwargs, format, use_fast_reader):
     fast_kwargs = []
 
     first_kwargs = [read_kwargs.copy()]
-    if use_fast_reader is None or use_fast_reader:
-        if format is not None and 'fast_{0}'.format(format) in core.FAST_CLASSES:
-            # If a fast version of the reader is available, try that before the slow version
-            fast_kwargs = read_kwargs.copy()
-            fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
-            first_kwargs = [fast_kwargs] + first_kwargs
-        elif format is None and use_fast_reader:
-            # use_fast_reader=True, but the user did not specify a format
-            raise ValueError('The parameter "format" must be specified in order to use '
-                             'a fast reader')
-        elif use_fast_reader:
-            # format has no fast reader
-            raise ValueError('ASCII format {0!r} is not in the list of formats with fast readers: {1}'
-                             .format(format, sorted(x[5:] for x in core.FAST_CLASSES))) # ignore fast_ prefix
+    if use_fast_reader and format is not None and 'fast_{0}'.format(format) in \
+                                                         core.FAST_CLASSES:
+        # If a fast version of the reader is available, try that before the slow version
+        fast_kwargs = read_kwargs.copy()
+        fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+        first_kwargs = [fast_kwargs] + first_kwargs
 
     # First try guessing
     for guess_kwargs in first_kwargs + _get_guess_kwargs_list():
@@ -279,7 +263,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 
-def get_writer(Writer=None, use_fast_writer=None, **kwargs):
+def get_writer(Writer=None, use_fast_writer=True, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
@@ -292,7 +276,7 @@ def get_writer(Writer=None, use_fast_writer=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=None uses this engine if possible)
+    :param use_fast_writer: whether to use the fast Cython writer (default=True)
     """
     if Writer is None:
         Writer = basic.Basic
@@ -302,7 +286,7 @@ def get_writer(Writer=None, use_fast_writer=None, **kwargs):
     return writer
 
 
-def write(table, output=None,  format=None, Writer=None, use_fast_writer=None, **kwargs):
+def write(table, output=None,  format=None, Writer=None, use_fast_writer=True, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -317,7 +301,7 @@ def write(table, output=None,  format=None, Writer=None, use_fast_writer=None, *
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=None uses this engine if possible)
+    :param use_fast_writer: whether to use the fast Cython writer (default=True)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
     if output is None:
