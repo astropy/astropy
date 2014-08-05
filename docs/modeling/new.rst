@@ -145,10 +145,14 @@ which case the ``fit_deriv`` method should be ``None``::
 Finally, the ``__call__`` method takes the input coordinates as arguments,
 checks that the input arrays are correctly formatted and broadcastable, and
 then passes them along with the the model's parameter values to the
-``evaluate`` method.  In most cases it is not necessary to reimplement
-``__call__``, though it may be desirable to override it so that its signature
-reflects the desired names of the input coordinates.  It should also support
-``model_set_axis`` keyword argument, at a minimum::
+``evaluate`` method.
+
+In most cases it is not necessary to reimplement ``__call__``, though it may be
+desirable to override it so that its signature reflects the desired names of
+the input coordinates.  When overriding ``__call__`` it should simply call the
+super-class's ``__call__`` and not do anything else.  The only reason currently
+to override it is to provide a specific argument signature.  It should also
+support ``model_set_axis`` keyword argument, at a minimum::
 
     def __call__(self, x, model_set_axis=None):
         return super(Gaussian1D, self).__call__(
@@ -158,7 +162,7 @@ reflects the desired names of the input coordinates.  It should also support
 Full example
 ^^^^^^^^^^^^
 
-::
+.. code-block:: python
 
     from astropy.modeling import FittableModel, Parameter
 
@@ -169,9 +173,9 @@ Full example
 
         def __init__(self, amplitude, mean, stddev, **kwargs):
             # Note that this __init__ does nothing different from the base
-            class's # __init__.  The main point of defining it is so that the
-            function # signature is more informative.
-            super(Gaussian1DModel, self).__init__(
+            # class's __init__.  The main point of defining it is so that the
+            # function signature is more informative.
+            super(Gaussian1D, self).__init__(
                 amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
         @staticmethod
@@ -197,9 +201,9 @@ Full example
 A full example of a LineModel
 -----------------------------
 
-::
+.. code-block:: python
 
-    from astropy.modeling import Fittable, Parameter
+    from astropy.modeling import FittableModel, Parameter
     import numpy as np
 
     class LineModel(FittableModel):
