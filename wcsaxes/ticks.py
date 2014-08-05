@@ -28,16 +28,20 @@ class Ticks(Line2D):
     """
 
     def __init__(self, ticksize=None, tick_out=False, **kwargs):
-        if ticksize is None:
-            ticksize = rcParams['xtick.major.size']
+        try:
+            from matplotlib import rcParams
+            if ticksize is None:
+                ticksize = rcParams['xtick.major.size']
+            line2d_kwargs = {
+                'color': rcParams['xtick.color'],
+                'linewidth': rcParams['xtick.major.width']
+            }
+        except:
+            pass
         self.set_ticksize(ticksize)
         self.set_tick_out(tick_out)
         # FIXME: tick_out is incompatible with Matplotlib tickdir option
         self.clear()
-        line2d_kwargs = {
-            'color': rcParams['xtick.color'],
-            'linewidth': rcParams['xtick.major.width']
-        }
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
