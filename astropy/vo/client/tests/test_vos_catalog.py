@@ -209,5 +209,5 @@ def test_db_from_registry():
     db = vos_catalog.VOSDatabase.from_registry(
         CS_MSTR_LIST(), encoding='binary', show_progress=False)
 
-    # Should have over 10k catalogs; Update test if this changes.
-    assert len(db) > 10000
+    # Should have over 9k catalogs; Update test if this changes.
+    assert len(db) > 9000
