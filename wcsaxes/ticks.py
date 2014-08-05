@@ -2,7 +2,6 @@ import numpy as np
 
 from matplotlib.lines import Path, Line2D
 from matplotlib.transforms import Affine2D
-from matplotlib import rcParams
 
 
 class Ticks(Line2D):
