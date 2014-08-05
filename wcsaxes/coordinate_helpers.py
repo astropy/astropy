@@ -10,7 +10,6 @@ from astropy.extern import six
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
-from matplotlib import rcParams
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
