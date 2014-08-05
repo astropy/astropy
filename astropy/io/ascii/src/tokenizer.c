@@ -319,7 +319,6 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
             c = self->source[++self->source_pos]; // convert Windows to Unix line endings
         else
             c = self->source[self->source_pos];
-
 	repeat = 1;
 	
         // Keep parsing the same character

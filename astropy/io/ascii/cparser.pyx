@@ -13,6 +13,7 @@ import csv
 import os
 import math
 import multiprocessing
+
 try:
     import Queue
 except ImportError: # in python 3, the module is named queue
@@ -155,6 +156,7 @@ cdef class CParser:
         int fill_extra_cols
         np.ndarray use_cols
         bytes source_bytes
+        char *source_ptr
         object parallel
 
     cdef public:
@@ -233,7 +235,7 @@ cdef class CParser:
             if '\n' not in source: # filename
                 fstring = FileString(source)
                 self.tokenizer.source = fstring.mmap.ptr
-                self.source_bytes = fstring.mmap.ptr
+                self.source_ptr = fstring.mmap.ptr
                 self.source = fstring
                 self.tokenizer.source_len = len(fstring)
                 return
@@ -389,8 +391,8 @@ cdef class CParser:
 
         for i in range(N):
             process = multiprocessing.Process(target=_read_chunk, args=(self,
-                self.use_cols, chunkindices[i], chunkindices[i + 1], try_int,
-                try_float, try_string, queue, reconvert_queue, i))
+                self.use_cols, chunkindices[i], chunkindices[i + 1],
+                try_int, try_float, try_string, queue, reconvert_queue, i))
             processes.append(process)
             process.start()
 
@@ -661,7 +663,7 @@ cdef class CParser:
             return col
 
     def __reduce__(self):
-        return (_copy_cparser, (self.source_bytes, self.use_cols, self.fill_names,
+        return (_copy_cparser, (self.source_ptr, self.source_bytes, self.use_cols, self.fill_names,
                                 self.fill_values, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
@@ -680,19 +682,21 @@ cdef class CParser:
                                 use_fast_converter=self.tokenizer.use_fast_converter,
                                 parallel=False)))
 
-def _copy_cparser(source_bytes, use_cols, fill_names, fill_values,
+def _copy_cparser(char *src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
                   strip_whitespace_lines, strip_whitespace_fields, kwargs):
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
-    parser.source_bytes = source_bytes
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
+    if src_ptr:
+        parser.tokenizer.source = src_ptr
+    else:
+        parser.tokenizer.source = source_bytes
     return parser
 
 def _read_chunk(CParser self, np.ndarray use_cols, start, end, try_int,
                 try_float, try_string, queue, reconvert_queue, i):
     cdef tokenizer_t *chunk_tokenizer = self.tokenizer
-    chunk_tokenizer.source = self.source_bytes
     chunk_tokenizer.source_len = end
     chunk_tokenizer.source_pos = start
     chunk_tokenizer.num_cols = len(self.names)
@@ -721,7 +725,6 @@ def _read_chunk(CParser self, np.ndarray use_cols, start, end, try_int,
         delete_tokenizer(chunk_tokenizer)
         queue.pop()
         queue.put((None, e, i))
-
     reconvert_cols = reconvert_queue.get()
     for col in reconvert_cols:
         queue.put((self._convert_str(chunk_tokenizer, col, -1), i, col))
