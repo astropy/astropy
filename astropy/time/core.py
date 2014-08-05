@@ -23,6 +23,7 @@ from ..utils import deprecated, deprecated_attribute
 from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+from ..extern.six.moves import xrange
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
