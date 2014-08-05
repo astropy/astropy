@@ -56,7 +56,7 @@ cdef extern from "src/tokenizer.h":
         err_code code          # represents the latest error that has occurred
         int iter_col           # index of the column being iterated over
         char *curr_pos         # current iteration position
-        char *buf              # buffer for misc. data
+        char *buf              # buffer for empty data
         int strip_whitespace_lines  # whether to strip whitespace at the beginning and end of lines
         int strip_whitespace_fields # whether to strip whitespace at the beginning and end of fields
         int use_fast_converter      # whether to use the fast converter for floats
@@ -150,6 +150,7 @@ cdef class CParser:
         object include_names
         object exclude_names
         object fill_values
+        object fill_empty
         object fill_include_names
         object fill_exclude_names
         object fill_names
@@ -495,7 +496,7 @@ cdef class CParser:
                 self.fill_names.intersection_update(self.fill_include_names)
             if self.fill_exclude_names is not None:
                 self.fill_names.difference_update(self.fill_exclude_names)
-        self.fill_values = get_fill_values(self.fill_values)
+        self.fill_values, self.fill_empty = get_fill_values(self.fill_values)
 
     cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string, num_rows):
         cols = {}
@@ -528,31 +529,40 @@ cdef class CParser:
         cdef long converted
         cdef int row = 0
         cdef long *data = <long *> col.data # pointer to raw data
-        cdef bytes field
-        cdef bytes new_val
+        cdef char *field
+        cdef char *empty_field = t.buf # memory address of designated empty buffer
+        cdef bytes new_value
         mask = set() # set of indices for masked values
         start_iteration(t, i) # begin the iteration process in C
 
         while not finished_iteration(t):
             if row == num_rows: # end prematurely if we aren't using every row
                 break
-            # retrieve the next field in a bytes value
+            # retrieve the next field as a C pointer
             field = next_field(t)
+            replace_info = None
 
-            if field in self.fill_values:
-                new_val = str(self.fill_values[field][0]).encode('ascii')
+            if field == empty_field and self.fill_empty:
+                replace_info = self.fill_empty
+            # hopefully this implicit char * -> byte conversion for fill values
+            # checking can be avoided in most cases, since self.fill_values will
+            # be empty in the default case (self.fill_empty will do the work
+            # instead)
+            elif field != empty_field and self.fill_values and field in self.fill_values:
+                replace_info = self.fill_values[field]
 
+            if replace_info is not None:
                 # Either this column applies to the field as specified in the 
                 # fill_values parameter, or no specific columns are specified
                 # and this column should apply fill_values.
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
-                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+                if (len(replace_info) > 1 and self.names[i] in replace_info[1:]) \
+                   or (len(replace_info) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
+                    new_value = str(replace_info[0]).encode('ascii')
                     # try converting the new value
-                    converted = str_to_long(t, new_val)
+                    converted = str_to_long(t, new_value)
                 else:
                     converted = str_to_long(t, field)
-
             else:
                 # convert the field to long (widest integer type)
                 converted = str_to_long(t, field)
@@ -582,8 +592,10 @@ cdef class CParser:
         cdef double converted
         cdef int row = 0
         cdef double *data = <double *> col.data
-        cdef bytes field
-        cdef bytes new_val
+        cdef char *field
+        cdef char *empty_field = t.buf
+        cdef bytes new_value
+        cdef int replacing
         mask = set()
 
         start_iteration(t, i)
@@ -591,12 +603,22 @@ cdef class CParser:
             if row == num_rows:
                 break
             field = next_field(t)
-            if field in self.fill_values:
-                new_val = str(self.fill_values[field][0]).encode('ascii')
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
-                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+            replace_info = None
+            replacing = False
+
+            if field == empty_field and self.fill_empty:
+                replace_info = self.fill_empty
+
+            elif field != empty_field and self.fill_values and field in self.fill_values:
+                replace_info = self.fill_values[field]
+
+            if replace_info is not None:
+                if (len(replace_info) > 1 and self.names[i] in replace_info[1:]) \
+                   or (len(replace_info) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                    converted = str_to_double(t, new_val)
+                    new_value = str(replace_info[0]).encode('ascii')
+                    replacing = True
+                    converted = str_to_double(t, new_value)
                 else:
                     converted = str_to_double(t, field)
             else:
@@ -611,7 +633,7 @@ cdef class CParser:
                 # overflow values because the error raised is not specific.
                 # This replicates the old reading behavior (see #2234).
                 if version.LooseVersion(np.__version__) < version.LooseVersion('1.6'):
-                    col[row] = new_val if field in self.fill_values else field
+                    col[row] = new_value if replacing else field
                 else:
                     raise ValueError()
             else:
@@ -633,7 +655,6 @@ cdef class CParser:
         cdef list col = []
         cdef int row = 0
         cdef bytes field
-        cdef bytes new_val
         cdef int max_len = 0 # greatest length of any element
         mask = set()
 
@@ -642,10 +663,18 @@ cdef class CParser:
             if row == num_rows:
                 break
             field = next_field(t)
-            if field in self.fill_values:
-                el = str(self.fill_values[field][0])
-                if (len(self.fill_values[field]) > 1 and self.names[i] in self.fill_values[field][1:]) \
-                   or (len(self.fill_values[field]) == 1 and self.names[i] in self.fill_names):
+            replace_info = None
+
+            if len(field) == 0 and self.fill_empty:
+                replace_info = self.fill_empty
+
+            elif len(field) > 0 and self.fill_values and field in self.fill_values:
+                replace_info = self.fill_values[field]
+
+            if replace_info is not None:
+                el = str(replace_info[0])
+                if (len(replace_info) > 1 and self.names[i] in replace_info[1:]) \
+                   or (len(replace_info) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
                 else:
                     el = field.decode('ascii')
@@ -922,10 +951,19 @@ def get_fill_values(fill_values, read=True):
         fill_values = [fill_values]
     else:
         fill_values = fill_values
+
+    # look for an empty replacement to cache for speedy conversion
+    fill_empty = None
+    for el in fill_values:
+        if el[0] == '':
+            fill_empty = el[1:]
+            break
+
     try:
         # Create a dict with the values to be replaced as keys
         if read:
-            fill_values = dict([(l[0].encode('ascii'), l[1:]) for l in fill_values])
+            fill_values = dict([(l[0].encode('ascii'), l[1:]) for
+                                l in fill_values if l[0] != ''])
         else:
             # don't worry about encoding for writing
             fill_values = dict([(l[0], l[1:]) for l in fill_values])
@@ -933,4 +971,7 @@ def get_fill_values(fill_values, read=True):
     except IndexError:
         raise ValueError("Format of fill_values must be "
                          "(<bad>, <fill>, <optional col1>, ...)")
-    return fill_values
+    if read:
+        return (fill_values, fill_empty)
+    else:
+        return fill_values # cache for empty values doesn't matter for writing

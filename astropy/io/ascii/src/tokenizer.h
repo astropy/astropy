@@ -52,7 +52,7 @@ typedef struct
     err_code code;         // represents the latest error that has occurred
     int iter_col;          // index of the column being iterated over
     char *curr_pos;        // current iteration position
-    char *buf;             // buffer for misc. data
+    char *buf;             // buffer for empty data
     int strip_whitespace_lines;  // whether to strip whitespace at the beginning and end of lines
     int strip_whitespace_fields; // whether to strip whitespace at the beginning and end of fields
     int use_fast_converter;      // whether to use the fast converter for floats
