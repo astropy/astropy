@@ -11,33 +11,25 @@ ROUND_TRIP_TOL = 1e-1
 DISCONT_FACTOR = 10.
 
 
-def get_lon_lat_path(ax, transform, lon_lat):
+def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
     """
     Draw a curve, taking into account discontinuities.
 
     Parameters
     ----------
-    ax : ~matplotlib.axes.Axes
-        The axes in which to plot the grid
-    transform : transformation class
-        The transformation between the world and pixel coordinates
     lon_lat : `~numpy.ndarray`
         The longitude and latitude values along the curve, given as a (n,2)
         array.
+    pixel : `~numpy.ndarray`
+        The pixel coordinates corresponding to ``lon_lat``
+    lon_lat : `~numpy.ndarray`
+        The world coordinates derived from converting from ``pixel``, which is
+        used to ensure round-tripping.
     """
-
-    # Get pixel limits
-    # xlim = ax.get_xlim()
-    # ylim = ax.get_ylim()
-
-    # Transform line to pixel coordinates
-    pixel = transform.inverted().transform(lon_lat)
 
     # In some spherical projections, some parts of the curve are 'behind' or
     # 'in front of' the plane of the image, so we find those by reversing the
     # transformation and finding points where the result is not consistent.
-
-    lon_lat_check = transform.transform(pixel)
 
     sep = angular_separation(np.radians(lon_lat[:, 0]),
                              np.radians(lon_lat[:, 1]),
@@ -50,13 +42,6 @@ def get_lon_lat_path(ax, transform, lon_lat):
 
     # Mask values with invalid pixel positions
     mask = mask | np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
-
-    # Mask values outside the viewport
-    # This has now been disabled because it assumes specifically rectangular
-    # axes, and also doesn't work if the coordinate direction is flipped.
-    # outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
-    #            (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
-    # mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
 
     # We can now start to set up the codes for the Path.
     codes = np.zeros(lon_lat.shape[0], dtype=np.uint8)
@@ -92,41 +77,24 @@ def get_lon_lat_path(ax, transform, lon_lat):
     # Create the path
     path = Path(pixel, codes=codes)
 
-    # And add to the axes
     return path
 
 
-def get_gridline_path(ax, transform, world):
+def get_gridline_path(world, pixel):
     """
     Draw a grid line
 
     Parameters
     ----------
-    ax : ~matplotlib.axes.Axes
-        The axes in which to plot the grid
-    transform : transformation class
-        The transformation between the world and pixel coordinates
-    world : `~numpy.ndarray`
-        The world coordinates along the curve, given as a (n,2)
+    lon_lat : `~numpy.ndarray`
+        The longitude and latitude values along the curve, given as a (n,2)
         array.
+    pixel : `~numpy.ndarray`
+        The pixel coordinates corresponding to ``lon_lat``
     """
-
-    # Get pixel limits
-    # xlim = ax.get_xlim()
-    # ylim = ax.get_ylim()
-
-    # Transform line to pixel coordinates
-    pixel = transform.inverted().transform(world)
 
     # Mask values with invalid pixel positions
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
-
-    # Mask values outside the viewport
-    # This has now been disabled because it assumes specifically rectangular
-    # axes, and also doesn't work if the coordinate direction is flipped.
-    # outside = ((pixel[:, 0] < xlim[0]) | (pixel[:, 0] > xlim[-1]) |
-    #            (pixel[:, 1] < ylim[0]) | (pixel[:, 1] > ylim[-1]))
-    # mask[1:-1] = mask[1:-1] | (outside[2:] & outside[:-2])
 
     # We can now start to set up the codes for the Path.
     codes = np.zeros(world.shape[0], dtype=np.uint8)
@@ -144,5 +112,4 @@ def get_gridline_path(ax, transform, world):
     # Create the path
     path = Path(pixel, codes=codes)
 
-    # And add to the axes
     return path
