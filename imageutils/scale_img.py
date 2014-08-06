@@ -4,8 +4,8 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from astropy.stats import sigma_clip
 
-__all__ = ['find_imgcuts', 'img_stats', 'rescale_img', 'scale_linear',
-           'scale_sqrt', 'scale_power', 'scale_log', 'scale_asinh']
+__all__ = ['find_cutlevels', 'normalize_image', 'scale_image',
+           'sigmaclip_stats']
 
 
 _MINMAX_PARAMS = \
@@ -189,7 +189,7 @@ def scale_image(image, scaling='linear',
         return np.log10(image_norm + 1.0) / np.log10(2.0)
     elif scaling == 'asinh':
         if noise_level is None:
-            mean, median, stddev = sigmaclip_stats(outimg, sigma=3.0)
+            mean, median, stddev = sigmaclip_stats(image_norm, sigma=3.0)
             noise_level = mean + (2.0 * stddev)   # 2 sigma above background
         min_cut, max_cut = cutlevels
         z = (noise_level - min_cut) / (max_cut - min_cut)
