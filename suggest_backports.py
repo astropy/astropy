@@ -16,8 +16,19 @@ import os
 import re
 import stat
 import sys
-import urllib
-import urllib2
+
+try:
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import urlencode
+
+try:
+    input = raw_input
+except NameError:
+    pass
 
 # Because pkg_resources provides better version parsing than distutils
 import pkg_resources
@@ -59,7 +70,8 @@ class GithubSuggestBackports(object):
             # We can't rely on urllib2 to handle basic authentication in the
             # normal way since GitHub requests don't always have
             # www-authenticate in the headers
-            self._auth = base64.b64encode(':'.join((username, password)))
+            auth = ':'.join((username, password)).encode('ascii')
+            self._auth = base64.b64encode(auth).decode('ascii')
         else:
             self._auth = None
 
@@ -67,15 +79,18 @@ class GithubSuggestBackports(object):
         resource = tuple(str(r) for r in resource)
         url = BASE_URL + '/'.join((self.owner, self.repo) + resource)
         if parameters:
-            url += '?' + urllib.urlencode(parameters)
+            url += '?' + urlencode(parameters)
         log.debug('Requesting ' + url)
-        req = urllib2.Request(url)
+        req = Request(url)
         if self._auth:
             req.add_header('Authorization', 'Basic ' + self._auth)
         try:
-            response = json.load(urllib2.urlopen(req))
-        except urllib2.HTTPError, e:
-            response = json.load(e.fp)
+            f = urlopen(req)
+            enc = f.headers.get_content_charset()
+            content = f.read().decode(enc)
+            response = json.loads(content)
+        except HTTPError as e:
+            response = json.loads(e.fp.read().decode('utf8'))
             if 'message' in response:
                 raise GithubRequestError(response['message'])
             raise e
@@ -181,7 +196,7 @@ class GithubSuggestBackports(object):
     def get_pull_request(self, number):
         try:
             pr = self._github_repo_request('pulls', str(number))
-        except GithubRequestError, e:
+        except GithubRequestError as e:
             if e.message == 'Not Found':
                 return None
             raise
@@ -337,7 +352,7 @@ def main(argv):
 
     log.info("Enter your GitHub username and password so that API requests "
              "aren't as severely rate-limited...")
-    username = raw_input('Username: ')
+    username = input('Username: ')
     password = getpass.getpass('Password: ')
     suggester = GithubSuggestBackports(args.owner, args.repo, args.branch,
                                        username, password)
