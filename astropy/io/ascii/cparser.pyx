@@ -847,7 +847,7 @@ cdef class FastWriter:
                     self.format_funcs.append(None)
                 else:
                     self.format_funcs.append(pprint._format_funcs.get(col.format,
-                                                        pprint._auto_format_func))
+                                                            auto_format_func))
                 # col is a numpy.ndarray, so we convert it to
                 # an ordinary list because csv.writer will call
                 # np.array_str() on each numpy value, which is
@@ -910,9 +910,7 @@ cdef class FastWriter:
                     rows[i % N][j] = '--'
 
                 elif self.format_funcs[j] is not None:
-                    # TODO: find a better way to format non-numpy types
-                    field = self.format_funcs[j](self.formats[j], np.array(
-                                                          [orig_field])[0])
+                    field = self.format_funcs[j](self.formats[j], orig_field)
                     rows[i % N][j] = field
 
                 else:
@@ -975,3 +973,38 @@ def get_fill_values(fill_values, read=True):
         return (fill_values, fill_empty)
     else:
         return fill_values # cache for empty values doesn't matter for writing
+
+def auto_format_func(format_, val):
+    """
+    Mimics pprint._auto_format_func for non-numpy values.
+    """
+    if six.callable(format_):
+        format_func = lambda format_, val: format_(val)
+        try:
+            out = format_func(format_, val)
+            if not isinstance(out, six.string_types):
+                raise ValueError('Format function for value {0} returned {1} instead of string type'
+                                 .format(val, type(val)))
+        except Exception as err:
+            raise ValueError('Format function for value {0} failed: {1}'
+                             .format(val, err))
+    else:
+        try:
+            # Convert val to Python object with tolist().  See
+            # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
+            out = format_.format(val)
+            # Require that the format statement actually did something
+            if out == format_:
+                raise ValueError
+            format_func = lambda format_, val: format_.format(val)
+        except:  # Not sure what exceptions might be raised
+            try:
+                out = format_ % val
+                if out == format_:
+                    raise ValueError
+                format_func = lambda format_, val: format_ % val
+            except:
+                raise ValueError('Unable to parse format string {0}'
+                                 .format(format_))
+    pprint._format_funcs[format_] = format_func
+    return out
