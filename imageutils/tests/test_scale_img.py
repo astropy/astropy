@@ -42,43 +42,43 @@ class TestImgCuts(object):
 class TestImageScaling(object):
     def test_linear(self):
         """Test linear scaling."""
-        img = scale_img.scale_linear(DATA)
+        img = scale_img.scale_image(DATA, scale='linear')
         assert_allclose(img, DATASCL, atol=0, rtol=1.e-5)
 
     def test_sqrt(self):
         """Test sqrt scaling."""
-        img = scale_img.scale_sqrt(DATA)
+        img = scale_img.scale_image(DATA, scale='sqrt')
         assert_allclose(img, np.sqrt(DATASCL), atol=0, rtol=1.e-5)
 
     def test_power(self):
         """Test power scaling."""
         power = 3.0
-        img = scale_img.scale_power(DATA, power)
+        img = scale_img.scale_image(DATA, power, scale='power')
         assert_allclose(img, DATASCL**power, atol=0, rtol=1.e-5)
 
     def test_log(self):
         """Test log10 scaling."""
-        img = scale_img.scale_log(DATA)
+        img = scale_img.scale_image(DATA, scale='log')
         ref = np.log10(DATASCL + 1.0) / np.log10(2.0)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
 
     def test_asinh(self):
         """Test arcsinh scaling."""
-        img = scale_img.scale_asinh(DATA)
+        img = scale_img.scale_image(DATA, scale='asinh')
         z = 0.658248290464
         ref = np.arcsinh(DATASCL / z) / np.arcsinh(1.0 / z)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
 
     def test_asinh_noiselevel(self):
         """Test arcsinh scaling."""
-        img = scale_img.scale_asinh(DATA, noise_level=1.0)
+        img = scale_img.scale_image(DATA, scale='asinh', noise_level=1.0)
         z = 0.5
         ref = np.arcsinh(DATASCL / z) / np.arcsinh(1.0 / z)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
 
     def test_asinh_noiselevel_zeroz(self):
         """Test arcsinh scaling."""
-        img = scale_img.scale_asinh(DATA, noise_level=0.0)
+        img = scale_img.scale_image(DATA, scale='asinh', noise_level=0.0)
         z = 1.e-2
         ref = np.arcsinh(DATASCL / z) / np.arcsinh(1.0 / z)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
