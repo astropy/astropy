@@ -261,6 +261,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Bundled copy of astropy-helpers upgraded to v0.4.1. [#2825]
+
 - General improvements to documentation and docstrings [#2722, #2728, #2742]
 
 - Made it easier for third-party packagers to have Astropy use their own
