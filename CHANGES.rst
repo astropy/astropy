@@ -49,6 +49,11 @@ Bug Fixes
     ``overwrite=True`` and ``append=True`` arguments to the ``Table.write``
     method. [#2624]
 
+- ``astropy.logger``
+
+  - Fixed a crash that could occur in rare cases when (such as in bundled
+    apps) where submodules of the ``email`` package are not importable. [#2671]
+
 - ``astropy.nddata``
 
   - ``astropy.nddata.NDData()`` no longer raises a ``ValueError`` when passed
