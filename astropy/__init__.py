@@ -230,13 +230,6 @@ def _initialize_astropy():
                 del sys.modules[key]
         raise ImportError('astropy')
 
-    if sys.version_info[0] >= 3 and is_astropy_source_dir:
-        _rollback_import(
-            "You appear to be trying to import astropy from within a source "
-            "checkout. This is currently not possible using Python 3 due to "
-            "the reliance of 2to3 to convert some of Astropy's subpackages "
-            "for Python 3 compatibility.")
-
     try:
         from .utils import _compiler
     except ImportError:
