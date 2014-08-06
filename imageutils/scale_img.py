@@ -135,10 +135,8 @@ def normalize_image(image, min_cut=None, max_cut=None, **kwargs):
 
 
 @_insert_cutlevel_params
-def scale_image(image, scaling='linear',
-                power=1.0, noise_level=None, sigma=2.0,
-                min_cut=None, max_cut=None,
-                **kwargs):
+def scale_image(image, scale='linear', power=1.0, noise_level=None,
+                min_cut=None, max_cut=None, **kwargs):
     """
     Perform scaling/stretching of an image between minimum and maximum
     cut levels.
@@ -148,7 +146,7 @@ def scale_image(image, scaling='linear',
     image : array_like
         The 2D array of the image.
 
-    scaling : {{'linear', 'sqrt', 'power', log', 'asinh'}}
+    scale : {{'linear', 'sqrt', 'power', log', 'asinh'}}
         The scaling/stretch function to apply to the image.  The default
         is 'linear'.
 
@@ -179,15 +177,15 @@ def scale_image(image, scaling='linear',
 
     image_norm, cutlevels = normalize_image(image, min_cut=min_cut,
                                             max_cut=max_cut, **kwargs)
-    if scaling == 'linear':
+    if scale == 'linear':
         return image_norm
-    elif scaling == 'sqrt':
+    elif scale == 'sqrt':
         return np.sqrt(image_norm)
-    elif scaling == 'power':
+    elif scale == 'power':
         return image_norm ** power
-    elif scaling == 'log':
+    elif scale == 'log':
         return np.log10(image_norm + 1.0) / np.log10(2.0)
-    elif scaling == 'asinh':
+    elif scale == 'asinh':
         if noise_level is None:
             mean, median, stddev = sigmaclip_stats(image_norm, sigma=3.0)
             noise_level = mean + (2.0 * stddev)   # 2 sigma above background
@@ -197,7 +195,7 @@ def scale_image(image, scaling='linear',
             z = 1.e-2
         return np.arcsinh(image_norm / z) / np.arcsinh(1.0 / z)
     else:
-        raise ValueError('scaling type is unknown')
+        raise ValueError('scale type is unknown')
 
 
 def sigmaclip_stats(image, image_mask=None, mask_val=None, sigma=3.0,
