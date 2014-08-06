@@ -28,6 +28,10 @@ New Features
 
 - ``astropy.io.votable``
 
+  - ``astropy.io.votable.parse`` now takes a ``datatype_mapping``
+    keyword argument to map invalid datatype names to valid ones in
+    order to support non-compliant files. [#2675]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``

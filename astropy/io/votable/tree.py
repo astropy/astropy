@@ -1189,7 +1189,13 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             'int32'         : 'int',
             'int64'         : 'long',
             'float32'       : 'float',
-            'float64'       : 'double'}
+            'float64'       : 'double',
+            # The following appear in some Vizier tables
+            'unsignedInt'   : 'long',
+            'unsignedShort' : 'int'
+        }
+
+        datatype_mapping.update(config.get('datatype_mapping', {}))
 
         if datatype in datatype_mapping:
             warn_or_raise(W13, W13, (datatype, datatype_mapping[datatype]),
