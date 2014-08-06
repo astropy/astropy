@@ -186,7 +186,7 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
         return np.log10(image_norm + 1.0) / np.log10(2.0)
     elif scale == 'asinh':
         if noise_level is None:
-            mean, median, stddev = sigmaclip_stats(image_norm, sigma=3.0)
+            mean, median, stddev = sigmaclip_stats(image, sigma=3.0)
             noise_level = mean + (2.0 * stddev)   # 2 sigma above background
         min_cut, max_cut = cutlevels
         z = (noise_level - min_cut) / (max_cut - min_cut)
