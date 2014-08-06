@@ -114,7 +114,7 @@ else:
 
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
-
+__doctest_skip__ = ['WCS.all_world2pix']
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -1911,6 +1911,7 @@ naxis kwarg.
         >>> import astropy.io.fits as fits
         >>> import astropy.wcs as wcs
         >>> import numpy as np
+        >>> import os
 
         >>> filename = os.path.join(wcs.__path__[0], 'tests/data/j94f05bgq_flt.fits')
         >>> hdulist = fits.open(filename)
@@ -1940,7 +1941,7 @@ naxis kwarg.
         >>> xy = w.all_world2pix(radec, 1, maxiter=3,
         ...                      tolerance=1.0e-10, quiet=False)
         Traceback (innermost last):
-            ...
+        ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
         requested accuracy.
         After 3 iterations, the solution is diverging at least for
@@ -1980,7 +1981,7 @@ naxis kwarg.
          [  8.59526812e+11   6.61713548e+11]
          [  6.09398446e-05   8.38759724e-07]]
         Traceback (innermost last):
-          File "<console>", line 13, in <module>
+        ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
         requested accuracy.
         After 5 iterations, the solution is diverging at least for
@@ -2011,7 +2012,7 @@ naxis kwarg.
          [             nan              nan]
          [  2.27407877e-06   3.13005639e-08]]
         Traceback (innermost last):
-          File "<console>", line 13, in <module>
+        ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
         requested accuracy.
         After 6 iterations, the solution is diverging at least for
