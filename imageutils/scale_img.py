@@ -8,7 +8,7 @@ __all__ = ['find_imgcuts', 'img_stats', 'rescale_img', 'scale_linear',
            'scale_sqrt', 'scale_power', 'scale_log', 'scale_asinh']
 
 
-_MINMAXCUT_PARAMS = \
+_MINMAX_PARAMS = \
     """
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
@@ -148,7 +148,7 @@ def scale_image(image, scaling='linear',
     image : array_like
         The 2D array of the image.
 
-    scaling : {'linear', 'sqrt', 'power', log', 'asinh'}
+    scaling : {{'linear', 'sqrt', 'power', log', 'asinh'}}
         The scaling/stretch function to apply to the image.  The default
         is 'linear'.
 
