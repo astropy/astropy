@@ -24,8 +24,6 @@ Bug Fixes
     ``table.jsviewer`` that were missing from the configuration file
     template. [#2772]
 
-- ``astropy.constants``
-
 - ``astropy.convolution``
 
 	- Fixed the multiplication of ``Kernel`` with numpy floats. [#2174]
@@ -41,12 +39,6 @@ Bug Fixes
   - ``CartesianPoints`` are now deprecated in favor of
     ``CartesianRepresentation``. [#2727]
 
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
 - ``astropy.io.misc``
 
   - An existing table within an HDF5 file can be overwritten without affecting
@@ -54,26 +46,16 @@ Bug Fixes
     ``overwrite=True`` and ``append=True`` arguments to the ``Table.write``
     method. [#2624]
 
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
 - ``astropy.nddata``
 
   - ``astropy.nddata.NDData()`` no longer raises a ``ValueError`` when passed
     a numpy masked array which has no masked entries. [#2784]
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
   - When saving a table to a FITS file containing a unit that is not
     supported by the FITS standard, a warning rather than an exception
     is raised. [#2797]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -91,8 +73,6 @@ Bug Fixes
 
   - Fixed support for ``staticmethod`` deprecation in the ``deprecated``
     decorator. [#2811]
-
-- ``astropy.vo``
 
 - ``astropy.wcs``
 
