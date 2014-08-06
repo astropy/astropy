@@ -343,9 +343,10 @@ class CoordinateHelper(object):
 
             if self._grid_type == 'lines':
 
+                frame_patch = self.frame.patch
                 for path in self.grid_lines:
                     p = PathPatch(path, **self.grid_lines_kwargs)
-                    p.set_clip_path(self.frame.patch)
+                    p.set_clip_path(frame_patch)
                     p.draw(renderer)
 
             else:
@@ -565,22 +566,40 @@ class CoordinateHelper(object):
         tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        self.grid_lines = []
-        for w in tick_world_coordinates_values:
-            if self.coord_index == 0:
-                x_world = np.repeat(w, 1000)
-                y_world = np.linspace(coord_range[1][0], coord_range[1][1], 1000)
-            else:
-                x_world = np.linspace(coord_range[0][0], coord_range[0][1], 1000)
-                y_world = np.repeat(w, 1000)
-            xy_world = np.vstack([x_world, y_world]).transpose()
-            self.grid_lines.append(self._get_gridline(xy_world))
+        n_coord = len(tick_world_coordinates_values)
+        n_samples = settings.GRID_SAMPLES
 
-    def _get_gridline(self, xy_world):
+        xy_world = np.zeros((n_samples * n_coord, 2))
+
+        self.grid_lines = []
+        for iw, w in enumerate(tick_world_coordinates_values):
+            subset = slice(iw * n_samples, (iw + 1) * n_samples)
+            if self.coord_index == 0:
+                xy_world[subset, 0] = np.repeat(w, n_samples)
+                xy_world[subset, 1] = np.linspace(coord_range[1][0], coord_range[1][1], n_samples)
+            else:
+                xy_world[subset, 0] = np.linspace(coord_range[0][0], coord_range[0][1], n_samples)
+                xy_world[subset, 1] = np.repeat(w, n_samples)
+
+        # We now convert all the world coordinates to pixel coordinates in a
+        # single go rather than doing this in the gridline to path conversion
+        # to fully benefit from vectorized coordinate transformations.
+
+        # Transform line to pixel coordinates
+        pixel = self.transform.inverted().transform(xy_world)
+
+        # Create round-tripped values for checking
+        xy_world_round = self.transform.transform(pixel)
+
+        for iw in range(n_coord):
+            subset = slice(iw * n_samples, (iw + 1) * n_samples)
+            self.grid_lines.append(self._get_gridline(xy_world[subset], pixel[subset], xy_world_round[subset]))
+
+    def _get_gridline(self, xy_world, pixel, xy_world_round):
         if self.coord_type == 'scalar':
-            return get_gridline_path(self.parent_axes, self.transform, xy_world)
+            return get_gridline_path(xy_world, pixel)
         else:
-            return get_lon_lat_path(self.parent_axes, self.transform, xy_world)
+            return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
     def _update_grid_contour(self):
 
