@@ -116,7 +116,7 @@ A dictionary of column data can be used to initialize a |Table|.
   ...        'b': [2.0, 5.0],
   ...        'c': ['x', 'y']}
   >>>
-  >>> Table(arr)
+  >>> Table(arr)  # doctest: +SKIP
   <Table rows=2 names=('a','c','b')>
   array([(1, 'x', 2.0), (4, 'y', 5.0)],
         dtype=[('a', '<i8'), ('c', 'S1'), ('b', '<f8')])
@@ -784,7 +784,7 @@ First make a table and add a couple of rows::
   >>> t = ParamsTable(names=['a', 'b', 'params'], dtype=['i', 'f', 'O'])
   >>> t.add_row((1, 2.0, {'x': 1.5, 'y': 2.5}))
   >>> t.add_row((2, 3.0, {'z': 'hello', 'id': 123123}))
-  >>> print(t)
+  >>> print(t)  # doctest: +SKIP
    a   b             params
   --- --- ----------------------------
     1 2.0         {'y': 2.5, 'x': 1.5}

@@ -416,7 +416,7 @@ One can explicitly specify ``in_subfmt`` in order to strictly require a
 certain subformat::
 
   >>> t = Time('2000:002:03:04', in_subfmt='date_hm')
-  >>> t = Time('2000:002', in_subfmt='date_hm')
+  >>> t = Time('2000:002', in_subfmt='date_hm')  # doctest: +SKIP
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match any of the formats where the
