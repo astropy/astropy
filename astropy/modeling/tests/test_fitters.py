@@ -309,12 +309,13 @@ class TestNonLinearFitters(object):
             b = Parameter()
 
             @staticmethod
-            def eval(x, y, a, b):
+            def evaluate(x, y, a, b):
                 return (a - x) ** 2 + b * (y - x ** 2) ** 2
 
         x = y = np.linspace(-3.0, 3.0, 100)
         with NumpyRNGContext(_RANDOM_SEED):
-            z = Rosenbrock.eval(x, y, 1.0, 100.0) + np.random.normal(0., 0.1)
+            z = Rosenbrock.evaluate(x, y, 1.0, 100.0)
+            z += np.random.normal(0., 0.1, size=z.shape)
 
         fitter = SimplexLSQFitter()
         r_i = Rosenbrock(1, 100)

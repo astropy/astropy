@@ -180,7 +180,7 @@ def test_custom_model(amplitude=4, frequency=1):
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
 
-    y = sin_model.eval(x, 5., 2.)
+    y = sin_model.evaluate(x, 5., 2.)
     y_prime = sin_model.fit_deriv(x, 5., 2.)
 
     np.random.seed(0)
