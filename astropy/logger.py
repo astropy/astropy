@@ -200,16 +200,24 @@ class AstropyLogger(Logger):
         mod_name = None
         if sys.version_info[0] < 3:  # pragma: py2
             for name, mod in sys.modules.items():
-                if getattr(mod, '__file__', '') == mod_path:
-                    mod_name = mod.__name__
-                    break
+                try:
+                    # Believe it or not this can fail in some cases:
+                    # https://github.com/astropy/astropy/issues/2671
+                    if getattr(mod, '__file__', '') == mod_path:
+                        mod_name = mod.__name__
+                        break
+                except:
+                    continue
         else:  # pragma: py3
             mod_path, ext = os.path.splitext(mod_path)
             for name, mod in sys.modules.items():
-                path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-                if path == mod_path:
-                    mod_name = mod.__name__
-                    break
+                try:
+                    path = os.path.splitext(getattr(mod, '__file__', ''))[0]
+                    if path == mod_path:
+                        mod_name = mod.__name__
+                        break
+                except:
+                    continue
 
         if mod_name is not None:
             self.warning(message, extra={'origin': mod_name})
