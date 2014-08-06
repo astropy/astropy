@@ -187,7 +187,7 @@ class AstropyLogger(Logger):
         if type(warning) not in (AstropyWarning, AstropyUserWarning):
             message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         else:
-            message = unicode(args[0])
+            message = str(args[0])
 
         mod_path = args[2]
         # Now that we have the module's path, we look through
