@@ -18,15 +18,25 @@ import numpy as np
 from . import core
 
 class BasicHeader(core.BaseHeader):
-        start_line = 0
-        comment = r'\s*#'
-        write_comment = '# '
+    '''Basic table Header Reader
+
+    Set a few defaults for common ascii table formats
+    (start at line 0, comments begin with `#` and possibly whitespace)
+    '''
+    start_line = 0
+    comment = r'\s*#'
+    write_comment = '# '
 
 
 class BasicData(core.BaseData):
-        start_line = 1
-        comment = r'\s*#'
-        write_comment = '# '
+    '''Basic table Data Reader
+
+    Set a few defaults for common ascii table formats
+    (start at line 1, comments begin with `#` and possibly whitespace)
+    '''
+    start_line = 1
+    comment = r'\s*#'
+    write_comment = '# '
 
 
 class Basic(core.BaseReader):
@@ -63,9 +73,19 @@ class Basic(core.BaseReader):
 
 
 class NoHeaderHeader(BasicHeader):
+    '''Reader for table header without a header
+
+    Sounds confusing? Essentially, this class just sets the first line
+    to `None`.
+    '''
     start_line = None
 
 class NoHeaderData(BasicData):
+    '''Reader for table data without a header
+
+    Sounds confusing? Essentially, this class just sets the first line
+    to `0`.
+    '''
     start_line = 0
 
 class NoHeader(Basic):
@@ -120,6 +140,7 @@ class CommentedHeader(Basic):
 
 
 class TabHeaderSplitter(core.DefaultSplitter):
+    '''Split lines on tab and do not remove whitespace'''
     delimiter = '\t'
     process_line = None
 
@@ -129,9 +150,11 @@ class TabDataSplitter(TabHeaderSplitter):
     skipinitialspace = False
 
 class TabHeader(BasicHeader):
+    '''Reader for header of tables with tab separated header'''
     splitter_class = TabHeaderSplitter
 
 class TabData(BasicData):
+    '''Reader for data of tables with tab separated data '''
     splitter_class = TabDataSplitter
 
 class Tab(Basic):
@@ -152,12 +175,15 @@ class Tab(Basic):
 
 
 class CsvSplitter(core.DefaultSplitter):
+    '''Split on comma for CSV (comma-separated-value) tables'''
     delimiter = ','
 
 class CsvHeader(BasicHeader):
+    '''Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
 
 class CsvData(BasicData):
+    '''Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
     fill_values = [(core.masked, '')]
 
@@ -213,10 +239,9 @@ class Csv(Basic):
 
 
 class RdbHeader(TabHeader):
+    '''Header for RDB tables'''
     col_type_map = {'n': core.NumType,
                     's': core.StrType}
-    comment = r'\s*#'
-    write_comment = '# '
 
 
     def get_type_map_key(self, col):
@@ -262,6 +287,7 @@ class RdbHeader(TabHeader):
 
 
 class RdbData(TabData):
+    '''Data reader for RDB data. Starts reading at line 2.'''
     start_line = 2
 
 

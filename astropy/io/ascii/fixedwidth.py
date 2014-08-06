@@ -58,6 +58,7 @@ class FixedWidthSplitter(core.BaseSplitter):
 
 
 class FixedWidthHeaderSplitter(DefaultSplitter):
+    '''Splitter class that splits on ``|``.'''
     delimiter = '|'
 
 
@@ -286,11 +287,13 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
+    '''Header reader for fixed with tables with no header line'''
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-     start_line = 0
+    '''Data reader for fixed width tables with no header line'''
+    start_line = 0
 
 
 class FixedWidthNoHeader(FixedWidth):
@@ -334,14 +337,22 @@ class FixedWidthNoHeader(FixedWidth):
 
 
 class FixedWidthTwoLineHeader(FixedWidthHeader):
+    '''Header reader for fixed width tables splitting on whitespace.
+
+    For fixed width tables with several header lines, there is typically
+    a white-space delimited format line, so splitting on white space is
+    needed.
+    '''
     splitter_class = DefaultSplitter
 
 
 class FixedWidthTwoLineDataSplitter(FixedWidthSplitter):
+    '''Splitter for fixed width tables splitting on ``' '``.'''
     delimiter = ' '
 
 
 class FixedWidthTwoLineData(FixedWidthData):
+    '''Data reader for fixed with tables with two header lines.'''
     splitter_class = FixedWidthTwoLineDataSplitter
 
 

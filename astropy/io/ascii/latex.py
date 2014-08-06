@@ -90,6 +90,7 @@ class LatexSplitter(core.BaseSplitter):
 
 
 class LatexHeader(core.BaseHeader):
+    '''Class to read the header of Latex Tables'''
     header_start = r'\begin{tabular}'
     splitter_class = LatexSplitter
 
@@ -121,6 +122,7 @@ class LatexHeader(core.BaseHeader):
 
 
 class LatexData(core.BaseData):
+    '''Class to read the data in LaTeX tables'''
     data_start = None
     data_end = r'\end{tabular}'
     splitter_class = LatexSplitter
