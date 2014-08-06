@@ -13,11 +13,14 @@ _MINMAX_PARAMS = \
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
         ``min_cut`` will set to ``min_cut`` before scaling the image.
+        The default is the image minimum.  ``min_cut`` overrides
+        ``min_percent``.
 
     max_cut : float, optional
         The pixel value of the maximum cut level.  Data values greater
         than ``min_cut`` will set to ``min_cut`` before scaling the
-        image.
+        image.  The default is the image maximum.  ``max_cut`` overrides
+        ``max_percent``.
     """.strip()
 
 
@@ -150,14 +153,10 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
         The scaling/stretch function to apply to the image.  The default
         is 'linear'.
 
-        ``scaling='power'`` requires input of the ``power`` keyword.
-
-        ``scaling='asinh``` can use the ``noise_level`` keyword.
-
     power : float, optional
         The power index for the image scaling.  The default is 1.0.
 
-    noise_level: float, optional
+    noise_level : float, optional
         The noise level of the image.  Pixel values less than
         ``noise_level`` will approximately be linearly scaled, while
         pixel values greater than ``noise_level`` will approximately be
