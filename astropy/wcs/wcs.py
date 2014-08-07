@@ -2724,7 +2724,7 @@ naxis kwarg.
         """
         A copy of the current WCS with only the celestial axes included
         """
-        return self.sub(wcs.WCSSUB_CELESTIAL)
+        return self.sub([WCSSUB_CELESTIAL])
 
     @property
     def pixel_scale(self):
@@ -2736,7 +2736,7 @@ naxis kwarg.
             cd = self.celestial.wcs.get_cd()
             cdelt = cd.diagonal()
         except AttributeError:
-            cdelt = self.celestial.get_cdelt()
+            cdelt = self.celestial.wcs.get_cdelt()
 
         if np.abs(cdelt[0]) != np.abs(cdelt[1]):
             raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
