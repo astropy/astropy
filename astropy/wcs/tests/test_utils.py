@@ -259,3 +259,9 @@ def test_pixscale_asymmetric():
     with pytest.raises(ValueError) as exc:
         mywcs.pixel_scale
     assert exc.value.args[0] == "Pixels are not symmetric: 'pixel scale' is ambiguous"
+
+def test_pixscale_cd_rotated():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.cd = [[-0.1/2**0.5,0.1/2**0.5],[0.1/2**0.5,0.1/2**0.5]]
+    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    assert mywcs.pixel_scale == 0.1

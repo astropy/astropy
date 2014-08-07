@@ -2733,7 +2733,9 @@ naxis kwarg.
         dimensions*
         """
         try:
-            cdelt = self.celestial.wcs.cd.diagonal()
+            cd = self.celestial.wcs.cd
+            cdelt = [(cd[0]**2).sum()**0.5,
+                     (cd[1]**2).sum()**0.5]
         except AttributeError:
             cdelt = self.celestial.wcs.get_cdelt()
 
