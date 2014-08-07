@@ -8,24 +8,16 @@ __all__ = ['find_cutlevels', 'normalize_image', 'scale_image',
            'sigmaclip_stats']
 
 
-_MINMAX_PARAMS = \
+def find_cutlevels(image, min_percent=None, max_percent=None, percent=None):
     """
-    min_cut : float, optional
-        The pixel value of the minimum cut level.  Data values less than
-        ``min_cut`` will set to ``min_cut`` before scaling the image.
-        The default is the image minimum.  ``min_cut`` overrides
-        ``min_percent``.
+    Find pixel values of the minimum and maximum image cut levels from
+    percentiles of the image values.
 
-    max_cut : float, optional
-        The pixel value of the maximum cut level.  Data values greater
-        than ``min_cut`` will set to ``min_cut`` before scaling the
-        image.  The default is the image maximum.  ``max_cut`` overrides
-        ``max_percent``.
-    """.strip()
+    Parameters
+    ----------
+    image : array_like
+        The 2D array of the image.
 
-
-_PERCENTILE_PARAMS = \
-    """
     min_percent : float, optional
         The percentile value used to determine the pixel value of
         minimum cut level.  The default is 0.0.  ``min_percent``
@@ -43,34 +35,6 @@ _PERCENTILE_PARAMS = \
         the upper cut level will be set at the ``(100 + percent) / 2``
         percentile.  The default is 100.0.  ``percent`` is ignored if
         either ``min_percent`` or ``max_percent`` is input.
-    """.strip()
-
-
-def _insert_cutlevel_params(func):
-    """Insert the cutlevel parameters into the function documentation."""
-    func.__doc__ = func.__doc__.format(minmax_params=_MINMAX_PARAMS,
-                                       percentile_params=_PERCENTILE_PARAMS)
-    return func
-
-
-def _insert_percentile_params(func):
-    """Insert the cutlevel parameters into the function documentation."""
-    func.__doc__ = func.__doc__.format(percentile_params=_PERCENTILE_PARAMS)
-    return func
-
-
-@_insert_percentile_params
-def find_cutlevels(image, min_percent=None, max_percent=None, percent=None):
-    """
-    Find pixel values of the minimum and maximum image cut levels from
-    percentiles of the image values.
-
-    Parameters
-    ----------
-    image : array_like
-        The 2D array of the image.
-
-    {percentile_params}
 
     Returns
     -------
@@ -96,7 +60,6 @@ def find_cutlevels(image, min_percent=None, max_percent=None, percent=None):
     return min_cut, max_cut
 
 
-@_insert_cutlevel_params
 def normalize_image(image, min_cut=None, max_cut=None, min_percent=None,
                     max_percent=None, percent=None):
     """
@@ -108,9 +71,35 @@ def normalize_image(image, min_cut=None, max_cut=None, min_percent=None,
     image : array_like
         The 2D array of the image.
 
-    {minmax_params}
+    min_cut : float, optional
+        The pixel value of the minimum cut level.  Data values less than
+        ``min_cut`` will set to ``min_cut`` before scaling the image.
+        The default is the image minimum.  ``min_cut`` overrides
+        ``min_percent``.
 
-    {percentile_params}
+    max_cut : float, optional
+        The pixel value of the maximum cut level.  Data values greater
+        than ``min_cut`` will set to ``min_cut`` before scaling the
+        image.  The default is the image maximum.  ``max_cut`` overrides
+        ``max_percent``.
+
+    min_percent : float, optional
+        The percentile value used to determine the pixel value of
+        minimum cut level.  The default is 0.0.  ``min_percent``
+        overrides ``percent``.
+
+    max_percent : float, optional
+        The percentile value used to determine the pixel value of
+        maximum cut level.  The default is 100.0.  ``max_percent``
+        overrides ``percent``.
+
+    percent : float, optional
+        The percentage of the image values used to determine the pixel
+        values of the minimum and maximum cut levels.  The lower cut
+        level will set at the ``(100 - percent) / 2`` percentile, while
+        the upper cut level will be set at the ``(100 + percent) / 2``
+        percentile.  The default is 100.0.  ``percent`` is ignored if
+        either ``min_percent`` or ``max_percent`` is input.
 
     Returns
     -------
@@ -139,7 +128,6 @@ def normalize_image(image, min_cut=None, max_cut=None, min_percent=None,
     return image_norm, cutlevels
 
 
-@_insert_cutlevel_params
 def scale_image(image, scale='linear', power=1.0, noise_level=None,
                 min_cut=None, max_cut=None, min_percent=None,
                 max_percent=None, percent=None):
@@ -166,9 +154,35 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
         logarithmically scaled.  If ``noise_level`` is not input, an
         estimate of the 2-sigma level above the background will be used.
 
-    {minmax_params}
+    min_cut : float, optional
+        The pixel value of the minimum cut level.  Data values less than
+        ``min_cut`` will set to ``min_cut`` before scaling the image.
+        The default is the image minimum.  ``min_cut`` overrides
+        ``min_percent``.
 
-    {percentile_params}
+    max_cut : float, optional
+        The pixel value of the maximum cut level.  Data values greater
+        than ``min_cut`` will set to ``min_cut`` before scaling the
+        image.  The default is the image maximum.  ``max_cut`` overrides
+        ``max_percent``.
+
+    min_percent : float, optional
+        The percentile value used to determine the pixel value of
+        minimum cut level.  The default is 0.0.  ``min_percent``
+        overrides ``percent``.
+
+    max_percent : float, optional
+        The percentile value used to determine the pixel value of
+        maximum cut level.  The default is 100.0.  ``max_percent``
+        overrides ``percent``.
+
+    percent : float, optional
+        The percentage of the image values used to determine the pixel
+        values of the minimum and maximum cut levels.  The lower cut
+        level will set at the ``(100 - percent) / 2`` percentile, while
+        the upper cut level will be set at the ``(100 + percent) / 2``
+        percentile.  The default is 100.0.  ``percent`` is ignored if
+        either ``min_percent`` or ``max_percent`` is input.
 
     Returns
     -------
