@@ -44,7 +44,7 @@ test_script:
   # doesn't really work.
   #
   #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
-  - python setup.py test
+  - "%CMD_IN_ENV%" python setup.py test
 
 #artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
