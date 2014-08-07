@@ -44,9 +44,6 @@ class EulerAngleRotation(Model):
     theta = Parameter(getter=np.rad2deg, setter=np.deg2rad)
     psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, phi, theta, psi):
-        super(EulerAngleRotation, self).__init__(phi, theta, psi)
-
     @staticmethod
     def _rotate_zxz(phi_i, theta_i, phi, theta, psi):
         """

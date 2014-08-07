@@ -95,10 +95,6 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter()
     stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        super(Gaussian1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -146,10 +142,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     amplitude = Parameter()
     mean = Parameter()
     stddev = Parameter()
-
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        super(GaussianAbsorption1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -363,9 +355,6 @@ class Shift(Model):
 
     offsets = Parameter()
 
-    def __init__(self, offsets, **kwargs):
-        super(Shift, self).__init__(offsets, **kwargs)
-
     @property
     def inverse(self):
         inv = self.copy()
@@ -392,9 +381,6 @@ class Scale(Model):
 
     factors = Parameter()
     linear = True
-
-    def __init__(self, factors, **kwargs):
-        super(Scale, self).__init__(factors, **kwargs)
 
     @property
     def inverse(self):
@@ -423,10 +409,8 @@ class Redshift(Fittable1DModel):
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
 
     """
-    z = Parameter(description='redshift')
 
-    def __init__(self, z, **kwargs):
-        super(Redshift, self).__init__(z=z, **kwargs)
+    z = Parameter(description='redshift')
 
     @staticmethod
     def evaluate(x, z):
@@ -475,10 +459,6 @@ class Sine1D(Fittable1DModel):
     amplitude = Parameter()
     frequency = Parameter()
 
-    def __init__(self, amplitude, frequency, **kwargs):
-        super(Sine1D, self).__init__(
-            amplitude=amplitude, frequency=frequency, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, frequency):
         """One dimensional Sine model function"""
@@ -521,10 +501,6 @@ class Linear1D(Fittable1DModel):
     slope = Parameter()
     intercept = Parameter()
     linear = True
-
-    def __init__(self, slope, intercept, **kwargs):
-        super(Linear1D, self).__init__(
-            slope=slope, intercept=intercept, **kwargs)
 
     @staticmethod
     def evaluate(x, slope, intercept):
@@ -571,10 +547,6 @@ class Lorentz1D(Fittable1DModel):
     x_0 = Parameter()
     fwhm = Parameter()
 
-    def __init__(self, amplitude, x_0, fwhm, **kwargs):
-        super(Lorentz1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, fwhm=fwhm, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
@@ -615,9 +587,6 @@ class Const1D(Fittable1DModel):
 
     amplitude = Parameter()
     linear = True
-
-    def __init__(self, amplitude, **kwargs):
-        super(Const1D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude):
@@ -664,9 +633,6 @@ class Const2D(Fittable2DModel):
 
     amplitude = Parameter()
     linear = True
-
-    def __init__(self, amplitude, **kwargs):
-        super(Const2D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude):
@@ -721,10 +687,6 @@ class Disk2D(Fittable2DModel):
     x_0 = Parameter()
     y_0 = Parameter()
     R_0 = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, R_0, **kwargs):
-        super(Disk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
@@ -849,10 +811,6 @@ class Box1D(Fittable1DModel):
     x_0 = Parameter()
     width = Parameter()
 
-    def __init__(self, amplitude, x_0, width, **kwargs):
-        super(Box1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function"""
@@ -914,11 +872,6 @@ class Box2D(Fittable2DModel):
     x_width = Parameter()
     y_width = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, x_width, y_width, **kwargs):
-        super(Box2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, x_width=x_width,
-            y_width=y_width, **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
@@ -954,10 +907,6 @@ class Trapezoid1D(Fittable1DModel):
     x_0 = Parameter()
     width = Parameter()
     slope = Parameter()
-
-    def __init__(self, amplitude, x_0, width, slope, **kwargs):
-        super(Trapezoid1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width, slope=slope, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width, slope):
@@ -1008,11 +957,6 @@ class TrapezoidDisk2D(Fittable2DModel):
     R_0 = Parameter()
     slope = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, R_0, slope, **kwargs):
-        super(TrapezoidDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, slope=slope,
-            **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
@@ -1057,10 +1001,6 @@ class MexicanHat1D(Fittable1DModel):
     x_0 = Parameter()
     sigma = Parameter()
 
-    def __init__(self, amplitude, x_0, sigma, **kwargs):
-        super(MexicanHat1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, sigma=sigma, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
         """One dimensional Mexican Hat model function"""
@@ -1104,10 +1044,6 @@ class MexicanHat2D(Fittable2DModel):
     x_0 = Parameter()
     y_0 = Parameter()
     sigma = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, sigma, **kwargs):
-        super(MexicanHat2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, sigma=sigma, **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
@@ -1239,10 +1175,6 @@ class Beta1D(Fittable1DModel):
     gamma = Parameter()
     alpha = Parameter()
 
-    def __init__(self, amplitude, x_0, gamma, alpha, **kwargs):
-        super(Beta1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, gamma=gamma, alpha=alpha, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
         """One dimensional Beta model function"""
@@ -1298,11 +1230,6 @@ class Beta2D(Fittable2DModel):
     y_0 = Parameter()
     gamma = Parameter()
     alpha = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, gamma, alpha, **kwargs):
-        super(Beta2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, gamma=gamma, alpha=alpha,
-            **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):

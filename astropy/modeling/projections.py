@@ -163,9 +163,6 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     mu = Parameter(default=0.0, setter=_validate_mu)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, mu=mu.default, gamma=gamma.default):
-        super(Sky2Pix_AZP, self).__init__(mu, gamma)
-
     def check_mu(self, val):
         if np.asarray(val == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
@@ -363,9 +360,6 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
     mu = Parameter(setter=_validate_mu)
     lam = Parameter(setter=_validate_lam)
 
-    def __init__(self, mu, lam):
-        super(Pix2Sky_CYP, self).__init__(mu, lam)
-
     @property
     def inverse(self):
         return Sky2Pix_CYP(self.mu.value, self.lam.value)
@@ -403,9 +397,6 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
     mu = Parameter(setter=_validate_mu)
     lam = Parameter(setter=_validate_lam)
 
-    def __init__(self, mu, lam):
-        super(Sky2Pix_CYP, self).__init__(mu, lam)
-
     @property
     def inverse(self):
         return Pix2Sky_CYP(self.mu, self.lam)
@@ -426,9 +417,6 @@ class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
 
     lam = Parameter(default=1)
 
-    def __init__(self, lam=lam.default):
-        super(Pix2Sky_CEA, self).__init__(lam)
-
     @property
     def inverse(self):
         return Sky2Pix_CEA(self.lam)
@@ -447,9 +435,6 @@ class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
     """
 
     lam = Parameter(default=1)
-
-    def __init__(self, lam=lam.default):
-        super(Sky2Pix_CEA, self).__init__(lam)
 
     @property
     def inverse(self):
@@ -561,11 +546,6 @@ class AffineTransformation2D(Model):
     translation = Parameter(
         setter=lambda t: AffineTransformation2D._validate_vector(t),
         default=[0.0, 0.0])
-
-    def __init__(self, matrix=matrix.default,
-                 translation=translation.default, **kwargs):
-        super(AffineTransformation2D, self).__init__(matrix, translation,
-                                                     **kwargs)
 
     @property
     def inverse(self):

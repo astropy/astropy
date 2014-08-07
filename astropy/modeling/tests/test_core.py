@@ -78,7 +78,7 @@ def test_custom_model_signature():
     def model_a(x):
         return x
 
-    assert model_a.param_names == []
+    assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     argspec = inspect.getargspec(model_a.__init__)
     assert argspec.args == ['self']
@@ -89,7 +89,7 @@ def test_custom_model_signature():
     def model_b(x, a=1, b=2):
         return x + a + b
 
-    assert model_b.param_names == ['a', 'b']
+    assert model_b.param_names == ('a', 'b')
     assert model_b.n_inputs == 1
     argspec = inspect.getargspec(model_b.__init__)
     assert argspec.args == ['self', 'a', 'b']
@@ -101,7 +101,7 @@ def test_custom_model_signature():
     def model_c(x, y, a=1, b=2):
         return x + y + a + b
 
-    assert model_c.param_names == ['a', 'b']
+    assert model_c.param_names == ('a', 'b')
     assert model_c.n_inputs == 2
     argspec = inspect.getargspec(model_c.__init__)
     assert argspec.args == ['self', 'a', 'b']
@@ -124,7 +124,7 @@ def test_custom_model_subclass():
             return -super(model_b, cls).evaluate(x, a)
 
     b = model_b()
-    assert b.param_names == ['a']
+    assert b.param_names == ('a',)
     assert b.a == 1
     assert b(1) == -1
 

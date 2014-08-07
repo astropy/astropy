@@ -38,7 +38,7 @@ class PolynomialBase(FittableModel):
 
     # Default _param_names list; this will be filled in by the implementation's
     # __init__
-    _param_names = []
+    _param_names = ()
 
     linear = True
     col_fit_deriv = False
@@ -161,7 +161,7 @@ class PolynomialModel(PolynomialBase):
                 for j in range(1, self.degree):
                     if i + j < self.degree + 1:
                         names.append('c{0}_{1}'.format(i, j))
-        return names
+        return tuple(names)
 
 
 class OrthoPolynomialBase(PolynomialBase):
@@ -304,7 +304,7 @@ class OrthoPolynomialBase(PolynomialBase):
         for j in range(self.y_degree + 1):
             for i in range(self.x_degree + 1):
                 names.append('c{0}_{1}'.format(i, j))
-        return names
+        return tuple(names)
 
     def _fcache(self, x, y):
         # TODO: Write a docstring explaining the actual purpose of this method
