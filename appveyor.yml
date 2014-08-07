@@ -46,24 +46,4 @@ install:
 build: false
 
 test_script:
-  # Build and test the package. This appears(?) to sporadically fail due to a 
-  # bug in conda-build on 32 bit python.
-  # https://github.com/conda/conda-build/issues/152
-  #
-  # Note also that our setup.py script, which is called by conda-build, writes
-  # a __conda_version__.txt file, so the version number on the binary package
-  # is set dynamically. This unfortunately mean that conda build --output
-  # doesn't really work.
-  #
-  #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
   - "%CMD_IN_ENV% python setup.py test"
-
-#artifacts:
-  # Archive the generated conda package in the ci.appveyor.com build report.
-  #- path: '*.tar.bz2'
-
-on_success:
-  # Upload built binaries to binstar.org. The globbing and handling of the
-  # exit-status code is tricky in cmd.exe or powershell, so we're just using
-  # a python script.
-  #- python continuous-integration\binstar-push.py
