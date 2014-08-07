@@ -140,6 +140,12 @@ def test_axis_names():
 
     assert mywcs.axis_type_names == ['RA','DEC','VOPT-LSR','STOKES']
 
+def test_celestial():
+    mywcs = WCS(naxis=4)
+    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT-LSR','STOKES']
+    cel = mywcs.celestial
+    assert cel.wcs.ctype == ['RA---TAN','DEC---TAN']
+    assert cel.axis_type_names == ['RA---TAN','DEC---TAN']
 
 def test_wcs_to_celestial_frame():
 
@@ -219,3 +225,28 @@ def test_wcs_to_celestial_frame_extend():
     # Check that things are back to normal after the context manager
     with pytest.raises(ValueError):
         utils.wcs_to_celestial_frame(mywcs)
+
+def test_pixscale_nodrop():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.cdelt = [0.1,0.1]
+    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN']
+    assert mywcs.pixel_scale == 0.1
+
+    mywcs.wcs.cdelt = [-0.1,0.1]
+    assert mywcs.pixel_scale == 0.1
+
+def test_pixscale_withdrop():
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.cdelt = [0.1,0.1]
+    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT-LSR']
+    assert mywcs.pixel_scale == 0.1
+
+    mywcs.wcs.cdelt = [-0.1,0.1]
+    assert mywcs.pixel_scale == 0.1
+
+
+def test_pixscale_cd():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
+    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN']
+    assert mywcs.pixel_scale == 0.1
