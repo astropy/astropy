@@ -23,7 +23,7 @@ install:
   - powershell .\\continuous-integration\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - conda config --set always_yes yes
-  - conda install -c astropy-ci-extras numpy=$NUMPY_VERSION pytest Cython
+  - conda install -c astropy-ci-extras numpy=%NUMPY_VERSION% pytest Cython
 
 build: false
 
