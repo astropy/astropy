@@ -90,7 +90,7 @@ function UpdateConda ($python_home) {
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build=1.4.0 pip jinja2 binstar"
+    InstallCondaPackages $env:PYTHON "conda-build pip binstar"
 }
 
 main
