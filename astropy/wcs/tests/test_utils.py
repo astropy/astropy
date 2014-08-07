@@ -132,20 +132,20 @@ def test_invalid_slice():
 
 def test_axis_names():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT-LSR','STOKES']
+    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT-LSR','STOKES']
 
     assert mywcs.axis_type_names == ['RA','DEC','VOPT','STOKES']
 
-    mywcs.wcs.cname = ['RA','DEC','VOPT-LSR','STOKES']
+    mywcs.wcs.cname = ['RA','DEC','VOPT','STOKES']
 
-    assert mywcs.axis_type_names == ['RA','DEC','VOPT-LSR','STOKES']
+    assert mywcs.axis_type_names == ['RA','DEC','VOPT','STOKES']
 
 def test_celestial():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT-LSR','STOKES']
+    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT','STOKES']
     cel = mywcs.celestial
-    assert cel.wcs.ctype == ['RA---TAN','DEC--TAN']
-    assert cel.axis_type_names == ['RA---TAN','DEC--TAN']
+    assert list(cel.wcs.ctype) == ['RA---TAN','DEC--TAN']
+    assert cel.axis_type_names == ['RA','DEC']
 
 def test_wcs_to_celestial_frame():
 
@@ -237,11 +237,11 @@ def test_pixscale_nodrop():
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
-    mywcs.wcs.cdelt = [0.1,0.1]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT-LSR']
+    mywcs.wcs.cdelt = [0.1,0.1,1]
+    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
     assert mywcs.pixel_scale == 0.1
 
-    mywcs.wcs.cdelt = [-0.1,0.1]
+    mywcs.wcs.cdelt = [-0.1,0.1,1]
     assert mywcs.pixel_scale == 0.1
 
 
