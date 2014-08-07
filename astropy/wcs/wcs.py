@@ -114,7 +114,7 @@ else:
 
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
-__doctest_skip__ = ['WCS.all_world2pix']
+
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -1483,8 +1483,8 @@ naxis kwarg.
         #############################################################
         ##            INITIALIZE ITERATIVE PROCESS:                ##
         #############################################################
-        pix0 = self.wcs_world2pix(world, origin) # initial approximation
-                                                 # (linear WCS based only)
+        pix0 = self.wcs_world2pix(world, origin)  # initial approximation
+                                                  # (linear WCS based only)
 
         # Check that an iterative solution is required at all
         # (when any of the non-CD-matrix-based corrections are
@@ -1497,7 +1497,7 @@ naxis kwarg.
             # simply return initial approximation:
             return pix0
 
-        pix = pix0.copy() # 0-order solution
+        pix = pix0.copy()  # 0-order solution
 
         # initial correction:
         dpix = self.pix2foc(pix, origin) - pix0
@@ -1507,14 +1507,13 @@ naxis kwarg.
 
         # Norm (L2) squared of the correction:
         dn = np.sum(dpix*dpix, axis=1)
-        dnprev = dn.copy()# if adaptive else dn
+        dnprev = dn.copy()  # if adaptive else dn
         tol2 = tolerance**2
 
         # Prepare for iterative process
         k = 1
         ind = None
         inddiv = None
-        npts = world.shape[0]
 
         # Turn off numpy runtime warnings for 'invalid' and 'over':
         old_invalid = np.geterr()['invalid']
@@ -1628,8 +1627,8 @@ naxis kwarg.
         ##         AND FAILED-TO-CONVERGE POINTS                   ##
         #############################################################
         # Identify diverging and/or invalid points:
-        invalid = ((~np.all(np.isfinite(pix),axis=1)) &
-                   (np.all(np.isfinite(world),axis=1)))
+        invalid = ((~np.all(np.isfinite(pix), axis=1)) &
+                   (np.all(np.isfinite(world), axis=1)))
 
         # When detect_divergence==False, dnprev is outdated
         # (it is the norm of the very first correction).
@@ -1656,13 +1655,15 @@ naxis kwarg.
         #############################################################
         if (ind is not None or inddiv is not None) and not quiet:
             if inddiv is None:
-                raise NoConvergence("'WCS.all_world2pix' failed to "
+                raise NoConvergence(
+                    "'WCS.all_world2pix' failed to "
                     "converge to the requested accuracy after {:d} "
                     "iterations.".format(k), best_solution=pix,
                     accuracy=np.abs(dpix), niter=k,
                     slow_conv=ind, divergent=None)
             else:
-                raise NoConvergence("'WCS.all_world2pix' failed to "
+                raise NoConvergence(
+                    "'WCS.all_world2pix' failed to "
                     "converge to the requested accuracy.\n"
                     "After {0:d} iterations, the solution is diverging "
                     "at least for one input point."
@@ -1672,23 +1673,22 @@ naxis kwarg.
 
         return pix
 
-
     def all_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
 
-        tolerance = kwargs.pop('tolerance', 1e-4)
-        maxiter   = kwargs.pop('maxiter', 20)
-        adaptive  = kwargs.pop('adaptive', False)
-        detect_div= kwargs.pop('detect_divergence', True)
-        quiet     = kwargs.pop('quiet', False)
+        tolerance  = kwargs.pop('tolerance', 1e-4)
+        maxiter    = kwargs.pop('maxiter', 20)
+        adaptive   = kwargs.pop('adaptive', False)
+        detect_div = kwargs.pop('detect_divergence', True)
+        quiet      = kwargs.pop('quiet', False)
 
         return self._array_converter(
             lambda *args, **kwargs:
             self._all_world2pix(
-                *args, tolerance=tolerance, maxiter = maxiter,
-                adaptive = adaptive, detect_divergence = detect_div,
-                quiet = quiet),
+                *args, tolerance=tolerance, maxiter=maxiter,
+                adaptive=adaptive, detect_divergence=detect_div,
+                quiet=quiet),
             'input', *args, **kwargs
         )
 
@@ -1766,19 +1766,19 @@ naxis kwarg.
 
             .. note::
                When ``detect_divergence`` is `True`,
-               \ :py:meth:`all_world2pix` will automatically switch
+               :py:meth:`all_world2pix` will automatically switch
                to the adaptive algorithm once divergence has been
                detected.
 
         detect_divergence : bool, optional (Default = True)
             Specifies whether to perform a more detailed analysis
             of the convergence to a solution. Normally
-            \ :py:meth:`all_world2pix` may not achieve the required
+            :py:meth:`all_world2pix` may not achieve the required
             accuracy if either the ``tolerance`` or ``maxiter`` arguments
             are too low. However, it may happen that for some
             geometric distortions the conditions of convergence for
             the the method of consecutive approximations used by
-            \ :py:meth:`all_world2pix` may not be satisfied, in which
+            :py:meth:`all_world2pix` may not be satisfied, in which
             case consecutive approximations to the solution will
             diverge regardless of the ``tolerance`` or ``maxiter``
             settings.
@@ -1799,7 +1799,7 @@ naxis kwarg.
             parameter is set to `True`.
 
             When ``detect_divergence`` is `True`,
-            \ :py:meth:`all_world2pix` will detect points for which
+            :py:meth:`all_world2pix` will detect points for which
             current correction to the coordinates is larger than
             the correction applied during the previous iteration
             **if** the requested accuracy **has not yet been
@@ -1851,21 +1851,20 @@ naxis kwarg.
         `~astropy.wcs.Wcsprm.lngtyp`
         members can be used to determine the order of the axes.
 
-        Using the method of fixed-point iterations approximations
-        we iterate starting with the initial approximation, which
-        is computed using the non-distortion-aware
-        \ :py:meth:`wcs_world2pix` (or equivalent).
+        Using the method of fixed-point iterations approximations we
+        iterate starting with the initial approximation, which is
+        computed using the non-distortion-aware
+        :py:meth:`wcs_world2pix` (or equivalent).
 
         The :py:meth:`all_world2pix` function uses a vectorized
-        implementation of the method of consecutive approximations
-        and therefore it is highly efficient (>30x) when *all* data
-        points that need to be converted from sky coordinates to
-        image coordinates are passed at *once*. Therefore, it is
-        advisable, whenever possible, to pass as input a long array
-        of all points that need to be converted to
-        \ :py:meth:`all_world2pix` instead of calling
-        \ :py:meth:`all_world2pix` for each data point. Also see the
-        note to the ``adaptive`` parameter.
+        implementation of the method of consecutive approximations and
+        therefore it is highly efficient (>30x) when *all* data points
+        that need to be converted from sky coordinates to image
+        coordinates are passed at *once*. Therefore, it is advisable,
+        whenever possible, to pass as input a long array of all points
+        that need to be converted to :py:meth:`all_world2pix` instead
+        of calling :py:meth:`all_world2pix` for each data point. Also
+        see the note to the ``adaptive`` parameter.
 
         Raises
         ------
@@ -1940,12 +1939,11 @@ naxis kwarg.
          [ 3.00000236  0.99999997]]
         >>> xy = w.all_world2pix(radec, 1, maxiter=3,
         ...                      tolerance=1.0e-10, quiet=False)
-        Traceback (innermost last):
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 3 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy. After 3 iterations, the
+        solution is diverging at least for one input point.
 
         >>> # Now try to use some diverging data:
         >>> divradec = w.all_pix2world([[1.0, 1.0],
@@ -1969,7 +1967,6 @@ naxis kwarg.
         ...         .format(e.slow_conv))
         ...   print("Best solution:\\n{{}}".format(e.best_solution))
         ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
@@ -1980,12 +1977,12 @@ naxis kwarg.
         [[  6.13968380e-05   8.59638593e-07]
          [  8.59526812e+11   6.61713548e+11]
          [  6.09398446e-05   8.38759724e-07]]
-        Traceback (innermost last):
+        >>> raise e
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 5 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy.  After 5 iterations, the
+        solution is diverging at least for one input point.
 
         >>> # This time turn detect_divergence off:
         >>> try:
@@ -2000,7 +1997,6 @@ naxis kwarg.
         ...         .format(e.slow_conv))
         ...   print("Best solution:\\n{{}}".format(e.best_solution))
         ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
@@ -2011,12 +2007,12 @@ naxis kwarg.
         [[  2.29417358e-06   3.21222995e-08]
          [             nan              nan]
          [  2.27407877e-06   3.13005639e-08]]
-        Traceback (innermost last):
+        >>> raise e
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 6 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy.  After 6 iterations, the
+        solution is diverging at least for one input point.
 
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
