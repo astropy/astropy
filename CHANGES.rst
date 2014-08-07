@@ -168,6 +168,9 @@ Bug Fixes
 
 - ``astropy.io.misc``
 
+  - Fixed a bug that prevented h5py ``Dataset`` objects from being
+    automatically recognized by ``Table.read``. [#2831]
+
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
