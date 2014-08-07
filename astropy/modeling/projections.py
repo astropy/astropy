@@ -186,10 +186,6 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_AZP, self).__call__(
-            phi, theta,  model_set_axis=model_set_axis)
-
     @classmethod
     def _compute_r_theta(cls, phi, theta, mu, gamma):
         return ((cls.r0 * (mu + 1) * np.cos(theta)) /
@@ -239,10 +235,6 @@ class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_TAN, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
     @staticmethod
     def _compute_r_theta(theta):
         return 1 / np.tan(theta)
@@ -290,10 +282,6 @@ class Sky2Pix_STG(Sky2PixProjection, Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_STG, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
     @classmethod
     def _compute_r_theta(cls, theta):
         return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
@@ -339,10 +327,6 @@ class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
         y = -r_theta * np.cos(phi)
 
         return x, y
-
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_SIN, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
     @classmethod
     def _compute_r_theta(cls, theta):
@@ -434,10 +418,6 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CYP, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
 
 class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
     """
@@ -483,10 +463,6 @@ class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CEA, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
 
 class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
     """
@@ -523,10 +499,6 @@ class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CAR, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
 
 class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
     """
@@ -561,10 +533,6 @@ class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
         y = cls.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
 
         return x, y
-
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_MER, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
 
 class AffineTransformation2D(Model):
