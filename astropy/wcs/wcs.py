@@ -1717,16 +1717,16 @@ naxis kwarg.
             within this many pixels current estimate, more
             specifically, when the correction to the solution found
             during the previous iteration is smaller
-            (in the sense of the L2 norm) than `tolerance`.
+            (in the sense of the L2 norm) than ``tolerance``.
 
         maxiter : int, optional (Default = 20)
             Maximum number of iterations allowed to reach a solution.
 
         quiet : bool, optional (Default = False)
-            Do not throw :py:class:`NoConvergence` exceptions when
+            Do not throw :py:class:``NoConvergence`` exceptions when
             the method does not converge to a solution with the
             required accuracy within a specified number of maximum
-            iterations set by `maxiter` parameter. Instead,
+            iterations set by ``maxiter`` parameter. Instead,
             simply return the found solution.
 
         Other Parameters
@@ -1740,7 +1740,7 @@ naxis kwarg.
             .. note::
                The :py:meth:`all_world2pix` uses a vectorized
                implementation of the method of consecutive
-               approximations (see `Notes` section below) in which it
+               approximations (see ``Notes`` section below) in which it
                iterates over *all* input points *regardless* until
                the required accuracy has been reached for *all* input
                points. In some cases it may be possible that
@@ -1749,7 +1749,7 @@ naxis kwarg.
                which additional iterations may be needed (this
                depends mostly on the characteristics of the geometric
                distortions for a given instrument). In this situation
-               it may be advantageous to set `adaptive` = `True` in
+               it may be advantageous to set ``adaptive`` = `True` in
                which case :py:meth:`all_world2pix` will continue
                iterating *only* over the points that have not yet
                converged to the required accuracy. However, for the
@@ -1760,12 +1760,12 @@ naxis kwarg.
                specifics of the image, geometric distortions, and
                number of input points to be converted). Therefore,
                for HST and possibly instruments, it is recommended
-               to set `adaptive` = `False`. The only danger in
+               to set ``adaptive`` = `False`. The only danger in
                getting this setting wrong will be a performance
                penalty.
 
             .. note::
-               When `detect_divergence` is `True`,
+               When ``detect_divergence`` is `True`,
                \ :py:meth:`all_world2pix` will automatically switch
                to the adaptive algorithm once divergence has been
                detected.
@@ -1774,38 +1774,38 @@ naxis kwarg.
             Specifies whether to perform a more detailed analysis
             of the convergence to a solution. Normally
             \ :py:meth:`all_world2pix` may not achieve the required
-            accuracy if either the `tolerance` or `maxiter` arguments
+            accuracy if either the ``tolerance`` or ``maxiter`` arguments
             are too low. However, it may happen that for some
             geometric distortions the conditions of convergence for
             the the method of consecutive approximations used by
             \ :py:meth:`all_world2pix` may not be satisfied, in which
             case consecutive approximations to the solution will
-            diverge regardless of the `tolerance` or `maxiter`
+            diverge regardless of the ``tolerance`` or ``maxiter``
             settings.
 
-            When `detect_divergence` is `False`, these divergent
+            When ``detect_divergence`` is `False`, these divergent
             points will be detected as not having achieved the
             required accuracy (without further details). In addition,
-            if `adaptive` is `False` then the algorithm will not
+            if ``adaptive`` is `False` then the algorithm will not
             know that the solution (for specific points) is diverging
             and will continue iterating and trying to "improve"
             diverging solutions. This may result in ``NaN`` or
             ``Inf`` values in the return results (in addition to a
-            performance penalties). Even when `detect_divergence`
+            performance penalties). Even when ``detect_divergence``
             is `False`, :py:meth:`all_world2pix`, at the end of the
             iterative process, will identify invalid results
             (``NaN`` or ``Inf``) as "diverging" solutions and will
-            raise :py:class:`NoConvergence` unless the `quiet`
+            raise :py:class:``NoConvergence`` unless the ``quiet``
             parameter is set to `True`.
 
-            When `detect_divergence` is `True`,
+            When ``detect_divergence`` is `True`,
             \ :py:meth:`all_world2pix` will detect points for which
             current correction to the coordinates is larger than
             the correction applied during the previous iteration
             **if** the requested accuracy **has not yet been
-            achieved**. In this case, if `adaptive` is `True`,
+            achieved**. In this case, if ``adaptive`` is `True`,
             these points will be excluded from further iterations and
-            if `adaptive` is `False`, :py:meth:`all_world2pix` will
+            if ``adaptive`` is `False`, :py:meth:`all_world2pix` will
             automatically switch to the adaptive algorithm. Thus, the
             reported divergent solution will be the latest converging
             solution computed immediately *before* divergence
@@ -1814,18 +1814,18 @@ naxis kwarg.
             .. note::
                When accuracy has been achieved, small increases in
                current corrections may be possible due to rounding
-               errors (when `adaptive` is `False`) and such
+               errors (when ``adaptive`` is `False`) and such
                increases will be ignored.
 
             .. note::
                Based on our testing using HST ACS/WFC images, setting
-               `detect_divergence` to `True` will incur about 5-20\%
+               ``detect_divergence`` to `True` will incur about 5-20\%
                performance penalty with the larger penalty
-               corresponding to `adaptive` set to `True`.
+               corresponding to ``adaptive`` set to `True`.
                Because the benefits of enabling this
                feature outweigh the small performance penalty,
-               especially when `adaptive` = `False`, it is
-               recommended to set `detect_divergence` to `True`,
+               especially when ``adaptive`` = `False`, it is
+               recommended to set ``detect_divergence`` to `True`,
                unless extensive testing of the distortion models for
                images from specific instruments show a good stability
                of the numerical method for a wide range of
@@ -1833,8 +1833,8 @@ naxis kwarg.
 
             .. note::
                Indices of the diverging inverse solutions will be
-               reported in the `divergent` attribute of the
-               raised :py:class:`NoConvergence` exception object.
+               reported in the ``divergent`` attribute of the
+               raised :py:class:``NoConvergence`` exception object.
 
         Returns
         -------
@@ -1865,21 +1865,21 @@ naxis kwarg.
         of all points that need to be converted to
         \ :py:meth:`all_world2pix` instead of calling
         \ :py:meth:`all_world2pix` for each data point. Also see the
-        note to the `adaptive` parameter.
+        note to the ``adaptive`` parameter.
 
         Raises
         ------
         NoConvergence
             The method did not converge to a
             solution to the required accuracy within a specified
-            number of maximum iterations set by the `maxiter`
-            parameter. To turn off this exception, set `quiet` to
+            number of maximum iterations set by the ``maxiter``
+            parameter. To turn off this exception, set ``quiet`` to
             `True`. Indices of the points for which the requested
             accuracy was not achieved (if any) will be listed in the
-            `slow_conv` attribute of the
-            raised :py:class:`NoConvergence` exception object.
+            ``slow_conv`` attribute of the
+            raised :py:class:``NoConvergence`` exception object.
 
-            See :py:class:`NoConvergence` documentation for
+            See :py:class:``NoConvergence`` documentation for
             more details.
 
         MemoryError
