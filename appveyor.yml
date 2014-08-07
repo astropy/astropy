@@ -1,0 +1,76 @@
+environment:
+  # See README for information on the token
+  binstar_token:
+    secure: gj6j4JUZpiEE7MCAcuGG+U4x2ycqQs+qDa9p5kspHUWtkQX0eusYiMGbc3A5CDDQ
+
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\continuous-integration\\appveyor\\run_with_env.cmd"
+    NUMPY_VERSION: "1.8"
+
+  matrix:
+    - PYTHON: "C:\\Python27_32"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "27"
+      CONDA_NPY: "18"
+
+    - PYTHON: "C:\\Python27_64"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "27"
+      CONDA_NPY: "18"
+
+    - PYTHON: "C:\\Python34_32"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "34"
+      CONDA_NPY: "18"
+
+    - PYTHON: "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "34"
+      CONDA_NPY: "18"
+
+install:
+  # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
+  # as well as pip, conda-build, and the binstar CLI
+  - powershell .\\continuous-integration\\appveyor\\install.ps1
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+build: false
+
+test_script:
+  # Build and test the package. This appears(?) to sporadically fail due to a 
+  # bug in conda-build on 32 bit python.
+  # https://github.com/conda/conda-build/issues/152
+  #
+  # Note also that our setup.py script, which is called by conda-build, writes
+  # a __conda_version__.txt file, so the version number on the binary package
+  # is set dynamically. This unfortunately mean that conda build --output
+  # doesn't really work.
+  #
+  - "%CMD_IN_ENV% conda build conda-recipe --quiet"
+  # Move the conda package into the current directory, to register it
+  # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
+  # we'll use a simple python script.
+  - python continuous-integration\move-conda-package.py conda-recipe
+  - conda create -n my_tests --yes python=%PYTHON_VERSION% setuptools cython numpy=%NUMPY_VERSION% nose
+  - activate my_tests
+  - python setup.py install
+  #- conda install --use-local --yes pyappveyordemo
+  - nosetests --exe pyappveyordemo
+  #- python setup.py test
+
+artifacts:
+  # Archive the generated conda package in the ci.appveyor.com build report.
+  - path: '*.tar.bz2'
+
+on_success:
+  # Upload built binaries to binstar.org. The globbing and handling of the
+  # exit-status code is tricky in cmd.exe or powershell, so we're just using
+  # a python script.
+  - python continuous-integration\binstar-push.py
