@@ -87,7 +87,7 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
 
 
     def _validate_mu(mu):
-        if mu == -1:
+        if np.asarray(mu == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
@@ -101,7 +101,7 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
         super(Pix2Sky_AZP, self).__init__(mu, gamma)
 
     def check_mu(self, val):
-        if val == -1:
+        if np.asarray(val == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
 
     @property
@@ -156,7 +156,7 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     """
 
     def _validate_mu(mu):
-        if mu == -1:
+        if np.asarray(mu == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
@@ -167,7 +167,7 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
         super(Sky2Pix_AZP, self).__init__(mu, gamma)
 
     def check_mu(self, val):
-        if val == -1:
+        if np.asarray(val == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
 
     @property
@@ -363,7 +363,7 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
     def _validate_mu(mu, model):
         with ignored(AttributeError):
             # An attribute error can occur if model.lam has not been set yet
-            if mu == -model.lam:
+            if np.asarray(mu == -model.lam).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return mu
@@ -371,7 +371,7 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
     def _validate_lam(lam, model):
         with ignored(AttributeError):
             # An attribute error can occur if model.lam has not been set yet
-            if lam == -model.mu:
+            if np.asarray(lam == -model.mu).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return lam
@@ -404,14 +404,14 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
     # TODO: Eliminate duplication on these
     def _validate_mu(mu, model):
         with ignored(AttributeError):
-            if mu == -model.lam:
+            if np.asarray(mu == -model.lam).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return mu
 
     def _validate_lam(lam, model):
         with ignored(AttributeError):
-            if lam == -model.mu:
+            if np.asarray(lam == -model.mu).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return lam
