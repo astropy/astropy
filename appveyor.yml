@@ -22,6 +22,8 @@ install:
   # as well as pip, conda-build, and the binstar CLI
   - powershell .\\continuous-integration\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - conda config --set always_yes yes
+  - conda install -c astropy-ci-extras numpy=$NUMPY_VERSION pytest Cython
 
 build: false
 
@@ -35,24 +37,15 @@ test_script:
   # is set dynamically. This unfortunately mean that conda build --output
   # doesn't really work.
   #
-  - "%CMD_IN_ENV% conda build conda-recipe --quiet"
-  # Move the conda package into the current directory, to register it
-  # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
-  # we'll use a simple python script.
-  - python continuous-integration\move-conda-package.py conda-recipe
-  - conda create -n my_tests --yes python=%PYTHON_VERSION% setuptools cython numpy=%NUMPY_VERSION% nose
-  - activate my_tests
-  - python setup.py install
-  #- conda install --use-local --yes pyappveyordemo
-  - nosetests --exe pyappveyordemo
-  #- python setup.py test
+  #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
+  - python setup.py test
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
-  - path: '*.tar.bz2'
+  #- path: '*.tar.bz2'
 
 on_success:
   # Upload built binaries to binstar.org. The globbing and handling of the
   # exit-status code is tricky in cmd.exe or powershell, so we're just using
   # a python script.
-  - python continuous-integration\binstar-push.py
+  #- python continuous-integration\binstar-push.py
