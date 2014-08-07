@@ -97,7 +97,8 @@ def find_cutlevels(image, min_percent=None, max_percent=None, percent=None):
 
 
 @_insert_cutlevel_params
-def normalize_image(image, min_cut=None, max_cut=None, **kwargs):
+def normalize_image(image, min_cut=None, max_cut=None, min_percent=None,
+                    max_percent=None, percent=None):
     """
     Rescale image values between minimum and maximum cut levels to
     values between 0 and 1, inclusive.
@@ -125,7 +126,8 @@ def normalize_image(image, min_cut=None, max_cut=None, **kwargs):
     if min_cut is not None and max_cut is not None:
         cutlevels = (min_cut, max_cut)
     else:
-        cutlevels = find_cutlevels(image, **kwargs)
+        cutlevels = find_cutlevels(image, min_percent=min_percent,
+                                   max_percent=max_percent, percent=percent)
     # now override percentiles if either min_cut or max_cut is set
     if min_cut is not None:
         cutlevels[0] = min_cut
@@ -139,7 +141,8 @@ def normalize_image(image, min_cut=None, max_cut=None, **kwargs):
 
 @_insert_cutlevel_params
 def scale_image(image, scale='linear', power=1.0, noise_level=None,
-                min_cut=None, max_cut=None, **kwargs):
+                min_cut=None, max_cut=None, min_percent=None,
+                max_percent=None, percent=None):
     """
     Perform scaling/stretching of an image between minimum and maximum
     cut levels.
@@ -175,7 +178,10 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
     """
 
     image_norm, cutlevels = normalize_image(image, min_cut=min_cut,
-                                            max_cut=max_cut, **kwargs)
+                                            max_cut=max_cut,
+                                            min_percent=min_percent,
+                                            max_percent=max_percent,
+                                            percent=percent)
     if scale == 'linear':
         return image_norm
     elif scale == 'sqrt':
