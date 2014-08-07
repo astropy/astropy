@@ -17,24 +17,6 @@ environment:
       CONDA_PY: "27"
       CONDA_NPY: "18"
 
-    - PYTHON: "C:\\Python27_64"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH: "64"
-      CONDA_PY: "27"
-      CONDA_NPY: "18"
-
-    - PYTHON: "C:\\Python34_32"
-      PYTHON_VERSION: "3.4"
-      PYTHON_ARCH: "32"
-      CONDA_PY: "34"
-      CONDA_NPY: "18"
-
-    - PYTHON: "C:\\Python34_64"
-      PYTHON_VERSION: "3.4"
-      PYTHON_ARCH: "64"
-      CONDA_PY: "34"
-      CONDA_NPY: "18"
-
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
