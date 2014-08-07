@@ -1939,12 +1939,11 @@ naxis kwarg.
          [ 3.00000236  0.99999997]]
         >>> xy = w.all_world2pix(radec, 1, maxiter=3,
         ...                      tolerance=1.0e-10, quiet=False)
-        Traceback (innermost last):
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 3 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy. After 3 iterations, the
+        solution is diverging at least for one input point.
 
         >>> # Now try to use some diverging data:
         >>> divradec = w.all_pix2world([[1.0, 1.0],
@@ -1979,12 +1978,11 @@ naxis kwarg.
          [  8.59526812e+11   6.61713548e+11]
          [  6.09398446e-05   8.38759724e-07]]
         >>> raise e
-        Traceback (innermost last):
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 5 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy.  After 5 iterations, the
+        solution is diverging at least for one input point.
 
         >>> # This time turn detect_divergence off:
         >>> try:
@@ -2010,12 +2008,11 @@ naxis kwarg.
          [             nan              nan]
          [  2.27407877e-06   3.13005639e-08]]
         >>> raise e
-        Traceback (innermost last):
+        Traceback (most recent call last):
         ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.
-        After 6 iterations, the solution is diverging at least for
-        one input point.
+        astropy.wcs.wcs.NoConvergence: 'WCS.all_world2pix' failed to
+        converge to the requested accuracy.  After 6 iterations, the
+        solution is diverging at least for one input point.
 
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
