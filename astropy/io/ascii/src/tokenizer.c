@@ -176,8 +176,7 @@ void resize_header(tokenizer_t *self)
         if (self->strip_whitespace_fields)                              \
         {                                                               \
             --self->col_ptrs[col];                                      \
-            while (*self->col_ptrs[col] == ' ' ||                       \
-                   *self->col_ptrs[col] == '\t')                        \
+            while (*self->col_ptrs[col] == ' ' || *self->col_ptrs[col] == '\t') \
             {                                                           \
                 *self->col_ptrs[col]-- = '\x00';                        \
             }                                                           \
@@ -204,7 +203,10 @@ void resize_header(tokenizer_t *self)
 
 #define END_LINE()                                                      \
     if (header)                                                         \
-	done = 1;                                                       \
+    {                                                                   \
+        ++self->source_pos;                                             \
+        RETURN(NO_ERROR);                                               \
+    }                                                                   \
     else if (self->fill_extra_cols)                                     \
 	while (col < self->num_cols)                                    \
 	{                                                               \
@@ -214,18 +216,24 @@ void resize_header(tokenizer_t *self)
     else if (col < self->num_cols)                                      \
 	RETURN(NOT_ENOUGH_COLS);                                        \
     ++self->num_rows;                                                   \
-    if (end != -1 && self->num_rows == end/* - start -- figure this out*/) \
-	done = 1;
+    old_state = START_LINE;                                             \
+    if (end != -1 && self->num_rows == end)                             \
+    {                                                                   \
+        ++self->source_pos;                                             \
+        RETURN(NO_ERROR);                                               \
+    }
 
 // Set the error code to c for later retrieval and return c
 #define RETURN(c) do { self->code = c; return c; } while (0)
+
+#define HANDLE_CR() old_state = self->state; self->state = CARRIAGE_RETURN
 
 int skip_lines(tokenizer_t *self, int offset, int header)
 {
     int signif_chars = 0;
     int comment = 0;
     int i = 0;
-    char c, prev = ' ';
+    char c;
     
     while (i < offset)
     {
@@ -239,8 +247,21 @@ int skip_lines(tokenizer_t *self, int offset, int header)
 
         c = self->source[self->source_pos];
 
-	if (c != '\n' && ((c != ' ' && c != '\t') ||
-                          !self->strip_whitespace_lines || header))
+        if (c == '\r' || c == '\n')
+        {
+            if (c == '\r' && self->source_pos < self->source_len - 1 &&
+                self->source[self->source_pos + 1] == '\n')
+            {
+                ++self->source_pos; // skip \n in \r\n
+            }
+            if (!comment && signif_chars > 0)
+                ++i;
+            // Start by assuming a line is empty and non-commented
+            signif_chars = 0;
+            comment = 0;
+        }
+
+	else if ((c != ' ' && c != '\t') || !self->strip_whitespace_lines || header)
 	{ 
             // comment line
             if (!signif_chars && self->comment != 0 && c == self->comment)
@@ -252,18 +273,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             ++signif_chars;
 	}
 
-        else if (c == '\n')
-        {
-            // make sure a Windows CR isn't the only char making the line significant
-            if ((signif_chars > 1 || (signif_chars == 1 && prev != '\r')) && !comment)
-                ++i;
-            // Start by assuming a line is empty and non-commented
-            signif_chars = 0;
-            comment = 0;
-        }
-
         ++self->source_pos;
-        prev = c;
     }
 
     RETURN(NO_ERROR);
@@ -276,6 +286,8 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
     int col = 0; // current column ignoring possibly excluded columns
     int real_col = 0; // current column taking excluded columns into account
     int output_pos = 0; // current position in header output string
+    int old_state = START_LINE; // last state the tokenizer was in before CR mode
+    int parse_newline = 0; // explicit flag to treat current char as a newline
     self->header_len = INITIAL_HEADER_SIZE;
     self->num_rows = 0;
     int i = 0;
@@ -305,209 +317,245 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
     if (end == 0)
         RETURN(NO_ERROR); // don't read if end == 0
 
-    int done = 0;
-    int repeat;
     self->state = START_LINE;
 
-    // Loop until all of source has been read or we finish for some other reason
-    while (self->source_pos < self->source_len + 1 && !done)
+    // Loop until all of self->source has been read
+    while (self->source_pos < self->source_len + 1)
     {
-        if (self->source_pos == self->source_len)
-            c = '\n'; // final newline simplifies tokenizing
-        else if (self->source_pos < self->source_len - 1 && self->source[self->source_pos]
-                 == '\r' && self->source[self->source_pos + 1] == '\n')
-            c = self->source[++self->source_pos]; // convert Windows to Unix line endings
+        if (self->source_pos == self->source_len || parse_newline)
+            c = '\n';
         else
             c = self->source[self->source_pos];
-	repeat = 1;
-	
-        // Keep parsing the same character
-	while (repeat && !done)
-	{
-	    repeat = 0; // don't repeat by default; handling might change this
 
-	    switch (self->state)
-	    {
-	    case START_LINE:
-                if (c == '\n')
-                    break;
-                else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
-                    break;
-		else if (self->comment != 0 && c == self->comment)
-		{
-                    // comment line; ignore
-		    self->state = COMMENT;
-		    break;
-		}
-                // initialize variables for the beginning of line parsing
-		col = 0;
-		real_col = 0;
-                BEGIN_FIELD();
-		repeat = 1; // parse the same character again in mode START_FIELD
-		break;
+        parse_newline = 0;
+
+        switch (self->state)
+        {
+        case START_LINE:
+            if (c == '\n')
+                break;
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+                break;
+            }
+            else if ((c == ' ' || c == '\t') && self->strip_whitespace_lines)
+                break;
+            else if (self->comment != 0 && c == self->comment)
+            {
+                // comment line; ignore
+                self->state = COMMENT;
+                break;
+            }
+            // initialize variables for the beginning of line parsing
+            col = 0;
+            real_col = 0;
+            BEGIN_FIELD();
+            // parse in mode START_FIELD
 	    
-	    case START_FIELD:
-                // strip whitespace before field begins
-		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
-		    ;
-                else if (!self->strip_whitespace_lines && self->comment != 0 &&
-                         c == self->comment)
+        case START_FIELD:
+            // strip whitespace before field begins
+            if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
+                break;
+            else if (!self->strip_whitespace_lines && self->comment != 0 &&
+                     c == self->comment)
+            {
+                // comment line, not caught earlier because of no stripping
+                self->state = COMMENT;
+                break;
+            }
+            else if (c == self->delimiter) // field ends before it begins
+            {
+                END_FIELD();
+                BEGIN_FIELD();
+                break;
+            }
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+                break;
+            }
+            else if (c == '\n')
+            {
+                if (self->strip_whitespace_lines)
                 {
-                    // comment line, not caught earlier because of no stripping
-                    self->state = COMMENT;
+                    // Move on if the delimiter is whitespace, e.g.
+                    // '1 2 3   '->['1','2','3']
+                    if (self->delimiter == ' ' || self->delimiter == '\t')
+                        ;
+                    // Register an empty field if non-whitespace delimiter,
+                    // e.g. '1,2, '->['1','2','']
+                    else
+                    {
+                        END_FIELD();
+                    }                            
                 }
-		else if (c == self->delimiter) // field ends before it begins
-		{
-		    END_FIELD();
-                    BEGIN_FIELD();
-		}
-		else if (c == '\n')
-		{
-                    if (self->strip_whitespace_lines)
-                    {
-                        // Move on if the delimiter is whitespace, e.g.
-                        // '1 2 3   '->['1','2','3']
-                        if (self->delimiter == ' ' || self->delimiter == '\t')
-                            ;
-                        // Register an empty field if non-whitespace delimiter,
-                        // e.g. '1,2, '->['1','2','']
-                        else
-                        {
-                            END_FIELD();
-                        }                            
-                    }
 
-                    // TODO: handle backtracking without source_pos
-                    else if (!self->strip_whitespace_lines)
+                else if (!self->strip_whitespace_lines)
+                {
+                    // In this case we don't want to left-strip the field,
+                    // so we backtrack
+                    int tmp = self->source_pos;
+                    --self->source_pos;
+
+                    while (self->source_pos >= 0 &&
+                           self->source[self->source_pos] != self->delimiter
+                           && self->source[self->source_pos] != '\n'
+                           && self->source[self->source_pos] != '\r')
                     {
-                        // In this case we don't want to left-strip the field,
-                        // so we backtrack
-                        int tmp = self->source_pos;
                         --self->source_pos;
-
-                        while (self->source_pos >= 0 &&
-                               self->source[self->source_pos] != self->delimiter
-                               && self->source[self->source_pos] != '\n')
-                        {
-                            --self->source_pos;
-                        }
-
-                        // backtracked to line beginning
-                        if (self->source_pos == -1 || self->source[self->source_pos]
-                            == '\n')
-                            self->source_pos = tmp;
-                        else
-                        {
-                            ++self->source_pos;
-
-                            if (self->source_pos == tmp)
-                                // no whitespace, just an empty field
-                                ;                                
-
-                            else
-                                while (self->source_pos < tmp)
-                                {
-                                    // append whitespace characters
-                                    PUSH(self->source[self->source_pos]);
-                                    ++self->source_pos;
-                                }
-
-                            END_FIELD(); // whitespace counts as a field
-                        }
                     }
-                        
-		    END_LINE();
-		    self->state = START_LINE;
-		}
-		else if (c == self->quotechar) // start parsing quoted field
-		    self->state = START_QUOTED_FIELD;
-		else
-		{
-                    // Valid field character, parse again in FIELD mode
-		    repeat = 1;
-		    self->state = FIELD;
-		}
-		break;
-		
-	    case START_QUOTED_FIELD:
-		if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
-                    // ignore initial whitespace
-		    ;
-		else if (c == self->quotechar) // empty quotes
-		{
-		    END_FIELD();
-		}
-		else
-		{
-                    // Valid field character, parse again in QUOTED_FIELD mode
-		    self->state = QUOTED_FIELD;
-		    repeat = 1;
-		}
-		break;
-		
-	    case FIELD:
-                if (self->comment != 0 && c == self->comment && whitespace && col == 0)
-                {
-                    // No whitespace stripping, but the comment char is found
-                    // before any data, e.g. '  # a b c'
-                    self->state = COMMENT;
-                }
-		else if (c == self->delimiter)
-		{
-                    // End of field, look for new field
-		    END_FIELD();
-                    BEGIN_FIELD();
-		}
-		else if (c == '\n')
-		{
-                    // Line ending, stop parsing both field and line
-		    END_FIELD();
-		    END_LINE();
-		    self->state = START_LINE;
-		}
-		else
-		{
-                    if (c != ' ' && c != '\t')
-                        whitespace = 0; // field is not all whitespace
-		    PUSH(c);
-		}
-		break;
-		
-	    case QUOTED_FIELD:
-		if (c == self->quotechar) // Parse rest of field normally, e.g. "ab"c
-		    self->state = FIELD;
-		else if (c == '\n')
-		    self->state = QUOTED_FIELD_NEWLINE;
-		else
-		{
-		    PUSH(c);
-		}
-		break;
 
-	    case QUOTED_FIELD_NEWLINE:
-                // Ignore initial whitespace if strip_whitespace_lines and
-                // newlines regardless
-		if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
-                    || c == '\n')
-		    ;
-		else if (c == self->quotechar)
-		    self->state = FIELD;
-		else
-		{
-                    // Once data begins, parse it as a normal quoted field
-		    repeat = 1;
-		    self->state = QUOTED_FIELD;
-		}
-		break;
+                    // backtracked to line beginning
+                    if (self->source_pos == -1 || self->source[self->source_pos] == '\n'
+                        || self->source[self->source_pos] == '\r')
+                    {
+                        self->source_pos = tmp;
+                    }
+                    else
+                    {
+                        ++self->source_pos;
+
+                        if (self->source_pos == tmp)
+                            // no whitespace, just an empty field
+                            ;                                
+
+                        else
+                            while (self->source_pos < tmp)
+                            {
+                                // append whitespace characters
+                                PUSH(self->source[self->source_pos]);
+                                ++self->source_pos;
+                            }
+
+                        END_FIELD(); // whitespace counts as a field
+                    }
+                }
+                        
+                END_LINE();
+                self->state = START_LINE;
+                break;
+            }
+            else if (c == self->quotechar) // start parsing quoted field
+            {
+                self->state = START_QUOTED_FIELD;
+                break;
+            }
+            else
+            {
+                // Valid field character, parse again in FIELD mode
+                self->state = FIELD;
+            }
+
+        case FIELD:
+            if (self->comment != 0 && c == self->comment && whitespace && col == 0)
+            {
+                // No whitespace stripping, but the comment char is found
+                // before any data, e.g. '  # a b c'
+                self->state = COMMENT;
+            }
+            else if (c == self->delimiter)
+            {
+                // End of field, look for new field
+                END_FIELD();
+                BEGIN_FIELD();
+            }
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+            }
+            else if (c == '\n')
+            {
+                // Line ending, stop parsing both field and line
+                END_FIELD();
+                END_LINE();
+                self->state = START_LINE;
+            }
+            else
+            {
+                if (c != ' ' && c != '\t')
+                    whitespace = 0; // field is not all whitespace
+                PUSH(c);
+            }
+            break;
 		
-	    case COMMENT:
-		if (c == '\n')
-		    self->state = START_LINE;
-		break; // keep looping until we find a newline
-	    }
-	}
-	
-	++self->source_pos;
+        case START_QUOTED_FIELD:
+            if ((c == ' ' || c == '\t') && self->strip_whitespace_fields)
+            {
+                // ignore initial whitespace
+                break;
+            }
+            else if (c == self->quotechar) // empty quotes
+            {
+                END_FIELD();
+                break;
+            }
+            else
+            {
+                // Valid field character, parse again in QUOTED_FIELD mode
+                self->state = QUOTED_FIELD;
+            }
+
+        case QUOTED_FIELD_NEWLINE:
+            if (self->state == QUOTED_FIELD)
+                ; // fall through
+            // Ignore initial whitespace if strip_whitespace_lines and
+            // newlines regardless
+            else if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
+                     || c == '\n')
+                break;
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+                break;
+            }
+            else if (c == self->quotechar)
+            {
+                self->state = FIELD;
+                break;
+            }
+            else
+            {
+                // Once data begins, parse it as a normal quoted field
+                self->state = QUOTED_FIELD;
+            }
+
+        case QUOTED_FIELD:
+            if (c == self->quotechar) // Parse rest of field normally, e.g. "ab"c
+                self->state = FIELD;
+            else if (c == '\n')
+                self->state = QUOTED_FIELD_NEWLINE;
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+            }
+            else
+            {
+                PUSH(c);
+            }
+            break;
+		
+        case COMMENT:
+            if (c == '\n')
+                self->state = START_LINE;
+            else if (c == '\r')
+            {
+                HANDLE_CR();
+            }
+            break; // keep looping until we find a newline
+
+        case CARRIAGE_RETURN:
+            self->state = old_state;
+            --self->source_pos; // parse the newline in the old state
+            if (c != '\n') // CR line terminator
+            {
+                --self->source_pos; // backtrack to the carriage return
+                parse_newline = 1; // explicitly treat the CR as a newline
+            }
+            break;
+        }
+
+        ++self->source_pos;
     }
     
     RETURN(0);
@@ -603,132 +651,132 @@ double str_to_double(tokenizer_t *self, char *str)
 double xstrtod(const char *str, char **endptr, char decimal,
                char sci, char tsep, int skip_trailing)
 {
-  double number;
-  int exponent;
-  int negative;
-  char *p = (char *) str;
-  double p10;
-  int n;
-  int num_digits;
-  int num_decimals;
+    double number;
+    int exponent;
+    int negative;
+    char *p = (char *) str;
+    double p10;
+    int n;
+    int num_digits;
+    int num_decimals;
 
-  errno = 0;
+    errno = 0;
 
-  // Skip leading whitespace
-  while (isspace(*p)) p++;
+    // Skip leading whitespace
+    while (isspace(*p)) p++;
 
-  // Handle optional sign
-  negative = 0;
-  switch (*p)
-  {
-    case '-': negative = 1; // Fall through to increment position
-    case '+': p++;
-  }
-
-  number = 0.;
-  exponent = 0;
-  num_digits = 0;
-  num_decimals = 0;
-
-  // Process string of digits
-  while (isdigit(*p))
-  {
-    number = number * 10. + (*p - '0');
-    p++;
-    num_digits++;
-
-    p += (tsep != '\0' & *p == tsep);
-  }
-
-  // Process decimal part
-  if (*p == decimal)
-  {
-    p++;
-
-    while (isdigit(*p))
-    {
-      number = number * 10. + (*p - '0');
-      p++;
-      num_digits++;
-      num_decimals++;
-    }
-
-    exponent -= num_decimals;
-  }
-
-  if (num_digits == 0)
-  {
-    errno = ERANGE;
-    return 0.0;
-  }
-
-  // Correct for sign
-  if (negative) number = -number;
-
-  // Process an exponent string
-  if (toupper(*p) == toupper(sci))
-  {
     // Handle optional sign
     negative = 0;
-    switch (*++p)
+    switch (*p)
     {
-      case '-': negative = 1;   // Fall through to increment pos
-      case '+': p++;
+    case '-': negative = 1; // Fall through to increment position
+    case '+': p++;
     }
+
+    number = 0.;
+    exponent = 0;
+    num_digits = 0;
+    num_decimals = 0;
 
     // Process string of digits
-    n = 0;
     while (isdigit(*p))
     {
-      n = n * 10 + (*p - '0');
-      p++;
+        number = number * 10. + (*p - '0');
+        p++;
+        num_digits++;
+
+        p += (tsep != '\0' & *p == tsep);
     }
 
-    if (negative)
-      exponent -= n;
-    else
-      exponent += n;
-  }
-
-
-  if (exponent < DBL_MIN_EXP  || exponent > DBL_MAX_EXP)
-  {
-
-    errno = ERANGE;
-    return HUGE_VAL;
-  }
-
-  // Scale the result
-  p10 = 10.;
-  n = exponent;
-  if (n < 0) n = -n;
-  while (n)
-  {
-    if (n & 1)
+    // Process decimal part
+    if (*p == decimal)
     {
-      if (exponent < 0)
-        number /= p10;
-      else
-        number *= p10;
+        p++;
+
+        while (isdigit(*p))
+        {
+            number = number * 10. + (*p - '0');
+            p++;
+            num_digits++;
+            num_decimals++;
+        }
+
+        exponent -= num_decimals;
     }
-    n >>= 1;
-    p10 *= p10;
-  }
+
+    if (num_digits == 0)
+    {
+        errno = ERANGE;
+        return 0.0;
+    }
+
+    // Correct for sign
+    if (negative) number = -number;
+
+    // Process an exponent string
+    if (toupper(*p) == toupper(sci))
+    {
+        // Handle optional sign
+        negative = 0;
+        switch (*++p)
+        {
+        case '-': negative = 1;   // Fall through to increment pos
+        case '+': p++;
+        }
+
+        // Process string of digits
+        n = 0;
+        while (isdigit(*p))
+        {
+            n = n * 10 + (*p - '0');
+            p++;
+        }
+
+        if (negative)
+            exponent -= n;
+        else
+            exponent += n;
+    }
 
 
-  if (number == HUGE_VAL) {
-      errno = ERANGE;
-  }
+    if (exponent < DBL_MIN_EXP  || exponent > DBL_MAX_EXP)
+    {
 
-  if (skip_trailing) {
-      // Skip trailing whitespace
-      while (isspace(*p)) p++;
-  }
+        errno = ERANGE;
+        return HUGE_VAL;
+    }
 
-  if (endptr) *endptr = p;
+    // Scale the result
+    p10 = 10.;
+    n = exponent;
+    if (n < 0) n = -n;
+    while (n)
+    {
+        if (n & 1)
+        {
+            if (exponent < 0)
+                number /= p10;
+            else
+                number *= p10;
+        }
+        n >>= 1;
+        p10 *= p10;
+    }
 
 
-  return number;
+    if (number == HUGE_VAL) {
+        errno = ERANGE;
+    }
+
+    if (skip_trailing) {
+        // Skip trailing whitespace
+        while (isspace(*p)) p++;
+    }
+
+    if (endptr) *endptr = p;
+
+
+    return number;
 }
 
 void start_iteration(tokenizer_t *self, int col)
@@ -783,7 +831,7 @@ memory_map *get_mmap(char *fname)
     map->len = ftell(map->file_ptr);
     fseek(map->file_ptr, 0, SEEK_SET);
     map->ptr = (char *)mmap(0, map->len, PROT_READ, MAP_SHARED,
-                             fileno(map->file_ptr), 0);
+                            fileno(map->file_ptr), 0);
     if (map->ptr == MAP_FAILED)
     {
         fclose(map->file_ptr);

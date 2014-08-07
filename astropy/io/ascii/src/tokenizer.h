@@ -19,7 +19,8 @@ typedef enum
     FIELD,
     QUOTED_FIELD,
     QUOTED_FIELD_NEWLINE,
-    COMMENT
+    COMMENT,
+    CARRIAGE_RETURN
 } tokenizer_state;
 
 typedef enum
@@ -74,7 +75,7 @@ typedef struct
     void *handle; // only used on Windows
 } memory_map;
 
-#define INITIAL_COL_SIZE 50
+#define INITIAL_COL_SIZE 500
 #define INITIAL_HEADER_SIZE 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,

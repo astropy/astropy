@@ -28,6 +28,7 @@ cdef extern from "src/tokenizer.h":
         QUOTED_FIELD
         QUOTED_FIELD_NEWLINE
         COMMENT
+        CARRIAGE_RETURN
 
     ctypedef enum err_code:
         NO_ERROR
@@ -327,7 +328,7 @@ cdef class CParser:
         # self.names should only contain columns included in output
         self.names = [self.names[i] for i, should_use in enumerate(self.use_cols) if should_use]
         self.width = len(self.names)
-        self.tokenizer.num_cols = self.width        
+        self.tokenizer.num_cols = self.width
 
     def read(self, try_int, try_float, try_string):
         if self.parallel:

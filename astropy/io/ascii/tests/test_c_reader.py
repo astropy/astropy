@@ -54,13 +54,7 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
             f.flush()
             t5 = ascii.read(f.name, format=format, guess=False, **kwargs)
 
-        with NamedTemporaryFile() as f2:
-            f2.write(content.replace('\n', '\r\n')) # make sure Windows line endings work
-            f2.flush()
-            t6 = ascii.read(f2.name, format=format, guess=False, **kwargs)
-
         assert_table_equal(t1, t5)
-        assert_table_equal(t1, t6)
         return t1
     except AttributeError as e:
         if "no attribute 'getvalue'" in str(e):
@@ -677,3 +671,15 @@ def test_no_data():
 
     table = read_basic(StringIO('a b c\n1 2 3'), data_start=2)
     assert_table_equal(table, expected)
+
+def test_line_endings():
+    """
+    Make sure the fast reader accepts CR and CR+LF
+    as newlines.
+    """
+    text = 'a b c\n1 2 3\n4 5 6\n7 8 9\n'
+    expected = Table([[1, 4, 7], [2, 5, 8], [3, 6, 9]], names=('a', 'b', 'c'))
+
+    for newline in ('\r\n', '\r'):
+        table = read_basic(StringIO(text.replace('\n', newline)))
+        assert_table_equal(table, expected)
