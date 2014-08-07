@@ -41,11 +41,9 @@ typedef struct
     char delimiter;        // delimiter character
     char comment;          // comment character
     char quotechar;        // quote character
-    char *header_output;   // string containing header data
     char **output_cols;    // array of output strings for each column
     char **col_ptrs;       // array of pointers to current output position for each col
     int *output_len;       // length of each output column string
-    int header_len;        // length of the header output string
     int num_cols;          // number of table columns
     int num_rows;          // number of table rows
     int fill_extra_cols;   // represents whether or not to fill rows with too few values
@@ -76,7 +74,6 @@ typedef struct
 } memory_map;
 
 #define INITIAL_COL_SIZE 500
-#define INITIAL_HEADER_SIZE 50
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
                               int strip_whitespace_lines, int strip_whitespace_fields,
@@ -85,8 +82,7 @@ void delete_tokenizer(tokenizer_t *tokenizer);
 void delete_data(tokenizer_t *tokenizer);
 void resize_col(tokenizer_t *self, int index);
 int skip_lines(tokenizer_t *self, int offset, int header);
-int tokenize(tokenizer_t *self, int end, int header,
-             int *use_cols, int use_cols_len);
+int tokenize(tokenizer_t *self, int end, int header, int num_cols);
 long str_to_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);
 double xstrtod(const char *str, char **endptr, char decimal,

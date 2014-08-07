@@ -10,10 +10,9 @@ from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 try:
     from cStringIO import StringIO
-    HAS_STRINGIO = True
-except ImportError: # cStringIO might not be present
-    StringIO = lambda x: x.split('\n')
-    HAS_STRINGIO = False
+except ImportError: # cStringIO doesn't exist in Python 3
+    from io import BytesIO
+    StringIO = lambda x: BytesIO(x.encode('ascii'))
 import numpy as np
 from numpy import ma
 from ....extern import six

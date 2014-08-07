@@ -45,11 +45,9 @@ cdef extern from "src/tokenizer.h":
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
-        char *header_output    # string containing header data
         char **output_cols     # array of output strings for each column
         char **col_ptrs        # array of pointers to current output position for each col
         int *output_len        # length of each output column string
-        int header_len         # length of the header output string
         int num_cols           # number of table columns
         int num_rows           # number of table rows
         int fill_extra_cols    # represents whether or not to fill rows with too few values
@@ -77,8 +75,7 @@ cdef extern from "src/tokenizer.h":
                                   int strip_whitespace_fields, int use_fast_converter)
     void delete_tokenizer(tokenizer_t *tokenizer)
     int skip_lines(tokenizer_t *self, int offset, int header)
-    int tokenize(tokenizer_t *self, int end, int header,
-                 int *use_cols, int use_cols_len)
+    int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     long str_to_long(tokenizer_t *self, char *str)
     double fast_str_to_double(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
@@ -146,6 +143,7 @@ cdef class CParser:
 
     cdef:
         tokenizer_t *tokenizer
+        object names
         int data_start
         object data_end
         object include_names
@@ -156,14 +154,13 @@ cdef class CParser:
         object fill_exclude_names
         object fill_names
         int fill_extra_cols
-        np.ndarray use_cols
         bytes source_bytes
         char *source_ptr
         object parallel
+        set use_cols
 
     cdef public:
         int width
-        object names
         object source
         object header_start
 
@@ -275,13 +272,13 @@ cdef class CParser:
             if skip_lines(self.tokenizer, self.header_start, 1) != 0:
                 self.raise_error("an error occurred while advancing to the "
                                  "first header line")
-            if tokenize(self.tokenizer, -1, 1, <int *> 0, 0) != 0:
+            if tokenize(self.tokenizer, -1, 1, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the header line")
             self.names = []
             name = ''
 
-            for i in range(self.tokenizer.header_len):
-                c = self.tokenizer.header_output[i] # next char in header string
+            for i in range(self.tokenizer.output_len[0]): # header is in first col string
+                c = self.tokenizer.output_cols[0][i] # next char in header string
                 if not c: # zero byte -- field terminator
                     if name:
                         # replace empty placeholder with ''
@@ -295,14 +292,14 @@ cdef class CParser:
 
         else:
             # Get number of columns from first data row
-            if tokenize(self.tokenizer, -1, 1, <int *> 0, 0) != 0:
+            if tokenize(self.tokenizer, -1, 1, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the first line of data")
             self.width = 0
-            for i in range(self.tokenizer.header_len):
+            for i in range(self.tokenizer.output_len[0]): # header is in first col string
                 # zero byte -- field terminator
-                if not self.tokenizer.header_output[i]:
+                if not self.tokenizer.output_cols[0][i]:
                     # ends valid field
-                    if i > 0 and self.tokenizer.header_output[i - 1]:
+                    if i > 0 and self.tokenizer.output_cols[0][i - 1]:
                         self.width += 1
                     else: # end of line
                         break
@@ -312,23 +309,14 @@ cdef class CParser:
             # auto-generate names
             self.names = ['col{0}'.format(i + 1) for i in range(self.width)]
 
-        # "boolean" array denoting whether or not to use each column
-        self.use_cols = np.ones(self.width, np.intc)
+        # self.use_cols should only contain columns included in output
+        self.use_cols = set(self.names)
         if self.include_names is not None:
-            for i, name in enumerate(self.names):
-                if name not in self.include_names:
-                    self.use_cols[i] = 0
+            self.use_cols.intersection_update(self.include_names)
         if self.exclude_names is not None:
-            for name in self.exclude_names:
-                try:
-                    self.use_cols[self.names.index(name)] = 0
-                except ValueError: # supplied name is invalid, ignore
-                    continue
+            self.use_cols.difference_update(self.exclude_names)
 
-        # self.names should only contain columns included in output
-        self.names = [self.names[i] for i, should_use in enumerate(self.use_cols) if should_use]
         self.width = len(self.names)
-        self.tokenizer.num_cols = self.width
 
     def read(self, try_int, try_float, try_string):
         if self.parallel:
@@ -344,8 +332,7 @@ cdef class CParser:
         if self.data_end is not None and self.data_end >= 0:
             data_end = max(self.data_end - self.data_start, 0) # read nothing if data_end < 0
 
-        if tokenize(self.tokenizer, data_end, 0, <int *> self.use_cols.data,
-                    len(self.use_cols)) != 0:
+        if tokenize(self.tokenizer, data_end, 0, len(self.names)) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
             return [[]] * self.width
@@ -393,7 +380,7 @@ cdef class CParser:
 
         for i in range(N):
             process = multiprocessing.Process(target=_read_chunk, args=(self,
-                self.use_cols, chunkindices[i], chunkindices[i + 1],
+                chunkindices[i], chunkindices[i + 1],
                 try_int, try_float, try_string, queue, reconvert_queue, i))
             processes.append(process)
             process.start()
@@ -503,6 +490,8 @@ cdef class CParser:
         cols = {}
 
         for i, name in enumerate(self.names):
+            if name not in self.use_cols:
+                continue
             # Try int first, then float, then string
             try:
                 if try_int and not try_int[name]:
@@ -692,6 +681,13 @@ cdef class CParser:
         else:
             return col
 
+    def get_names(self):
+        # ignore excluded columns
+        return [name for name in self.names if name in self.use_cols]
+
+    def set_names(self, names):
+        self.names = names
+
     def __reduce__(self):
         return (_copy_cparser, (self.source_ptr, self.source_bytes, self.use_cols, self.fill_names,
                                 self.fill_values, self.tokenizer.strip_whitespace_lines,
@@ -724,21 +720,19 @@ def _copy_cparser(char *src_ptr, bytes source_bytes, use_cols, fill_names, fill_
         parser.tokenizer.source = source_bytes
     return parser
 
-def _read_chunk(CParser self, np.ndarray use_cols, start, end, try_int,
+def _read_chunk(CParser self, start, end, try_int,
                 try_float, try_string, queue, reconvert_queue, i):
     cdef tokenizer_t *chunk_tokenizer = self.tokenizer
     chunk_tokenizer.source_len = end
     chunk_tokenizer.source_pos = start
-    chunk_tokenizer.num_cols = len(self.names)
 
     data = None
     err = None
 
-    if tokenize(chunk_tokenizer, -1, 0, <int *> use_cols.data,
-                len(use_cols)) != 0:
+    if tokenize(chunk_tokenizer, -1, 0, len(self.names)) != 0:
         err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
     if chunk_tokenizer.num_rows == 0: # no data
-        data = dict((name, np.array([], np.int_)) for name in self.names)
+        data = dict((name, np.array([], np.int_)) for name in self.get_names())
     else:
         try:
             data = self._convert_data(chunk_tokenizer,

@@ -93,7 +93,7 @@ class FastBasic(object):
             try_string = {}
 
         data = self.engine.read(try_int, try_float, try_string)
-        return Table(data, names=list(self.engine.names))
+        return Table(data, names=list(self.engine.get_names()))
 
     def write(self, table, output):
         """
@@ -245,12 +245,12 @@ class FastRdb(FastBasic):
         self.engine.setup_tokenizer([line2])
         self.engine.header_start = 0
         self.engine.read_header()
-        types = self.engine.names
+        types = self.engine.get_names()
         self.engine.setup_tokenizer([line1])
-        self.engine.names = []
+        self.engine.set_names([])
         self.engine.read_header()
         
-        if len(self.engine.names) != len(types):
+        if len(self.engine.get_names()) != len(types):
             raise ValueError('RDB header mismatch between number of '
                              'column names and column types')
 
@@ -262,7 +262,7 @@ class FastRdb(FastBasic):
         try_float = {}
         try_string = {}
 
-        for name, col_type in izip(self.engine.names, types):
+        for name, col_type in izip(self.engine.get_names(), types):
             if col_type[-1].lower() == 's':
                 try_int[name] = 0
                 try_float[name] = 0

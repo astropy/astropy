@@ -16,10 +16,8 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     tokenizer->delimiter = delimiter;
     tokenizer->comment = comment;
     tokenizer->quotechar = quotechar;
-    tokenizer->header_output = 0;
     tokenizer->output_cols = 0;
     tokenizer->col_ptrs = 0;
-    tokenizer->header_len = 0;
     tokenizer->output_len = 0;
     tokenizer->num_cols = 0;
     tokenizer->num_rows = 0;
@@ -43,7 +41,6 @@ void delete_data(tokenizer_t *tokenizer)
 {
     // Don't free tokenizer->source because it points to part of
     // an already freed Python object
-    free(tokenizer->header_output);
     int i;
 
     if (tokenizer->output_cols)
@@ -55,7 +52,6 @@ void delete_data(tokenizer_t *tokenizer)
     free(tokenizer->output_len);
 
     // Set pointers to 0 so we don't use freed memory when reading over again
-    tokenizer->header_output = 0;
     tokenizer->output_cols = 0;
     tokenizer->col_ptrs = 0;
     tokenizer->output_len = 0;
@@ -88,47 +84,18 @@ void resize_col(tokenizer_t *self, int index)
     self->col_ptrs[index] = self->output_cols[index] + diff;
 }
 
-void resize_header(tokenizer_t *self)
-{
-    // Double the size of the header string
-    self->header_output = (char *) realloc(self->header_output, 2 *
-                                           self->header_len * sizeof(char));
-
-    // Set the second half of the header string to all zeros
-    memset(self->header_output + self->header_len * sizeof(char), 0,
-           self->header_len * sizeof(char));
-    self->header_len *= 2;
-}
-
 /*
-  If we are tokenizing the header, resize the header string if necessary 
-  and then set the char at the current output position to c, incrementing
-  the current position afterwards.
-
-  If we are tokenizing data but we have too many columns or use_cols[real_col]
-  is 0 (meaning that this column should be excluded from output), do nothing.
-  Otherwise, resize the column string if necessary and then append c to the
+  Resize the column string if necessary and then append c to the
   end of the column string, incrementing the column position pointer.
 */
 
 #define PUSH(c)                                                 \
-    if (header)                                                 \
+    if (self->col_ptrs[col] - self->output_cols[col] >=         \
+        self->output_len[col])                                  \
     {                                                           \
-        if (output_pos >= self->header_len)                     \
-        {                                                       \
-	    resize_header(self);                                \
-	}                                                       \
-	self->header_output[output_pos++] = c;                  \
+        resize_col(self, col);                                  \
     }                                                           \
-    else if (col < self->num_cols && use_cols[real_col])        \
-    {                                                           \
-	if (self->col_ptrs[col] - self->output_cols[col] >=     \
-            self->output_len[col] * sizeof(char))               \
-	{                                                       \
-	    resize_col(self, col);                              \
-	}                                                       \
-        *self->col_ptrs[col]++ = c;                             \
-    }
+    *self->col_ptrs[col]++ = c;
 
 /* Set the state to START_FIELD and begin with the assumption that
    the field is entirely whitespace in order to handle the possibility
@@ -143,55 +110,28 @@ void resize_header(tokenizer_t *self)
 /*
   First, backtrack to eliminate trailing whitespace if strip_whitespace_fields
   is true. If the field is empty, push '\x01' as a marker.
-  Unless this column will be excluded from output, append a null
-  byte to the end of the column string as a field delimiting marker.
-  Increment the variable col and eturn the value TOO_MANY_COLS if
-  there are too many columns in this row. Increment real_col even if
-  this column should be ignored.
+  Append a null byte to the end of the column string as a field delimiting marker.
+  Increment the variable col if we are tokenizing data.
 */
 
 #define END_FIELD()							\
-    if (header)                                                         \
+    if (self->strip_whitespace_fields)                                  \
     {                                                                   \
-        if (self->strip_whitespace_fields)                              \
+        --self->col_ptrs[col];                                          \
+        while (*self->col_ptrs[col] == ' ' || *self->col_ptrs[col] == '\t') \
         {                                                               \
-            --output_pos;                                               \
-            while (self->header_output[output_pos] == ' ' ||            \
-                   self->header_output[output_pos] == '\t')             \
-            {                                                           \
-                self->header_output[output_pos--] = '\x00';             \
-            }                                                           \
-            ++output_pos;                                               \
+            *self->col_ptrs[col]-- = '\x00';                            \
         }                                                               \
-        if (output_pos == 0 || self->header_output[output_pos - 1] == '\x00') \
-        {                                                               \
-            PUSH('\x01');                                               \
-        }                                                               \
-        PUSH('\x00');                                                   \
+        ++self->col_ptrs[col];                                          \
     }                                                                   \
-    else if (real_col >= use_cols_len)                                  \
-        RETURN(TOO_MANY_COLS);                                          \
-    else if (use_cols[real_col])                                        \
+    if (self->col_ptrs[col] == self->output_cols[col] ||                \
+        self->col_ptrs[col][-1] == '\x00')                              \
     {                                                                   \
-        if (self->strip_whitespace_fields)                              \
-        {                                                               \
-            --self->col_ptrs[col];                                      \
-            while (*self->col_ptrs[col] == ' ' || *self->col_ptrs[col] == '\t') \
-            {                                                           \
-                *self->col_ptrs[col]-- = '\x00';                        \
-            }                                                           \
-            ++self->col_ptrs[col];                                      \
-        }                                                               \
-        if (self->col_ptrs[col] == self->output_cols[col] ||            \
-            self->col_ptrs[col][-1] == '\x00')                          \
-        {                                                               \
-            PUSH('\x01');                                               \
-        }                                                               \
-        PUSH('\x00');                                                   \
-        if (++col > self->num_cols)                                     \
-            RETURN(TOO_MANY_COLS);                                      \
+        PUSH('\x01');                                                   \
     }                                                                   \
-    ++real_col;
+    PUSH('\x00');                                                       \
+    if (!header)                                                        \
+        ++col;
 
 /*
   If we are tokenizing the header, end after the first line.
@@ -201,30 +141,34 @@ void resize_header(tokenizer_t *self)
   all the necessary rows have already been parsed.
 */
 
-#define END_LINE()                                                      \
-    if (header)                                                         \
-    {                                                                   \
-        ++self->source_pos;                                             \
-        RETURN(NO_ERROR);                                               \
-    }                                                                   \
-    else if (self->fill_extra_cols)                                     \
-	while (col < self->num_cols)                                    \
-	{                                                               \
-            PUSH('\x01');                                               \
-	    END_FIELD();                                                \
-	}                                                               \
-    else if (col < self->num_cols)                                      \
-	RETURN(NOT_ENOUGH_COLS);                                        \
-    ++self->num_rows;                                                   \
-    old_state = START_LINE;                                             \
-    if (end != -1 && self->num_rows == end)                             \
-    {                                                                   \
-        ++self->source_pos;                                             \
-        RETURN(NO_ERROR);                                               \
+#define END_LINE()                              \
+    if (header)                                 \
+    {                                           \
+        ++self->source_pos;                     \
+        RETURN(NO_ERROR);                       \
+    }                                           \
+    else if (self->fill_extra_cols)             \
+	while (col < self->num_cols)            \
+	{                                       \
+            PUSH('\x01');                       \
+	    END_FIELD();                        \
+	}                                       \
+    else if (col < self->num_cols)              \
+	RETURN(NOT_ENOUGH_COLS);                \
+    ++self->num_rows;                           \
+    old_state = START_LINE;                     \
+    if (end != -1 && self->num_rows == end)     \
+    {                                           \
+        ++self->source_pos;                     \
+        RETURN(NO_ERROR);                       \
     }
 
 // Set the error code to c for later retrieval and return c
-#define RETURN(c) do { self->code = c; return c; } while (0)
+#define RETURN(c)                               \
+    do {                                        \
+        self->code = c;                         \
+        return c;                               \
+    } while (0)
 
 #define HANDLE_CR() old_state = self->state; self->state = CARRIAGE_RETURN
 
@@ -279,39 +223,35 @@ int skip_lines(tokenizer_t *self, int offset, int header)
     RETURN(NO_ERROR);
 }
 
-int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols_len)
+int tokenize(tokenizer_t *self, int end, int header, int num_cols)
 {
     delete_data(self); // clear old reading data
     char c; // input character
     int col = 0; // current column ignoring possibly excluded columns
-    int real_col = 0; // current column taking excluded columns into account
-    int output_pos = 0; // current position in header output string
     int old_state = START_LINE; // last state the tokenizer was in before CR mode
     int parse_newline = 0; // explicit flag to treat current char as a newline
-    self->header_len = INITIAL_HEADER_SIZE;
     self->num_rows = 0;
     int i = 0;
     int whitespace = 1;
 
-    // Allocate memory for structures used during tokenization
     if (header)
-	self->header_output = (char *) calloc(1, INITIAL_HEADER_SIZE *
-                                              sizeof(char));
+        self->num_cols = 1; // store header output in one column
     else
-    {
-	self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
-	self->col_ptrs = (char **) malloc(self->num_cols * sizeof(char *));
-	self->output_len = (int *) malloc(self->num_cols * sizeof(int));
+        self->num_cols = num_cols;
+
+    // Allocate memory for structures used during tokenization
+    self->output_cols = (char **) malloc(self->num_cols * sizeof(char *));
+    self->col_ptrs = (char **) malloc(self->num_cols * sizeof(char *));
+    self->output_len = (int *) malloc(self->num_cols * sizeof(int));
 	
-	for (i = 0; i < self->num_cols; ++i)
-	{
-	    self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE *
-                                                   sizeof(char));
-            // Make each col_ptrs pointer point to the beginning of the
-            // column string
-	    self->col_ptrs[i] = self->output_cols[i];
-	    self->output_len[i] = INITIAL_COL_SIZE;
-	}
+    for (i = 0; i < self->num_cols; ++i)
+    {
+        self->output_cols[i] = (char *) calloc(1, INITIAL_COL_SIZE *
+                                               sizeof(char));
+        // Make each col_ptrs pointer point to the beginning of the
+        // column string
+        self->col_ptrs[i] = self->output_cols[i];
+        self->output_len[i] = INITIAL_COL_SIZE;
     }
 
     if (end == 0)
@@ -349,7 +289,6 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
             }
             // initialize variables for the beginning of line parsing
             col = 0;
-            real_col = 0;
             BEGIN_FIELD();
             // parse in mode START_FIELD
 	    
@@ -443,6 +382,8 @@ int tokenize(tokenizer_t *self, int end, int header, int *use_cols, int use_cols
             }
             else
             {
+                if (col >= self->num_cols)
+                    RETURN(TOO_MANY_COLS);
                 // Valid field character, parse again in FIELD mode
                 self->state = FIELD;
             }
