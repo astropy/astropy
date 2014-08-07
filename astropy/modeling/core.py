@@ -1370,18 +1370,10 @@ def custom_model(func, func_fit_deriv=None):
     else:
         modname = '__main__'
 
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        return super(self.__class__, self).__call__(*args, **kwargs)
-
     members = {
         '__module__': modname,
         '__doc__': func.__doc__,
         'n_inputs': len(input_names),
-        '__init__': make_func_with_sig(__init__, *(init_args + init_kwargs)),
-        '__call__': make_func_with_sig(__call__, *call_args),
         'evaluate': staticmethod(func),
     }
 
@@ -1391,6 +1383,15 @@ def custom_model(func, func_fit_deriv=None):
     members.update(params)
 
     cls = type(model_name, (FittableModel,), members)
+
+    def __init__(self, *args, **kwargs):
+        super(cls, self).__init__(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        return super(cls, self).__call__(*args, **kwargs)
+
+    cls.__init__ = make_func_with_sig(__init__, *(init_args + init_kwargs))
+    cls.__call__ = make_func_with_sig(__call__, *call_args)
 
     return cls
 
