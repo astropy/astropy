@@ -11,16 +11,28 @@ environment:
     NUMPY_VERSION: "1.8"
 
   matrix:
-    # - PYTHON: "C:\\Python27_32"
-    #   PYTHON_VERSION: "2.7"
-    #   PYTHON_ARCH: "32"
-    #   CONDA_PY: "27"
-    #   CONDA_NPY: "18"
+    - PYTHON: "C:\\Python27_32"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "27"
+      CONDA_NPY: "18"
 
     - PYTHON: "C:\\Python27_64"
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
       CONDA_PY: "27"
+      CONDA_NPY: "18"
+
+    - PYTHON: "C:\\Python34_32"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "34"
+      CONDA_NPY: "18"
+
+    - PYTHON: "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "34"
       CONDA_NPY: "18"
 
 install:
