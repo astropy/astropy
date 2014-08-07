@@ -61,6 +61,30 @@ class _ModelMeta(abc.ABCMeta):
     """
 
     def __new__(mcls, name, bases, members):
+        mcls._handle_parameters(name, members)
+        mcls._create_inverse_property(members)
+        mcls._handle_backwards_compat(members, name)
+
+        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+        mcls._handle_special_methods(members, cls)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+
+        return cls
+
+    @property
+    def n_inputs(cls):
+        return len(cls.inputs)
+
+    @property
+    def n_outputs(cls):
+        return len(cls.outputs)
+
+    @classmethod
+    def _handle_parameters(mcls, name, members):
+        # Handle parameters
         param_names = members.get('param_names', [])
         parameters = {}
         for key, value in members.items():
@@ -85,28 +109,6 @@ class _ModelMeta(abc.ABCMeta):
         # parameters, since they can have a variable number of them
         if parameters:
             mcls._check_parameters(name, members, param_names, parameters)
-
-        mcls._create_inverse_property(members)
-
-        # Backwards compatibility check for 'eval' -> 'evaluate'
-        # TODO: Remove sometime after Astropy 1.0 release.
-        if 'eval' in members and 'evaluate' not in members:
-            warnings.warn(
-                "Use of an 'eval' method when defining subclasses of "
-                "FittableModel is deprecated; please rename this method to "
-                "'evaluate'.  Otherwise its semantics remain the same.",
-                AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
-        elif 'evaluate' in members:
-            alt = '.'.join((name, 'evaluate'))
-            deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
-
-        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
-
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            mcls.registry.add(cls)
-        return cls
 
     @staticmethod
     def _check_parameters(name, members, param_names, parameters):
@@ -159,13 +161,36 @@ class _ModelMeta(abc.ABCMeta):
         members['inverse'] = property(wrapped_fget, fset,
                                       doc=inverse.__doc__)
 
-    @property
-    def n_inputs(cls):
-        return len(cls.inputs)
+    @classmethod
+    def _handle_backwards_compat(mcls, members, name):
+        # Backwards compatibility check for 'eval' -> 'evaluate'
+        # TODO: Remove sometime after Astropy 1.0 release.
+        if 'eval' in members and 'evaluate' not in members:
+            warnings.warn(
+                "Use of an 'eval' method when defining subclasses of "
+                "FittableModel is deprecated; please rename this method to "
+                "'evaluate'.  Otherwise its semantics remain the same.",
+                AstropyDeprecationWarning)
+            members['evaluate'] = members['eval']
+        elif 'evaluate' in members:
+            alt = '.'.join((name, 'evaluate'))
+            deprecate = deprecated('1.0', alternative=alt, name='eval')
+            members['eval'] = deprecate(members['evaluate'])
 
-    @property
-    def n_outputs(cls):
-        return len(cls.outputs)
+    @classmethod
+    def _handle_special_methods(mcls, members, cls):
+        # Handle init creation from inputs
+        if '__call__' not in members and 'inputs' in members:
+            inputs = members['inputs']
+            # Done create a custom __call__ for classes that already have one
+            # explicitly defined (this includes the Model base class, and any
+            # other classes that manually override __call__
+            def __call__(self, *inputs, **kwargs):
+                return super(cls, self).__call__(*inputs, **kwargs)
+
+            args = ('self',) + inputs
+            cls.__call__ = make_function_with_signature(
+                    __call__, args, [('model_set_axis', None)])
 
 
 @six.add_metaclass(_ModelMeta)
@@ -266,8 +291,8 @@ class Model(object):
     some other property of the model, such as the degree.
     """
 
-    inputs = ('x',)
-    outputs = ('y',)
+    inputs = ()
+    outputs = ()
 
     standard_broadcasting = True
     fittable = False
@@ -1275,25 +1300,8 @@ class Fittable1DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array-like or numeric value
-            Input coordinate values.
-
-        model_set_axis : `int` or `False`, optional
-            For `Model` instances representing a multiple-model set, this picks
-            out which axis of the input array is used to map inputs to specific
-            models in the set.  If `False`, this indicates that the input array
-            has no such axis, and instead the same input should be broadcast to
-            all models in the set.
-        """
-
-        return super(Fittable1DModel, self).__call__(
-            x, model_set_axis=model_set_axis)
+    inputs = ('x',)
+    outputs = ('y',)
 
 
 class Fittable2DModel(FittableModel):
@@ -1306,29 +1314,6 @@ class Fittable2DModel(FittableModel):
 
     inputs = ('x', 'y')
     outputs = ('z',)
-
-    def __call__(self, x, y, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array-like or numeric value
-            First input coordinate values.
-
-        y : array-like or numeric value
-            Second input coordinate values.
-
-        model_set_axis : `int` or `False`, optional
-            For `Model` instances representing a multiple-model set, this picks
-            out which axis of the input array is used to map inputs to specific
-            models in the set.  If `False`, this indicates that the input array
-            has no such axis, and instead the same input should be broadcast to
-            all models in the set.
-        """
-
-        return super(Fittable2DModel, self).__call__(
-            x, y, model_set_axis=model_set_axis)
 
 
 def custom_model(*args, **kwargs):

@@ -358,6 +358,9 @@ class Shift(Model):
         column in the input coordinate array
     """
 
+    inputs = ('x',)
+    outputs = ('x',)
+
     offsets = Parameter()
 
     def __init__(self, offsets, **kwargs):
@@ -383,6 +386,9 @@ class Scale(Model):
     factors : float or a list of floats
         scale for a coordinate
     """
+
+    inputs = ('x',)
+    outputs = ('x',)
 
     factors = Parameter()
     linear = True

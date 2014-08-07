@@ -350,6 +350,9 @@ class Chebyshev1D(PolynomialModel):
         keyword : value pairs, representing parameter_name: value
     """
 
+    inputs = ('x',)
+    outputs = ('y',)
+
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
         self.domain = domain
@@ -438,6 +441,9 @@ class Legendre1D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
+    inputs = ('x',)
+    outputs = ('y',)
+
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
         self.domain = domain
@@ -523,6 +529,9 @@ class Polynomial1D(PolynomialModel):
     **params : dict
         keyword: value pairs, representing parameter_name: value
     """
+
+    inputs = ('x',)
+    outputs = ('y',)
 
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
