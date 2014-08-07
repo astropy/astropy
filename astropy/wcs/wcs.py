@@ -114,7 +114,7 @@ else:
 
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
-__doctest_skip__ = ['WCS.all_world2pix']
+
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -1969,7 +1969,6 @@ naxis kwarg.
         ...         .format(e.slow_conv))
         ...   print("Best solution:\\n{{}}".format(e.best_solution))
         ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
@@ -1980,6 +1979,7 @@ naxis kwarg.
         [[  6.13968380e-05   8.59638593e-07]
          [  8.59526812e+11   6.61713548e+11]
          [  6.09398446e-05   8.38759724e-07]]
+        >>> raise e
         Traceback (innermost last):
         ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
@@ -2000,7 +2000,6 @@ naxis kwarg.
         ...         .format(e.slow_conv))
         ...   print("Best solution:\\n{{}}".format(e.best_solution))
         ...   print("Achieved accuracy:\\n{{}}".format(e.accuracy))
-        ...   raise e
         Indices of diverging points: [1]
         Indices of poorly converging points: None
         Best solution:
@@ -2011,6 +2010,7 @@ naxis kwarg.
         [[  2.29417358e-06   3.21222995e-08]
          [             nan              nan]
          [  2.27407877e-06   3.13005639e-08]]
+        >>> raise e
         Traceback (innermost last):
         ...
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
