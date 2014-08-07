@@ -83,7 +83,7 @@ def test_custom_model_signature():
     argspec = inspect.getargspec(model_a.__init__)
     assert argspec.args == ['self']
     argspec = inspect.getargspec(model_a.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
     @custom_model
     def model_b(x, a=1, b=2):
@@ -95,7 +95,7 @@ def test_custom_model_signature():
     assert argspec.args == ['self', 'a', 'b']
     assert argspec.defaults == (1, 2)
     argspec = inspect.getargspec(model_b.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
     @custom_model
     def model_c(x, y, a=1, b=2):
@@ -107,7 +107,7 @@ def test_custom_model_signature():
     assert argspec.args == ['self', 'a', 'b']
     assert argspec.defaults == (1, 2)
     argspec = inspect.getargspec(model_c.__call__)
-    assert argspec.args == ['self', 'x', 'y']
+    assert argspec.args == ['self', 'x', 'y', 'model_set_axis']
 
 
 def test_custom_model_subclass():
@@ -131,7 +131,7 @@ def test_custom_model_subclass():
     argspec = inspect.getargspec(model_b.__init__)
     assert argspec.args == ['self', 'a']
     argspec = inspect.getargspec(model_b.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
 
 def test_custom_model_parametrized_decorator():

@@ -110,6 +110,8 @@ class _ModelMeta(abc.ABCMeta):
         if parameters:
             mcls._check_parameters(name, members, param_names, parameters)
 
+        return parameters
+
     @staticmethod
     def _check_parameters(name, members, param_names, parameters):
         # If param_names was declared explicitly we use only the parameters
@@ -1465,18 +1467,8 @@ def _custom_model_wrapper(func, fit_deriv=None):
     else:
         output_names = ('x',)
 
-    init_args = ['self']
-    init_kwargs = []
-    call_args = ['self'] + list(input_names)
-    params = {}
-
-    for name, default in zip(param_names, param_values):
-        params[name] = Parameter(name, default=default)
-
-        if default is None:
-            init_args.append(name)
-        else:
-            init_kwargs.append((name, default))
+    params = dict((name, Parameter(name, default=default))
+                  for name, default in zip(param_names, param_values))
 
     mod = find_current_module(2)
     if mod:
@@ -1497,19 +1489,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     members.update(params)
 
-    cls = type(model_name, (FittableModel,), members)
-
-    def __init__(self, *args, **kwargs):
-        super(cls, self).__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        return super(cls, self).__call__(*args, **kwargs)
-
-    cls.__init__ = make_function_with_signature(__init__,
-                                                (init_args + init_kwargs))
-    cls.__call__ = make_function_with_signature(__call__, call_args)
-
-    return cls
+    return type(model_name, (FittableModel,), members)
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):
