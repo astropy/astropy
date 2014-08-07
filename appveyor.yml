@@ -40,7 +40,7 @@ test_script:
   #- "%CMD_IN_ENV% conda build conda-recipe --quiet"
   - python setup.py test
 
-artifacts:
+#artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   #- path: '*.tar.bz2'
 
