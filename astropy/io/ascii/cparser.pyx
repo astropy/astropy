@@ -7,7 +7,7 @@ from ...utils.data import get_readable_fileobj
 from ...table import pprint
 from ...extern import six
 from . import core
-from libc cimport stdio, stdlib
+from libc cimport stdio
 from distutils import version
 import csv
 import os
@@ -81,7 +81,7 @@ cdef extern from "src/tokenizer.h":
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
-    char *next_field(tokenizer_t *self)
+    char *next_field(tokenizer_t *self, int *size)
     long file_len(stdio.FILE *fhandle)
     memory_map *get_mmap(char *fname)
     void free_mmap(memory_map *mmap)
@@ -335,7 +335,7 @@ cdef class CParser:
         if tokenize(self.tokenizer, data_end, 0, len(self.names)) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
-            return [[]] * self.width
+            return [np.array([], dtype=np.int_)] * self.width
         self._set_fill_values()
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end is not None and self.data_end < 0: # negative indexing
@@ -356,7 +356,7 @@ cdef class CParser:
         cdef int offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
-            return dict((name, []) for name in self.names)
+            return dict((name, np.array([], dtype=np.int_)) for name in self.names)
 
         cdef int chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
@@ -418,7 +418,7 @@ cdef class CParser:
 
         for chunk in chunks:
             for name in chunk:
-                if isinstance(chunk[name], list) or chunk[name].dtype.kind == 'S':
+                if chunk[name].dtype.kind in ('S', 'U'):
                     # string values in column
                     seen_str[name] = True
                 elif len(chunk[name]) > 0: # ignore empty chunk columns
@@ -462,15 +462,13 @@ cdef class CParser:
                     break
                 line_no += num_rows
 
-        ret = chunks[0]
-
-        for chunk in chunks[1:]:
-            for name in chunk:
-                if isinstance(ret[name], ma.masked_array) or isinstance(
-                        chunk[name], ma.masked_array):
-                    ret[name] = ma.concatenate((ret[name], chunk[name]))
-                else:
-                    ret[name] = np.concatenate((ret[name], chunk[name]))
+        ret = {}
+        for name in self.get_names():
+            col_chunks = [chunk.pop(name) for chunk in chunks]
+            if any(isinstance(col_chunk, ma.masked_array) for col_chunk in col_chunks):
+                ret[name] = ma.concatenate(col_chunks)
+            else:
+                ret[name] = np.concatenate(col_chunks)
 
         for process in processes:
             process.terminate()
@@ -529,7 +527,7 @@ cdef class CParser:
             if row == num_rows: # end prematurely if we aren't using every row
                 break
             # retrieve the next field as a C pointer
-            field = next_field(t)
+            field = next_field(t, <int *>0)
             replace_info = None
 
             if field == empty_field and self.fill_empty:
@@ -592,7 +590,7 @@ cdef class CParser:
         while not finished_iteration(t):
             if row == num_rows:
                 break
-            field = next_field(t)
+            field = next_field(t, <int *>0)
             replace_info = None
             replacing = False
 
@@ -642,38 +640,39 @@ cdef class CParser:
         if nrows != -1:
             num_rows = nrows
 
-        cdef list col = []
         cdef int row = 0
         cdef bytes field
-        cdef int max_len = 0 # greatest length of any element
+        cdef int field_len
+        cdef int max_len = 0
+        cdef list fields_list = []
         mask = set()
 
         start_iteration(t, i)
         while not finished_iteration(t):
             if row == num_rows:
                 break
-            field = next_field(t)
+            field = next_field(t, &field_len)
             replace_info = None
 
-            if len(field) == 0 and self.fill_empty:
+            if field_len == 0 and self.fill_empty:
                 replace_info = self.fill_empty
 
-            elif len(field) > 0 and self.fill_values and field in self.fill_values:
+            elif field_len > 0 and self.fill_values and field in self.fill_values:
                 replace_info = self.fill_values[field]
 
             if replace_info is not None:
-                el = str(replace_info[0])
+                el = replace_info[0].encode('ascii')
                 if (len(replace_info) > 1 and self.names[i] in replace_info[1:]) \
                    or (len(replace_info) == 1 and self.names[i] in self.fill_names):
                     mask.add(row)
-                else:
-                    el = field.decode('ascii')
-            else:
-                el = field.decode('ascii')
-            # update max_len with the length of each field
-            max_len = max(max_len, len(el))
-            col.append(el)
+                    field = el
+
+            fields_list.append(field)
+            if field_len > max_len:
+                max_len = field_len
             row += 1
+
+        cdef np.ndarray col = np.array(fields_list, dtype=(np.str, max_len))
 
         if mask:
             return ma.masked_array(col, mask=[1 if i in mask else 0 for i in

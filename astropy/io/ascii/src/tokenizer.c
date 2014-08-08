@@ -737,7 +737,7 @@ int finished_iteration(tokenizer_t *self)
 	    || *self->curr_pos == '\x00');
 }
 
-char *next_field(tokenizer_t *self)
+char *next_field(tokenizer_t *self, int *size)
 {
     char *tmp = self->curr_pos;
 
@@ -746,10 +746,20 @@ char *next_field(tokenizer_t *self)
 	++self->curr_pos;
 
     ++self->curr_pos; // next field begins after the delimiter
+
     if (*tmp == '\x01') // empty field; this is a hack
-	return self->buf;
+    {
+        if (size)
+            *size = 0;
+        return self->buf;
+    }
+
     else
-	return tmp;
+    {
+        if (size)
+            *size = self->curr_pos - tmp - 1;
+        return tmp;
+    }
 }
 
 // memory mapping won't work on Windows

@@ -22,6 +22,8 @@ def assert_table_equal(t1, t2):
     assert_equal(len(t1), len(t2))
     assert_equal(t1.colnames, t2.colnames)
     for name in t1.colnames:
+        if len(t1) != 0:
+            assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
@@ -385,7 +387,7 @@ nan, 5, -9999
     assert isinstance(table['A'], MaskedColumn)
     assert table['A'][0] is ma.masked
     # '0' rather than 0 because there is a string in the column
-    assert_equal(table['A'].data.data[0], '0') # for Python 3 compatibility
+    assert_equal(table['A'].data.data[0], '0')
     assert table['A'][1] is not ma.masked
 
     table = read_basic(text, delimiter=',', fill_values=('-999', '0'))
