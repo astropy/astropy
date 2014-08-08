@@ -1,3 +1,7 @@
+# appveyer.yml and supporting files derived from 
+# https://github.com/rmcgibbo/python-appveyor-conda-example
+# by @rmcgibbo based on work by @ogrisel
+
 environment:
 
   global:
