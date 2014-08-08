@@ -3,10 +3,12 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from numpy.testing.utils import assert_allclose, assert_array_equal
+
 from ...tests.helper import pytest
 
 from ..core import Model
-from ..models import Const1D, Shift, Scale
+from ..models import Const1D, Shift, Scale, Rotation2D
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -37,7 +39,7 @@ def test_two_model_class_arithmetic_1d(expr, result):
     assert isinstance(out, float)
 
 
-def test_two_model_class_compose_1d():
+def test_simple_two_model_class_compose_1d():
     """
     Shift and Scale are two of the simplest models to test model composition
     with.
@@ -58,3 +60,29 @@ def test_two_model_class_compose_1d():
 
     s2 = S2(2, 3)  # Scale by 2 then shift by 3
     assert s2(1) == 5.0
+
+    # Test with array inputs
+    assert_array_equal(s2([1, 2, 3]), [5.0, 7.0, 9.0])
+
+
+def test_simple_two_model_class_compose_2d():
+    """
+    A simple example consisting of two rotations.
+    """
+
+    R = Rotation2D | Rotation2D
+    assert issubclass(R, Model)
+    assert R.n_inputs == 2
+    assert R.n_outputs == 2
+
+    r1 = R(45, 45)  # Rotate twice by 45 degrees
+    assert_allclose(r1(0, 1), (-1, 0), atol=1e-10)
+
+    r2 = R(90, 90)  # Rotate twice by 90 degrees
+    assert_allclose(r2(0, 1), (0, -1), atol=1e-10)
+
+    # Compose R with itself to produce 4 rotations
+    R2 = R | R
+
+    r3 = R2(45, 45, 45, 45)
+    assert_allclose(r3(0, 1), (0, -1), atol=1e-10)

@@ -17,10 +17,11 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
+import copy
 import inspect
 import itertools
-import copy
 import functools
+import operator
 import warnings
 
 import numpy as np
@@ -42,17 +43,6 @@ from .parameters import Parameter, InputParameterError
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
            'Fittable2DModel', 'custom_model', 'ModelDefinitionError']
-
-
-# TODO: Support a couple unary operators, or at least negation?
-BINARY_OPERATORS = {
-    '+': lambda f, g: (lambda *args: f(*args) + g(*args)),
-    '-': lambda f, g: (lambda *args: f(*args) - g(*args)),
-    '*': lambda f, g: (lambda *args: f(*args) * g(*args)),
-    '/': lambda f, g: (lambda *args: f(*args) / g(*args)),
-    '**': lambda f, g: (lambda *args: f(*args) ** g(*args)),
-    '|': lambda f, g: (lambda *args: g(f(*args)))
-}
 
 
 class ModelDefinitionError(Exception):
@@ -1483,6 +1473,21 @@ class _CompoundModelMeta(_ModelMeta):
         return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
 
 
+def _make_binary_arith_oper(oper, f, g):
+    return lambda *args: tuple(oper(x, y)
+                               for x, y in zip(f(*args), g(*args)))
+
+# TODO: Support a couple unary operators, or at least negation?
+BINARY_OPERATORS = {
+    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
+    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
+    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
+    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
+    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
+    '|': lambda f, g: (lambda *args: g(*f(*args)))
+}
+
+
 @six.add_metaclass(_CompoundModelMeta)
 class _CompoundModel(Model):
     def __init__(self, *args):
@@ -1525,14 +1530,24 @@ class _CompoundModel(Model):
         params = iter(args[self.n_inputs:])
 
         def getter(model, params=params):
-            # Basically "curries" the parameter values into the model's
-            # evaluate
+            # Returns partial evaluation of the model's evaluate() method witht
+            # the parameter values already applied
             nparams = len(model.param_names)
-            return lambda *inputs: model.evaluate(
-                *(inputs + tuple(itertools.islice(params, nparams))))
+
+            if model.n_outputs == 1:
+                return lambda *inputs: (model.evaluate(
+                    *(inputs + tuple(itertools.islice(params, nparams)))),)
+            else:
+                return lambda *inputs: model.evaluate(
+                    *(inputs + tuple(itertools.islice(params, nparams))))
 
         func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)
-        return func(*inputs)
+        result = func(*inputs)
+
+        if self.n_outputs == 1:
+            return result[0]
+        else:
+            return result
 
 
 def custom_model(*args, **kwargs):
