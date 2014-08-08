@@ -39,6 +39,64 @@ def test_two_model_class_arithmetic_1d(expr, result):
     assert isinstance(out, float)
 
 
+@pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, 5.0),
+                          (lambda x, y: x - y, -1.0),
+                          (lambda x, y: x * y, 6.0),
+                          (lambda x, y: x / y, 2.0 / 3.0),
+                          (lambda x, y: x ** y, 8.0)])
+def test_two_model_instance_arithmetic_1d(expr, result):
+    """
+    Like test_two_model_class_arithmetic_1d, but creates a new model from two
+    model *instances* with fixed parameters.
+    """
+
+    S = expr(Const1D(2), Const1D(3))
+
+    # TODO: Should a sum of two model instances return a new compound model
+    # instance?  Currently it still returns a new class.  I don't know...
+    assert issubclass(S, Model)
+    assert S.n_inputs == 1
+    assert S.n_outputs == 1
+
+    # Init doesn't take any arguments since the initial parameter values have
+    # already been fixed
+    s = S()
+
+    out = s(0)
+    assert out == result
+    assert isinstance(out, float)
+
+
+@pytest.mark.parametrize(('expr', 'result'),
+                         [(lambda x, y: x + y, 5.0),
+                          (lambda x, y: x - y, -1.0),
+                          (lambda x, y: x * y, 6.0),
+                          (lambda x, y: x / y, 2.0 / 3.0),
+                          (lambda x, y: x ** y, 8.0)])
+def test_two_model_mixed_arithmetic_1d(expr, result):
+    """
+    Like test_two_model_class_arithmetic_1d, but creates a new model from an
+    expression of one model class with one model instance (and vice-versa).
+    """
+
+    S1 = expr(Const1D, Const1D(3))
+    S2 = expr(Const1D(2), Const1D)
+
+    for cls in (S1, S2):
+        assert issubclass(cls, Model)
+        assert cls.n_inputs == 1
+        assert cls.n_outputs == 1
+
+    # Takes only one argument--the one unspecified amplitude
+    s1 = S1(2)
+    s2 = S2(3)
+
+    for out in (s1(0), s2(0)):
+        assert out == result
+        assert isinstance(out, float)
+
+
 def test_simple_two_model_class_compose_1d():
     """
     Shift and Scale are two of the simplest models to test model composition

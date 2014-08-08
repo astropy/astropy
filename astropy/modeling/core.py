@@ -410,6 +410,26 @@ class Model(object):
 
         return self.prepare_outputs(format_info, *outputs, **kwargs)
 
+    # *** Arithmetic operators for creating compound models ***
+    def __add__(self, other):
+        return _make_compound_model(self, other, '+')
+
+    def __sub__(self, other):
+        return _make_compound_model(self, other, '-')
+
+    def __mul__(self, other):
+        return _make_compound_model(self, other, '*')
+
+    def __truediv__(self, other):
+        return _make_compound_model(self, other, '/')
+
+    def __pow__(self, other):
+        return _make_compound_model(self, other, '**')
+
+    def __or__(self, other):
+        return _make_compound_model(self, other, '|')
+
+    # *** Properties ***
     @property
     @deprecated('0.4', alternative='len(model)')
     def param_dim(self):
@@ -550,6 +570,8 @@ class Model(object):
 
         return self._constraints['ineqcons']
 
+    # *** Public methods ***
+
     @property
     def inverse(self):
         """
@@ -660,6 +682,8 @@ class Model(object):
         """
 
         return copy.deepcopy(self)
+
+    # *** Internal methods ***
 
     def _initialize_constraints(self, kwargs):
         """
@@ -1503,13 +1527,18 @@ class _CompoundModel(Model):
             if not node.isleaf:
                 continue
 
-            model_cls = node.value
-            nparams = len(model_cls.param_names)
-            model_inst = model_cls(*args[:nparams])
+            if isinstance(node.value, Model):
+                # An already instantiated model instance--we leave it as is
+                # and keep its initial paramters fixed
+                pass
+            else:
+                model_cls = node.value
+                nparams = len(model_cls.param_names)
+                model_inst = model_cls(*args[:nparams])
 
-            # Update the node replacing the class with the instance
-            node.value = model_inst
-            args = args[nparams:]
+                # Update the node replacing the class with the instance
+                node.value = model_inst
+                args = args[nparams:]
 
         # TODO: This is temporary while prototyping
         self._model_set_axis = 0
