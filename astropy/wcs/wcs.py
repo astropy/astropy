@@ -2732,9 +2732,10 @@ naxis kwarg.
         dimensions
         """
         cwcs = self.celestial.wcs
-        if 'CAR' != self.celestial.wcs.ctype[0][-3:]:
+        if 'CAR' != cwcs.ctype[0][-3:]:
             warnings.warn("Pixel sizes may very over the image for "
-                          "projection class {0}".format(cwcs.ctype[0][-3:]))
+                          "projection class {0}".format(cwcs.ctype[0][-3:]),
+                          AstropyUserWarning)
         cdelt = np.matrix([[cwcs.get_cdelt()[0],0],
                            [0, cwcs.get_cdelt()[1]]])
         pc = np.matrix(cwcs.get_pc())
