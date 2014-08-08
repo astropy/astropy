@@ -231,8 +231,8 @@ cdef class CParser:
         cdef FileString fstring
 
         if isinstance(source, six.string_types): # filename or data
-            if '\n' not in source: # filename
-                fstring = FileString(source)
+            if '\n' not in source and '\r' not in source: # filename
+                fstring = FileString(source.encode('ascii'))
                 self.tokenizer.source = fstring.mmap.ptr
                 self.source_ptr = fstring.mmap.ptr
                 self.source = fstring

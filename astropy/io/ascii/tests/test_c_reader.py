@@ -35,31 +35,30 @@ def assert_table_equal(t1, t2):
                     pass # ignore for now
 
 def _read(table, Reader, format, fail_parallel=False, **kwargs):
+    # make sure we have a newline so table can't be misinterpreted as a filename
+    table += '\n'
     reader = Reader(**kwargs)
     t1 = reader.read(table)
-    t2 = ascii.read(table, format=format, guess=False, **kwargs)
-    t3 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
+    t2 = reader.read(StringIO(table))
+    t3 = reader.read(table.splitlines())
+    t4 = ascii.read(table, format=format, guess=False, **kwargs)
+    t5 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
+    assert_table_equal(t3, t4)
+    assert_table_equal(t4, t5)
 
     if not fail_parallel:
-        t4 = ascii.read(table, format=format, guess=False, parallel=True, **kwargs)
-        assert_table_equal(t3, t4)
+        t6 = ascii.read(table, format=format, guess=False, parallel=True, **kwargs)
+        assert_table_equal(t1, t6)
 
-    try:
-        content = table.getvalue()
-        with NamedTemporaryFile() as f:
-            f.write(content)
-            f.flush()
-            t5 = ascii.read(f.name, format=format, guess=False, **kwargs)
+    with NamedTemporaryFile() as f:
+        f.write(table.encode('ascii'))
+        f.flush()
+        t7 = ascii.read(f.name, format=format, guess=False, **kwargs)
 
-        assert_table_equal(t1, t5)
-        return t1
-    except AttributeError as e:
-        if "no attribute 'getvalue'" in str(e):
-            # not a StringIO object
-            return t1
-        raise e
+    assert_table_equal(t1, t7)
+    return t1
 
 def read_basic(table, **kwargs):
     return _read(table, FastBasic, 'basic', **kwargs)
@@ -83,7 +82,7 @@ def test_simple_data():
     """
     Make sure the fast reader works with basic input data.
     """
-    table = read_basic(StringIO("A B C\n1 2 3\n4 5 6"))
+    table = read_basic("A B C\n1 2 3\n4 5 6")
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -92,10 +91,10 @@ def test_read_types():
     Make sure that the read() function takes filenames,
     strings, and lists of strings in addition to file-like objects.
     """
-    t1 = read_basic(StringIO("a b c\n1 2 3\n4 5 6"))
+    t1 = ascii.read("a b c\n1 2 3\n4 5 6", format='fast_basic', guess=False)
     #TODO: also read from file
-    t2 = read_basic("a b c\n1 2 3\n4 5 6")
-    t3 = read_basic(["a b c", "1 2 3", "4 5 6"])
+    t2 = ascii.read(StringIO("a b c\n1 2 3\n4 5 6"), format='fast_basic', guess=False)
+    t3 = ascii.read(["a b c", "1 2 3", "4 5 6"], format='fast_basic', guess=False)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
 
@@ -104,7 +103,7 @@ def test_supplied_names():
     If passed as a parameter, names should replace any
     column names found in the header.
     """
-    table = read_basic(StringIO("A B C\n1 2 3\n4 5 6"), names=('X', 'Y', 'Z'))
+    table = read_basic("A B C\n1 2 3\n4 5 6", names=('X', 'Y', 'Z'))
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('X', 'Y', 'Z'))
     assert_table_equal(table, expected)
 
@@ -113,8 +112,8 @@ def test_no_header():
     The header should not be read when header_start=None. Unless names is
     passed, the column names should be auto-generated.
     """
-    t1 = read_basic(StringIO("A B C\n1 2 3\n4 5 6"), header_start=None, data_start=0)
-    t2 = read_no_header(StringIO("A B C\n1 2 3\n4 5 6"))
+    t1 = read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0)
+    t2 = read_no_header("A B C\n1 2 3\n4 5 6")
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('col1', 'col2', 'col3'))
     assert_table_equal(t1, expected)
     assert_table_equal(t2, expected)
@@ -124,7 +123,7 @@ def test_no_header_supplied_names():
     If header_start=None and names is passed as a parameter, header
     data should not be read and names should be used instead.
     """
-    table = read_basic(StringIO("A B C\n1 2 3\n4 5 6"), header_start=None, data_start=0,
+    table = read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0,
                        names=('X', 'Y', 'Z'))
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('X', 'Y', 'Z'))
     assert_table_equal(table, expected)
@@ -133,7 +132,7 @@ def test_comment():
     """
     Make sure that line comments are ignored by the C reader.
     """
-    table = read_basic(StringIO("# comment\nA B C\n # another comment\n1 2 3\n4 5 6"))
+    table = read_basic("# comment\nA B C\n # another comment\n1 2 3\n4 5 6")
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -141,7 +140,7 @@ def test_empty_lines():
     """
     Make sure that empty lines are ignored by the C reader.
     """
-    table = read_basic(StringIO("\n\nA B C\n1 2 3\n\n\n4 5 6\n\n\n\n"))
+    table = read_basic("\n\nA B C\n1 2 3\n\n\n4 5 6\n\n\n\n")
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -155,7 +154,7 @@ def test_lstrip_whitespace():
   a, b,   c
   
    """
-    table = read_basic(StringIO(text), delimiter=',')
+    table = read_basic(text, delimiter=',')
     expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
     assert_table_equal(table, expected)
 
@@ -168,7 +167,7 @@ def test_rstrip_whitespace():
 A\t,B ,C\t \t 
   \ta ,b , c 
 """
-    table = read_basic(StringIO(text), delimiter=',')
+    table = read_basic(text, delimiter=',')
     expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
     assert_table_equal(table, expected)
 
@@ -184,7 +183,7 @@ A B C D E
 2. 1 9 10 -5.3e4
 4 2 -12 .4 six
 """
-    table = read_basic(StringIO(text))
+    table = read_basic(text)
     assert_equal(table['A'].dtype.kind, 'f')
     assert table['B'].dtype.kind in ('S', 'U')
     assert_equal(table['C'].dtype.kind, 'i')
@@ -203,14 +202,14 @@ COL1 COL2 COL3
     expected = Table([[1, 2], ['A', 'B'], [-1, -2]], names=('COL1', 'COL2', 'COL3'))
 
     for sep in ' ,\t#;':
-        table = read_basic(StringIO(text.replace(' ', sep)), delimiter=sep)
+        table = read_basic(text.replace(' ', sep), delimiter=sep)
         assert_table_equal(table, expected)
 
 def test_include_names():
     """
     If include_names is not None, the parser should read only those columns in include_names.
     """
-    table = read_basic(StringIO("A B C D\n1 2 3 4\n5 6 7 8"), include_names=['A', 'D'])
+    table = read_basic("A B C D\n1 2 3 4\n5 6 7 8", include_names=['A', 'D'])
     expected = Table([[1, 5], [4, 8]], names=('A', 'D'))
     assert_table_equal(table, expected)
 
@@ -218,7 +217,7 @@ def test_exclude_names():
     """
     If exclude_names is not None, the parser should exclude the columns in exclude_names.
     """
-    table = read_basic(StringIO("A B C D\n1 2 3 4\n5 6 7 8"), exclude_names=['A', 'D'])
+    table = read_basic("A B C D\n1 2 3 4\n5 6 7 8", exclude_names=['A', 'D'])
     expected = Table([[2, 6], [3, 7]], names=('B', 'C'))
     assert_table_equal(table, expected)
 
@@ -231,7 +230,7 @@ A B C D E F G H
 1 2 3 4 5 6 7 8
 9 10 11 12 13 14 15 16
 """
-    table = read_basic(StringIO(text), include_names=['A', 'B', 'D', 'F', 'H'],
+    table = read_basic(text, include_names=['A', 'B', 'D', 'F', 'H'],
                     exclude_names=['B', 'F'])
     expected = Table([[1, 9], [4, 12], [8, 16]], names=('A', 'D', 'H'))
     assert_table_equal(table, expected)
@@ -247,10 +246,10 @@ def test_quoted_fields():
 a b "   c
  d"
 """
-    table = read_basic(StringIO(text), fail_parallel=True)
+    table = read_basic(text, fail_parallel=True)
     expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'cd']], names=('A B', 'C', 'D'))
     assert_table_equal(table, expected)
-    table = read_basic(StringIO(text.replace('"', "'")), quotechar="'", fail_parallel=True)
+    table = read_basic(text.replace('"', "'"), quotechar="'", fail_parallel=True)
     assert_table_equal(table, expected)
 
 def test_invalid_parameters():
@@ -259,40 +258,40 @@ def test_invalid_parameters():
     """
     # multi-char delimiter
     with pytest.raises(ParameterError):
-        table = FastBasic(delimiter=',,').read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(delimiter=',,').read('1 2 3\n4 5 6')
     # multi-char comment
     with pytest.raises(ParameterError):
-        table = FastBasic(comment='##').read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(comment='##').read('1 2 3\n4 5 6')
     # data_start=None
     with pytest.raises(ParameterError):
-        table = FastBasic(data_start=None).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(data_start=None).read('1 2 3\n4 5 6')
     # multi-char quote signifier
     with pytest.raises(ParameterError):
-        table = FastBasic(quotechar='""').read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(quotechar='""').read('1 2 3\n4 5 6')
     # negative data_start
     with pytest.raises(ParameterError):
-        table = FastBasic(data_start=-1).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(data_start=-1).read('1 2 3\n4 5 6')
     # negative header_start
     with pytest.raises(ParameterError):
-        table = FastBasic(header_start=-1).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(header_start=-1).read('1 2 3\n4 5 6')
     # passing converters
     with pytest.raises(ParameterError):
         int_converter = ascii.convert_numpy(np.uint)
         converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-        table = FastBasic(converters=converters).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(converters=converters).read('1 2 3\n4 5 6')
     # passing Outputter
     with pytest.raises(ParameterError):
-        table = FastBasic(Outputter=ascii.TableOutputter).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
     # passing Inputter
     with pytest.raises(ParameterError):
-        table = FastBasic(Inputter=ascii.ContinuationLinesInputter).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(Inputter=ascii.ContinuationLinesInputter).read('1 2 3\n4 5 6')
     # passing Splitter class
     for arg in ('header_Splitter', 'data_Splitter'):
         with pytest.raises(ParameterError):
-            table = FastBasic(**{arg: ascii.DefaultSplitter}).read(StringIO('1 2 3\n4 5 6'))
+            table = FastBasic(**{arg: ascii.DefaultSplitter}).read('1 2 3\n4 5 6')
     # unexpected argument
     with pytest.raises(TypeError):
-        table = FastBasic(foo=7).read(StringIO('1 2 3\n4 5 6'))
+        table = FastBasic(foo=7).read('1 2 3\n4 5 6')
 
 def test_too_many_cols():
     """
@@ -306,7 +305,7 @@ A B C
 11 12 13
 """
     with pytest.raises(CParserError) as e:
-        table = FastBasic().read(StringIO(text))
+        table = FastBasic().read(text)
     assert 'CParserError: an error occurred while parsing table data: too many ' \
         'columns found in line 3 of data' in str(e)
 
@@ -321,12 +320,12 @@ A,B,C
 4,5
 6,7,8
 """
-    table = read_csv(StringIO(text))
+    table = read_csv(text)
     assert table['B'][1] is not ma.masked
     assert table['C'][1] is ma.masked
 
     with pytest.raises(CParserError) as e:
-        table = FastBasic(delimiter=',').read(StringIO(text))
+        table = FastBasic(delimiter=',').read(text)
 
 def test_data_end():
     """
@@ -339,12 +338,12 @@ A B C
 7 8 9
 10 11 12
 """
-    table = read_basic(StringIO(text), data_end=3)
+    table = read_basic(text, data_end=3)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     # data_end supports negative indexing
-    table = read_basic(StringIO(text), data_end=-2)
+    table = read_basic(text, data_end=-2)
     assert_table_equal(table, expected)
 
     text = """
@@ -355,17 +354,17 @@ N\tN\tS
 5\t6\tc
 """
     # make sure data_end works with RDB
-    table = read_rdb(StringIO(text), data_end=-1)
+    table = read_rdb(text, data_end=-1)
     expected = Table([[1, 3], [2, 4], ['a', 'b']], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     # positive index
-    table = read_rdb(StringIO(text), data_end=3)
+    table = read_rdb(text, data_end=3)
     expected = Table([[1], [2], ['a']], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     # empty table if data_end is too small
-    table = read_rdb(StringIO(text), data_end=1)
+    table = read_rdb(text, data_end=1)
     expected = Table([[], [], []], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -381,7 +380,7 @@ a, -999, -3.4
 nan, 5, -9999
 8, nan, 7.6e12
 """
-    table = read_basic(StringIO(text), delimiter=',')
+    table = read_basic(text, delimiter=',')
     # The empty value in row A should become a masked '0'
     assert isinstance(table['A'], MaskedColumn)
     assert table['A'][0] is ma.masked
@@ -389,7 +388,7 @@ nan, 5, -9999
     assert_equal(table['A'].data.data[0], '0') # for Python 3 compatibility
     assert table['A'][1] is not ma.masked
 
-    table = read_basic(StringIO(text), delimiter=',', fill_values=('-999', '0'))
+    table = read_basic(text, delimiter=',', fill_values=('-999', '0'))
     assert isinstance(table['B'], MaskedColumn)
     assert table['A'][0] is not ma.masked # empty value unaffected
     assert table['C'][2] is not ma.masked # -9999 is not an exact match
@@ -398,12 +397,12 @@ nan, 5, -9999
     assert_equal(table['B'].data.data[1], 0.0)
     assert table['B'][0] is not ma.masked
 
-    table = read_basic(StringIO(text), delimiter=',', fill_values=[])
+    table = read_basic(text, delimiter=',', fill_values=[])
     # None of the columns should be masked
     for name in 'ABC':
         assert not isinstance(table[name], MaskedColumn)
     
-    table = read_basic(StringIO(text), delimiter=',', fill_values=[('', '0', 'A'),
+    table = read_basic(text, delimiter=',', fill_values=[('', '0', 'A'),
                                 ('nan', '999', 'A', 'C')])
     assert np.isnan(table['B'][3]) # nan filling skips column B
     assert table['B'][3] is not ma.masked # should skip masking as well as replacing nan
@@ -426,18 +425,17 @@ A, B, C
 3, , 4
 5, 5,
 """
-    table = read_csv(StringIO(text), fill_include_names=['A', 'B'])
+    table = read_csv(text, fill_include_names=['A', 'B'])
     assert table['A'][0] is ma.masked
     assert table['B'][1] is ma.masked
     assert table['C'][2] is not ma.masked # C not in fill_include_names
 
-    table = read_csv(StringIO(text), fill_exclude_names=['A', 'B'])
+    table = read_csv(text, fill_exclude_names=['A', 'B'])
     assert table['C'][2] is ma.masked
     assert table['A'][0] is not ma.masked
     assert table['B'][1] is not ma.masked # A and B excluded from fill handling
 
-    table = read_csv(StringIO(text), fill_include_names=['A', 'B'],
-                       fill_exclude_names=['B'])
+    table = read_csv(text, fill_include_names=['A', 'B'], fill_exclude_names=['B'])
     assert table['A'][0] is ma.masked
     assert table['B'][1] is not ma.masked # fill_exclude_names applies after fill_include_names
     assert table['C'][2] is not ma.masked
@@ -452,7 +450,7 @@ def test_many_rows():
         text += ' '.join([str(i) for i in range(3)])
         text += '\n'
 
-    table = read_basic(StringIO(text))
+    table = read_basic(text)
     expected = Table([[0] * 500, [1] * 500, [2] * 500], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -464,7 +462,7 @@ def test_many_columns():
     # create a string with 500 columns and two data rows
     text = ' '.join([str(i) for i in range(500)])
     text += ('\n' + text + '\n' + text)
-    table = read_basic(StringIO(text))
+    table = read_basic(text)
     expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
     assert_table_equal(table, expected)
 
@@ -488,7 +486,7 @@ def test_read_tab():
     the basic reader.
     """
     text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
-    table = read_tab(StringIO(text), fail_parallel=True)
+    table = read_tab(text, fail_parallel=True)
     assert_equal(table['1'][0], '  a')   # preserve line whitespace
     assert_equal(table['2'][0], ' b ')   # preserve field whitespace
     assert table['3'][0] is ma.masked    # empty value should be masked
@@ -501,7 +499,7 @@ def test_default_data_start():
     beginning right after the header.
     """
     text = 'ignore this line\na b c\n1 2 3\n4 5 6'
-    table = read_basic(StringIO(text), header_start=1)
+    table = read_basic(text, header_start=1)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('a', 'b', 'c'))
     assert_table_equal(table, expected)
 
@@ -515,24 +513,24 @@ def test_commented_header():
  1 2 3
  4 5 6
 """
-    t1 = read_commented_header(StringIO(text))
+    t1 = read_commented_header(text)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(t1, expected)
 
     text = '# first commented line\n # second commented line\n\n' + text
-    t2 = read_commented_header(StringIO(text), header_start=2, data_start=0)
+    t2 = read_commented_header(text, header_start=2, data_start=0)
     assert_table_equal(t2, expected)
-    t3 = read_commented_header(StringIO(text), header_start=-1, data_start=0) # negative indexing allowed
+    t3 = read_commented_header(text, header_start=-1, data_start=0) # negative indexing allowed
     assert_table_equal(t3, expected)
 
     text += '7 8 9'
     # data_start=2 because data_start is relative to header_start if unspecified
-    t4 = read_commented_header(StringIO(text), header_start=2) 
+    t4 = read_commented_header(text, header_start=2) 
     expected = Table([[7], [8], [9]], names=('A', 'B', 'C'))
     assert_table_equal(t4, expected)
 
     with pytest.raises(ParameterError):
-        read_commented_header(StringIO(text), header_start=-1) # data_start cannot be negative
+        read_commented_header(text, header_start=-1) # data_start cannot be negative
 
 def test_rdb():
     """
@@ -544,7 +542,7 @@ A\tB\tC
 1n\tS\t4N
 1\t 9\t4.3
 """
-    table = read_rdb(StringIO(text))
+    table = read_rdb(text)
     expected = Table([[1], [' 9'], [4.3]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
     assert_equal(table['A'].dtype.kind, 'i')
@@ -553,17 +551,17 @@ A\tB\tC
 
     with pytest.raises(ValueError) as e:
         text = 'A\tB\tC\nN\tS\tN\n4\tb\ta' # C column contains non-numeric data
-        read_rdb(StringIO(text))
+        read_rdb(text)
     assert 'Column C failed to convert' in str(e)
 
     with pytest.raises(ValueError) as e:
         text = 'A\tB\tC\nN\tN\n1\t2\t3' # not enough types specified
-        read_rdb(StringIO(text))
+        read_rdb(text)
     assert 'mismatch between number of column names and column types' in str(e)
 
     with pytest.raises(ValueError) as e:
         text = 'A\tB\tC\nN\tN\t5\n1\t2\t3' # invalid type for column C
-        read_rdb(StringIO(text))
+        read_rdb(text)
     assert 'type definitions do not all match [num](N|S)' in str(e)
 
 def test_data_start():
@@ -581,21 +579,21 @@ A B C
 # comment
 10 11 12
 """
-    table = read_basic(StringIO(text), data_start=2, fail_parallel=True)
+    table = read_basic(text, data_start=2, fail_parallel=True)
     expected = Table([[4, 7, 10], [5, 8, 11], [6, 91, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
-    table = read_basic(StringIO(text), data_start=3, fail_parallel=True)
+    table = read_basic(text, data_start=3, fail_parallel=True)
     # ignore empty line
     expected = Table([[7, 10], [8, 11], [91, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     with pytest.raises(CParserError) as e:
         # tries to begin in the middle of quoted field
-        read_basic(StringIO(text), data_start=4, fail_parallel=True)
+        read_basic(text, data_start=4, fail_parallel=True)
     assert 'not enough columns found in line 1 of data' in str(e)
 
-    table = read_basic(StringIO(text), data_start=5, fail_parallel=True)
+    table = read_basic(text, data_start=5, fail_parallel=True)
     # ignore commented line
     expected = Table([[10], [11], [12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
@@ -610,7 +608,7 @@ A B C
 10 11 12
 """
     # make sure reading works as expected in parallel
-    table = read_basic(StringIO(text), data_start=2)
+    table = read_basic(text, data_start=2)
     expected = Table([[4, 7, 10], [5, 8, 11], [6, 9, 12]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
@@ -619,7 +617,7 @@ def test_quoted_empty_values():
     Quoted empty values spanning multiple lines should be treated correctly.
     """
     text = 'a b c\n1 2 " \n "'
-    table = ascii.read(StringIO(text))
+    table = read_basic(text, fail_parallel=True)
     assert table['c'][0] is ma.masked # empty value masked by default
 
 def test_csv_comment_default():
@@ -655,7 +653,7 @@ def test_strip_line_trailing_whitespace():
     assert 'not enough columns found in line 1' in str(e)
     
     text = 'a b c\n 1 2 3   \t \n 4 5 6 '
-    table = read_basic(StringIO(text))
+    table = read_basic(text)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('a', 'b', 'c'))
     assert_table_equal(table, expected)
 
@@ -664,11 +662,11 @@ def test_no_data():
     As long as column names are supplied, the C reader
     should return an empty table in the absence of data.
     """
-    table = read_basic(StringIO('a b c'))
+    table = read_basic('a b c')
     expected = Table([[], [], []], names=('a', 'b', 'c'))
     assert_table_equal(table, expected)
 
-    table = read_basic(StringIO('a b c\n1 2 3'), data_start=2)
+    table = read_basic('a b c\n1 2 3', data_start=2)
     assert_table_equal(table, expected)
 
 def test_line_endings():
@@ -680,5 +678,5 @@ def test_line_endings():
     expected = Table([[1, 4, 7], [2, 5, 8], [3, 6, 9]], names=('a', 'b', 'c'))
 
     for newline in ('\r\n', '\r'):
-        table = read_basic(StringIO(text.replace('\n', newline)))
+        table = read_basic(text.replace('\n', newline))
         assert_table_equal(table, expected)
