@@ -2729,8 +2729,8 @@ naxis kwarg.
     @property
     def pixel_scale(self):
         """
-        If the pixels are square, return the pixel scale *in the spatial
-        dimensions*
+        If the pixels are square, return the pixel scale in the spatial
+        dimensions
         """
         try:
             cd = self.celestial.wcs.cd
