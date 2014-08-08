@@ -5,6 +5,7 @@ import collections
 import warnings
 
 import numpy as np
+import re
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -1213,8 +1214,12 @@ def _parse_coordinate_arg(coords, frame, units):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
-                    coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                coord = coord1
+                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                elif len(coord1) > 2:
+                    coord = re.split('(\+|\-)', coord)
+                    coord = (coord[0], ' '.join(coord[1:]))
+                else:
+                    coord = coord1
 
             vals.append(coord)  # This assumes coord is a sequence at this point
 
