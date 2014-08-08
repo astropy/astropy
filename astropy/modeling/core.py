@@ -1508,7 +1508,7 @@ class _CompoundModel(Model):
 
         # TODO: This is temporary while prototyping
         self._model_set_axis = 0
-        self._n_models = 0
+        self._n_models = 1
 
     @property
     def param_sets(self):

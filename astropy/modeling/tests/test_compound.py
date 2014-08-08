@@ -32,7 +32,9 @@ def test_two_model_class_arithmetic_1d(expr, result):
 
     # It shouldn't matter what input we evaluate on since this is a constant
     # function
-    assert s(0) == result
+    out = s(0)
+    assert out == result
+    assert isinstance(out, float)
 
 
 def test_two_model_class_compose_1d():
