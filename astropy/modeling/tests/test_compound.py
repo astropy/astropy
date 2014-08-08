@@ -6,7 +6,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 from ...tests.helper import pytest
 
 from ..core import Model
-from ..models import Const1D
+from ..models import Const1D, Shift, Scale
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -33,3 +33,26 @@ def test_two_model_class_arithmetic_1d(expr, result):
     # It shouldn't matter what input we evaluate on since this is a constant
     # function
     assert s(0) == result
+
+
+def test_two_model_class_compose_1d():
+    """
+    Shift and Scale are two of the simplest models to test model composition
+    with.
+    """
+
+    S1 = Shift | Scale  # First shift then scale
+    assert issubclass(S1, Model)
+    assert S1.n_inputs == 1
+    assert S1.n_outputs == 1
+
+    s1 = S1(2, 3)  # Shift by 2 and scale by 3
+    assert s1(1) == 9.0
+
+    S2 = Scale | Shift  # First scale then shift
+    assert issubclass(S2, Model)
+    assert S2.n_inputs == 1
+    assert S2.n_outputs == 1
+
+    s2 = S2(2, 3)  # Scale by 2 then shift by 3
+    assert s2(1) == 5.0
