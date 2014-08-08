@@ -149,7 +149,7 @@ class _AngleParser(object):
 
         def p_colon(p):
             '''
-            colon : sign UINT COLON UINT
+            colon : sign UINT COLON ufloat
                   | sign UINT COLON UINT COLON ufloat
             '''
             if len(p) == 5:
@@ -159,7 +159,7 @@ class _AngleParser(object):
 
         def p_spaced(p):
             '''
-            spaced : sign UINT UINT
+            spaced : sign UINT ufloat
                    | sign UINT UINT ufloat
             '''
             if len(p) == 4:
@@ -361,7 +361,7 @@ def degrees_to_dms(d):
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
-def dms_to_degrees(d, m, s):
+def dms_to_degrees(d, m, s=0):
     """
     Convert degrees, arcminute, arcsecond to a float degrees value.
     """
@@ -374,10 +374,12 @@ def dms_to_degrees(d, m, s):
 
     # TODO: This will fail if d or m have values after the decimal
     # place
-
     try:
         d = np.floor(np.abs(np.asarray(d)))
-        m = np.floor(np.abs(np.asarray(m)))
+        if np.isscalar(s) and s == 0:
+            m = np.abs(m)
+        else:
+            m = np.floor(np.abs(np.asarray(m)))
         s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
@@ -387,7 +389,7 @@ def dms_to_degrees(d, m, s):
     return sign * (d + m / 60. + s / 3600.)
 
 
-def hms_to_hours(h, m, s):
+def hms_to_hours(h, m, s=0):
     """
     Convert hour, minute, second to a float hour value.
     """
@@ -402,7 +404,10 @@ def hms_to_hours(h, m, s):
 
     try:
         h = np.floor(np.abs(h))
-        m = np.floor(np.abs(m))
+        if np.isscalar(s) and s == 0:
+            m = np.abs(m)
+        else:
+            m = np.floor(np.abs(np.asarray(m)))
         s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
