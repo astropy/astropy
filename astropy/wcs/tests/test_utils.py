@@ -2,8 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ...wcs import WCS
 from .. import utils
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ...utils.exceptions import AstropyUserWarning
+
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -257,10 +258,13 @@ def test_pixscale_warning(recwarn):
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    mywcs.get_pixel_scale()
-    w = recwarn.pop(AstropyUserWarning)
-    assert (str(w.message) == "Pixel sizes may very over the image for "
-                              "projection class TAN")
+    
+    with catch_warnings(AstropyUserWarning) as warning_lines:
+    
+        mywcs.get_pixel_scale()
+        assert ("Pixel sizes may very over the image for "
+                "projection class TAN"
+                in str(warning_lines[0].message))
 
 def test_pixscale_asymmetric():
     mywcs = WCS(naxis=2)
