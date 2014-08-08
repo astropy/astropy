@@ -364,7 +364,7 @@ Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
-  >>> sc_fk4.get_frame_attr_names()
+  >>> sc_fk4.get_frame_attr_names()  # doctest: +SKIP
   {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
    u'obstime': None}
 
