@@ -2726,23 +2726,21 @@ naxis kwarg.
         """
         return self.sub([WCSSUB_CELESTIAL])
 
-    @property
-    def pixel_scale(self):
+    def get_pixel_scale(self):
         """
         If the pixels are square, return the pixel scale in the spatial
         dimensions
         """
-        try:
-            cd = self.celestial.wcs.cd
-            cdelt = [(cd[0]**2).sum()**0.5,
-                     (cd[1]**2).sum()**0.5]
-        except AttributeError:
-            cdelt = self.celestial.wcs.get_cdelt()
-
-        if np.abs(cdelt[0]) != np.abs(cdelt[1]):
+        cwcs = self.celestial.wcs
+        if 'CAR' != self.celestial.wcs.ctype[0][-3:]:
+            warnings.warn("Pixel sizes may very over the image for "
+                          "projection class {0}".format(cwcs.ctype[0][-3:]))
+        cdelt = np.matrix(cwcs.get_cdelt())
+        pc = np.matrix(cwcs.get_pc())
+        scale = np.abs(np.array(cdelt * pc)[0])
+        if scale[0] != scale[1]:
             raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
-
-        return np.abs(cdelt[0])
+        return scale[0]
 
 
 def __WCS_unpickle__(cls, dct, fits_data):

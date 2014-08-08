@@ -4,6 +4,7 @@ from ...wcs import WCS
 from .. import utils
 from ...tests.helper import pytest
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
@@ -230,26 +231,26 @@ def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cdelt = [0.1,0.1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1]
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1,0.1,1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1,1]
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
 
 def test_pixscale_asymmetric():
     mywcs = WCS(naxis=2)
@@ -257,11 +258,14 @@ def test_pixscale_asymmetric():
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
 
     with pytest.raises(ValueError) as exc:
-        mywcs.pixel_scale
+        mywcs.get_pixel_scale()
     assert exc.value.args[0] == "Pixels are not symmetric: 'pixel scale' is ambiguous"
 
 def test_pixscale_cd_rotated():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.1/2**0.5,0.1/2**0.5],[0.1/2**0.5,0.1/2**0.5]]
+    rho = 45/180.*np.pi
+    scale = 0.1
+    mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
+                    [scale*np.sin(rho), scale*np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert mywcs.pixel_scale == 0.1
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
