@@ -261,11 +261,25 @@ def test_pixscale_asymmetric():
         mywcs.get_pixel_scale()
     assert exc.value.args[0] == "Pixels are not symmetric: 'pixel scale' is ambiguous"
 
-def test_pixscale_cd_rotated():
+@pytest.mark.parametrize('angle',
+                         (30,45,60,75))
+def test_pixscale_cd_rotated(angle):
     mywcs = WCS(naxis=2)
-    rho = 45/180.*np.pi
+    rho = angle/180.*np.pi
     scale = 0.1
     mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                     [scale*np.sin(rho), scale*np.cos(rho)]]
+    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
+
+@pytest.mark.parametrize('angle',
+                         (30,45,60,75))
+def test_pixscale_pc_rotated(angle):
+    mywcs = WCS(naxis=2)
+    rho = angle/180.*np.pi
+    scale = 0.1
+    mywcs.wcs.cdelt = [-scale, scale]
+    mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)],
+                    [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(mywcs.get_pixel_scale(), 0.1)
