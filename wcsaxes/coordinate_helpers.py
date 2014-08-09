@@ -10,6 +10,7 @@ from astropy.extern import six
 from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 from matplotlib.patches import PathPatch
+from matplotlib import rcParams
 
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
 from .ticks import Ticks
@@ -76,19 +77,13 @@ class CoordinateHelper(object):
             ' ': 'none',
             '': 'none'
         }
-        try:
-            from matplotlib import rcParams
-            self.grid_lines_kwargs = {'visible':False,
-                                      'facecolor':'none',
-                                      'edgecolor': rcParams['grid.color'],
-                                      'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
-                                      'linewidth': rcParams['grid.linewidth'],
-                                      'alpha': rcParams['grid.alpha'],
-                                      'transform':self.parent_axes.transData}
-        except:
-            self.grid_lines_kwargs = {'visible':False,
-                                      'facecolor':'none',
-                                      'transform':self.parent_axes.transData}
+        self.grid_lines_kwargs = {'visible':False,
+                                  'facecolor':'none',
+                                  'edgecolor': rcParams['grid.color'],
+                                  'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
+                                  'linewidth': rcParams['grid.linewidth'],
+                                  'alpha': 1.0,
+                                  'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """

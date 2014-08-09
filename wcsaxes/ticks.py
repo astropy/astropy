@@ -2,6 +2,7 @@ import numpy as np
 
 from matplotlib.lines import Path, Line2D
 from matplotlib.transforms import Affine2D
+from matplotlib import rcParams
 
 
 class Ticks(Line2D):
@@ -27,20 +28,16 @@ class Ticks(Line2D):
     """
 
     def __init__(self, ticksize=None, tick_out=False, **kwargs):
-        try:
-            from matplotlib import rcParams
-            if ticksize is None:
-                ticksize = rcParams['xtick.major.size']
-            line2d_kwargs = {
-                'color': rcParams['xtick.color'],
-                'linewidth': rcParams['xtick.major.width']
-            }
-        except:
-            pass
+        if ticksize is None:
+            ticksize = rcParams['xtick.major.size']
         self.set_ticksize(ticksize)
         self.set_tick_out(tick_out)
         # FIXME: tick_out is incompatible with Matplotlib tickdir option
         self.clear()
+        line2d_kwargs = {
+            'color': rcParams['xtick.color'],
+            'linewidth': rcParams['xtick.major.width']
+        }
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
         self.set_visible_axes('all')
