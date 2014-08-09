@@ -82,7 +82,7 @@ class CoordinateHelper(object):
                                   'edgecolor': rcParams['grid.color'],
                                   'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': 1.0,
+                                  'alpha': rcParams['grid.alpha'],
                                   'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
