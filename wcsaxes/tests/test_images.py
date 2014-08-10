@@ -5,11 +5,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
-
-try:
-    from matplotlib import rc_context
-except ImportError:
-    from ..rc_utils import rc_context
+from ..rc_utils import rc_context
 
 from astropy.wcs import WCS
 from astropy.io import fits
@@ -39,7 +35,7 @@ class BaseImageTests(object):
         if not os.path.exists(cls._data_dir):
             cbook.mkdirs(cls._data_dir)
 
-        cls._tolerance = 1
+        cls._tolerance = 1.5
 
         msx_header = os.path.join(cls._data_dir, 'msx_header')
         cls.msx_header = fits.Header.fromtextfile(msx_header)

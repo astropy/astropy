@@ -151,10 +151,7 @@ class TestAngleFormatterLocator(object):
     def test_latex_format(self):
         fl = AngleFormatterLocator(number=5, format="dd:mm:ss")
         assert fl.formatter([15.392231] * u.degree, None)[0] == six.u('15\xb023\'32"')
-        try:
-            from matplotlib import rc_context
-        except ImportError:
-            from ..rc_utils import rc_context
+        from ..rc_utils import rc_context
         with rc_context(rc={'text.usetex': True}):
             assert fl.formatter([15.392231] * u.degree, None)[0] == "15$^\circ$23'32\""
 
