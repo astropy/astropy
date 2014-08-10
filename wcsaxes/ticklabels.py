@@ -18,6 +18,7 @@ class TickLabels(Text):
         self.set_clip_on(True)
         self.set_visible_axes('all')
         self.pad = 0.3
+        self._exclude_overlapping = False
 
     def clear(self):
         self.world = {}
@@ -83,6 +84,9 @@ class TickLabels(Text):
             return self.world.keys()
         else:
             return [x for x in self._visible_axes if x in self.world]
+
+    def set_exclude_overlapping(self, exclude_overlapping):
+        self._exclude_overlapping = exclude_overlapping
 
     def draw(self, renderer, bboxes, ticklabels_bbox):
 
@@ -186,7 +190,7 @@ class TickLabels(Text):
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
-                if bb.count_overlaps(bboxes) == 0:
+                if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
                     super(TickLabels, self).draw(renderer)
                     bboxes.append(bb)
                     ticklabels_bbox.append(bb)

@@ -76,6 +76,7 @@ We then add the axes to the image and plot it using the method
    :align: center
 
     fig.add_axes(ax)
+    ax.coords[2].set_ticks(exclude_overlapping=True)
     ax.imshow(image_data[:, :, 50].transpose(), cmap=plt.cm.gist_heat)
 
 Here, ``image_data`` is an :class:`~numpy.ndarray` object. In Numpy, the order
