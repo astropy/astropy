@@ -21,7 +21,7 @@ class BasicHeader(core.BaseHeader):
     '''Basic table Header Reader
 
     Set a few defaults for common ascii table formats
-    (start at line 0, comments begin with `#` and possibly whitespace)
+    (start at line 0, comments begin with ``#`` and possibly white space)
     '''
     start_line = 0
     comment = r'\s*#'
@@ -32,7 +32,7 @@ class BasicData(core.BaseData):
     '''Basic table Data Reader
 
     Set a few defaults for common ascii table formats
-    (start at line 1, comments begin with `#` and possibly whitespace)
+    (start at line 1, comments begin with ``#`` and possibly white space)
     '''
     start_line = 1
     comment = r'\s*#'
@@ -75,16 +75,15 @@ class Basic(core.BaseReader):
 class NoHeaderHeader(BasicHeader):
     '''Reader for table header without a header
 
-    Sounds confusing? Essentially, this class just sets the first line
-    to `None`.
+    Set the start of header line number to `None`, which tells the basic 
+    reader there is no header line.
     '''
     start_line = None
 
 class NoHeaderData(BasicData):
     '''Reader for table data without a header
 
-    Sounds confusing? Essentially, this class just sets the first line
-    to `0`.
+    Data starts at first uncommented line since there is no header line.
     '''
     start_line = 0
 
@@ -144,6 +143,7 @@ class TabHeaderSplitter(core.DefaultSplitter):
     delimiter = '\t'
     process_line = None
 
+
 class TabDataSplitter(TabHeaderSplitter):
     '''Don't strip data value whitespace since that is significant in TSV tables'''
     process_val = None
@@ -153,9 +153,11 @@ class TabHeader(BasicHeader):
     '''Reader for header of tables with tab separated header'''
     splitter_class = TabHeaderSplitter
 
+
 class TabData(BasicData):
     '''Reader for data of tables with tab separated data '''
     splitter_class = TabDataSplitter
+
 
 class Tab(Basic):
     """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
@@ -178,14 +180,17 @@ class CsvSplitter(core.DefaultSplitter):
     '''Split on comma for CSV (comma-separated-value) tables'''
     delimiter = ','
 
+
 class CsvHeader(BasicHeader):
     '''Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
+
 
 class CsvData(BasicData):
     '''Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
     fill_values = [(core.masked, '')]
+
 
 class Csv(Basic):
     """Read a CSV (comma-separated-values) file.
@@ -247,6 +252,7 @@ class RdbHeader(TabHeader):
     def get_type_map_key(self, col):
         return col.raw_type[-1]
 
+
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
 
@@ -274,6 +280,7 @@ class RdbHeader(TabHeader):
         for col, raw_type in zip(self.cols, raw_types):
             col.raw_type = raw_type
             col.type = self.get_col_type(col)
+
 
     def write(self, lines):
         lines.append(self.splitter.join(self.colnames))

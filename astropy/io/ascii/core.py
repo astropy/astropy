@@ -187,7 +187,7 @@ class BaseSplitter(object):
     another function via the instance attribute or be disabled entirely, for
     example::
 
-      reader.header.splitter.process_val = lambda x: x.strip()
+      reader.header.splitter.process_val = lambda x: x.lstrip()
       reader.data.splitter.process_val = None
 
     :param delimiter: one-character string used to separate fields

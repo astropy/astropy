@@ -17,7 +17,7 @@ from .core import (InconsistentTableError,
                    convert_numpy,
                    masked
                    )
-from .basic import (Basic,
+from .basic import (Basic, BasicHeader, BasicData,
                     Rdb,
                     Csv,
                     Tab,
