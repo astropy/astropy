@@ -5,7 +5,8 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
-from matplotlib import rc_context
+from ..rc_utils import rc_context
+
 from astropy.wcs import WCS
 from astropy.io import fits
 from wcsaxes import WCSAxes
@@ -34,7 +35,7 @@ class BaseImageTests(object):
         if not os.path.exists(cls._data_dir):
             cbook.mkdirs(cls._data_dir)
 
-        cls._tolerance = 1
+        cls._tolerance = 1.5
 
         msx_header = os.path.join(cls._data_dir, 'msx_header')
         cls.msx_header = fits.Header.fromtextfile(msx_header)
@@ -147,8 +148,8 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_axislabel('Velocity m/s')
-        ax.coords[1].set_ticks(width=1)
-        ax.coords[2].set_ticks(width=1)
+        ax.coords[1].set_ticks(width=1, exclude_overlapping=False)
+        ax.coords[2].set_ticks(width=1, exclude_overlapping=False)
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
 
@@ -163,8 +164,8 @@ class TestBasic(BaseImageTests):
         ax.coords[2].set_major_formatter('x.xx')
         ax.coords[2].set_format_unit(u.km / u.s)
         ax.coords[2].set_axislabel('Velocity km/s')
-        ax.coords[1].set_ticks(width=1)
-        ax.coords[2].set_ticks(width=1)
+        ax.coords[1].set_ticks(width=1, exclude_overlapping=True)
+        ax.coords[2].set_ticks(width=1, exclude_overlapping=True)
 
         self.generate_or_test(generate, fig, 'changed_axis_units.png')
 
@@ -176,6 +177,8 @@ class TestBasic(BaseImageTests):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
+        ax.coords[2].set_ticks(exclude_overlapping=True)
+        ax.coords[1].set_ticks(exclude_overlapping=True)
         ax.coords[2].display_minor_ticks(True)
         ax.coords[1].display_minor_ticks(True)
         ax.coords[2].set_minor_frequency(3)
@@ -220,6 +223,8 @@ class TestBasic(BaseImageTests):
             ax.set_xlim(-0.5, 2)
             ax.set_ylim(-0.5, 2)
             ax.grid()
+            ax.coords[0].set_ticks(exclude_overlapping=True)
+            ax.coords[1].set_ticks(exclude_overlapping=True)
             self.generate_or_test(generate, fig, 'rcparams.png')
 
     # Test that tick marks point in the correct direction, even when the
@@ -274,5 +279,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_coord_type('scalar')
         ax.coords[0].set_major_formatter('x.xxx')
         ax.coords[1].set_major_formatter('x.xxx')
+        ax.coords[0].set_ticks(exclude_overlapping=True)
+        ax.coords[1].set_ticks(exclude_overlapping=True)
 
         self.generate_or_test(generate, fig, 'set_coord_type.png')

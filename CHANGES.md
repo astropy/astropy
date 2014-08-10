@@ -4,6 +4,8 @@
 New features
 ^^^^^^^^^^^^
 
+- Added option to specify whether overlapping ticks should be displayed. [#85]
+
 - Added minor ticks. [#89]
 
 - Added option to set frame linewidth and color. [#88]
