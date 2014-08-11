@@ -597,18 +597,18 @@ def _make_transform_graph_docs():
 
     docstr = """
     The diagram below shows all of the coordinate systems built into the
-    `~astropy.coordinates` package, their aliases (usable for converting
+    `~astropy.coordinates` package, their aliases (useful for converting
     other coordinates to them using attribute-style access) and the
     pre-defined transformations between them.  The user is free to
-    override any of these transformations by defining new trasnformation
+    override any of these transformations by defining new transformations
     between these systems, but the pre-defined transformations should be
     sufficient for typical usage.
 
     The graph also indicates the priority for each transformation as a
     number next to the arrow.  These priorities are used to decide the
-    preferred order when two trasnformation paths have the same number
-    of steps.  These priorities are defined such that path with a
-    *smaller* total priority are favored over one with larger.
+    preferred order when two transformation paths have the same number
+    of steps.  These priorities are defined such that the path with a
+    *smaller* total priority is favored.
 
 
     .. graphviz::
