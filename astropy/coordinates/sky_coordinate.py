@@ -23,7 +23,8 @@ from .representation import (BaseRepresentation, SphericalRepresentation,
 
 __all__ = ['SkyCoord']
 
-PMRE = re.compile('(\+|\-)')
+PMRE = re.compile(r'(\+|\-)')
+JPMRE = re.compile(r'J([0-9]{6}\.?[0-9]{0,2})([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$')
 
 
 # Define a convenience mapping.  This is used like a module constants
@@ -1220,6 +1221,15 @@ def _parse_coordinate_arg(coords, frame, units):
                 elif len(coord1) > 2:
                     coord = PMRE.split(coord)
                     coord = (coord[0], ' '.join(coord[1:]))
+                elif len(coord1) == 1:
+                        try:
+                            coord = JPMRE.match(coord).groups()
+                            coord = ('{0} {1} {2}'.
+                                     format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
+                                     '{0} {1} {2}'.
+                                     format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+                        except:
+                            coord = coord1
                 else:
                     coord = coord1
 
