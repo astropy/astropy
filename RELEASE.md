@@ -23,7 +23,7 @@ Releasing a new version
 7. Tag commit with ``v<version>``, optionally signing with the ``-s`` option.
 
 8. Change ``VERSION`` in ``setup.py`` to next one with ``.dev``. Add a new
-   section to ``CHANGES.rst`` for next version.
+   section to ``CHANGES.md`` for next version.
 
 9. Commit with message:
 
