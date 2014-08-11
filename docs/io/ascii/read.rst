@@ -126,7 +126,8 @@ Parameters for ``read()``
 
 **header_Splitter**: Splitter class to split header columns
 
-**use_fast_reader**: whether to use the C engine for reading (default=``None`` tries the fast reader first)
+**use_fast_reader**: whether to use the C engine for reading if possible
+  (see :ref:`fast_ascii_io`)
 
 **Reader** : Reader class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table, for example
@@ -322,34 +323,6 @@ The default converters for each column can be overridden with the
   >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
   ...               'col2': [ascii.convert_numpy(np.float32)]}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
-
-Fast readers
-^^^^^^^^^^^^
-
-While :mod:`astropy.io.ascii` was designed with flexibility and extensibility
-in mind, there is also a less flexible but significantly faster engine for
-reading ASCII files. By default, |read| will attempt to use this engine when
-reading compatible formats like CSV. Since the fast engine is not part of the
-ordinary :mod:`astropy.io.ascii` infrastructure, it raises an error when passed
-certain invalid parameters, in which case |read| falls back on the ordinary reader unless
-the user explicity chooses ``use_fast_reader=True``. These parameters are::
-
- * ``comment`` string not of length 1
- * ``data_start=None``
- * Negative ``header_start`` (except for commented-header format)
- * Negative ``data_start``
- * ``delimiter`` string not of length 1
- * ``quotechar`` string not of length 1
- * ``converters``
- * ``Outputter``
- * ``Inputter``
- * ``data_Splitter``
- * ``header_Splitter``
-
-The fast engine can also be enabled through the format parameter by prefixing
-a compatible format with "fast" and then an underscore. For example::
-
-   >>> ascii.read('file.csv', format='fast_csv')  # doctest: +SKIP
 
 Advanced customization
 ^^^^^^^^^^^^^^^^^^^^^^

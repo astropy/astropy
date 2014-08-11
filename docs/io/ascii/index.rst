@@ -86,9 +86,10 @@ of the values in the `supported formats`_.  For example::
 
 For simpler formats such as CSV, |read| will automatically try reading with the
 Cython/C parsing engine, which is significantly faster than the ordinary Python
-implementation. If the fast engine fails, |read| will fall back on the Python
-reader by default. The argument ``use_fast_reader`` can be specified to control
-this behavior. For example, to disable the fast engine::
+implementation (described in :ref:`fast_ascii_io`). If the fast engine fails,
+|read| will fall back on the Python reader by default. The argument
+``use_fast_reader`` can be specified to control this behavior. For example, to
+disable the fast engine::
 
    >>> data = ascii.read(lines, format='csv', use_fast_reader=False)
 
@@ -130,8 +131,8 @@ the option to send the output to ``sys.stdout`` instead of a file::
   \end{table}
 
 There is also a faster Cython engine for writing simple formats,
-which is enabled by default for these formats. To disable this
-engine, use the parameter ``use_fast_writer``::
+which is enabled by default for these formats (see :ref:`fast_ascii_io`).
+To disable this engine, use the parameter ``use_fast_writer``::
 
    >>> ascii.write(data, 'values.csv', format='csv', use_fast_writer=False)  # doctest: +SKIP
 
@@ -195,6 +196,14 @@ Fixed-width Gallery
    :maxdepth: 2
 
    fixed_width_gallery
+
+Fast ASCII Engine
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   fast_ascii_io
 
 Base class elements
 -------------------

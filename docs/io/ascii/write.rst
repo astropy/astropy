@@ -42,8 +42,8 @@ file::
   \end{table}
 
 There is also a faster Cython engine for writing simple formats,
-which is enabled by default for these formats. To disable this
-engine, use the parameter ``use_fast_writer``::
+which is enabled by default for these formats (see :ref:`fast_ascii_io`).
+To disable this engine, use the parameter ``use_fast_writer``::
 
    >>> ascii.write(data, 'values.csv', format='csv', use_fast_writer=False)  # doctest: +SKIP
 
@@ -263,10 +263,8 @@ details.
 
 **use_fast_writer**: whether to use the fast Cython writer
   If this parameter is ``None`` (which it is by default), |write| will attempt
-  to use the faster writer if possible. Specifying ``use_fast_writer=False``
-  disables this behavior, while specifying ``use_fast_writer=True`` forces
-  |write| to use the fast writer and an error will be raised if the writing
-  format is incompatible with the fast engine.
+  to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
+  Specifying ``use_fast_writer=False`` disables this behavior.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, for
