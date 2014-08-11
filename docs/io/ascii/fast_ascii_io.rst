@@ -36,8 +36,9 @@ To disable the fast engine, specify ``use_fast_reader=False`` or
 Reading
 ^^^^^^^
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`
-infrastructure, fast readers raise an error when passed certain invalid
-parameters, in which case |read| falls back on the ordinary reader.
+infrastructure, fast readers raise an error when passed certain
+parameters which are not implemented in the fast reader
+infrastructure. In this case |read| will fall back on the ordinary reader.
 These parameters are:
 
  * Negative ``header_start`` (except for commented-header format)
@@ -57,7 +58,9 @@ Additionally, |read| allows for the specification of special parameters ``parall
 ``False``). The ``parallel`` parameter can be used to enable multithreading via
 the ``multiprocessing`` module, and can either be set to a number (the number
 of threads to use) or ``True``, in which case the number of threads will be
-``multiprocessing.cpu_count()``. ``use_fast_converter=True`` enables a fast but
+``multiprocessing.cpu_count()``. Since the input will be split up into multiple
+chunks, reading in parallel can sometimes fail if multi-line quoted fields
+are present. ``use_fast_converter=True`` enables a fast but
 less precise conversion method for floating-point values, as described below.
 
 Writing
