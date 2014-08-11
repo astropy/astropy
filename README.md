@@ -22,6 +22,7 @@ Developers and Contributors
 * Chris Beaumont
 * Leo Singer
 * Stuart Mumford
+* Christoph Deil
 
 Build and coverage status
 =========================
