@@ -1,8 +1,7 @@
 0.2 (unreleased)
 ----------------
 
-New features
-^^^^^^^^^^^^
+### New features
 
 - Added option to specify whether overlapping ticks should be displayed. [#85]
 
@@ -10,8 +9,7 @@ New features
 
 - Added option to set frame linewidth and color. [#88]
 
-Improvements
-^^^^^^^^^^^^
+### Improvements
 
 - Improved performance of grid drawing. [#100]
 
