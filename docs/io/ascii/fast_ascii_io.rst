@@ -53,15 +53,21 @@ These parameters are:
  * ``data_Splitter``
  * ``header_Splitter``
 
-Additionally, |read| allows for the specification of special parameters ``parallel`` and
-``use_fast_converter`` when using the fast engine (both of which default to
-``False``). The ``parallel`` parameter can be used to enable multithreading via
+Parallel and fast conversion options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When using the fast engine there are two additional parameters that are 
+available, ``parallel`` and ``use_fast_converter``.  These allow for even faster
+table reading when enabled, but both are disabled by default because they
+come with some caveats.
+
+The ``parallel`` parameter can be used to enable multiprocessing via
 the ``multiprocessing`` module, and can either be set to a number (the number
-of threads to use) or ``True``, in which case the number of threads will be
-``multiprocessing.cpu_count()``. Since the input will be split up into multiple
-chunks, reading in parallel can sometimes fail if multi-line quoted fields
-are present. ``use_fast_converter=True`` enables a fast but
-less precise conversion method for floating-point values, as described below.
+of processes to use) or ``True``, in which case the number of processes will be
+``multiprocessing.cpu_count()``.   Note that this can cause issues within the
+IPython Notebook and so enabling multiprocessing in this context is discouraged.
+
+Setting ``use_fast_converter=True`` enables a faster but
+slightly imprecise conversion method for floating-point values, as described below.
 
 Writing
 ^^^^^^^
@@ -79,9 +85,7 @@ specifying ``strip_whitespace=False`` can improve performance.
 
 Fast converter
 ^^^^^^^^^^^^^^
-Since floating-point values can only occupy so much space in memory (64 bits
-for numpy's ``float64``), values with a large number of significant
-figures must be rounded. Input values should ideally be converted to the
+Input floating-point values should ideally be converted to the
 nearest possible floating-point approximation; that is, the conversion
 should be correct within half of the distance between the two closest
 representable values, or 0.5 `ULP
