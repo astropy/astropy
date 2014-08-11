@@ -84,6 +84,48 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     def n_outputs(cls):
         return len(cls.outputs)
 
+    def rename(cls, name):
+        """
+        Creates a copy of this model class with a new name.
+
+        The new class is technically a subclass of the original class, so that
+        instance and type checks will still work.  For example::
+
+            >>> from astropy.modeling.models import Rotation2D
+            >>> SkyRotation = Rotation2D.rename('SkyRotation')
+            >>> SkyRotation
+            <class '...SkyRotation'>
+            >>> issubclass(SkyRotation, Rotation2D)
+            True
+            >>> r = SkyRotation(90)
+            >>> isinstance(r, Rotation2D)
+            True
+        """
+
+        if six.PY2 and isinstance(name, six.text_type):
+            # Unicode names are not allowed in Python 2, so just convert to
+            # ASCII.  As such, for cross-compatibility all model names should
+            # just be ASCII for now.
+            name = name.encode('ascii')
+
+        mod = find_current_module(2)
+        if mod:
+            modname = mod.__name__
+        else:
+            modname = '__main__'
+
+        new_cls = type(name, (cls,), {})
+        new_cls.__module__ = modname
+
+        if hasattr(cls, '__qualname__'):
+            if new_cls.__module__ == '__main__':
+                # __main__ is not added to a class's qualified name
+                new_cls.__qualname__ = name
+            else:
+                new_cls.__qualname__ = '{0}.{1}'.format(modname, name)
+
+        return new_cls
+
     @classmethod
     def _handle_parameters(mcls, name, members):
         # Handle parameters
