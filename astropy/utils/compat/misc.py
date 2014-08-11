@@ -16,14 +16,13 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
+import functools
 import os
 import sys
 
-from functools import wraps
-
 
 __all__ = ['invalidate_caches', 'override__dir__', 'ignored',
-           'possible_filename']
+           'possible_filename', 'wraps']
 
 
 def possible_filename(filename):
@@ -75,7 +74,7 @@ def override__dir__(f):
     if sys.version_info[:2] < (3, 3):
         # There was no straightforward way to do this until Python 3.3, so
         # we have this complex monstrosity
-        @wraps(f)
+        @functools.wraps(f)
         def override__dir__wrapper(self):
             members = set()
             for cls in self.__class__.mro():
@@ -86,7 +85,7 @@ def override__dir__(f):
     else:
         # http://bugs.python.org/issue12166
 
-        @wraps(f)
+        @functools.wraps(f)
         def override__dir__wrapper(self):
             members = set(object.__dir__(self))
             members.update(f(self))
@@ -120,3 +119,76 @@ except ImportError:
             yield
         except exceptions:
             pass
+
+
+if six.PY2:
+    # An alternative to functools.wraps that can also preserve the wrapped
+    # function's signature by way of make_func_with_sig.  This isn't needed on
+    # Python 3.4 where this already works
+    import inspect
+    from ..misc import make_func_with_sig
+
+    @functools.wraps(functools.wraps)  # Heh...
+    def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
+              updated=functools.WRAPPER_UPDATES):
+        wrapped_argspec = inspect.getargspec(wrapped)
+        if wrapped_argspec.defaults:
+            args = wrapped_argspec.args[:-len(wrapped_argspec.defaults)]
+            kwargs = zip(wrapped_argspec.args[len(args):],
+                         wrapped_argspec.defaults)
+        else:
+            args = wrapped_argspec.args
+            kwargs = {}
+
+        def wrapper(func):
+            func = make_func_with_sig(func, args=args, kwargs=kwargs,
+                                      varargs=wrapped_argspec.varargs,
+                                      varkwargs=wrapped_argspec.keywords)
+            func = functools.update_wrapper(func, wrapped, assigned=assigned,
+                                            updated=updated)
+            return func
+
+        return wrapper
+elif sys.version_info[:2] < (3, 4):
+    # Similar to the implementation above, but supports keyword-only arguments
+    # (not supported by Python 2)
+    import inspect
+    from ..misc import make_func_with_sig
+
+    @functools.wraps(functools.wraps)  # Heh...
+    def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
+              updated=functools.WRAPPER_UPDATES):
+        wrapped_argspec = inspect.getfullargspec(wrapped)
+
+        if wrapped_argspec.defaults:
+            args = wrapped_argspec.args[:-len(wrapped_argspec.defaults)]
+            kwargs = zip(wrapped_argspec.args[len(args):],
+                         wrapped_argspec.defaults)
+        else:
+            args = wrapped_argspec.args
+            kwargs = []
+
+        if wrapped_argspec.kwonlyargs:
+            kwargs.extend((argname, wrapped_argspec.kwonlydefaults[argname])
+                          for argname in wrapped_argspec.kwonlyargs)
+
+        def wrapper(func):
+            func = make_func_with_sig(func, args=args, kwargs=kwargs,
+                                      varargs=wrapped_argspec.varargs,
+                                      varkwargs=wrapped_argspec.varkw)
+            func = functools.update_wrapper(func, wrapped, assigned=assigned,
+                                            updated=updated)
+            return func
+
+        return wrapper
+else:
+    # One subtlety worth noting about this:  On Python 3.4, functools.wraps
+    # does not actually *change* the function signature of the wrapped function
+    # like our replacement versions do above.
+    # Insted, when a function is wrapped by another function the wrapper picks
+    # up a __wrapped__ attribute referencing the original wrapped function.
+    # The help() function knows how to recognize the presence of a __wrapped__
+    # attribute, and use the signature of the wrapped function.  Since the
+    # primary purpose of this is help() support (and possibly also doc
+    # generation) this is good enough.
+    wraps = functools.wraps
