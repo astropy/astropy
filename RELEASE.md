@@ -3,7 +3,7 @@ Releasing a new version
 
 1. Make sure that Travis is passing.
 
-2. Update ``CHANGES.rst`` to make sure that all the changes are listed, and
+2. Update ``CHANGES.md`` to make sure that all the changes are listed, and
    update ``unreleased`` to the current date.
 
 3. Update the version number in ``setup.py``.
