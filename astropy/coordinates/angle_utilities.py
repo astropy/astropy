@@ -182,8 +182,9 @@ class _AngleParser(object):
         def p_hms(p):
             '''
             hms : sign UINT HOUR
-                | sign UINT HOUR UINT
+                | sign UINT HOUR ufloat
                 | sign UINT HOUR UINT MINUTE
+                | sign UINT HOUR UFLOAT MINUTE
                 | sign UINT HOUR UINT MINUTE ufloat
                 | sign UINT HOUR UINT MINUTE ufloat SECOND
                 | generic HOUR
@@ -200,8 +201,9 @@ class _AngleParser(object):
         def p_dms(p):
             '''
             dms : sign UINT DEGREE
-                | sign UINT DEGREE UINT
+                | sign UINT DEGREE ufloat
                 | sign UINT DEGREE UINT MINUTE
+                | sign UINT DEGREE UFLOAT MINUTE
                 | sign UINT DEGREE UINT MINUTE ufloat
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND
                 | generic DEGREE
