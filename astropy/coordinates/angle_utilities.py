@@ -374,14 +374,12 @@ def dms_to_degrees(d, m, s=0):
     # determine sign
     sign = np.copysign(1.0, d)
 
-    # TODO: This will fail if d or m have values after the decimal
-    # place
     try:
-        d = np.floor(np.abs(np.asarray(d)))
+        d = np.floor(np.abs(d))
         if np.isscalar(s) and s == 0:
             m = np.abs(m)
         else:
-            m = np.floor(np.abs(np.asarray(m)))
+            m = np.floor(np.abs(m))
         s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
@@ -401,15 +399,12 @@ def hms_to_hours(h, m, s=0):
     # determine sign
     sign = np.copysign(1.0, h)
 
-    # TODO: This will fail if d or m have values after the decimal
-    # place
-
     try:
         h = np.floor(np.abs(h))
         if np.isscalar(s) and s == 0:
             m = np.abs(m)
         else:
-            m = np.floor(np.abs(np.asarray(m)))
+            m = np.floor(np.abs(m))
         s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
