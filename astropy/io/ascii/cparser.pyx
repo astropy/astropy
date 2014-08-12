@@ -126,10 +126,14 @@ cdef class FileString:
     def splitlines(self):
         line = ''
         for i in range(self.mmap.len):
-            if i != self.mmap.len - 1 and self.mmap.ptr[i] == '\r' \
-               and self.mmap.ptr[i + 1] == '\n':
-                i += 1
-            if self.mmap.ptr[i] == '\n':
+            if self.mmap.ptr[i] == '\r':
+                # Windows line break (\r\n)
+                if i != self.mmap.len - 1 and self.mmap.ptr[i + 1] == '\n':
+                    continue
+                else: # Carriage return line break
+                    yield line
+                    line = ''
+            elif self.mmap.ptr[i] == '\n':
                 yield line
                 line = ''
             else:
@@ -375,7 +379,7 @@ cdef class CParser:
                 break
 
         self._set_fill_values()
-        chunkindices.append(source_len) #TODO: figure out correct chunkindices
+        chunkindices.append(source_len)
         cdef list processes = []
 
         for i in range(N):

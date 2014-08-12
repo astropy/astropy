@@ -682,3 +682,14 @@ def test_line_endings():
     for newline in ('\r\n', '\r'):
         table = read_basic(text.replace('\n', newline))
         assert_table_equal(table, expected)
+
+    # Make sure the splitlines() method of FileString
+    # works with CR/CR+LF line endings
+    text = '#' + text
+    for newline in ('\r\n', '\r'):
+        table = read_commented_header(text.replace('\n', newline))
+        assert_table_equal(table, expected)
+    text = 'a\tb\tc\nN\tN\tN\n1\t2\t3\n4\t5\t6\n7\t8\t9\n'
+    for newline in ('\r\n', '\r'):
+        table = read_rdb(text.replace('\n', newline))
+        assert_table_equal(table, expected)

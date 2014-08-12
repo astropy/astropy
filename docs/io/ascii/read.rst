@@ -129,6 +129,14 @@ Parameters for ``read()``
 **use_fast_reader**: whether to use the C engine for reading if possible
   (see :ref:`fast_ascii_io`)
 
+**parallel**: True, int, or None
+  This enables multiprocessing in the fast reader and specifies
+  the number of processes to use. True is equivalent to the number
+  of cores available on the machine.
+
+**use_fast_converter**: whether the fast reader should use the faster but
+  potentially less accurate converter for floating-point values
+
 **Reader** : Reader class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table, for example
   if it is a basic character delimited table, fixed format table, or

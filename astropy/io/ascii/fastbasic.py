@@ -194,7 +194,7 @@ class FastCommentedHeader(FastBasic):
         tmp = self.engine.source
         commented_lines = []
 
-        for line in tmp.splitlines(): #TODO: handle Windows line breaks
+        for line in tmp.splitlines():
             line = line.lstrip()
             if line:
                 if line[0] == self.comment: # line begins with a comment
