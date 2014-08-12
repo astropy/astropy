@@ -151,6 +151,18 @@ angular coordinate axes, while the ``x...`` format or valid Python formats
 <https://docs.python.org/2/library/stdtypes.html#string-formatting>`_) should
 be used for non-angular coordinate axes.
 
+The separators for angular coordinate tick labels can also be set by
+specifying a string or a tuple.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_separator(('d', "'", '"'))
+    lat.set_separator(':-s')
+
+
 Tick/label spacing and properties
 =================================
 
@@ -190,6 +202,24 @@ We can apply this to the previous example:
     from astropy import units as u
     lon.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
     lat.set_ticks(spacing=10 * u.arcmin, color='white', exclude_overlapping=True)
+
+Minor ticks
+===========
+
+WCSAxes does not display minor ticks by default but these can be shown by
+using the
+:meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.display_minor_ticks`
+method. The default frequency of minor ticks is 5 but this can also be
+specified.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.display_minor_ticks(True)
+    lat.display_minor_ticks(True)
+    lat.set_minor_frequency(10)
 
 Tick, tick label, and axis label position
 =========================================
