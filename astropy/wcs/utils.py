@@ -86,7 +86,20 @@ def _wcs_to_celestial_frame_builtin(wcs):
     return frame
 
 
-WCS_FRAME_MAPPINGS = [_wcs_to_celestial_frame_builtin]
+WCS_FRAME_MAPPINGS = [[_wcs_to_celestial_frame_builtin]]
+
+
+class custom_frame_mappings(object):
+    def __init__(self, mappings=[]):
+        if hasattr(mappings, '__call__'):
+            mappings = [mappings]
+        WCS_FRAME_MAPPINGS.append(mappings)
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):
+        WCS_FRAME_MAPPINGS.pop()
 
 
 def wcs_to_celestial_frame(wcs):
@@ -111,14 +124,16 @@ def wcs_to_celestial_frame(wcs):
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a :class:`~astropy.wcs.WCS`
     instance and should return either an instance of a frame, or `None` if no
-    matching frame was found. You can register this function with::
+    matching frame was found. You can register this function temporarily with::
 
-    >>> from astropy.wcs.utils import WCS_FRAME_MAPPINGS
-    >>> WCS_FRAME_MAPPINGS.append(my_function)
+    >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
+    >>> with custom_frame_mappings(my_function):
+    ...     wcs_to_celestial_frame(...)
     """
-    for func in WCS_FRAME_MAPPINGS:
-        frame = func(wcs)
-        if frame is not None:
-            return frame
+    for mapping_set in WCS_FRAME_MAPPINGS:
+        for func in mapping_set:
+            frame = func(wcs)
+            if frame is not None:
+                return frame
     raise ValueError("Could not determine celestial frame corresponding to "
                      "the specified WCS object")

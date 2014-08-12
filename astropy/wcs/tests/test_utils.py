@@ -201,7 +201,7 @@ def test_wcs_to_celestial_frame_extend():
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
     with pytest.raises(ValueError):
-        assert utils.wcs_to_celestial_frame(mywcs) is None
+        utils.wcs_to_celestial_frame(mywcs)
 
     class OffsetFrame(object):
         pass
@@ -210,11 +210,12 @@ def test_wcs_to_celestial_frame_extend():
         if wcs.wcs.ctype[0].endswith('OFFSET') and wcs.wcs.ctype[1].endswith('OFFSET'):
             return OffsetFrame()
 
-    from ..utils import WCS_FRAME_MAPPINGS
+    from ..utils import custom_frame_mappings
 
-    try:
-        WCS_FRAME_MAPPINGS.append(identify_offset)
+    with custom_frame_mappings(identify_offset):
         frame = utils.wcs_to_celestial_frame(mywcs)
-        assert isinstance(frame, OffsetFrame)
-    finally:
-        WCS_FRAME_MAPPINGS.remove(identify_offset)
+    assert isinstance(frame, OffsetFrame)
+
+    # Check that things are back to normal after the context manager
+    with pytest.raises(ValueError):
+        utils.wcs_to_celestial_frame(mywcs)
