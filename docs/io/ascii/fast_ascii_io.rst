@@ -93,26 +93,22 @@ representable values, or 0.5 `ULP
 as well as the default fast reader, are guaranteed to convert floating-point
 values within 0.5 ULP, but there is also a faster and less accurate
 conversion method accessible via ``use_fast_converter=True``. If the input
-data has a fairly low number of significant figures, or if accuracy is
-relatively unimportant, this converter might be the best option in
+data has less than about 15 significant figures, or if accuracy is relatively
+unimportant, this converter might be the best option in
 performance-critical scenarios.
 
 `Here
-<http://nbviewer.ipython.org/github/amras1/ascii-profiling/blob/master/fast_conversion_profile.ipynb>`__
+<http://nbviewer.ipython.org/github/amras1/ascii-profiling/blob/master/conversion_profile.ipynb>`__
 is an IPython notebook analyzing the error of the fast converter, both in
-decimal values and in ULP's. The probability that conversion will be within
-1 ULP of the correct result drops and the maximum potential error increases
-as the number of significant figures increases. Here are some of the
-percentages of values within 1 ULP for different precisions:
-
- * 98.7% with 10 decimal values
- * 88.3% with 15 decimal values
- * 71.3% with 20 decimal values
- * 51.8% with 30 decimal values
+decimal values and in ULP. For values with a reasonably small number of
+significant figures, the fast converter is guaranteed to produce an optimal
+conversion (within 0.5 ULP). Once the number of significant figures exceeds
+the precision of 64-bit floating-point values, the fast converter is no
+longer guaranteed to be within 0.5 ULP, but about 60% of values end up
+within 0.5 ULP and about 90% within 1.0 ULP.
 
 Speed gains
 ^^^^^^^^^^^
-
 The fast ASCII engine was designed based on the general parsing strategy
 used in the `Pandas <http://pandas.pydata.org/>`__ data analysis library, so
 its performance is generally comparable (although slightly slower by

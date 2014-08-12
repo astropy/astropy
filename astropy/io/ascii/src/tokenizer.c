@@ -600,6 +600,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     int n;
     int num_digits;
     int num_decimals;
+    int max_digits = 17;
 
     errno = 0;
 
@@ -634,13 +635,17 @@ double xstrtod(const char *str, char **endptr, char decimal,
     {
         p++;
 
-        while (isdigit(*p))
+        while (num_digits < max_digits && isdigit(*p))
         {
             number = number * 10. + (*p - '0');
             p++;
             num_digits++;
             num_decimals++;
         }
+        
+        if (num_digits == max_digits) // consume extra decimal digits
+            while (isdigit(*p))
+                ++p;
 
         exponent -= num_decimals;
     }
@@ -679,35 +684,42 @@ double xstrtod(const char *str, char **endptr, char decimal,
             exponent += n;
     }
 
-
     if (exponent < DBL_MIN_EXP  || exponent > DBL_MAX_EXP)
     {
-
         errno = ERANGE;
         return HUGE_VAL;
     }
 
     // Scale the result
     p10 = 10.;
-    n = exponent;
-    if (n < 0) n = -n;
-    while (n)
+    // Cache some powers of 10 in memory
+    static double e[] = {1., 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10,
+                  1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20,
+                  1e21, 1e22, 1e23, 1e24, 1e25, 1e26, 1e27, 1e28, 1e29, 1e30,
+                  1e31, 1e32, 1e33, 1e34, 1e35, 1e36, 1e37, 1e38, 1e39, 1e40,
+                  1e41, 1e42, 1e43, 1e44, 1e45, 1e46, 1e47, 1e48, 1e49, 1e50};
+
+    if (exponent > 0)
     {
-        if (n & 1)
+        while (exponent > 50)
         {
-            if (exponent < 0)
-                number /= p10;
-            else
-                number *= p10;
+            number *= e[50];
+            exponent -= 50;
         }
-        n >>= 1;
-        p10 *= p10;
+    	number *= e[exponent];
+    }
+    else
+    {
+        while (exponent < -50)
+        {
+            number /= e[50];
+            exponent += 50;
+        }
+        number /= e[-exponent];
     }
 
-
-    if (number == HUGE_VAL) {
+    if (number == HUGE_VAL)
         errno = ERANGE;
-    }
 
     if (skip_trailing) {
         // Skip trailing whitespace
@@ -715,8 +727,6 @@ double xstrtod(const char *str, char **endptr, char decimal,
     }
 
     if (endptr) *endptr = p;
-
-
     return number;
 }
 
