@@ -99,3 +99,17 @@ which we can then use:
 
      # Clip the image to the frame
      im.set_clip_path(ax.coords.frame.patch)
+
+
+Frame properties
+================
+
+The color and linewidth of the frame can also be set by
+
+.. plot::
+    :context:
+    :include-source:
+    :align: center
+
+    ax.coords.frame.set_color('red')
+    ax.coords.frame.set_linewidth(2)
