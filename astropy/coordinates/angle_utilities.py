@@ -153,7 +153,7 @@ class _AngleParser(object):
                   | sign UINT COLON UINT COLON ufloat
             '''
             if len(p) == 5:
-                p[0] = (p[1] * p[2], p[4], 0.0)
+                p[0] = (p[1] * p[2], p[4])
             elif len(p) == 7:
                 p[0] = (p[1] * p[2], p[4], p[6])
 
@@ -163,7 +163,7 @@ class _AngleParser(object):
                    | sign UINT UINT ufloat
             '''
             if len(p) == 4:
-                p[0] = (p[1] * p[2], p[3], 0.0)
+                p[0] = (p[1] * p[2], p[3])
             elif len(p) == 5:
                 p[0] = (p[1] * p[2], p[3], p[4])
 
@@ -194,7 +194,7 @@ class _AngleParser(object):
             elif len(p) == 4:
                 p[0] = (p[1] * p[2], u.hourangle)
             elif len(p) in (5, 6):
-                p[0] = ((p[1] * p[2], p[4], 0.0), u.hourangle)
+                p[0] = ((p[1] * p[2], p[4]), u.hourangle)
             elif len(p) in (7, 8):
                 p[0] = ((p[1] * p[2], p[4], p[6]), u.hourangle)
 
@@ -213,7 +213,7 @@ class _AngleParser(object):
             elif len(p) == 4:
                 p[0] = (p[1] * p[2], u.degree)
             elif len(p) in (5, 6):
-                p[0] = ((p[1] * p[2], p[4], 0.0), u.degree)
+                p[0] = ((p[1] * p[2], p[4]), u.degree)
             elif len(p) in (7, 8):
                 p[0] = ((p[1] * p[2], p[4], p[6]), u.degree)
 
@@ -299,6 +299,8 @@ def _check_second_range(sec):
     """
     if np.any(sec == 60.):
         warn(IllegalSecondWarning(sec, 'Treating as 0 sec, +1 min'))
+    elif sec is None:
+        pass
     elif np.any(sec < -60.) or np.any(sec > 60.):
         # "Error: seconds not in range [-60,60) ({0}).".format(sec))
         raise IllegalSecondError(sec)
@@ -363,7 +365,7 @@ def degrees_to_dms(d):
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
-def dms_to_degrees(d, m, s=0):
+def dms_to_degrees(d, m, s=None):
     """
     Convert degrees, arcminute, arcsecond to a float degrees value.
     """
@@ -376,11 +378,12 @@ def dms_to_degrees(d, m, s=0):
 
     try:
         d = np.floor(np.abs(d))
-        if np.isscalar(s) and s == 0:
+        if s is None:
             m = np.abs(m)
+            s = 0
         else:
             m = np.floor(np.abs(m))
-        s = np.abs(s)
+            s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
             "{func}: dms values ({1[0]},{2[1]},{3[2]}) could not be "
@@ -389,7 +392,7 @@ def dms_to_degrees(d, m, s=0):
     return sign * (d + m / 60. + s / 3600.)
 
 
-def hms_to_hours(h, m, s=0):
+def hms_to_hours(h, m, s=None):
     """
     Convert hour, minute, second to a float hour value.
     """
@@ -401,11 +404,12 @@ def hms_to_hours(h, m, s=0):
 
     try:
         h = np.floor(np.abs(h))
-        if np.isscalar(s) and s == 0:
+        if s is None:
             m = np.abs(m)
+            s = 0
         else:
             m = np.floor(np.abs(m))
-        s = np.abs(s)
+            s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
             "{func}: HMS values ({1[0]},{2[1]},{3[2]}) could not be "
