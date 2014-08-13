@@ -1,5 +1,7 @@
 import pytest
 import os
+import shutil
+import tempfile
 import numpy as np
 from astropy import units as u
 import matplotlib.pyplot as plt
@@ -20,20 +22,14 @@ class BaseImageTests(object):
 
     @classmethod
     def setup_class(cls):
-        cls._filedir = os.path.abspath(__file__)
-        cls._basedir = os.path.split(cls._filedir)[0]
-        cls._baseline_images_dir = os.path.join(cls._basedir, 'baseline_images')
+        cls._basedir = tempfile.mkdtemp()
         cls._result_dir = os.path.abspath(os.path.join(cls._basedir, 'test_result_images'))
-        cls._data_dir = os.path.abspath(os.path.join(cls._basedir, 'data'))
 
-        if not os.path.exists(cls._result_dir):
-            cbook.mkdirs(cls._result_dir)
+        cls._moduledir = os.path.dirname(__file__)
+        cls._data_dir = os.path.abspath(os.path.join(cls._moduledir, 'data'))
+        cls._baseline_images_dir = os.path.abspath(os.path.join(cls._moduledir, 'baseline_images'))
 
-        if not os.path.exists(cls._baseline_images_dir):
-            cbook.mkdirs(cls._baseline_images_dir)
-
-        if not os.path.exists(cls._data_dir):
-            cbook.mkdirs(cls._data_dir)
+        cbook.mkdirs(cls._result_dir)
 
         cls._tolerance = 1.5
 
@@ -49,12 +45,17 @@ class BaseImageTests(object):
         cube_header = os.path.join(cls._data_dir, 'cube_header')
         cls.cube_header = fits.Header.fromtextfile(cube_header)
 
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls._basedir)
+
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, bbox_inches=None):
         baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
         test_image = os.path.abspath(os.path.join(self._result_dir, image))
-        if generate:
-            figure.savefig(baseline_image, bbox_inches=bbox_inches)
+
+        if generate is not None:
+            figure.savefig(os.path.abspath(os.path.join(generate, image)), bbox_inches=bbox_inches)
             pytest.skip("Skipping test, since generating data")
         else:
             figure.savefig(test_image, bbox_inches=bbox_inches)

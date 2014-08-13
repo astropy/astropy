@@ -14,7 +14,7 @@ from astropy.tests.helper import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption('--generate-reference', help="generate reference images", action="store_true")
+    parser.addoption('--generate-reference', help="directory to generate reference images in", action='store')
     return astropy_pytest_addoption(parser)
 
 
