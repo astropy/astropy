@@ -302,9 +302,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self.update()
 
                 with ignored(TypeError, AttributeError):
-                   # Make the ndarrays in the Column objects of the ColDefs
-                   # object of the HDU reference the same ndarray as the HDU's
-                   # FITS_rec object.
+                    # Make the ndarrays in the Column objects of the ColDefs
+                    # object of the HDU reference the same ndarray as the HDU's
+                    # FITS_rec object.
                     for idx in range(len(self.columns)):
                         self.columns[idx].array = self.data.field(idx)
 
@@ -392,9 +392,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             self.update()
 
             with ignored(TypeError, AttributeError):
-               # Make the ndarrays in the Column objects of the ColDefs
-               # object of the HDU reference the same ndarray as the HDU's
-               # FITS_rec object.
+                # Make the ndarrays in the Column objects of the ColDefs
+                # object of the HDU reference the same ndarray as the HDU's
+                # FITS_rec object.
                 for idx in range(len(self.columns)):
                     self.columns[idx].array = self.data.field(idx)
 
@@ -1032,8 +1032,9 @@ class BinTableHDU(_TableBaseHDU):
 
             # Process each column of the row.
             for column in self.columns:
-                vla_format = None   # format of data in a variable length array
-                                    # where None means it is not a VLA
+                # format of data in a variable length array
+                # where None means it is not a VLA:
+                vla_format = None
                 format = _convert_format(column.format)
 
                 if isinstance(format, _FormatP):

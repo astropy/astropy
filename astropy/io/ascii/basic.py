@@ -75,7 +75,7 @@ class Basic(core.BaseReader):
 class NoHeaderHeader(BasicHeader):
     '''Reader for table header without a header
 
-    Set the start of header line number to `None`, which tells the basic 
+    Set the start of header line number to `None`, which tells the basic
     reader there is no header line.
     '''
     start_line = None
@@ -163,7 +163,7 @@ class Tab(Basic):
     """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
     not stripped from the beginning and end of either lines or individual column
     values.
-    
+
     Example::
 
       col1 <tab> col2 <tab> col3

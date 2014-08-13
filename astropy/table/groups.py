@@ -217,7 +217,7 @@ class ColumnGroups(BaseGroups):
 
     def aggregate(self, func):
         from .column import MaskedColumn
-        
+
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
         masked = isinstance(par_col, MaskedColumn)

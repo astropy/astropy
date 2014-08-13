@@ -16,7 +16,7 @@ try:
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
-    
+
 if HAS_BEAUTIFUL_SOUP:
     files.append('t/html.html')
 

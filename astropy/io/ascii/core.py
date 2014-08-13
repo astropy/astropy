@@ -459,7 +459,7 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
-    # Currently, the default matches the numpy default for masked values. 
+    # Currently, the default matches the numpy default for masked values.
     fill_values = [(masked, '--')]
     formats = {}
 
@@ -471,7 +471,6 @@ class BaseData(object):
         self.fill_values = copy.copy(self.fill_values)
         self.formats = copy.copy(self.formats)
         self.splitter = self.splitter_class()
-
 
     def process_lines(self, lines):
         """Strip out comment lines and blank lines from list of ``lines``

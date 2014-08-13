@@ -388,7 +388,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     arrayshape = array.shape
     kernshape = kernel.shape
 
-    array_size_B = (np.product(arrayshape, dtype=np.int64) * 
+    array_size_B = (np.product(arrayshape, dtype=np.int64) *
                     np.dtype(complex_dtype).itemsize)
     if array_size_B > 1024**3 and not allow_huge:
         raise ValueError("Size Error: Arrays will be %s.  Use "
@@ -474,11 +474,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             newshape = np.array([np.max([imsh, kernsh])
                                  for imsh, kernsh in zip(arrayshape, kernshape)])
 
-    # For future reference, this can be used to predict "almost exactly" 
+    # For future reference, this can be used to predict "almost exactly"
     # how much *additional* memory will be used.
-    # size * (array + kernel + kernelfft + arrayfft + 
-    #         (kernel*array)fft + 
-    #         optional(weight image + weight_fft + weight_ifft) + 
+    # size * (array + kernel + kernelfft + arrayfft +
+    #         (kernel*array)fft +
+    #         optional(weight image + weight_fft + weight_ifft) +
     #         optional(returned_fft))
     #total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
     #                        * (5 + 3*((interpolate_nan or ignore_edge_zeros) and kernel_is_normalized))

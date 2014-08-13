@@ -58,4 +58,4 @@ def test_simple_subclass():
     assert str(row) == '(1, 3)'
     assert isinstance(t['col0'], MyMaskedColumn)
     assert isinstance(t.formatter, MyTableFormatter)
-    
+

@@ -608,9 +608,9 @@ def test_unmasked_masked_array_input():
     # Test for #2784
     marr = np.ma.array([1,2,5]) # Masked array with no masked entries
     nd = NDData(marr) # Before fix this raised a ValueError
-    
+
     # Check that masks are correct
-    assert marr.mask is np.ma.nomask  
+    assert marr.mask is np.ma.nomask
     assert nd.mask is None  # Internal representation is np.ma.nomask but getter returns None
 
 

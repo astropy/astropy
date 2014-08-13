@@ -37,7 +37,7 @@ def test_soupstring():
     """
     Test to make sure the class SoupString behaves properly.
     """
-    
+
     soup = BeautifulSoup('<html><head></head><body><p>foo</p></body></html>')
     soup_str = html.SoupString(soup)
     assert isinstance(soup_str, str)
@@ -49,7 +49,7 @@ def test_listwriter():
     """
     Test to make sure the class ListWriter behaves properly.
     """
-    
+
     lst = []
     writer = html.ListWriter(lst)
 
@@ -184,7 +184,7 @@ def test_htmlinputter_no_bs4():
     inputter = html.HTMLInputter()
     with pytest.raises(core.OptionalTableImportError):
         inputter.process_lines([])
-    
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter():
     """
@@ -198,14 +198,14 @@ def test_htmlinputter():
 
     inputter = html.HTMLInputter()
     inputter.html = {}
-    
+
     # In absence of table_id, defaults to the first table
     expected = ['<tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>',
                 '<tr><td>1</td><td>a</td><td>1.05</td></tr>',
                 '<tr><td>2</td><td>b</td><td>2.75</td></tr>',
                 '<tr><td>3</td><td>c</td><td>-1.25</td></tr>']
     assert [str(x) for x in inputter.get_lines(table)] == expected
-    
+
     # Should raise an InconsistentTableError if the table is not found
     inputter.html = {'table_id': 4}
     with pytest.raises(core.InconsistentTableError):
@@ -318,14 +318,14 @@ def test_htmldata():
            '<tr><td>4</td><td>d</td><td>10.5</td></tr>'
     assert str(lines[data.end_line(lines) - 1]) == \
            '<tr><td>6</td><td>f</td><td>-12.5</td></tr>'
-    
+
     inputter.html['table_id'] = 3
     lines = inputter.get_lines(table)
     assert str(lines[data.start_line(lines)]) == \
            '<tr><td>7</td><td>g</td><td>105.0</td></tr>'
     assert str(lines[data.end_line(lines) - 1]) == \
            '<tr><td>9</td><td>i</td><td>-125.0</td></tr>'
-    
+
     # start_line should raise an error if no table data exists
     lines = [html.SoupString(BeautifulSoup('<div></div>').div),
              html.SoupString(BeautifulSoup('<p>Text</p>').p)]

@@ -93,7 +93,7 @@ class FixedWidthHeader(basic.BasicHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns. 
+        Sets ``self.cols`` with the list of Columns.
 
         :param lines: list of table lines
         :returns: None
@@ -144,7 +144,7 @@ class FixedWidthHeader(basic.BasicHeader):
 
         self._set_cols_from_names()
 
-        # Set column start and end positions. 
+        # Set column start and end positions.
         for i, col in enumerate(self.cols):
             col.start = starts[i]
             col.end = ends[i]
