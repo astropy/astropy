@@ -30,6 +30,9 @@ class CdsHeader(core.BaseHeader):
                     'i': core.IntType,
                     'a': core.StrType}
 
+    'The ReadMe file to construct header from.'
+    readme = None
+
     def get_type_map_key(self, col):
         match = re.match(r'\d*(\S)', col.raw_type.lower())
         if not match:
@@ -37,20 +40,6 @@ class CdsHeader(core.BaseHeader):
                 col.raw_type, col.name))
         return match.group(1)
 
-    def __init__(self, readme=None):
-        """Initialize ReadMe filename.
-
-        :param readme: The ReadMe file to construct header from.
-        :type readme: String
-
-        CDS tables have their header information in a separate file
-        named "ReadMe". The ``get_cols`` method will read the contents
-        of the ReadMe file given by ``self.readme`` and set the various
-        properties needed to read the data file. The data file name
-        will be the ``table`` passed to the ``read`` method.
-        """
-        core.BaseHeader.__init__(self)
-        self.readme = readme
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a CDS
@@ -287,10 +276,12 @@ class Cds(core.BaseReader):
     _io_registry_can_write = False
     _description = 'CDS format table'
 
+    data_class = CdsData
+    header_class = CdsHeader
+
     def __init__(self, readme=None):
-        core.BaseReader.__init__(self)
-        self.header = CdsHeader(readme)
-        self.data = CdsData()
+        super(Cds, self).__init__()
+        self.header.readme = readme
 
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""

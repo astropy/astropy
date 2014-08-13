@@ -20,6 +20,10 @@ New Features
 
 - ``astropy.io.ascii``
 
+  - Simplify the way new Reader classes are defined, allowing custom behavior 
+    entirely by overriding inherited class attributes instead of setting 
+    instance attributes in the Reader ``__init__`` method. [#2812]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

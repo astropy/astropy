@@ -324,8 +324,91 @@ functionality to handle special cases.  To go beyond these simple examples the
 best reference is to read the code for the existing
 :ref:`extension_reader_classes`.
 
+**Define custom readers by class inheritance**
+
+The most useful way to define a new reader class is by inheritance.
+This is the way all the build-in readers are defined, so there are plenty
+of examples in the code.
+
+In most cases, you will define one class to handle the header,
+one class that handles the data and a reader class that ties it all together. 
+Here is a simple example from the code that defines a reader that is just like
+the basic reader, but header and data start in different lines of the file::
+
+  # Note: NoHeader is already included in astropy.io.ascii for convenience.
+  class NoHeaderHeader(BasicHeader):
+      '''Reader for table header without a header
+
+      Set the start of header line number to `None`, which tells the basic 
+      reader there is no header line.
+      '''
+      start_line = None
+
+  class NoHeaderData(BasicData):
+      '''Reader for table data without a header
+
+      Data starts at first uncommented line since there is no header line.
+      '''
+      start_line = 0
+
+  class NoHeader(Basic):
+      """Read a table with no header line.  Columns are autonamed using
+      header.auto_format which defaults to "col%d".  Otherwise this reader
+      the same as the :class:`Basic` class from which it is derived.  Example::
+
+        # Table data
+        1 2 "hello there"
+        3 4 world
+      """
+      _format_name = 'no_header'
+      _description = 'Basic table with no headers'
+      header_class = NoHeaderHeader
+      data_class = NoHeaderData
+
+In a slightly more involved case, the implementation can also override some of 
+the methods in the base class::
+
+  # Note: CommentedHeader is already included in astropy.io.ascii for convenience.
+  class CommentedHeaderHeader(BasicHeader):
+      """Header class for which the column definition line starts with the
+      comment character.  See the :class:`CommentedHeader` class  for an example.
+      """
+      def process_lines(self, lines):
+          """Return only lines that start with the comment regexp.  For these
+          lines strip out the matching characters."""
+          re_comment = re.compile(self.comment)
+          for line in lines:
+              match = re_comment.match(line)
+              if match:
+                  yield line[match.end():]
+
+      def write(self, lines):
+          lines.append(self.write_comment + self.splitter.join(self.colnames))
+
+
+  class CommentedHeader(Basic):
+      """Read a file where the column names are given in a line that begins with
+      the header comment character. ``header_start`` can be used to specify the
+      line index of column names, and it can be a negative index (for example -1
+      for the last commented line).  The default delimiter is the <space>
+      character.::
+
+        # col1 col2 col3
+        # Comment line
+        1 2 3
+        4 5 6
+      """
+      _format_name = 'commented_header'
+      _description = 'Column names in a commented line'
+
+      header_class = CommentedHeaderHeader
+      data_class = NoHeaderData
+
+
 **Define a custom reader functionally**
-::
+Instead of defining a new class, it is also possible to obtain an instance
+of a reader and then to modify the properties of this one reader instance
+in a function::
 
    def read_rdb_table(table):
        reader = astropy.io.ascii.Basic()
@@ -337,34 +420,6 @@ best reference is to read the code for the existing
 
        return reader.read(table)
 
-**Define custom readers by class inheritance**
-::
-
-   # Note: Tab, Csv, and Rdb are included in astropy.io.ascii for convenience.
-   class Tab(astropy.io.ascii.Basic):
-       def __init__(self):
-           astropy.io.ascii.Basic.__init__(self)
-           self.header.splitter.delimiter = '\t'
-           self.data.splitter.delimiter = '\t'
-           # Don't strip line whitespace since that includes tabs
-           self.header.splitter.process_line = None
-           self.data.splitter.process_line = None
-           # Don't strip data value spaces since that is significant in TSV tables
-           self.data.splitter.process_val = None
-           self.data.splitter.skipinitialspace = False
-
-   class Rdb(astropy.io.ascii.Tab):
-       def __init__(self):
-           astropy.io.ascii.Tab.__init__(self)
-           self.data.start_line = 2
-
-    class Csv(astropy.io.ascii.Basic):
-        def __init(self):
-            astropy.io.ascii.Basic.__init__(self)
-            self.data.splitter.delimiter = ','
-            self.header.splitter.delimiter = ','
-            self.header.start_line = 0
-            self.data.start_line = 1
 
 **Create a custom splitter.process_val function**
 ::
