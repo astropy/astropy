@@ -7,8 +7,6 @@ A collection of different unit formats.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from inspect import isclass
-
 from .base import Base
 from .generic import Generic, Unscaled
 from .cds import CDS
@@ -18,6 +16,8 @@ from .latex import Latex
 from .ogip import OGIP
 from .unicode_format import Unicode
 from .vounit import VOUnit
+
+from ...extern.six import string_types
 
 __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
@@ -43,11 +43,19 @@ def get_format(format=None):
         return format()
     elif isinstance(format, Base):
         return format
+    elif not isinstance(format, string_types):
+        raise TypeError(
+            "Formatter must a subclass or instance of a subclass of {0!r} "
+            "or a string giving the name of the formatter.  Valid formatter "
+            "names are: [{1}]".format(Base, ', '.join(Base.registry)))
 
     if format is None:
         format = 'generic'
 
-    if format in Base.registry:
-        return Base.registry[format]()
+    format_lower = format.lower()
 
-    raise ValueError("Unknown format {0!r}".format(format))
+    if format_lower in Base.registry:
+        return Base.registry[format_lower]()
+
+    raise ValueError("Unknown format {0!r}.  Valid formatter names are: "
+                     "[{1}]".format(format, ', '.join(Base.registry)))
