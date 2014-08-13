@@ -23,10 +23,6 @@ __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
     'Unscaled', 'VOUnit', 'get_format']
 
-FORMATS = [
-    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'OGIP', 'Unicode',
-    'Unscaled', 'VOUnit']
-
 
 def get_format(format=None):
     """
@@ -50,9 +46,8 @@ def get_format(format=None):
 
     if format is None:
         format = 'generic'
-    format = format.lower()
-    for key in FORMATS:
-        val = globals()[key]
-        if isclass(val) and (issubclass(val, Base) and key.lower() == format.lower()):
-            return val()
+
+    if format in Base.registry:
+        return Base.registry[format]()
+
     raise ValueError("Unknown format {0!r}".format(format))
