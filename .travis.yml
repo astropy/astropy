@@ -3,7 +3,6 @@ language: python
 python:
     - 2.6
     - 2.7
-    - 3.2
     - 3.3
     - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
@@ -33,8 +32,6 @@ matrix:
           env: SETUP_CMD='test'
         - python: 2.7
           env: SETUP_CMD='test'
-        - python: 3.2
-          env: SETUP_CMD='test'
         - python: 3.3
           env: SETUP_CMD='test'
         - python: 3.4
@@ -47,8 +44,6 @@ matrix:
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try older numpy versions
-        - python: 3.2
-          env: NUMPY_VERSION=1.6 SETUP_CMD='test'
         - python: 2.7
           env: NUMPY_VERSION=1.7 SETUP_CMD='test'
         - python: 2.7

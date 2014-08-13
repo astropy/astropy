@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import inspect
 import os
 import sys
 import logging
@@ -11,7 +12,7 @@ from contextlib import contextmanager
 
 from . import config as _config
 from . import conf as _conf
-from .utils.compat import inspect_getmodule
+from .extern.six import PY3
 from .utils.console import color_print
 from .utils.misc import find_current_module
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
@@ -162,14 +163,13 @@ class AstropyLogger(Logger):
                 extra['origin'] = current_module.__name__
             else:
                 extra['origin'] = 'unknown'
-        if sys.version_info[0] < 3 or \
-           (sys.version_info[0] == 3 and sys.version_info[1] < 2):
-            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
-                                     args, exc_info, func=func, extra=extra)
-        else:
+        if PY3:
             return Logger.makeRecord(self, name, level, pathname, lineno, msg,
                                      args, exc_info, func=func, extra=extra,
                                      sinfo=sinfo)
+        else:
+            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
+                                     args, exc_info, func=func, extra=extra)
 
     _showwarning_orig = None
 
@@ -198,22 +198,22 @@ class AstropyLogger(Logger):
         # module.__file__ is the original source file name, so things
         # are more direct.
         mod_name = None
-        if sys.version_info[0] < 3:  # pragma: py2
+        if PY3:
+            mod_path, ext = os.path.splitext(mod_path)
             for name, mod in sys.modules.items():
                 try:
                     # Believe it or not this can fail in some cases:
                     # https://github.com/astropy/astropy/issues/2671
-                    if getattr(mod, '__file__', '') == mod_path:
-                        mod_name = mod.__name__
-                        break
+                    path = os.path.splitext(getattr(mod, '__file__', ''))[0]
                 except:
                     continue
-        else:  # pragma: py3
-            mod_path, ext = os.path.splitext(mod_path)
+                if path == mod_path:
+                    mod_name = mod.__name__
+                    break
+        else:  # pragma: py2
             for name, mod in sys.modules.items():
                 try:
-                    path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-                    if path == mod_path:
+                    if getattr(mod, '__file__', '') == mod_path:
                         mod_name = mod.__name__
                         break
                 except:
@@ -270,7 +270,7 @@ class AstropyLogger(Logger):
             tb = traceback
             while tb.tb_next is not None:
                 tb = tb.tb_next
-            mod = inspect_getmodule(tb)
+            mod = inspect.getmodule(tb)
 
         # include the the error type in the message.
         if len(value.args) > 0:

@@ -116,10 +116,6 @@ def find_current_module(depth=1, finddiff=False):
 
     """
 
-    # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
-    # is broken if the list of modules changes during import
-    from .compat import inspect_getmodule
-
     frm = inspect.currentframe()
     for i in range(depth):
         frm = frm.f_back
@@ -127,7 +123,7 @@ def find_current_module(depth=1, finddiff=False):
             return None
 
     if finddiff:
-        currmod = inspect_getmodule(frm)
+        currmod = inspect.getmodule(frm)
         if finddiff is True:
             diffmods = [currmod]
         else:
@@ -144,12 +140,12 @@ def find_current_module(depth=1, finddiff=False):
 
         while frm:
             frmb = frm.f_back
-            modb = inspect_getmodule(frmb)
+            modb = inspect.getmodule(frmb)
             if modb not in diffmods:
                 return modb
             frm = frmb
     else:
-        return inspect_getmodule(frm)
+        return inspect.getmodule(frm)
 
 
 def find_mod_objs(modname, onlylocals=False):
