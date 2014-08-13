@@ -86,9 +86,6 @@ cdef extern from "src/tokenizer.h":
     memory_map *get_mmap(char *fname)
     void free_mmap(memory_map *mmap)
 
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
 class CParserError(Exception):
     """
     An instance of this class is thrown when an error occurs
@@ -142,22 +139,15 @@ cdef class FileString:
                     # Windows line break (\r\n)
                     if line_end != self.mmap.len - 1 and \
                        self.mmap.ptr[line_end + 1] == '\n':
-                        # return self.mmap.ptr[line_start:line_end]
-                        slice_ptr = self.mmap.ptr + line_start
-                        yield PyString_FromStringAndSize(slice_ptr,
-                                                         line_end - line_start)
+                        yield self.mmap.ptr[line_start:line_end]
                         # skip newline character
                         line_end += 1
                         break
                     else: # Carriage return line break
-                        slice_ptr = self.mmap.ptr + line_start
-                        yield PyString_FromStringAndSize(slice_ptr,
-                                                         line_end - line_start)
+                        yield self.mmap.ptr[line_start:line_end]
                         break
                 elif self.mmap.ptr[line_end] == '\n':
-                    slice_ptr = self.mmap.ptr + line_start
-                    yield PyString_FromStringAndSize(slice_ptr,
-                                                     line_end - line_start)
+                    yield self.mmap.ptr[line_start:line_end]
                     break
                 line_end += 1
             else: # done with input
