@@ -427,7 +427,7 @@ for the ``data`` argument.
     ``data`` list provides a row of data values and must be a dict.  The
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
-    to specify colum ordering.  If it is not provided, the column order will
+    to specify column ordering.  If it is not provided, the column order will
     default to alphabetical.  The ``dtype`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
