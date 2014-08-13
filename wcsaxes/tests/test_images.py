@@ -12,24 +12,17 @@ from ..rc_utils import rc_context
 from astropy.wcs import WCS
 from astropy.io import fits
 from wcsaxes import WCSAxes
-from matplotlib import cbook
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
 
 class BaseImageTests(object):
-
     @classmethod
     def setup_class(cls):
-        cls._basedir = tempfile.mkdtemp()
-        cls._result_dir = os.path.abspath(os.path.join(cls._basedir, 'test_result_images'))
-
         cls._moduledir = os.path.dirname(__file__)
         cls._data_dir = os.path.abspath(os.path.join(cls._moduledir, 'data'))
         cls._baseline_images_dir = os.path.abspath(os.path.join(cls._moduledir, 'baseline_images'))
-
-        cbook.mkdirs(cls._result_dir)
 
         cls._tolerance = 1.5
 
@@ -45,23 +38,23 @@ class BaseImageTests(object):
         cube_header = os.path.join(cls._data_dir, 'cube_header')
         cls.cube_header = fits.Header.fromtextfile(cube_header)
 
-    @classmethod
-    def teardown_class(cls):
-        shutil.rmtree(cls._basedir)
-
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, bbox_inches=None):
-        baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
-        test_image = os.path.abspath(os.path.join(self._result_dir, image))
+        if generate is None:
+            result_dir = tempfile.mkdtemp()
+            test_image = os.path.abspath(os.path.join(result_dir, image))
+            baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
 
-        if generate is not None:
-            figure.savefig(os.path.abspath(os.path.join(generate, image)), bbox_inches=bbox_inches)
-            pytest.skip("Skipping test, since generating data")
-        else:
             figure.savefig(test_image, bbox_inches=bbox_inches)
             msg = compare_images(baseline_image, test_image, tol=self._tolerance)
-            assert msg is None
 
+            if msg is None:
+                shutil.rmtree(result_dir)
+            else:
+                raise Exception(msg)
+        else:
+            figure.savefig(os.path.abspath(os.path.join(generate, image)), bbox_inches=bbox_inches)
+            pytest.skip("Skipping test, since generating data")
 
 class TestBasic(BaseImageTests):
 
