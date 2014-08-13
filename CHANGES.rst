@@ -146,6 +146,10 @@ Other Changes and Additions
   - Overwriting an existing file using the ``clobber=True`` option no longer
     displays a warning message. [#1963]
 
+  - ``fits.open`` no longer catches ``OSError`` exceptions on missing or
+    unreadable files-- instead it raises the standard Python exceptions in such
+    cases. [#2756, #2785]
+
 - Updated the bundled ``six`` module to version 1.7.3 and made 1.7.3 the
   minimum acceptable version of ``six``. [#2814]
 
