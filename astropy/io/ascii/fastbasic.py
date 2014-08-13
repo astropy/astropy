@@ -196,9 +196,10 @@ class FastCommentedHeader(FastBasic):
 
         for line in tmp.splitlines():
             line = line.lstrip()
-            if line:
-                if line[0] == self.comment: # line begins with a comment
-                    commented_lines.append(line[1:])
+            if line and line[0] == self.comment: # line begins with a comment
+                commented_lines.append(line[1:])
+                if len(commented_lines) == self.header_start + 1:
+                    break
 
         self.engine.setup_tokenizer([commented_lines[self.header_start]])
         self.engine.header_start = 0

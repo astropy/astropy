@@ -86,6 +86,9 @@ cdef extern from "src/tokenizer.h":
     memory_map *get_mmap(char *fname)
     void free_mmap(memory_map *mmap)
 
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
 class CParserError(Exception):
     """
     An instance of this class is thrown when an error occurs
@@ -124,20 +127,42 @@ cdef class FileString:
         return chr(self.mmap.ptr[i])
 
     def splitlines(self):
-        line = ''
-        for i in range(self.mmap.len):
-            if self.mmap.ptr[i] == '\r':
-                # Windows line break (\r\n)
-                if i != self.mmap.len - 1 and self.mmap.ptr[i + 1] == '\n':
-                    continue
-                else: # Carriage return line break
-                    yield line
-                    line = ''
-            elif self.mmap.ptr[i] == '\n':
-                yield line
-                line = ''
-            else:
-                line += chr(self.mmap.ptr[i])
+        """
+        Return a generator yielding lines from the memory map.
+        """
+        cdef int line_start = 0
+        cdef int line_end
+        cdef char *slice_ptr
+
+        while True:
+            line_end = line_start + 1 # start with the next character
+
+            while line_end < self.mmap.len:
+                if self.mmap.ptr[line_end] == '\r':
+                    # Windows line break (\r\n)
+                    if line_end != self.mmap.len - 1 and \
+                       self.mmap.ptr[line_end + 1] == '\n':
+                        # return self.mmap.ptr[line_start:line_end]
+                        slice_ptr = self.mmap.ptr + line_start
+                        yield PyString_FromStringAndSize(slice_ptr,
+                                                         line_end - line_start)
+                        # skip newline character
+                        line_end += 1
+                        break
+                    else: # Carriage return line break
+                        slice_ptr = self.mmap.ptr + line_start
+                        yield PyString_FromStringAndSize(slice_ptr,
+                                                         line_end - line_start)
+                        break
+                elif self.mmap.ptr[line_end] == '\n':
+                    slice_ptr = self.mmap.ptr + line_start
+                    yield PyString_FromStringAndSize(slice_ptr,
+                                                     line_end - line_start)
+                    break
+                line_end += 1
+            else: # done with input
+                return
+            line_start = line_end
 
 cdef class CParser:
     """
