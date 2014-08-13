@@ -96,7 +96,7 @@ class Latex(base.Base):
 
         return r'$\mathrm{{{0}}}$'.format(s)
 
-class Latex_inline(Latex):
+class LatexInline(Latex):
     """
     Output LaTeX to display the unit based on IAU style guidelines with negative
     powers.
@@ -106,6 +106,7 @@ class Latex_inline(Latex):
     `ApJ and AJ style guide
     <http://aas.org/authors/manuscript-preparation-aj-apj-author-instructions>`_.
     """
+    name = 'latex_inline'
 
     def _format_bases(self, unit):
         return self._format_unit_list(zip(unit.bases, unit.powers))

@@ -12,7 +12,7 @@ from .generic import Generic, Unscaled
 from .cds import CDS
 from .console import Console
 from .fits import Fits
-from .latex import Latex, Latex_inline
+from .latex import Latex, LatexInline
 from .ogip import OGIP
 from .unicode_format import Unicode
 from .vounit import VOUnit
@@ -20,7 +20,7 @@ from .vounit import VOUnit
 from ...extern.six import string_types
 
 __all__ = [
-    'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Latex_inline',
+    'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'LatexInline',
     'OGIP', 'Unicode', 'Unscaled', 'VOUnit', 'get_format']
 
 def get_format(format=None):
