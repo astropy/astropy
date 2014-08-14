@@ -71,6 +71,10 @@ API Changes
 
 - ``astropy.io.ascii``
 
+  - Added a new argument to ``htmldict`` in the HTML reader named
+    ``parser``, which allows the user to specify which parser
+    BeautifulSoup should use as a backend. [#2815]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

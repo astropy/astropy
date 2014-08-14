@@ -27,7 +27,7 @@ except ImportError:
 # Check to see if the BeautifulSoup dependency is present.
 
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup, FeatureNotFound
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
@@ -173,6 +173,26 @@ def test_identify_table_fail():
                    guess=False)
     assert str(err).endswith("ERROR: HTML table number 3 not found")
 
+
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_backend_parsers():
+    """
+    Make sure the user can specify which back-end parser to use
+    and that an error is raised if the parser is invalid.
+    """
+    for parser in ('lxml', 'xml', 'html.parser', 'html5lib'):
+        try:
+            table = Table.read('t/html2.html', format='ascii.html',
+                               htmldict={'parser': parser}, guess=False)
+        except FeatureNotFound:
+            if parser == 'html.parser':
+                raise
+            # otherwise ignore if the dependency isn't present
+
+    # reading should fail if the parser is invalid
+    with pytest.raises(FeatureNotFound):
+        Table.read('t/html2.html', format='ascii.html',
+                   htmldict={'parser': 'foo'}, guess=False)
 
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():

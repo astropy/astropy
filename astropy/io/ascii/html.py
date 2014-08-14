@@ -82,7 +82,10 @@ class HTMLInputter(core.BaseInputter):
             raise core.OptionalTableImportError('BeautifulSoup must be '
                                         'installed to read HTML tables')
 
-        soup = BeautifulSoup('\n'.join(lines))
+        if 'parser' not in self.html:
+            soup = BeautifulSoup('\n'.join(lines))
+        else: # use a custom backend parser
+            soup = BeautifulSoup('\n'.join(lines), self.html['parser'])
         tables = soup.find_all('table')
         for i, possible_table in enumerate(tables):
             if identify_table(possible_table, self.html, i + 1):
@@ -262,6 +265,14 @@ class HTML(core.BaseReader):
             use the syntax 1.36583e-13 .. 1.36583e-13 for output. If not
             present, this parameter will be true by default.
 
+        * parser : Specific HTML parsing library to use
+            If specified, this specifies which HTML parsing library
+            BeautifulSoup should use as a backend. The options to choose
+            from are 'html.parser' (the standard library parser), 'lxml'
+            (the recommended parser), 'xml' (lxml's XML parser), and
+            'html5lib'. html5lib is a highly lenient parser and therefore
+            might work correctly for unusual input if a different parser
+            fails.
     """
 
     _format_name = 'html'
