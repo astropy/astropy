@@ -339,6 +339,8 @@ def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
     if mod:
         filename = mod.__file__
         modname = mod.__name__
+        if filename.endswith('.pyc'):
+            filename = os.path.splitext(filename)[0] + '.py'
     else:
         filename = '<string>'
         modname = '__main__'
