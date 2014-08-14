@@ -525,7 +525,6 @@ double str_to_double(tokenizer_t *self, char *str)
     if (self->use_fast_converter)
     {
         val = xstrtod(str, &tmp, '.', 'E', ',', 1);
-
         if (*tmp)
             self->code = CONVERSION_ERROR;
         else if (errno == ERANGE)
@@ -636,7 +635,6 @@ double xstrtod(const char *str, char **endptr, char decimal,
                          1e281, 1e282, 1e283, 1e284, 1e285, 1e286, 1e287, 1e288, 1e289, 1e290,
                          1e291, 1e292, 1e293, 1e294, 1e295, 1e296, 1e297, 1e298, 1e299, 1e300,
                          1e301, 1e302, 1e303, 1e304, 1e305, 1e306, 1e307, 1e308};
-
     errno = 0;
 
     // Skip leading whitespace
@@ -658,10 +656,15 @@ double xstrtod(const char *str, char **endptr, char decimal,
     // Process string of digits
     while (isdigit(*p))
     {
-        number = number * 10. + (*p - '0');
-        p++;
-        num_digits++;
+        if (num_digits < max_digits)
+        {
+            number = number * 10. + (*p - '0');
+            num_digits++;
+        }
+        else
+            ++exponent;
 
+        p++;
         p += (tsep != '\0' & *p == tsep);
     }
 
@@ -678,7 +681,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
             num_decimals++;
         }
         
-        if (num_digits == max_digits) // consume extra decimal digits
+        if (num_digits >= max_digits) // consume extra decimal digits
             while (isdigit(*p))
                 ++p;
 
@@ -719,18 +722,24 @@ double xstrtod(const char *str, char **endptr, char decimal,
             exponent += n;
     }
 
-    if (exponent < DBL_MIN_EXP  || exponent > DBL_MAX_EXP)
+    if (exponent > 308)
     {
         errno = ERANGE;
         return HUGE_VAL;
     }
-
-    if (exponent > 0)
+    else if (exponent > 0)
         number *= e[exponent];
+    else if (exponent < -308) // subnormal
+    {
+        if (exponent < -616) // prevent invalid array access
+            number = 0.;
+        number /= e[-308 - exponent];
+        number /= e[308];
+    }
     else
         number /= e[-exponent];
 
-    if (number == HUGE_VAL)
+    if (number == HUGE_VAL || number == -HUGE_VAL)
         errno = ERANGE;
 
     if (skip_trailing) {
