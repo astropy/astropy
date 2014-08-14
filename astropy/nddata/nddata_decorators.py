@@ -34,7 +34,7 @@ def expand_nddata_args(func):
     if func_args != ['data']:
         raise ValueError("Can only wrap functions that have a single positional data argument")
 
-    supported_properties = ['wcs', 'unit', 'uncertainty', 'mask', 'meta']
+    supported_properties = ['wcs', 'unit', 'uncertainty', 'mask']
 
     def wrapper(data, **kwargs):
 
@@ -57,7 +57,8 @@ def expand_nddata_args(func):
                                 warnings.warn("Property {0} has been passed explicitly and as an "
                                               "NDData property, using explicitly specified value".format(prop),
                                               AstropyUserWarning)
-                            kwargs[prop] = value
+                            else:
+                                kwargs[prop] = value
                         else:
                             ignored.append(prop)
 
