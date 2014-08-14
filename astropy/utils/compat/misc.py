@@ -143,7 +143,8 @@ if six.PY2:
         def wrapper(func):
             func = make_func_with_sig(func, args=args, kwargs=kwargs,
                                       varargs=wrapped_argspec.varargs,
-                                      varkwargs=wrapped_argspec.keywords)
+                                      varkwargs=wrapped_argspec.keywords,
+                                      name=wrapped.__name__)
             func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                             updated=updated)
             return func
@@ -175,7 +176,8 @@ elif sys.version_info[:2] < (3, 4):
         def wrapper(func):
             func = make_func_with_sig(func, args=args, kwargs=kwargs,
                                       varargs=wrapped_argspec.varargs,
-                                      varkwargs=wrapped_argspec.varkw)
+                                      varkwargs=wrapped_argspec.varkw,
+                                      name=wrapped.__name__)
             func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                             updated=updated)
             return func
