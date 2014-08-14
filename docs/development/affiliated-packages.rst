@@ -99,6 +99,10 @@ will be clear from context what to do with your particular VCS.
 * Edit this file (``README.rst``) and delete all of this content, and replace it
   with a short description of your affiliated package.
 
+*  Open ``docs/yourpkg/index.rst`` and you can start writing the documentation
+   for your package, but at least replace ``packagename`` in ``automodapi::``
+   with your package name.
+
 * Now tell git to remember the changes you just made::
 
     git commit -a -m "Adjusted for new project yourpkg"
