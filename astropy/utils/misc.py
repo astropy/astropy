@@ -328,14 +328,9 @@ def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
     def_signature = ''.join(def_signature).lstrip(', ')
     call_signature = ''.join(call_signature).lstrip(', ')
 
-    # The lstrip is in case there were *no* positional arguments (a rare case)
-    # in any context this will actually be used...
-    template = textwrap.dedent("""\
-    def {name}({sig1}):
-        return __{name}__func({sig2})
-    """.format(name=name, sig1=def_signature, sig2=call_signature))
-
     mod = find_current_module(2)
+    frm = inspect.currentframe().f_back
+
     if mod:
         filename = mod.__file__
         modname = mod.__name__
@@ -344,6 +339,19 @@ def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
     else:
         filename = '<string>'
         modname = '__main__'
+
+    # Subtract 2 from the line number since the length of the template itself
+    # is two lines.  Therefore we have to subtract those off in order for the
+    # pointer in tracebacks from __{name}__func to point to the right spot.
+    lineno = frm.f_lineno - 2
+
+    # The lstrip is in case there were *no* positional arguments (a rare case)
+    # in any context this will actually be used...
+    template = textwrap.dedent("""{0}\
+    def {name}({sig1}):
+        return __{name}__func({sig2})
+    """.format('\n' * lineno, name=name, sig1=def_signature,
+               sig2=call_signature))
 
     code = compile(template, filename, 'single')
 

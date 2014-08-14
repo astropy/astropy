@@ -5,6 +5,8 @@ from __future__ import (absolute_import, division, print_function,
 import json
 import os
 import pickle
+import sys
+import traceback
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
@@ -13,7 +15,7 @@ import numpy as np
 
 from .. import data, misc
 from ..exceptions import AstropyDeprecationWarning
-from ...tests.helper import remote_data, catch_warnings
+from ...tests.helper import remote_data, catch_warnings, pytest
 
 
 def test_pkg_finder():
@@ -70,6 +72,37 @@ def test_find_current_mod():
 
     with pytest.raises(ImportError):
         misc.find_current_module(0, ['faddfdsasewrweriopunjlfiurrhujnkflgwhu'])
+
+
+def test_make_func_with_sig_lineno():
+    """
+    Tests that a function made with ``make_func_with_sig`` is give the correct
+    line number into the module it was created from (i.e. the line
+    ``make_func_with_sig`` was called from).
+    """
+
+    def crashy_function(*args, **kwargs):
+        1 / 0
+
+    # Make a wrapper around this function with the signature:
+    # crashy_function(a, b)
+    # Note: the signature is not really relevant to this test
+    wrapped = misc.make_func_with_sig(crashy_function, ('a', 'b'))
+    line = "wrapped = misc.make_func_with_sig(crashy_function, ('a', 'b'))"
+
+    try:
+        wrapped(1, 2)
+    except:
+        exc_cls, exc, tb = sys.exc_info()
+        assert exc_cls is ZeroDivisionError
+        # The *last* line in the traceback should be the 1 / 0 line in
+        # crashy_function; the next line up should be the line that the
+        # make_func_with_sig call was one
+        tb_lines = traceback.format_tb(tb)
+        assert '1 / 0' in tb_lines[-1]
+        assert line in tb_lines[-2] and 'line =' not in tb_lines[-2]
+    else:
+        pytest.fail('This should have caused an exception')
 
 
 def test_isiterable():
