@@ -94,6 +94,18 @@ class TestConeSearch(object):
 
         assert tab.array.size > 0
 
+    def test_timeout(self):
+        """Test time out error."""
+        try:
+            with data.conf.set_temp('remote_timeout', 0.001):
+                tab = conesearch.conesearch(
+                    SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic,
+                    verbose=self.verbose, catalog_db=self.url)
+        except VOSError as e:
+            assert 'timed out' in str(e), 'test_timeout failed'
+        else:
+            raise Exception('test_timeout failed')
+
     def test_searches(self):
         tab_2 = conesearch.conesearch(
             SCS_CENTER, SCS_RADIUS, catalog_db=self.url,

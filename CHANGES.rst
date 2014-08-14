@@ -199,6 +199,8 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Improved error message on Cone Search time out. [#2687]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
