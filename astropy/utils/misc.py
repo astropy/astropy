@@ -248,7 +248,7 @@ the ASCII range and not beginning with '_' are allowed, currently.
 
 
 def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
-                       varkwargs=None):
+                       varkwargs=None, name=None):
     """
     Make a new function from an existing function but with the desired
     signature.
@@ -264,6 +264,10 @@ def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
     If ``varargs`` is a string it is added to the positional arguments as
     ``*<varargs>``.  Likewise ``varkwargs`` can be the name for a variable
     keyword argument placeholder like ``**<varkwargs>``.
+
+    If not specified the name of the new function is taken from the original
+    function.  Otherwise, the ``name`` argument can be used to specify a new
+    name.
 
     Note, the names may only be valid Python variable names.
     """
@@ -304,7 +308,8 @@ def make_func_with_sig(func, args=(), kwargs={}, varargs=None,
 
     call_signature = def_signature[:]
 
-    name = func.__name__
+    if name is None:
+        name = func.__name__
 
     global_vars = {'__{0}__func'.format(name): func}
     local_vars = {}
