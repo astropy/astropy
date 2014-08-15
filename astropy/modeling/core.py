@@ -31,7 +31,8 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from ..utils import deprecated, find_current_module, InheritDocstrings
+from ..utils import (deprecated, sharedmethod, find_current_module,
+                     InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, ExpressionTree,
@@ -75,6 +76,17 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             mcls.registry.add(cls)
 
         return cls
+
+    @property
+    def name(cls):
+        """
+        The name of this model class--equivalent to ``cls.__name__``.
+
+        This attribute is provided for symmetry with the `Model.name` attribute
+        of model instances.
+        """
+
+        return cls.__name__
 
     @property
     def n_inputs(cls):
@@ -305,9 +317,12 @@ class Model(object):
 
     Parameters
     ----------
-    param_dim : int
-        Number of parameter sets
-    fixed : dict
+    name : str, optional
+        A human-friendly name associated with this model instance
+        (particularly useful for identifying the individual components of a
+        compound model).
+
+    fixed : dict, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
         for one or more parameters.  `True` means the parameter is held fixed
         during fitting and is prevented from updates once an instance of the
@@ -315,7 +330,8 @@ class Model(object):
 
         Alternatively the `~astropy.modeling.Parameter.fixed` property of a
         parameter may be used to lock or unlock individual parameters.
-    tied : dict
+
+    tied : dict, optional
         Dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.
@@ -323,7 +339,8 @@ class Model(object):
         Alternatively the `~astropy.modeling.Parameter.tied` property of a
         parameter may be used to set the ``tied`` constraint on individual
         parameters.
-    bounds : dict
+
+    bounds : dict, optional
         Dictionary ``{parameter_name: value}`` of lower and upper bounds of
         parameters. Keys are parameter names. Values are a list of length 2
         giving the desired range for the parameter.
@@ -332,10 +349,12 @@ class Model(object):
         `~astropy.modeling.Parameter.max` or
         ~astropy.modeling.Parameter.bounds` properties of a parameter may be
         used to set bounds on individual parameters.
-    eqcons : list
+
+    eqcons : list, optional
         List of functions of length n such that ``eqcons[j](x0, *args) == 0.0``
         in a successfully optimized problem.
-    ineqcons : list
+
+    ineqcons : list, optional
         List of functions of length n such that ``ieqcons[j](x0, *args) >=
         0.0`` is a successfully optimized problem.
 
@@ -422,6 +441,9 @@ class Model(object):
         meta = kwargs.pop('meta', None)
         if meta is not None:
             self.meta = meta
+
+        self._name = kwargs.pop('name', None)
+
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
@@ -472,6 +494,12 @@ class Model(object):
         return _make_compound_model(self, other, '|')
 
     # *** Properties ***
+    @property
+    def name(self):
+        """User-provided name for this model instance."""
+
+        return self._name
+
     @property
     @deprecated('0.4', alternative='len(model)')
     def param_dim(self):
@@ -724,6 +752,16 @@ class Model(object):
         """
 
         return copy.deepcopy(self)
+
+    @sharedmethod
+    def rename(self, name):
+        """
+        Return a copy of this model with a new name.
+        """
+
+        new_model = self.copy()
+        new_model._name = name
+        return new_model
 
     # *** Internal methods ***
 
@@ -1003,29 +1041,25 @@ class Model(object):
 
         # TODO: I think this could be reworked to preset model sets better
 
-        parts = ['<{0}('.format(self.__class__.__name__)]
-
-        parts.append(', '.join(repr(a) for a in args))
-
-        if args:
-            parts.append(', ')
+        parts = [repr(a) for a in args]
 
         parts.append(', '.join(
             "{0}={1}".format(
                 name, array_repr_oneline(getattr(self, name).value))
             for name in self.param_names))
 
+        if self.name is not None:
+            parts.append('name={0!r}'.format(self.name))
+
         for kwarg, value in kwargs.items():
             if kwarg  in defaults and defaults[kwarg] != value:
                 continue
-            parts.append(', {0}={1!r}'.format(kwarg, value))
+            parts.append('{0}={1!r}'.format(kwarg, value))
 
         if len(self) > 1:
-            parts.append(", n_models={0}".format(len(self)))
+            parts.append("n_models={0}".format(len(self)))
 
-        parts.append(')>')
-
-        return ''.join(parts)
+        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
 
     def _format_str(self, keywords=[]):
         """
@@ -1038,13 +1072,15 @@ class Model(object):
 
         default_keywords = [
             ('Model', self.__class__.__name__),
+            ('Name', self.name),
             ('Inputs', self.n_inputs),
             ('Outputs', self.n_outputs),
             ('Model set size', len(self))
         ]
 
         parts = ['{0}: {1}'.format(keyword, value)
-                 for keyword, value in default_keywords + keywords]
+                 for keyword, value in default_keywords + keywords
+                 if value is not None]
 
         parts.append('Parameters:')
 

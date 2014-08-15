@@ -16,8 +16,8 @@ from .exceptions import (AstropyDeprecationWarning,
 from ..extern import six
 
 
-
-__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty', 'wraps']
+__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty',
+           'sharedmethod', 'wraps']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -378,6 +378,93 @@ class lazyproperty(object):
         cls_ns[property_name] = lazyproperty(*args)
 
         return cls_ns[property_name]
+
+
+class sharedmethod(object):
+    """
+    This is a method decorator that allows both an instancemethod and a
+    classmethod to share the same name.
+
+    When using `sharedmethod` on a method defined in a class's body, it
+    may be called on an instance, or on a class.  In the former case it
+    behaves like a normal instance method (a reference to the instance is
+    automatically passed as the first ``self`` argument of the method)::
+
+        >>> class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self, *args):
+        ...         print('self was', self)
+        ...         print('additional args were', args)
+        ...
+        >>> ex = Example()
+        >>> ex.identify(1, 2)
+        self was <astropy.utils.misc.Example object at 0x...>
+        additional args were (1, 2)
+
+    In the latter case, when the `sharedmethod` is called directly from a
+    class, it behaves like a `classmethod`::
+
+        >>> Example.identify(3, 4)
+        self was <class 'astropy.utils.misc.Example'>
+        additional args were (3, 4)
+
+    This also supports a more advanced usage, where the `classmethod`
+    implementation can be written separately.  If the class's *metaclass*
+    has a method of the same name as the `sharedmethod`, the version on
+    the metaclass is delegated to::
+
+        >>> from astropy.extern.six import add_metaclass
+        >>> class ExampleMeta(type):
+        ...     def identify(self):
+        ...         print('this implements the {0}.identify '
+        ...               'classmethod'.format(self.__name__))
+        ...
+        >>> @add_metaclass(ExampleMeta)
+        ... class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self):
+        ...         print('this implements the instancemethod')
+        ...
+        >>> Example().identify()
+        this implements the instancemethod
+        >>> Example.identify()
+        this implements the Example.identify classmethod
+    """
+
+    def __init__(self, func):
+        self._func = func
+        self._instancemethod = None
+        self._classmethod = None
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            if self._classmethod is None:
+                mcls = type(objtype)
+                clsmeth = getattr(mcls, self._func.__name__, None)
+                if callable(clsmeth):
+                    func = clsmeth
+                else:
+                    func = self._func
+
+                self._classmethod = self._make_wrapper(func, objtype)
+
+            return self._classmethod
+        else:
+            if self._instancemethod is None:
+                self._instancemethod = self._make_wrapper(self._func, obj)
+
+            return self._instancemethod
+
+    if six.PY3:
+        # The 'instancemethod' type of Python 2 and the method type of
+        # Python 3 have slightly different constructors
+        @staticmethod
+        def _make_wrapper(func, instance):
+            return types.MethodType(func, instance)
+    else:
+        @staticmethod
+        def _make_wrapper(func, instance):
+            return types.MethodType(func, instance, type(instance))
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
