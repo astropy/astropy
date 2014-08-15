@@ -33,7 +33,7 @@ from ..extern import six
 from ..extern.six.moves import urllib
 
 
-__all__ = ['find_current_module', 'isiterable', 'deprecated',
+__all__ = ['find_current_module', 'isiterable', 'wraps', 'deprecated',
            'make_func_with_sig', 'lazyproperty', 'deprecated_attribute',
            'silence', 'format_exception', 'NumpyRNGContext', 'find_api_page',
            'is_path_hidden', 'walk_skip_hidden', 'JsonCustomEncoder',
@@ -451,6 +451,77 @@ class lazyproperty(object):
         cls_ns[property_name] = lazyproperty(*args)
 
         return cls_ns[property_name]
+
+
+def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
+          updated=functools.WRAPPER_UPDATES):
+    """
+    An alternative to `functools.wraps` which also preserves the original
+    function's call signature by way of `make_func_with_sig`.
+
+    The documentation for the original `functools.wraps` follows:
+
+    """
+
+    def wrapper(func):
+        func = make_func_with_sig(func, name=wrapped.__name__,
+                                  **_get_function_args(wrapped))
+        func = functools.update_wrapper(func, wrapped, assigned=assigned,
+                                        updated=updated)
+        return func
+
+    return wrapper
+
+
+wraps.__doc__ += functools.wraps.__doc__
+
+
+if six.PY3:
+    def _get_function_args(func):
+        """
+        Utility function for `wraps`.
+
+        Reads the argspec for the given function and converts it to arguments
+        for `make_func_with_sig`.  This requires different implementations on
+        Python 2 versus Python 3.
+        """
+
+        argspec = inspect.getfullargspec(func)
+
+        if argspec.defaults:
+            args = argspec.args[:-len(argspec.defaults)]
+            kwargs = zip(argspec.args[len(args):], argspec.defaults)
+        else:
+            args = argspec.args
+            kwargs = []
+
+        if argspec.kwonlyargs:
+            kwargs.extend((argname, argspec.kwonlydefaults[argname])
+                          for argname in argspec.kwonlyargs)
+
+        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
+                'varkwargs': argspec.varkw}
+else:
+    def _get_function_args(func):
+        """
+        Utility function for `wraps`.
+
+        Reads the argspec for the given function and converts it to arguments
+        for `make_func_with_sig`.  This requires different implementations on
+        Python 2 versus Python 3.
+        """
+
+        argspec = inspect.getargspec(func)
+
+        if argspec.defaults:
+            args = argspec.args[:-len(argspec.defaults)]
+            kwargs = zip(argspec.args[len(args):], argspec.defaults)
+        else:
+            args = argspec.args
+            kwargs = {}
+
+        return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
+                'varkwargs': argspec.keywords}
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,

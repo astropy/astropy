@@ -29,7 +29,7 @@ from ...extern import six
 from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
-from ...utils.compat import wraps
+from ...utils import wraps
 from ...utils.exceptions import AstropyUserWarning
 
 

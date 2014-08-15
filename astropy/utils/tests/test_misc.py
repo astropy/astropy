@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
 import json
 import os
 import pickle
@@ -15,6 +16,7 @@ import numpy as np
 
 from .. import data, misc
 from ..exceptions import AstropyDeprecationWarning
+from ...extern import six
 from ...tests.helper import remote_data, catch_warnings, pytest
 
 
@@ -239,3 +241,37 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+
+def test_wraps():
+    """
+    Tests the compatibility replacement for functools.wraps which supports
+    argument preservation across all supported Python versions.
+    """
+
+    def foo(a, b, c=1, d=2, e=3, **kwargs):
+        """A test function."""
+
+        return a, b, c, d, e, kwargs
+
+    @misc.wraps(foo)
+    def bar(*args, **kwargs):
+        return ('test',) + foo(*args, **kwargs)
+
+    expected = ('test', 1, 2, 3, 4, 5, {'f': 6, 'g': 7})
+    assert bar(1, 2, 3, 4, 5, f=6, g=7) == expected
+    assert bar.__name__ == 'foo'
+    assert bar.__doc__ == "A test function."
+
+    if hasattr(foo, '__qualname__'):
+        assert bar.__qualname__ == foo.__qualname__
+
+    if six.PY2:
+        argspec = inspect.getargspec(bar)
+        assert argspec.keywords == 'kwargs'
+    else:
+        argspec = inspect.getfullargspec(bar)
+        assert argspec.varkw == 'kwargs'
+
+    assert argspec.args == ['a', 'b', 'c', 'd', 'e']
+    assert argspec.defaults == (1, 2, 3)
