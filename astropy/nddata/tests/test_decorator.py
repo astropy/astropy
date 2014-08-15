@@ -3,6 +3,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
+
 import numpy as np
 
 from ...tests.helper import catch_warnings, pytest
@@ -127,3 +129,20 @@ def test_wrap_function_no_kwargs():
     nddata_in = NDData(data_in)
 
     assert wrapped_function_5(nddata_in, [1, 2, 3]) is data_in
+
+
+@pytest.mark.xfail
+def test_wrap_preserve_signature_docstring():
+
+    @expand_nddata_args
+    def wrapped_function_6(data, wcs=None, unit=None):
+        """
+        An awesome function
+        """
+        pass
+
+    assert wrapped_function_6.__doc__.strip() == "An awesome function"
+
+    signature = inspect.formatargspec(*inspect.getargspec(wrapped_function_6))
+
+    assert signature == "(data, wcs=None, unit=None)"
