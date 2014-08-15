@@ -39,7 +39,6 @@ except ImportError:
             if self.fname:
                 rc_file(self.fname)
             if self.rcdict:
-                self.rcdict.update({"grid.alpha": 1.0})
                 rcParams.update(self.rcdict)
 
         def __enter__(self):

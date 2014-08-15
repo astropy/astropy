@@ -82,7 +82,7 @@ class CoordinateHelper(object):
                                   'edgecolor': rcParams['grid.color'],
                                   'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams['grid.alpha'],
+                                  'alpha': rcParams.get('grid.alpha', 1.0),
                                   'transform':self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
@@ -606,6 +606,10 @@ class CoordinateHelper(object):
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
     def _update_grid_contour(self):
+
+        if hasattr(self, '_grid'):
+            for line in self._grid.collections:
+                line.remove()
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
