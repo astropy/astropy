@@ -20,8 +20,8 @@ New Features
 
 - ``astropy.io.ascii``
 
-  - Simplify the way new Reader classes are defined, allowing custom behavior 
-    entirely by overriding inherited class attributes instead of setting 
+  - Simplify the way new Reader classes are defined, allowing custom behavior
+    entirely by overriding inherited class attributes instead of setting
     instance attributes in the Reader ``__init__`` method. [#2812]
 
 - ``astropy.io.fits``
@@ -172,6 +172,9 @@ Bug Fixes
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
+
+  - ``Angle`` accepts hours:mins or deg:mins initializers (without
+     seconds). In these cases float minutes are also accepted.
 
 - ``astropy.cosmology``
 
