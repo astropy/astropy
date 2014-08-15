@@ -764,7 +764,7 @@ class Model1DKernel(Kernel1D):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If model is not an instance of `~astropy.modeling.Fittable1DModel`
 
     See also
@@ -830,7 +830,7 @@ class Model2DKernel(Kernel2D):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If model is not an instance of `~astropy.modeling.Fittable2DModel`
 
     See also
@@ -886,7 +886,7 @@ class CustomKernel(Kernel):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If array is not a list or array.
     KernelSizeError
         If array size is even.

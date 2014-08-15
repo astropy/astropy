@@ -35,7 +35,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
 
     Raises
     ------
-    EOFError
+    EOFError : `~.exceptions.EOFError`
         If ``number`` is >0 and there are fewer than ``number`` objects in the
         pickled file.
 

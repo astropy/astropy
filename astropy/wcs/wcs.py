@@ -279,16 +279,16 @@ class WCS(WCSBase):
 
     Raises
     ------
-    MemoryError
+    MemoryError : `~.exceptions.MemoryError`
          Memory allocation failed.
 
-    ValueError
+    ValueError : `~.exceptions.ValueError`
          Invalid key.
 
-    KeyError
+    KeyError : `~.exceptions.KeyError`
          Key not found in FITS header.
 
-    AssertionError
+    AssertionError : `~.exceptions.AssertionError`
          Lookup table distortion present in the header but *fobj* was
          not provided.
 
@@ -1183,28 +1183,28 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        SingularMatrixError
+        SingularMatrixError : `~astropy.wcs.SingularMatrixError`
             Linear transformation matrix is singular.
 
-        InconsistentAxisTypesError
+        InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
             Inconsistent or unrecognized coordinate axis types.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid parameter value.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             x- and y-coordinate arrays are not the same size.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Invalid coordinate transformation parameters.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Ill-conditioned coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
@@ -1242,28 +1242,28 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        SingularMatrixError
+        SingularMatrixError : `~astropy.wcs.SingularMatrixError`
             Linear transformation matrix is singular.
 
-        InconsistentAxisTypesError
+        InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
             Inconsistent or unrecognized coordinate axis types.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid parameter value.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             x- and y-coordinate arrays are not the same size.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Invalid coordinate transformation parameters.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Ill-conditioned coordinate transformation parameters.
 
         Notes
@@ -1886,28 +1886,28 @@ naxis kwarg.
             See :py:class:``NoConvergence`` documentation for
             more details.
 
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        SingularMatrixError
+        SingularMatrixError : `~astropy.wcs.SingularMatrixError`
             Linear transformation matrix is singular.
 
-        InconsistentAxisTypesError
+        InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
             Inconsistent or unrecognized coordinate axis types.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid parameter value.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             x- and y-coordinate arrays are not the same size.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Invalid coordinate transformation parameters.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Ill-conditioned coordinate transformation parameters.
 
         Examples
@@ -2060,28 +2060,28 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        SingularMatrixError
+        SingularMatrixError : `~astropy.wcs.SingularMatrixError`
             Linear transformation matrix is singular.
 
-        InconsistentAxisTypesError
+        InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
             Inconsistent or unrecognized coordinate axis types.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid parameter value.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             x- and y-coordinate arrays are not the same size.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Invalid coordinate transformation parameters.
 
-        InvalidTransformError
+        InvalidTransformError : `~astropy.wcs.InvalidTransformError`
             Ill-conditioned coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
@@ -2109,10 +2109,10 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
@@ -2138,10 +2138,10 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
@@ -2167,10 +2167,10 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
@@ -2208,10 +2208,10 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
@@ -2245,10 +2245,10 @@ naxis kwarg.
 
         Raises
         ------
-        MemoryError
+        MemoryError : `~.exceptions.MemoryError`
             Memory allocation failed.
 
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))

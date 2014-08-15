@@ -268,7 +268,7 @@ class SkyCoord(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If there is no possible transformation route.
         """
         from astropy.coordinates.errors import ConvertError
@@ -510,7 +510,7 @@ class SkyCoord(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If this or the other coordinate do not have distances.
         """
 

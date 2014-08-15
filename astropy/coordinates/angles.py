@@ -77,7 +77,7 @@ class Angle(u.Quantity):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError : `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     _include_easy_conversion_members = True
@@ -516,9 +516,9 @@ class Latitude(Angle):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError : `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
-    `TypeError`
+    TypeError : `~.exceptions.TypeError`
         If the angle parameter is an instance of :class:`~astropy.coordinates.Longitude`.
     """
     def __new__(cls, angle, unit=None, **kwargs):
@@ -612,9 +612,9 @@ class Longitude(Angle):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError : `~astropy.units.UnitsError`
         If a unit is not provided or it is not an angular unit.
-    `TypeError`
+    TypeError : `~.exceptions.TypeError`
         If the angle parameter is an instance of :class:`~astropy.coordinates.Latitude`.
     """
 

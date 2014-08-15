@@ -85,7 +85,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     Raises
     ------
-    IOError
+    IOError : `~.exceptions.IOError`
         Invalid destination directory.
 
     timeout

@@ -247,7 +247,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        AssertionError : `~.exceptions.AssertionError`
             Insufficient data points for fitting.
 
         ModelsError
@@ -296,7 +296,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        AssertionError : `~.exceptions.AssertionError`
             No fitted data for prediction.
 
         """
@@ -327,7 +327,7 @@ class RunTimePredictor(object):
 
         Raises
         ------
-        AssertionError
+        AssertionError : `~.exceptions.AssertionError`
             Insufficient data for plotting.
 
         """

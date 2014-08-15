@@ -74,7 +74,8 @@ def _normalize_equivalencies(equivalencies):
 
     Raises
     ------
-    ValueError if an equivalency cannot be interpreted
+    ValueError : `~.exceptions.ValueError`
+        If an equivalency cannot be interpreted
     """
     if equivalencies is None:
         return []
@@ -597,7 +598,8 @@ class UnitBase(object):
 
         Raises
         ------
-        ValueError if an equivalency cannot be interpreted
+        ValueError : `~.exceptions.ValueError`
+            if an equivalency cannot be interpreted
         """
         normalized = _normalize_equivalencies(equivalencies)
         if equivalencies is not None:
@@ -836,7 +838,7 @@ class UnitBase(object):
 
         Raises
         ------
-        UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If units are inconsistent
         """
         other = Unit(other)
@@ -906,7 +908,7 @@ class UnitBase(object):
 
         Raises
         ------
-        UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If units are inconsistent
         """
         return self.get_converter(other, equivalencies=equivalencies)(value)
@@ -1390,10 +1392,10 @@ class NamedUnit(UnitBase):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If any of the given unit names are already in the registry.
 
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If any of the given unit names are not valid Python tokens.
     """
     def __init__(self, st, register=None, doc=None, format=None,
@@ -1828,10 +1830,10 @@ class Unit(NamedUnit):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If any of the given unit names are already in the registry.
 
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If any of the given unit names are not valid Python tokens.
     """
 
@@ -2216,7 +2218,7 @@ def _condition_arg(value):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If value is not as expected
     """
     if isinstance(value, (float, six.integer_types, complex)):

@@ -98,7 +98,8 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
 
     Raises
     ------
-    ValueError : *ucd* is invalid
+    ValueError : `~.exceptions.ValueError`
+        ``ucd`` is invalid
     """
     global _ucd_singleton
     if _ucd_singleton is None:

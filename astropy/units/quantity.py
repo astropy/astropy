@@ -152,9 +152,9 @@ class Quantity(np.ndarray):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If the value provided is not a Python numeric type.
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If the unit provided is not either a :class:`~astropy.units.Unit`
         object or a parseable string unit.
     """

@@ -79,7 +79,7 @@ class NDData(object):
 
     Raises
     ------
-    ValueError :
+    ValueError : `~.exceptions.ValueError`
         If the `uncertainty` or `mask` inputs cannot be broadcast (e.g., match
         shape) onto ``data``.
 
@@ -586,7 +586,7 @@ class NDData(object):
 
         Raises
         ------
-        UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If units are inconsistent.
 
         Notes
