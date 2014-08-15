@@ -2,9 +2,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
 import json
 import os
 import pickle
+import sys
+import traceback
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
@@ -13,7 +16,8 @@ import numpy as np
 
 from .. import data, misc
 from ..exceptions import AstropyDeprecationWarning
-from ...tests.helper import remote_data, catch_warnings
+from ...extern import six
+from ...tests.helper import remote_data, catch_warnings, pytest
 
 
 def test_pkg_finder():
@@ -70,6 +74,37 @@ def test_find_current_mod():
 
     with pytest.raises(ImportError):
         misc.find_current_module(0, ['faddfdsasewrweriopunjlfiurrhujnkflgwhu'])
+
+
+def test_make_func_with_sig_lineno():
+    """
+    Tests that a function made with ``make_func_with_sig`` is give the correct
+    line number into the module it was created from (i.e. the line
+    ``make_func_with_sig`` was called from).
+    """
+
+    def crashy_function(*args, **kwargs):
+        1 / 0
+
+    # Make a wrapper around this function with the signature:
+    # crashy_function(a, b)
+    # Note: the signature is not really relevant to this test
+    wrapped = misc.make_func_with_sig(crashy_function, ('a', 'b'))
+    line = "wrapped = misc.make_func_with_sig(crashy_function, ('a', 'b'))"
+
+    try:
+        wrapped(1, 2)
+    except:
+        exc_cls, exc, tb = sys.exc_info()
+        assert exc_cls is ZeroDivisionError
+        # The *last* line in the traceback should be the 1 / 0 line in
+        # crashy_function; the next line up should be the line that the
+        # make_func_with_sig call was one
+        tb_lines = traceback.format_tb(tb)
+        assert '1 / 0' in tb_lines[-1]
+        assert line in tb_lines[-2] and 'line =' not in tb_lines[-2]
+    else:
+        pytest.fail('This should have caused an exception')
 
 
 def test_isiterable():
@@ -206,3 +241,37 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+
+def test_wraps():
+    """
+    Tests the compatibility replacement for functools.wraps which supports
+    argument preservation across all supported Python versions.
+    """
+
+    def foo(a, b, c=1, d=2, e=3, **kwargs):
+        """A test function."""
+
+        return a, b, c, d, e, kwargs
+
+    @misc.wraps(foo)
+    def bar(*args, **kwargs):
+        return ('test',) + foo(*args, **kwargs)
+
+    expected = ('test', 1, 2, 3, 4, 5, {'f': 6, 'g': 7})
+    assert bar(1, 2, 3, 4, 5, f=6, g=7) == expected
+    assert bar.__name__ == 'foo'
+    assert bar.__doc__ == "A test function."
+
+    if hasattr(foo, '__qualname__'):
+        assert bar.__qualname__ == foo.__qualname__
+
+    if six.PY2:
+        argspec = inspect.getargspec(bar)
+        assert argspec.keywords == 'kwargs'
+    else:
+        argspec = inspect.getfullargspec(bar)
+        assert argspec.varkw == 'kwargs'
+
+    assert argspec.args == ['a', 'b', 'c', 'd', 'e']
+    assert argspec.defaults == (1, 2, 3)

@@ -16,10 +16,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
-import os
+import functools
 import sys
-
-from functools import wraps
 
 
 __all__ = ['invalidate_caches', 'override__dir__', 'ignored',
@@ -75,7 +73,7 @@ def override__dir__(f):
     if sys.version_info[:2] < (3, 3):
         # There was no straightforward way to do this until Python 3.3, so
         # we have this complex monstrosity
-        @wraps(f)
+        @functools.wraps(f)
         def override__dir__wrapper(self):
             members = set()
             for cls in self.__class__.mro():
@@ -86,7 +84,7 @@ def override__dir__(f):
     else:
         # http://bugs.python.org/issue12166
 
-        @wraps(f)
+        @functools.wraps(f)
         def override__dir__wrapper(self):
             members = set(object.__dir__(self))
             members.update(f(self))

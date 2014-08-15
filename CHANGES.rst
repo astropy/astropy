@@ -52,6 +52,11 @@ New Features
 
 - ``astropy.utils``
 
+  - Added a new decorator ``astropy.utils.wraps`` which acts as a replacement
+    for the standard library's ``functools.wraps``, the only difference being
+    that the decorated function also preserves the wrapped function's call
+    signature. [#2849]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
