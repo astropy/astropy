@@ -2726,7 +2726,7 @@ naxis kwarg.
         """
         return self.sub([WCSSUB_CELESTIAL])
 
-    def get_pixel_scale(self):
+    def get_celestial_scale(self):
         """
         If the pixels are square, return the pixel scale in the spatial
         dimensions
