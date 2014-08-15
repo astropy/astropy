@@ -11,7 +11,7 @@ from ...tests.helper import catch_warnings, pytest
 from ... import units as u
 
 from ..nddata import NDData
-from ..nddata_decorators import expand_nddata_args
+from ..decorators import expand_nddata_args
 
 
 @expand_nddata_args
