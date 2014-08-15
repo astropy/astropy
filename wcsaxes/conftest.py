@@ -14,10 +14,9 @@ from astropy.tests.helper import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption('--generate-reference', help="directory to generate reference images in", action='store')
+    parser.addoption('--generate-images-path', help="directory to generate reference images in", action='store')
     return astropy_pytest_addoption(parser)
-
 
 @pytest.fixture
 def generate(request):
-    return request.config.getoption("--generate-reference")
+    return request.config.getoption("--generate-images-path")
