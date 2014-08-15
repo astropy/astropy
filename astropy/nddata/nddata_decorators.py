@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import warnings
 
-# Replce with Astropy version once available
+# TODO: Replace with Astropy version once available
 from functools import wraps
 
 from ..utils.exceptions import AstropyUserWarning
@@ -15,15 +15,58 @@ from .nddata import NDData
 
 __all__ = ['expand_nddata_args']
 
-# TODO: preserve signature and docstring
-# TODO: write docstring and documentation
+# TODO: write documentation
 
 
 def expand_nddata_args(func):
     """
+    Decorator to split NDData properties into function arguments
+
     This is a decorator to allow functions to take NDData objects as their
     first arguments and split up the properties into kwargs as required by the
-    function.
+    function. For example, if you consider the following function::
+
+        def downsample(data, wcs=None):
+            # downsample data and optionally WCS here
+
+    This function takes a Numpy array for the data, and some WCS information
+    with the ``data`` keyword argument. However, you might have an NDData
+    instance that has the ``wcs`` property set and you would like to be able to
+    call the function with ``downsample(my_nddata)`` and have the WCS
+    information, if present, automatically be passed to the ``wcs`` keyword
+    argument.
+
+    This decorator can be used to make this possible::
+
+        @expand_nddata_args
+        def downsample(data, wcs=None):
+            # downsample data and optionally WCS here
+
+    This function can now either be called as before, specifying the data and
+    WCS separately, or an NDData instance can be passed to the ``data``
+    argument.
+
+    The restrictions on functions to use this function are:
+
+    * The first positional argument should be ``data`` and take a Numpy array.
+
+    * The following arguments can optionally be specified in the function
+      signature, but if they are specified they should be keyword arguments:
+      ``uncertainty``, ``mask``, ``flags``, ``meta``, ``unit``, and ``wcs``. If
+      you are making use of this decorator, you should be prepared for these
+      keyword arguments to be set to the properties of the NDData object (if
+      present).
+
+    The behavior of the decorator is to check through the NDData properties and
+    if they are set, it checks if the function accepts them as keyword
+    arguments. If an NDData property is set but cannot be passed to a keyword
+    argument, a warning is emitted to tell the user that the NDData property in
+    question will not be used by the function (to ensure that they know when
+    e.g. uncertainties cannot be used).
+
+    If the user passes an NDData object *and* explicitly sets a keyword
+    argument that is one of the valid NDData properties, a warning is emitted
+    to inform the user that the explicitly specified value will take priority.
     """
 
     # Find out args and kwargs
