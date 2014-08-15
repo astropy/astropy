@@ -1,5 +1,13 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import inspect
 import warnings
+
+# Replce with Astropy version once available
+from functools import wraps
 
 from ..utils.exceptions import AstropyUserWarning
 
@@ -8,7 +16,6 @@ from .nddata import NDData
 __all__ = ['expand_nddata_args']
 
 # TODO: preserve signature and docstring
-# TODO: write tests
 # TODO: write docstring and documentation
 
 
@@ -30,13 +37,14 @@ def expand_nddata_args(func):
         func_args = wrapped_argspec.args
         func_kwargs = []
 
-    # For now, let's be strict to simplify things
-    if func_args != ['data']:
-        raise ValueError("Can only wrap functions that have a single positional data argument")
+    # First argument should be data
+    if len(func_args) == 0 or func_args[0] != 'data':
+        raise ValueError("Can only wrap functions whose first positional argument is `data`")
 
-    supported_properties = ['wcs', 'unit', 'uncertainty', 'mask']
+    supported_properties = ['uncertainty', 'mask', 'flags', 'meta', 'unit', 'wcs']
 
-    def wrapper(data, **kwargs):
+    @wraps(func)
+    def wrapper(data, *args, **kwargs):
 
         # If data is an NDData instance, we can try and find properties that
         # can be passed as kwargs.
@@ -51,7 +59,7 @@ def expand_nddata_args(func):
                 # NDData object
                 if hasattr(data, prop):
                     value = getattr(data, prop)
-                    if value is not None:
+                    if (prop == 'meta' and len(value) > 0) or (prop != 'meta' and value is not None):
                         if prop in func_kwargs:
                             if prop in kwargs and kwargs[prop] is not None:
                                 warnings.warn("Property {0} has been passed explicitly and as an "
@@ -70,6 +78,6 @@ def expand_nddata_args(func):
             # Finally, replace data by the data itself
             data = data.data
 
-        return func(data, **kwargs)
+        return func(data, *args, **kwargs)
 
     return wrapper
