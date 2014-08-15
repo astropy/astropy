@@ -46,6 +46,16 @@ class BaseImageTests(object):
             baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
 
             figure.savefig(test_image, bbox_inches=bbox_inches)
+
+            if not os.path.exists(baseline_image):
+                raise Exception("""Image file not found for comparision test
+                                Expected Image:
+                                \t{baseline}
+                                Actual:
+                                \t{test}
+                                This is expected for new tests.""".format(
+                                    baseline=baseline_image, test=test_image))
+
             msg = compare_images(baseline_image, test_image, tol=self._tolerance)
 
             if msg is None:
