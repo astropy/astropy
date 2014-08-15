@@ -88,6 +88,9 @@ cdef extern from "src/tokenizer.h":
     char *next_field(tokenizer_t *self, int *size)
     long file_len(stdio.FILE *fhandle)
 
+cdef extern from "Python.h":
+    int PyObject_AsReadBuffer(object obj, const void **buffer, Py_ssize_t *buffer_len)
+
 class CParserError(Exception):
     """
     An instance of this class is thrown when an error occurs
@@ -119,8 +122,11 @@ cdef class FileString:
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, prot=mmap.PROT_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
         cdef Py_buffer buf
-        PyObject_GetBuffer(self.mmap, &buf, PyBUF_SIMPLE)
-        self.mmap_ptr = buf.buf
+        if six.PY2:
+            PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
+        else:            
+            PyObject_GetBuffer(self.mmap, &buf, PyBUF_SIMPLE)
+            self.mmap_ptr = buf.buf
 
     def __dealloc__(self):
         self.fhandle.close()
