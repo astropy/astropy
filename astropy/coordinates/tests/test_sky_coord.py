@@ -136,7 +136,7 @@ def test_coord_init_string():
         SkyCoord('8 00 -5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
     assert 'coordinates have 5 values but spherical representation only accepts 3' in str(err)
 
-    sc5 = SkyCoord('8h 00.6m -5d 00.6m', unit=(u.hour, u.deg), frame='icrs')
+    sc5 = SkyCoord('8h00.6m -5d00.6m', unit=(u.hour, u.deg), frame='icrs')
     assert isinstance(sc5, SkyCoord)
     assert allclose(sc5.ra, Angle(120.15 * u.deg))
     assert allclose(sc5.dec, Angle(-5.01 * u.deg))
