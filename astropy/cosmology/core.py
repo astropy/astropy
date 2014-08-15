@@ -11,8 +11,8 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from .. import constants as const
-from ..utils.misc import isiterable, deprecated
 from .. import units as u
+from ..utils import isiterable, deprecated
 from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters

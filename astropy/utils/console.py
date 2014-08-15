@@ -56,7 +56,8 @@ from ..extern import six
 from ..extern.six.moves import range
 from .. import conf
 
-from .misc import deprecated, isiterable
+from .decorators import deprecated
+from .misc import isiterable
 
 
 __all__ = [

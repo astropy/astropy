@@ -13,8 +13,8 @@ from contextlib import contextmanager
 from . import config as _config
 from . import conf as _conf
 from .extern.six import PY3
+from .utils import find_current_module
 from .utils.console import color_print
-from .utils.misc import find_current_module
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
