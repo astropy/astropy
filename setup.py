@@ -56,6 +56,11 @@ if not RELEASE:
 # modify distutils' behavior.
 cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
 
+# Add distutils options specific to this package
+cmdclassd['test'].user_options.append(
+    ('generate-images-path', None,
+        "Specify a directory to generate baseline images"))
+
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 adjust_compiler(PACKAGENAME)
