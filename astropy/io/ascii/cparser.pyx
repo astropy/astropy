@@ -13,6 +13,10 @@ import csv
 import os
 import math
 import multiprocessing
+import mmap
+from cpython.buffer cimport PyBUF_SIMPLE
+from cpython.buffer cimport Py_buffer
+from cpython.buffer cimport PyObject_GetBuffer
 
 try:
     import Queue
@@ -83,8 +87,6 @@ cdef extern from "src/tokenizer.h":
     int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self, int *size)
     long file_len(stdio.FILE *fhandle)
-    memory_map *get_mmap(char *fname)
-    void free_mmap(memory_map *mmap)
 
 class CParserError(Exception):
     """
@@ -106,22 +108,28 @@ cdef class FileString:
     A wrapper class for a memory-mapped file pointer.
     """
     cdef:
-        memory_map *mmap
+        object fhandle
+        object mmap
+        void *mmap_ptr
 
     def __cinit__(self, fname):
-        self.mmap = get_mmap(fname)
-        if not self.mmap:
+        self.fhandle = open(fname, 'r')
+        if not self.fhandle:
             raise IOError('File "{0}" could not be opened'.format(fname))
+        self.mmap = mmap.mmap(self.fhandle.fileno(), 0, prot=mmap.PROT_READ)
+        cdef Py_ssize_t buf_len = len(self.mmap)
+        cdef Py_buffer buf
+        PyObject_GetBuffer(self.mmap, &buf, PyBUF_SIMPLE)
+        self.mmap_ptr = buf.buf
 
     def __dealloc__(self):
-        if self.mmap:
-            free_mmap(self.mmap)
+        self.fhandle.close()
 
     def __len__(self):
-        return self.mmap.len
+        return len(self.mmap)
 
     def __getitem__(self, i):
-        return chr(self.mmap.ptr[i])
+        return self.mmap[i]
 
     def splitlines(self):
         """
@@ -129,25 +137,23 @@ cdef class FileString:
         """
         cdef int line_start = 0
         cdef int line_end
-        cdef char *slice_ptr
 
         while True:
             line_end = line_start + 1 # start with the next character
 
-            while line_end < self.mmap.len:
-                if self.mmap.ptr[line_end] == '\r':
+            while line_end < len(self.mmap):
+                if self.mmap[line_end] == b'\r':
                     # Windows line break (\r\n)
-                    if line_end != self.mmap.len - 1 and \
-                       self.mmap.ptr[line_end + 1] == '\n':
-                        yield self.mmap.ptr[line_start:line_end].decode('ascii')
+                    if line_end != len(self.mmap) - 1 and self.mmap[line_end + 1] == b'\n':
+                        yield self.mmap[line_start:line_end].decode('ascii')
                         # skip newline character
                         line_end += 1
                         break
                     else: # Carriage return line break
-                        yield self.mmap.ptr[line_start:line_end].decode('ascii')
+                        yield self.mmap[line_start:line_end].decode('ascii')
                         break
-                elif self.mmap.ptr[line_end] == '\n':
-                    yield self.mmap.ptr[line_start:line_end].decode('ascii')
+                elif self.mmap[line_end] == b'\n':
+                    yield self.mmap[line_start:line_end].decode('ascii')
                     break
                 line_end += 1
             else: # done with input
@@ -252,8 +258,8 @@ cdef class CParser:
         if isinstance(source, six.string_types): # filename or data
             if '\n' not in source and '\r' not in source: # filename
                 fstring = FileString(source.encode('ascii'))
-                self.tokenizer.source = fstring.mmap.ptr
-                self.source_ptr = fstring.mmap.ptr
+                self.tokenizer.source = <char *>fstring.mmap_ptr
+                self.source_ptr = <char *>fstring.mmap_ptr
                 self.source = fstring
                 self.tokenizer.source_len = len(fstring)
                 return
@@ -262,7 +268,7 @@ cdef class CParser:
             with get_readable_fileobj(source) as file_obj:
                 source = file_obj.read()
         elif isinstance(source, FileString):
-            self.tokenizer.source = (<FileString>source).mmap.ptr
+            self.tokenizer.source = <char *>((<FileString>source).mmap_ptr)
             self.source = source
             self.tokenizer.source_len = len(source)
             return
@@ -470,16 +476,20 @@ cdef class CParser:
                 self.data_end += num_rows
             else:
                 self.data_end -= self.data_start # ignore header
-            line_no = 0
-            for i, chunk in enumerate(chunks):
-                num_rows = len(chunk[self.names[0]])
-                if line_no + num_rows > self.data_end:
-                    for name in self.names:
-                        # truncate columns
-                        chunk[name] = chunk[name][:self.data_end - line_no]
-                    del chunks[i + 1:]
-                    break
-                line_no += num_rows
+
+            if self.data_end < 0: # no data
+                chunks = [dict((name, []) for name in self.names)]
+            else:
+                line_no = 0
+                for i, chunk in enumerate(chunks):
+                    num_rows = len(chunk[self.names[0]])
+                    if line_no + num_rows > self.data_end:
+                        for name in self.names:
+                            # truncate columns
+                            chunk[name] = chunk[name][:self.data_end - line_no]
+                        del chunks[i + 1:]
+                        break
+                    line_no += num_rows
 
         ret = {}
         for name in self.get_names():

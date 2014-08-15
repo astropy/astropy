@@ -65,14 +65,6 @@ source: "A,B,C\n10,5.,6\n1,2,3"
 output_cols: ["A\x0010\x001", "B\x005.\x002", "C\x006\x003"]
 */
 
-typedef struct
-{
-    char *ptr;
-    int len;
-    void *file_ptr;
-    void *handle; // only used on Windows
-} memory_map;
-
 #define INITIAL_COL_SIZE 500
 
 tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, int fill_extra_cols,
@@ -91,7 +83,5 @@ void start_iteration(tokenizer_t *self, int col);
 int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
-memory_map *get_mmap(char *fname);
-void free_mmap(memory_map *mmap);
 
 #endif
