@@ -48,6 +48,8 @@ class Angle(u.Quantity):
       Angle(u'1°2′3″')
       Angle('1d2m3.4s')
       Angle('-1h2m3s')
+      Angle('-1h2.5m')
+      Angle('-1:2.5', unit=u.deg)
       Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
       Angle(10.2345 * u.deg)
       Angle(Angle(10.2345 * u.deg))
