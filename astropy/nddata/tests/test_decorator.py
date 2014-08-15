@@ -131,7 +131,6 @@ def test_wrap_function_no_kwargs():
     assert wrapped_function_5(nddata_in, [1, 2, 3]) is data_in
 
 
-@pytest.mark.xfail
 def test_wrap_preserve_signature_docstring():
 
     @expand_nddata_args

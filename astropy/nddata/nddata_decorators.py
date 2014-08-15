@@ -6,9 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import warnings
 
-# TODO: Replace with Astropy version once available
-from functools import wraps
-
+from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
 
 from .nddata import NDData
