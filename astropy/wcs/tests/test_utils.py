@@ -258,9 +258,9 @@ def test_pixscale_warning(recwarn):
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    
+
     with catch_warnings(AstropyUserWarning) as warning_lines:
-    
+
         mywcs.get_pixel_scale()
         assert ("Pixel sizes may very over the image for "
                 "projection class TAN"

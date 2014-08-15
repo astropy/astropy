@@ -97,7 +97,7 @@ New Features
   - ``astropy.wcs.WCS.compare`` now supports a ``tolerance`` keyword argument
     to allow for approximate comparison of floating-point values. [#2503]
 
-  - added `pixel_scale` and `celestial` convenience attributes [#2382]
+  - added ``pixel_scale`` and ``celestial`` convenience attributes [#2832]
 
 API Changes
 ^^^^^^^^^^^
