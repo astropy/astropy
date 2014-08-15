@@ -139,15 +139,15 @@ cdef class FileString:
                     # Windows line break (\r\n)
                     if line_end != self.mmap.len - 1 and \
                        self.mmap.ptr[line_end + 1] == '\n':
-                        yield self.mmap.ptr[line_start:line_end]
+                        yield self.mmap.ptr[line_start:line_end].decode('ascii')
                         # skip newline character
                         line_end += 1
                         break
                     else: # Carriage return line break
-                        yield self.mmap.ptr[line_start:line_end]
+                        yield self.mmap.ptr[line_start:line_end].decode('ascii')
                         break
                 elif self.mmap.ptr[line_end] == '\n':
-                    yield self.mmap.ptr[line_start:line_end]
+                    yield self.mmap.ptr[line_start:line_end].decode('ascii')
                     break
                 line_end += 1
             else: # done with input
