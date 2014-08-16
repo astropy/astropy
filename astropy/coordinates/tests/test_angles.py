@@ -57,24 +57,37 @@ def test_create_angles():
     with pytest.raises(ValueError):
         a13 = Angle(12.34, unit="not a unit")
 
-    a14 = Angle("12h43m32") # no trailing 's', but unambiguous
+    a14 = Angle("03h36m29.7888000120") # no trailing 's', but unambiguous
 
     a15 = Angle("5h4m3s") # single digits, no decimal
 
     a16 = Angle("1 d")
     a17 = Angle("1 degree")
+
     assert a16.degree == 1
     assert a17.degree == 1
 
+    a18 = Angle("54 07.4472", unit=u.degree)
+    a19 = Angle("54:07.4472", unit=u.degree)
+    a20 = Angle("54d07.4472m", unit=u.degree)
+    a21 = Angle("3h36m", unit=u.hour)
+    a22 = Angle("3.6h", unit=u.hour)
+    a23 = Angle("- 3h", unit=u.hour)
+    a24 = Angle("+ 3h", unit=u.hour)
+
     #ensure the above angles that should match do
-    assert a1 == a2 == a3 == a4 == a5 == a6 == a7
+    assert a1 == a2 == a3 == a4 == a5 == a6 == a7 == a8 == a18 == a19 == a20
     assert_allclose(a1.radian, a2.radian)
     assert_allclose(a2.degree, a3.degree)
     assert_allclose(a3.radian, a4.radian)
     assert_allclose(a4.radian, a5.radian)
     assert_allclose(a5.radian, a6.radian)
     assert_allclose(a6.radian, a7.radian)
-    #assert a10 == a11 == a12
+
+    assert_allclose(a10.degree, a11.degree)
+    assert a11 == a12 == a14
+    assert a21 == a22
+    assert a23 == -a24
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
