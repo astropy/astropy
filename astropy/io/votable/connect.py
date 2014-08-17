@@ -151,8 +151,3 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
 
     # Write out file
     table_file.to_xml(output, tabledata_format=tabledata_format)
-
-
-io_registry.register_reader('votable', Table, read_table_votable)
-io_registry.register_writer('votable', Table, write_table_votable)
-io_registry.register_identifier('votable', Table, is_votable)

@@ -172,5 +172,3 @@ def write_table_jsviewer(table, filename, table_id=None,
     htmldict['js'] =  jsv.html_js(table_id=table_id)
 
     table.write(filename, format='html', htmldict=htmldict)
-
-io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

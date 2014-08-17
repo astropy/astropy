@@ -19,10 +19,53 @@ __all__ = ['register_reader', 'register_writer', 'register_identifier',
 
 __doctest_skip__ = ['register_identifier']
 
-
+_builtin_registered = False
 _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
+
+# Add built-in readers/writers to the registry manually, and refer to the
+# functions by strings to avoid importing those modules.
+def _register_builtins():
+
+    global _builtin_registered
+
+    if not _builtin_registered:
+
+        from ..table import Table
+
+        _builtin_registered = True
+
+        # FITS
+        register_reader("fits", Table, 'astropy.io.fits.connect.read_table_fits')
+        register_writer("fits", Table, 'astropy.io.fits.connect.write_table_fits')
+        register_identifier("fits", Table, 'astropy.io.fits.connect.is_fits')
+
+        # VOTABLE
+        register_reader('votable', Table, 'astropy.io.votable.connect.read_table_votable')
+        register_writer('votable', Table, 'astropy.io.votable.connect.write_table_votable')
+        register_identifier('votable', Table, 'astropy.io.votable.connect.is_votable')
+
+        # HDF5
+        register_reader('hdf5', Table, 'astropy.io.misc.hdf5.read_table_hdf5')
+        register_writer('hdf5', Table, 'astropy.io.misc.hdf5.write_table_hdf5')
+        register_identifier('hdf5', Table, 'astropy.io.misc.hdf5.is_hdf5')
+
+        # JSViewer
+        register_writer('jsviewer', Table, 'astropy.table.jsviewer.write_table_jsviewer')
+
+        # ASCII
+        register_reader('ascii', Table, 'astropy.io.ascii.connect.read_asciitable')
+        register_writer('ascii', Table, 'astropy.io.ascii.connect.write_asciitable')
+
+        # Remaining ASCII formats - for now can only import io.ascii to force
+        # meta-classes to register.
+        from . import ascii
+
+def _get_function_by_string(path_to_function):
+    import importlib
+    module, function = path_to_function.rsplit('.', 1)
+    return getattr(importlib.import_module(module), function)
 
 
 def get_formats(data_class=None):
@@ -39,6 +82,9 @@ def get_formats(data_class=None):
     format_table: Table
         Table of available I/O formats
     """
+
+    _register_builtins()
+
     from ..table import Table
     format_classes = sorted(set(_readers) | set(_writers),
                             key=lambda tup: tup[0])
@@ -238,11 +284,16 @@ def register_identifier(data_format, data_class, identifier, force=False):
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
+    _register_builtins()
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
         if _is_best_match(data_class_required, data_class, _identifiers):
-            if _identifiers[(data_format, data_class)](
+            identifier = _identifiers[(data_format, data_class)]
+            if isinstance(identifier, six.string_types):
+                identifier = _get_function_by_string(identifier)
+                _identifiers[(data_format, data_class)] = identifier
+            if identifier(
                 origin, path, fileobj, *args, **kwargs):
                 valid_formats.append(data_format)
 
@@ -260,11 +311,16 @@ def _get_format_table_str(data_class, readwrite):
 
 
 def get_reader(data_format, data_class):
+    _register_builtins()
     # Get all the readers that work for `data_format`
     readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
     for reader_format, reader_class in readers:
         if _is_best_match(data_class, reader_class, readers):
-            return _readers[(reader_format, reader_class)]
+            reader = _readers[(reader_format, reader_class)]
+            if isinstance(reader, six.string_types):
+                reader = _get_function_by_string(reader)
+                _readers[(reader_format, reader_class)] = reader
+            return reader
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise Exception("No reader defined for format '{0}' and class '{1}'.\n"
@@ -274,10 +330,15 @@ def get_reader(data_format, data_class):
 
 
 def get_writer(data_format, data_class):
+    _register_builtins()
     writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
     for writer_format, writer_class in writers:
         if _is_best_match(data_class, writer_class, writers):
-            return _writers[(writer_format, writer_class)]
+            writer = _writers[(writer_format, writer_class)]
+            if isinstance(writer, six.string_types):
+                writer = _get_function_by_string(writer)
+                _writers[(writer_format, writer_class)] = writer
+            return writer
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
         raise Exception("No writer defined for format '{0}' and class '{1}'.\n"
