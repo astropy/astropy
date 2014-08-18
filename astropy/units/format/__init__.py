@@ -43,7 +43,7 @@ def get_format(format=None):
         return format()
     elif isinstance(format, Base):
         return format
-    elif not isinstance(format, string_types):
+    elif not (isinstance(format, string_types) or format is None):
         raise TypeError(
             "Formatter must a subclass or instance of a subclass of {0!r} "
             "or a string giving the name of the formatter.  Valid formatter "
