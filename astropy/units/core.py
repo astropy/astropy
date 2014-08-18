@@ -17,8 +17,9 @@ import textwrap
 import warnings
 import numpy as np
 
+from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
-from ..utils.misc import isiterable, InheritDocstrings, lazyproperty
+from ..utils.misc import isiterable, InheritDocstrings
 from .utils import is_effectively_unity, sanitize_scale, validate_power
 from . import format as unit_format
 
