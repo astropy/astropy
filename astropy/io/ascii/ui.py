@@ -154,7 +154,7 @@ def read(table, guess=None, **kwargs):
                 return fast_reader.read(table)
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
-                if use_fast_reader == 'force': 
+                if use_fast_reader == 'force':
                     raise e
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)

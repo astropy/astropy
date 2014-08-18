@@ -158,8 +158,8 @@ def test_lstrip_whitespace():
      1,  2,   \t3
  A,\t\t B,  C
   a, b,   c
-  
-   """
+""" + '  \n'
+
     table = read_basic(text, delimiter=',')
     expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
     assert_table_equal(table, expected)
@@ -168,11 +168,7 @@ def test_rstrip_whitespace():
     """
     Test to make sure the reader ignores whitespace at the end of fields.
     """
-    text = """
- 1 ,2 \t,3  
-A\t,B ,C\t \t 
-  \ta ,b , c 
-"""
+    text = ' 1 ,2 \t,3  \nA\t,B ,C\t \t \n  \ta ,b , c \n'
     table = read_basic(text, delimiter=',')
     expected = Table([['A', 'a'], ['B', 'b'], ['C', 'c']], names=('1', '2', '3'))
     assert_table_equal(table, expected)
@@ -407,7 +403,7 @@ nan, 5, -9999
     # None of the columns should be masked
     for name in 'ABC':
         assert not isinstance(table[name], MaskedColumn)
-    
+
     table = read_basic(text, delimiter=',', fill_values=[('', '0', 'A'),
                                 ('nan', '999', 'A', 'C')])
     assert np.isnan(table['B'][3]) # nan filling skips column B
@@ -531,7 +527,7 @@ def test_commented_header():
 
     text += '7 8 9'
     # data_start=2 because data_start is relative to header_start if unspecified
-    t4 = read_commented_header(text, header_start=2) 
+    t4 = read_commented_header(text, header_start=2)
     expected = Table([[7], [8], [9]], names=('A', 'B', 'C'))
     assert_table_equal(t4, expected)
 
@@ -657,7 +653,7 @@ def test_strip_line_trailing_whitespace():
     with pytest.raises(CParserError) as e:
         ascii.read(StringIO(text), format='fast_basic', guess=False)
     assert 'not enough columns found in line 1' in str(e)
-    
+
     text = 'a b c\n 1 2 3   \t \n 4 5 6 '
     table = read_basic(text)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('a', 'b', 'c'))

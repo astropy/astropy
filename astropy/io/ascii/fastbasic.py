@@ -48,7 +48,7 @@ class FastBasic(object):
 
     def read(self, table):
         """
-        Read input data (file-like object, filename, list of strings, or 
+        Read input data (file-like object, filename, list of strings, or
         single string) into a Table and return the result.
         """
         if self.comment is not None and len(self.comment) != 1:
@@ -250,7 +250,7 @@ class FastRdb(FastBasic):
         self.engine.setup_tokenizer([line1])
         self.engine.set_names([])
         self.engine.read_header()
-        
+
         if len(self.engine.get_names()) != len(types):
             raise ValueError('RDB header mismatch between number of '
                              'column names and column types')
