@@ -184,12 +184,16 @@ class CsvSplitter(core.DefaultSplitter):
 class CsvHeader(BasicHeader):
     '''Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
+    comment = None
+    write_comment = None
 
 
 class CsvData(BasicData):
     '''Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`'''
     splitter_class = CsvSplitter
     fill_values = [(core.masked, '')]
+    comment = None
+    write_comment = None
 
 
 class Csv(Basic):
