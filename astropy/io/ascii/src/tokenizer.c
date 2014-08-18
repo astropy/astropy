@@ -792,3 +792,32 @@ char *next_field(tokenizer_t *self, int *size)
         return tmp;
     }
 }
+
+char *get_line(char *ptr, int *len, int map_len)
+{
+    int pos = 0;
+
+    while (pos < map_len)
+    {
+        if (ptr[pos] == '\r')
+        {
+            *len = pos;
+            // Windows line break (\r\n)
+            if (pos != map_len - 1 && ptr[pos + 1] == '\n')
+                return ptr + pos + 2; // skip newline character
+            else // Carriage return line break
+                return ptr + pos + 1;
+        }
+
+        else if (ptr[pos] == '\n')
+        {
+            *len = pos;
+            return ptr + pos + 1;
+        }
+
+        ++pos;
+    }
+
+    // done with input
+    return 0;
+}

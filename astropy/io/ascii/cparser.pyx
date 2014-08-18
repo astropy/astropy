@@ -86,7 +86,7 @@ cdef extern from "src/tokenizer.h":
     void start_iteration(tokenizer_t *self, int col)
     int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self, int *size)
-    long file_len(stdio.FILE *fhandle)
+    char *get_line(char *ptr, int *len, int map_len)
 
 cdef extern from "Python.h":
     int PyObject_AsReadBuffer(object obj, const void **buffer, Py_ssize_t *buffer_len)
@@ -141,30 +141,15 @@ cdef class FileString:
         """
         Return a generator yielding lines from the memory map.
         """
-        cdef int line_start = 0
-        cdef int line_end
+        cdef char *ptr = <char *>self.mmap_ptr
+        cdef char *tmp
+        cdef int line_len
+        cdef int map_len = len(self.mmap)
 
-        while True:
-            line_end = line_start + 1 # start with the next character
-
-            while line_end < len(self.mmap):
-                if self.mmap[line_end] == b'\r':
-                    # Windows line break (\r\n)
-                    if line_end != len(self.mmap) - 1 and self.mmap[line_end + 1] == b'\n':
-                        yield self.mmap[line_start:line_end].decode('ascii')
-                        # skip newline character
-                        line_end += 1
-                        break
-                    else: # Carriage return line break
-                        yield self.mmap[line_start:line_end].decode('ascii')
-                        break
-                elif self.mmap[line_end] == b'\n':
-                    yield self.mmap[line_start:line_end].decode('ascii')
-                    break
-                line_end += 1
-            else: # done with input
-                return
-            line_start = line_end
+        while ptr:
+            tmp = get_line(ptr, &line_len, map_len)
+            yield ptr[:line_len]
+            ptr = tmp
 
 cdef class CParser:
     """
