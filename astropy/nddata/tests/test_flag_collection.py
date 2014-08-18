@@ -50,7 +50,5 @@ def test_setitem_invalid_type(value):
 @pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on AppVeyor")
 def test_setitem_invalid_shape():
     f = FlagCollection(shape=(1, 2, 3))
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(ValueError) as exc:
         f['a'] = np.ones((3, 2, 1))
-    assert exc.value.args[0] == ('flags array shape (3, 2, 1) does not match '
-                                 'data shape (1, 2, 3)')

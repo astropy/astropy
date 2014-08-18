@@ -482,6 +482,8 @@ Bug Fixes
 
 - ``astropy.nddata``
 
+  - Fix ``FlagCollection`` test that fails on 64-bit Windows. [#2861]
+
 - ``astropy.stats``
 
 - ``astropy.table``
