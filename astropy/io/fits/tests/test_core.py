@@ -724,6 +724,52 @@ class TestFileFunctions(FitsTestCase):
 
         assert old_mode == os.stat(filename).st_mode
 
+    def test_fileobj_mode_guessing(self):
+        """Tests whether a file opened without a specified pyfits mode
+        ('readonly', etc.) is opened in a mode appropriate for the given file
+        object.
+        """
+
+        self.copy_file('test0.fits')
+
+        # Opening in text mode should outright fail
+        for mode in ('r', 'w', 'a'):
+            with open(self.temp('test0.fits'), mode) as f:
+                pytest.raises(ValueError, fits.HDUList.fromfile, f)
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'rb') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'readonly'
+
+        for mode in ('wb', 'ab'):
+            with open(self.temp('test0.fits'), mode) as f:
+                with fits.HDUList.fromfile(f) as h:
+                    # Basically opening empty files for output streaming
+                    assert len(h) == 0
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'wb+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                # wb+ still causes an existing file to be overwritten so there
+                # are no HDUs
+                assert len(h) == 0
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'rb+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'update'
+
+        with open(self.temp('test0.fits'), 'ab+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'append'
+
     def test_mmap_unwriteable(self):
         """Regression test for https://github.com/astropy/astropy/issues/968
 
