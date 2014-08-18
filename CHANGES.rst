@@ -93,6 +93,19 @@ API Changes
 
 - ``astropy.utils``
 
+  - Some members of ``astropy.utils.misc`` were moved into new submodules.
+    Specifically:
+
+    - ``deprecated`, ``deprecated_attribute``, and ``lazyproperty`` ->
+      ``astropy.utils.decorators``
+
+    - ``find_current_module``, ``find_mod_objs`` ->
+      ``astropy.utils.introspection``
+
+    All of these functions can be imported directly from ``astropy.utils``
+    which should be preferred over referencing individual submodules of
+    ``astropy.utils``.  [#2857]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
