@@ -55,28 +55,28 @@ world : double array[ncoord][nelem]
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid coordinate transformation parameters.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     x- and y-coordinate arrays are not the same size.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Invalid coordinate transformation.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 """.format(__.ORIGIN())
 
@@ -1086,28 +1086,28 @@ result : dict
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Invalid coordinate transformation parameters.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 
-InvalidCoordinateError
+InvalidCoordinateError : `~astropy.wcs.InvalidCoordinateError`
     Invalid world coordinate.
 
-NoSolutionError
+NoSolutionError : `~astropy.wcs.NoSolutionError`
     No solution found in the specified interval.
 
 See also
@@ -1281,25 +1281,25 @@ result : dict
 Raises
 ------
 
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     *x*- and *y*-coordinate arrays are not the same size.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Invalid coordinate transformation parameters.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 
 See also
@@ -1328,10 +1328,10 @@ foccrd : double array[ncoord][nelem]
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid coordinate transformation parameters.
 """.format(__.ORIGIN())
 
@@ -1396,10 +1396,10 @@ foccrd : double array[ncoord][nelem]
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid coordinate transformation parameters.
 """.format(__.ORIGIN())
 
@@ -1497,22 +1497,22 @@ result : dict
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
    Invalid coordinate transformation parameters.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 
 See also
@@ -1554,22 +1554,22 @@ etc.) but without changing the input header keywords.
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Invalid coordinate transformation parameters.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 """
 
@@ -1585,7 +1585,7 @@ by functions that need it.
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
 InvalidTabularParameters
@@ -1697,10 +1697,10 @@ pixcrd : double array[ncoord][nelem]
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid coordinate transformation parameters.
 """.format(__.ORIGIN())
 
@@ -1724,10 +1724,10 @@ foccrd : double array[ncoord][nelem]
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid coordinate transformation parameters.
 """.format(__.ORIGIN())
 
@@ -1783,25 +1783,25 @@ i : int
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-SingularMatrixError
+SingularMatrixError : `~astropy.wcs.SingularMatrixError`
     Linear transformation matrix is singular.
 
-InconsistentAxisTypesError
+InconsistentAxisTypesError : `~astropy.wcs.InconsistentAxisTypesError`
     Inconsistent or unrecognized coordinate axis types.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
     Invalid parameter value.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Invalid coordinate transformation parameters.
 
-InvalidTransformError
+InvalidTransformError : `~astropy.wcs.InvalidTransformError`
     Ill-conditioned coordinate transformation parameters.
 
-InvalidSubimageSpecificationError
+InvalidSubimageSpecificationError : `~astropy.wcs.InvalidSubimageSpecificationError`
     Invalid subimage specification (no spectral axis).
 """
 
@@ -1879,13 +1879,13 @@ new_wcs : `~astropy.wcs.WCS` object
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
     Memory allocation failed.
 
-InvalidSubimageSpecificationError
+InvalidSubimageSpecificationError : `~astropy.wcs.InvalidSubimageSpecificationError`
     Invalid subimage specification (no spectral axis).
 
-NonseparableSubimageCoordinateSystem
+NonseparableSubimageCoordinateSystemError : `~astropy.wcs.NonseparableSubimageCoordinateSystemError`
     Non-separable subimage coordinate system.
 
 Notes
@@ -2183,13 +2183,13 @@ colsel : sequence of int
 
 Raises
 ------
-MemoryError
+MemoryError : `~.exceptions.MemoryError`
      Memory allocation failed.
 
-ValueError
+ValueError : `~.exceptions.ValueError`
      Invalid key.
 
-KeyError
+KeyError : `~.exceptions.KeyError`
      Key not found in FITS header.
 """
 

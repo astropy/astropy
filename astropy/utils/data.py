@@ -382,9 +382,9 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    URLError : `~urllib2.URLError`, ``urllib.error.URLError``
         If a remote file cannot be found.
-    IOError
+    IOError : `~.exceptions.IOError`
         If problems occur writing or reading a local file.
 
     Examples
@@ -470,9 +470,9 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    URLError : `~urllib2.URLError`, ``urllib.error.URLError``
         If a remote file cannot be found.
-    IOError
+    IOError : `~.exceptions.IOError`
         If problems occur writing or reading a local file.
 
     Returns
@@ -595,9 +595,9 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    URLError : `~urllib2.URLError`, ``urllib.error.URLError``
         If a remote file cannot be found.
-    IOError
+    IOError : `~.exceptions.IOError`
         If problems occur writing or reading a local file.
 
     See Also
@@ -860,7 +860,8 @@ def check_free_space_in_dir(path, size):
 
     Raises
     -------
-    IOError : There is not enough room on the filesystem
+    IOError :  : `~.exceptions.IOError`
+        There is not enough room on the filesystem
     """
     from ..utils.console import human_file_size
 
@@ -902,7 +903,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     Raises
     ------
-    urllib2.URLError, urllib.error.URLError
+    URLError : `~urllib2.URLError`, ``urllib.error.URLError``
         Whenever there's a problem getting the remote file.
     """
 
@@ -1107,7 +1108,7 @@ def clear_download_cache(hashorurl=None):
 
     Raises
     ------
-    OSEerror
+    OSEerror : `~.exceptions.OSError`
         If the requested filename is not present in the data directory.
 
     """

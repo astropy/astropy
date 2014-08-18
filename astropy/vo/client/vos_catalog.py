@@ -86,7 +86,7 @@ class VOSCatalog(VOSBase):
 
     Raises
     ------
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         Missing necessary key(s).
 
     """
@@ -116,10 +116,10 @@ class VOSCatalog(VOSBase):
 
         Raises
         ------
-        KeyError
+        KeyError : `~.exceptions.KeyError`
             Key not found.
 
-        VOSError
+        VOSError : `~astropy.vo.client.exceptions.VOSError`
             Key must exist in catalog, therefore cannot be deleted.
 
         """
@@ -151,7 +151,7 @@ class VOSCatalog(VOSBase):
 
         Raises
         ------
-        TypeError
+        TypeError : `~.exceptions.TypeError`
             Multiple values given for keyword argument.
 
         """
@@ -169,7 +169,7 @@ class VOSDatabase(VOSBase):
 
     Raises
     ------
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         If given ``tree`` does not have 'catalogs' key
         or catalog is invalid.
 
@@ -311,7 +311,7 @@ class VOSDatabase(VOSBase):
 
         Raises
         ------
-        VOSError
+        VOSError : `~astropy.vo.client.exceptions.VOSError`
             Invalid catalog.
 
         DuplicateCatalogName
@@ -405,7 +405,7 @@ class VOSDatabase(VOSBase):
 
         Raises
         ------
-        VOSError
+        VOSError : `~astropy.vo.client.exceptions.VOSError`
             Invalid database or incompatible version.
 
         """
@@ -436,7 +436,7 @@ class VOSDatabase(VOSBase):
 
         Raises
         ------
-        OSError
+        OSError : `~.exceptions.OSError`
             File exists.
 
         """
@@ -538,7 +538,7 @@ class VOSDatabase(VOSBase):
 
         Raises
         ------
-        VOSError
+        VOSError : `~astropy.vo.client.exceptions.VOSError`
             Invalid VO registry.
 
         """
@@ -658,7 +658,7 @@ def _get_catalogs(service_type, catalog_db, **kwargs):
 
     Raises
     ------
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         Invalid ``catalog_db``.
 
     """
@@ -727,10 +727,10 @@ def vo_tab_parse(tab, url, kwargs):
 
     Raises
     ------
-    IndexError
+    IndexError : `~.exceptions.IndexError`
         Table iterator fails.
 
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         Server returns error message or invalid table.
 
     """
@@ -838,7 +838,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     Raises
     ------
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         If VO service request fails.
 
     """

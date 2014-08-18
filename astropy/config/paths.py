@@ -20,7 +20,7 @@ def _find_home():
 
     Raises
     ------
-    OSError
+    OSError : `~.exceptions.OSError`
         If the home directory cannot be located - usually means you are running
         Astropy on some obscure platform that doesn't have standard home
         directories.

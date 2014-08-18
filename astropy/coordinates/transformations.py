@@ -97,7 +97,7 @@ class TransformGraph(object):
 
         Raises
         ------
-        TypeError
+        TypeError : `~.exceptions.TypeError`
             If ``fromsys`` or ``tosys`` are not classes or ``transform`` is
             not callable.
         """
@@ -624,7 +624,7 @@ class CoordinateTransform(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If this is not currently in the transform graph.
         """
         graph.remove_transform(self.fromsys, self.tosys, self)
@@ -678,9 +678,9 @@ class FunctionTransform(CoordinateTransform):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If ``func`` is not callable.
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If ``func`` cannot accept two arguments.
 
 
@@ -740,7 +740,7 @@ class StaticMatrixTransform(CoordinateTransform):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If the matrix is not 3 x 3
 
     """
@@ -806,7 +806,7 @@ class DynamicMatrixTransform(CoordinateTransform):
 
     Raises
     ------
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If ``matrix_func`` is not callable
 
     """

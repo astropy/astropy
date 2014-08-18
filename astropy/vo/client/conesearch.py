@@ -165,10 +165,10 @@ def conesearch(center, radius, verb=1, **kwargs):
 
     Raises
     ------
-    ConeSearchError
+    ConeSearchError : `~astropy.vo.client.exceptions.ConeSearchError`
         When invalid inputs are passed into Cone Search.
 
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         If VO service request fails.
 
     """
@@ -259,7 +259,7 @@ def search_all(*args, **kwargs):
 
     Raises
     ------
-    ConeSearchError
+    ConeSearchError : `~astropy.vo.client.exceptions.ConeSearchError`
         When invalid inputs are passed into Cone Search.
 
     """
@@ -377,13 +377,13 @@ def predict_search(url, *args, **kwargs):
 
     Raises
     ------
-    AssertionError
+    AssertionError : `~.exceptions.AssertionError`
         If prediction fails.
 
-    ConeSearchError
+    ConeSearchError : `~astropy.vo.client.exceptions.ConeSearchError`
         If input parameters are invalid.
 
-    VOSError
+    VOSError : `~astropy.vo.client.exceptions.VOSError`
         If VO service request fails.
 
     """

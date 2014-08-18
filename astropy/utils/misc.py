@@ -74,7 +74,7 @@ def find_current_module(depth=1, finddiff=False):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If ``finddiff`` is a list with an invalid entry.
 
     Examples
@@ -934,7 +934,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     Raises
     ------
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If the documentation can't be found
 
     """

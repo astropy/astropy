@@ -82,12 +82,12 @@ class EarthLocation(u.Quantity):
 
         Raises
         ------
-        astropy.units.UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If the units on ``x``, ``y``, and ``z`` do not match or an invalid
             unit is given.
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If the shapes of ``x``, ``y``, and ``z`` do not match.
-        TypeError
+        TypeError : `~.exceptions.TypeError`
             If ``x`` is not a `~astropy.units.Quantity` and no unit is given.
         """
         if unit is None:
@@ -137,10 +137,10 @@ class EarthLocation(u.Quantity):
 
         Raises
         ------
-        astropy.units.UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If the units on ``lon`` and ``lat`` are inconsistent with angular
             ones, or that on ``height`` with a length.
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If ``lon``, ``lat``, and ``height`` do not have the same shape, or
             if ``ellipsoid`` is not recognized as among the ones implemented.
 
@@ -199,7 +199,7 @@ class EarthLocation(u.Quantity):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             if ``ellipsoid`` is not recognized as among the ones implemented.
 
         Notes

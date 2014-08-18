@@ -211,7 +211,7 @@ class ConfigItem(object):
 
     Raises
     ------
-    RuntimeError
+    RuntimeError : `~.exceptions.RuntimeError`
         If ``module`` is `None`, but the module this item is created from
         cannot be determined.
     """
@@ -288,7 +288,7 @@ class ConfigItem(object):
 
         Raises
         ------
-        TypeError
+        TypeError : `~.exceptions.TypeError`
             If the provided ``value`` is not valid for this `ConfigItem`.
         """
         try:
@@ -383,7 +383,7 @@ class ConfigItem(object):
 
         Raises
         ------
-        TypeError
+        TypeError : `~.exceptions.TypeError`
             If the configuration value as stored is not this item's type.
         """
         def section_name(section):
@@ -642,7 +642,7 @@ def get_config(packageormod=None, reload=False):
 
     Raises
     ------
-    RuntimeError
+    RuntimeError : `~.exceptions.RuntimeError`
         If ``packageormod`` is `None`, but the package this item is created
         from cannot be determined.
     """

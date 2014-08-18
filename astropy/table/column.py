@@ -454,7 +454,7 @@ class BaseColumn(np.ndarray):
 
         Raises
         ------
-        astropy.units.UnitsError
+        UnitsError : `~astropy.units.UnitsError`
             If units are inconsistent
         """
         if self.unit is None:

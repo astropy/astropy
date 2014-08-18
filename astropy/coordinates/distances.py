@@ -68,9 +68,9 @@ class Distance(u.Quantity):
 
     Raises
     ------
-    `~astropy.units.UnitsError`
+    UnitsError : `~astropy.units.UnitsError`
         If the ``unit`` is not a distance.
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If value specified is less than 0 and ``allow_negative=False``.
 
         If ``z`` is provided with a ``unit`` or ``cosmology`` is provided
@@ -229,12 +229,12 @@ class CartesianPoints(u.Quantity):
 
     Raises
     ------
-    UnitsError
+    UnitsError : `~astropy.units.UnitsError`
         If the units on ``x``, ``y``, and ``z`` do not match or an invalid
         unit is given.
-    ValueError
+    ValueError : `~.exceptions.ValueError`
         If ``y`` and ``z`` don't match ``x``'s shape or ``x`` is not length-3
-    TypeError
+    TypeError : `~.exceptions.TypeError`
         If incompatible array types are passed into ``x``, ``y``, or ``z``
 
     """

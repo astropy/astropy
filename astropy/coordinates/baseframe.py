@@ -176,7 +176,7 @@ class FrameAttribute(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If the input is not valid for this attribute.
         """
         return value, False
@@ -255,7 +255,7 @@ class TimeFrameAttribute(FrameAttribute):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If the input is not valid for this attribute.
         """
         from ..time import Time
@@ -626,7 +626,7 @@ class BaseCoordinateFrame(object):
 
         Raises
         ------
-        AttributeError
+        AttributeError : `~.exceptions.AttributeError`
             If this object had no `data`
 
         Examples
@@ -674,7 +674,7 @@ class BaseCoordinateFrame(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If there is no possible transformation route.
         """
         from .errors import ConvertError
@@ -902,7 +902,7 @@ class BaseCoordinateFrame(object):
 
         Raises
         ------
-        ValueError
+        ValueError : `~.exceptions.ValueError`
             If this or the other coordinate do not have distances.
         """
         from .distances import Distance
