@@ -23,7 +23,8 @@ Getting Started
 This section provides a quick introduction of using :mod:`astropy.io.fits`. The
 goal is to demonstrate the package's basic features without getting into too
 much detail. If you are a first time user or have never used Astropy or PyFITS,
-this is where you should start.
+this is where you should start.  See also the :ref:`FAQ <io-fits-faq>` for
+answers to common questions/issues.
 
 Reading and Updating Existing FITS Files
 ----------------------------------------
@@ -689,8 +690,8 @@ Other Information
 .. toctree::
     :maxdepth: 1
 
-    appendix/header_transition
     appendix/faq
+    appendix/header_transition
     appendix/history
 
 Reference/API
