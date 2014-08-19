@@ -1315,4 +1315,4 @@ def custom_model_1d(func, func_fit_deriv=None):
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 
-    return custom_model(func, func_fit_deriv=func_fit_deriv)
+    return custom_model(func, fit_deriv=func_fit_deriv)

@@ -132,3 +132,19 @@ def test_custom_model_subclass():
     assert argspec.args == ['self', 'a']
     argspec = inspect.getargspec(model_b.__call__)
     assert argspec.args == ['self', 'x']
+
+
+def test_custom_model_parametrized_decorator():
+    """Tests using custom_model as a decorator with parameters."""
+
+    def cosine(x, amplitude=1):
+        return [amplitude * np.cos(x)]
+
+    @custom_model(fit_deriv=cosine)
+    def sine(x, amplitude=1):
+        return amplitude * np.sin(x)
+
+    assert issubclass(sine, Model)
+    s = sine(2)
+    assert_allclose(s(np.pi / 2), 2)
+    assert_allclose(s.fit_deriv(0, 2), 2)

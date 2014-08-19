@@ -1256,10 +1256,13 @@ class Fittable2DModel(FittableModel):
             x, y, model_set_axis=model_set_axis)
 
 
-def custom_model(func, func_fit_deriv=None):
+def custom_model(*args, fit_deriv=None):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
+
+    This can be used either as a function or as a decorator.  See below for
+    examples of both usages.
 
     .. note::
 
@@ -1270,14 +1273,14 @@ def custom_model(func, func_fit_deriv=None):
 
     Parameters
     ----------
-    func : function
+    func : callable
         Function which defines the model.  It should take N positional
         arguments where ``N`` is dimensions of the model (the number of
         independent variable in the model), and any number of keyword arguments
         (the parameters).  It must return the value of the model (typically as
         an array, but can also be a scalar for scalar inputs).  This
         corresponds to the `~astropy.modeling.Model.evaluate` method.
-    func_fit_deriv : function, optional
+    fit_deriv : callable, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivive with respect to the *parameters* of the model.  It should
         have the same argument signature as ``func``, but should return a
@@ -1296,7 +1299,7 @@ def custom_model(func, func_fit_deriv=None):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
         >>> def sine_deriv(x, amplitude=1., frequency=1.):
         ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
-        >>> SineModel = custom_model(sine_model, func_fit_deriv=sine_deriv)
+        >>> SineModel = custom_model(sine_model, fit_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it::
 
@@ -1324,14 +1327,37 @@ def custom_model(func, func_fit_deriv=None):
         0.3333333333333333
     """
 
+    if len(args) == 1 and callable(args[0]):
+        return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
+    elif not args:
+        return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
+    else:
+        raise TypeError(
+            "{0} takes at most one positional argument (the callable/"
+            "function to be turned into a model.  When used as a decorator "
+            "it should be passed keyword arguments only (if "
+            "any).".format(__name__))
+
+
+def _custom_model_wrapper(func, fit_deriv=None):
+    """
+    Internal implementation `custom_model`.
+
+    When `custom_model` is called as a function its arguments are passed to
+    this function, and the result of this function is returned.
+
+    When `custom_model` is used as a decorator a partial evaluation of this
+    function is returned by `custom_model`.
+    """
+
     if not six.callable(func):
         raise ModelDefinitionError(
             "func is not callable; it must be a function or other callable "
             "object")
 
-    if func_fit_deriv is not None and not six.callable(func_fit_deriv):
+    if fit_deriv is not None and not six.callable(fit_deriv):
         raise ModelDefinitionError(
-            "func_fit_deriv not callable; it must be a function or other "
+            "fit_deriv not callable; it must be a function or other "
             "callable object")
 
     model_name = func.__name__
@@ -1341,8 +1367,8 @@ def custom_model(func, func_fit_deriv=None):
     nparams = len(param_values)
     param_names = argspec.args[-nparams:]
 
-    if (func_fit_deriv is not None and
-            len(six.get_function_defaults(func_fit_deriv)) != nparams):
+    if (fit_deriv is not None and
+            len(six.get_function_defaults(fit_deriv)) != nparams):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 
@@ -1378,8 +1404,8 @@ def custom_model(func, func_fit_deriv=None):
         'evaluate': staticmethod(func),
     }
 
-    if func_fit_deriv is not None:
-        members['fit_deriv'] = staticmethod(func_fit_deriv)
+    if fit_deriv is not None:
+        members['fit_deriv'] = staticmethod(fit_deriv)
 
     members.update(params)
 
