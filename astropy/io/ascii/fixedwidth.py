@@ -76,10 +76,12 @@ class FixedWidthHeader(basic.BasicHeader):
     :param col_starts: list of start positions for each column (0-based counting)
     :param col_ends: list of end positions (inclusive) for each column
     :param delimiter_pad: padding around delimiter when writing (default = None)
+    :param unit_line: show a header line with units
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     splitter_class = FixedWidthHeaderSplitter
     position_line = None   # secondary header line position
+    unit_line = False
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
@@ -223,11 +225,16 @@ class FixedWidthData(basic.BasicData):
             col.width = max([len(vals[i]) for vals in vals_list])
             if self.header.start_line is not None:
                 col.width = max(col.width, len(col.name))
+                if self.header.unit_line is not None:
+                    col.width = max(col.width, len(str(col.unit)))
 
         widths = [col.width for col in self.cols]
 
         if self.header.start_line is not None:
             lines.append(self.splitter.join([col.name for col in self.cols], widths))
+            if self.header.unit_line is not None:
+                lines.append(self.splitter.join(['' if col.unit is None else str(col.unit) for col in self.cols], widths))
+
 
         if self.header.position_line is not None:
             char = self.header.position_char
@@ -270,6 +277,7 @@ class FixedWidth(basic.Basic):
     :param col_ends: list of end positions (inclusive) for each column
     :param delimiter_pad: padding around delimiter when writing (default = None)
     :param bookend: put the delimiter at start and end of line when writing (default = False)
+    :param header_unit_line: include a line with units in the header
     """
     _format_name = 'fixed_width'
     _description = 'Fixed width'
@@ -277,13 +285,13 @@ class FixedWidth(basic.Basic):
     header_class = FixedWidthHeader
     data_class = FixedWidthData
 
-
-    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
+    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True, header_unit_line=False):
         super(FixedWidth, self).__init__()
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
         self.header.col_starts = col_starts
         self.header.col_ends = col_ends
+        self.header.unit_line = header_unit_line
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
