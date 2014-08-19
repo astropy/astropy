@@ -61,6 +61,10 @@ New Features
 
 - ``astropy.wcs``
 
+  - Added a new function ``wcs_to_celestial_frame`` that can be used to find
+    the astropy.coordinates celestial frame corresponding to a particular WCS.
+    [#2730]
+
 API Changes
 ^^^^^^^^^^^
 
