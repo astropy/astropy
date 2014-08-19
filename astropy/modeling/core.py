@@ -31,11 +31,12 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
 from ..utils import deprecated, find_current_module
+from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (array_repr_oneline, check_broadcast, make_func_with_sig,
-                    IncompatibleShapeError)
+from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
 
 from .parameters import Parameter, InputParameterError
+
 
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
@@ -1390,8 +1391,9 @@ def custom_model(func, func_fit_deriv=None):
     def __call__(self, *args, **kwargs):
         return super(cls, self).__call__(*args, **kwargs)
 
-    cls.__init__ = make_func_with_sig(__init__, *(init_args + init_kwargs))
-    cls.__call__ = make_func_with_sig(__call__, *call_args)
+    cls.__init__ = make_function_with_signature(__init__,
+                                                (init_args + init_kwargs))
+    cls.__call__ = make_function_with_signature(__call__, call_args)
 
     return cls
 

@@ -10,7 +10,7 @@ import textwrap
 import types
 import warnings
 
-from .codegen import make_func_with_sig
+from .codegen import make_function_with_signature
 from .exceptions import (AstropyDeprecationWarning,
                          AstropyPendingDeprecationWarning)
 from ..extern import six
@@ -390,15 +390,16 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
           updated=functools.WRAPPER_UPDATES):
     """
     An alternative to `functools.wraps` which also preserves the original
-    function's call signature by way of `~astropy.utils.codegen.make_func_with_sig`.
+    function's call signature by way of
+    `~astropy.utils.codegen.make_function_with_signature`.
 
     The documentation for the original `functools.wraps` follows:
 
     """
 
     def wrapper(func):
-        func = make_func_with_sig(func, name=wrapped.__name__,
-                                  **_get_function_args(wrapped))
+        func = make_function_with_signature(func, name=wrapped.__name__,
+                                            **_get_function_args(wrapped))
         func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                         updated=updated)
         return func
@@ -415,8 +416,8 @@ if six.PY3:
         Utility function for `wraps`.
 
         Reads the argspec for the given function and converts it to arguments
-        for `make_func_with_sig`.  This requires different implementations on
-        Python 2 versus Python 3.
+        for `make_function_with_signature`.  This requires different
+        implementations on Python 2 versus Python 3.
         """
 
         argspec = inspect.getfullargspec(func)
@@ -440,8 +441,8 @@ else:
         Utility function for `wraps`.
 
         Reads the argspec for the given function and converts it to arguments
-        for `make_func_with_sig`.  This requires different implementations on
-        Python 2 versus Python 3.
+        for `make_function_with_signature`.  This requires different
+        implementations on Python 2 versus Python 3.
         """
 
         argspec = inspect.getargspec(func)
