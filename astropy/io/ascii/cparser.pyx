@@ -148,7 +148,7 @@ cdef class FileString:
 
         while ptr:
             tmp = get_line(ptr, &line_len, map_len)
-            yield ptr[:line_len]
+            yield ptr[:line_len].decode('ascii')
             ptr = tmp
 
 cdef class CParser:
