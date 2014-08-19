@@ -2726,25 +2726,6 @@ naxis kwarg.
         """
         return self.sub([WCSSUB_CELESTIAL])
 
-    def get_celestial_scale(self):
-        """
-        If the pixels are square, return the pixel scale in the spatial
-        dimensions
-        """
-        cwcs = self.celestial.wcs
-        if 'CAR' != cwcs.ctype[0][-3:]:
-            warnings.warn("Pixel sizes may very over the image for "
-                          "projection class {0}".format(cwcs.ctype[0][-3:]),
-                          AstropyUserWarning)
-        cdelt = np.matrix([[cwcs.get_cdelt()[0],0],
-                           [0, cwcs.get_cdelt()[1]]])
-        pc = np.matrix(cwcs.get_pc())
-        pccd = np.array(cdelt * pc)
-        scale = (pccd**2).sum(axis=0)**0.5
-        if scale[0] != scale[1]:
-            raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
-        return scale[0]
-
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """

@@ -137,3 +137,37 @@ def wcs_to_celestial_frame(wcs):
                 return frame
     raise ValueError("Could not determine celestial frame corresponding to "
                      "the specified WCS object")
+
+
+def celestial_scale(inwcs):
+    """
+    For a WCS, if the pixels are square, return the pixel scale in the spatial
+    dimensions
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+
+    Returns
+    -------
+    scale : float
+        The square pixel scale
+
+    Raises
+    ------
+    ValueError if the pixels are asymmetric
+    """
+    cwcs = inwcs.celestial.wcs
+    if 'CAR' != cwcs.ctype[0][-3:]:
+        warnings.warn("Pixel sizes may very over the image for "
+                      "projection class {0}".format(cwcs.ctype[0][-3:]),
+                      AstropyUserWarning)
+    cdelt = np.matrix([[cwcs.get_cdelt()[0],0],
+                       [0, cwcs.get_cdelt()[1]]])
+    pc = np.matrix(cwcs.get_pc())
+    pccd = np.array(cdelt * pc)
+    scale = (pccd**2).sum(axis=0)**0.5
+    if scale[0] != scale[1]:
+        raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
+    return scale[0]
