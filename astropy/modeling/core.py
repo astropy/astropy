@@ -1072,7 +1072,7 @@ class _CompositeModel(Model):
     def n_outputs(self):
         return self._n_outputs
 
-    @n_inputs.setter
+    @n_outputs.setter
     def n_outputs(self, val):
         self._n_outputs = val
 
