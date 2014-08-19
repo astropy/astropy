@@ -102,10 +102,10 @@ Parameters for ``read()``
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
 **fill_values**: list of fill value specifiers
-  Specify input table entries which are invalid or missing and will be masked
-  in the output table.  See the `Bad or missing values`_ section for more
-  information and examples.  The default is that any blank table values are
-  treated as missing.
+  Specify input table entries which should be masked in the output table
+  because they are bad or missing.  See the `Bad or missing values`_ section
+  for more information and examples.  The default is that any blank table
+  values are treated as missing.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
@@ -218,16 +218,16 @@ values in with typical placeholders::
    column where one of values happens to be ``""``.
 
 
-.. [#f1] The second element of the ``<missing_spec>`` tuple can actually be an
-         arbitrary string value which replaces occurrences of the
-         ``<match_string>`` string in the input stream prior to type
-         conversion.  This ends up being the value "behind the mask", which
-         should never be directly accessed.  Only the value ``'0'`` is neutral
-         when attempting to detect the column data type and perform type
-         conversion.  For instance if you used ``'nan'`` for the ``<match_string>``
-         value then integer columns would wind up as float.  The requirement to
-         put the ``'0'`` there is the legacy of an old interface which is
-         maintained for backward compatibility.
+.. [#f1] The requirement to put the ``'0'`` there is the legacy of an old
+         interface which is maintained for backward compatibility.  The second
+         element of the ``<missing_spec>`` tuple can actually be an arbitrary
+         string value which replaces occurrences of the ``<match_string>``
+         string in the input stream prior to type conversion.  This ends up
+         being the value "behind the mask", which should never be directly
+         accessed.  Only the value ``'0'`` is neutral when attempting to detect
+         the column data type and perform type conversion.  For instance if you
+         used ``'nan'`` for the ``<match_string>`` value then integer columns
+         would wind up as float.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^
