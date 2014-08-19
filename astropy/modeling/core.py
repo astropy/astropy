@@ -1256,7 +1256,7 @@ class Fittable2DModel(FittableModel):
             x, y, model_set_axis=model_set_axis)
 
 
-def custom_model(*args, fit_deriv=None):
+def custom_model(*args, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -1326,6 +1326,8 @@ def custom_model(*args, fit_deriv=None):
         >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
+
+    fit_deriv = kwargs.get('fit_deriv', None)
 
     if len(args) == 1 and six.callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
