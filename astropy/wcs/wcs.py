@@ -2726,6 +2726,16 @@ naxis kwarg.
         """
         return self.sub([WCSSUB_CELESTIAL])
 
+    @property
+    def pixel_scale_matrix(self):
+        cwcs = inwcs.celestial.wcs
+        cdelt = np.matrix([[cwcs.get_cdelt()[0],0],
+                           [0, cwcs.get_cdelt()[1]]])
+        pc = np.matrix(cwcs.get_pc())
+        pccd = np.array(cdelt * pc)
+
+        return pccd
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """
