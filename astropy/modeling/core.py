@@ -1327,7 +1327,7 @@ def custom_model(*args, fit_deriv=None):
         0.3333333333333333
     """
 
-    if len(args) == 1 and callable(args[0]):
+    if len(args) == 1 and six.callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
     elif not args:
         return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
