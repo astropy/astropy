@@ -16,7 +16,7 @@ from ..io import registry as io_registry
 from ..config import ConfigAlias
 from ..utils.metadata import MetaData
 
-__all__ = ['NDData']
+__all__ = ['NDData', 'NDArithmetic', 'NDDataArithmetic']
 
 
 __doctest_skip__ = ['NDData']
@@ -25,6 +25,7 @@ __doctest_skip__ = ['NDData']
 WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
     '0.4', 'WARN_UNSUPPORTED_CORRELATED', 'warn_unsupported_correlated',
     'astropy.nddata.nddata', 'astropy.nddata')
+
 
 class NDData(object):
     """A Superclass for array-based data in Astropy.
@@ -368,6 +369,67 @@ class NDData(object):
                               mask=new_mask, flags=new_flags, wcs=new_wcs,
                               meta=self.meta, unit=self.unit)
 
+    def convert_unit_to(self, unit, equivalencies=[]):
+        """
+        Returns a new `NDData` object whose values have been converted
+        to a new unit.
+
+        Parameters
+        ----------
+        unit : `astropy.units.UnitBase` instance or str
+            The unit to convert to.
+
+        equivalencies : list of equivalence pairs, optional
+           A list of equivalence pairs to try if the units are not
+           directly convertible.  See :ref:`unit_equivalencies`.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Raises
+        ------
+        UnitsError
+            If units are inconsistent.
+
+        Notes
+        -----
+        Flags are set to None in the result.
+        """
+        if self.unit is None:
+            raise ValueError("No unit specified on source data")
+        data = self.unit.to(unit, self.data, equivalencies=equivalencies)
+        if self.uncertainty is not None:
+            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
+                                              equivalencies=equivalencies)
+            # should work for any uncertainty class
+            uncertainty = self.uncertainty.__class__(uncertainty_values)
+        else:
+            uncertainty = None
+        if self.mask is not None:
+            new_mask = self.mask.copy()
+        else:
+            new_mask = None
+        # Call __class__ in case we are dealing with an inherited type
+        result = self.__class__(data, uncertainty=uncertainty,
+                                mask=new_mask, flags=self.flags,
+                                wcs=self.wcs,
+                                meta=self.meta, unit=unit)
+
+        return result
+
+    read = classmethod(io_registry.read)
+    write = io_registry.write
+
+
+class NDArithmetic(object):
+    """
+    Mixin class to add arithmetic to an NDData object.
+
+    When subclassing, the correct order can be seen in
+    `~astropy.nddata.NDDataArithmetic`
+    """
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
         {name} another dataset (``operand``) to this dataset.
@@ -565,55 +627,10 @@ class NDData(object):
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
-    def convert_unit_to(self, unit, equivalencies=[]):
-        """
-        Returns a new `NDData` object whose values have been converted
-        to a new unit.
 
-        Parameters
-        ----------
-        unit : `astropy.units.UnitBase` instance or str
-            The unit to convert to.
+class NDDataArithmetic(NDArithmetic, NDData):
+    """
+    An NDData object with arithmetic.
+    """
+    pass
 
-        equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
-
-        Returns
-        -------
-        result : `~astropy.nddata.NDData`
-            The resulting dataset
-
-        Raises
-        ------
-        UnitsError
-            If units are inconsistent.
-
-        Notes
-        -----
-        Flags are set to None in the result.
-        """
-        if self.unit is None:
-            raise ValueError("No unit specified on source data")
-        data = self.unit.to(unit, self.data, equivalencies=equivalencies)
-        if self.uncertainty is not None:
-            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
-                                              equivalencies=equivalencies)
-            # should work for any uncertainty class
-            uncertainty = self.uncertainty.__class__(uncertainty_values)
-        else:
-            uncertainty = None
-        if self.mask is not None:
-            new_mask = self.mask.copy()
-        else:
-            new_mask = None
-        # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(data, uncertainty=uncertainty,
-                                mask=new_mask, flags=self.flags,
-                                wcs=self.wcs,
-                                meta=self.meta, unit=unit)
-
-        return result
-
-    read = classmethod(io_registry.read)
-    write = io_registry.write
