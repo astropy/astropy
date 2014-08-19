@@ -286,6 +286,14 @@ class NDData(object):
             self._unit = Unit(value)
 
     @property
+    def wcs(self):
+        return self._wcs
+
+    @wcs.setter
+    def wcs(self, value):
+        self._wcs = value
+
+    @property
     def shape(self):
         """
         shape tuple of this object's data.
