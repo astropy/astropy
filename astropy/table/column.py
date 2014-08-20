@@ -6,6 +6,7 @@ from ..extern import six
 import operator
 
 import warnings
+import weakref
 
 from copy import deepcopy
 from distutils import version
@@ -103,14 +104,29 @@ class BaseColumn(np.ndarray):
         self.unit = unit
         self.format = format
         self.description = description
-        self.parent_table = None
         self.meta = meta
+        self._parent_table = None
 
         return self
 
     @property
     def data(self):
         return self.view(np.ndarray)
+
+    @property
+    def parent_table(self):
+        if self._parent_table is None:
+            return None
+        else:
+            return self._parent_table()
+
+    @parent_table.setter
+    def parent_table(self, table):
+        if table is None:
+            self._parent_table = None
+        else:
+            self._parent_table = weakref.ref(table)
+
 
     def copy(self, order='C', data=None, copy_data=True):
         """
