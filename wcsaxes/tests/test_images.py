@@ -43,18 +43,21 @@ class BaseImageTests(object):
         if generate is None:
             result_dir = tempfile.mkdtemp()
             test_image = os.path.abspath(os.path.join(result_dir, image))
-            baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
+
+            # distutils will put the baseline images in non-accessible places,
+            # copy to our tmpdir to be sure to keep them in case of failure
+            orig_baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
+            baseline_image = os.path.abspath(os.path.join(result_dir, 'baseline-'+image))
+            shutil.copyfile(orig_baseline_image, baseline_image)
 
             figure.savefig(test_image, bbox_inches=bbox_inches)
 
             if not os.path.exists(baseline_image):
                 raise Exception("""Image file not found for comparision test
-                                Expected Image:
-                                \t{baseline}
-                                Actual:
+                                Generated Image:
                                 \t{test}
                                 This is expected for new tests.""".format(
-                                    baseline=baseline_image, test=test_image))
+                                    test=test_image))
 
             msg = compare_images(baseline_image, test_image, tol=self._tolerance)
 
