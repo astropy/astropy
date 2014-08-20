@@ -88,9 +88,11 @@ def get_working_intersphinx(url_list, timeout=10):
     raise urllib.error.URLError("None of the URLs responded within {0} seconds.".format(timeout))
 
 numpy_intersphinx_urls = ['http://docs.scipy.org/doc/numpy/objects.inv',
+                          'http://scipy.org/docs/numpy/',
                           'http://jiffyclub.github.io/numpy/',]
 intersphinx_mapping['numpy'] = (get_working_intersphinx(numpy_intersphinx_urls), None)
 scipy_intersphinx_urls = ['http://docs.scipy.org/doc/scipy/objects.inv',
+                          'http://scipy.org/docs/scipy/',
                           'http://jiffyclub.github.io/scipy/',]
 intersphinx_mapping['scipy'] = (get_working_intersphinx(scipy_intersphinx_urls), None)
 
