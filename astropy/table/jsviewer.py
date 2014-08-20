@@ -2,9 +2,14 @@
 # TODO: need to download some images used by the jquery-ui css file:
 # images/ui-icons_888888_256x240.png
 import os
+import numpy as np
 
+from .table import Table
+
+from ..io import registry as io_registry
 from .. import config as _config
 from .. import extern
+from ..extern import six
 
 
 class Conf(_config.ConfigNamespace):
@@ -142,3 +147,40 @@ class JSViewer(object):
             display_length_menu=self.display_length_menu,
             tid=tableid))
         return js
+
+
+def write_table_jsviewer(table, filename, tableid=None,
+                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+                         max_lines=5000,
+                         jskwargs={}):
+
+    if isinstance(filename, six.string_types):
+        f = open(filename, 'w')
+        close = True
+    else:
+        f = filename
+        close = False
+
+    if tableid is None:
+        tableid = 'table{id}'.format(id=id(table))
+
+    linelist = table.pformat(html=True, max_width=np.inf,
+                             max_lines=max_lines, tableid=tableid)
+
+    jsv = JSViewer(**jskwargs)
+    js = jsv.command_line(tableid=tableid)
+
+    css = ["<style>{0}</style>".format(css)]
+    html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
+
+    try:
+        f.write(html)
+    except TypeError:
+        f.write(html.encode('utf8'))
+
+    if close:
+        f.close()
+    else:
+        f.flush()
+
+io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

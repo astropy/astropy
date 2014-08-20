@@ -621,29 +621,14 @@ class Table(object):
         """
         import webbrowser
         import tempfile
-        from .jsviewer import JSViewer
 
         tmp = tempfile.NamedTemporaryFile(suffix='.html')
 
-        if tableid is None:
-            tableid = 'table{id}'.format(id=id(self))
-        linelist = self.pformat(html=True, max_width=np.inf,
-                                max_lines=max_lines, tableid=tableid)
-
         if jsviewer:
-            jsv = JSViewer(**jskwargs)
-            js = jsv.command_line(tableid=tableid)
+            self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
+                       jskwargs=jskwargs, tableid=tableid)
         else:
-            js = []
-
-        css = ["<style>{0}</style>".format(css)]
-        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
-
-        try:
-            tmp.write(html)
-        except TypeError:
-            tmp.write(html.encode('utf8'))
-        tmp.flush()
+            self.write(tmp, format='html')
 
         if browser == 'default':
             webbrowser.open("file://" + tmp.name)
