@@ -42,6 +42,7 @@ except ImportError:
 # Load all of the global Astropy configuration
 from astropy_helpers.sphinx.conf import *
 from astropy.extern import six
+from astropy.extern.six.moves import urllib
 
 import astropy
 
@@ -60,6 +61,38 @@ check_sphinx_version("1.2.1")
 # astropy core.  However, we don't want to cyclically reference astropy in its
 # own build so we remove it here.
 del intersphinx_mapping['astropy']
+
+def get_working_intersphinx(url_list, timeout=10):
+    """
+    Given a list of URLs, check each in turn to see if it gives an HTTP 200
+    response (everything is OK) within a given timeout.  If not, go to the next
+    one
+
+    Parameters
+    ----------
+    url_list: list
+        A list of URLs to check
+
+    Raises
+    ------
+    URLError if none of the URLs return 200
+    """
+    for url in url_list:
+        try:
+            code = urllib.request.urlopen(url, timeout=timeout).getcode()
+            if code == 200:
+                return url
+        except urllib.error.URLError:
+            continue
+
+    raise urllib.error.URLError("None of the URLs responded within {0} seconds.".format(timeout))
+
+numpy_intersphinx_urls = ['http://docs.scipy.org/doc/numpy/objects.inv',
+                          'http://jiffyclub.github.io/numpy/',]
+intersphinx_mapping['numpy'] = (get_working_intersphinx(numpy_intersphinx_urls), None)
+scipy_intersphinx_urls = ['http://docs.scipy.org/doc/scipy/objects.inv',
+                          'http://jiffyclub.github.io/scipy/',]
+intersphinx_mapping['scipy'] = (get_working_intersphinx(scipy_intersphinx_urls), None)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
