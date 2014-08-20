@@ -92,7 +92,7 @@ numpy_intersphinx_urls = ['http://docs.scipy.org/doc/numpy/objects.inv',
                           'http://jiffyclub.github.io/numpy/',]
 intersphinx_mapping['numpy'] = (get_working_intersphinx(numpy_intersphinx_urls), None)
 scipy_intersphinx_urls = ['http://docs.scipy.org/doc/scipy/objects.inv',
-                          'http://scipy.org/docs/scipy/',
+                          'http://scipy.org/docs/scipy/reference/',
                           'http://jiffyclub.github.io/scipy/',]
 intersphinx_mapping['scipy'] = (get_working_intersphinx(scipy_intersphinx_urls), None)
 
