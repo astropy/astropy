@@ -2728,7 +2728,7 @@ naxis kwarg.
 
     @property
     def pixel_scale_matrix(self):
-        cwcs = inwcs.celestial.wcs
+        cwcs = self.celestial.wcs
         cdelt = np.matrix([[cwcs.get_cdelt()[0],0],
                            [0, cwcs.get_cdelt()[1]]])
         pc = np.matrix(cwcs.get_pc())
