@@ -30,7 +30,6 @@ try:
 except NameError:
     OutStream = None
     IPythonIOStream = None
-    stdio = sys
 else:
     try:
         from IPython.zmq.iostream import OutStream
@@ -41,15 +40,22 @@ else:
             OutStream = None
 
     if OutStream is not None:
-        from IPython.utils import io
+        from IPython.utils import io as ipyio
         # On Windows in particular this is necessary, as the io.stdout stream
         # in IPython gets hooked up to some pyreadline magic to handle colors
-        stdio = io
-        IPythonIOStream = io.IOStream
+        IPythonIOStream = ipyio.IOStream
     else:
         OutStream = None
         IPythonIOStream = None
-        stdio = sys
+
+    # On Windows, in IPython 2 the standard I/O streams will wrap
+    # pyreadline.Console objects if pyreadline is available; this should
+    # be considered a TTY
+    try:
+        from pyreadyline.console import Console as PyreadlineConsole
+    except ImportError:
+        # Just define a dummy class
+        class PyreadlineConsole(object): pass
 
 from ..config import ConfigAlias
 from ..extern import six
@@ -74,6 +80,37 @@ USE_COLOR = ConfigAlias(
 _DEFAULT_ENCODING = 'utf-8'
 
 
+def _get_stdout(stderr=False):
+    """
+    This utility fucntion contains the logic to determine what streams to use
+    by default for standard out/err.
+
+    Typically this will just return `sys.stdout`, but it contains additional
+    logic for use in IPython on Windows to determine the correct stream to use
+    (usually ``IPython.util.io.stdout`` but only if sys.stdout is a TTY).
+    """
+
+    if stderr:
+        stream = 'stderr'
+    else:
+        stream = 'stdout'
+
+    sys_stream = getattr(sys, stream)
+
+    if IPythonIOStream is None:
+        return sys_stream
+
+    ipyio_stream = getattr(ipyio, stream)
+
+    if isatty(sys_stream) and isatty(ipyio_stream):
+        # Use the IPython console output stream
+        return ipyio_stream
+    else:
+        # sys.stdout was set to some other non-TTY stream (a file perhaps)
+        # so just use it directly
+        return sys_stream
+
+
 def isatty(file):
     """
     Returns `True` if `file` is a tty.
@@ -86,16 +123,21 @@ def isatty(file):
         threading.current_thread().getName() != 'MainThread'):
         return False
 
-    if (OutStream is not None and
-        isinstance(file, (OutStream, IPythonIOStream)) and
-        file.name == 'stdout'):
-        return True
-    elif hasattr(file, 'isatty'):
+    if hasattr(file, 'isatty'):
         return file.isatty()
+    elif (OutStream is not None and
+          isinstance(file, (OutStream, IPythonIOStream)) and
+          ((hasattr(file, 'name') and file.name == 'stdout') or
+           (hasattr(file, 'stream') and
+               isinstance(file.stream, PyreadlineConsole)))):
+        # File is an IPython OutStream or IOStream and
+        #    File name is 'stdout' or
+        #    File wraps a Console
+        return True
     return False
 
 
-def terminal_size(file=stdio.stdout):
+def terminal_size(file=None):
     """
     Returns a tuple (height, width) containing the height and width of
     the terminal.
@@ -104,6 +146,10 @@ def terminal_size(file=stdio.stdout):
     before falling back on the width and height in astropy's
     configuration.
     """
+
+    if file is None:
+        file = _get_stdout()
+
     try:
         s = struct.pack(str("HHHH"), 0, 0, 0, 0)
         x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
@@ -269,7 +315,8 @@ def color_print(*args, **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    file = kwargs.get('file', stdio.stdout)
+
+    file = kwargs.get('file', _get_stdout())
 
     end = kwargs.get('end', '\n')
 
@@ -433,8 +480,9 @@ class ProgressBar(six.Iterator):
             to detect the IPython console), the progress bar will be
             completely silent.
         """
+
         if file is None:
-            file = stdio.stdout
+            file = _get_stdout()
 
         if not isatty(file):
             self.update = self._silent_update
@@ -579,10 +627,11 @@ class ProgressBar(six.Iterator):
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
         """
+
         results = []
 
         if file is None:
-            file = stdio.stdout
+            file = _get_stdout()
 
         with cls(len(items), file=file) as bar:
             step_size = max(200, bar._bar_length)
@@ -631,8 +680,10 @@ class ProgressBar(six.Iterator):
         generator :
             A generator over ``items``.
         """
+
         if file is None:
-            file = stdio.stdout
+            file = _get_stdout()
+
         return cls(items, file=file)
 
 
@@ -676,8 +727,9 @@ class Spinner(object):
         chars : str, optional
             The character sequence to use for the spinner
         """
+
         if file is None:
-            file = stdio.stdout
+            file = _get_stdout()
 
         self._msg = msg
         self._color = color
@@ -798,7 +850,7 @@ class ProgressBarOrSpinner(object):
         """
 
         if file is None:
-            file = stdio.stdout
+            file = _get_stdout()
 
         if total is None or not isatty(file):
             self._is_spinner = True
@@ -865,7 +917,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     """
 
     if file is None:
-        file = stdio.stdout
+        file = _get_stdout()
 
     if conf.unicode_output:
         ellipsis = '…'
