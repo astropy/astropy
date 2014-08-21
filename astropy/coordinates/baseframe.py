@@ -852,23 +852,23 @@ class BaseCoordinateFrame(object):
             if data_repr.startswith('<' + data.__class__.__name__):
                 # standard form from BaseRepresentation
                 if frameattrs:
-                    frameattrs = frameattrs + ', '
+                    frameattrs = ' (' + frameattrs + ')'
 
                 #remove both the leading "<" and the space after the name
                 data_repr = data_repr[(len(data.__class__.__name__) + 2):]
 
-                return '<{0} Coordinate: {1}{2}'.format(self.__class__.__name__,
+                return '<{0} Coordinate{1}: {2}'.format(self.__class__.__name__,
                                                         frameattrs, data_repr)
             else:
                 # should only happen if a representation has a non-standard
                 # __repr__ method, and we just punt to that
                 if frameattrs:
-                    frameattrs = ': ' + frameattrs + ', '
+                    frameattrs = ' (' + frameattrs + '), '
                 s = '<{0} Coordinate{1}Data:\n{2}>'
                 return s.format(self.__class__.__name__, frameattrs, data_repr)
         else:
             if frameattrs:
-                frameattrs = ': ' + frameattrs
+                frameattrs = ' (' + frameattrs + ')'
             return '<{0} Frame{1}>'.format(self.__class__.__name__, frameattrs)
 
     def __getitem__(self, view):

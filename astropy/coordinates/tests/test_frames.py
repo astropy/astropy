@@ -150,7 +150,7 @@ def test_frame_repr():
     assert repr(i) == '<ICRS Frame>'
 
     f5 = FK5()
-    assert repr(f5).startswith('<FK5 Frame: equinox=')
+    assert repr(f5).startswith('<FK5 Frame (equinox=')
 
     i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)

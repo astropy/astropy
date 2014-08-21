@@ -114,9 +114,9 @@ which accepts a frame name, frame class, or frame instance::
     <SkyCoord (Galactic): l=121.174302631 deg, b=-21.5728000618 deg>
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J2000.000, ra=10.6845915393 deg, dec=41.2691714591 deg>
+    <SkyCoord (FK5: equinox=J2000.000): ra=10.6845915393 deg, dec=41.2691714591 deg>
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J1975.000, ra=10.3420913461 deg, dec=41.1323211229 deg>
+    <SkyCoord (FK5: equinox=J1975.000): ra=10.3420913461 deg, dec=41.1323211229 deg>
 
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
