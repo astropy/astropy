@@ -168,4 +168,5 @@ def celestial_scale(inwcs):
     scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
     if scale[0] != scale[1]:
         raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
-    return scale[0]
+    # Return a quantity: WCS always stores in degrees
+    return scale[0]*u.deg
