@@ -1,4 +1,4 @@
-.. _warnings:
+.. _python-warnings:
 
 **********************
 Python warnings system
