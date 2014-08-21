@@ -439,7 +439,7 @@ on the side of not losing data, at the cost of causing some confusion at
 first.
 
 If the data must be returned to integers before saving, use the `ImageHDU.scale
-<astropy.io.ImageHDU.scale>` method::
+<astropy.io.fits.hdu.image.ImageHDU.scale>` method::
 
     >>> image.scale('int32')
     >>> image.header['BITPIX']
