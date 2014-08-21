@@ -109,7 +109,7 @@ API Changes
   - Some members of ``astropy.utils.misc`` were moved into new submodules.
     Specifically:
 
-    - ``deprecated`, ``deprecated_attribute``, and ``lazyproperty`` ->
+    - ``deprecated``, ``deprecated_attribute``, and ``lazyproperty`` ->
       ``astropy.utils.decorators``
 
     - ``find_current_module``, ``find_mod_objs`` ->
@@ -2013,7 +2013,7 @@ API Changes
 - The ``--enable-legacy`` option for ``setup.py`` has been removed. [#1493]
 
 Bug Fixes
-^^^^^^^^^^
+^^^^^^^^^
 
 - ``astropy.io.ascii``
 

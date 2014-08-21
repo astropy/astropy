@@ -390,7 +390,7 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
           updated=functools.WRAPPER_UPDATES):
     """
     An alternative to `functools.wraps` which also preserves the original
-    function's call signature by way of `make_func_with_sig`.
+    function's call signature by way of `~astropy.utils.codegen.make_func_with_sig`.
 
     The documentation for the original `functools.wraps` follows:
 
