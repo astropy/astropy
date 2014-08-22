@@ -1628,7 +1628,7 @@ class _CompoundModel(Model):
 
         all_params = [n.value.param_sets
                       for n in self._tree.traverse_postorder()
-                      if n.isleaf]
+                      if n.isleaf and n.value.param_names]
 
         return np.vstack(tuple(all_params))
 
