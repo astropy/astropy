@@ -221,6 +221,9 @@ def skycoord_to_pixel(coords, wcs):
         The WCS transformation to use
     """
 
+    from .. import units as u
+    from . import WCSSUB_CELESTIAL
+
     # Keep only the celestial part of the axes, also re-orders lon/lat
     wcs = wcs.sub([WCSSUB_CELESTIAL])
 
