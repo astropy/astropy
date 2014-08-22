@@ -1037,10 +1037,13 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     """
 
     from .fastbasic import FastBasic
-
     if issubclass(Reader, FastBasic): # Fast readers handle args separately
+        if Inputter is not None:
+            kwargs['Inputter'] = Inputter
         return Reader(**kwargs)
 
+    if 'fast_reader' in kwargs:
+        del kwargs['fast_reader'] # ignore fast_reader parameter for slow readers
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 

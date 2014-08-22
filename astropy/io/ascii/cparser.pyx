@@ -194,8 +194,15 @@ cdef class CParser:
                   fill_include_names=None,
                   fill_exclude_names=None,
                   fill_extra_cols=0,
-                  use_fast_converter=False,
-                  parallel=False):
+                  fast_reader=True):
+
+        # Handle fast_reader parameter (True or dict specifying options)
+        if fast_reader is True or fast_reader == 'force':
+            fast_reader = {}
+        use_fast_converter = fast_reader.pop('use_fast_converter', False)
+        parallel = fast_reader.pop('parallel', False)
+        if fast_reader:
+            raise core.ParameterError("Invalid parameter in fast_reader dict")
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'

@@ -44,14 +44,15 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
     t2 = reader.read(StringIO(table))
     t3 = reader.read(table.splitlines())
     t4 = ascii.read(table, format=format, guess=False, **kwargs)
-    t5 = ascii.read(table, format=format, guess=False, use_fast_reader=False, **kwargs)
+    t5 = ascii.read(table, format=format, guess=False, fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
     assert_table_equal(t3, t4)
     assert_table_equal(t4, t5)
 
     if not fail_parallel:
-        t6 = ascii.read(table, format=format, guess=False, parallel=True, **kwargs)
+        t6 = ascii.read(table, format=format, guess=False, fast_reader={
+            'parallel': True}, **kwargs)
         assert_table_equal(t1, t6)
 
     with NamedTemporaryFile() as f:
@@ -59,7 +60,8 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
         f.flush()
         t7 = ascii.read(f.name, format=format, guess=False, **kwargs)
         if not fail_parallel:
-            t8 = ascii.read(f.name, format=format, guess=False, parallel=True, **kwargs)
+            t8 = ascii.read(f.name, format=format, guess=False, fast_reader={
+                'parallel': True}, **kwargs)
 
     assert_table_equal(t1, t7)
     if not fail_parallel:
@@ -258,42 +260,32 @@ def test_invalid_parameters():
     """
     Make sure the C reader raises a ParameterError if passed parameters it can't handle.
     """
-    # multi-char delimiter
-    with pytest.raises(ParameterError):
-        table = FastBasic(delimiter=',,').read('1 2 3\n4 5 6')
-    # multi-char comment
-    with pytest.raises(ParameterError):
-        table = FastBasic(comment='##').read('1 2 3\n4 5 6')
-    # data_start=None
-    with pytest.raises(ParameterError):
-        table = FastBasic(data_start=None).read('1 2 3\n4 5 6')
-    # multi-char quote signifier
-    with pytest.raises(ParameterError):
-        table = FastBasic(quotechar='""').read('1 2 3\n4 5 6')
-    # negative data_start
-    with pytest.raises(ParameterError):
-        table = FastBasic(data_start=-1).read('1 2 3\n4 5 6')
-    # negative header_start
-    with pytest.raises(ParameterError):
-        table = FastBasic(header_start=-1).read('1 2 3\n4 5 6')
-    # passing converters
-    with pytest.raises(ParameterError):
-        int_converter = ascii.convert_numpy(np.uint)
-        converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
-        table = FastBasic(converters=converters).read('1 2 3\n4 5 6')
-    # passing Outputter
-    with pytest.raises(ParameterError):
-        table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
-    # passing Inputter
-    with pytest.raises(ParameterError):
-        table = FastBasic(Inputter=ascii.ContinuationLinesInputter).read('1 2 3\n4 5 6')
-    # passing Splitter class
-    for arg in ('header_Splitter', 'data_Splitter'):
+    int_converter = ascii.convert_numpy(np.uint)
+    converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
+    invalid_params = {'delimiter': ',,', # multi-char delimiter
+                      'comment': '##', # multi-char comment
+                      'data_start': None, # data_start=None
+                      'quotechar': '##', # multi-char quote signifier
+                      'data_start': -1, # negative data_start
+                      'header_start': -1, # negative header_start
+                      'converters': converters, # passing converters
+                      'Inputter': ascii.ContinuationLinesInputter, # passing Inputter
+                      'header_Splitter': ascii.DefaultSplitter, # passing Splitter
+                      'data_Splitter': ascii.DefaultSplitter
+                      }
+    for key, val in invalid_params.items():
         with pytest.raises(ParameterError):
-            table = FastBasic(**{arg: ascii.DefaultSplitter}).read('1 2 3\n4 5 6')
-    # unexpected argument
+            print('Trying {0}={1} using constructor'.format(key, val))
+            table = FastBasic(**{key: val}).read('1 2 3\n4 5 6')
+        with pytest.raises(ParameterError):
+            print('Trying {0}={1} using ascii.read'.format(key, val))
+            table = ascii.read('1 2 3\n4 5 6', format='fast_basic', guess=False, **{key: val})
+
     with pytest.raises(TypeError):
-        table = FastBasic(foo=7).read('1 2 3\n4 5 6')
+        table = FastBasic(foo=7).read('1 2 3\n4 5 6') # unexpected argument
+    with pytest.raises(ParameterError):
+        # Outputter cannot be specified in constructor
+        table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
 def test_too_many_cols():
     """
@@ -468,17 +460,24 @@ def test_many_columns():
     expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
     assert_table_equal(table, expected)
 
-def test_use_fast_reader():
+def test_fast_reader():
     """
     Make sure that ascii.read() works as expected by default and with
-    use_fast_reader specified.
+    fast_reader specified.
     """
     text = 'a b c\n1 2 3\n4 5 6'
     with pytest.raises(ParameterError): # C reader can't handle regex comment
         ascii.read(text, format='fast_basic', guess=False, comment='##')
 
+    # Enable multiprocessing and the fast converter
+    ascii.read(text, format='basic', guess=False, fast_reader={'parallel': True,
+                                                    'use_fast_converter': True})
+    # Should raise an error if fast_reader has an invalid key
+    with pytest.raises(ParameterError):
+        ascii.read(text, format='fast_basic', guess=False, fast_reader={'foo': True})
+
     # Use the slow reader instead
-    ascii.read(text, format='basic', guess=False, comment='##', use_fast_reader=False)
+    ascii.read(text, format='basic', guess=False, comment='##', fast_reader=False)
     # Will try the slow reader afterwards by default
     ascii.read(text, format='basic', guess=False, comment='##')
 

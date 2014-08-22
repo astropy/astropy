@@ -15,12 +15,13 @@ from distutils import version
 
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
+from .. import core
 from ....tests.helper import pytest
 
 _NUMPY_VERSION = version.LooseVersion(np.__version__)
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_convert_overflow(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_convert_overflow(fast_reader):
     """
     Test reading an extremely large integer, which falls through to
     string due to an overflow error (#2234).
@@ -31,7 +32,7 @@ def test_convert_overflow(request):
     # numpy < 1.6.
     expected_kind = ('f',) if _NUMPY_VERSION < version.LooseVersion('1.6') else ('S', 'U')
     dat = ascii.read(['a', '1' * 10000], format='basic',
-                     use_fast_reader=request.param, guess=False)
+                     fast_reader=fast_reader, guess=False)
     assert dat['a'].dtype.kind in expected_kind
 
 
@@ -91,17 +92,17 @@ def test_guess_with_format_arg():
     assert dat.colnames == ['a', 'b']
 
 
-@raises(ValueError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_read_with_names_arg(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_read_with_names_arg(fast_reader):
     """
     Test that a bad value of `names` raises an exception.
     """
-    dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, use_fast_reader=request.param)
+    with pytest.raises(ValueError):
+        dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_read_all_files(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
             print('\n\n******** SKIPPING %s' % testfile['name'])
@@ -113,15 +114,16 @@ def test_read_all_files(request):
                 test_opts['guess'] = guess
             if 'Reader' in test_opts and 'fast_{0}'.format(test_opts['Reader']._format_name) \
                 in core.FAST_CLASSES: # has fast version
-                test_opts['use_fast_reader'] = request.param
+                if 'Inputter' not in test_opts: # fast reader doesn't allow this
+                    test_opts['fast_reader'] = fast_reader
             table = ascii.read(testfile['name'], **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_read_all_files_via_table(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
             print('\n\n******** SKIPPING %s' % testfile['name'])
@@ -137,7 +139,7 @@ def test_read_all_files_via_table(request):
             else:
                 format = 'ascii'
             if 'fast_{0}'.format(format) in core.FAST_CLASSES:
-                test_opts['use_fast_reader'] = request.param
+                test_opts['fast_reader'] = fast_reader
             table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
@@ -206,29 +208,29 @@ def test_daophot_multiple_aperture():
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
 
 
-@raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_empty_table_no_header(request):
-    table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
-                            guess=False, use_fast_reader=request.param)
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_empty_table_no_header(fast_reader):
+    with pytest.raises(ascii.InconsistentTableError):
+        table = ascii.read('t/no_data_without_header.dat', Reader=ascii.NoHeader,
+                            guess=False, fast_reader=fast_reader)
 
 
-@raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_wrong_quote(request):
-    table = ascii.read('t/simple.txt', guess=False, use_fast_reader=request.param)
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_wrong_quote(fast_reader):
+    with pytest.raises(ascii.InconsistentTableError):
+        table = ascii.read('t/simple.txt', guess=False, fast_reader=fast_reader)
 
 
-@raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_extra_data_col(request):
-    table = ascii.read('t/bad.txt', use_fast_reader=request.param)
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_extra_data_col(fast_reader):
+    with pytest.raises(ascii.InconsistentTableError):
+        table = ascii.read('t/bad.txt', fast_reader=fast_reader)
 
 
-@raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_extra_data_col2(request):
-    table = ascii.read('t/simple5.txt', delimiter='|', use_fast_reader=request.param)
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_extra_data_col2(fast_reader):
+    with pytest.raises(ascii.InconsistentTableError):
+        table = ascii.read('t/simple5.txt', delimiter='|', fast_reader=fast_reader)
 
 
 @raises(IOError)
@@ -236,28 +238,28 @@ def test_missing_file():
     table = ascii.read('does_not_exist')
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_set_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_set_names(fast_reader):
     names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     data = ascii.read('t/simple3.txt', names=names, delimiter='|',
-                      use_fast_reader=request.param)
+                      fast_reader=fast_reader)
     assert_equal(data.dtype.names, names)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_set_include_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_set_include_names(fast_reader):
     names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
     data = ascii.read('t/simple3.txt', names=names, include_names=include_names,
-                           delimiter='|', use_fast_reader=request.param)
+                           delimiter='|', fast_reader=fast_reader)
     assert_equal(data.dtype.names, include_names)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_set_exclude_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_set_exclude_names(fast_reader):
     exclude_names = ('Y', 'object')
     data = ascii.read('t/simple3.txt', exclude_names=exclude_names, delimiter='|',
-                      use_fast_reader=request.param)
+                      fast_reader=fast_reader)
     assert_equal(data.dtype.names, ('obsid', 'redshift', 'X', 'rad'))
 
 
@@ -330,34 +332,34 @@ def test_set_converters():
     assert_equal(data['p1.gamma'][0], '1.26764544642')
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_from_string(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_from_string(fast_reader):
     f = 't/simple.txt'
     with open(f) as fd:
         table = fd.read()
     testfile = get_testfiles(f)
-    data = ascii.read(table, use_fast_reader=request.param, **testfile['opts'])
+    data = ascii.read(table, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_from_filelike(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_from_filelike(fast_reader):
     f = 't/simple.txt'
     testfile = get_testfiles(f)
     with open(f, 'rb') as fd:
-        data = ascii.read(fd, use_fast_reader=request.param, **testfile['opts'])
+        data = ascii.read(fd, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_from_lines(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_from_lines(fast_reader):
     f = 't/simple.txt'
     with open(f) as fd:
         table = fd.readlines()
     testfile = get_testfiles(f)
-    data = ascii.read(table, use_fast_reader=request.param, **testfile['opts'])
+    data = ascii.read(table, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
@@ -368,11 +370,11 @@ def test_comment_lines():
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_fill_values(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_fill_values(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = ascii.read(f, fill_values=('a', '1'), use_fast_reader=request.param,
+    data = ascii.read(f, fill_values=('a', '1'), fast_reader=fast_reader,
                       **testfile['opts'])
     assert_true((data['a'].mask == [False, True]).all())
     assert_true((data['a'] == [1, 1]).all())
@@ -380,29 +382,29 @@ def test_fill_values(request):
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_fill_values_col(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_fill_values_col(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = ascii.read(f, fill_values=('a', '1', 'b'), use_fast_reader=request.param,
+    data = ascii.read(f, fill_values=('a', '1', 'b'), fast_reader=fast_reader,
                       **testfile['opts'])
     check_fill_values(data)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_fill_values_include_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_fill_values_include_names(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = ascii.read(f, fill_values=('a', '1'), use_fast_reader=request.param,
+    data = ascii.read(f, fill_values=('a', '1'), fast_reader=fast_reader,
                            fill_include_names = ['b'], **testfile['opts'])
     check_fill_values(data)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_fill_values_exclude_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_fill_values_exclude_names(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = ascii.read(f, fill_values=('a', '1'), use_fast_reader=request.param,
+    data = ascii.read(f, fill_values=('a', '1'), fast_reader=fast_reader,
                            fill_exclude_names = ['a'], **testfile['opts'])
     check_fill_values(data)
 
@@ -418,12 +420,12 @@ def check_fill_values(data):
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_fill_values_list(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_fill_values_list(fast_reader):
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = ascii.read(f, fill_values=[('a', '42'), ('1', '42', 'a')],
-                      use_fast_reader=request.param, **testfile['opts'])
+                      fast_reader=fast_reader, **testfile['opts'])
     data['a'].mask = False  # explicitly unmask for comparison
     assert_true((data['a'] == [42, 42]).all())
 
@@ -474,23 +476,23 @@ def test_set_guess_kwarg():
     assert(len(data) == 1)
 
 
-@raises(ascii.InconsistentTableError)
-@pytest.fixture(params=[True, False, 'force'])
-def test_read_rdb_wrong_type(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_read_rdb_wrong_type(fast_reader):
     """Read RDB data with inconstent data type (except failure)"""
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    ascii.read(table, Reader=ascii.Rdb, use_fast_reader=request.param)
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_default_missing(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_default_missing(fast_reader):
     """Read a table with empty values and ensure that corresponding entries are masked"""
     table = '\n'.join(['a,b,c,d',
                        '1,3,,',
                        '2, , 4.0 , ss '])
-    dat = ascii.read(table, use_fast_reader=request.param)
+    dat = ascii.read(table, fast_reader=fast_reader)
     assert dat.masked is True
     assert dat.pformat() == [' a   b   c   d ',
                              '--- --- --- ---',
@@ -499,7 +501,7 @@ def test_default_missing(request):
 
     # Single row table with a single missing element
     table = """ a \n "" """
-    dat = ascii.read(table, use_fast_reader=request.param)
+    dat = ascii.read(table, fast_reader=fast_reader)
     assert dat.pformat() == [' a ',
                              '---',
                              ' --']
@@ -805,13 +807,13 @@ def test_csv_table_read():
     t = ascii.read(lines)
     assert t.colnames == ['a', 'b']
 
-@pytest.fixture(params=[True, False, 'force'])
-def test_overlapping_names(request):
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_overlapping_names(fast_reader):
     """
     Check that the names argument list can overlap with the existing column names.
     This tests the issue in #1991.
     """
-    t = ascii.read(['a b', '1 2'], names=['b', 'a'], use_fast_reader=request.param)
+    t = ascii.read(['a b', '1 2'], names=['b', 'a'], fast_reader=fast_reader)
     assert t.colnames == ['b', 'a']
 
 def test_sextractor_units():

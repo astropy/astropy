@@ -109,7 +109,7 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param use_fast_reader: whether to use the C engine for reading (default=True)
+    :param fast_reader: whether to use the C engine, can also be a dict with options (default=True)
     :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 
@@ -119,7 +119,9 @@ def read(table, guess=None, **kwargs):
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
-    use_fast_reader = kwargs.pop('use_fast_reader', True)
+    fast_reader_param = kwargs.get('fast_reader', True)
+    if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
+        fast_reader_param = False
     format = kwargs.get('format')
     new_kwargs.update(kwargs)
 
@@ -136,17 +138,11 @@ def read(table, guess=None, **kwargs):
     if guess is None:
         guess = _GUESS
     if guess:
-        dat = _guess(table, new_kwargs, format, use_fast_reader)
+        dat = _guess(table, new_kwargs, format, fast_reader_param)
     else:
-        slow_kwargs = new_kwargs.copy()
-        # Delete keywords used only by the fast reader
-        fast_params = ['parallel', 'use_fast_converter']
-        for param in fast_params:
-            if param in new_kwargs:
-                del slow_kwargs[param]
-        reader = get_reader(**slow_kwargs)
+        reader = get_reader(**new_kwargs)
         # Try the fast reader first if applicable
-        if use_fast_reader and format is not None and 'fast_{0}'.format(format) \
+        if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
                                                         in core.FAST_CLASSES:
             new_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
             fast_reader = get_reader(**new_kwargs)
@@ -154,7 +150,7 @@ def read(table, guess=None, **kwargs):
                 return fast_reader.read(table)
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
-                if use_fast_reader == 'force':
+                if fast_reader_param == 'force':
                     raise e
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
@@ -164,7 +160,7 @@ def read(table, guess=None, **kwargs):
     return dat
 
 
-def _guess(table, read_kwargs, format, use_fast_reader):
+def _guess(table, read_kwargs, format, fast_reader):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess
     keyword args. For each key/val pair specified explicitly in the read()
@@ -176,7 +172,7 @@ def _guess(table, read_kwargs, format, use_fast_reader):
     fast_kwargs = []
 
     first_kwargs = [read_kwargs.copy()]
-    if use_fast_reader and format is not None and 'fast_{0}'.format(format) in \
+    if fast_reader and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
         # If a fast version of the reader is available, try that before the slow version
         fast_kwargs = read_kwargs.copy()
