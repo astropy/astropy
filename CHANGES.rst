@@ -213,11 +213,16 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed an issue where ``Table.pprint()`` did not print the header to
+    ``stdout`` when ``stdout`` is redirected (say, to a file). [#2878]
+
 - ``astropy.time``
 
 - ``astropy.units``
 
 - ``astropy.utils``
+
+  - Fixed color printing on Windows with IPython 2.0. [#2878]
 
 - ``astropy.vo``
 
