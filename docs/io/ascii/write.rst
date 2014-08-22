@@ -43,9 +43,9 @@ file::
 
 There is also a faster Cython engine for writing simple formats,
 which is enabled by default for these formats (see :ref:`fast_ascii_io`).
-To disable this engine, use the parameter ``use_fast_writer``::
+To disable this engine, use the parameter ``fast_writer``::
 
-   >>> ascii.write(data, 'values.csv', format='csv', use_fast_writer=False)  # doctest: +SKIP
+   >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
 Input data format
 ^^^^^^^^^^^^^^^^^
@@ -261,10 +261,10 @@ details.
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
 
-**use_fast_writer**: whether to use the fast Cython writer
+**fast_writer**: whether to use the fast Cython writer
   If this parameter is ``None`` (which it is by default), |write| will attempt
   to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
-  Specifying ``use_fast_writer=False`` disables this behavior.
+  Specifying ``fast_writer=False`` disables this behavior.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, for

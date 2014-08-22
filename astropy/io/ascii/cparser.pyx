@@ -812,7 +812,12 @@ cdef class FastWriter:
                   exclude_names=None,
                   fill_values=[],
                   fill_include_names=None,
-                  fill_exclude_names=None):
+                  fill_exclude_names=None,
+                  fast_writer=True):
+
+        if fast_writer is True:
+            fast_writer = {}
+        # fast_writer might contain custom writing options
 
         self.table = table
         self.comment = comment

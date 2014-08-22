@@ -27,11 +27,11 @@ For example::
    >>> t = ascii.read('file.csv', format='fast_csv')  # doctest: +SKIP
    >>> t.write('output.csv', format='ascii.fast_csv')  # doctest: +SKIP
 
-To disable the fast engine, specify ``use_fast_reader=False`` or
-``use_fast_writer=False``. For example::
+To disable the fast engine, specify ``fast_reader=False`` or
+``fast_writer=False``. For example::
 
-   >>> t = ascii.read('file.csv', format='csv', use_fast_reader=False) # doctest: +SKIP
-   >>> t.write('file.csv', format='csv', use_fast_writer=False) # doctest: +SKIP
+   >>> t = ascii.read('file.csv', format='csv', fast_reader=False) # doctest: +SKIP
+   >>> t.write('file.csv', format='csv', fast_writer=False) # doctest: +SKIP
 
 Reading
 ^^^^^^^
@@ -55,10 +55,14 @@ These parameters are:
 
 Parallel and fast conversion options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-When using the fast engine there are two additional parameters that are 
-available, ``parallel`` and ``use_fast_converter``.  These allow for even faster
-table reading when enabled, but both are disabled by default because they
-come with some caveats.
+In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
+be a dict specifying one or both of two additional parameters, ``parallel`` and
+``use_fast_converter``. For example::
+
+   >>> ascii.read('data.txt', format='basic', fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
+
+These options allow for even faster table reading when enabled, but both are
+disabled by default because they come with some caveats.
 
 The ``parallel`` parameter can be used to enable multiprocessing via
 the ``multiprocessing`` module, and can either be set to a number (the number
@@ -66,7 +70,7 @@ of processes to use) or ``True``, in which case the number of processes will be
 ``multiprocessing.cpu_count()``.   Note that this can cause issues within the
 IPython Notebook and so enabling multiprocessing in this context is discouraged.
 
-Setting ``use_fast_converter=True`` enables a faster but
+Setting ``use_fast_converter`` to be ``True`` enables a faster but
 slightly imprecise conversion method for floating-point values, as described below.
 
 Writing
@@ -91,7 +95,7 @@ representable values, or 0.5 `ULP
 <http://en.wikipedia.org/wiki/Unit_in_the_last_place>`__. The ordinary readers,
 as well as the default fast reader, are guaranteed to convert floating-point
 values within 0.5 ULP, but there is also a faster and less accurate
-conversion method accessible via ``use_fast_converter=True``. If the input
+conversion method accessible via ``use_fast_converter``. If the input
 data has less than about 15 significant figures, or if accuracy is relatively
 unimportant, this converter might be the best option in
 performance-critical scenarios.
@@ -141,13 +145,13 @@ Overall, the fast engine tends to be around 4 or 5 times faster than
 the ordinary ASCII engine. If the input data is very large (generally
 about 100,000 rows or greater), and particularly if the data doesn't
 contain primarily integer data or repeated string values, specifying
-``parallel=True`` can yield further performance gains. Although
+``parallel`` as ``True`` can yield further performance gains. Although
 IPython doesn't work well with ``multiprocessing``, there is a
 `script <https://github.com/amras1/ascii-profiling/blob/master/parallel.py>`__
 available for testing the performance of the fast engine in parallel,
 and a sample result may be viewed `here
-<http://amras1.github.io/ascii-profiling/>`__. This profile specifies
-``use_fast_converter=True`` for both the serial and parallel AstroPy
+<http://amras1.github.io/ascii-profiling/>`__. This profile uses the
+fast converter for both the serial and parallel AstroPy
 readers.
 
 Another point worth noting is that the fast engine uses memory mapping

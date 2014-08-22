@@ -1120,7 +1120,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'fill_exclude_names')
 
 
-def _get_writer(Writer, use_fast_writer, **kwargs):
+def _get_writer(Writer, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module. """
@@ -1129,8 +1129,9 @@ def _get_writer(Writer, use_fast_writer, **kwargs):
 
     if issubclass(Writer, FastBasic): # Fast writers handle args separately
         return Writer(**kwargs)
-    elif use_fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
+    elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
         # Switch to fast writer
+        kwargs['fast_writer'] = fast_writer
         return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs)
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)

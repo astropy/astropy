@@ -88,10 +88,10 @@ For simpler formats such as CSV, |read| will automatically try reading with the
 Cython/C parsing engine, which is significantly faster than the ordinary Python
 implementation (described in :ref:`fast_ascii_io`). If the fast engine fails,
 |read| will fall back on the Python reader by default. The argument
-``use_fast_reader`` can be specified to control this behavior. For example, to
+``fast_reader`` can be specified to control this behavior. For example, to
 disable the fast engine::
 
-   >>> data = ascii.read(lines, format='csv', use_fast_reader=False)
+   >>> data = ascii.read(lines, format='csv', fast_reader=False)
 
 Writing Tables
 --------------
@@ -132,9 +132,9 @@ the option to send the output to ``sys.stdout`` instead of a file::
 
 There is also a faster Cython engine for writing simple formats,
 which is enabled by default for these formats (see :ref:`fast_ascii_io`).
-To disable this engine, use the parameter ``use_fast_writer``::
+To disable this engine, use the parameter ``fast_writer``::
 
-   >>> ascii.write(data, 'values.csv', format='csv', use_fast_writer=False)  # doctest: +SKIP
+   >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
 .. _supported_formats:
 

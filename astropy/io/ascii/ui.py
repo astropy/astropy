@@ -262,7 +262,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 
-def get_writer(Writer=None, use_fast_writer=True, **kwargs):
+def get_writer(Writer=None, fast_writer=True, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
@@ -275,17 +275,17 @@ def get_writer(Writer=None, use_fast_writer=True, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=True)
+    :param fast_writer: whether to use the fast Cython writer (default=True)
     """
     if Writer is None:
         Writer = basic.Basic
     if 'strip_whitespace' not in kwargs:
         kwargs['strip_whitespace'] = True
-    writer = core._get_writer(Writer, use_fast_writer, **kwargs)
+    writer = core._get_writer(Writer, fast_writer, **kwargs)
     return writer
 
 
-def write(table, output=None,  format=None, Writer=None, use_fast_writer=True, **kwargs):
+def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -300,7 +300,7 @@ def write(table, output=None,  format=None, Writer=None, use_fast_writer=True, *
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param use_fast_writer: whether to use the fast Cython writer (default=True)
+    :param fast_writer: whether to use the fast Cython writer (default=True)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
     if output is None:
@@ -309,7 +309,7 @@ def write(table, output=None,  format=None, Writer=None, use_fast_writer=True, *
     table = Table(table, names=kwargs.get('names'))
 
     Writer = _get_format_class(format, Writer, 'Writer')
-    writer = get_writer(Writer=Writer, use_fast_writer=use_fast_writer, **kwargs)
+    writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
         return

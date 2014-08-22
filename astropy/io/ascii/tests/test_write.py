@@ -372,10 +372,10 @@ a,b,c
 ]
 
 
-def check_write_table(test_def, table, use_fast_writer):
+def check_write_table(test_def, table, fast_writer):
     out = StringIO()
     try:
-        ascii.write(table, out, use_fast_writer=use_fast_writer, **test_def['kwargs'])
+        ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
     except ValueError as e: # if format doesn't have a fast writer, ignore
         if not 'not in the list of formats with fast writers' in str(e):
             raise e
@@ -386,7 +386,7 @@ def check_write_table(test_def, table, use_fast_writer):
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def check_write_table_via_table(test_def, table, use_fast_writer):
+def check_write_table_via_table(test_def, table, fast_writer):
     out = StringIO()
 
     test_def = copy.deepcopy(test_def)
@@ -397,7 +397,7 @@ def check_write_table_via_table(test_def, table, use_fast_writer):
         format = 'ascii'
 
     try:
-        table.write(out, format=format,  use_fast_writer=use_fast_writer, **test_def['kwargs'])
+        table.write(out, format=format,  fast_writer=fast_writer, **test_def['kwargs'])
     except ValueError as e: # if format doesn't have a fast writer, ignore
         if not 'not in the list of formats with fast writers' in str(e):
             raise e
@@ -408,26 +408,26 @@ def check_write_table_via_table(test_def, table, use_fast_writer):
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False])
-def test_write_table(use_fast_writer):
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_table(fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
-        check_write_table(test_def, data, use_fast_writer)
-        check_write_table_via_table(test_def, data, use_fast_writer)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False])
-def test_write_fill_values(use_fast_writer):
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_values(fast_writer):
     data = ascii.read(tab_to_fill)
 
     for test_def in test_defs_fill_value:
-        check_write_table(test_def, data, use_fast_writer)
+        check_write_table(test_def, data, fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False])
-def test_write_fill_masked_different(use_fast_writer):
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_masked_different(fast_writer):
     '''see discussion in #2255'''
     data = ascii.read(tab_to_fill)
     data = table.Table(data, masked=True)
@@ -435,23 +435,23 @@ def test_write_fill_masked_different(use_fast_writer):
     data['c'].mask = [False, True]
 
     for test_def in test_def_masked_fill_value:
-        check_write_table(test_def, data, use_fast_writer)
+        check_write_table(test_def, data, fast_writer)
 
 
-@pytest.mark.parametrize("use_fast_writer", [True, False])
-def test_write_no_data_ipac(use_fast_writer):
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('t/no_data_ipac.dat')
 
     for test_def in test_defs_no_data:
-        check_write_table(test_def, data, use_fast_writer)
-        check_write_table_via_table(test_def, data, use_fast_writer)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
 
-@pytest.mark.parametrize("use_fast_writer", [True, False])
-def test_strip_names(use_fast_writer):
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_strip_names(fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
     out = StringIO()
-    ascii.write(data, out, format='csv', use_fast_writer=True)
+    ascii.write(data, out, format='csv', fast_writer=True)
     assert out.getvalue().splitlines()[0] == 'A,B,C'

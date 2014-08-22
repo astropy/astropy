@@ -126,16 +126,8 @@ Parameters for ``read()``
 
 **header_Splitter**: Splitter class to split header columns
 
-**use_fast_reader**: whether to use the C engine for reading if possible
+**fast_reader**: whether to use the C engine, can also be a dict with options
   (see :ref:`fast_ascii_io`)
-
-**parallel**: True, int, or None
-  This enables multiprocessing in the fast reader and specifies
-  the number of processes to use. True is equivalent to the number
-  of cores available on the machine.
-
-**use_fast_converter**: whether the fast reader should use the faster but
-  potentially less accurate converter for floating-point values
 
 **Reader** : Reader class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table, for example
