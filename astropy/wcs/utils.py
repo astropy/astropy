@@ -209,16 +209,18 @@ def non_celestial_pixel_scales(inwcs):
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
 
-def skycoord_to_pixel(coords, wcs):
+def skycoord_to_pixel(coords, wcs, origin=0):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
     Parameters
     ----------
     coords : `~astropy.coordinates.SkyCoord`
-        The coordinates to convert
+        The coordinates to convert.
     wcs : `~astropy.wcs.WCS`
-        The WCS transformation to use
+        The WCS transformation to use.
+    origin : int
+        Whether to return 0 or 1-based pixel coordinates.
     """
 
     from .. import units as u
@@ -245,6 +247,6 @@ def skycoord_to_pixel(coords, wcs):
     lat = coords.spherical.lat.to(yw_unit)
 
     # Convert to pixel coordinates
-    xp, yp = wcs.wcs_world2pix(lon, lat, 0)
+    xp, yp = wcs.wcs_world2pix(lon, lat, origin=origin)
 
     return xp, yp
