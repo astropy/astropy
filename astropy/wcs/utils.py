@@ -207,3 +207,41 @@ def non_celestial_pixel_scales(inwcs):
         return np.abs(np.diagonal(pccd))*u.deg
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
+
+
+def skycoord_to_pixel(coords, wcs):
+    """
+    Convert a set of SkyCoord coordinates into pixels.
+
+    Parameters
+    ----------
+    coords : `~astropy.coordinates.SkyCoord`
+        The coordinates to convert
+    wcs : `~astropy.wcs.WCS`
+        The WCS transformation to use
+    """
+
+    # Keep only the celestial part of the axes, also re-orders lon/lat
+    wcs = wcs.sub([WCSSUB_CELESTIAL])
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should contain celestial component")
+
+    # Check which frame the WCS uses
+    frame = wcs_to_celestial_frame(wcs)
+
+    # Check what unit the WCS needs
+    xw_unit = u.Unit(wcs.wcs.cunit[0])
+    yw_unit = u.Unit(wcs.wcs.cunit[1])
+
+    # Convert positions to frame
+    coords = coords.transform_to(frame)
+
+    # Extract longitude and latitude
+    lon = coords.spherical.lon.to(xw_unit)
+    lat = coords.spherical.lat.to(yw_unit)
+
+    # Convert to pixel coordinates
+    xp, yp = wcs.wcs_world2pix(lon, lat, 0)
+
+    return xp, yp
