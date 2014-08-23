@@ -77,6 +77,12 @@ class ParameterError(NotImplementedError):
     C engine cannot handle.
     """
 
+class FastOptionsError(NotImplementedError):
+    """
+    Indicates that one of the specified options for fast
+    reading is invalid.
+    """
+
 class NoType(object):
     """
     Superclass for ``StrType`` and ``NumType`` classes.

@@ -2,7 +2,7 @@
 
 from ....table import Table, MaskedColumn
 from ... import ascii
-from ...ascii.core import ParameterError
+from ...ascii.core import ParameterError, FastOptionsError
 from ...ascii.cparser import CParserError
 from ..fastbasic import FastBasic, FastCsv, FastTab, FastCommentedHeader, \
     FastRdb, FastNoHeader
@@ -258,7 +258,7 @@ a b "   c
 
 def test_invalid_parameters():
     """
-    Make sure the C reader raises a ParameterError if passed parameters it can't handle.
+    Make sure the C reader raises an error if passed parameters it can't handle.
     """
     int_converter = ascii.convert_numpy(np.uint)
     converters = dict((i + 1, ascii.convert_numpy(np.uint)) for i in range(3))
@@ -283,6 +283,8 @@ def test_invalid_parameters():
 
     with pytest.raises(TypeError):
         table = FastBasic(foo=7).read('1 2 3\n4 5 6') # unexpected argument
+    with pytest.raises(FastOptionsError): # don't fall back on the slow reader
+        table = ascii.read('1 2 3\n4 5 6', format='basic', fast_reader={'foo': 7})
     with pytest.raises(ParameterError):
         # Outputter cannot be specified in constructor
         table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
@@ -473,7 +475,7 @@ def test_fast_reader():
     ascii.read(text, format='basic', guess=False, fast_reader={'parallel': True,
                                                     'use_fast_converter': True})
     # Should raise an error if fast_reader has an invalid key
-    with pytest.raises(ParameterError):
+    with pytest.raises(FastOptionsError):
         ascii.read(text, format='fast_basic', guess=False, fast_reader={'foo': True})
 
     # Use the slow reader instead

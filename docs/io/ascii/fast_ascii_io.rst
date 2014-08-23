@@ -33,6 +33,17 @@ To disable the fast engine, specify ``fast_reader=False`` or
    >>> t = ascii.read('file.csv', format='csv', fast_reader=False) # doctest: +SKIP
    >>> t.write('file.csv', format='csv', fast_writer=False) # doctest: +SKIP
 
+.. Note:: Guessing and Fast reading
+
+   By default |read| will try to guess the format of in the input data by successively
+   trying different formats until one succeeds ([reference the guessing section]).
+   For the default ``'ascii'`` format this means that a number of pure Python readers
+   with no fast implementation will be tried before getting to the fast readers.
+
+   **For optimum performance**, turn off guessing entirely (``guess=False``) or
+   narrow down the format options as much as possible by specifying the format
+   (e.g. ``format='csv'``) and/or other options such as the delimiter.
+
 Reading
 ^^^^^^^
 Since the fast engine is not part of the ordinary :mod:`astropy.io.ascii`

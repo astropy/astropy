@@ -199,10 +199,12 @@ cdef class CParser:
         # Handle fast_reader parameter (True or dict specifying options)
         if fast_reader is True or fast_reader == 'force':
             fast_reader = {}
+        elif fast_reader is False: # shouldn't happen
+            raise core.ParameterError("fast_reader cannot be False for fast readers")
         use_fast_converter = fast_reader.pop('use_fast_converter', False)
         parallel = fast_reader.pop('parallel', False)
         if fast_reader:
-            raise core.ParameterError("Invalid parameter in fast_reader dict")
+            raise core.FastOptionsError("Invalid parameter in fast_reader dict")
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
