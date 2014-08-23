@@ -391,7 +391,7 @@ class WCS(WCSBase):
                 header_string = header_string
             else:
                 header_bytes = header_string
-                header_string = header_string.decode('ascii')
+                header_string = header_string.decode('ascii', 'replace')
 
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
