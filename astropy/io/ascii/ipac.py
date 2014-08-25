@@ -420,12 +420,17 @@ class Ipac(basic.Basic):
         :returns: list of strings corresponding to ASCII table
         """
 
-        core._apply_include_exclude_names(table, self.names, self.include_names,
-                                          self.exclude_names, self.strict_names)
-
-        # link information about the columns to the writer object (i.e. self)
+        # Check column names before altering
         self.header.cols = list(six.itervalues(table.columns))
-        self.data.cols = list(six.itervalues(table.columns))
+        self.header.check_column_names(self.names, self.strict_names)
+
+        core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+
+        # Now use altered columns
+        new_cols = list(six.itervalues(table.columns))
+        # link information about the columns to the writer object (i.e. self)
+        self.header.cols = new_cols
+        self.data.cols = new_cols
 
         # Write header and data to lines list
         lines = []

@@ -132,3 +132,17 @@ def test_out_with_nonstring_null():
       3
 """
     assert out.getvalue().strip().splitlines() == expected_out.splitlines()
+
+def test_include_exclude_names():
+    table = Table([[1], [2], [3]], names=('A', 'B', 'C'))
+    out = StringIO()
+    ascii.write(table, out, Writer=Ipac, include_names=('A', 'B'), exclude_names=('A',))
+    # column B should be the only included column in output
+    expected_out = """\
+|   B|
+|long|
+|    |
+|null|
+    2
+"""
+    assert out.getvalue().strip().splitlines() == expected_out.splitlines()
