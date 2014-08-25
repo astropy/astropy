@@ -422,7 +422,7 @@ class Ipac(basic.Basic):
 
         # Check column names before altering
         self.header.cols = list(six.itervalues(table.columns))
-        self.header.check_column_names(self.names, self.strict_names)
+        self.header.check_column_names(self.names, self.strict_names, self.guessing)
 
         core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 

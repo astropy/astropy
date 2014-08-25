@@ -460,7 +460,7 @@ class BaseHeader(object):
             raise ValueError('Unknown data type ""%s"" for column "%s"' % (
                 col.raw_type, col.name))
 
-    def check_column_names(self, names, strict_names):
+    def check_column_names(self, names, strict_names, guessing):
         """Check column names.
 
         This must be done before applying the names transformation
@@ -481,6 +481,9 @@ class BaseHeader(object):
                     name[-1] in bads):
                     raise ValueError('Column name {0!r} does not meet strict name requirements'
                                      .format(name))
+        # When guessing require at least two columns
+        if guessing and len(self.colnames) <= 1:
+            raise ValueError
 
         if names is not None and len(names) != len(self.colnames):
             raise ValueError('Length of names argument ({0}) does not match number'
@@ -837,6 +840,7 @@ class BaseReader(object):
     include_names = None
     exclude_names = None
     strict_names = False
+    guessing = False
 
     header_class = BaseHeader
     data_class = BaseData
@@ -897,9 +901,9 @@ class BaseReader(object):
         self.header.get_cols(self.lines)
 
         # Make sure columns are valid
-        self.header.check_column_names(self.names, self.strict_names)
+        self.header.check_column_names(self.names, self.strict_names, self.guessing)
 
-        cols = self.header.cols
+        self.cols = cols = self.header.cols
         self.data.splitter.cols = cols
         n_cols = len(cols)
 
@@ -971,7 +975,7 @@ class BaseReader(object):
 
         # Check column names before altering
         self.header.cols = list(six.itervalues(table.columns))
-        self.header.check_column_names(self.names, self.strict_names)
+        self.header.check_column_names(self.names, self.strict_names, False)
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
