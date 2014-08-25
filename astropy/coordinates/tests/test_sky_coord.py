@@ -9,6 +9,7 @@ test_api_ape5.py
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import copy
 import functools
 
 import numpy as np
@@ -749,6 +750,7 @@ def test_wcs_methods(mode, origin):
     assert scnew.__class__ is SkyCoord
     assert scnew2.__class__ is SkyCoord2
 
+
 def test_frame_attr_transform_inherit():
     """
     Test that frame attributes get inherited as expected during transform.
@@ -781,3 +783,17 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5(equinox='J1990'))
     assert c2.equinox.value == 'J1990.000'
     assert c2.obstime.value == 'J1980.000'
+
+
+def test_deepcopy():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    c2 = copy.copy(c1)
+    c3 = copy.deepcopy(c1)
+
+
+def test_immutable():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    with pytest.raises(AttributeError):
+        c1.ra = 3.0
+
+    c1.foo = 42
