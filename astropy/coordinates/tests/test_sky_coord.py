@@ -797,3 +797,4 @@ def test_immutable():
         c1.ra = 3.0
 
     c1.foo = 42
+    assert c1.foo == 42
