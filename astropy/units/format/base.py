@@ -8,7 +8,23 @@ from ...utils.misc import InheritDocstrings
 from ...extern import six
 
 
-@six.add_metaclass(InheritDocstrings)
+class _FormatterMeta(InheritDocstrings):
+    registry = {}
+
+    def __new__(mcls, name, bases, members):
+        if 'name' in members:
+            formatter_name = members['name'].lower()
+        else:
+            formatter_name = members['name'] = name.lower()
+
+        cls = super(mcls, _FormatterMeta).__new__(mcls, name, bases, members)
+
+        mcls.registry[formatter_name] = cls
+
+        return cls
+
+
+@six.add_metaclass(_FormatterMeta)
 class Base(object):
     """
     The abstract base class of all unit formats.
