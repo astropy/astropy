@@ -14,6 +14,7 @@ include astropy/astropy.cfg
 # 2, and similarly for Python 3:
 include astropy/extern/configobj_py2/*.py
 include astropy/extern/configobj_py3/*.py
+recursive-include astropy/utils/compat *.py
 
 include astropy/table/tests/notebook_repr_html.ipynb
 

@@ -239,7 +239,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Fixed a couple issues with files being inappropriately included and/or
+  excluded from the source archive distributions of Astropy. [#2843, #2854]
 
 
 0.4.1 (2014-08-08)
