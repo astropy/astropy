@@ -263,6 +263,13 @@ def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
+def test_latex_scale():
+    latex = '$\\mathrm{2.1798721 \\times 10^{-18}\\,\\frac{m^{2}\\,kg}{s^{2}}}$'
+    assert u.Ry.decompose().to_string('latex') == latex
+
+def test_latex_inline_scale():
+    latex_inline = '$\\mathrm{2.1798721 \\times 10^{-18}\\,m^{2}\\,kg\\,s^{-2}}$'
+    assert u.Ry.decompose().to_string('latex_inline') == latex_inline
 
 def test_format_styles():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -274,6 +281,7 @@ def test_format_styles():
         ('s', 'erg / (cm2 s)'),
         ('console', '  erg  \n ------\n s cm^2'),
         ('latex', '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'),
+        ('latex_inline', '$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$'),
         ('>20s','       erg / (cm2 s)'),
     ]
 
