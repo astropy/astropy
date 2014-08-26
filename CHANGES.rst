@@ -154,6 +154,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fixed reference cycle in tables that could prevent ``Table`` objects
+    from being freed from memory. [#2879]
+
 - ``astropy.time``
 
 - ``astropy.units``
