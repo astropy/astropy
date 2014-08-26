@@ -4,6 +4,7 @@
 # TEST_UNICODE_LITERALS
 
 import copy
+import gc
 import platform
 import sys
 
@@ -1285,3 +1286,28 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'][0] == six.text_type('abc')
     assert t1['col1'][0] == six.text_type('def')
     assert t1['col2'][0] == 1
+
+
+def test_table_deletion():
+    """
+    Regression test for the reference cycle discussed in
+    https://github.com/astropy/astropy/issues/2877
+    """
+
+    deleted = set()
+
+    # A special table subclass which leaves a record when it is finalized
+    class TestTable(table.Table):
+        def __del__(self):
+            deleted.add(id(self))
+
+    t = TestTable({'a': [1, 2, 3]})
+    the_id = id(t)
+    assert t['a'].parent_table is t
+
+    del t
+
+    # Cleanup
+    gc.collect()
+
+    assert the_id in deleted
