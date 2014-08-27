@@ -613,10 +613,24 @@ Format specifier
 ''''''''''''''''
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table.  The format specifier can be either
-a "old-style" or "new-style" format string or a function:
+is printed or written to an ASCII table.  In the simplest case, it is a string
+that can be passed to python's built-in `format
+<https://docs.python.org/library/functions.html#format>`_ function.  For more
+complicated formatting, one can also give "old-style" or "new-style"
+format strings, or even a function:
 
-**Old-style**
+**Plain format specification**
+
+This type of string specifies directly how the value should be formatted,
+using a `format specification mini-language
+<https://docs.python.org/library/string.html#formatspec>`_ that is
+quite similar to C.
+
+   ``".4f"`` will give four digits after the decimal in float format, or
+
+   ``"6d"`` will give integers in 6-character fields.
+
+**Old-style format string**
 
 This corresponds to syntax like ``"%.4f" % value`` as documented in
 `String formatting operations <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
@@ -625,7 +639,7 @@ This corresponds to syntax like ``"%.4f" % value`` as documented in
 
    ``"%6d"`` to print an integer in a 6-character wide field.
 
-**New-style**
+**New-style format string**
 
 This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
@@ -635,8 +649,9 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
    ``"{:6d}"`` to print an integer in a 6-character wide field.
 
-Note that in either case any Python format string that formats exactly
-one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
+Note that in either format string case any Python string that formats exactly
+one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both
+work.
 
 **Function**
 
@@ -652,7 +667,7 @@ following example this is used to make a LaTeX ready output::
     ...     exp = exp[0] + exp[1:].lstrip('0')
     ...     return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
     >>> t['b'].format = latex_exp
-    >>> t['a'].format = '{0:.4f}'
+    >>> t['a'].format = '.4f'
     >>> import sys
     >>> t.write(sys.stdout, format='latex')
     \begin{table}

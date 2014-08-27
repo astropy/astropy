@@ -2,12 +2,11 @@
 
 # TEST_UNICODE_LITERALS
 
-from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
-from ...table import pprint
+from ...table import Table
 from ...extern.six import PY3
 from ...utils import console
 
@@ -103,8 +102,8 @@ class TestPprint():
 
     def _setup(self, table_type):
         self.tb = table_type(BIG_WIDE_ARR)
-        self.tb['col0'].format = '%e'
-        self.tb['col1'].format = '%.6f'
+        self.tb['col0'].format = 'e'
+        self.tb['col1'].format = '.6f'
 
         self.tb['col0'].unit = 'km**2'
         self.tb['col19'].unit = 'kg s m**-2'
@@ -244,6 +243,10 @@ class TestFormat():
         # default (format=None)
         assert str(t['a']) == ' a \n---\n  1\n  2'
 
+        # just a plain format string
+        t['a'].format = '5.2f'
+        assert str(t['a']) == '  a  \n-----\n 1.00\n 2.00'
+
         #  Old-style that is almost new-style
         t['a'].format = '{ %4.2f }'
         assert str(t['a']) == '   a    \n--------\n{ 1.00 }\n{ 2.00 }'
@@ -331,6 +334,132 @@ class TestFormat():
         t['a'].format = lambda x: x * 3
         with pytest.raises(ValueError):
             str(t['a'])
+
+
+class TestFormatWithMaskedElements():
+
+    def test_column_format(self):
+        t = Table([[1, 2, 3], [3, 4, 5]], names=('a', 'b'), masked=True)
+        t['a'].mask = [True, False, True]
+        # default (format=None)
+        assert str(t['a']) == ' a \n---\n --\n  2\n --'
+
+        # just a plain format string
+        t['a'].format = '5.2f'
+        assert str(t['a']) == '  a  \n-----\n   --\n 2.00\n   --'
+
+        #  Old-style that is almost new-style
+        t['a'].format = '{ %4.2f }'
+        assert str(t['a']) == '   a    \n--------\n      --\n{ 2.00 }\n      --'
+
+        #  New-style that is almost old-style
+        t['a'].format = '%{0:}'
+        assert str(t['a']) == ' a \n---\n --\n %2\n --'
+
+        #  New-style with extra spaces
+        t['a'].format = ' {0:05d} '
+        assert str(t['a']) == '   a   \n-------\n     --\n 00002 \n     --'
+
+        #  New-style has precedence
+        t['a'].format = '%4.2f {0:}'
+        assert str(t['a']) == '   a   \n-------\n     --\n%4.2f 2\n     --'
+
+    def test_column_format_with_threshold(self):
+        from ... import conf
+        with conf.set_temp('max_lines', 7):
+            t = Table([np.arange(20)], names=['a'], masked=True)
+            t['a'].mask[0] = True
+            t['a'].mask[-1] = True
+            t['a'].format = '%{0:}'
+            assert str(t['a']) == ' a \n---\n --\n %1\n...\n%18\n --'
+            t['a'].format = '{ %4.2f }'
+            assert str(t['a']) == '    a    \n---------\n       --\n' \
+                                  ' { 1.00 }\n      ...\n{ 18.00 }\n' \
+                                  '       --'
+
+    def test_column_format_func(self):
+        # run most of functions twice
+        # 1) astropy.table.pprint._format_funcs gets populated
+        # 2) astropy.table.pprint._format_funcs gets used
+
+        t = Table([[1., 2., 3.], [3, 4, 5]], names=('a', 'b'), masked=True)
+        t['a'].mask = [True, False, True]
+        # mathematical function
+        t['a'].format = lambda x: str(x * 3.)
+        assert str(t['a']) == ' a \n---\n --\n6.0\n --'
+        assert str(t['a']) == ' a \n---\n --\n6.0\n --'
+
+    def test_column_format_func_with_special_masked(self):
+        # run most of functions twice
+        # 1) astropy.table.pprint._format_funcs gets populated
+        # 2) astropy.table.pprint._format_funcs gets used
+
+        t = Table([[1., 2., 3.], [3, 4, 5]], names=('a', 'b'), masked=True)
+        t['a'].mask = [True, False, True]
+        # mathematical function
+        def format_func(x):
+            if x is np.ma.masked:
+                return '!!'
+            else:
+                return str(x * 3.)
+        t['a'].format = format_func
+        assert str(t['a']) == ' a \n---\n !!\n6.0\n !!'
+        assert str(t['a']) == ' a \n---\n !!\n6.0\n !!'
+
+    def test_column_format_callable(self):
+        # run most of functions twice
+        # 1) astropy.table.pprint._format_funcs gets populated
+        # 2) astropy.table.pprint._format_funcs gets used
+
+        t = Table([[1., 2., 3.], [3, 4, 5]], names=('a', 'b'), masked=True)
+        t['a'].mask = [True, False, True]
+
+        # mathematical function
+        class format(object):
+            def __call__(self, x):
+                return str(x * 3.)
+        t['a'].format = format()
+        assert str(t['a']) == ' a \n---\n --\n6.0\n --'
+        assert str(t['a']) == ' a \n---\n --\n6.0\n --'
+
+    def test_column_format_func_wrong_number_args(self):
+        t = Table([[1., 2.], [3, 4]], names=('a', 'b'), masked=True)
+        t['a'].mask = [True, False]
+
+        # function that expects wrong number of arguments
+        def func(a, b):
+            pass
+
+        t['a'].format = func
+        with pytest.raises(ValueError):
+            str(t['a'])
+
+        # but if all are masked, it never gets called
+        t['a'].mask = [True, True]
+        assert str(t['a']) == ' a \n---\n --\n --'
+
+    def test_column_format_func_multiD(self):
+        arr = [np.array([[1, 2],
+                         [10, 20]])]
+        t = Table(arr, names=['a'], masked=True)
+        t['a'].mask[0,1] = True
+        t['a'].mask[1,1] = True
+        # mathematical function
+        t['a'].format = lambda x: str(x * 3.)
+        outstr = '  a [2]   \n----------\n 3.0 .. --\n30.0 .. --'
+        assert str(t['a']) == outstr
+        assert str(t['a']) == outstr
+
+
+def test_pprint_npfloat32():
+    """
+    Test for #148, that np.float32 cannot by itself be formatted as float,
+    but has to be converted to a python float.
+    """
+    dat = np.array([1., 2.], dtype=np.float32)
+    t = Table([dat], names=['a'])
+    t['a'].format = '5.2f'
+    assert str(t['a']) == '  a  \n-----\n 1.00\n 2.00'
 
 
 def test_pprint_py3_bytes():

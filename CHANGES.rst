@@ -46,6 +46,8 @@ New Features
 
 - ``astropy.table``
 
+  - Allow simple specifiers such as ``'5.2f'`` as column format strings. [#2898]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -158,6 +160,8 @@ Bug Fixes
 
   - Fixed reference cycle in tables that could prevent ``Table`` objects
     from being freed from memory. [#2879]
+
+  - Fixed printing of masked values when a format is specified. [#1026]
 
 - ``astropy.time``
 
