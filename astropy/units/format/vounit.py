@@ -5,9 +5,13 @@ Handles the "VOUnit" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...extern import six
 from ...extern.six.moves import zip
 
+import copy
 import keyword
+import re
+import warnings
 
 from . import generic
 from . import utils
@@ -15,11 +19,16 @@ from . import utils
 
 class VOUnit(generic.Generic):
     """
-    The proposed IVOA standard for units used by the VO.
+    The IVOA standard for units used by the VO.
 
-    This is an implementation of `proposed IVOA standard for units
+    This is an implementation of `Units in the VO 1.0
     <http://www.ivoa.net/Documents/VOUnits/>`_.
     """
+    _explicit_custom_unit_regex = re.compile(
+        "^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
+    _custom_unit_regex = re.compile("^((?!\d)\w)+$")
+    _custom_units = {}
+
     def __init__(self):
         if '_parser' not in VOUnit.__dict__:
             VOUnit._parser, VOUnit._lexer = self._make_parser()
@@ -36,73 +45,158 @@ class VOUnit(generic.Generic):
         deprecated_names = set()
 
         bases = [
-            'm', 's', 'A', 'K', 'mol', 'cd', 'g', 'rad', 'sr', 'Hz', 'N', 'Pa',
-            'J', 'W', 'C', 'V', 'S', 'F', 'Wb', 'T', 'H', 'lm', 'lx', 'Ohm']
-        prefixes = [
-            'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
-            '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-
-        for base in bases:
-            for prefix in prefixes:
-                key = prefix + base
-                if keyword.iskeyword(key):
-                    continue
-                names[key] = getattr(u, key)
-
+            'A', 'C', 'D', 'F', 'G', 'H', 'Hz', 'J', 'Jy', 'K', 'N',
+            'Ohm', 'Pa', 'R', 'Ry', 'S', 'T', 'V', 'W', 'Wb', 'a',
+            'adu', 'arcmin', 'arcsec', 'barn', 'beam', 'bin', 'cd',
+            'chan', 'count', 'ct', 'd', 'deg', 'eV', 'erg', 'g', 'h',
+            'lm', 'lx', 'lyr', 'm', 'mag', 'min', 'mol', 'pc', 'ph',
+            'photon', 'pix', 'pixel', 'rad', 'rad', 's', 'solLum',
+            'solMass', 'solRad', 'sr', 'u', 'voxel', 'yr'
+        ]
+        binary_bases = [
+            'bit', 'byte', 'B'
+        ]
         simple_units = [
-            'min', 'h', 'd', 'a', 'yr', 'arcsec', 'arcmin', 'deg',
-            'mas', 'AU', 'pc', 'u', 'eV', 'Jy']
+            'Angstrom', 'angstrom', 'AU', 'au', 'Ba', 'dB', 'mas'
+        ]
+        si_prefixes = [
+            'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
+            '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
+        ]
+        binary_prefixes = [
+            'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei'
+        ]
+        deprecated_units = set([
+            'a', 'angstrom', 'Angstrom', 'au', 'Ba', 'barn', 'ct',
+            'erg', 'G', 'ph', 'pix'
+        ])
 
-        deprecated_units = [
-            'angstrom', 'Angstrom', 'barn', 'erg', 'G', 'mag', 'dB', 'solMass',
-            'solLum', 'solRad', 'lyr', 'ct', 'count', 'photon', 'ph', 'R',
-            'pix', 'pixel', 'D', 'Sun', 'chan', 'bin', 'voxel', 'bit', 'byte',
-            'adu', 'beam']
+        def do_defines(bases, prefixes, skips=[]):
+            for base in bases:
+                for prefix in prefixes:
+                    key = prefix + base
+                    if key in skips:
+                        continue
+                    if keyword.iskeyword(key):
+                        continue
+                    names[key] = getattr(u, key)
+                    if base in deprecated_units:
+                        deprecated_names.add(key)
 
-        for unit in simple_units + deprecated_units:
-            names[unit] = getattr(u, unit)
-        for unit in deprecated_units:
-            deprecated_names.add(unit)
+        do_defines(bases, si_prefixes, ['pct', 'pcount', 'yd'])
+        do_defines(binary_bases, si_prefixes + binary_prefixes, ['dB', 'dbyte'])
+        do_defines(simple_units, [''])
 
         return names, deprecated_names
 
     def parse(self, s, debug=False):
-        result = self._do_parse(s, debug=debug)
+        from ... import units as u
+
+        if s in ('unknown', 'UNKNOWN'):
+            return None
+        if s == '':
+            return u.dimensionless_unscaled
         if s.count('/') > 1:
             from ..core import UnitsError
             raise UnitsError(
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
+        result = self._do_parse(s, debug=debug)
         return result
 
     @classmethod
-    def _validate_unit(cls, unit, detailed_exception=True):
+    def _parse_unit(cls, unit, detailed_exception=True):
+        from ... import units as u
+
         if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    "Unit '{0}' not supported by the VOUnit "
-                    "standard. {1}".format(
-                        unit, utils.did_you_mean_units(
-                            unit, cls._units, cls._deprecated_units,
-                            cls._to_decomposed_alternative)))
-            else:
+            if cls._explicit_custom_unit_regex.match(unit):
+                return cls._def_custom_unit(unit)
+
+            if not cls._custom_unit_regex.match(unit):
                 raise ValueError()
+
+            warnings.warn(
+                "Unit {0!r} not supported by the VOUnit "
+                "standard. {1}".format(
+                    unit, utils.did_you_mean_units(
+                        unit, cls._units, cls._deprecated_units,
+                        cls._to_decomposed_alternative)),
+                u.UnitsWarning)
+
+            return cls._def_custom_unit(unit)
 
         if unit in cls._deprecated_units:
             utils.unit_deprecation_warning(
                 unit, cls._units[unit], 'VOUnit',
                 cls._to_decomposed_alternative)
 
-    @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     @classmethod
     def _get_unit_name(cls, unit):
+        from ... import units as u
+
+        # The da- and d- prefixes are discouraged.  This has the
+        # effect of adding a scale to value in the result.
+        if isinstance(unit, u.PrefixUnit):
+            if unit._represents.scale == 10.0:
+                raise ValueError(
+                    "In '{0}': VOUnit can not represent units with the 'da' "
+                    "(deka) prefix".format(unit))
+            elif unit._represents.scale == 0.1:
+                raise ValueError(
+                    "In '{0}': VOUnit can not represent units with the 'd' "
+                    "(deci) prefix".format(unit))
+
         name = unit.get_format_name('vounit')
-        cls._validate_unit(name)
+
+        if unit in six.itervalues(cls._custom_units):
+            return name
+
+        if name not in cls._units:
+            raise ValueError(
+                "Unit {0!r} is not part of the VOUnit standard".format(name))
+
+        if name in cls._deprecated_units:
+            utils.unit_deprecation_warning(
+                name, unit, 'VOUnit',
+                cls._to_decomposed_alternative)
+
         return name
+
+    @classmethod
+    def _def_custom_unit(cls, unit):
+        from ... import units as u
+
+        def def_base(name):
+            if name in cls._custom_units:
+                return cls._custom_units[name]
+
+            if name.startswith("'"):
+                return u.def_unit(
+                    [name[1:-1], name],
+                    format={'vounit': name},
+                    namespace=cls._custom_units)
+            else:
+                return u.def_unit(
+                    name, namespace=cls._custom_units)
+
+        if unit in cls._custom_units:
+            return cls._custom_units[unit]
+
+        for short, full, factor in u.si_prefixes:
+            for prefix in short:
+                if unit.startswith(prefix):
+                    base_name = unit[len(prefix):]
+                    base_unit = def_base(base_name)
+                    return u.PrefixUnit(
+                        [prefix + x for x in base_unit.names],
+                        u.CompositeUnit(factor, [base_unit], [1],
+                                        _error_check=False),
+                        format={'vounit': prefix + base_unit.names[-1]},
+                        namespace=cls._custom_units)
+
+        return def_base(unit)
 
     @classmethod
     def to_string(cls, unit):

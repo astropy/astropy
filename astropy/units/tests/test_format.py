@@ -20,7 +20,6 @@ from ...constants import si
 from .. import core
 from .. import format as u_format
 from ..utils import is_effectively_unity
-from ... import wcs
 
 
 def test_unit_grammar():
@@ -263,13 +262,16 @@ def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
+
 def test_latex_scale():
     latex = '$\\mathrm{2.1798721 \\times 10^{-18}\\,\\frac{m^{2}\\,kg}{s^{2}}}$'
     assert u.Ry.decompose().to_string('latex') == latex
 
+
 def test_latex_inline_scale():
     latex_inline = '$\\mathrm{2.1798721 \\times 10^{-18}\\,m^{2}\\,kg\\,s^{-2}}$'
     assert u.Ry.decompose().to_string('latex_inline') == latex_inline
+
 
 def test_format_styles():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -394,3 +396,47 @@ def test_deprecated_did_you_mean_units():
         u.Unit('angstrom', format='vounit')
     assert len(w) == 1
     assert '0.1nm' in six.text_type(w[0].message)
+
+
+def test_vounit_binary_prefix():
+    u.Unit('KiB', format='vounit') == u.Unit('1024 B')
+    u.Unit('Kibyte', format='vounit') == u.Unit('1024 B')
+    u.Unit('Kibit', format='vounit') == u.Unit('1024 B')
+    with catch_warnings() as w:
+        u.Unit('kibibyte', format='vounit')
+    assert len(w) == 1
+
+
+def test_vounit_unknown():
+    assert u.Unit('unknown', format='vounit') is None
+    assert u.Unit('UNKNOWN', format='vounit') is None
+    assert u.Unit('', format='vounit') is u.dimensionless_unscaled
+
+
+def test_vounit_details():
+    assert u.Unit('Pa', format='vounit') is u.Pascal
+
+    # The da- prefix is not allowed, and the d- prefix is discouraged
+    assert u.dam.to_string('vounit') == '10m'
+    assert u.Unit('dam dag').to_string('vounit') == '100g m'
+
+
+def test_vounit_custom():
+    x = u.Unit("'foo' m", format='vounit')
+    x_vounit = x.to_string('vounit')
+    assert x_vounit == "'foo' m"
+    x_string = x.to_string()
+    assert x_string == "foo m"
+
+    x = u.Unit("m'foo' m", format='vounit')
+    assert x.bases[1]._represents.scale == 0.001
+    x_vounit = x.to_string('vounit')
+    assert x_vounit == "m m'foo'"
+    x_string = x.to_string()
+    assert x_string == 'm mfoo'
+
+
+def test_vounit_implicit_custom():
+    x = u.Unit("furlong/week", format="vounit")
+    assert x.bases[0]._represents.scale == 1e-15
+    assert x.bases[0]._represents.bases[0].name == 'urlong'

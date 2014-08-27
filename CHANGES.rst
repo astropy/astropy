@@ -61,6 +61,9 @@ New Features
 
 - ``astropy.units``
 
+  - Support for VOUnit has been updated to be compliant with version
+    1.0 of the standard.
+
 - ``astropy.utils``
 
   - Added a new decorator ``astropy.utils.wraps`` which acts as a replacement
