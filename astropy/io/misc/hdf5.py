@@ -51,22 +51,23 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     except ImportError:
         return False
     else:
-        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group))
+        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
 
 
 def read_table_hdf5(input, path=None):
     """
     Read a Table object from an HDF5 file
 
-    This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
-    installed. If more than one table is present in the HDF5 file or group, the
-    first table is read in and a warning is displayed.
+    This requires `h5py <http://h5py.org/>`_ to be installed. If more than one
+    table is present in the HDF5 file or group, the first table is read in and
+    a warning is displayed.
 
     Parameters
     ----------
-    input : str or :class:`h5py:File` or :class:`h5py:Group` or :class:`h5py:Dataset`
-        If a string, the filename to read the table from. If an h5py object,
-        either the file or the group object to read the table from.
+    input : str or :class:`h5py:File` or :class:`h5py:Group` or
+        :class:`h5py:Dataset` If a string, the filename to read the table from.
+        If an h5py object, either the file or the group object to read the
+        table from.
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
@@ -98,12 +99,14 @@ def read_table_hdf5(input, path=None):
             arrays = _find_all_structured_arrays(input)
 
             if len(arrays) == 0:
-                raise ValueError("no table found in HDF5 group {0}".format(path))
+                raise ValueError("no table found in HDF5 group {0}".
+                                 format(path))
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
                 warnings.warn("path= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (path={0})".format(path), AstropyUserWarning)
+                              " table (path={0})".format(path),
+                              AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.highlevel.Dataset):
@@ -145,8 +148,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     """
     Write a Table object to an HDF5 file
 
-    This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
-    installed.
+    This requires `h5py <http://h5py.org/>`_ to be installed.
 
     Parameters
     ----------
@@ -168,6 +170,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         Whether to append the table to an existing HDF5 file.
     overwrite : bool
         Whether to overwrite any existing file without warning.
+        If ``append=True`` and ``overwrite=True`` then only the dataset will be
+        replaced; the file/group will not be overwritten.
     """
 
     try:
@@ -198,7 +202,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     elif isinstance(output, six.string_types):
 
         if os.path.exists(output) and not append:
-            if overwrite:
+            if overwrite and not append:
                 os.remove(output)
             else:
                 raise IOError("File exists: {0}".format(output))
@@ -216,17 +220,23 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     else:
 
-        raise TypeError('output should be a string or an h5py File or Group object')
+        raise TypeError('output should be a string or an h5py File or '
+                        'Group object')
 
     # Check whether table already exists
     if name in output_group:
-        raise IOError("Table {0} already exists".format(path))
+        if append and overwrite:
+            # Delete only the dataset itself
+            del output_group[name]
+        else:
+            raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
     if compression:
         if compression is True:
             compression = 'gzip'
-        dset = output_group.create_dataset(name, data=table._data, compression=compression)
+        dset = output_group.create_dataset(name, data=table._data,
+                                           compression=compression)
     else:
         dset = output_group.create_dataset(name, data=table._data)
 
@@ -237,4 +247,5 @@ def write_table_hdf5(table, output, path=None, compression=False,
             dset.attrs[key] = val
         except TypeError:
             warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)), AstropyUserWarning)
+                          "HDF5 files - skipping".format(key, type(val)),
+                          AstropyUserWarning)

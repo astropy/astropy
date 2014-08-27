@@ -108,7 +108,8 @@ def test_angle_ops():
     # Angles can be added and subtracted. Multiplication and division by a
     # scalar is also permitted. A negative operator is also valid.  All of
     # these operate in a single dimension. Attempting to multiply or divide two
-    # Angle objects will raise an exception.
+    # Angle objects will return a quantity.  An exception will be raised if it
+    # is attempted to store output with a non-angular unit in an Angle [#2718].
 
     a1 = Angle(3.60827466667, unit=u.hour)
     a2 = Angle("54:07:26.832", unit=u.degree)
@@ -134,6 +135,16 @@ def test_angle_ops():
     assert a5 >= a1
     assert a1 < a5
     assert a1 <= a5
+
+    a6 = Angle(45., u.degree)
+    a7 = a6 * a5
+    assert type(a7) is u.Quantity
+
+    with pytest.raises(TypeError):
+        a6 *= a5
+
+    with pytest.raises(TypeError):
+        np.sin(a6, out=a6)
 
 
 def test_angle_convert():

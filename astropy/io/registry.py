@@ -332,7 +332,7 @@ def read(cls, *args, **kwargs):
         if not isinstance(data, cls):
             if issubclass(cls, data.__class__):
                 # User has read with a subclass where only the parent class is
-                # registered.  This returns the parent class, so try coercing to 
+                # registered.  This returns the parent class, so try coercing to
                 # desired subclass.
                 try:
                     data = cls(data)

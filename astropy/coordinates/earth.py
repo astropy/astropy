@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
+from ..utils import OrderedDict
 from . import Longitude, Latitude
 
 try:
@@ -16,7 +17,7 @@ except ImportError:
 __all__ = ['EarthLocation']
 
 # translation between ellipsoid names and corresponding number used in ERFA
-ELLIPSOIDS = {'WGS84': 1, 'GRS80': 2, 'WGS72': 3}
+ELLIPSOIDS = OrderedDict([('WGS84', 1), ('GRS80', 2), ('WGS72', 3)])
 
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):

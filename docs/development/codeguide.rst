@@ -15,7 +15,7 @@ both for the core package and for affiliated packages.
 Interface and Dependencies
 --------------------------
 
-* All code must be compatible with Python 2.6, 2.7, as well as 3.1 and
+* All code must be compatible with Python 2.6, 2.7, as well as 3.3 and
   later.  The use of `six`_ for writing code that is portable between Python
   2.x and 3.x is encouraged going forward.  However, much of our legacy code
   still uses `2to3`_ to process Python 2.x files to be compatible with

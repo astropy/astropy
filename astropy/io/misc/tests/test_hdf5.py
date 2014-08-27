@@ -190,6 +190,25 @@ def test_read_write_existing_append_groups(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing_append_overwrite(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1.write(test_file, path='table1')
+    t1.write(test_file, path='table2', append=True)
+    t1v2 = Table()
+    t1v2.add_column(Column(name='a', data=[4, 5, 6]))
+    with pytest.raises(IOError) as exc:
+        t1v2.write(test_file, path='table1', append=True)
+    assert exc.value.args[0] == 'Table table1 already exists'
+    t1v2.write(test_file, path='table1', append=True, overwrite=True)
+    t2 = Table.read(test_file, path='table1')
+    assert np.all(t2['a'] == [4, 5, 6])
+    t3 = Table.read(test_file, path='table2')
+    assert np.all(t3['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -370,3 +389,27 @@ def test_skip_meta(tmpdir):
     assert len(w) == 1
     assert str(w[0].message).startswith(
         "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_h5py_objects(tmpdir):
+
+    # Regression test - ensure that Datasets are recognized automatically
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    import h5py
+    with h5py.File(test_file, 'w') as output_file:
+        t1 = Table()
+        t1.add_column(Column(name='a', data=[1, 2, 3]))
+        t1.write(output_file, path='the_table')
+
+    f = h5py.File(test_file)
+
+    t2 = Table.read(f, path='the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+    t3 = Table.read(f['/'], path='the_table')
+    assert np.all(t3['a'] == [1, 2, 3])
+
+    t4 = Table.read(f['the_table'])
+    assert np.all(t4['a'] == [1, 2, 3])

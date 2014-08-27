@@ -101,10 +101,11 @@ Parameters for ``read()``
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
-**fill_values**: fill value specifier of lists
-  This can be used to fill missing values in the table or replace strings with special meaning.
-  See the `Bad or missing values`_ section for more information and examples.
-  The default is that any blank table values are treated as missing.
+**fill_values**: list of fill value specifiers
+  Specify input table entries which should be masked in the output table
+  because they are bad or missing.  See the `Bad or missing values`_ section
+  for more information and examples.  The default is that any blank table
+  values are treated as missing.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
@@ -140,17 +141,19 @@ Bad or missing values
 ASCII data tables can contain bad or missing values.  A common case is when a table
 contains blank entries with no available data, for example::
 
-  day,precip,type
-  Mon,1.5,rain
-  Tues,,       # <-- Weather station down
-  Wed,1.1,snow
+  >>> weather_data = """
+  ...   day,precip,type
+  ...   Mon,1.5,rain
+  ...   Tues,,
+  ...   Wed,1.1,snow
+  ...   """
 
 By default |read| will interpret blank entries as being bad/missing and output a masked
 Table with those entries masked out by setting the corresponding mask value set to
-``True``.  If you have read the above table into a variable ``dat``, you would see the
-output below, where the ``--`` values indicate missing data::
+``True``::
 
-  >>> print dat  # doctest: +SKIP
+  >>> dat = ascii.read(weather_data)
+  >>> print dat
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
@@ -161,97 +164,49 @@ If you want to replace the masked (missing) values with particular values, set t
 column ``fill_value`` attribute and then get the "filled" version of the table.  This
 looks like the following::
 
-  >>> dat['precip'].fill_value = -99.9  # doctest: +SKIP
-  >>> dat['type'].fill_value = ''  # doctest: +SKIP
-  >>> print dat.filled()  # doctest: +SKIP
+  >>> dat['precip'].fill_value = -999
+  >>> dat['type'].fill_value = 'N/A'
+  >>> print dat.filled()
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
-  Tues  -99.9
+  Tues -999.0  N/A
    Wed    1.1 snow
 
 ASCII tables may also have other indicators of bad or missing data.  For
 example a table may contain string values that are not a valid representation
 of a number, e.g. ``"..."``, or a table may have special values like ``-999``
 that are chosen to indicate missing data.  The |read| function has a flexible
-system to accommodate these cases by replacing string values in the input data
-before they are converted.  This is done with the ``fill_values`` argument
-which replaces ``<old>`` with ``<new>`` before the type conversion is done. The 
-exact value of ``<new>`` does not matter, because all fields in the table with
-replacements will be masked anyway in the end, 
-but for integer columns ``<new>`` must be chosen
-in such a way that it can be converted to an integer, for float columns to a float etc.
-The default for most ascii formats is to replace missing values with ``"0"`` which can be
-converted to any numerical type or string. Any fill value you specify will overwrite
-this default. If you, e.g. want to replace missing values with ``"0"`` *and* replace
-``"--"`` with -99, you need to specify ``fill_values=[("","0"), ("--", "-99")]``. If 
-you do not want to apply any fill_values (not even the default of the format), set
-``fill_values=[]``.
-The exact defintion for the fill values is::
+system to accommodate these cases by marking specified character sequences in
+the input data as "missing data" during the conversion process.  Whenever
+missing data is found then the output will be a masked table.
 
-  fill_values = <fill_spec> | [<fill_spec1>, <fill_spec2>, ...]
-  <fill_spec> = (<old>, <new>, <optional col name 1>, <optional col name 2>, ...)
+This is done with the ``fill_values`` keyword argument, which can be set to a
+single missing-value specification ``<missing_spec>`` or a list of ``<missing_spec>`` tuples::
 
-Within the ``<fill_spec>`` tuple the ``<old>`` and ``<new>`` values must be
-strings.  These two values are then followed by zero or more column names.  If
-column names are included the replacement is limited to those columns listed.
-For any replacement, ``<old>`` has to be an exact match as can be seen in the example::
+  fill_values = <missing_spec> | [<missing_spec1>, <missing_spec2>, ...]
+  <missing_spec> = (<match_string>, '0', <optional col name 1>, <optional col name 2>, ...)
 
-  >>> table = ['day  rain     snow',    # column names
-  ...          'Mon  A        1.1',
-  ...          'Tue  AA       1.8',
-  ...          'Wed  AAA      2.5']
-  >>> print(ascii.read(table, fill_values=[('AA', '0.0')]))
-  day rain snow
-  --- ---- ----
-  Mon    A  1.1
-  Tue   --  1.8
-  Wed  AAA  2.5
+The second element of a ``<missing_spec>`` should always be the string ``'0'``,
+otherwise you may get unexpected behavior [#f1]_.  By default the
+``<missing_spec>`` is applied to all columns unless column name strings are
+supplied.  An alterate way to limit the columns is via the
+``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
 
-If no columns are specified then the replacement is done in every column,
-subject to filtering by ``fill_include_names`` and ``fill_exclude_names`` (see
-below).
+In the example below we read back the weather table after filling the missing
+values in with typical placeholders::
 
-The ``fill_values`` parameter in |read| takes a single ``<fill_spec>`` or a
-list of ``<fill_spec>`` tuples.  If several ``<fill_spec>`` apply to a single
-occurrence of ``<old>`` then the first one determines the ``<new>`` value.  For
-instance the following will replace an empty data value in the ``x`` or ``y``
-columns with "1e38" while empty values in any other column will get "-999"::
-
-  >>> ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])  # doctest: +SKIP
-
-The following shows an example where string information needs to be exchanged before the
-conversion to float values happens. Here ``no_rain`` and ``no_snow`` is replaced by
-``0.0``::
-
-  >>> table = ['day  rain     snow',    # column names
-  ...          #---  -------  --------
-  ...          'Mon  3.2      no_snow',
-  ...          'Tue  no_rain  1.1',
-  ...          'Wed  0.3      no_snow']
-  >>> print(ascii.read(table, fill_values=[('no_rain', '0.0'), ('no_snow', '0.0')]))
-  day rain snow
-  --- ---- ----
-  Mon  3.2   --
-  Tue   --  1.1
-  Wed  0.3   --
-
-Sometimes these rules apply only to specific columns in the table. Columns can be selected with
-``fill_include_names`` or excluded with ``fill_exclude_names``. Also, column names can be
-given directly with fill_values::
-
-  >>> asciidata = ['text,no1,no2', 'text1,1,1.',',2,']
-  >>> print ascii.read(asciidata, fill_values = ('', 'nan','no1','no2'), delimiter = ',')
-   text no1 no2
-  ----- --- ---
-  text1   1 1.0
-          2  --
-
-Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
-column remains unaltered.
-
-If any table elements match the fill specification then |read| returns a masked
-`~astropy.table.Table` object with the corresponding elements masked out.
+  >>> table = ['day   precip  type',
+  ...          ' Mon     1.5  rain',
+  ...          'Tues  -999.0   N/A',
+  ...          ' Wed     1.1  snow']
+  >>> t = ascii.read(table, fill_values=[('-999.0', '0', 'precip'), ('N/A', '0', 'type')])
+  >>> print t
+  day  precip type
+  ---- ------ ----
+   Mon    1.5 rain
+  Tues     --   --
+   Wed    1.1 snow
 
 .. note::
 
@@ -261,6 +216,18 @@ If any table elements match the fill specification then |read| returns a masked
    no longer applies.  For instance setting ``fill_values=None`` will disable this
    auto-masking without setting any other fill values.  This can be useful for a string
    column where one of values happens to be ``""``.
+
+
+.. [#f1] The requirement to put the ``'0'`` there is the legacy of an old
+         interface which is maintained for backward compatibility.  The second
+         element of the ``<missing_spec>`` tuple can actually be an arbitrary
+         string value which replaces occurrences of the ``<match_string>``
+         string in the input stream prior to type conversion.  This ends up
+         being the value "behind the mask", which should never be directly
+         accessed.  Only the value ``'0'`` is neutral when attempting to detect
+         the column data type and perform type conversion.  For instance if you
+         used ``'nan'`` for the ``<match_string>`` value then integer columns
+         would wind up as float.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^
@@ -357,8 +324,91 @@ functionality to handle special cases.  To go beyond these simple examples the
 best reference is to read the code for the existing
 :ref:`extension_reader_classes`.
 
+**Define custom readers by class inheritance**
+
+The most useful way to define a new reader class is by inheritance.
+This is the way all the build-in readers are defined, so there are plenty
+of examples in the code.
+
+In most cases, you will define one class to handle the header,
+one class that handles the data and a reader class that ties it all together. 
+Here is a simple example from the code that defines a reader that is just like
+the basic reader, but header and data start in different lines of the file::
+
+  # Note: NoHeader is already included in astropy.io.ascii for convenience.
+  class NoHeaderHeader(BasicHeader):
+      '''Reader for table header without a header
+
+      Set the start of header line number to `None`, which tells the basic 
+      reader there is no header line.
+      '''
+      start_line = None
+
+  class NoHeaderData(BasicData):
+      '''Reader for table data without a header
+
+      Data starts at first uncommented line since there is no header line.
+      '''
+      start_line = 0
+
+  class NoHeader(Basic):
+      """Read a table with no header line.  Columns are autonamed using
+      header.auto_format which defaults to "col%d".  Otherwise this reader
+      the same as the :class:`Basic` class from which it is derived.  Example::
+
+        # Table data
+        1 2 "hello there"
+        3 4 world
+      """
+      _format_name = 'no_header'
+      _description = 'Basic table with no headers'
+      header_class = NoHeaderHeader
+      data_class = NoHeaderData
+
+In a slightly more involved case, the implementation can also override some of 
+the methods in the base class::
+
+  # Note: CommentedHeader is already included in astropy.io.ascii for convenience.
+  class CommentedHeaderHeader(BasicHeader):
+      """Header class for which the column definition line starts with the
+      comment character.  See the :class:`CommentedHeader` class  for an example.
+      """
+      def process_lines(self, lines):
+          """Return only lines that start with the comment regexp.  For these
+          lines strip out the matching characters."""
+          re_comment = re.compile(self.comment)
+          for line in lines:
+              match = re_comment.match(line)
+              if match:
+                  yield line[match.end():]
+
+      def write(self, lines):
+          lines.append(self.write_comment + self.splitter.join(self.colnames))
+
+
+  class CommentedHeader(Basic):
+      """Read a file where the column names are given in a line that begins with
+      the header comment character. ``header_start`` can be used to specify the
+      line index of column names, and it can be a negative index (for example -1
+      for the last commented line).  The default delimiter is the <space>
+      character.::
+
+        # col1 col2 col3
+        # Comment line
+        1 2 3
+        4 5 6
+      """
+      _format_name = 'commented_header'
+      _description = 'Column names in a commented line'
+
+      header_class = CommentedHeaderHeader
+      data_class = NoHeaderData
+
+
 **Define a custom reader functionally**
-::
+Instead of defining a new class, it is also possible to obtain an instance
+of a reader and then to modify the properties of this one reader instance
+in a function::
 
    def read_rdb_table(table):
        reader = astropy.io.ascii.Basic()
@@ -370,34 +420,6 @@ best reference is to read the code for the existing
 
        return reader.read(table)
 
-**Define custom readers by class inheritance**
-::
-
-   # Note: Tab, Csv, and Rdb are included in astropy.io.ascii for convenience.
-   class Tab(astropy.io.ascii.Basic):
-       def __init__(self):
-           astropy.io.ascii.Basic.__init__(self)
-           self.header.splitter.delimiter = '\t'
-           self.data.splitter.delimiter = '\t'
-           # Don't strip line whitespace since that includes tabs
-           self.header.splitter.process_line = None
-           self.data.splitter.process_line = None
-           # Don't strip data value spaces since that is significant in TSV tables
-           self.data.splitter.process_val = None
-           self.data.splitter.skipinitialspace = False
-
-   class Rdb(astropy.io.ascii.Tab):
-       def __init__(self):
-           astropy.io.ascii.Tab.__init__(self)
-           self.data.start_line = 2
-
-    class Csv(astropy.io.ascii.Basic):
-        def __init(self):
-            astropy.io.ascii.Basic.__init__(self)
-            self.data.splitter.delimiter = ','
-            self.header.splitter.delimiter = ','
-            self.header.start_line = 0
-            self.data.start_line = 1
 
 **Create a custom splitter.process_val function**
 ::

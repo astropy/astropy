@@ -17,6 +17,7 @@ import itertools
 import functools
 import numpy
 import warnings
+import copy
 
 from ...extern import six
 from ...extern.six.moves import zip
@@ -245,6 +246,9 @@ class DefaultSplitter(BaseSplitter):
     escapechar = None
     quoting = csv.QUOTE_MINIMAL
     skipinitialspace = True
+    csv_writer = None
+    csv_writer_out = StringIO()
+
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
@@ -254,9 +258,6 @@ class DefaultSplitter(BaseSplitter):
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip()
 
-    def __init__(self):
-        self.csv_writer = None
-        self.csv_writer_out = StringIO()
 
     def __call__(self, lines):
         """Return an iterator over the table ``lines``, where each iterator output
@@ -365,7 +366,7 @@ class BaseHeader(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
-        self.splitter = self.__class__.splitter_class()
+        self.splitter = self.splitter_class()
 
     def _set_cols_from_names(self):
         self.cols = [Column(name=x) for x in self.names]
@@ -458,16 +459,18 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
+    # Currently, the default matches the numpy default for masked values.
+    fill_values = [(masked, '--')]
+    formats = {}
 
     def __init__(self):
         # Need to make sure fill_values list is instance attribute, not class attribute.
         # On read, this will be overwritten by the default in the ui.read (thus, in
         # the current implementation there can be no different default for different
         # Readers). On write, ui.py does not specify a default, so this line here matters.
-        # Currently, the default matches the numpy default for masked values. 
-        self.fill_values = [(masked, '--')]
-        self.formats = {}
-        self.splitter = self.__class__.splitter_class()
+        self.fill_values = copy.copy(self.fill_values)
+        self.formats = copy.copy(self.formats)
+        self.splitter = self.splitter_class()
 
     def process_lines(self, lines):
         """Strip out comment lines and blank lines from list of ``lines``
@@ -807,11 +810,16 @@ class BaseReader(object):
     exclude_names = None
     strict_names = False
 
+    header_class = BaseHeader
+    data_class = BaseData
+    inputter_class = BaseInputter
+    outputter_class = TableOutputter
+
     def __init__(self):
-        self.header = BaseHeader()
-        self.data = BaseData()
-        self.inputter = BaseInputter()
-        self.outputter = TableOutputter()
+        self.header = self.header_class()
+        self.data = self.data_class()
+        self.inputter = self.inputter_class()
+        self.outputter = self.outputter_class()
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
@@ -847,10 +855,6 @@ class BaseReader(object):
             # Strings only
             if os.linesep not in table + '':
                 self.data.table_name = os.path.basename(table)
-
-        # Same from __init__.  ??? Do these need to be here?
-        self.data.header = self.header
-        self.header.data = self.data
 
         # Get a list of the lines (rows) in the table
         self.lines = self.inputter.get_lines(table)
@@ -1117,9 +1121,7 @@ def _get_writer(Writer, **kwargs):
             # Restore the default SplitterClass process_val method which strips
             # whitespace.  This may have been changed in the Writer
             # initialization (e.g. Rdb and Tab)
-            Class = writer.data.splitter.__class__
-            obj = writer.data.splitter
-            writer.data.splitter.process_val = Class.process_val.__get__(obj, Class)
+            writer.data.splitter.process_val = lambda x: x.strip()
         else:
             writer.data.splitter.process_val = None
     if 'names' in kwargs:

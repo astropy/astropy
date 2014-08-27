@@ -202,6 +202,7 @@ as a whole, see :doc:`development/vision`.
    development/ccython
    development/releasing
    development/workflow/maintainer_workflow
+   development/affiliated-packages
    changelog
 
 ******************

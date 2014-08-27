@@ -25,8 +25,6 @@ TEST_KEY1 = get_pkg_data_filename('data/test1.key')
 TEST_CERT2 = get_pkg_data_filename('data/test2.crt')
 TEST_KEY2 = get_pkg_data_filename('data/test2.key')
 
-PY31 = sys.version_info[:2] == (3, 1)
-
 
 class TestStandardProfile(object):
 

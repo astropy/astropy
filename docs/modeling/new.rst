@@ -3,9 +3,11 @@ Defining New Model Classes
 
 This document describes how to add a model to the package or to create a
 user-defined model. In short, one needs to define all model parameters and
-write an eval function which evaluates the model.  If the model is fittable, a
-function to compute the derivatives with respect to parameters is required
-if a linear fitting algorithm is to be used and optional if a non-linear fitter is to be used.
+write a function which evaluates the model, that is, computes the mathematical
+function that implements the model.  If the model is fittable, a function to
+compute the derivatives with respect to parameters is required if a linear
+fitting algorithm is to be used and optional if a non-linear fitter is to be
+used.
 
 
 Custom 1-D models
@@ -76,9 +78,9 @@ differs from Astropy v0.3.x, where it was necessary to provide the name twice.
 
 ::
 
-    from astropy.modeling import FittableModel, Parameter, formt_input
+    from astropy.modeling import FittableModel, Parameter
 
-    class Gaussian1DModel(FittableModel):
+    class Gaussian1D(FittableModel):
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
@@ -90,7 +92,7 @@ arguments such as values for constraints::
         # Note that this __init__ does nothing different from the base class's
         # __init__.  The main point of defining it is so that the function
         # signature is more informative.
-        super(Gaussian1DModel, self).__init__(
+        super(Gaussian1D, self).__init__(
             amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
 .. note::
@@ -109,19 +111,19 @@ input variables the model expects.  The
 variables returned after evaluating the model.  These two attributes are used
 with composite models.
 
-Next, provide methods called ``eval`` to evaluate the model and ``fit_deriv``,
-to compute its derivatives with respect to parameters.  These may be normal
-methods, `classmethod`, or `staticmethod`, though the convention is to use
-`staticmethod` when the function does not depend on any of the object's other
-attributes (i.e., it does not reference ``self``).  The evaluation method takes
-all input coordinates as separate arguments and all of the model's parameters
-in the same order they would be listed by
+Next, provide methods called ``evaluate`` to evaluate the model and
+``fit_deriv``, to compute its derivatives with respect to parameters.  These
+may be normal methods, `classmethod`, or `staticmethod`, though the convention
+is to use `staticmethod` when the function does not depend on any of the
+object's other attributes (i.e., it does not reference ``self``).  The
+evaluation method takes all input coordinates as separate arguments and all of
+the model's parameters in the same order they would be listed by
 `~astropy.modeling.Model.param_names`.
 
 For this example::
 
     @staticmethod
-    def eval(x, amplitude, mean, stddev):
+    def evaluate(x, amplitude, mean, stddev):
         return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
 
 The ``fit_deriv`` method takes as input all coordinates as separate arguments.
@@ -140,91 +142,92 @@ which case the ``fit_deriv`` method should be ``None``::
         return [d_amplitude, d_mean, d_stddev]
 
 
-Finally, the ``__call__`` method takes input coordinates as separate arguments.
-It reformats them (if necessary) using the `~astropy.modeling.format_input`
-wrapper/decorator and calls the eval method to perform the model evaluation
-using the input variables and a special property called
-`~astropy.modeling.Model.param_sets` which returns a list of all the parameter
-values over all models in the set.
+Finally, the ``__call__`` method takes the input coordinates as arguments,
+checks that the input arrays are correctly formatted and broadcastable, and
+then passes them along with the the model's parameter values to the
+``evaluate`` method.
 
-The reason there is a separate eval method is to allow fitters to call the eval
-method with different parameters which is necessary for updating the
-approximation while fitting, and for fitting with constraints.::
+In most cases it is not necessary to reimplement ``__call__``, though it may be
+desirable to override it so that its signature reflects the desired names of
+the input coordinates.  When overriding ``__call__`` it should simply call the
+super-class's ``__call__`` and not do anything else.  The only reason currently
+to override it is to provide a specific argument signature.  It should also
+support ``model_set_axis`` keyword argument, at a minimum::
 
-    @format_input
-    def __call__(self, x):
-        return self.eval(x, *self.param_sets)
+    def __call__(self, x, model_set_axis=None):
+        return super(Gaussian1D, self).__call__(
+            x, model_set_axis=model_set_axis)
 
 
 Full example
 ^^^^^^^^^^^^
 
-::
+.. code-block:: python
 
-    from astropy.modeling import FittableModel, Parameter, format_input
+    from astropy.modeling import FittableModel, Parameter
 
-    class Gaussian1DModel(FittableModel):
+    class Gaussian1D(FittableModel):
         amplitude = Parameter()
         mean = Parameter()
         stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        # Note that this __init__ does nothing different from the base class's
-        # __init__.  The main point of defining it is so that the function
-        # signature is more informative.
-        super(Gaussian1DModel, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
+        def __init__(self, amplitude, mean, stddev, **kwargs):
+            # Note that this __init__ does nothing different from the base
+            # class's __init__.  The main point of defining it is so that the
+            # function signature is more informative.
+            super(Gaussian1D, self).__init__(
+                amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
-    @staticmethod
-    def eval(x, amplitude, mean, stddev):
-        return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
+        @staticmethod
+        def evaluate(x, amplitude, mean, stddev):
+            return amplitude * np.exp((-(1 / (2. * stddev**2)) * (x - mean)**2))
 
-    @staticmethod
-    def fit_deriv(x, amplitude, mean, stddev):
-        d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
-        d_mean = (2 * amplitude *
-                  np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
-                  (x - mean) / (stddev**2))
-        d_stddev = (2 * amplitude *
-                    np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
-                    ((x - mean)**2) / (stddev**3))
-        return [d_amplitude, d_mean, d_stddev]
+        @staticmethod
+        def fit_deriv(x, amplitude, mean, stddev):
+            d_amplitude = np.exp((-(1 / (stddev**2)) * (x - mean)**2))
+            d_mean = (2 * amplitude *
+                      np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
+                      (x - mean) / (stddev**2))
+            d_stddev = (2 * amplitude *
+                        np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
+                        ((x - mean)**2) / (stddev**3))
+            return [d_amplitude, d_mean, d_stddev]
 
-    @format_input
-    def __call__(self, x):
-        return self.eval(x, *self.param_sets)
+        def __call__(self, x, model_set_axis=None):
+            return super(Gaussian1D, self).__call__(
+                x, model_set_axis=model_set_axis)
 
 
 A full example of a LineModel
 -----------------------------
 
-::
+.. code-block:: python
 
-    from astropy.modeling import models, Parameter, format_input
+    from astropy.modeling import FittableModel, Parameter
     import numpy as np
 
-    class LineModel(models.PolynomialModel):
+    class LineModel(FittableModel):
         slope = Parameter()
         intercept = Parameter()
         linear = True
 
-    def __init__(self, slope, intercept, **kwargs):
-        super(LineModel, self).__init__(slope=slope, intercept=intercept,
-                                        **kwargs)
+        def __init__(self, slope, intercept, **kwargs):
+            super(LineModel, self).__init__(slope=slope, intercept=intercept,
+                                            **kwargs)
 
-    @staticmethod
-    def eval(x, slope, intercept):
-        return slope * x + intercept
+        @staticmethod
+        def evaluate(x, slope, intercept):
+            return slope * x + intercept
 
-    @staticmethod
-    def fit_deriv(x, slope, intercept):
-        d_slope = x
-        d_intercept = np.ones_like(x)
-        return [d_slope, d_intercept]
+        @staticmethod
+        def fit_deriv(x, slope, intercept):
+            d_slope = x
+            d_intercept = np.ones_like(x)
+            return [d_slope, d_intercept]
 
-    @format_input
-    def __call__(self, x):
-        return self.eval(x, *self.param_sets)
+        def __call__(self, x, model_set_axis=None):
+            return super(LineModel, self).__call__(
+                x, model_set_axis=model_set_axis)
 
 
 Defining New Fitter Classes

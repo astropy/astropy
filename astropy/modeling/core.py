@@ -17,6 +17,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
+import itertools
 import copy
 import functools
 import inspect
@@ -36,75 +37,12 @@ from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
 from .parameters import Parameter, InputParameterError
 
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
-           'SerialCompositeModel', 'LabeledInput', 'FittableModel',
-           'Fittable1DModel', 'Fittable2DModel', 'ModelDefinitionError',
-           'format_input']
-
-
-__doctest_skip__ = ['.']
+           'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
+           'Fittable2DModel', 'ModelDefinitionError']
 
 
 class ModelDefinitionError(Exception):
     """Used for incorrect models definitions"""
-
-
-def format_input(func):
-    """
-    Wraps a model's ``__call__`` method so that the input arrays are converted
-    into the appropriate shape given the model's parameter dimensions.
-
-    Wraps the result to match the shape of the last input array.
-    """
-
-    argspec = inspect.getargspec(func)
-
-    @functools.wraps(func)
-    def wrapped_call(self, *inputs, **kwargs):
-        model_set_axis = kwargs.pop('model_set_axis', None)
-
-        if model_set_axis is None:
-            # By default the model_set_axis for the input is assumed to be the
-            # same as that for the parameters the model was defined with
-            # TODO: Ensure that negative model_set_axis arguments are respected
-            model_set_axis = self.model_set_axis
-
-        n_models = len(self)
-
-        params = [getattr(self, name) for name in self.param_names]
-        inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
-
-        scalar_params = all(not param.shape for param in params)
-        scalar_inputs = all(not np.shape(_input) for _input in inputs)
-
-        if n_models == 1 and scalar_params and scalar_inputs:
-            # Simplest case is either a parameterless models (currently I don't
-            # think we have any but they could exist in principle) or a single
-            # model (not a model set) with all scalar paramaters and all scalar
-            # inputs
-            outputs = func(self, *inputs, **kwargs)
-
-            if self.n_outputs == 1:
-                return np.asscalar(outputs)
-            else:
-                return tuple(np.asscalar(output) for output in outputs)
-
-        input_names = argspec.args[1:1 + len(inputs)]
-
-        _validate_input_shapes(inputs, input_names, n_models,
-                               model_set_axis, self.standard_broadcasting)
-
-        # The input formatting required for single models versus a multiple
-        # model set are different enough that they've been split into separate
-        # subroutines
-        if n_models == 1:
-            return _format_single_model_input(func, self, params, inputs,
-                                              input_names, **kwargs)
-        else:
-            return _format_model_set_input(func, self, params, inputs,
-                                           input_names, n_models,
-                                           model_set_axis, **kwargs)
-
-    return wrapped_call
 
 
 class _ModelMeta(abc.ABCMeta):
@@ -135,6 +73,19 @@ class _ModelMeta(abc.ABCMeta):
                     "them.")
             parameters[value.name] = value
 
+        # Determine in the names of the inputs to the __call__ method; this
+        # is a temporary hack to retain some basic functionality while I
+        # merge different branches
+        # TODO: Remove me once input/output names are fully integrated
+        call_method = members.get('__call__') or bases[0].__call__
+        n_inputs = members.get('n_inputs') or bases[0].n_inputs
+        if isinstance(n_inputs, int):
+            argspec = inspect.getargspec(call_method)
+            members['input_names'] = argspec.args[1:1 + n_inputs]
+        else:
+            # Hack doesn't work in this case; no matter for temporary purposes
+            members['input_names'] = []
+
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
         # parameters, since they can have a variable number of them
@@ -157,6 +108,20 @@ class _ModelMeta(abc.ABCMeta):
             members['param_names'] = param_names
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
+
+        # Backwards compatibility check for 'eval' -> 'evaluate'
+        # TODO: Remove sometime after Astropy 1.0 release.
+        if 'eval' in members and 'evaluate' not in members:
+            warnings.warn(
+                "Use of an 'eval' method when defining subclasses of "
+                "FittableModel is deprecated; please rename this method to "
+                "'evaluate'.  Otherwise its semantics remain the same.",
+                AstropyDeprecationWarning)
+            members['evaluate'] = members['eval']
+        elif 'evaluate' in members:
+            alt = '.'.join((name, 'evaluate'))
+            deprecate = deprecated('1.0', alternative=alt, name='eval')
+            members['eval'] = deprecate(members['evaluate'])
 
         return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
@@ -282,9 +247,15 @@ class Model(object):
     def __len__(self):
         return self._n_models
 
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
-        """Evaluate the model on some input variables."""
+    def __call__(self, *inputs, **kwargs):
+        inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+
+        outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
+
+        if self.n_outputs == 1:
+            outputs = (outputs,)
+
+        return self.prepare_outputs(format_info, *outputs, **kwargs)
 
     @property
     @deprecated('0.4', alternative='len(model)')
@@ -300,7 +271,9 @@ class Model(object):
         """
         Return parameters as a pset.
 
-        This is an array where each column represents one parameter set.
+        This is a list with one item per parameter set, which is an array of
+        that parameter's values across all parameter sets, with the last axis
+        associated with the parameter set.
         """
 
         values = [getattr(self, name).value for name in self.param_names]
@@ -405,6 +378,60 @@ class Model(object):
         """Invert coordinates iteratively if possible."""
 
         raise NotImplementedError("Subclasses should implement this")
+
+    @abc.abstractmethod
+    def evaluate(self, *args, **kwargs):
+        """Evaluate the model on some input variables."""
+
+    def prepare_inputs(self, *inputs, **kwargs):
+        """
+        This method is used in `Model.__call__` to ensure that all the inputs
+        to the model can be broadcast into compatible shapes (if one or both of
+        them are input as arrays), particularly if there are more than one
+        parameter sets.
+        """
+
+        model_set_axis = kwargs.pop('model_set_axis', None)
+
+        if model_set_axis is None:
+            # By default the model_set_axis for the input is assumed to be the
+            # same as that for the parameters the model was defined with
+            # TODO: Ensure that negative model_set_axis arguments are respected
+            model_set_axis = self.model_set_axis
+
+        n_models = len(self)
+
+        params = [getattr(self, name) for name in self.param_names]
+        inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
+
+        scalar_params = all(not param.shape for param in params)
+        scalar_inputs = all(not np.shape(_input) for _input in inputs)
+
+        if n_models == 1 and scalar_params and scalar_inputs:
+            # Simplest case is either a parameterless models (currently I don't
+            # think we have any but they could exist in principle) or a single
+            # model (not a model set) with all scalar paramaters and all scalar
+            # inputs
+            return inputs, ()
+
+        _validate_input_shapes(inputs, self.input_names, n_models,
+                               model_set_axis, self.standard_broadcasting)
+
+        # The input formatting required for single models versus a multiple
+        # model set are different enough that they've been split into separate
+        # subroutines
+        if n_models == 1:
+            return _prepare_inputs_single_model(self, params, inputs,
+                                                **kwargs)
+        else:
+            return _prepare_inputs_model_set(self, params, inputs, n_models,
+                                             model_set_axis, **kwargs)
+
+    def prepare_outputs(self, format_info, *outputs, **kwargs):
+        if len(self) == 1:
+            return _prepare_outputs_single_model(self, outputs, format_info)
+        else:
+            return _prepare_outputs_model_set(self, outputs, format_info)
 
     def add_model(self, model, mode):
         """
@@ -930,6 +957,12 @@ class _CompositeModel(Model):
     def invert(self):
         raise NotImplementedError("Subclasses should implement this")
 
+    @staticmethod
+    def evaluate(x, y, *coeffs):
+        # TODO: Refactor how these are evaluated so that they can work like
+        # other models
+        raise NotImplementedError("Needs refactoring")
+
     def __call__(self):
         # implemented by subclasses
         raise NotImplementedError("Subclasses should implement this")
@@ -1165,18 +1198,6 @@ class Fittable1DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    @abc.abstractmethod
-    def eval(self):
-        """
-        A method, `classmethod`, or `staticmethod` that implements evaluation
-        of the function represented by this model.
-
-        It must take arguments of the function's independent variables,
-        followed by the function's parameters given in the same order they are
-        listed by `Model.param_names`.
-        """
-
-    @format_input
     def __call__(self, x, model_set_axis=None):
         """
         Transforms data using this model.
@@ -1194,7 +1215,8 @@ class Fittable1DModel(FittableModel):
             all models in the set.
         """
 
-        return self.eval(x, *self.param_sets)
+        return super(Fittable1DModel, self).__call__(
+            x, model_set_axis=model_set_axis)
 
 
 class Fittable2DModel(FittableModel):
@@ -1208,18 +1230,6 @@ class Fittable2DModel(FittableModel):
     n_inputs = 2
     n_outputs = 1
 
-    @abc.abstractmethod
-    def eval(self):
-        """
-        A method, `classmethod`, or `staticmethod` that implements evaluation
-        of the function represented by this model.
-
-        It must take arguments of the function's independent variables,
-        followed by the function's parameters given in the same order they are
-        listed by `Model.param_names`.
-        """
-
-    @format_input
     def __call__(self, x, y, model_set_axis=None):
         """
         Transforms data using this model.
@@ -1240,11 +1250,11 @@ class Fittable2DModel(FittableModel):
             all models in the set.
         """
 
-        return self.eval(x, y, *self.param_sets)
+        return super(Fittable2DModel, self).__call__(
+            x, y, model_set_axis=model_set_axis)
 
 
-def _format_single_model_input(func, model, params, inputs, input_names,
-                               **kwargs):
+def _prepare_inputs_single_model(model, params, inputs, **kwargs):
     broadcasts = []
 
     for idx, _input in enumerate(inputs):
@@ -1262,7 +1272,7 @@ def _format_single_model_input(func, model, params, inputs, input_names,
                 raise ValueError(
                     "Model input argument {0!r} of shape {1!r} cannot be "
                     "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(input_names[idx], input_shape,
+                    "{3!r}.".format(model.input_names[idx], input_shape,
                                     param.name, param.shape))
 
             if len(broadcast) > len(max_broadcast):
@@ -1272,12 +1282,20 @@ def _format_single_model_input(func, model, params, inputs, input_names,
 
         broadcasts.append(max_broadcast)
 
-    outputs = func(model, *inputs, **kwargs)
+    return inputs, (broadcasts,)
 
-    if model.n_outputs == 1:
-        outputs = [outputs]
-    else:
-        outputs = list(outputs)
+
+def _prepare_outputs_single_model(model, outputs, format_info):
+    if not format_info:
+        # This is the shortcut for models with all scalar inputs/parameters
+        if model.n_outputs == 1:
+            return np.asscalar(outputs[0])
+        else:
+            return tuple(np.asscalar(output) for output in outputs)
+
+    broadcasts = format_info[0]
+
+    outputs = list(outputs)
 
     for idx, output in enumerate(outputs):
         if broadcasts[idx]:
@@ -1289,8 +1307,8 @@ def _format_single_model_input(func, model, params, inputs, input_names,
         return tuple(outputs)
 
 
-def _format_model_set_input(func, model, params, inputs, input_names,
-                            n_models, model_set_axis, **kwargs):
+def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
+                              **kwargs):
     reshaped = []
     pivots = []
 
@@ -1313,7 +1331,7 @@ def _format_model_set_input(func, model, params, inputs, input_names,
                 raise ValueError(
                     "Model input argument {0!r} of shape {1!r} cannot be "
                     "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(input_names[idx], input_shape,
+                    "{3!r}.".format(model.input_names[idx], input_shape,
                                     param.name, param.shape))
 
             if len(param.shape) > len(max_param_shape):
@@ -1350,12 +1368,13 @@ def _format_model_set_input(func, model, params, inputs, input_names,
         pivots.append(pivot)
         reshaped.append(new_input)
 
-    outputs = func(model, *reshaped, **kwargs)
+    return reshaped, (pivots,)
 
-    if model.n_outputs == 1:
-        outputs = [outputs]
-    else:
-        outputs = list(outputs)
+
+def _prepare_outputs_model_set(model, outputs, format_info):
+    pivots = format_info[0]
+
+    outputs = list(outputs)
 
     for idx, output in enumerate(outputs):
         pivot = pivots[idx]

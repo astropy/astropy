@@ -91,7 +91,9 @@ def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun.value * si.W, namespace=_ns,
 ###########################################################################
 # SPECTRAL DENSITY
 
-def_unit(['ph', 'photon'], namespace=_ns)
+def_unit(['ph', 'photon'],
+         format={'ogip': 'photon'},
+         namespace=_ns)
 def_unit(['Jy', 'Jansky', 'jansky'], 1e-26 * si.W / si.m ** 2 / si.Hz,
          namespace=_ns, prefixes=True,
          doc="Jansky: spectral flux density")
@@ -115,8 +117,12 @@ def_unit(['Sun'], namespace=_ns)
 ###########################################################################
 # EVENTS
 
-def_unit(['ct', 'count'], namespace=_ns)
-def_unit(['pix', 'pixel'], namespace=_ns)
+def_unit(['ct', 'count'],
+         format={'fits': 'count', 'ogip': 'count'},
+         namespace=_ns)
+def_unit(['pix', 'pixel'],
+         format={'ogip': 'pixel'},
+         namespace=_ns)
 
 
 ###########################################################################
@@ -124,7 +130,9 @@ def_unit(['pix', 'pixel'], namespace=_ns)
 
 def_unit(['chan'], namespace=_ns)
 def_unit(['bin'], namespace=_ns)
-def_unit(['vox', 'voxel'], namespace=_ns)
+def_unit(['vox', 'voxel'],
+         format={'fits': 'voxel', 'ogip': 'voxel', 'vounit': 'voxel'},
+         namespace=_ns)
 def_unit((['bit', 'b'], ['bit']), namespace=_ns, prefixes=True)
 def_unit((['byte', 'B'], ['byte']), namespace=_ns, prefixes=True,
          exclude_prefixes=['d'])

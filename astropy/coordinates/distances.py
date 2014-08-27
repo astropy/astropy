@@ -13,6 +13,7 @@ import math
 import numpy as np
 
 from .. import units as u
+from ..utils import deprecated
 
 __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
@@ -204,6 +205,7 @@ class Distance(u.Quantity):
         return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
 
 
+@deprecated('v0.4', alternative='astropy.coordinates.CartesianRepresentation')
 class CartesianPoints(u.Quantity):
     """
     A cartesian representation of a point in three-dimensional space.
@@ -291,20 +293,18 @@ class CartesianPoints(u.Quantity):
         if qarr.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(qarr.dtype))
 
-        return super(CartesianPoints, cls).__new__(cls, qarr, unit, dtype=dtype,
-                                            copy=copy)
+        return u.Quantity.__new__(cls, qarr, unit, dtype=dtype, copy=copy)
 
     def __quantity_subclass__(self, unit):
         if unit.is_equivalent(u.m):
             return CartesianPoints, True
         else:
-            return super(CartesianPoints,
-                         self).__quantity_subclass__(unit)[0], False
+            return u.Quantity.__quantity_subclass__(unit)[0], False
 
     def __array_wrap__(self, obj, context=None):
         #always convert to CartesianPoints because all operations that would
         #screw up the units are killed by _convert_to_and_validate_length_unit
-        obj = super(CartesianPoints, self).__array_wrap__(obj, context=context)
+        obj = u.Quantity.__array_wrap__(obj, context=context)
 
         #always prefer self's unit, if possible
         if obj.unit.is_equivalent(self.unit):

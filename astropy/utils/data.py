@@ -763,7 +763,7 @@ def _find_pkg_data_path(data_name):
     path.
     """
 
-    from ..utils.misc import find_current_module
+    from ..utils import find_current_module
 
     module = find_current_module(1, True)
     if module is None:

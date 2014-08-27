@@ -3,7 +3,6 @@ language: python
 python:
     - 2.6
     - 2.7
-    - 3.2
     - 3.3
     - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
@@ -12,15 +11,20 @@ env:
         # Set defaults to avoid repeating in most cases
         - NUMPY_VERSION=1.8
         - OPTIONAL_DEPS=false
+        - MAIN_CMD='python setup.py'
     matrix:
         - SETUP_CMD='egg_info'
 
 matrix:
     include:
 
+        # Do a PEP8 test
+        - python: 2.7
+          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+
         # Do a coverage test in Python 2
         - python: 2.7
-          env:  SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
+          env: SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
@@ -32,8 +36,6 @@ matrix:
         - python: 2.6
           env: SETUP_CMD='test'
         - python: 2.7
-          env: SETUP_CMD='test'
-        - python: 3.2
           env: SETUP_CMD='test'
         - python: 3.3
           env: SETUP_CMD='test'
@@ -47,8 +49,6 @@ matrix:
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try older numpy versions
-        - python: 3.2
-          env: NUMPY_VERSION=1.6 SETUP_CMD='test'
         - python: 2.7
           env: NUMPY_VERSION=1.7 SETUP_CMD='test'
         - python: 2.7
@@ -77,7 +77,7 @@ install:
     - source activate test
 
     # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD != egg_info ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then conda install --yes numpy=$NUMPY_VERSION scipy h5py; fi
@@ -92,8 +92,11 @@ install:
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
 
+    # PEP8 DEPENDENCIES
+    - if [[ $MAIN_CMD == pep8* ]]; then pip install pep8; fi
+
 script:
-    - python setup.py $SETUP_CMD
+    - $MAIN_CMD $SETUP_CMD
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='astropy/tests/coveragerc'; fi

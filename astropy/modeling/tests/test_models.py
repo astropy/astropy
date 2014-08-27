@@ -180,7 +180,7 @@ def test_custom_model(amplitude=4, frequency=1):
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
 
-    y = sin_model.eval(x, 5., 2.)
+    y = sin_model.evaluate(x, 5., 2.)
     y_prime = sin_model.fit_deriv(x, 5., 2.)
 
     np.random.seed(0)
@@ -469,7 +469,7 @@ def create_model(model_class, test_parameters, use_constraints=True, parameter_k
     """
 
     constraints = {}
-    if issubclass(model_class, Fittable1DModel) or issubclass(model_class, Fittable2DModel): 
+    if issubclass(model_class, Fittable1DModel) or issubclass(model_class, Fittable2DModel):
         if "requires_scipy" in test_parameters and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if use_constraints:

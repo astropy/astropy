@@ -40,7 +40,7 @@ def test_wcsapi_extension(tmpdir):
     try:
         stdout, stderr = stdout.decode('utf8'), stderr.decode('utf8')
     except UnicodeDecodeError:
-       # Don't try to guess about encoding; just display the text
+        # Don't try to guess about encoding; just display the text
         stdout, stderr = stdout.decode('latin1'), stderr.decode('latin1')
 
     # If compilation fails, we can skip this test, since the

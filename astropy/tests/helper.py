@@ -60,12 +60,6 @@ else:
     importer = extern_pytest.DictImporter(unpacked_sources)
     sys.meta_path.insert(0, importer)
 
-    # On Python 3.1, we need to forcibly import the py.test-"bundled"
-    # argparse before importing py.test, since it isn't in the
-    # standard library, and py.test's workaround doesn't appear to
-    # work with the "absolute imports" of Python 3.x.
-    if six.PY3 and sys.version_info[1] <= 1:
-        argparse = importer.load_module(str('argparse'))
     pytest = importer.load_module(str('pytest'))
 
 

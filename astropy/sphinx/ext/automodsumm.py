@@ -89,7 +89,7 @@ from sphinx.ext.autosummary import Autosummary
 from sphinx.ext.inheritance_diagram import InheritanceDiagram
 from docutils.parsers.rst.directives import flag
 
-from ...utils.misc import find_mod_objs
+from ...utils.introspection import find_mod_objs
 from .astropyautosummary import AstropyAutosummary
 
 

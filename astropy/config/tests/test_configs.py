@@ -325,3 +325,10 @@ def test_no_home():
         env=env)
 
     assert retcode == 0
+
+
+def test_unedited_template():
+    # Test that the config file is written at most once
+    config_dir = os.path.join(os.path.dirname(__file__), '..', '..')
+    configuration.update_default_config('astropy', config_dir)
+    assert configuration.update_default_config('astropy', config_dir) is False

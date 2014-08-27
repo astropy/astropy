@@ -29,6 +29,7 @@ MAX_NORMALIZATION = 100
 
 __all__ = ['Kernel', 'Kernel1D', 'Kernel2D', 'kernel_arithmetics']
 
+
 class Kernel(object):
     """
     Convolution kernel base class.
@@ -182,6 +183,15 @@ class Kernel(object):
         Array representation of the kernel.
         """
         return self._array
+
+    def __array_wrap__(self, array, context=None):
+        """
+        Wrapper for multiplication with numpy arrays.
+        """
+        if type(context[0]) == np.ufunc:
+            return NotImplemented
+        else:
+            return array
 
 
 class Kernel1D(Kernel):
@@ -359,7 +369,7 @@ def kernel_arithmetics(kernel, value, operation):
 
     # kernel and number
     elif ((isinstance(kernel, Kernel1D) or isinstance(kernel, Kernel2D))
-        and isinstance(value, (int, float))):
+        and np.isscalar(value)):
         if operation == "mul":
             new_kernel = copy.copy(kernel)
             new_kernel._array *= value
@@ -367,5 +377,5 @@ def kernel_arithmetics(kernel, value, operation):
         else:
             raise Exception("Kernel operation not supported.")
     else:
-        raise Exception("Operations between 1D and 2D kernels are not supported.")
+        raise Exception("Kernel operation not supported.")
     return new_kernel

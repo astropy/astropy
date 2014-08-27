@@ -15,9 +15,11 @@ References
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import abc
+
 import numpy as np
 
-from .core import (Model, format_input)
+from .core import Model
 from .parameters import Parameter, InputParameterError
 
 from ..utils.compat import ignored
@@ -47,19 +49,18 @@ class Projection(Model):
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
 
+    @abc.abstractmethod
+    def inverse(self):
+        """
+        Inverse projection--all projection models must provide an inverse.
+        """
+
 
 class Zenithal(Projection):
     """
     Base class for all Zenithal projections.
 
     """
-
-    def _compute_rtheta(self):
-        # Subclasses must implement this method
-        raise NotImplementedError("Subclasses should implement this")
-
-    def __call__(self, x, y):
-        raise NotImplementedError("Subclasses should implement this")
 
 
 class Pix2Sky_AZP(Zenithal):
@@ -97,25 +98,20 @@ class Pix2Sky_AZP(Zenithal):
     def inverse(self):
         return Sky2Pix_AZP(self.mu.value, self.gamma.value)
 
-    # TODO: This contains many superfluous conversions of gamma from radians to
-    # degrees back to radians again--this is going to be reworked in a future
-    # changeset
-    def _compute_rtheta(self, x, y):
-        gamma = np.deg2rad(self.gamma)
-        return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
+    @classmethod
+    def evaluate(cls, x, y, mu, gamma):
+        gamma = np.deg2rad(gamma)
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
-        gamma = np.deg2rad(self.gamma)
-        phi = np.rad2deg(np.arctan2(x / np.cos(gamma), -y))
-        r = self._compute_rtheta(x, y)
-        pho = r / (self.r0 * (self.mu + 1) +
-                   y * np.sin(gamma))
+        phi = np.arctan2(x / np.cos(gamma), -y)
+        r = cls._compute_r_theta(x, y, gamma)
+        pho = r / (cls.r0 * (mu + 1) + y * np.sin(gamma))
         psi = np.arctan2(1, pho)
-        omega = np.arcsin((pho * self.mu) / (np.sqrt(pho ** 2 + 1)))
+        omega = np.arcsin((pho * mu) / np.sqrt(pho ** 2 + 1))
+
         theta1 = np.rad2deg(psi - omega)
         theta2 = np.rad2deg(psi + omega) + 180
-        if np.abs(self.mu) < 1:
+
+        if np.abs(mu) < 1:
             if theta1 < 90 and theta1 > -90:
                 theta = theta1
             else:
@@ -127,7 +123,13 @@ class Pix2Sky_AZP(Zenithal):
                 theta = theta1
             else:
                 theta = theta2
+
+        phi = np.rad2deg(phi)
         return phi, theta
+
+    @staticmethod
+    def _compute_r_theta(x, y, gamma):
+        return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
 
 
 class Sky2Pix_AZP(Zenithal):
@@ -161,23 +163,27 @@ class Sky2Pix_AZP(Zenithal):
     def inverse(self):
         return Pix2Sky_AZP(self.mu.value, self.gamma.value)
 
-    def _compute_rtheta(self, phi, theta):
-        gamma = np.deg2rad(self.gamma)
-        rtheta = (self.r0 * (self.mu + 1) *
-                  np.cos(theta)) / ((self.mu + np.sin(theta)) +
-                                    np.cos(theta) * np.cos(phi) *
-                                    np.tan(gamma))
-        return rtheta
-
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta, mu, gamma):
         phi = np.deg2rad(phi)
         theta = np.deg2rad(theta)
-        gamma = np.deg2rad(self.gamma)
-        r = self._compute_rtheta(phi, theta)
+        gamma = np.deg2rad(gamma)
+
+        r = cls._compute_r_theta(phi, theta, mu, gamma)
         x = r * np.sin(phi)
         y = (-r * np.cos(phi)) / np.cos(gamma)
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_AZP, self).__call__(
+            phi, theta,  model_set_axis=model_set_axis)
+
+    @classmethod
+    def _compute_r_theta(cls, phi, theta, mu, gamma):
+        return ((cls.r0 * (mu + 1) * np.cos(theta)) /
+                (mu + np.sin(theta) +
+                 np.cos(theta) * np.cos(phi) * np.tan(gamma)))
 
 
 class Pix2Sky_TAN(Zenithal):
@@ -185,18 +191,20 @@ class Pix2Sky_TAN(Zenithal):
     TAN : Gnomonic projection - pixel to sky.
     """
 
-    def _compute_rtheta(self, x, y):
-        return np.sqrt(x ** 2 + y ** 2)
-
     def inverse(self):
         return Sky2Pix_TAN()
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, x, y):
         phi = np.rad2deg(np.arctan2(x, -y))
-        rtheta = self._compute_rtheta(x, y)
-        theta = np.rad2deg(np.arctan2(self.r0, rtheta))
+        r_theta = cls._compute_r_theta(x, y)
+        theta = np.rad2deg(np.arctan2(cls.r0, r_theta))
+
         return phi, theta
+
+    @staticmethod
+    def _compute_r_theta(x, y):
+        return np.sqrt(x ** 2 + y ** 2)
 
 
 class Sky2Pix_TAN(Zenithal):
@@ -204,20 +212,27 @@ class Sky2Pix_TAN(Zenithal):
     TAN : Gnomonic Projection - sky to pixel.
     """
 
-    def _compute_rtheta(self, theta):
-        return 1 / np.tan(theta)
-
     def inverse(self):
         return Pix2Sky_TAN()
 
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta):
         phi = np.deg2rad(phi)
         theta = np.deg2rad(theta)
-        rtheta = self._compute_rtheta(theta)
-        x = np.rad2deg(rtheta * np.sin(phi))
-        y = - np.rad2deg(rtheta * np.cos(phi))
+
+        r_theta = cls._compute_r_theta(theta)
+        x = np.rad2deg(r_theta * np.sin(phi))
+        y = -np.rad2deg(r_theta * np.cos(phi))
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_TAN, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
+
+    @staticmethod
+    def _compute_r_theta(theta):
+        return 1 / np.tan(theta)
 
 
 class Pix2Sky_STG(Zenithal):
@@ -225,17 +240,20 @@ class Pix2Sky_STG(Zenithal):
     STG : Stereographic Projection - pixel to sky.
     """
 
-    def _compute_rtheta(self, x, y):
-        return np.sqrt(x ** 2 + y ** 2)
-
     def inverse(self):
         return Sky2Pix_STG()
 
-    def __call__(self, x, y):
+    @classmethod
+    def evaluate(cls, x, y):
         phi = np.rad2deg(np.arctan2(x, -y))
-        rtheta = self._compute_rtheta(x, y)
-        theta = 90 - np.rad2deg(2 * np.arctan(rtheta / (2 * self.r0)))
+        rtheta = cls._compute_r_theta(x, y)
+        theta = 90 - np.rad2deg(2 * np.arctan(rtheta / (2 * cls.r0)))
+
         return phi, theta
+
+    @staticmethod
+    def _compute_r_theta(x, y):
+        return np.sqrt(x ** 2 + y ** 2)
 
 
 class Sky2Pix_STG(Zenithal):
@@ -246,17 +264,24 @@ class Sky2Pix_STG(Zenithal):
     def inverse(self):
         return Pix2Sky_STG()
 
-    def _compute_rtheta(self, theta):
-        return (self.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
-
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta):
         phi = np.deg2rad(phi)
         theta = np.deg2rad(theta)
-        rtheta = self._compute_rtheta(theta)
-        x = rtheta * np.sin(phi)
-        y = - rtheta * np.cos(phi)
+
+        r_theta = cls._compute_r_theta(theta)
+        x = r_theta * np.sin(phi)
+        y = -r_theta * np.cos(phi)
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_STG, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
+
+    @classmethod
+    def _compute_r_theta(cls, theta):
+        return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
 
 
 class Pix2Sky_SIN(Zenithal):
@@ -267,15 +292,17 @@ class Pix2Sky_SIN(Zenithal):
     def inverse(self):
         return Sky2Pix_SIN()
 
-    def _compute_rtheta(self, x, y):
-        return np.sqrt(x ** 2 + y ** 2)
-
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
-        rtheta = self._compute_rtheta(x, y)
-        theta = np.rad2deg(np.arccos(rtheta / self.r0))
+    @classmethod
+    def evaluate(cls, x, y):
+        r_theta = cls._compute_r_theta(x, y)
         phi = np.rad2deg(np.arctan2(x, -y))
+        theta = np.rad2deg(np.arccos(r_theta / cls.r0))
+
         return phi, theta
+
+    @staticmethod
+    def _compute_r_theta(x, y):
+        return np.sqrt(x ** 2 + y ** 2)
 
 
 class Sky2Pix_SIN(Zenithal):
@@ -286,28 +313,29 @@ class Sky2Pix_SIN(Zenithal):
     def inverse(self):
         return Pix2Sky_SIN()
 
-    def _compute_rtheta(self, theta):
-        return self.r0 * np.cos(theta)
-
-    def __call__(self, phi, theta):
+    @classmethod
+    def evaluate(cls, phi, theta):
         phi = np.deg2rad(phi)
         theta = np.deg2rad(theta)
-        rtheta = self._compute_rtheta(theta)
-        x = rtheta * np.sin(phi)
-        y = - rtheta * np.cos(phi)
+        r_theta = cls._compute_r_theta(theta)
+        x = r_theta * np.sin(phi)
+        y = -r_theta * np.cos(phi)
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_SIN, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
+
+    @classmethod
+    def _compute_r_theta(cls, theta):
+        return cls.r0 * np.cos(theta)
 
 
 class Cylindrical(Projection):
     """
     Base class for Cylindrical projections.
     """
-
-    def inverse(self):
-        raise NotImplementedError()
-
-    def __call__(self, x, y):
-        raise NotImplementedError()
 
 
 class Pix2Sky_CYP(Cylindrical):
@@ -340,12 +368,13 @@ class Pix2Sky_CYP(Cylindrical):
     def inverse(self):
         return Sky2Pix_CYP(self.mu.value, self.lam.value)
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
-        phi = x / self.lam
-        eta = y / (self.r0 * (self.mu + self.lam))
-        theta = np.arctan2(eta, 1) + np.arcsin(eta * self.mu /
-                                               (np.sqrt(eta ** 2 + 1)))
+    @classmethod
+    def evaluate(cls, x, y, mu, lam):
+        phi = x / lam
+        eta = y / (cls.r0 * (mu + lam))
+        theta = (np.arctan2(eta, 1) +
+                 np.arcsin(eta * mu / np.sqrt(eta ** 2 + 1)))
+
         return phi, np.rad2deg(theta)
 
 
@@ -378,13 +407,17 @@ class Sky2Pix_CYP(Cylindrical):
     def inverse(self):
         return Pix2Sky_CYP(self.mu, self.lam)
 
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta, mu, lam):
         theta = np.deg2rad(theta)
-        x = self.lam * phi
-        y = (self.r0 * ((self.mu + self.lam) /
-                        (self.mu + np.cos(theta))) * np.sin(theta))
+        x = lam * phi
+        y = (cls.r0 * (mu + lam) / (mu + np.cos(theta))) * np.sin(theta)
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_CYP, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
 
 
 class Pix2Sky_CEA(Cylindrical):
@@ -400,9 +433,11 @@ class Pix2Sky_CEA(Cylindrical):
     def inverse(self):
         return Sky2Pix_CEA(self.lam)
 
-    def __call__(self, x, y):
-        phi = np.asarray(x)
-        theta = np.rad2deg(np.arcsin(1 / self.r0 * self.lam * y))
+    @classmethod
+    def evaluate(cls, x, y, lam):
+        phi = x.copy()
+        theta = np.rad2deg(np.arcsin(1 / cls.r0 * lam * y))
+
         return phi, theta
 
 
@@ -419,12 +454,17 @@ class Sky2Pix_CEA(Cylindrical):
     def inverse(self):
         return Pix2Sky_CEA(self.lam)
 
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta, lam):
         x = phi.copy()
         theta = np.deg2rad(theta)
-        y = self.r0 * np.sin(theta) / self.lam
+        y = cls.r0 * np.sin(theta) / lam
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_CEA, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
 
 
 class Pix2Sky_CAR(Cylindrical):
@@ -435,9 +475,14 @@ class Pix2Sky_CAR(Cylindrical):
     def inverse(self):
         return Sky2Pix_CAR()
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
-        return x.copy(), y.copy()
+    @staticmethod
+    def evaluate(x, y):
+        # The intermediate variables are only used here for clarity
+        phi = x.copy()
+        theta = y.copy()
+
+        return phi, theta
+
 
 class Sky2Pix_CAR(Cylindrical):
     """
@@ -447,9 +492,18 @@ class Sky2Pix_CAR(Cylindrical):
     def inverse(self):
         return Pix2Sky_CAR()
 
-    @format_input
+    @staticmethod
+    def evaluate(phi, theta):
+        # The intermediate variables are only used here for clarity
+        x = phi.copy()
+        y = theta.copy()
+
+        return x, y
+
     def __call__(self, phi, theta, model_set_axis=None):
-        return phi.copy(), theta.copy()
+        return super(Sky2Pix_CAR, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
+
 
 class Pix2Sky_MER(Cylindrical):
     """
@@ -459,10 +513,11 @@ class Pix2Sky_MER(Cylindrical):
     def inverse(self):
         return Sky2Pix_MER()
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, x, y):
         phi = x.copy()
-        theta = np.rad2deg(2 * np.arctan(np.e ** (y * np.pi / 180.))) - 90.
+        theta = np.rad2deg(2 * np.arctan(np.exp(y / cls.r0))) - 90
+
         return phi, theta
 
 
@@ -474,12 +529,17 @@ class Sky2Pix_MER(Cylindrical):
     def inverse(self):
         return Pix2Sky_MER()
 
-    @format_input
-    def __call__(self, phi, theta, model_set_axis=None):
+    @classmethod
+    def evaluate(cls, phi, theta):
         x = phi.copy()
         theta = np.deg2rad(theta)
-        y = self.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
+        y = cls.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
+
         return x, y
+
+    def __call__(self, phi, theta, model_set_axis=None):
+        return super(Sky2Pix_MER, self).__call__(
+            phi, theta, model_set_axis=model_set_axis)
 
 
 class AffineTransformation2D(Model):
@@ -509,10 +569,9 @@ class AffineTransformation2D(Model):
         default=[0.0, 0.0])
 
     def __init__(self, matrix=matrix.default,
-                 translation=translation.default):
-        super(AffineTransformation2D, self).__init__(matrix, translation)
-        self._augmented_matrix = self._create_augmented_matrix(
-            self.matrix.value, self.translation.value)
+                 translation=translation.default, **kwargs):
+        super(AffineTransformation2D, self).__init__(matrix, translation,
+                                                     **kwargs)
 
     def inverse(self):
         """
@@ -533,8 +592,9 @@ class AffineTransformation2D(Model):
 
         return self.__class__(matrix=matrix, translation=translation)
 
-    @format_input
-    def __call__(self, x, y, model_set_axis=None):
+    # TODO: This needs the be reworked somehow to support evaluate as a
+    # static/classmethod
+    def evaluate(self, x, y, matrix, translation):
         """
         Apply the transformation to a set of 2D Cartesian coordinates given as
         two lists--one for the x coordinates and one for a y coordinates--or a
@@ -555,7 +615,8 @@ class AffineTransformation2D(Model):
         if inarr.shape[0] != 3 or inarr.ndim != 2:
             raise ValueError("Incompatible input shapes")
 
-        result = np.dot(self._augmented_matrix, inarr)
+        augmented_matrix = self._create_augmented_matrix(matrix, translation)
+        result = np.dot(augmented_matrix, inarr)
 
         x, y = result[0], result[1]
 

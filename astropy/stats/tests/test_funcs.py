@@ -196,7 +196,7 @@ def test_binom_conf_interval():
     result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
                                                  interval='flat')
                        for kval in k]).transpose()
-    assert_allclose(result, table, atol=1.e-3, rtol=0.)    
+    assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test Wald interval
     result = funcs.binom_conf_interval(0, 5, interval='wald')
@@ -224,7 +224,7 @@ def test_binom_conf_interval():
     for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
         result = funcs.binom_conf_interval(k, n, interval=interval)
         assert result.shape == (2,)
-        
+
     k = np.array([1, 3, 5])
     for interval in ['wald', 'wilson', 'jeffreys', 'flat']:
         result = funcs.binom_conf_interval(k, n, interval=interval)

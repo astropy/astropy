@@ -14,6 +14,7 @@ include astropy/astropy.cfg
 # 2, and similarly for Python 3:
 include astropy/extern/configobj_py2/*.py
 include astropy/extern/configobj_py3/*.py
+recursive-include astropy/utils/compat *.py
 
 include astropy/table/tests/notebook_repr_html.ipynb
 
@@ -26,7 +27,6 @@ recursive-include scripts *
 recursive-include static *
 recursive-include astropy/sphinx/themes *
 
-exclude *.pyc *.o
 prune docs/_build
 prune build
 
@@ -34,3 +34,4 @@ recursive-include astropy_helpers *
 exclude astropy_helpers/.git
 exclude astropy_helpers/.gitignore
 
+global-exclude *.pyc *.o

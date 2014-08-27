@@ -19,7 +19,7 @@ from ...utils.misc import did_you_mean
 
 class UnitScaleError(ValueError):
     """
-    Used to catch the errors involving scaled units, 
+    Used to catch the errors involving scaled units,
     which are not recognized by FITS format.
     """
 
@@ -57,7 +57,7 @@ class Fits(generic.Generic):
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
-        special_cases = {'dbyte': u.Unit(0.1*u.byte)}
+        special_cases = {'dbyte': u.Unit('dbyte', 0.1*u.byte)}
 
         for base in bases + deprecated_bases:
             for prefix in prefixes:
@@ -75,8 +75,8 @@ class Fits(generic.Generic):
         simple_units = [
             'deg', 'arcmin', 'arcsec', 'mas', 'min', 'h', 'd', 'Ry',
             'solMass', 'u', 'solLum', 'solRad', 'AU', 'lyr', 'count',
-            'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan', 'bin',
-            'voxel', 'adu', 'beam'
+            'ct', 'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan',
+            'bin', 'voxel', 'adu', 'beam'
         ]
         deprecated_units = ['erg', 'Angstrom', 'angstrom']
 

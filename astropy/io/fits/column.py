@@ -102,8 +102,9 @@ TDEF_RE = re.compile(r'(?P<label>^T[A-Z]*)(?P<num>[1-9][0-9 ]*$)')
 # table dimension keyword regular expression (fairly flexible with whitespace)
 TDIM_RE = re.compile(r'\(\s*(?P<dims>(?:\d+,\s*)+\s*\d+)\s*\)\s*')
 
-ASCIITNULL = 0          # value for ASCII table cell with value = TNULL
-                        # this can be reset by user.
+# value for ASCII table cell with value = TNULL
+# this can be reset by user.
+ASCIITNULL = 0
 
 # The default placeholder to use for NULL values in ASCII tables when
 # converting from binary to ASCII tables

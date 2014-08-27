@@ -2,7 +2,6 @@
 
 from __future__ import division
 
-import functools
 import gzip
 import itertools
 import io
@@ -30,6 +29,7 @@ from ...extern import six
 from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
+from ...utils import wraps
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -101,7 +101,7 @@ def ignore_sigint(func):
     until the wrapped function is completed.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
         # treaded application

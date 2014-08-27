@@ -137,6 +137,14 @@ release cycle, and will be removed altogether in astropy 0.5.
      - ``table.column.AUTO_COLNAME``
      - ``[table] auto_colname``
      - ``table.conf.auto_colname``
+   * - ``[table.jsviewer] jquery_url``
+     - ``table.jsviewer.JQUERY_URL``
+     - *unchanged*
+     - ``table.jsviewer.conf.jquery_url``
+   * - ``[table.jsviewer] datatables_url``
+     - ``table.jsviewer.DATATABLES_URL``
+     - *unchanged*
+     - ``table.jsviewer.conf.datatables_url``
    * - ``[table.pprint] max_lines``
      - ``table.pprint.MAX_LINES``
      - ``[] max_lines``

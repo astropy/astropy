@@ -13,7 +13,7 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from ..core import Model, ModelDefinitionError
+from ..core import Model, FittableModel, ModelDefinitionError
 from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
@@ -30,18 +30,21 @@ class TestParModel(Model):
     def __init__(self, coeff, e, **kwargs):
         super(TestParModel, self).__init__(coeff=coeff, e=e, **kwargs)
 
-    def __call__(self):
+    @staticmethod
+    def evaluate(coeff, e):
+        pass
+
+
+class MockModel(FittableModel):
+    alpha = Parameter(name='alpha', default=42)
+
+    @staticmethod
+    def evaluate(*args):
         pass
 
 
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
-
-    class MockModel(Model):
-        alpha = Parameter(name='alpha', default=42)
-
-        def __call__(self):
-            pass
 
     m = MockModel()
     p = m.alpha
@@ -78,15 +81,9 @@ def test_parameter_operators():
     """Test if the parameter arithmetic operators works,
     i.e. whether parameters behave like numbers."""
 
-    class MockModel(Model):
-        alpha = Parameter(name='alpha', default=5)
-
-        def __call__(self):
-            pass
-
     m = MockModel()
     par = m.alpha
-    num = 5.
+    num = 42.
     val = 3
 
     assert par - val == num - val
@@ -95,8 +92,8 @@ def test_parameter_operators():
     assert val / par == val / num
     assert par ** val == num ** val
     assert val ** par == val ** num
-    assert par < 6
-    assert par > 3
+    assert par < 45
+    assert par > 41
     assert par <= par
     assert par >= par
     assert par == par
@@ -599,8 +596,8 @@ def test_non_broadcasting_parameters():
         p2 = Parameter()
         p3 = Parameter()
 
-        def __call__(self):
-            pass
+        def evaluate(self, *args):
+            return
 
     # a broadcasts with both b and c, but b does not broadcast with c
     for args in itertools.permutations((a, b, c)):

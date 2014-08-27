@@ -205,16 +205,16 @@ class Quantity(np.ndarray):
             # if the value has a `unit` attribute, treat it like a quantity by
             # rescaling the value appropriately
             if hasattr(value, 'unit'):
-                    try:
-                        value_unit = Unit(value.unit)
-                    except TypeError:
-                        if unit is None:
-                            unit = dimensionless_unscaled
+                try:
+                    value_unit = Unit(value.unit)
+                except TypeError:
+                    if unit is None:
+                        unit = dimensionless_unscaled
+                else:
+                    if unit is None:
+                        unit = value_unit
                     else:
-                        if unit is None:
-                            unit = value_unit
-                        else:
-                            rescale_value = value_unit.to(unit)
+                        rescale_value = value_unit.to(unit)
 
             #if it has no unit, default to dimensionless_unscaled
             elif unit is None:
@@ -317,15 +317,24 @@ class Quantity(np.ndarray):
 
         # We now prepare the output object
 
-        if self is obj:  # happens if the output object is self, which happens
-                         # for in-place operations such as q1 += q2
+        if self is obj:
+
+            # this happens if the output object is self, which happens
+            # for in-place operations such as q1 += q2
 
             # In some cases, the result of a ufunc should be a plain Numpy
             # array, which we can't do if we are doing an in-place operation.
             if result_unit is None:
                 raise TypeError("Cannot store non-quantity output from {0} "
-                                "function in Quantity object"
-                                .format(function.__name__))
+                                "function in {1} instance"
+                                .format(function.__name__, type(self)))
+
+            if self.__quantity_subclass__(result_unit)[0] is not type(self):
+                raise TypeError(
+                    "Cannot store output with unit '{0}' from {1} function "
+                    "in {2} instance.  Use {3} instance instead."
+                    .format(result_unit, function.__name__, type(self),
+                            self.__quantity_subclass__(result_unit)[0]))
 
             # If the Quantity has an integer dtype, in-place operations are
             # dangerous because in some cases the quantity will be e.g.

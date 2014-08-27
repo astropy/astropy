@@ -183,6 +183,9 @@ def test_pix2world():
     pixels = (np.arange(n)*np.ones((2, n))).T
     result = ww.wcs_pix2world(pixels, 0, ra_dec_order=True)
 
+    # Catch #2791
+    ww.wcs_pix2world(pixels[..., 0], pixels[..., 1], 0, ra_dec_order=True)
+
     close_enough = 1e-8
     # assuming that the data of sip2.fits doesn't change
     answer = np.array([[0.00024976, 0.00023018],
@@ -395,26 +398,118 @@ def test_validate_with_2_wcses():
     assert "WCS key 'A':" in six.text_type(results)
 
 
-@pytest.mark.skipif(str('not HAS_SCIPY'))
-def test_all_world2pix():
+def test_all_world2pix(fname=None, ext=0,
+                       tolerance=1.0e-4, origin=0,
+                       random_npts=250000, mag=2,
+                       adaptive=False, maxiter=20,
+                       detect_divergence=True):
     """Test all_world2pix, iterative inverse of all_pix2world"""
-    fits = get_pkg_data_filename('data/sip.fits')
-    w = wcs.WCS(fits)
+    from numpy import random
+    from datetime import datetime
+    from astropy.io import fits
+    from os import path
 
-    tolerance = 1e-6
-    with NumpyRNGContext(123456789):
-        world = 0.1 * np.random.randn(100, 2)
-        for i in range(len(w.wcs.crval)):
-            world[:, i] += w.wcs.crval[i]
-        all_pix = w.all_world2pix(world, 0, tolerance=tolerance)
-        wcs_pix = w.wcs_world2pix(world, 0)
-        all_world = w.all_pix2world(all_pix, 0)
+    # Open test FITS file:
+    if fname is None:
+        fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
+        ext = ('SCI',1)
+    if not path.isfile(fname):
+        raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
+                      .format(fname))
+    h = fits.open(fname)
+    w = wcs.WCS(h[ext].header, h)
+    h.close()
+    del h
 
-        # First, check that the SIP distortion correction at least produces
-        # some different answers from the WCS-only transform.
-        assert np.any(all_pix != wcs_pix)
+    crpix = w.wcs.crpix
+    ncoord = crpix.shape[0]
 
-        assert_allclose(all_world, world, rtol=0, atol=tolerance)
+    # Assume that CRPIX is at the center of the image and that the image
+    # has an even number of pixels along each axis:
+    naxesi = list(2*crpix.astype(np.int) - origin)
+
+    # Generate integer indices of pixels (image grid):
+    img_pix = np.dstack([i.flatten() for i in
+                         np.meshgrid(*map(range, naxesi))])[0]
+
+    # Generage random data (in image coordinates):
+    startstate = random.get_state()
+    random.seed(123456789)
+    rnd_pix = np.random.rand(random_npts, ncoord)
+    random.set_state(startstate)
+
+    # Scale random data to cover the entire image (or more, if 'mag' > 1).
+    # Assume that CRPIX is at the center of the image and that the image
+    # has an even number of pixels along each axis:
+    mwidth = 2 * mag * (crpix-origin)
+    rnd_pix = crpix - 0.5*mwidth + (mwidth-1) * rnd_pix
+
+    # Reference pixel coordinates in image coordinate system (CS):
+    test_pix = np.append(img_pix, rnd_pix, axis=0)
+    # Reference pixel coordinates in sky CS using forward transformation:
+    all_world = w.all_pix2world(test_pix, origin)
+
+    try:
+        runtime_begin = datetime.now()
+        # Apply the inverse iterative process to pixels in world coordinates
+        # to recover the pixel coordinates in image space.
+        all_pix = w.all_world2pix(
+            all_world, origin, tolerance=tolerance, adaptive=adaptive,
+            maxiter=maxiter, detect_divergence=detect_divergence)
+        runtime_end = datetime.now()
+    except wcs.wcs.NoConvergence as e:
+        runtime_end = datetime.now()
+        ndiv = 0
+        if e.divergent is not None:
+            ndiv = e.divergent.shape[0]
+            print("There are {} diverging solutions.".format(ndiv))
+            print("Indices of diverging solutions:\n{}"
+                  .format(e.divergent))
+            print("Diverging solutions:\n{}\n"
+                  .format(e.best_solution[e.divergent]))
+            print("Mean radius of the diverging solutions: {}"
+                  .format(np.mean(
+                      np.linalg.norm(e.best_solution[e.divergent], axis=1))))
+            print("Mean accuracy of the diverging solutions: {}\n"
+                  .format(np.mean(
+                      np.linalg.norm(e.accuracy[e.divergent], axis=1))))
+        else:
+            print("There are no diverging solutions.")
+
+        nslow = 0
+        if e.slow_conv is not None:
+            nslow = e.slow_conv.shape[0]
+            print("There are {} slowly converging solutions."
+                  .format(nslow))
+            print("Indices of slowly converging solutions:\n{}"
+                  .format(e.slow_conv))
+            print("Slowly converging solutions:\n{}\n"
+                  .format(e.best_solution[e.slow_conv]))
+        else:
+            print("There are no slowly converging solutions.\n")
+
+        print("There are {} converged solutions."
+              .format(e.best_solution.shape[0] - ndiv - nslow))
+        print("Best solutions (all points):\n{}"
+              .format(e.best_solution))
+        print("Accuracy:\n{}\n".format(e.accuracy))
+        print("\nFinished running 'test_all_world2pix' with errors.\n"
+              "ERROR: {}\nRun time: {}\n"
+              .format(e.args[0], runtime_end - runtime_begin))
+        raise e
+
+    # Compute differences between reference pixel coordinates and
+    # pixel coordinates (in image space) recovered from reference
+    # pixels in world coordinates:
+    errors = np.sqrt(np.sum(np.power(all_pix - test_pix, 2), axis=1))
+    meanerr = np.mean(errors)
+    maxerr = np.amax(errors)
+    print("\nFinished running 'test_all_world2pix'.\n"
+          "Mean error = {0:e}  (Max error = {1:e})\n"
+          "Run time: {2}\n"
+          .format(meanerr, maxerr, runtime_end - runtime_begin))
+
+    assert(maxerr < 2.0*tolerance)
 
 
 def test_scamp_sip_distortion_parameters():
@@ -572,4 +667,3 @@ def test_printwcs():
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = wcs.WCS(h)
     w.printwcs()
-

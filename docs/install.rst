@@ -7,13 +7,15 @@ Requirements
 
 Astropy has the following strict requirements:
 
-- `Python <http://www.python.org/>`_ 2.6 (>=2.6.5), 2.7, 3.1, 3.2, 3.3, or 3.4
+- `Python <http://www.python.org/>`_ 2.6 (>=2.6.5), 2.7, 3.3, or 3.4
+
+  - Prior to Astropy v1.0 Python 3.1 and 3.2 are also supported.
 
 - `Numpy`_ |minimum_numpy_version| or later
 
 Astropy also depends on other packages for optional features:
 
-- `h5py <http://alfven.org/wp/hdf5-for-python/>`_: To read/write
+- `h5py <http://h5py.org/>`_: To read/write
   :class:`~astropy.table.Table` objects from/to HDF5 files
 
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
@@ -97,7 +99,7 @@ run::
 Binary installers
 -----------------
 
-Binary installers are available on Windows for Python 2.6, 2.7, 3.1, and 3.2
+Binary installers are available on Windows for Python 2.6, 2.7, and >= 3.3
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 .. _testing_installed_astropy:

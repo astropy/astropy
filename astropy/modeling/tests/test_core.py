@@ -21,7 +21,8 @@ class NonFittableModel(Model):
         super(NonFittableModel, self).__init__(
             a, model_set_axis=model_set_axis)
 
-    def __call__(self):
+    @staticmethod
+    def evaluate():
         pass
 
 
