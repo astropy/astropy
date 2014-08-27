@@ -273,6 +273,32 @@ class TestNonLinearFitters(object):
                                   args=(self.xdata, self.ydata))
         assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
+    def test_with_weights(self):
+        """
+        Tests results from `LevMarLSQFitter` with weights.
+        """
+        # part 1: weights are equal to 1
+        fitter = LevMarLSQFitter()
+        model = fitter(self.gauss, self.xdata, self.ydata,
+                       estimate_jacobian=True)
+        withw = fitter(self.gauss, self.xdata, self.ydata,
+                       estimate_jacobian=True, weights=np.ones_like(self.xdata))
+
+        assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
+
+        # part 2: weights are 0 or 1 (effectively, they are a mask)
+        weights = np.zeros_like(self.xdata)
+        weights[::2] = 1.
+        mask = weights >= 1.
+
+        model = fitter(self.gauss, self.xdata[mask], self.ydata[mask],
+                       estimate_jacobian=True)
+        withw = fitter(self.gauss, self.xdata, self.ydata,
+                       estimate_jacobian=True, weights=weights)
+
+        assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
+        
+
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
