@@ -655,7 +655,7 @@ class TestFileFunctions(FitsTestCase):
         from ....utils.compat import gzip
 
         gf = gzip.GzipFile(self._make_gzip_file())
-        try: 
+        try:
             assert len(fits.open(gf)) == 5
         finally:
             gf.close()
