@@ -1,6 +1,18 @@
 NDData overview
 ===============
 
+Classes
+-------
+
+`~astropy.nddata` provides both data and uncertainty classes. The plain
+`~astropy.nddata.NDData` classes is a container for data in array form and its
+associated metadata. `~astropy.nddata.NDDataArithmetic` adds support for
+arithmetic operations on `~astropy.nddata.NDData` objects that supports
+propagation of uncertainties. Those uncertainties are represented by subclasses
+of `~astropy.nddata.NDUncertainty`; those classes are responsible for the
+actual propagation of uncertainties and will in most cases need to be defined
+by the user.
+
 Initializing
 ------------
 
@@ -39,6 +51,10 @@ The underlying Numpy array can be accessed via the ``data`` attribute::
     >>> ndd.data
     array([[[ 0.,  0.,  0., ...
 
+If an `~astropy.nddata.NDData` object is initialized with a masked numpy array
+then the mask attribute, described in the next section, is automatically set
+to the mask of the numpy array.
+
 Mask
 ----
 
@@ -47,8 +63,9 @@ Numpy array with the same dimensions as the data, e.g.::
 
      >>> ndd.mask = ndd.data > 0.9
 
-A mask value of `True` indicates a value that should be ignored, while a mask
-value of `False` indicates a valid value.
+or by initializing with a masked array. A mask value of `True` indicates a
+value that should be ignored, while a mask value of `False` indicates a valid
+value.
 
 Flags
 -----
@@ -95,7 +112,7 @@ Arithmetic
 ----------
 
 Provided that the world coordinate system (WCS) and shape match, and that the
-units are consistent, two :class:`~astropy.nddata.NDData` instances can be
+units are consistent, two :class:`~astropy.nddata.NDDataArithmetic` instances can be
 added, subtracted, multiplied or divided from each other, with uncertainty
 propagation, creating a new :class:`~astropy.nddata.NDData` object::
 
@@ -104,10 +121,10 @@ propagation, creating a new :class:`~astropy.nddata.NDData` object::
     ndd5 = ndd1.multiply(ndd2)
     ndd6 = ndd1.divide(ndd2)
 
-The purpose of the :meth:`~astropy.nddata.nddata.NDData.add`,
-:meth:`~astropy.nddata.nddata.NDData.subtract`,
-:meth:`~astropy.nddata.nddata.NDData.multiply` and
-:meth:`~astropy.nddata.nddata.NDData.divide` methods is to allow the
+The purpose of the :meth:`~astropy.nddata.nddata.NDArithmetic.add`,
+:meth:`~astropy.nddata.nddata.NDArithmetic.subtract`,
+:meth:`~astropy.nddata.nddata.NDArithmetic.multiply` and
+:meth:`~astropy.nddata.nddata.NDArithmetic.divide` methods is to allow the
 combination of two data objects that have common WCS and shape and units
 consistent with the operation performed, with consistent behavior for masks,
 and with a framework to propagate uncertainties. Currently any flags on the
