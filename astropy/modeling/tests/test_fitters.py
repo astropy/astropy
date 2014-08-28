@@ -297,7 +297,7 @@ class TestNonLinearFitters(object):
                        estimate_jacobian=True, weights=weights)
 
         assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
-        
+
 
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
