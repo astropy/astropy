@@ -403,7 +403,7 @@ class LevMarLSQFitter(object):
            input coordinates
         z : array (optional)
            input coordinates
-        weights : array (optional
+        weights : array (optional)
            weights
         maxiter : int
             maximum number of iterations
