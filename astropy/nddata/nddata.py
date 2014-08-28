@@ -435,8 +435,9 @@ class NDArithmetic(object):
     """
     Mixin class to add arithmetic to an NDData object.
 
-    When subclassing, the correct order can be seen in
-    `~astropy.nddata.NDDataArithmetic`
+    When subclassing, be sure to list the superclasses in the correct order
+    so that the subclass sees NDData as the main superclass. See
+    `~astropy.nddata.NDDataArithmetic` for an example.
     """
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
@@ -638,7 +639,7 @@ class NDArithmetic(object):
 
 class NDDataArithmetic(NDArithmetic, NDData):
     """
-    An NDData object with arithmetic.
+    An ``NDData`` object with arithmetic. This class is functionally equivalent
+    to ``NDData`` in astropy  versions prior to 1.0.
     """
     pass
-
