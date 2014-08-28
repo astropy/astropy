@@ -447,9 +447,10 @@ class NDArithmetic(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a {operator} b
+
         propagate_uncertainties : bool
             Whether to propagate uncertainties following the propagation rules
-            defined by the class used for the `uncertainty` attribute.
+            defined by the class used for the ``uncertainty`` attribute.
 
         Returns
         -------
