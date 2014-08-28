@@ -385,7 +385,7 @@ class LevMarLSQFitter(object):
         if weights is None:
             return np.ravel(model(*args[2 : -1]) - meas)
         else:
-            return np.ravel(weights * (model(*args[1 : -1]) - meas))
+            return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
