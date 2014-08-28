@@ -146,7 +146,7 @@ class Parameter(object):
 
         if model is not None:
             with ignored(AttributeError):
-                # This can only work if the paramter's value has been set by
+                # This can only work if the parameter's value has been set by
                 # the model
                 _, self._shape = self._validate_value(model, self.value)
         else:
