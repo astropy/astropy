@@ -2,7 +2,8 @@
 
 from __future__ import division, with_statement
 
-import gzip
+from ...utils.compat import gzip as _astropy_gzip
+import gzip as _system_gzip
 import mmap
 import os
 import tempfile
@@ -70,6 +71,7 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 
+_GZIP_FILE_TYPES = (_astropy_gzip, _system_gzip)
 
 class _File(object):
     """
@@ -152,7 +154,7 @@ class _File(object):
 
         self.fileobj_mode = fileobj_mode(self.__file)
 
-        if isinstance(fileobj, gzip.GzipFile):
+        if isinstance(fileobj, (_astropy_gzip.GzipFile, _system_gzip.GzipFile)):
             self.compression = 'gzip'
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
@@ -297,7 +299,7 @@ class _File(object):
         # present, we implement our own support for it here
         if not hasattr(self.__file, 'seek'):
             return
-        if isinstance(self.__file, gzip.GzipFile):
+        if isinstance(self.__file, (_astropy_gzip.GzipFile, _system_gzip.GzipFile)):
             if whence:
                 if whence == 1:
                     offset = self.__file.offset + offset
@@ -379,7 +381,7 @@ class _File(object):
         elif isfile(fileobj):
             self.__file = fileobj_open(self.name, PYFITS_MODES[mode])
         else:
-            self.__file = gzip.open(self.name, PYFITS_MODES[mode])
+            self.__file = _astropy_gzip.open(self.name, PYFITS_MODES[mode])
 
         if fmode == 'ab+':
             # Return to the beginning of the file--in Python 3 when opening in
@@ -443,7 +445,7 @@ class _File(object):
 
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
-            self.__file = gzip.open(self.name, PYFITS_MODES[mode])
+            self.__file = _astropy_gzip.open(self.name, PYFITS_MODES[mode])
             self.compression = 'gzip'
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
@@ -534,4 +536,4 @@ def _is_random_access_file_backed(fileobj):
     from an already opened `zipfile.ZipFile` object.
     """
 
-    return isfile(fileobj) or isinstance(fileobj, gzip.GzipFile)
+    return isfile(fileobj) or isinstance(fileobj, (_astropy_gzip.GzipFile, _system_gzip.GzipFile))
