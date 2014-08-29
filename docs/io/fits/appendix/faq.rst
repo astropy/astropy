@@ -493,3 +493,308 @@ the card image from a string, as it should appear in the FITS file::
 As long as you don't assign new values to 'FOO' via ``h['FOO'] = 123``, will
 maintain the header value exactly as you formatted it (as long as it is valid
 according to the FITS standard).
+
+
+Why is reading rows out of a FITS table so slow?
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+Underlying every table data array returned by `astropy.io.fits` is a Numpy
+`~numpy.recarray` which is a Numpy array type specifically for representing
+structured array data (i.e. a table).  As with normal image arrays, Astropy
+accesses the underlying binary data from the FITS file via mmap (see the
+question "`What performance differences are there between astropy.io.fits and
+fitsio?`_" for a deeper explanation fo this).  The underlying mmap is then
+exposed as a `~numpy.recarray` and in general this is a very efficient way to
+read the data.
+
+However, for many (if not most) FITS tables it isn't all that simple.  For
+many columns there are conversions that have to take place between the actual
+data that's "on disk" (in the FITS file) and the data values that are returned
+to the user.  For example FITS binary tables represent boolean values
+differently from how Numpy expects them to be represented, "Logical" columns
+need to be converted on the fly to a format Numpy (and hence the user) can
+understand.  This issue also applies to data that is linearly scaled via the
+``TSCALn`` and ``TZEROn`` header keywords.
+
+Supporting all of these "FITS-isms" introduces a lot of overhead that might
+not be necessary for all tables, but are still common nonetheless.  That's
+not to say it can't be faster even while supporting the peculiarities of
+FITS--CFITSIO for example supports all the same features but is orders of
+magnitude faster.  Astropy could do much better here too, and there are many
+known issues causing slowdown.  There are plenty of opportunities for speedups,
+and patches are welcome.  In the meantime for high-performance applications
+with FITS tables some users might find the ``fitsio`` library more to their
+liking.
+
+
+Comparison with Other FITS Readers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+What is the difference between astropy.io.fits and fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
+reader in that all the code for parsing the FITS file format is in Python,
+though Numpy is used to provide access to the FITS data via the
+`~numpy.ndarray` interface.  `astropy.io.fits` currently also accesses the
+`CFITSIO <http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
+FITS Tile Compression convention, but this feature is optional.  It does not
+use CFITSIO outside of reading compressed images.
+
+`fitsio <https://github.com/esheldon/fitsio>`_, on the other hand, is a Python
+wrapper for the CFITSIO library.  All the heavy lifting of reading the FITS
+format is handled by CFITSIO, while ``fitsio`` provides an easier to use
+object-oriented API including providing a Numpy interface to FITS files read
+from CFITSIO.  Much of it is written in C (to provide the interface between
+Python and CFITSIO), and the rest is in Python.  The Python end mostly
+provides the documentation and user-level API.
+
+Because ``fitsio`` wraps CFITSIO it inherits most of its strengths and
+weaknesses, though it has an added strength of providing an easier to use
+API than if one were to use CFITSIO directly.
+
+
+Why did Astropy adopt PyFITS as its FITS reader instead of fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+When the Astropy project was first started it was clear from the start that
+one of its core components should be a submodule for reading and writing FITS
+files, as many other components would be likely to depend on this
+functionality.  At the time, the ``fitsio`` package was in its infancy (it
+goes back to roughly 2011) while PyFITS had already been established going
+back to before the year 2000).  It was already a mature package with support
+for the vast majority of FITS files found in the wild, including outdated
+formats such as "Random Groups" FITS files still used extensively in the
+radio astronomy community.
+
+Although many aspects of PyFITS' interface have evolved over the years, much
+of it has also remained the same, and is already familiar to astronomers
+working with FITS files in Python.  Most of not all existing training
+materials were also based around PyFITS.  PyFITS was developed at STScI, which
+also put forward significant resources to develop Astropy, with an eye toward
+integrating Astropy into STScI's own software stacks.  As most of the Python
+software at STScI uses PyFITS it was the only practical choice for making that
+transition.
+
+Finally, although CFITSIO (and by extension ``fitsio``) can read any FITS files
+that conform to the FITS standard, it does not support all of the non-standard
+conventions that have been added to FITS files in the wild.  It does have some
+support for some of these conventions (such as CONTINUE cards and, to a limited
+extent, HIERARCH cards), it is not easy to add support for other conventions
+to a large and complex C codebase.
+
+PyFITS' object-oriented design makes supporting non-standard conventions
+somewhat easier in most cases, and as such PyFITS can be more flexible in the
+types of FITS files it can read and return *useful* data from.  This includes
+better support for files that fail to meet the FITS standard, but still contain
+useful data that should still be readable at least well-enough to correct any
+violations of the FITS standard.  For example, a common error in non-English-
+speaking regions is to insert non-ASCII characters into FITS headers.  This
+is not a valid FITS file, but still should be readable in some sense.
+Supporting structural errors such as this is more difficult in CFITSIO which
+assumes a more rigid structure.
+
+
+What performance differences are there between astropy.io.fits and fitsio?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+There are two main performance areas to look at: reading/parsing FITS headers
+and reading FITS data (image-like arrays as well as tables).
+
+In the area of headers ``fitsio`` is significantly faster in most cases.  This
+is due in large part to the (almost) pure C implementation (due to the use of
+CFITSIO), but also due to fact that it is more rigid and does not support as
+many local conventions and other special cases as `astropy.io.fits` tries to
+support in its pure Python implementation.
+
+That said the difference is small, and only likely to be a bottleneck either
+when opening files containing thousands of HDUs, or reading the headers out
+of thousands of FITS files in succession (in either case the difference is
+not even an order of magnitude).
+
+Where data is concerned the situation is a little more complicated, and
+requires some understanding of how PyFITS is implemented versus CFITSIO and
+``fitsio``.  First it's important to understand how they differ in terms of
+memory management.
+
+`astropy.io.fits`/PyFITS uses mmap, by default, to provide access to the raw
+binary data in FITS files.  Mmap is a system call (or in most cases these days
+a wrapper in your libc for a lower-level system call) which allows user-space
+applications to essentially do the same thing your OS is doing when it uses a
+pagefile (swap space) for virtual memory:  It allows data in a file on disk to
+be paged into physical memory one page (or in practice usually several pages)
+at a time on an as-needed basis.  These cached pages of the file are also
+accessible from all processes on the system, so multiple processes can read
+from the same file with little additional overhead.  In the case of reading
+over all the data in the file the performance difference between using mmap
+versus reading the entire data into physical memory at once can vary widely
+between systems, hardware, and depending on what else is happening on the
+system at the moment, but mmap almost always going to be better.
+
+In principle it requires more overhead since accessing each page will result in
+a page fault, and the system requires more requests to the disk.  But in
+practice the OS will optimize this pretty aggressively, especially for the most
+common case of sequential access--also in reality reading the entire thing into
+memory is still going to result in a whole lot of page faults too.  For random
+access having all the data in physical memory is always going to be best,
+though with mmap it's usually going to be pretty good too (one doesn't normally
+access all the data in a file in totally random order--usually a few sections
+of it will be accessed most frequently, the OS will keep those pages in
+physical memory as best it can).  So for the most general case of reading FITS
+files (or most large data on disk) this is the best choice, especially for
+casual users, and is hence enabled by default.
+
+CFITSIO/``fitsio``, on the other hand, doesn't assume the existence of
+technologies like mmap and page caching.  Thus it implements its own LRU cache
+of I/O buffers that store sections of FITS files read from disk in memory in
+FITS' famous 2880 byte chunk size.  The I/O buffers are used heavily in
+particular for keeping the headers in memory.  Though for large data reads (for
+example reading an entire image from a file) it *does* bypass the cache and
+instead does a read directly from disk into a user-provided memory buffer.
+
+However, even when CFITSIO reads direct from the file, this is still largely
+less efficient than using mmap:  Normally when your OS reads a file from disk,
+it caches as much of that read as it can in physical memory (in its page cache)
+so that subsequent access to those same pages does not require a subsequent
+expensive disk read.  This happens when using mmap too, since the data has to
+be copied from disk into RAM at some point.  The difference is that when using
+mmap to access the data, the program is able to read that data *directly* out
+of the OS's page cache (so long as it's only being read).  On the other hand
+when reading data from a file into a local buffer such as with fread(), the
+data is first read into the page cache (if not already present) and then copied
+from the page cache into the local buffer.  So every read performs at least one
+additional memory copy per page read (requiring twice as much physical memory,
+and possibly lots of paging if the file is large and pages need to dropped from
+the cache).
+
+The user API for CFITSIO usually works by having the user allocate a memory
+buffer large enough to hold the image/table they want to read (or at least the
+section they're interested in).  There are some helper functions for
+determining the appropriate amount of space to allocate.  Then you just pass it
+a pointer to your buffer and CFITSIO handles all the reading (usually using the
+process described above), and copies the results into your user buffer.  For
+large reads it reads directly from the file into your buffer.  Though if the
+data needs to be scaled it makes a stop in CFITSIO's own buffer first, then
+writes the rescaled values out to the user buffer (if rescaling has been
+requested).  Regardless, this means that if your program wishes to hold an
+entire image in memory at once it will use as much RAM as the size of the
+data.  For most applications it's better (and sufficient) to write it work on
+smaller sections of the data, but this requires extra complexity.  Using mmap
+on the other hand makes managing this complexity simpler and more efficient.
+
+A very simple and informal test demonstrates this difference.  This test was
+performed on four simple FITS images (one of which is a cube) of dimensions
+256x256, 1024x1024, 4096x4096, and 256x1024x1024.  Each image was generated
+before the test and filled with randomized 64-bit floating point values.  A
+similar test was performed using both `astropy.io.fits` and ``fitsio``:  A
+handle to the FITS file is opened using each library's basic semantics, and
+then the entire data array of the files is copied into a temporary array in
+memory (for example if we were blitting the image to a video buffer).  For
+Astropy the test is written:
+
+.. code:: python
+
+    def read_test_pyfits(filename):
+        with fits.open(filename, memmap=True) as hdul:
+            data = hdul[0].data
+            c = data.copy()
+
+The test was timed in IPython on a Linux system with kernel version 2.6.32, a
+6-core Intel Xeon X5650 CPU clocked at 2.67 GHz per core, and 11.6 GB of RAM
+using:
+
+.. code:: python
+
+    for filename in filenames:
+        print(filename)
+        %timeit read_test_pyfits(filename)
+
+where ``filenames`` is just a list of the aforementioned generated sample
+files.  The results were::
+
+    256x256.fits
+    1000 loops, best of 3: 1.28 ms per loop
+    1024x1024.fits
+    100 loops, best of 3: 4.24 ms per loop
+    4096x4096.fits
+    10 loops, best of 3: 60.6 ms per loop
+    256x1024x1024.fits
+    1 loops, best of 3: 1.15 s per loop
+
+For ``fitsio`` the test was:
+
+.. code:: python
+
+    def read_test_fitsio(filename):
+        with fitsio.FITS(filename) as f:
+            data = f[0].read()
+            c = data.copy()
+
+This was also run in a loop over all the sample files, producing the results::
+
+    256x256.fits
+    1000 loops, best of 3: 476 µs per loop
+    1024x1024.fits
+    100 loops, best of 3: 12.2 ms per loop
+    4096x4096.fits
+    10 loops, best of 3: 136 ms per loop
+    256x1024x1024.fits
+    1 loops, best of 3: 3.65 s per loop
+
+It should be made clear that the sample files were rewritten with new random
+data between the Astropy test and the fitsio test, so they were not reading
+the same data from the OS's page cache.  Fitsio was much faster on the small
+(256x256) image because in that case the time is dominated by parsing the
+headers.  As already explained this is much faster in CFITSIO.  However, as
+the data size goes up and the header parsing no longer dominates the time,
+`astropy.io.fits` using mmap is roughly twice as fast.  This discrepancy would
+be almost entirely due to it requiring roughly half as many in-memory copies
+to read the data, as explained earlier.  That said, more extensive benchmarking
+could be very interesting.
+
+This is also not to say that `astropy.io.fits` does better in all cases.  There
+are some cases where it is currently blown away by fitsio.  See the subsequent
+question.
+
+
+Why is fitsio so much faster than Astropy at reading tables?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+In many cases it isn't--there is either no difference, or it may be a little
+faster in Astropy depending on what you're trying to do with the table and
+what types of columns or how many columns the table has.  There are some
+cases, however, where ``fitsio`` can be radically faster, mostly for reasons
+explained above in "`Why is reading rows out of a FITS table so slow?`_"
+
+In principle a table is no different from, say, an array of pixels.  But
+instead of pixels each element of the array is some kind of record structure
+(for example two floats, a boolean, and a 20 character string field).  Just as
+a 64-bit float is an 8 byte record in an array, a row in such a table can be
+thought of as a 37 byte (in the case of the previous example) record in a 1-D
+array of rows.  So in principle everything that was explained in the answer to
+the question "`What performance differences are there between astropy.io.fits
+and fitsio?`_" applies just as well to tables as it does to any other array.
+
+However, FITS tables have many additional complexities that sometimes preclude
+streaming the data directly from disk, and instead require transformation from
+the on-disk FITS format to a format more immediately useful to the user.  A
+common example is how FITS represents boolean values in binary tables.
+Another, significantly more complicated example, is variable length arrays.
+
+As explained in "`Why is reading rows out of a FITS table so slow?`_",
+`astropy.io.fits`/PyFITS does not currently handle some of these cases as
+efficiently as it could, in particular in cases where a user only wishes to
+read a few rows out of a table.  Fitsio, on the other hand, has a better
+interface for copying one row at a time out of a table and performing the
+necessary transformations on that row *only*, rather than on the entire column
+or columns that the row is taken from.  As such, for many cases ``fitsio`` gets
+much better performance and should be preferred for many performance-critical
+table operations.
+
+Fitsio also exposes a microlanguage (implemented in CFITSIO) for making
+efficient SQL-like queries of tables (single tables only though--no joins or
+anything like that).  This format, described in the `CFITSIO documentation
+<http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node97.html>`_ can
+in some cases perform more efficient selections of rows than might be possible
+with Numpy alone, which requires creating an intermediate mask array in order
+to perform row selection.
