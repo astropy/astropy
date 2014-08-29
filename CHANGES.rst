@@ -20,8 +20,8 @@ New Features
 
 - ``astropy.io.ascii``
 
-  - Simplify the way new Reader classes are defined, allowing custom behavior 
-    entirely by overriding inherited class attributes instead of setting 
+  - Simplify the way new Reader classes are defined, allowing custom behavior
+    entirely by overriding inherited class attributes instead of setting
     instance attributes in the Reader ``__init__`` method. [#2812]
 
 - ``astropy.io.fits``
@@ -204,7 +204,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
-  - Fix ability to read gzipped fits files using Python 2.6  [#2783]
+  - Fixed crash when reading gzip-compressed FITS tables through the Astropy
+	``Table`` interface. [#2783]
 
 - ``astropy.io.misc``
 
