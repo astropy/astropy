@@ -18,6 +18,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed crash when reading gzip-compressed FITS tables through the Astropy
+    ``Table`` interface. [#2783]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
