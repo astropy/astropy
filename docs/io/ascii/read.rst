@@ -187,7 +187,8 @@ single missing-value specification ``<missing_spec>`` or a list of ``<missing_sp
   fill_values = <missing_spec> | [<missing_spec1>, <missing_spec2>, ...]
   <missing_spec> = (<match_string>, '0', <optional col name 1>, <optional col name 2>, ...)
 
-The second element of a ``<missing_spec>`` should always be the string ``'0'``,
+When reading a table the second element of a ``<missing_spec>`` should always
+be the string ``'0'``,
 otherwise you may get unexpected behavior [#f1]_.  By default the
 ``<missing_spec>`` is applied to all columns unless column name strings are
 supplied.  An alterate way to limit the columns is via the
@@ -219,7 +220,9 @@ values in with typical placeholders::
 
 
 .. [#f1] The requirement to put the ``'0'`` there is the legacy of an old
-         interface which is maintained for backward compatibility.  The second
+         interface which is maintained for backward compatibility and also to
+         match the format of ``fill_value`` for reading with the format of
+         ``fill_value`` used for writing tables. On reading, the second
          element of the ``<missing_spec>`` tuple can actually be an arbitrary
          string value which replaces occurrences of the ``<match_string>``
          string in the input stream prior to type conversion.  This ends up
