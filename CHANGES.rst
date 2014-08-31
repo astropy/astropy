@@ -1261,7 +1261,7 @@ Bug Fixes
     to install ``wcslib`` headers under ``astropy/wcs/include``. [#2536]
 
   - Fixes an unresolved external symbol error in the
-    `astropy.wcs._wcs` C extension on Microsoft Windows when built
+    ``astropy.wcs._wcs`` C extension on Microsoft Windows when built
     with a Microsoft compiler. [#2478]
 
 - Misc
