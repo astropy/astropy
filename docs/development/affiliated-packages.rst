@@ -5,7 +5,11 @@ How to create and maintain an Astropy affiliated package
 If you run into any problems, don't hesitate to ask for help on the
 astropy-dev mailing list!
 
-This package provides a template for packages that are affiliated with the
+Starting a new package
+======================
+
+The `package-template <https://github.com/astropy/package-template>`_
+repository provides a template for packages that are affiliated with the
 `Astropy`_ project. This package design mirrors the layout of the main
 `Astropy`_ repository, as well as reusing much of the helper code used to
 organize `Astropy`_.  The instructions below describe how to take this
@@ -205,6 +209,80 @@ will be clear from context what to do with your particular VCS.
   doing this will be provided on the `Astropy`_ website.
 
 * Good luck with your code and your science!
+
+Releasing an affiliated package
+===============================
+
+You can release an affiliated package using the steps given below. In these
+instructions, we assume that the changelog file is named ``CHANGES``, but you
+can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
+
+1. Make sure that Travis and any other continuous integration is passing.
+
+2. Update the ``CHANGES`` file to make sure that all the changes are listed,
+   and update ``unreleased`` to the current date.
+
+3. Update the version number in ``setup.py`` to ``v0.x`` (without the ``dev``)
+
+4. Run ``git clean -fxd`` to remove any non-committed files.
+
+5. Run:
+
+        python setup.py sdist --format=gztar
+
+   and make sure that generated file is good to
+   go by going inside ``dist``, expanding the tar file, going inside the
+   ``wcsaxes-x.x directory, and running the tests with:
+
+        python setup.py test
+
+   You may need to add the ``--remote-data`` flag or any other flags that you
+   normally add when fully testing your affiliated package.
+
+6. Go back to the root of the directory and remove the generated files with:
+
+        git clean -fxd
+
+7. Add the changes to ``CHANGES`` and ``setup.py``:
+
+        git add CHANGES setup.py
+
+   and commit with message:
+
+        git commit -m "Preparing release <version>"
+
+8. Tag commit with ``v<version>``, optionally signing with the ``-s`` option:
+
+        git tag v<version>
+
+9. Change ``VERSION`` in ``setup.py`` to next one with ``.dev``. Add a new
+   section to ``CHANGES.md`` for next version, with a single entry, ``- No changes yet``.
+
+10. Add the changes to ``CHANGES.md`` and ``setup.py``:
+
+        git add CHANGES.md setup.py
+
+    and commit with message:
+
+        git commit -m "Back to development: <next_version>"
+
+11. Check out the release commit with ``git checkout v<version>``. Run ``git
+clean -fxd`` to remove any non-committed files, then either release with:
+
+        python setup.py register sdist --format=gztar upload
+
+    or, if you are concerned about security, you can also use ``twine`` as described
+    in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
+    instructions.
+
+12. Go back to the master branch and push your changes to github:
+
+        git checkout master
+        git push --tags origin master
+
+    Once you have done this, if you use readthedocs, trigger a ``latest`` build
+    then go to the project settings, and under **Versions** you should see the
+    tag you just pushed. Select the tag to activate it, and save.
 
 .. _git: http://git-scm.com/
 .. _github: http://github.com
