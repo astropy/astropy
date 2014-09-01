@@ -226,48 +226,48 @@ can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
 
 4. Run ``git clean -fxd`` to remove any non-committed files.
 
-5. Run:
+5. Run::
 
         python setup.py sdist --format=gztar
 
    and make sure that generated file is good to
    go by going inside ``dist``, expanding the tar file, going inside the
-   ``wcsaxes-x.x directory, and running the tests with:
+   ``wcsaxes-x.x`` directory, and running the tests with::
 
         python setup.py test
 
    You may need to add the ``--remote-data`` flag or any other flags that you
    normally add when fully testing your affiliated package.
 
-6. Go back to the root of the directory and remove the generated files with:
+6. Go back to the root of the directory and remove the generated files with::
 
         git clean -fxd
 
-7. Add the changes to ``CHANGES`` and ``setup.py``:
+7. Add the changes to ``CHANGES`` and ``setup.py``::
 
         git add CHANGES setup.py
 
-   and commit with message:
+   and commit with message::
 
         git commit -m "Preparing release <version>"
 
-8. Tag commit with ``v<version>``, optionally signing with the ``-s`` option:
+8. Tag commit with ``v<version>``, optionally signing with the ``-s`` option::
 
         git tag v<version>
 
 9. Change ``VERSION`` in ``setup.py`` to next one with ``.dev``. Add a new
    section to ``CHANGES.md`` for next version, with a single entry, ``- No changes yet``.
 
-10. Add the changes to ``CHANGES.md`` and ``setup.py``:
+10. Add the changes to ``CHANGES.md`` and ``setup.py``::
 
         git add CHANGES.md setup.py
 
-    and commit with message:
+    and commit with message::
 
         git commit -m "Back to development: <next_version>"
 
 11. Check out the release commit with ``git checkout v<version>``. Run ``git
-clean -fxd`` to remove any non-committed files, then either release with:
+clean -fxd`` to remove any non-committed files, then either release with::
 
         python setup.py register sdist --format=gztar upload
 
@@ -275,7 +275,7 @@ clean -fxd`` to remove any non-committed files, then either release with:
     in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
     instructions.
 
-12. Go back to the master branch and push your changes to github:
+12. Go back to the master branch and push your changes to github::
 
         git checkout master
         git push --tags origin master
