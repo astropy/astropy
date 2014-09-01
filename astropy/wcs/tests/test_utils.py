@@ -79,7 +79,7 @@ def test_slice():
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4,0.2]))
 
     slice_wcs = mywcs.slice([slice(None,None,2),slice(0,None,2)])
-    assert np.all(slice_wcs.wcs.cdelt == np.array([0.05,0.05]))
+    assert np.all(slice_wcs.wcs.cdelt == np.array([0.2,0.2]))
 
 def test_slice_getitem():
     mywcs = WCS(naxis=2)
