@@ -2,14 +2,12 @@
 # TODO: need to download some images used by the jquery-ui css file:
 # images/ui-icons_888888_256x240.png
 import os
-import numpy as np
 
 from .table import Table
 
 from ..io import registry as io_registry
 from .. import config as _config
 from .. import extern
-from ..extern import six
 
 
 class Conf(_config.ConfigNamespace):
@@ -78,17 +76,17 @@ ipynb_js_script = """
 
 
 commandline_js_script = """
-<script>
-    $(document).ready(function() {{
-        $('#{tid}').dataTable({{
-         "iDisplayLength": {display_length},
-         "aLengthMenu": {display_length_menu},
-         "bJQueryUI": true,
-         "sPaginationType": "full_numbers"
-        }});
-    }} );
-</script>
+$(document).ready(function() {{
+    $('#{tid}').dataTable({{
+     "iDisplayLength": {display_length},
+     "aLengthMenu": {display_length_menu},
+     "bJQueryUI": true,
+     "sPaginationType": "full_numbers"
+    }});
+}} );
 """
+
+EXTERN_JS_DIR = os.path.abspath(os.path.join(os.path.dirname(extern.__file__), 'js'))
 
 
 class JSViewer(object):
@@ -102,6 +100,12 @@ class JSViewer(object):
         for L in self.display_length_menu:
             if display_length not in L:
                 L.insert(0, display_length)
+
+    @property
+    def jquery_urls(self):
+        jquery_url = conf.jquery_url or 'file://' + os.path.join(EXTERN_JS_DIR, 'jquery-1.11.0.js')
+        datatables_url = conf.datatables_url or 'file://' + os.path.join(EXTERN_JS_DIR, 'jquery.dataTables.js')
+        return [jquery_url, datatables_url]
 
     def _jquery_file(self):
         jquery_url = conf.jquery_url
@@ -154,33 +158,20 @@ def write_table_jsviewer(table, filename, tableid=None,
                          max_lines=5000,
                          jskwargs={}):
 
-    if isinstance(filename, six.string_types):
-        f = open(filename, 'w')
-        close = True
-    else:
-        f = filename
-        close = False
-
     if tableid is None:
         tableid = 'table{id}'.format(id=id(table))
 
-    linelist = table.pformat(html=True, max_width=np.inf,
-                             max_lines=max_lines, tableid=tableid)
-
     jsv = JSViewer(**jskwargs)
-    js = jsv.command_line(tableid=tableid)
 
-    css = ["<style>{0}</style>".format(css)]
-    html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
+    htmldict = {}
+    htmldict['table_id'] = tableid
+    htmldict['css'] = css
+    htmldict['cssfiles'] = jsv.css_urls
+    htmldict['jsfiles'] = jsv.jquery_urls
+    htmldict['js'] =  commandline_js_script.format(display_length=jsv.display_length,
+                                                            display_length_menu=jsv.display_length_menu,
+                                                            tid=tableid).strip()
 
-    try:
-        f.write(html)
-    except TypeError:
-        f.write(html.encode('utf8'))
-
-    if close:
-        f.close()
-    else:
-        f.flush()
+    table.write(filename, format='html', htmldict=htmldict)
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
