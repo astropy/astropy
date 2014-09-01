@@ -38,3 +38,8 @@ Test Coverage Status
 
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.png
     :target: https://coveralls.io/r/astropy/astropy
+
+License
+-------
+Astropy is licensed under a 3-clause BSD style license - see the
+``licenses/LICENSE.rst`` file.
