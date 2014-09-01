@@ -46,6 +46,10 @@ New Features
 
 - ``astropy.table``
 
+  - Tables can now be written to an html file that includes interactive
+    browsing capabilities. To write out to this format, use
+    ``Table.write('filename.html', format='jsviewer')``. [#2875]
+
 - ``astropy.time``
 
 - ``astropy.units``
