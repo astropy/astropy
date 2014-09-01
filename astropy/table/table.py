@@ -580,7 +580,7 @@ class Table(object):
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         max_lines=5000,
                         jsviewer=False,
-                        jskwargs={},
+                        jskwargs={'use_local_files': True},
                         tableid=None,
                         browser='default'):
         """
@@ -626,7 +626,7 @@ class Table(object):
 
             if jsviewer:
                 self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
-                           jskwargs=jskwargs, tableid=tableid)
+                           jskwargs=jskwargs, table_id=tableid)
             else:
                 self.write(tmp, format='html')
 
