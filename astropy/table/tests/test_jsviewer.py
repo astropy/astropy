@@ -54,12 +54,12 @@ def test_write_jsviewer(tmpdir):
     t['a'] = [1,2,3]
     t['b'] = ['a','b','c']
     t['a'].unit = 'm'
-    
+
     tmpfile = tmpdir.join('test.html').strpath
-    
+
     t.write(tmpfile, format='jsviewer', table_id='test')
-    
+
     with open(tmpfile) as f:
         content = f.read()
-        
+
     assert content.strip() == REFERENCE.strip()
