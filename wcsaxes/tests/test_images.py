@@ -49,6 +49,9 @@ class BaseImageTests(object):
         cube_header = os.path.join(cls._data_dir, 'cube_header')
         cls.cube_header = fits.Header.fromtextfile(cube_header)
 
+        slice_header = os.path.join(cls._data_dir, 'slice_header')
+        cls.slice_header = fits.Header.fromtextfile(slice_header)
+
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, bbox_inches=None):
         baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
@@ -289,3 +292,24 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticks(exclude_overlapping=True)
 
         self.generate_or_test(generate, fig, 'set_coord_type.png')
+
+    def test_ticks_regression(self, generate):
+        # Regression test for a bug that caused ticks aligned exactly with a
+        # sampled frame point to not appear. This also checks that tick labels
+        # don't get added more than once, and that no error occurs when e.g.
+        # the top part of the frame is all at the same coordinate as one of the
+        # potential ticks (which causes the tick angle calculation to return
+        # NaN).
+        wcs = WCS(self.slice_header)
+        fig = plt.figure(figsize=(3, 3))
+        ax = WCSAxes(fig, [0.25, 0.25, 0.5, 0.5], wcs=wcs, aspect='auto')
+        fig.add_axes(ax)
+        limits = wcs.wcs_world2pix([0, 0], [35e3, 80e3],0)[1]
+        ax.set_ylim(*limits)
+        ax.coords[0].set_ticks(spacing=0.002 * u.deg)
+        ax.coords[1].set_ticks(spacing=5 * u.km / u.s)
+        ax.coords[0].set_ticklabel(alpha=0.5)  # to see multiple labels
+        ax.coords[1].set_ticklabel(alpha=0.5)
+        ax.coords[0].set_ticklabel_position('all')
+        ax.coords[1].set_ticklabel_position('all')
+        self.generate_or_test(generate, fig, 'test_ticks_regression_1.png')
