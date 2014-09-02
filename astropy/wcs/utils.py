@@ -290,7 +290,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0):
 
     from .. import units as u
     from . import WCSSUB_CELESTIAL
-    from ..coordinates import SkyCoord
+    from ..coordinates import SkyCoord, UnitSphericalRepresentation
 
     if wcs.naxis != 2:
         raise ValueError("WCS should be two-dimensional")
@@ -315,9 +315,8 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0):
     lon = lon * lon_unit
     lat = lat * lat_unit
 
-    # Create SkyCoord
-    # TODO: use the actual frame instance, not the class, but requires fix in
-    # astropy.coordinates.
-    coords = SkyCoord(lon, lat, frame=frame.__class__)
+    # Create SkyCoord object
+    data = UnitSphericalRepresentation(lon=lon, lat=lat)
+    coords = SkyCoord(frame.realize_frame(data))
 
     return coords
