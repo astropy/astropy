@@ -28,9 +28,9 @@ def _get_test_runner():
     from astropy.tests.helper import TestRunner
     return TestRunner(os.path.dirname(__file__))
 
-def test(package=None, test_path=None, args=None, plugins=None,
-         verbose=False, pastebin=None, remote_data=False, pep8=False,
-         pdb=False, coverage=False, open_files=False, **kwargs):
+def test(package=None, test_path=None, args=None, plugins=None, verbose=False,
+         pastebin=None, remote_data=False, pep8=False, pdb=False,
+         coverage=False, open_files=False, generate_images_path=None, **kwargs):
     """
     Run the tests using `py.test <http://pytest.org/latest>`__. A proper set
     of arguments is constructed and passed to `pytest.main`_.
@@ -96,6 +96,11 @@ def test(package=None, test_path=None, args=None, plugins=None,
         `pytest-xdist <https://pypi.python.org/pypi/pytest-xdist>`_ plugin
         installed. Only available when using Astropy 0.3 or later.
 
+    generate_images_path: str, optional
+        All image comparision tests will be skipped, and their output placed
+        in the path specified. This can be used for generating new baseline
+        images.
+
     kwargs
         Any additional keywords passed into this function will be passed
         on to the astropy test runner.  This allows use of test-related
@@ -104,6 +109,8 @@ def test(package=None, test_path=None, args=None, plugins=None,
 
     """
     test_runner = _get_test_runner()
+    if generate_images_path is not None:
+        args = (args or "") + " --generate-images-path={0}".format(generate_images_path)
     return test_runner.run_tests(
         package=package, test_path=test_path, args=args,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
