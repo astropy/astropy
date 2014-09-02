@@ -274,11 +274,11 @@ class HTML(core.BaseReader):
             might work correctly for unusual input if a different parser
             fails.
 
-        * jsfiles : list of js files to include
+        * jsfiles : list of js files to include when writing table.
 
-        * cssfiles : list of css files to include
+        * cssfiles : list of css files to include when writing table.
 
-        * js : js script to include in the body
+        * js : js script to include in the body when writing table.
     """
 
     _format_name = 'html'
