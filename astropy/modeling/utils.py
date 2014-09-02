@@ -115,6 +115,34 @@ class ExpressionTree(object):
 
         return self.__class__(self.value, left=children[0], right=children[1])
 
+    def format_expression(self, operator_precedence, format_leaf=None):
+        leaf_idx = 0
+        operands = deque()
+
+        if format_leaf is None:
+            format_leaf = lambda i, l: '[{0}]'.format(i)
+
+        for node in self.traverse_postorder():
+            if node.isleaf:
+                operands.append(format_leaf(leaf_idx, node))
+                leaf_idx += 1
+                continue
+
+            oper_order = operator_precedence[node.value]
+            right = operands.pop()
+            left = operands.pop()
+
+            if (node.left is not None and not node.left.isleaf and
+                    operator_precedence[node.left.value] < oper_order):
+                left = '({0})'.format(left)
+            if (node.right is not None and not node.right.isleaf and
+                    operator_precedence[node.right.value] < oper_order):
+                right = '({0})'.format(right)
+
+            operands.append(' '.join((left, node.value, right)))
+
+        return ''.join(operands)
+
     # TODO: This could still use a lot of improvement; in particular the trees
     # it outputs are often too wide, and could be made more compactly.  More
     # formatting control would be useful too.
