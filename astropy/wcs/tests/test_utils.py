@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
+
+from ...utils.data import get_pkg_data_contents
 from ...wcs import WCS
 from .. import utils
 from ..utils import celestial_pixel_scale, non_celestial_pixel_scales
@@ -9,6 +11,7 @@ from ... import units as u
 
 import numpy as np
 from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
@@ -353,3 +356,22 @@ def test_noncelestial_scale(cdelt, pc, cd):
     ps = non_celestial_pixel_scales(mywcs)
 
     assert_almost_equal(ps, [0.1,0.2]*u.deg)
+
+def test_skycoord_to_pixel():
+
+    from ... import units as u
+    from ...coordinates import SkyCoord
+    from ..utils import skycoord_to_pixel, pixel_to_skycoord
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+    wcs = WCS(header)
+
+    ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
+
+    xp, yp = skycoord_to_pixel(ref, wcs)
+
+    # WCS is in FK5 so we need to transform back to ICRS
+    new = pixel_to_skycoord(xp, yp, wcs).transform_to('icrs')
+
+    assert_allclose(new.ra.degree, ref.ra.degree)
+    assert_allclose(new.dec.degree, ref.dec.degree)

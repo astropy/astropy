@@ -221,10 +221,18 @@ def skycoord_to_pixel(coords, wcs, origin=0):
         The WCS transformation to use.
     origin : int
         Whether to return 0 or 1-based pixel coordinates.
+
+    Returns
+    -------
+    xp, yp : `numpy.ndarray`
+        The pixel coordinates
     """
 
     from .. import units as u
     from . import WCSSUB_CELESTIAL
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should be two-dimensional")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
     wcs = wcs.sub([WCSSUB_CELESTIAL])
@@ -242,11 +250,74 @@ def skycoord_to_pixel(coords, wcs, origin=0):
     # Convert positions to frame
     coords = coords.transform_to(frame)
 
-    # Extract longitude and latitude
-    lon = coords.spherical.lon.to(xw_unit)
-    lat = coords.spherical.lat.to(yw_unit)
+    # Extract longitude and latitude. We first try and use lon/lat directly,
+    # but if the representation is not spherical or unit spherical this will
+    # fail. We should then force the use of the unit spherical
+    # representation. We don't do that directly to make sure that we preserve
+    # custom lon/lat representations if available.
+    try:
+        lon = coords.data.lon.to(xw_unit)
+        lat = coords.data.lat.to(yw_unit)
+    except AttributeError:
+        lon = coords.spherical.lon.to(xw_unit)
+        lat = coords.spherical.lat.to(yw_unit)
 
     # Convert to pixel coordinates
-    xp, yp = wcs.wcs_world2pix(lon, lat, origin=origin)
+    print(lon.value, lat.value)
+    xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
 
     return xp, yp
+
+
+def pixel_to_skycoord(xp, yp, wcs, origin=0):
+    """
+    Convert a set of pixel coordinates into a SkyCoord coordinate.
+
+    Parameters
+    ----------
+    xp, yp : float or `numpy.ndarray`
+        The coordinates to convert.
+    wcs : `~astropy.wcs.WCS`
+        The WCS transformation to use.
+    origin : int
+        Whether to return 0 or 1-based pixel coordinates.
+
+    Returns
+    -------
+    coords : `~astropy.coordinates.SkyCoord`
+        The celestial coordinates
+    """
+
+    from .. import units as u
+    from . import WCSSUB_CELESTIAL
+    from ..coordinates import SkyCoord
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should be two-dimensional")
+
+    # Keep only the celestial part of the axes, also re-orders lon/lat
+    wcs = wcs.sub([WCSSUB_CELESTIAL])
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should contain celestial component")
+
+    # Check which frame the WCS uses
+    frame = wcs_to_celestial_frame(wcs)
+
+    # Check what unit the WCS gives
+    lon_unit = u.Unit(wcs.wcs.cunit[0])
+    lat_unit = u.Unit(wcs.wcs.cunit[1])
+
+    # Convert pixel coordinates to celestial coordinates
+    lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+
+    # Add units to longitude/latitude
+    lon = lon * lon_unit
+    lat = lat * lat_unit
+
+    # Create SkyCoord
+    # TODO: use the actual frame instance, not the class, but requires fix in
+    # astropy.coordinates.
+    coords = SkyCoord(lon, lat, frame=frame.__class__)
+
+    return coords
