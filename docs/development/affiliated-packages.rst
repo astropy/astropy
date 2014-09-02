@@ -224,7 +224,9 @@ can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
 
 3. Update the version number in ``setup.py`` to ``v0.x`` (without the ``dev``)
 
-4. Run ``git clean -fxd`` to remove any non-committed files.
+4. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
+   permanently remove any files that have not been previously committed, so
+   make sure that you don't need to keep any of these files).
 
 5. Run::
 
