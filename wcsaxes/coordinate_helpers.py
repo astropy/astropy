@@ -388,7 +388,6 @@ class CoordinateHelper(object):
         if self.ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
-
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
         frame = self.frame.sample(settings.FRAME_BOUNDARY_SAMPLES)
@@ -479,8 +478,16 @@ class CoordinateHelper(object):
 
             for t in tick_world_coordinates_values:
 
-                # Find steps where a tick is present
-                intersections = np.nonzero(((t - w1) * (t - w2)) < 0)[0]
+                # Find steps where a tick is present. We have to check
+                # separately for the case where the tick falls exactly on the
+                # frame points, otherwise we'll get two matches, one for w1 and
+                # one for w2.
+                intersections = np.hstack([np.nonzero((t - w1) == 0)[0],
+                                           np.nonzero(((t - w1) * (t - w2)) < 0)[0]])
+
+                # But we also need to check for intersection with the last w2
+                if t - w2[-1] == 0:
+                    intersections = np.append(intersections, len(w2) - 1)
 
                 # Loop over ticks, and find exact pixel coordinates by linear
                 # interpolation
@@ -488,17 +495,20 @@ class CoordinateHelper(object):
 
                     imax = imin + 1
 
-                    frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
-                    y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
-                    x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
-                    y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
-                    delta_angle = tick_angle[imax] - tick_angle[imin]
-                    if delta_angle > 180.:
-                        delta_angle -= 360.
-                    elif delta_angle < -180.:
-                        delta_angle += 360.
-                    angle_i = tick_angle[imin] + frac * delta_angle
+                    if np.allclose(w1[imin], w2[imin], rtol=1.e-13, atol=1.e-13):
+                        continue  # tick is exactly aligned with frame
+                    else:
+                        frac = (t - w1[imin]) / (w2[imin] - w1[imin])
+                        x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
+                        y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
+                        x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
+                        y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
+                        delta_angle = tick_angle[imax] - tick_angle[imin]
+                        if delta_angle > 180.:
+                            delta_angle -= 360.
+                        elif delta_angle < -180.:
+                            delta_angle += 360.
+                        angle_i = tick_angle[imin] + frac * delta_angle
 
                     if self.coord_type == 'longitude':
                         world = wrap_angle_at(t, self.coord_wrap)
