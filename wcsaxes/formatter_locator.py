@@ -425,8 +425,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                     from .utils import select_step_scalar
                     spacing = select_step_scalar(dv)
 
-            # We now find the interval values as multiples of the spacing and generate the tick
-            # positions from this
+            # We now find the interval values as multiples of the spacing and
+            # generate the tick positions from this
 
             values = self._locate_values(value_min, value_max, spacing)
             return values * spacing * self._unit, spacing * self._unit
