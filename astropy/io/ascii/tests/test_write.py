@@ -186,7 +186,7 @@ table,th,td{border:1px solid black;  </style>
      <th>PIER</th>
      <th>PERROR</th>
     </tr>
-    </thead>
+   </thead>
    <tr>
     <td>14</td>
     <td>138.538</td>
