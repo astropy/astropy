@@ -281,7 +281,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     precision = 0
                 else:
                     fields = 3
-                    precision = -int(np.floor(np.log10(spacing)))
+                    precision = -int(np.floor(np.log10(spacing.value)))
                 decimal = False
                 unit = u.degree
             else:
@@ -436,7 +436,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if len(values) > 0:
             if self.format is None:
                 if spacing.value < 1.:
-                    precision = -int(np.floor(np.log10(spacing)))
+                    precision = -int(np.floor(np.log10(spacing.value)))
                 else:
                     precision = 0
             elif self.format.startswith('%'):
