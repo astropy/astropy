@@ -225,6 +225,9 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - WCS allows slices of the form slice(None, x, y), which previously resulted
+    in an unsliced copy being returned [#2909]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
