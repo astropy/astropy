@@ -1,5 +1,7 @@
 import pytest
 import os
+import shutil
+import tempfile
 import numpy as np
 from astropy import units as u
 import matplotlib.pyplot as plt
@@ -10,30 +12,17 @@ from ..rc_utils import rc_context
 from astropy.wcs import WCS
 from astropy.io import fits
 from wcsaxes import WCSAxes
-from matplotlib import cbook
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
 from wcsaxes import datasets
 
 
 class BaseImageTests(object):
-
     @classmethod
     def setup_class(cls):
-        cls._filedir = os.path.abspath(__file__)
-        cls._basedir = os.path.split(cls._filedir)[0]
-        cls._baseline_images_dir = os.path.join(cls._basedir, 'baseline_images')
-        cls._result_dir = os.path.abspath(os.path.join(cls._basedir, 'test_result_images'))
-        cls._data_dir = os.path.abspath(os.path.join(cls._basedir, 'data'))
-
-        if not os.path.exists(cls._result_dir):
-            cbook.mkdirs(cls._result_dir)
-
-        if not os.path.exists(cls._baseline_images_dir):
-            cbook.mkdirs(cls._baseline_images_dir)
-
-        if not os.path.exists(cls._data_dir):
-            cbook.mkdirs(cls._data_dir)
+        cls._moduledir = os.path.dirname(__file__)
+        cls._data_dir = os.path.abspath(os.path.join(cls._moduledir, 'data'))
+        cls._baseline_images_dir = os.path.abspath(os.path.join(cls._moduledir, 'baseline_images'))
 
         cls._tolerance = 1.5
 
@@ -54,16 +43,34 @@ class BaseImageTests(object):
 
     # method to create baseline or test images
     def generate_or_test(self, generate, figure, image, bbox_inches=None):
-        baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
-        test_image = os.path.abspath(os.path.join(self._result_dir, image))
-        if generate:
-            figure.savefig(baseline_image, bbox_inches=bbox_inches)
-            pytest.skip("Skipping test, since generating data")
-        else:
-            figure.savefig(test_image, bbox_inches=bbox_inches)
-            msg = compare_images(baseline_image, test_image, tol=self._tolerance)
-            assert msg is None
+        if generate is None:
+            result_dir = tempfile.mkdtemp()
+            test_image = os.path.abspath(os.path.join(result_dir, image))
 
+            # distutils will put the baseline images in non-accessible places,
+            # copy to our tmpdir to be sure to keep them in case of failure
+            orig_baseline_image = os.path.abspath(os.path.join(self._baseline_images_dir, image))
+            baseline_image = os.path.abspath(os.path.join(result_dir, 'baseline-'+image))
+            shutil.copyfile(orig_baseline_image, baseline_image)
+
+            figure.savefig(test_image, bbox_inches=bbox_inches)
+
+            if not os.path.exists(baseline_image):
+                raise Exception("""Image file not found for comparision test
+                                Generated Image:
+                                \t{test}
+                                This is expected for new tests.""".format(
+                                    test=test_image))
+
+            msg = compare_images(baseline_image, test_image, tol=self._tolerance)
+
+            if msg is None:
+                shutil.rmtree(result_dir)
+            else:
+                raise Exception(msg)
+        else:
+            figure.savefig(os.path.abspath(os.path.join(generate, image)), bbox_inches=bbox_inches)
+            pytest.skip("Skipping test, since generating data")
 
 class TestBasic(BaseImageTests):
 
