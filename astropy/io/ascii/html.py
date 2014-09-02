@@ -344,7 +344,11 @@ class HTML(core.BaseReader):
                 if 'js' in self.html:
                     with w.tag('script'):
                         w.data(self.html['js'])
-                with w.tag('table', id=self.html['table_id']):
+                if isinstance(self.html['table_id'], six.string_types):
+                    html_table_id = self.html['table_id']
+                else:
+                    html_table_id = None
+                with w.tag('table', id=html_table_id):
                     with w.tag('thead'):
                         with w.tag('tr'):
                             for col in cols:
