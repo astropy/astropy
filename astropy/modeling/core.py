@@ -77,6 +77,23 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         return cls
 
+    def __repr__(cls):
+        """
+        Custom repr for Model subclasses.
+        """
+
+        return cls._format_cls_repr()
+
+    def _repr_pretty_(cls, p, cycle):
+        """
+        Repr for IPython's pretty printer.
+
+        By default IPython "pretty prints" classes, so we need to implement
+        this so that IPython displays the custom repr for Models.
+        """
+
+        p.text(repr(cls))
+
     @property
     def name(cls):
         """
@@ -303,6 +320,56 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
     def __or__(cls, other):
         return _make_compound_model(cls, other, '|')
+
+    # *** Other utilities ***
+
+    def _format_cls_repr(cls, keywords=[]):
+        """
+        Internal implementation of ``__repr__``.
+
+        This is separated out for ease of use by subclasses that wish to
+        override the default ``__repr__`` while keeping the same basic
+        formatting.
+        """
+
+        # For the sake of familiarity start the output with the standard class
+        # __repr__
+        parts = [super(_ModelMeta, cls).__repr__()]
+
+        if cls is Model or cls.__name__.startswith('_'):
+            return parts[0]
+
+        def format_inheritance(cls):
+            bases = []
+            for base in cls.mro()[1:]:
+                if not issubclass(base, Model):
+                    continue
+                elif (inspect.isabstract(base) or
+                        base.__name__.startswith('_')):
+                    break
+                bases.append(base.name)
+            if bases:
+                return '{0} ({1})'.format(cls.name, ' -> '.join(bases))
+            else:
+                return cls.name
+
+        try:
+            default_keywords = [
+                ('Name', format_inheritance(cls)),
+                ('Inputs', cls.inputs),
+                ('Outputs', cls.outputs),
+                ('Fittable parameters', cls.param_names)
+            ]
+
+            for keyword, value in default_keywords + keywords:
+                if value is not None:
+                    parts.append('{0}: {1}'.format(keyword, value))
+
+            return '\n'.join(parts)
+        except:
+            # If any of the above formatting fails fall back on the basic repr
+            # (this is particularly useful in debugging)
+            return parts[0]
 
 
 @six.add_metaclass(_ModelMeta)
@@ -1073,8 +1140,8 @@ class Model(object):
         default_keywords = [
             ('Model', self.__class__.__name__),
             ('Name', self.name),
-            ('Inputs', self.n_inputs),
-            ('Outputs', self.n_outputs),
+            ('Inputs', self.inputs),
+            ('Outputs', self.outputs),
             ('Model set size', len(self))
         ]
 
