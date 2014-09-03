@@ -25,9 +25,45 @@ elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
 
+### The first three functions are helpers for _auto_format_func
+
+# In numpy <= 1.6, some classes do not properly represent themselves.
+NUMPY_LE_1P6 = [int(x) for x in np.__version__.split('.')[:2]] <= [1, 6]
+def _use_val_tolist(format_func):
+    """Wrap format function to work with values converted to python equivalents.
+
+    In numpy <= 1.6, classes such as np.float32 do not properly represent
+    themselves as floats, and hence cannot easily be formatted; see
+    https://github.com/astropy/astropy/issues/148#issuecomment-3930809
+    Hence, we force the value to a python type using tolist()
+    (except for np.ma.masked, since np.ma.masked.tolist() is None).
+    """
+    return lambda format_, val: format_func(format_,
+                                            val if val is np.ma.masked
+                                            else val.tolist())
+
+def _use_str_for_masked_values(format_func):
+    """Wrap format function to trap masked values.
+
+    String format functions and most user functions will not be able to deal
+    with masked values, so we wrap them to ensure they are passed to str().
+    """
+    return lambda format_, val: (str(val) if val is np.ma.masked
+                                 else format_func(format_, val))
+
+def _possible_string_format_functions(format_):
+    """Iterate through possible string-derived format functions.
+
+    A string can either be a format specifier for the format built-in,
+    a new-style format string, or an old-style format string.
+    """
+    yield lambda format_, val: format(val, format_)
+    yield lambda format_, val: format_.format(val)
+    yield lambda format_, val: format_ % val
+
 def _auto_format_func(format_, val):
-    """Format ``val`` according to ``format_`` for both old- and new-
-    style format specifications or using a user supplied function.
+    """Format ``val`` according to ``format_`` for a plain format specifier,
+    old- or new-style format strings, or using a user supplied function.
     More importantly, determine and cache (in _format_funcs) a function
     that will do this subsequently.  In this way this complicated logic is
     only done for the first value.
@@ -35,33 +71,59 @@ def _auto_format_func(format_, val):
     Returns the formatted value.
     """
     if six.callable(format_):
-        format_func = lambda format_, val: format_(val.tolist())
+        format_func = lambda format_, val: format_(val)
+        if NUMPY_LE_1P6:
+            format_func = _use_val_tolist(format_func)
         try:
             out = format_func(format_, val)
             if not isinstance(out, six.string_types):
-                raise ValueError('Format function for value {0} returned {1} instead of string type'
+                raise ValueError('Format function for value {0} returned {1} '
+                                 'instead of string type'
                                  .format(val, type(val)))
         except Exception as err:
+            # For a masked element, the format function call likely failed
+            # to handle it.  Just return the string representation for now,
+            # and retry when a non-masked value comes along.
+            if val is np.ma.masked:
+                return str(val)
+
             raise ValueError('Format function for value {0} failed: {1}'
                              .format(val, err))
-    else:
+        # If the user-supplied function handles formatting masked elements, use
+        # it directly.  Otherwise, wrap it in a function that traps them.
         try:
-            # Convert val to Python object with tolist().  See
-            # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
-            out = format_.format(val.tolist())
-            # Require that the format statement actually did something
-            if out == format_:
-                raise ValueError
-            format_func = lambda format_, val: format_.format(val.tolist())
-        except:  # Not sure what exceptions might be raised
+            format_func(format_, np.ma.masked)
+        except:
+            format_func = _use_str_for_masked_values(format_func)
+    else:
+        # For a masked element, we cannot set string-based format functions yet,
+        # as all tests below will fail.  Just return the string representation
+        # of masked for now, and retry when a non-masked value comes along.
+        if val is np.ma.masked:
+            return str(val)
+
+        for format_func in _possible_string_format_functions(format_):
+            if NUMPY_LE_1P6:
+                format_func = _use_val_tolist(format_func)
+
             try:
-                out = format_ % val
-                if out == format_:
-                    raise ValueError
-                format_func = lambda format_, val: format_ % val
+                # Does this string format method work?
+                out = format_func(format_, val)
+                # Require that the format statement actually did something.
+                assert out != format_
             except:
-                raise ValueError('Unable to parse format string {0}'
-                                 .format(format_))
+                continue
+            else:
+                break
+        else:
+            # None of the possible string functions passed muster.
+            raise ValueError('Unable to parse format string {0}'
+                             .format(format_))
+
+        # String-based format functions will fail on masked elements;
+        # wrap them in a function that traps them.
+        format_func = _use_str_for_masked_values(format_func)
+
     _format_funcs[format_] = format_func
     return out
 
