@@ -790,6 +790,15 @@ def test_deepcopy():
     c2 = copy.copy(c1)
     c3 = copy.deepcopy(c1)
 
+    c4 = SkyCoord([1, 2] * u.m, [2, 3] *u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
+                  obstime='J1999.9', equinox='J1988.8')
+    c5 = c4.deepcopy(c4)
+    assert np.all(c5.x == c4.x)  # and y and z
+    assert c5.frame.name == c4.frame.name
+    assert c5.obstime == c4.obstime
+    assert c5.equinox == c4.equinox
+    assert c5.representation == c4.representation
+
 
 def test_immutable():
     c1 = SkyCoord(1 * u.deg, 2 * u.deg)
