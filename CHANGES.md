@@ -1,7 +1,10 @@
 0.3 (unreleased)
 ----------------
 
-- No changes yet.
+- Fixed a bug that caused axis labels to be incorrectly placed when hiding tick 
+  labels using ``set_visible(False)``. [#111]
+
+- Fixed a bug that caused tick labels to not always appear. [#110]
 
 0.2 (2014-08-11)
 ----------------

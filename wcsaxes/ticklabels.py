@@ -90,6 +90,9 @@ class TickLabels(Text):
 
     def draw(self, renderer, bboxes, ticklabels_bbox):
 
+        if not self.get_visible():
+            return
+
         self.simplify_labels()
 
         text_size = renderer.points_to_pixels(self.get_size())
