@@ -38,6 +38,13 @@ New Features
 
 - ``astropy.modeling``
 
+  - A new ``custom_model`` decorator/factory function has been added for
+    converting normal functions to ``Model`` classes that can work within
+    the Astropy modeling framework.  This replaces the old ``custom_model_1d``
+    function which is now deprecated.  The new function works the same as
+    the old one but is less limited in the types of models it can be used to
+    created.  [#1763]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -93,6 +100,9 @@ API Changes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - ``custom_model_1d`` is deprecated in favor of the new ``custom_model``
+    (see "New Features" above).  [#1763]
 
 - ``astropy.nddata``
 

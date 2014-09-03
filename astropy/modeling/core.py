@@ -30,15 +30,17 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from ..utils import deprecated
+from ..utils import deprecated, find_current_module
+from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
 
 from .parameters import Parameter, InputParameterError
 
+
 __all__ = ['Model', 'FittableModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Fittable1DModel',
-           'Fittable2DModel', 'ModelDefinitionError']
+           'Fittable2DModel', 'custom_model', 'ModelDefinitionError']
 
 
 class ModelDefinitionError(Exception):
@@ -1252,6 +1254,176 @@ class Fittable2DModel(FittableModel):
 
         return super(Fittable2DModel, self).__call__(
             x, y, model_set_axis=model_set_axis)
+
+
+def custom_model(*args, **kwargs):
+    """
+    Create a model from a user defined function. The inputs and parameters of
+    the model will be inferred from the arguments of the function.
+
+    This can be used either as a function or as a decorator.  See below for
+    examples of both usages.
+
+    .. note::
+
+        All model parameters have to be defined as keyword arguments with
+        default values in the model function.  Use `None` as a default argument
+        value if you do not want to have a default value for that parameter.
+
+
+    Parameters
+    ----------
+    func : callable
+        Function which defines the model.  It should take N positional
+        arguments where ``N`` is dimensions of the model (the number of
+        independent variable in the model), and any number of keyword arguments
+        (the parameters).  It must return the value of the model (typically as
+        an array, but can also be a scalar for scalar inputs).  This
+        corresponds to the `~astropy.modeling.Model.evaluate` method.
+    fit_deriv : callable, optional
+        Function which defines the Jacobian derivative of the model. I.e., the
+        derivive with respect to the *parameters* of the model.  It should
+        have the same argument signature as ``func``, but should return a
+        sequence where each element of the sequence is the derivative
+        with respect to the correseponding argument. This corresponds to the
+        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
+
+
+    Examples
+    --------
+    Define a sinusoidal model function as a custom 1D model::
+
+        >>> from astropy.modeling.models import custom_model
+        >>> import numpy as np
+        >>> def sine_model(x, amplitude=1., frequency=1.):
+        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> def sine_deriv(x, amplitude=1., frequency=1.):
+        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
+        >>> SineModel = custom_model(sine_model, fit_deriv=sine_deriv)
+
+    Create an instance of the custom model and evaluate it::
+
+        >>> model = SineModel()
+        >>> model(0.25)
+        1.0
+
+    This model instance can now be used like a usual astropy model.
+
+    The next example demonstrates a 2D beta function model, and also
+    demonstrates the support for docstrings (this example could also include
+    a derivative, but it has been ommitted for simplicity)::
+
+        >>> @custom_model
+        ... def Beta2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,
+        ...            alpha=1.0):
+        ...     \"\"\"Two dimensional beta function.\"\"\"
+        ...     rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        ...     return amplitude * (1 + rr_gg) ** (-alpha)
+        ...
+        >>> print(Beta2D.__doc__)
+        Two dimensional beta function.
+        >>> model = Beta2D()
+        >>> model(1, 1)  # doctest: +FLOAT_CMP
+        0.3333333333333333
+    """
+
+    fit_deriv = kwargs.get('fit_deriv', None)
+
+    if len(args) == 1 and six.callable(args[0]):
+        return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
+    elif not args:
+        return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
+    else:
+        raise TypeError(
+            "{0} takes at most one positional argument (the callable/"
+            "function to be turned into a model.  When used as a decorator "
+            "it should be passed keyword arguments only (if "
+            "any).".format(__name__))
+
+
+def _custom_model_wrapper(func, fit_deriv=None):
+    """
+    Internal implementation `custom_model`.
+
+    When `custom_model` is called as a function its arguments are passed to
+    this function, and the result of this function is returned.
+
+    When `custom_model` is used as a decorator a partial evaluation of this
+    function is returned by `custom_model`.
+    """
+
+    if not six.callable(func):
+        raise ModelDefinitionError(
+            "func is not callable; it must be a function or other callable "
+            "object")
+
+    if fit_deriv is not None and not six.callable(fit_deriv):
+        raise ModelDefinitionError(
+            "fit_deriv not callable; it must be a function or other "
+            "callable object")
+
+    model_name = func.__name__
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults or ()
+
+    nparams = len(param_values)
+    param_names = argspec.args[-nparams:]
+
+    if (fit_deriv is not None and
+            len(six.get_function_defaults(fit_deriv)) != nparams):
+        raise ModelDefinitionError("derivative function should accept "
+                                   "same number of parameters as func.")
+
+
+    if nparams:
+        input_names = argspec.args[:-nparams]
+    else:
+        input_names = argspec.args
+
+    init_args = ['self']
+    init_kwargs = []
+    call_args = ['self'] + list(input_names)
+    params = {}
+
+    for name, default in zip(param_names, param_values):
+        params[name] = Parameter(name, default=default)
+
+        if default is None:
+            init_args.append(name)
+        else:
+            init_kwargs.append((name, default))
+
+    mod = find_current_module(2)
+    if mod:
+        modname = mod.__name__
+    else:
+        modname = '__main__'
+
+    members = {
+        '__module__': modname,
+        '__doc__': func.__doc__,
+        'n_inputs': len(input_names),
+        'evaluate': staticmethod(func),
+    }
+
+    if fit_deriv is not None:
+        members['fit_deriv'] = staticmethod(fit_deriv)
+
+    members.update(params)
+
+    cls = type(model_name, (FittableModel,), members)
+
+    def __init__(self, *args, **kwargs):
+        super(cls, self).__init__(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        return super(cls, self).__call__(*args, **kwargs)
+
+    cls.__init__ = make_function_with_signature(__init__,
+                                                (init_args + init_kwargs))
+    cls.__call__ = make_function_with_signature(__call__, call_args)
+
+    return cls
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):
