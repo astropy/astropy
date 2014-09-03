@@ -37,6 +37,9 @@ class AxisLabels(Text):
 
     def draw(self, renderer, bboxes, ticklabels_bbox_list, visible_ticks):
 
+        if not self.get_visible():
+            return
+
         text_size = renderer.points_to_pixels(self.get_size())
 
         for axis in self.get_visible_axes():

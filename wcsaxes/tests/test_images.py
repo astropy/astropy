@@ -320,3 +320,17 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticklabel_position('all')
         ax.coords[1].set_ticklabel_position('all')
         self.generate_or_test(generate, fig, 'test_ticks_regression_1.png')
+
+    def test_axislabels_regression(self, generate):
+        # Regression test for a bug that meant that if tick labels were made
+        # invisible with ``set_visible(False)``, they were still added to the
+        # list of bounding boxes for tick labels, but with default values of 0
+        # to 1, which caused issues.
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(3, 3))
+        ax = WCSAxes(fig, [0.25, 0.25, 0.5, 0.5], wcs=wcs, aspect='auto')
+        fig.add_axes(ax)
+        ax.coords[0].set_axislabel("Label 1")
+        ax.coords[1].set_axislabel("Label 2")
+        ax.coords[1].ticklabels.set_visible(False)
+        self.generate_or_test(generate, fig, 'test_axislabels_regression.png', bbox_inches='tight')
