@@ -358,8 +358,11 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                 ('Name', format_inheritance(cls)),
                 ('Inputs', cls.inputs),
                 ('Outputs', cls.outputs),
-                ('Fittable parameters', cls.param_names)
             ]
+
+            if cls.param_names:
+                default_keywords.append(('Fittable parameters',
+                                         cls.param_names))
 
             for keyword, value in default_keywords + keywords:
                 if value is not None:
@@ -1590,7 +1593,7 @@ class SummedCompositeModel(_CompositeModel):
 
 
 def _make_compound_model(left, right, operator):
-    name = str('_CompoundModel{0}'.format(_CompoundModelMeta._nextid))
+    name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
     _CompoundModelMeta._nextid += 1
 
     children = []
@@ -1604,7 +1607,7 @@ def _make_compound_model(left, right, operator):
 
     tree = ExpressionTree(operator, left=children[0], right=children[1])
 
-    mod = find_current_module(2)
+    mod = find_current_module(3)
     if mod:
         modname = mod.__name__
     else:
@@ -1620,6 +1623,24 @@ def _make_compound_model(left, right, operator):
     return _CompoundModelMeta(name, (_CompoundModel,), members)
 
 
+# TODO: Support a couple unary operators, or at least negation?
+BINARY_OPERATORS = {
+    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
+    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
+    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
+    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
+    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
+    '|': lambda f, g: (lambda *args: g(*f(*args)))
+}
+
+
+_ORDER_OF_OPERATORS = [('+', '-'), ('*', '/'), ('**',), ('|',)]
+OPERATOR_PRECEDENCE = {}
+for idx, ops in enumerate(_ORDER_OF_OPERATORS):
+    for op in ops:
+        OPERATOR_PRECEDENCE[op] = idx
+
+
 class _CompoundModelMeta(_ModelMeta):
     _tree = None
     _submodels = None
@@ -1627,6 +1648,17 @@ class _CompoundModelMeta(_ModelMeta):
 
     def __getitem__(cls, index):
         return cls._get_submodels()[index]
+
+    def __repr__(cls):
+        expression = cls._tree.format_expression(OPERATOR_PRECEDENCE)
+        components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
+                                 for idx, m in enumerate(cls._get_submodels()))
+        keywords = [
+            ('Expression', expression),
+            ('Components', '\n' + indent(components))
+        ]
+
+        return cls._format_cls_repr(keywords=keywords)
 
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
@@ -1645,16 +1677,6 @@ class _CompoundModelMeta(_ModelMeta):
 def _make_binary_arith_oper(oper, f, g):
     return lambda *args: tuple(oper(x, y)
                                for x, y in zip(f(*args), g(*args)))
-
-# TODO: Support a couple unary operators, or at least negation?
-BINARY_OPERATORS = {
-    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
-    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
-    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
-    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
-    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
-    '|': lambda f, g: (lambda *args: g(*f(*args)))
-}
 
 
 @six.add_metaclass(_CompoundModelMeta)
