@@ -46,6 +46,8 @@ Bug Fixes
   - Fixed an issue where ``Table.pprint()`` did not print the header to
     ``stdout`` when ``stdout`` is redirected (say, to a file). [#2878]
 
+  - Fixed printing of masked values when a format is specified. [#1026]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -65,6 +67,10 @@ Other Changes and Additions
 
 - Fixed a couple issues with files being inappropriately included and/or
   excluded from the source archive distributions of Astropy. [#2843, #2854]
+
+- As part of fixing the fact that masked elements of table columns could not be
+  printed when a format was specified, the column format string options were
+  expanded to allow simple specifiers such as ``'5.2f'``. [#2898]
 
 
 0.4.1 (2014-08-08)

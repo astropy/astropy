@@ -87,6 +87,17 @@ then a formatted version appears::
     4 5.0   y
     5 8.2   z
 
+If you do not like the format of a particular column, you can change it::
+
+  >>> t['b'].format = '7.3f'
+  >>> print(t)
+   a     b     c 
+         s       
+  --- ------- ---
+    1   2.000   x
+    4   5.000   y
+    5   8.200   z
+
 For a long table you can scroll up and down through the table one page at
 time::
 
@@ -130,11 +141,11 @@ One can retrieve a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
-   a   b   c
-       s
-  --- --- ---
-    1 2.0   x
-    4 5.0   y
+   a     b     c 
+         s       
+  --- ------- ---
+    1   2.000   x
+    4   5.000   y
 
   >>> print(t['a', 'c'])  # Table with cols 'a', 'c'
    a   c
@@ -151,12 +162,12 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
-   a    b    c
-        s
-  --- ----- ---
-   -1 100.0   x
-    8 100.0   W
-   30   8.2   z
+   a     b     c 
+         s       
+  --- ------- ---
+   -1 100.000   x
+    8 100.000   W
+   30   8.200   z
 
 Add, remove, and rename columns with the following::
 
