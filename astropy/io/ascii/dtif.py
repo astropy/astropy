@@ -5,7 +5,7 @@ writing all the meta data associated with an astropy Table object.
 """
 
 import re
-import json
+import yaml
 
 from ...utils import OrderedDict
 
@@ -77,7 +77,7 @@ class DtifHeader(core.BaseHeader):
         starts with a delimiter separated list of the column names in order
         to make this format readable by humans and simple csv-type readers.
         It then encodes the full table meta and column attributes and meta
-        as JSON and pretty-prints this in the header.  Finally the delimited
+        as YAML and pretty-prints this in the header.  Finally the delimited
         column names are repeated again, for humans and readers that look
         for the *last* comment line as defining the column names.
         """
@@ -88,8 +88,8 @@ class DtifHeader(core.BaseHeader):
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         outs = ['<DTIF encoding=ascii>']
-        meta_json = json.dumps(meta, indent=2, separators=(',', ': '))
-        outs.extend(meta_json.splitlines())
+        meta_yaml = yaml.dump(meta)  # , indent=2, separators=(',', ': '))
+        outs.extend(meta_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
         lines.append(self.splitter.join([x.name for x in self.cols]))
@@ -106,11 +106,11 @@ class DtifHeader(core.BaseHeader):
         m = re.match(r'< \s* DTIF \s+ encoding=(\S+) \s* >', lines[0], re.VERBOSE)
         if not m:
             raise core.InconsistentTableError('DTIF file must start with "# <DTIF encoding=[encoding]>')
-        encoding = m.group(1)  # Nothing done with encoding at the moment
+        # encoding = m.group(1)  # Nothing done with encoding at the moment
 
-        # Now actually load the JSON data structure into `meta`
-        meta_json = '\n'.join(lines[1:])
-        meta = json.loads(meta_json, object_pairs_hook=OrderedDict)
+        # Now actually load the YAML data structure into `meta`
+        meta_yaml = '\n'.join(lines[1:])
+        meta = yaml.loads(meta_yaml, object_pairs_hook=OrderedDict)
         meta = _decode_dict(meta)
         self.table_meta = meta['table_meta']
 
@@ -120,7 +120,7 @@ class DtifHeader(core.BaseHeader):
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
-        # header JSON metadata to the new columns to create this table.
+        # header YAML metadata to the new columns to create this table.
         for col in self.cols:
             for attr in ('description', 'format', 'unit', 'meta'):
                 setattr(col, attr, meta_cols[col.name][attr])
