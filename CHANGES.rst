@@ -376,8 +376,10 @@ Bug Fixes
 
   - ``astropy.coordinates.SkyCoord`` objects are now copyable. [#2888]
 
-  - ``astropy.coordinates.SkyCoord`` objects are now truly
-    immutable. [#2889]
+  - ``astropy.coordinates.SkyCoord`` object attributes are now
+    immutable.  It is still technically possible to change the
+    internal data for an array-valued coordinate object but this leads
+    to inconsistencies [#2889] and should not be done. [#2888]
 
 - ``astropy.cosmology``
 
