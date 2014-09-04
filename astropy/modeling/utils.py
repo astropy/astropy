@@ -27,9 +27,6 @@ class ExpressionTree(object):
         self.left = left
         self.right = right
 
-    def __repr__(self):
-        return self.format_tree_ascii()
-
     @property
     def isleaf(self):
         return self.left is None and self.right is None
