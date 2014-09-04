@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import pickle
 
-from ..decorators import deprecated_attribute, deprecated, wraps
+from ..decorators import deprecated_attribute, deprecated, wraps, sharedmethod
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
 from ...tests.helper import catch_warnings
@@ -159,3 +159,44 @@ def test_deprecated_static_and_classmethod():
 
     assert len(w) == 1
     assert 'deprecated' in A.C.__doc__
+
+
+def test_sharedmethod_reuse_on_subclasses():
+    """
+    Regression test for an issue where sharedmethod would bind to one class
+    for all time, causing the same method not to work properly on other
+    subclasses of that class.
+
+    It has the same problem when the same sharedmethod is called on different
+    instances of some class as well.
+    """
+
+    class AMeta(type):
+        def foo(cls):
+            return cls.x
+
+    six.add_metaclass(AMeta)
+    class A(object):
+        x = 3
+
+        def __init__(self, x):
+            self.x = x
+
+        @sharedmethod
+        def foo(self):
+            return self.x
+
+    a1 = A(1)
+    a2 = A(2)
+
+    assert a1.foo() == 1
+    assert a2.foo() == 2
+
+    # Similar test now, but for multiple subclasses using the same sharedmethod
+    # as a classmethod
+    assert A.foo() == 3
+
+    class B(A):
+        x = 5
+
+    assert B.foo() == 5

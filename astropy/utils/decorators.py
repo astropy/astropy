@@ -398,14 +398,14 @@ class sharedmethod(object):
         ...
         >>> ex = Example()
         >>> ex.identify(1, 2)
-        self was <astropy.utils.misc.Example object at 0x...>
+        self was <astropy.utils.decorators.Example object at 0x...>
         additional args were (1, 2)
 
     In the latter case, when the `sharedmethod` is called directly from a
     class, it behaves like a `classmethod`::
 
         >>> Example.identify(3, 4)
-        self was <class 'astropy.utils.misc.Example'>
+        self was <class 'astropy.utils.decorators.Example'>
         additional args were (3, 4)
 
     This also supports a more advanced usage, where the `classmethod`
@@ -432,38 +432,30 @@ class sharedmethod(object):
     """
 
     def __init__(self, func):
-        self._func = func
-        self._instancemethod = None
-        self._classmethod = None
+        self.__func__ = func
 
     def __get__(self, obj, objtype=None):
         if obj is None:
-            if self._classmethod is None:
-                mcls = type(objtype)
-                clsmeth = getattr(mcls, self._func.__name__, None)
-                if callable(clsmeth):
-                    func = clsmeth
-                else:
-                    func = self._func
+            mcls = type(objtype)
+            clsmeth = getattr(mcls, self.__func__.__name__, None)
+            if callable(clsmeth):
+                func = clsmeth
+            else:
+                func = self.__func__
 
-                self._classmethod = self._make_wrapper(func, objtype)
-
-            return self._classmethod
+            return self._make_method(func, objtype)
         else:
-            if self._instancemethod is None:
-                self._instancemethod = self._make_wrapper(self._func, obj)
-
-            return self._instancemethod
+            return self._make_method(self.__func__, obj)
 
     if six.PY3:
         # The 'instancemethod' type of Python 2 and the method type of
         # Python 3 have slightly different constructors
         @staticmethod
-        def _make_wrapper(func, instance):
+        def _make_method(func, instance):
             return types.MethodType(func, instance)
     else:
         @staticmethod
-        def _make_wrapper(func, instance):
+        def _make_method(func, instance):
             return types.MethodType(func, instance, type(instance))
 
 
