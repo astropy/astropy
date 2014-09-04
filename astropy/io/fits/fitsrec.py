@@ -758,11 +758,11 @@ class FITS_rec(np.recarray):
             # See if the dimensions already match, if not, make sure the
             # number items will fit in the specified dimensions
             if field.ndim > 1:
-                actual_shape = field[0].shape
+                actual_shape = field.shape[1:]
                 if _str:
-                    actual_shape = (field[0].itemsize,) + actual_shape
+                    actual_shape = (field.itemsize,) + actual_shape
             else:
-                actual_shape = len(field[0])
+                actual_shape = field.shape[0]
 
             if dim == actual_shape:
                 # The array already has the correct dimensions, so we

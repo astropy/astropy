@@ -2136,6 +2136,19 @@ class TestTableFunctions(FitsTestCase):
                 zwc_pl = pickle.loads(zwc_pd)
                 assert comparerecords(zwc_pl, zwc[2].data)
 
+    def test_zero_length_table(self):
+        array = np.array([], dtype=[
+            ('a', 'i8'),
+            ('b', 'S64'),
+            ('c', ('i4', (3, 2)))])
+        hdu = fits.BinTableHDU(array)
+        assert hdu.header['NAXIS1'] == 96
+        assert hdu.header['NAXIS2'] == 0
+        assert hdu.header['TDIM3'] == '(2,3)'
+
+        field = hdu.data.field(1)
+        assert field.shape == (0,)
+
 
 class TestVLATables(FitsTestCase):
     """Tests specific to tables containing variable-length arrays."""
