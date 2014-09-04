@@ -421,6 +421,9 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
 
         try:
             name, obj, parent = import_by_name(name)
+        except ValueError:
+            # This exception is to accomodate v1.2.2 and v1.2.3 of Sphinx
+            name, obj, parent, module_name = import_by_name(name)
         except ImportError, e:
             warn('[automodsumm] failed to import %r: %s' % (name, e))
             continue
