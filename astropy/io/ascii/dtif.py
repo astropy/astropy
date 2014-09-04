@@ -11,33 +11,121 @@ from ...utils import OrderedDict
 
 from . import core
 
+def _construct_odict(load, node):
+    """
+    Construct OrderedDict from !!omap in yaml safe load.
 
-def _decode_list(data):
-    rv = []
-    for item in data:
-        if isinstance(item, unicode):
-            item = item.encode('utf-8')
-        elif isinstance(item, list):
-            item = _decode_list(item)
-        elif isinstance(item, dict):
-            item = _decode_dict(item)
-        rv.append(item)
-    return rv
+    Source: https://gist.github.com/weaver/317164
+    License: Unspecified
+
+    This is the same as SafeConstructor.construct_yaml_omap(),
+    except the data type is changed to OrderedDict() and setitem is
+    used instead of append in the loop
+
+    Examples
+    --------
+    ::
+
+      >>> yaml.load('''
+      ... !!omap
+      ... - foo: bar
+      ... - mumble: quux
+      ... - baz: gorp
+      ... ''')
+      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
+
+      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')
+      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
+    """
+
+    omap = OrderedDict()
+    yield omap
+    if not isinstance(node, yaml.SequenceNode):
+        raise yaml.constructor.ConstructorError(
+            "while constructing an ordered map",
+            node.start_mark,
+            "expected a sequence, but found %s" % node.id, node.start_mark
+        )
+    for subnode in node.value:
+        if not isinstance(subnode, yaml.MappingNode):
+            raise yaml.constructor.ConstructorError(
+                "while constructing an ordered map", node.start_mark,
+                "expected a mapping of length 1, but found %s" % subnode.id,
+                subnode.start_mark
+            )
+        if len(subnode.value) != 1:
+            raise yaml.constructor.ConstructorError(
+                "while constructing an ordered map", node.start_mark,
+                "expected a single mapping item, but found %d items" % len(subnode.value),
+                subnode.start_mark
+            )
+        key_node, value_node = subnode.value[0]
+        key = load.construct_object(key_node)
+        value = load.construct_object(value_node)
+        omap[key] = value
 
 
-def _decode_dict(data):
-    rv = OrderedDict()
-    for key, value in data.iteritems():
-        if isinstance(key, unicode):
-            key = key.encode('utf-8')
-        if isinstance(value, unicode):
-            value = value.encode('utf-8')
-        elif isinstance(value, list):
-            value = _decode_list(value)
-        elif isinstance(value, dict):
-            value = _decode_dict(value)
-        rv[key] = value
-    return rv
+def _repr_pairs(dump, tag, sequence, flow_style=None):
+    """
+    This is the same code as BaseRepresenter.represent_sequence(),
+    but the value passed to dump.represent_data() in the loop is a
+    dictionary instead of a tuple.
+
+    Source: https://gist.github.com/weaver/317164
+    License: Unspecified
+    """
+
+    value = []
+    node = yaml.SequenceNode(tag, value, flow_style=flow_style)
+    if dump.alias_key is not None:
+        dump.represented_objects[dump.alias_key] = node
+    best_style = True
+    for (key, val) in sequence:
+        item = dump.represent_data({key: val})
+        if not (isinstance(item, yaml.ScalarNode) and not item.style):
+            best_style = False
+        value.append(item)
+    if flow_style is None:
+        if dump.default_flow_style is not None:
+            node.flow_style = dump.default_flow_style
+        else:
+            node.flow_style = best_style
+    return node
+
+
+def _repr_odict(dumper, data):
+    """
+    Represent OrderedDict in yaml dump.
+
+    Source: https://gist.github.com/weaver/317164
+    License: Unspecified
+
+    >>> data = OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
+    >>> yaml.dump(data, default_flow_style=False)
+    '!!omap\\n- foo: bar\\n- mumble: quux\\n- baz: gorp\\n'
+    >>> yaml.dump(data, default_flow_style=True)
+    '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
+    """
+    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.iteritems())
+
+class OdictDumper(yaml.Dumper):
+    """
+    Custom Dumper that represents OrderedDict as an !!omap object.
+    This does nothing but provide a namespace for a adding the
+    custom odict representer.
+    """
+
+OdictDumper.add_representer(OrderedDict, _repr_odict)
+
+
+class OdictLoader(yaml.Loader):
+    """
+    Custom Loader that constructs OrderedDict from an !!omap object.
+    This does nothing but provide a namespace for a adding the
+    custom odict constructor.
+    """
+
+OdictLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
 
 
 def _get_col_attributes(col):
@@ -45,13 +133,17 @@ def _get_col_attributes(col):
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
-    attrs = OrderedDict()
+    attrs = {}
     attrs['name'] = col.name
-    attrs['unit'] = str(col.unit)
-    attrs['format'] = col.format
-    attrs['description'] = col.description
     attrs['type'] = col.dtype.type.__name__
-    attrs['meta'] = col.meta
+    if col.unit:
+        attrs['unit'] = str(col.unit)
+    if col.format:
+        attrs['format'] = col.format
+    if col.description:
+        attrs['description'] = col.description
+    if col.meta:
+        attrs['meta'] = col.meta
 
     return attrs
 
@@ -81,15 +173,13 @@ class DtifHeader(core.BaseHeader):
         column names are repeated again, for humans and readers that look
         for the *last* comment line as defining the column names.
         """
-        meta = OrderedDict()
-        meta['version'] = 1.0
-        meta['schema'] = 'astropy.table'
-        meta['table_meta'] = self.table_meta
+        meta = {}
+        if self.table_meta:
+            meta['table_meta'] = self.table_meta
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
-        outs = ['<DTIF encoding=ascii>']
-        meta_yaml = yaml.dump(meta)  # , indent=2, separators=(',', ': '))
-        outs.extend(meta_yaml.splitlines())
+        meta_yaml = yaml.dump(meta, Dumper=OdictDumper)
+        outs = meta_yaml.splitlines()
 
         lines.extend([self.write_comment + line for line in outs])
         lines.append(self.splitter.join([x.name for x in self.cols]))
@@ -103,27 +193,23 @@ class DtifHeader(core.BaseHeader):
         # Extract non-blank comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
-        m = re.match(r'< \s* DTIF \s+ encoding=(\S+) \s* >', lines[0], re.VERBOSE)
-        if not m:
-            raise core.InconsistentTableError('DTIF file must start with "# <DTIF encoding=[encoding]>')
-        # encoding = m.group(1)  # Nothing done with encoding at the moment
-
         # Now actually load the YAML data structure into `meta`
-        meta_yaml = '\n'.join(lines[1:])
-        meta = yaml.loads(meta_yaml, object_pairs_hook=OrderedDict)
-        meta = _decode_dict(meta)
-        self.table_meta = meta['table_meta']
+        meta_yaml = '\n'.join(lines)
+        meta = yaml.load(meta_yaml, Loader=OdictLoader)
+        if 'table_meta' in meta:
+            self.table_meta = meta['table_meta']
 
         # Create the list of io.ascii column objects from `meta`
         meta_cols = OrderedDict((x['name'], x) for x in meta['columns'])
-        self.names = meta_cols.keys()
+        self.names = [x['name'] for x in meta['columns']]
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
             for attr in ('description', 'format', 'unit', 'meta'):
-                setattr(col, attr, meta_cols[col.name][attr])
+                if attr in meta_cols[col.name]:
+                    setattr(col, attr, meta_cols[col.name][attr])
             col.dtype = meta_cols[col.name]['type']
 
 
