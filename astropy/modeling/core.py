@@ -272,6 +272,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
             def __call__(self, *inputs, **kwargs):
+                """Evaluate this model on the supplied inputs."""
+
                 return super(cls, self).__call__(*inputs, **kwargs)
 
             args = ('self',) + inputs
