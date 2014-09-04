@@ -80,7 +80,7 @@ def extract_array_2d(array_large, shape, position):
     array of ones with a shape of 3x4:
 
     >>> import numpy as np
-    >>> from photutils.utils import extract_array_2d
+    >>> from imageutils.array_utils import extract_array_2d
     >>> large_array = np.zeros((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
     >>> extract_array_2d(large_array, (3, 4), (7, 7))
