@@ -1615,11 +1615,22 @@ def _make_compound_model(left, right, operator):
     else:
         modname = '__main__'
 
+    # TODO: These aren't the full rules for handling inputs and outputs, but
+    # this will handle most basic cases correctly
+    if operator == '|':
+        inputs = left.inputs
+        outputs = right.outputs
+    else:
+        # Without loss of generality
+        inputs = left.inputs
+        outputs = left.outputs
+
+
     members = {'_tree': tree,
                # TODO: These are temporary until we implement the full rules
                # for handling inputs/outputs
-               'inputs': left.inputs,
-               'outputs': left.outputs,
+               'inputs': inputs,
+               'outputs': outputs,
                '__module__': modname}
 
     return _CompoundModelMeta(name, (_CompoundModel,), members)
