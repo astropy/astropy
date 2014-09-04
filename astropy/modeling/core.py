@@ -1694,7 +1694,7 @@ def _make_binary_arith_oper(oper, f, g):
 
 @six.add_metaclass(_CompoundModelMeta)
 class _CompoundModel(Model):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         # TODO: Just as a quick prototype, pass args off as parameters to
         # individual submodels; there are a myriad ways we can make this more
         # sophisticated later...
@@ -1723,6 +1723,7 @@ class _CompoundModel(Model):
         # TODO: This is temporary while prototyping
         self._model_set_axis = 0
         self._n_models = 1
+        self._name = kwargs.pop('name', None)
 
     @property
     def param_sets(self):
