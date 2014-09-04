@@ -21,6 +21,9 @@ Bug Fixes
   - Fixed crash when reading gzip-compressed FITS tables through the Astropy
     ``Table`` interface. [#2783]
 
+  - It is now possible to create ``astropy.io.fits.BinTableHDU``
+    objects with a table with zero rows. [#2916]
+
 - ``astropy.io.misc``
 
   - Fixed a bug that prevented h5py ``Dataset`` objects from being
