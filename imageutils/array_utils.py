@@ -81,12 +81,12 @@ def extract_array_2d(array_large, shape, position):
 
     >>> import numpy as np
     >>> from imageutils.array_utils import extract_array_2d
-    >>> large_array = np.zeros((11, 10))
+    >>> large_array = np.arange(110).reshape((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
     >>> extract_array_2d(large_array, (3, 4), (7, 7))
-    array([[ 1.,  1.,  1.,  1.,  0.],
-           [ 1.,  1.,  1.,  1.,  0.],
-           [ 1.,  1.,  1.,  1.,  0.]])
+    array([[65, 66, 67, 68, 69],
+           [75, 76, 77, 78, 79],
+           [85, 86, 87, 88, 89]])
     """
     # Check if larger array is really larger
     if array_large.shape >= shape:
