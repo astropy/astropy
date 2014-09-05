@@ -296,6 +296,11 @@ use ReST.
     then go to the project settings, and under **Versions** you should see the
     tag you just pushed. Select the tag to activate it, and save.
 
+.. note:: The instructions above assume that you do not make use of bug fix
+          branches in your workflow. If you do wish to create a bug fix branch,
+          we recommend that you read over the more complete astropy
+          :doc:`releasing` and adapt these for your package.
+
 .. _git: http://git-scm.com/
 .. _github: http://github.com
 .. _Cython: http://cython.org/
