@@ -4,9 +4,7 @@ Define the Data-table Text Interchange Format DTIF which allows for reading and
 writing all the meta data associated with an astropy Table object.
 """
 
-import textwrap
 import re
-import yaml
 
 from ...utils import OrderedDict
 
@@ -79,6 +77,7 @@ def _construct_odict(load, node):
       >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')
       OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
+    import yaml
 
     omap = OrderedDict()
     yield omap
@@ -116,6 +115,7 @@ def _repr_pairs(dump, tag, sequence, flow_style=None):
     Source: https://gist.github.com/weaver/317164
     License: Unspecified
     """
+    import yaml
 
     value = []
     node = yaml.SequenceNode(tag, value, flow_style=flow_style)
@@ -160,27 +160,6 @@ def _repr_column_dict(dumper, data):
     columns.
     """
     return dumper.represent_mapping(u'tag:yaml.org,2002:map', data)
-
-
-class TableDumper(yaml.Dumper):
-    """
-    Custom Dumper that represents OrderedDict as an !!omap object.
-    This does nothing but provide a namespace for a adding the
-    custom odict representer.
-    """
-
-TableDumper.add_representer(OrderedDict, _repr_odict)
-TableDumper.add_representer(ColumnDict, _repr_column_dict)
-
-
-class TableLoader(yaml.SafeLoader):
-    """
-    Custom Loader that constructs OrderedDict from an !!omap object.
-    This does nothing but provide a namespace for a adding the
-    custom odict constructor.
-    """
-
-TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
 
 
 def _get_col_attributes(col):
@@ -228,6 +207,21 @@ class DtifHeader(core.BaseHeader):
         column names are repeated again, for humans and readers that look
         for the *last* comment line as defining the column names.
         """
+        try:
+            import yaml
+        except ImportError:
+            raise ImportError('`import yaml` failed, PyYAML package is required for DTIF format')
+
+        class TableDumper(yaml.Dumper):
+            """
+            Custom Dumper that represents OrderedDict as an !!omap object.
+            This does nothing but provide a namespace for a adding the
+            custom odict representer.
+            """
+
+        TableDumper.add_representer(OrderedDict, _repr_odict)
+        TableDumper.add_representer(ColumnDict, _repr_column_dict)
+
         meta = {}
         if self.table_meta:
             meta['table_meta'] = self.table_meta
@@ -246,6 +240,23 @@ class DtifHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: None (but sets self.cols)
         """
+        import textwrap
+        try:
+            import yaml
+        except ImportError:
+            raise ImportError('`import yaml` failed, PyYAML package is required for DTIF format')
+
+        class TableLoader(yaml.SafeLoader):
+            """
+            Custom Loader that constructs OrderedDict from an !!omap object.
+            This does nothing but provide a namespace for a adding the
+            custom odict constructor.
+            """
+
+        TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
+
+
+
         # Extract non-blank comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
