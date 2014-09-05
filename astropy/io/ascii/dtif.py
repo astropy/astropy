@@ -4,6 +4,7 @@ Define the Data-table Text Interchange Format DTIF which allows for reading and
 writing all the meta data associated with an astropy Table object.
 """
 
+import textwrap
 import re
 import yaml
 
@@ -233,7 +234,7 @@ class DtifHeader(core.BaseHeader):
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         meta_yaml = yaml.dump(meta, Dumper=TableDumper)
-        outs = ['%DTIF-1.0']
+        outs = ['%DTIF 1.0', '---']
         outs.extend(meta_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
@@ -249,19 +250,19 @@ class DtifHeader(core.BaseHeader):
         lines = list(self.process_lines(lines))
 
         # Validate that this is a DTIF file
-        dtif_header_re = r"""%DTIF -
+        dtif_header_re = r"""%DTIF [ ]
                              (?P<major> \d+)
                              \. (?P<minor> \d+)
                              \.? (?P<bugfix> \d+)? $"""
 
         match = re.match(dtif_header_re, lines[0].strip(), re.VERBOSE)
         if not match:
-            raise ValueError('DTIF header line like "%DTIF-1.0" not found as first line.'
+            raise ValueError('DTIF header line like "# %DTIF 1.0" not found as first line.'
                              '  This is required for a DTIF file.')
         # dtif_version could be constructed here, but it is not currently used.
 
         # Now actually load the YAML data structure into `meta`
-        meta_yaml = '\n'.join(lines[1:])
+        meta_yaml = textwrap.dedent('\n'.join(lines))
         meta = yaml.load(meta_yaml, Loader=TableLoader)
         if 'table_meta' in meta:
             self.table_meta = meta['table_meta']
