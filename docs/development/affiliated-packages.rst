@@ -284,7 +284,8 @@ use ReST.
 
     or, if you are concerned about security, you can also use ``twine`` as described
     in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
-    instructions.
+    instructions. Either way, check that the entry on PyPI is correct, and that
+    the tarfile is present.
 
 12. Go back to the master branch and push your changes to github::
 
