@@ -159,7 +159,7 @@ class DtifHeader(core.BaseHeader):
         for line in lines:
             match = re_comment.match(line)
             if match:
-                out = line[match.end():].strip()
+                out = line[match.end():]
                 if out:
                     yield out
 
