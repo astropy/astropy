@@ -11,6 +11,47 @@ from ...utils import OrderedDict
 
 from . import core
 
+class ColumnOrderList(list):
+    """
+    List of tuples that sorts in a specific order that makes sense for
+    astropy table column attributes.
+    """
+    def sort(self, cmp=None, key=None, reverse=False):
+        super(ColumnOrderList, self).sort(cmp, key, reverse)
+        column_keys = ['name', 'unit', 'type', 'format', 'description', 'meta']
+        in_dict = dict(self)
+        out_list = []
+
+        for key in column_keys:
+            if key in in_dict:
+                out_list.append((key, in_dict[key]))
+        for key, val in self:
+            if key not in column_keys:
+                out_list.append((key, val))
+
+        # Clear list (is there a better way?)
+        while True:
+            try:
+                self.pop()
+            except IndexError:
+                break
+
+        self.extend(out_list)
+
+class ColumnDict(dict):
+    """
+    Specialized dict subclass to represent attributes of a Column
+    and return items() in a preferred order.  This is only for use
+    in generating a YAML map representation that has a fixed order.
+    """
+
+    def items(self):
+        """
+        Return items as a ColumnOrderList, which sorts in the preferred
+        way for column attributes.
+        """
+        return ColumnOrderList(super(ColumnDict, self).items())
+
 def _construct_odict(load, node):
     """
     Construct OrderedDict from !!omap in yaml safe load.
@@ -108,24 +149,37 @@ def _repr_odict(dumper, data):
     """
     return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.iteritems())
 
-class OdictDumper(yaml.Dumper):
+
+def _repr_column_dict(dumper, data):
+    """
+    Represent ColumnDict in yaml dump.
+
+    This is the same as an ordinary mapping except that the keys
+    are written in a fixed order that makes sense for astropy table
+    columns.
+    """
+    return dumper.represent_mapping(u'tag:yaml.org,2002:map', data)
+
+
+class TableDumper(yaml.Dumper):
     """
     Custom Dumper that represents OrderedDict as an !!omap object.
     This does nothing but provide a namespace for a adding the
     custom odict representer.
     """
 
-OdictDumper.add_representer(OrderedDict, _repr_odict)
+TableDumper.add_representer(OrderedDict, _repr_odict)
+TableDumper.add_representer(ColumnDict, _repr_column_dict)
 
 
-class OdictLoader(yaml.SafeLoader):
+class TableLoader(yaml.SafeLoader):
     """
     Custom Loader that constructs OrderedDict from an !!omap object.
     This does nothing but provide a namespace for a adding the
     custom odict constructor.
     """
 
-OdictLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
+TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
 
 
 def _get_col_attributes(col):
@@ -133,7 +187,7 @@ def _get_col_attributes(col):
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
-    attrs = {}
+    attrs = ColumnDict()
     attrs['name'] = col.name
     attrs['type'] = col.dtype.type.__name__
     if col.unit:
@@ -178,7 +232,7 @@ class DtifHeader(core.BaseHeader):
             meta['table_meta'] = self.table_meta
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
-        meta_yaml = yaml.dump(meta, Dumper=OdictDumper)
+        meta_yaml = yaml.dump(meta, Dumper=TableDumper)
         outs = meta_yaml.splitlines()
 
         lines.extend([self.write_comment + line for line in outs])
@@ -195,7 +249,7 @@ class DtifHeader(core.BaseHeader):
 
         # Now actually load the YAML data structure into `meta`
         meta_yaml = '\n'.join(lines)
-        meta = yaml.load(meta_yaml, Loader=OdictLoader)
+        meta = yaml.load(meta_yaml, Loader=TableLoader)
         if 'table_meta' in meta:
             self.table_meta = meta['table_meta']
 
