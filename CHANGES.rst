@@ -212,6 +212,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - ``Angle`` accepts hours:mins or deg:mins initializers (without
+     seconds). In these cases float minutes are also accepted.
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

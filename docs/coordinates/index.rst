@@ -32,12 +32,14 @@ equivalent::
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
 
-    >>> c = SkyCoord(ra=10.5*u.degree, dec=41.2*u.degree, frame='icrs')
-    >>> c = SkyCoord(10.5, 41.2, 'icrs', unit='deg')
-    >>> c = SkyCoord('00h42m00s', '+41d12m00s', 'icrs')
-    >>> c = SkyCoord('00 42 00 +41 12 00', 'icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
+    >>> c = SkyCoord(10.625, 41.2, 'icrs', unit='deg')
+    >>> c = SkyCoord('00h42m30s', '+41d12m00s', 'icrs')
+    >>> c = SkyCoord('00h42.5m', '+41d12m', 'icrs')
+    >>> c = SkyCoord('00 42 30 +41 12 00', 'icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord('00:42.5 +41:12', 'icrs', unit=(u.hourangle, u.deg))
     >>> c
-    <SkyCoord (ICRS): ra=10.5 deg, dec=41.2 deg>
+    <SkyCoord (ICRS): ra=10.625 deg, dec=41.2 deg>
 
 The examples above illustrate a few simple rules to follow when creating a coordinate
 object:

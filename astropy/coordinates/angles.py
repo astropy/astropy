@@ -48,6 +48,8 @@ class Angle(u.Quantity):
       Angle(u'1°2′3″')
       Angle('1d2m3.4s')
       Angle('-1h2m3s')
+      Angle('-1h2.5m')
+      Angle('-1:2.5', unit=u.deg)
       Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
       Angle(10.2345 * u.deg)
       Angle(Angle(10.2345 * u.deg))
@@ -137,13 +139,12 @@ class Angle(u.Quantity):
     @staticmethod
     def _tuple_to_float(angle, unit):
         """
-        Converts an angle represented as a 3-tuple into a floating
+        Converts an angle represented as a 3-tuple or 2-tuple into a floating
         point number in the given unit.
         """
         if isinstance(angle, tuple):
             # TODO: Numpy array of tuples?
             if unit is u.hourangle:
-                util.check_hms_ranges(*angle)
                 angle = util.hms_to_hours(*angle)
             elif unit is u.degree:
                 angle = util.dms_to_degrees(*angle)
