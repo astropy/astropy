@@ -838,10 +838,12 @@ exact number of digits shown can differ.  Because doctests work by comparing
 strings this can cause such tests to fail.
 
 To address this issue Astropy's test framework includes support for a
-``FLOAT_CMP`` flag that can be used with doctests.  For example::
+``FLOAT_CMP`` flag that can be used with doctests.  For example:
 
-    >>> 1.0 / 3.0  # doctest: +FLOAT_CMP
-    0.333333333333333311
+.. code-block:: none
+
+  >>> 1.0 / 3.0  # doctest: +FLOAT_CMP
+  0.333333333333333311
 
 When this flag is used, the expected and actual outputs are both parsed to find
 any floating point values in the strings.  Those are then converted to actual
