@@ -233,7 +233,8 @@ class DtifHeader(core.BaseHeader):
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         meta_yaml = yaml.dump(meta, Dumper=TableDumper)
-        outs = meta_yaml.splitlines()
+        outs = ['%DTIF-1.0']
+        outs.extend(meta_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
         lines.append(self.splitter.join([x.name for x in self.cols]))
@@ -247,8 +248,20 @@ class DtifHeader(core.BaseHeader):
         # Extract non-blank comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
+        # Validate that this is a DTIF file
+        dtif_header_re = r"""%DTIF -
+                             (?P<major> \d+)
+                             \. (?P<minor> \d+)
+                             \.? (?P<bugfix> \d+)? $"""
+
+        match = re.match(dtif_header_re, lines[0].strip(), re.VERBOSE)
+        if not match:
+            raise ValueError('DTIF header line like "%DTIF-1.0" not found as first line.'
+                             '  This is required for a DTIF file.')
+        # dtif_version could be constructed here, but it is not currently used.
+
         # Now actually load the YAML data structure into `meta`
-        meta_yaml = '\n'.join(lines)
+        meta_yaml = '\n'.join(lines[1:])
         meta = yaml.load(meta_yaml, Loader=TableLoader)
         if 'table_meta' in meta:
             self.table_meta = meta['table_meta']
