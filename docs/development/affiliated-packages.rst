@@ -214,13 +214,13 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the changelog file is named ``CHANGES``, but your
-file may be named ``CHANGES.md`` if you use Markdown, or ``CHANGES.rst`` if you
-use ReST.
+instructions, we assume that the changelog file is named ``CHANGES.rst``, like
+for the astropy core package. If instead you use Markdown, then you should
+replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
 1. Make sure that Travis and any other continuous integration is passing.
 
-2. Update the ``CHANGES`` file to make sure that all the changes are listed,
+2. Update the ``CHANGES.rst`` file to make sure that all the changes are listed,
    and update the release date, which should currently be set to
    ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
@@ -248,9 +248,9 @@ use ReST.
 
         git clean -fxd
 
-7. Add the changes to ``CHANGES`` and ``setup.py``::
+7. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
-        git add CHANGES setup.py
+        git add CHANGES.rst setup.py
 
    and commit with message::
 
@@ -262,16 +262,16 @@ use ReST.
 
 9. Change ``VERSION`` in ``setup.py`` to next version number, but with a
    ``.dev`` suffix at the end (e.g. ``v0.2.dev``). Add a new section to
-   ``CHANGES`` for next version, with a single entry ``No changes yet``, e.g.::
+   ``CHANGES.rst`` for next version, with a single entry ``No changes yet``, e.g.::
    
        0.2 (unreleased)
        ----------------
    
        - No changes yet
 
-10. Add the changes to ``CHANGES`` and ``setup.py``::
+10. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
-        git add CHANGES setup.py
+        git add CHANGES.rst setup.py
 
     and commit with message::
 
