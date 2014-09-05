@@ -580,13 +580,11 @@ class Table(object):
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         max_lines=5000,
                         jsviewer=False,
-                        jskwargs={},
+                        jskwargs={'use_local_files': True},
                         tableid=None,
                         browser='default'):
         """
-        Render the table in HTML and show it in a web browser.  In order to
-        make a persistent html file, i.e. one that survives refresh, the
-        returned file object must be kept in memory.
+        Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
@@ -612,45 +610,30 @@ class Table(object):
             ``'safari'`` (for mac, you may need to use ``'open -a
             "/Applications/Google Chrome.app" %s'`` for Chrome).  If
             ``'default'``, will use the system default browser.
-
-        Returns
-        -------
-        file :
-            A `~tempfile.NamedTemporaryFile` object pointing to the
-            html file on disk.
         """
+
+        import os
         import webbrowser
         import tempfile
-        from .jsviewer import JSViewer
 
-        tmp = tempfile.NamedTemporaryFile(suffix='.html')
+        # We can't use NamedTemporaryFile here because it gets deleted as
+        # soon as it gets garbage collected.
 
-        if tableid is None:
-            tableid = 'table{id}'.format(id=id(self))
-        linelist = self.pformat(html=True, max_width=np.inf,
-                                max_lines=max_lines, tableid=tableid)
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, 'table.html')
 
-        if jsviewer:
-            jsv = JSViewer(**jskwargs)
-            js = jsv.command_line(tableid=tableid)
-        else:
-            js = []
+        with open(path, 'w') as tmp:
 
-        css = ["<style>{0}</style>".format(css)]
-        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
+            if jsviewer:
+                self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
+                           jskwargs=jskwargs, table_id=tableid)
+            else:
+                self.write(tmp, format='html')
 
-        try:
-            tmp.write(html)
-        except TypeError:
-            tmp.write(html.encode('utf8'))
-        tmp.flush()
-
-        if browser == 'default':
-            webbrowser.open("file://" + tmp.name)
-        else:
-            webbrowser.get(browser).open("file://" + tmp.name)
-
-        return tmp
+            if browser == 'default':
+                webbrowser.open("file://" + path)
+            else:
+                webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, html=False, tableid=None):

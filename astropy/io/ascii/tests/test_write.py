@@ -172,19 +172,21 @@ table,th,td{border:1px solid black;  </style>
  </head>
  <body>
   <table>
-   <tr>
-    <th>ID</th>
-    <th>XCENTER</th>
-    <th>YCENTER</th>
-    <th>MAG</th>
-    <th>MERR</th>
-    <th>MSKY</th>
-    <th>NITER</th>
-    <th>SHARPNESS</th>
-    <th>CHI</th>
-    <th>PIER</th>
-    <th>PERROR</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>ID</th>
+     <th>XCENTER</th>
+     <th>YCENTER</th>
+     <th>MAG</th>
+     <th>MERR</th>
+     <th>MSKY</th>
+     <th>NITER</th>
+     <th>SHARPNESS</th>
+     <th>CHI</th>
+     <th>PIER</th>
+     <th>PERROR</th>
+    </tr>
+   </thead>
    <tr>
     <td>14</td>
     <td>138.538</td>

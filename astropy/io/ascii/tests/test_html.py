@@ -381,11 +381,13 @@ def test_multicolumn_write():
  </head>
  <body>
   <table>
-   <tr>
-    <th>C1</th>
-    <th colspan="2">C2</th>
-    <th colspan="3">C3</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th colspan="2">C2</th>
+     <th colspan="3">C3</th>
+    </tr>
+   </thead>
    <tr>
     <td>1</td>
     <td>1.0</td>
@@ -435,11 +437,13 @@ def test_write_no_multicols():
  </head>
  <body>
   <table>
-   <tr>
-    <th>C1</th>
-    <th>C2</th>
-    <th>C3</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th>C2</th>
+     <th>C3</th>
+    </tr>
+   </thead>
    <tr>
     <td>1</td>
     <td>1.0 .. 1.0</td>
