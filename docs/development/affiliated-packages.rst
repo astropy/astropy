@@ -214,15 +214,18 @@ Releasing an affiliated package
 ===============================
 
 You can release an affiliated package using the steps given below. In these
-instructions, we assume that the changelog file is named ``CHANGES``, but you
-can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
+instructions, we assume that the changelog file is named ``CHANGES``, but your
+file may be named ``CHANGES.md`` if you use Markdown, or ``CHANGES.rst`` if you
+use ReST.
 
 1. Make sure that Travis and any other continuous integration is passing.
 
 2. Update the ``CHANGES`` file to make sure that all the changes are listed,
-   and update ``unreleased`` to the current date.
+   and update the release date, which should currently be set to
+   ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
-3. Update the version number in ``setup.py`` to ``v0.x`` (without the ``dev``)
+3. Update the version number in ``setup.py`` to the version you're about to
+   release, without the ``.dev`` suffix (e.g. ``v0.1``).
 
 4. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
    permanently remove any files that have not been previously committed, so
@@ -234,7 +237,7 @@ can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
 
    and make sure that generated file is good to
    go by going inside ``dist``, expanding the tar file, going inside the
-   ``wcsaxes-x.x`` directory, and running the tests with::
+   expanded directory, and running the tests with::
 
         python setup.py test
 
@@ -257,19 +260,25 @@ can replace this with ``CHANGES.md`` or ``CHANGES.rst`` as appropriate.
 
         git tag v<version>
 
-9. Change ``VERSION`` in ``setup.py`` to next one with ``.dev``. Add a new
-   section to ``CHANGES.md`` for next version, with a single entry, ``- No changes yet``.
+9. Change ``VERSION`` in ``setup.py`` to next version number, but with a
+   ``.dev`` suffix at the end (e.g. ``v0.2.dev``). Add a new section to
+   ``CHANGES`` for next version, with a single entry ``No changes yet``, e.g.::
+   
+       0.2 (unreleased)
+       ----------------
+   
+       - No changes yet
 
-10. Add the changes to ``CHANGES.md`` and ``setup.py``::
+10. Add the changes to ``CHANGES`` and ``setup.py``::
 
-        git add CHANGES.md setup.py
+        git add CHANGES setup.py
 
     and commit with message::
 
         git commit -m "Back to development: <next_version>"
 
 11. Check out the release commit with ``git checkout v<version>``. Run ``git
-clean -fxd`` to remove any non-committed files, then either release with::
+    clean -fxd`` to remove any non-committed files, then either release with::
 
         python setup.py register sdist --format=gztar upload
 
