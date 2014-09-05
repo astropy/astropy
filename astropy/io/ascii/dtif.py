@@ -118,7 +118,7 @@ class OdictDumper(yaml.Dumper):
 OdictDumper.add_representer(OrderedDict, _repr_odict)
 
 
-class OdictLoader(yaml.Loader):
+class OdictLoader(yaml.SafeLoader):
     """
     Custom Loader that constructs OrderedDict from an !!omap object.
     This does nothing but provide a namespace for a adding the
