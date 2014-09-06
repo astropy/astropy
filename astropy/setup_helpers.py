@@ -50,6 +50,8 @@ from .utils.exceptions import AstropyDeprecationWarning
 
 from .extern import six
 
+warnings.warn("The astropy.setup_helpers module has been deprecated, use astropy-helpers.setup_helpers instead", AstropyDeprecationWarning)
+
 
 try:
     import Cython

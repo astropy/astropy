@@ -23,6 +23,8 @@ import tempfile
 import types
 import warnings
 
+from ..utils.exceptions import AstropyDeprecationWarning
+
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
@@ -593,6 +595,9 @@ class astropy_test(Command, object):
     package_name = None
 
     def initialize_options(self):
+
+        warnings.warn("The astropy.tests.helper.astropy_test class has been deprecated, use astropy-helpers.astropy_test instead", AstropyDeprecationWarning)
+
         self.package = None
         self.test_path = None
         self.verbose_results = False

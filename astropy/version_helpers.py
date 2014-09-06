@@ -36,6 +36,10 @@ import sys
 from distutils import log
 from warnings import warn
 
+from .utils.exceptions import AstropyDeprecationWarning
+
+warn("The astropy.version_helpers module has been deprecated, use astropy-helpers.version_helpers instead", AstropyDeprecationWarning)
+
 
 def _version_split(version):
     """
