@@ -8,3 +8,8 @@ documentation.  In particular, the `astropy.sphinx.conf` should be imported by
 the sphinx ``conf.py`` file for affiliated packages that wish to make use of
 the Astropy documentation format.
 """
+
+import warnings
+from ..utils.exceptions import AstropyDeprecationWarning
+
+warnings.warn("The astropy.sphinx module has been deprecated, use astropy-helpers.sphinx instead", AstropyDeprecationWarning)

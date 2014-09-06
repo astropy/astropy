@@ -283,6 +283,11 @@ Other Changes and Additions
   printed when a format was specified, the column format string options were
   expanded to allow simple specifiers such as ``'5.2f'``. [#2898]
 
+- The ``astropy.setup_helpers``, ``astropy.sphinx``, and
+  ``astropy.version_helpers`` as well as the
+  ``astropy.tests.helper.astropy_test`` class have now been deprecated.
+  Developers making use of these should use those from ``astropy-helpers``
+  instead. [#2921]
 
 0.4.1 (2014-08-08)
 ------------------
